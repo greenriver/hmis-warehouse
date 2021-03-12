@@ -35,7 +35,7 @@ module Health
       @state = :valid
       @state = :expired if @doc.expired?
       @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_request], client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash])
-      @careplan_link = download_careplan_window_client_health_careplan_aco_signature_request_path(client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash])
+      @careplan_link = download_careplan_client_health_careplan_aco_signature_request_path(client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash])
     end
 
     def download_careplan
@@ -269,7 +269,7 @@ module Health
     end
 
     def set_careplan_download_url
-      @careplan_link = download_careplan_window_client_health_careplan_aco_signature_request_path(client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash])
+      @careplan_link = download_careplan_client_health_careplan_aco_signature_request_path(client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash])
     end
 
     def require_matching_hash!

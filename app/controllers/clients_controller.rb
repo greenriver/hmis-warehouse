@@ -25,60 +25,10 @@ class ClientsController < ApplicationController
   before_action :set_potential_matches, only: [:edit]
   # This should no longer be needed
   # We can rely on searchable_by and viewable_by scopes on Client
-  before_action :check_release, only: [:show]
+  # before_action :check_release, only: [:show]
   after_action :log_client, only: [:show, :edit, :merge, :unmerge]
 
   helper_method :sort_column, :sort_direction
-
-  def index
-    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
-    # search
-    @clients = client_scope.none
-    if (current_user.can_access_window_search? || current_user.can_access_client_search?) && params[:q].present?
-      @clients = client_source.text_search(params[:q], client_scope: client_search_scope)
-    elsif current_user.can_use_strict_search?
-      @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
-    end
-    preloads = [
-      :processed_service_history,
-      :vispdats,
-      source_clients: :data_source,
-      non_confidential_user_clients: :user,
-    ]
-    if health_emergency?
-      preloads += [
-        :health_emergency_ama_restrictions,
-        :health_emergency_triages,
-        :health_emergency_tests,
-        :health_emergency_isolations,
-        :health_emergency_quarantines,
-      ]
-    end
-    if healthcare_available?
-      preloads += [
-        :patient,
-      ]
-    end
-
-    @clients = @clients.
-      distinct.
-      preload(preloads)
-
-    @clients = @clients.page(params[:page]).per(20)
-
-    if current_user.can_access_window_search? || current_user.can_access_client_search?
-      sort_filter_index
-    elsif current_user.can_use_strict_search?
-      @client = client_source.new(strict_search_params)
-      render 'strict_search'
-    end
-  end
-
-  def show
-    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
-    log_item(@client)
-    @note = GrdaWarehouse::ClientNotes::Base.new
-  end
 
   def edit
     @search_clients = client_source.text_search(params[:q], client_scope: client_source).where.not(id: @client.id).limit(50) if params[:q].present?
@@ -181,15 +131,6 @@ class ClientsController < ApplicationController
     end
   end
 
-  def simple
-  end
-
-  # It can be expensive to calculate the appropriate link to show a user for a batch of clients
-  # instead, just provide one where we can make that determination on a per-client basis
-  def appropriate
-    redirect_to @client.appropriate_path_for?(current_user)
-  end
-
   # This is only valid for Potentially chronic (not HUD Chronic)
   def chronic_days
     days = @client.
@@ -204,26 +145,6 @@ class ClientsController < ApplicationController
         render json: days
       end
     end
-  end
-
-  def image
-    max_age = if request.headers['Cache-Control'].to_s.include? 'no-cache'
-      0
-    else
-      30.minutes
-    end
-    response.headers['Last-Modified'] = Time.zone.now.httpdate
-    expires_in max_age, public: false
-    image = @client.image(max_age)
-    if image && ! Rails.env.test?
-      send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
-    else
-      head(:forbidden)
-      nil
-    end
-  end
-
-  def enrollment_details
   end
 
   protected def client_source

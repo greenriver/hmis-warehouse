@@ -91,6 +91,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(service_scannable: true)
   end
 
+  scope :visible_in_window, -> do
+    where(visible_in_window: true)
+  end
+
   scope :visible_in_window_to, ->(user) do
     return none unless user
 

@@ -8,12 +8,20 @@ class ClientAccessControl::ClientsController < ApplicationController
   include AjaxModalRails::Controller
   # include ClientController
   include ClientAccessControl::SearchConcern
+  include ClientAccessControl::ClientConcern
   include ArelHelper
   include ClientPathGenerator
 
   helper ClientHelper
 
   before_action :require_can_access_some_client_search!, only: [:index, :simple]
+  before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
+  before_action :require_can_view_enrollment_details_tab!, only: [:enrollment_details]
+  before_action :require_can_see_this_client_demographics!, except: [:index, :simple, :appropriate]
+  before_action :set_client, only: [:show, :service_range, :rollup, :image, :enrollment_details]
+  before_action :set_search_client, only: [:simple, :appropriate]
+  before_action :set_client_start_date, only: [:show, :rollup]
+  after_action :log_client, only: [:show]
 
   def index
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
@@ -57,6 +65,41 @@ class ClientAccessControl::ClientsController < ApplicationController
       @client = client_source.new(strict_search_params)
       render 'strict_search'
     end
+  end
+
+  def show
+    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
+    log_item(@client)
+    @note = GrdaWarehouse::ClientNotes::Base.new
+  end
+
+  def simple
+  end
+
+  # It can be expensive to calculate the appropriate link to show a user for a batch of clients
+  # instead, just provide one where we can make that determination on a per-client basis
+  def appropriate
+    redirect_to @client.appropriate_path_for?(current_user)
+  end
+
+  def image
+    max_age = if request.headers['Cache-Control'].to_s.include? 'no-cache'
+      0
+    else
+      30.minutes
+    end
+    response.headers['Last-Modified'] = Time.zone.now.httpdate
+    expires_in max_age, public: false
+    image = @client.image(max_age)
+    if image && ! Rails.env.test?
+      send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
+    else
+      head(:forbidden)
+      nil
+    end
+  end
+
+  def enrollment_details
   end
 
   private def client_source
