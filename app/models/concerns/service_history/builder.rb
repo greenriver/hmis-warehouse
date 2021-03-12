@@ -76,7 +76,7 @@ module ServiceHistory::Builder
       GrdaWarehouse::Hud::Enrollment.with_advisory_lock(ADVISORY_LOCK_NAME) do
         # Force rebuilds for any clients with invalidated service histories
         client_ids.each do |client_id|
-          client = GrdaWarehouse::Hud::Client.destination.find(client_id)
+          client = GrdaWarehouse::Hud::Client.destination.find_by(id: client_id)
           next if client.blank?
 
           client.force_full_service_history_rebuild if client.service_history_invalidated?
