@@ -44,8 +44,8 @@ module GrdaWarehouse::Tasks
 
         v = row[column.downcase]
         checks.each do |check|
-          field_valid = if check[:length].present?
-            send(check[:check], v, check[:length])
+          field_valid = if check[:limit].present?
+            send(check[:check], v, check[:limit])
           else
             send(check[:check], v)
           end
@@ -89,11 +89,11 @@ module GrdaWarehouse::Tasks
             check: :money_check,
           }
         end
-        if structure[:length].present?
+        if structure[:limit].present?
           validation_methods << {
             error_message: 'Over-length',
             check: :length_check,
-            length: structure[:length],
+            limit: structure[:limit],
           }
         end
         if structure.key?(:null) && structure[:null] == false
@@ -144,7 +144,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def length_check(value, length)
-      value.to_s.length > length
+      value.to_s.length <= length
     end
 
     private def required_field(value)
