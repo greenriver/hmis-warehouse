@@ -50,6 +50,7 @@ module HMIS::Structure::IncomeBenefit
           EarnedAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           Unemployment: {
             type: :integer,
@@ -57,6 +58,7 @@ module HMIS::Structure::IncomeBenefit
           UnemploymentAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           SSI: {
             type: :integer,
@@ -64,6 +66,7 @@ module HMIS::Structure::IncomeBenefit
           SSIAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           SSDI: {
             type: :integer,
@@ -71,6 +74,7 @@ module HMIS::Structure::IncomeBenefit
           SSDIAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           VADisabilityService: {
             type: :integer,
@@ -78,6 +82,7 @@ module HMIS::Structure::IncomeBenefit
           VADisabilityServiceAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           VADisabilityNonService: {
             type: :integer,
@@ -85,6 +90,7 @@ module HMIS::Structure::IncomeBenefit
           VADisabilityNonServiceAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           PrivateDisability: {
             type: :integer,
@@ -92,6 +98,7 @@ module HMIS::Structure::IncomeBenefit
           PrivateDisabilityAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           WorkersComp: {
             type: :integer,
@@ -99,6 +106,7 @@ module HMIS::Structure::IncomeBenefit
           WorkersCompAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           TANF: {
             type: :integer,
@@ -106,6 +114,7 @@ module HMIS::Structure::IncomeBenefit
           TANFAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           GA: {
             type: :integer,
@@ -113,6 +122,7 @@ module HMIS::Structure::IncomeBenefit
           GAAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           SocSecRetirement: {
             type: :integer,
@@ -120,6 +130,7 @@ module HMIS::Structure::IncomeBenefit
           SocSecRetirementAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           Pension: {
             type: :integer,
@@ -127,6 +138,7 @@ module HMIS::Structure::IncomeBenefit
           PensionAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           ChildSupport: {
             type: :integer,
@@ -134,6 +146,7 @@ module HMIS::Structure::IncomeBenefit
           ChildSupportAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           Alimony: {
             type: :integer,
@@ -141,6 +154,7 @@ module HMIS::Structure::IncomeBenefit
           AlimonyAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           OtherIncomeSource: {
             type: :integer,
@@ -148,6 +162,7 @@ module HMIS::Structure::IncomeBenefit
           OtherIncomeAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           OtherIncomeSourceIdentify: {
             type: :string,

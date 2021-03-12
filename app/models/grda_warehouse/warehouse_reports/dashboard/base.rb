@@ -6,11 +6,14 @@
 
 module GrdaWarehouse::WarehouseReports::Dashboard
   class Base < GrdaWarehouse::WarehouseReports::Base
+    attr_accessor :user
     include AvailableSubPopulations
     include ArelHelper
 
     def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment
+      GrdaWarehouse::ServiceHistoryEnrollment.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user))
     end
 
     def homeless_service_history_source
@@ -29,24 +32,24 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def service_scope(project_type)
       homeless_service_history_source.
-      with_service_between(start_date: @range.start, end_date: @range.end).
-      open_between(start_date: @range.start, end_date: @range.end).
-      in_project_type(project_type)
+        with_service_between(start_date: @range.start, end_date: @range.end).
+        open_between(start_date: @range.start, end_date: @range.end).
+        in_project_type(project_type)
     end
 
     def enrollment_counts(project_type)
       service_scope(project_type).
-      group(:client_id).
-      select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id], '_', she_t[:project_id])]).to_sql).
-      count
+        group(:client_id).
+        select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id], '_', she_t[:project_id])]).to_sql).
+        count
     end
 
     def entry_counts(project_type)
       service_scope(project_type).
-      started_between(start_date: @range.start, end_date: @range.end).
-      group(:client_id).
-      select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id], '_', she_t[:project_id])]).to_sql).
-      count
+        started_between(start_date: @range.start, end_date: @range.end).
+        group(:client_id).
+        select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id], '_', she_t[:project_id])]).to_sql).
+        count
     end
 
     def entry_dates_by_client(project_type)
@@ -106,8 +109,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       self.parameters = self.class.params
       self.data = run!
       self.finished_at = DateTime.now
-      save()
+      save
     end
-
   end
 end

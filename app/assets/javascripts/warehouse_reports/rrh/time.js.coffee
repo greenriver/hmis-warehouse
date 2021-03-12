@@ -104,6 +104,7 @@ class App.WarehouseReports.Rrh.Time
 
 
   _follow_link: (d, e) =>
+    return unless @support_url.length > 1
     # if d.name != 'All'
     month = @data.labels[d.index + 1]
     url = @support_url + encodeURI("&selected_project=#{d.name}&month=#{month}")
