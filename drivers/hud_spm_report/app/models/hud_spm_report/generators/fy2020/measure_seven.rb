@@ -44,12 +44,12 @@ module HudSpmReport::Generators::Fy2020
       # whose destination is “temporary or institutional” as indicated with a
       #  (values 1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32) in Appendix A in
       # cell C3.
-      c3 = c2.where(t[:m7a1_destination].in?([1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32])) # FIXME: was [1, 15, 14, 18, 27, 4, 12, 13, 5, 2, 25] in FY2019 impl
+      c3 = c2.where(t[:m7a1_destination].in([1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32])) # FIXME: was [1, 15, 14, 18, 27, 4, 12, 13, 5, 2, 25] in FY2019 impl
 
       # 6. Of the remaining leavers, report the distinct number of clients
       # whose destination is “permanent” as indicated with a X (values 26, 11,
       # 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34) in Appendix A in cell C4.
-      c4 = c2.where(t[:m7a1_destination].in?(PERMANENT_DESTINATIONS))
+      c4 = c2.where(t[:m7a1_destination].in(PERMANENT_DESTINATIONS))
 
       # 7. Because each client is reported only once in cell C2 and no more
       # than once in cells C3 and C4, cell C5 is a simple formula indicated in
@@ -77,7 +77,7 @@ module HudSpmReport::Generators::Fy2020
       # 6. Of the remaining leavers, report the distinct number of clients
       # whose destination is “permanent” as indicated with a  (values 26, 11,
       # 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34) in Appendix A in cell C3.
-      c3 = c2.where(t[:m7b1_destination].in?(PERMANENT_DESTINATIONS))
+      c3 = c2.where(t[:m7b1_destination].in(PERMANENT_DESTINATIONS))
 
       # 7. Because each client is reported only once in cell C2 and no more
       # than once in cell C3, cell C4 is a simple formula indicated in the

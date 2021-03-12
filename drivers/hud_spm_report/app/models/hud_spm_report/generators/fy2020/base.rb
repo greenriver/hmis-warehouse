@@ -121,7 +121,7 @@ module HudSpmReport::Generators::Fy2020
     # with only the necessary columns fetched/populated
     # TODO?: move to :HudReports::QuestionBase
     private def each_client_batch(scope)
-      scope.select(
+      client_scope.where(id: scope.select(:client_id)).select(
         :id,
         :PersonalID, # for debugging
         :data_source_id, # for add_universe_members
@@ -135,7 +135,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def process_scope_by_client(measure_name, scope, columns)
-      each_client_batch client_scope.where(id: scope.select(:client_id)) do |clients_by_id|
+      each_client_batch scope do |clients_by_id|
         hashes = pluck_to_hash columns, scope.where(
           client_id: clients_by_id.keys,
         ).order(client_id: :asc)
@@ -197,10 +197,16 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
+    private def filter
+      # this needs to be re-hydrated from the data stored in report
+      @filter ||= HudSpmReport::Filters::SpmFilter.new @report.options.merge(user_id: @report.user_id)
+    end
+
     # Add report filters to the scope
     private def add_filters(scope)
-      # TODO apply report filters to the supplied GrdaWarehouse::ServiceHistoryEnrollment scope
-      # like so? scope = scope.where(p_t[id]: filter.effective_project_ids) if @filter.effective_project_ids.any?
+      if (project_ids = filter.effective_project_ids).any?
+        scope = scope.where(p_t[id].in?(project_ids))
+      end
       scope
     end
 
@@ -256,7 +262,7 @@ module HudSpmReport::Generators::Fy2020
         :m1_history,
       ]
 
-      each_client_batch client_scope.where(id: active_enrollments_scope.select(:client_id)) do |clients_by_id|
+      each_client_batch active_enrollments_scope do |clients_by_id|
         # select all the necessary service history
         # for this batch of clients
         nights_for_batch = pluck_to_hash shs_columns, services_scope.where(
@@ -513,38 +519,75 @@ module HudSpmReport::Generators::Fy2020
       measure_seven = 'Measure 7'
       return unless add_clients_for_question?(measure_seven)
 
-      m7_enrollments = add_filters GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
+      m7_stays = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(
+        on_date: @report.end_date,
+      )
+      m7_columns = {
+        client_id: :client_id,
+        project_type: :computed_project_type,
+        destination: :destination,
+        date: :date,
+        MoveInDate: e_t[:MoveInDate],
+
+        # keeping for audit history
+        first_date_in_program: :first_date_in_program,
+        last_date_in_program: :last_date_in_program,
+        project_id: :project_id,
+        project_name: :project_name,
+      }.freeze
+
+      m7_exits = GrdaWarehouse::ServiceHistoryEnrollment.exit.ended_between(
         start_date: @report.start_date,
         end_date: @report.end_date + 1.day,
-      )
-      process_scope_by_client measure_seven, m7_enrollments, SHE_COLUMNS do |_client_id, client_enrollments|
-        # Table 7a.1
+      ).joins(:enrollment) # because we need MoveInDate
 
-        # 1. Select leavers across all SO projects in the in the report date
-        # range. A “leaver” in this metric means the client must have exited an
-        # SO project in the report date range and was not active in that or any
-        # other SO project as of the [report end date].
+      # Table 7a.1
+      # 1. Select leavers across all SO projects in the in the report date
+      # range. A “leaver” in this metric means the client must have exited an
+      # SO project in the report date range and was not active in that or any
+      # other SO project as of the [report end date].
 
+      m7a1_exits = add_filters m7_exits.
+        hud_project_type(SO).
+        where.not(client_id: m7_stays.hud_project_type(SO).select(:client_id))
+
+      process_scope_by_client measure_seven, m7a1_exits, m7_columns do |_client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
+        last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
 
         # 3. Reference the destinations of the project exits against Appendix A
         # (row headers) and the “SO” column. Destinations indicated with an X
         # (values 6, 29, and 24) cause leavers with those destinations to be
         # completely excluded from the entire measure (all of column C).
+        next if last_exit[:destination].in? [6, 29, 24]
 
-        # TODO
+        {
+          m7a1_destination: last_exit[:destination],
+          m7_history: client_enrollments,
+        }
+      end
 
-        # Table 7b.1
+      m7b_excluded_destinations = [15, 6, 25, 24]
 
-        # 1. Select leavers across all ES, SH, TH, PH-RRH, and PH projects in
-        # the in the report date range. A “leaver” in this metric means the
-        # client must have exited from a project of one of the given types in
-        # the report date range and was not active in that or any other project
-        # among the given types as of the [report end date].
+      # Table 7b.1
+      # 1. Select leavers across all ES, SH, TH, PH-RRH, and PH projects in
+      # the in the report date range. A “leaver” in this metric means the
+      # client must have exited from a project of one of the given types in
+      # the report date range and was not active in that or any other project
+      # among the given types as of the [report end date].
+      m7b1_project_types = ES + SH + TH + PH
+      m7b1_exits = add_filters m7_exits.
+        hud_project_type(
+          m7b1_project_types,
+        ).where.not(
+          client_id: m7_stays.hud_project_type(m7b1_project_types).select(:client_id),
+        )
 
+      process_scope_by_client measure_seven, m7b1_exits, m7_columns do |_client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
+        last_exit = client_enrollments.max_by { |e| e[:date] }
 
         # 3. If the latest exit was from a PH project (types 3, 9 and 10) where
         # the [housing move-in date] is <= [report end date], exclude the client
@@ -552,45 +595,73 @@ module HudSpmReport::Generators::Fy2020
         # 7b.2). If the latest exit was from project types 3, 9 and 10 and there
         # is no [housing move-in date] for that stay, the client is included in
         # this measure.
+        next if last_exit[:project_type].in?(PH_PSH) && last_exit[:MoveInDate].present? && last_exit[:MoveInDate].to_date <= @report.end_date
 
         # 4. Reference the destinations of the project exits against Appendix A
         # (row headers) using the project type from which the exit occurred
         # (column headers). Destinations indicated with an X (values 15, 6, 25,
         # 24) cause leavers with those destinations to be completely excluded
         # from the entire measure (all of column C).
-
-        # TODO
-
-        # Table 7b.2
-
-        # 1. Select stayers and leavers across selected PH projects (types 3, 9
-        # and 10). A “leaver” in this metric means the client must have exited
-        # from a project of one of the given types in the report date range and
-        # was not active in that or any other project among the given types as
-        # of the [report end date].
-
-        # 2. Data from PH-RRH projects is completely excluded from this metric.
-
-        # 3. Of the stayers selected in step 1, if the latest stay has no
-        # [housing move in date], or the [housing move-in date] is > [report end
-        # date], exclude the client completely from this measure.
-
-        # 4. Of the leavers selected in step 1, determine the latest project
-        # exit for each client. If there is no [housing move-in date] for that
-        # stay, the client is completely excluded from this measure (the client
-        # will be reported in 7b.1).
-
-        # 5. Reference the destinations of the project exits against Appendix A
-        # (row headers) and the “PH (all)” column. Destinations indicated with
-        # an X (values 15, 6, 25, 24) cause leavers with those destinations to
-        # be completely excluded from the entire measure (all of column C).
-
-        # TODO
+        next if last_exit[:destination].in?(m7b_excluded_destinations)
 
         {
-          m7a1_destination: nil,
-          m7b1_destination: nil,
-          m7b2_destination: nil,
+          m7b1_destination: last_exit[:destination],
+          m7_history: client_enrollments,
+        }
+      end
+
+      # Table 7b.2
+      # 1. Select stayers and leavers across selected PH projects (types 3, 9
+      # and 10). A “leaver” in this metric means the client must have exited
+      # from a project of one of the given types in the report date range and
+      # was not active in that or any other project among the given types as
+      # of the [report end date].
+      # 2. Data from PH-RRH projects is completely excluded from this metric.
+      m7b2_stays = m7_stays.hud_project_type(PH_PSH)
+      m7b2_exits = m7_exits.hud_project_type(PH_PSH).where.not(client_id: m7b2_stays.select(:client_id))
+      m7b2_cutoff_for_missing_move_in_date = '2015-01-01'.to_date
+      process_scope_by_client measure_seven, m7b2_stays, m7_columns do |_client, client_enrollments|
+        last_stay = client_enrollments.max_by { |e| e[:date] }
+
+        # 3. Of the stayers selected in step 1, if the latest stay has
+        # no [housing move in date], or the [housing move-in date] is > [report end date],
+        # exclude the client completely from this measure
+        # FY2019 Note: "Some old enrollments don't have move-in-dates"
+        next if (
+            last_stay[:MoveInDate].blank? || last_stay[:MoveInDate].to_date > @report.end_date
+          ) && (
+            last_stay[:first_date_in_program] > m7b2_cutoff_for_missing_move_in_date
+          )
+
+        # 5. Reference the destinations of the project exits against
+        # Appendix A (row headers) and the “PH (all)” column. Destinations
+        # indicated with an X (values 15, 6, 25, 24) cause leavers with those
+        # destinations to be completely excluded from the entire measure
+        # (all of column C).
+        next if last_stay[:destination].in?(m7b_excluded_destinations)
+
+        {
+          m7b2_destination: last_stay[:destination],
+          m7_history: client_enrollments,
+        }
+      end
+      process_scope_by_client measure_seven, m7b2_exits, m7_columns do |_client, client_enrollments|
+        # 4. Of the leavers selected in step 1, determine the latest project
+        # exit for each client. If there is no [housing move-in date] for
+        # that stay, the client is completely excluded from this measure
+        # (the client will be reported in 7b.1).
+        last_exit = client_enrollments.max_by { |e| e[:date] }
+        next if last_exit[:MoveInDate].blank?
+
+        # 5. Reference the destinations of the project exits against
+        # Appendix A (row headers) and the “PH (all)” column. Destinations
+        # indicated with an X (values 15, 6, 25, 24) cause leavers with those
+        # destinations to be completely excluded from the entire measure
+        # (all of column C).
+        next if last_exit[:destination].in?(m7b_excluded_destinations)
+
+        {
+          m7b2_destination: last_exit[:destination],
           m7_history: client_enrollments,
         }
       end
@@ -618,7 +689,7 @@ module HudSpmReport::Generators::Fy2020
         history_col,
       ].freeze
 
-      each_client_batch client_scope.where(id: exits_scope.select(:client_id)) do |clients_by_id|
+      each_client_batch exits_scope do |clients_by_id|
         spm_clients = {}
 
         exits_by_client_id = exits_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
@@ -1095,11 +1166,11 @@ module HudSpmReport::Generators::Fy2020
       if homeless_days.any?
         # Find the latest bed night (stopping at the report date end)
         client_end_date = [homeless_days.last.to_date, @report.end_date].min
-        # Rails.logger.info "Latest Homeless Bed Night: #{client_end_date}"
+        # logger.info "Latest Homeless Bed Night: #{client_end_date}"
 
         # Determine the client's start date
         client_start_date = [client_end_date.to_date - 365.days, LOOKBACK_STOP_DATE].max
-        # Rails.logger.info "Client's initial start date: #{client_start_date}"
+        # logger.info "Client's initial start date: #{client_start_date}"
         days_before_client_start_date = homeless_days.select do |d|
           d.to_date < client_start_date.to_date
         end
@@ -1114,12 +1185,12 @@ module HudSpmReport::Generators::Fy2020
           end
         end
         client_start_date = [new_client_start_date.to_date, LOOKBACK_STOP_DATE].max
-        # Rails.logger.info "Client's new start date: #{client_start_date}"
+        # logger.info "Client's new start date: #{client_start_date}"
 
         # Remove any days outside of client_start_date and client_end_date
-        # Rails.logger.info "Days homeless before limits #{homeless_days.count}"
+        # logger.info "Days homeless before limits #{homeless_days.count}"
         homeless_days.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date > client_end_date.to_date }
-        # Rails.logger.info "Days homeless after limits #{homeless_days.count}"
+        # logger.info "Days homeless after limits #{homeless_days.count}"
       end
 
       homeless_days.uniq.count

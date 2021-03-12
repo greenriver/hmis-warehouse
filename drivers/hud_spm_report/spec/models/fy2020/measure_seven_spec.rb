@@ -32,18 +32,18 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSeven, type: :model do
   [
     ['7a.1', 'A1', nil],
 
-    ['7a.1', 'C2', 0],
-    ['7a.1', 'C3', 0],
-    ['7a.1', 'C4', 0],
-    ['7a.1', 'C5', 0],
+    ['7a.1', 'C2', 2, 'leaving SO'],
+    ['7a.1', 'C3', 1, '... to permanent destination'],
+    ['7a.1', 'C4', 1, '... to temporary destination'],
+    ['7a.1', 'C5', 100.00, '... % leaving to a good place'],
 
-    ['7b.1', 'C2', 0],
-    ['7b.1', 'C3', 0],
-    ['7b.1', 'C4', 0],
+    ['7b.1', 'C2', 3, 'leaving from ES, SH, TH, and PH-RRH who exited, plus persons in other PH (no move-in dates)'],
+    ['7b.1', 'C3', 1, '... to permanent destination'],
+    ['7b.1', 'C4', 33.33, '... % leaving to a good place'],
 
-    ['7b.2', 'C2', 0],
-    ['7b.2', 'C3', 0],
-    ['7b.2', 'C4', 0],
+    ['7b.2', 'C2', 1, 'stayers and leavers across selected PH projects'],
+    ['7b.2', 'C3', 1, '... to permanent destination'],
+    ['7b.2', 'C4', 100.00, '... % leaving to a good place'],
   ].each do |question, cell, expected_value, label|
     test_name = if expected_value.nil?
       "does not fill #{question} #{cell} #{label}".strip
