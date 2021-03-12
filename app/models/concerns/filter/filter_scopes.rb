@@ -4,8 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module
-  Filter::FilterScopes
+module Filter::FilterScopes
   extend ActiveSupport::Concern
   included do
     private def filter_for_range(scope)
