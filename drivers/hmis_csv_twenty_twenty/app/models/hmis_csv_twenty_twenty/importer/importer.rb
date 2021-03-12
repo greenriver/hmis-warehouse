@@ -19,6 +19,7 @@ module HmisCsvTwentyTwenty::Importer
     include TsqlImport
     include NotifierConfig
     include HmisTwentyTwenty
+    include ArelHelper
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :importer_log
 
@@ -481,7 +482,7 @@ module HmisCsvTwentyTwenty::Importer
                     data_source_id: incoming.data_source_id,
                     PersonalID: incoming.PersonalID,
                   ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
-                  @updated_source_client_ids << incoming.id
+                  @updated_source_client_ids << incoming.PersonalID
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
@@ -730,7 +731,7 @@ module HmisCsvTwentyTwenty::Importer
       # Clean up any dangling enrollments for updated clients
       updated_client_ids = GrdaWarehouse::Hud::Client.
         joins(:warehouse_client_source).
-        where(id: @updated_source_client_ids).
+        where(PersonalID: @updated_source_client_ids, data_source_id: @data_source.id).
         pluck(wc_t[:destination_id])
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
 

@@ -40,17 +40,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
         entry.
         where(client_id: client_ids).
         joins(:client).
-        order(enrollment_group_id: :asc, project_id: :asc, data_source_id: :asc).
         distinct.
         pluck(:enrollment_group_id, :project_id, :data_source_id)
 
-      source_enrollments = client_ids.map do |client_id|
-        client = GrdaWarehouse::Hud::Client.find(client_id)
-        client.source_enrollments.
-          order(EnrollmentID: :asc, ProjectID: :asc, data_source_id: :asc).
-          distinct.
-          pluck(:EnrollmentID, :ProjectID, :data_source_id)
-      end.flatten(1)
+      source_enrollments = GrdaWarehouse::Hud::Client.joins(:source_enrollments).
+        distinct.
+        where(id: client_ids).
+        pluck(e_t[:EnrollmentID], e_t[:ProjectID], e_t[:data_source_id])
 
       extra_enrollments = sh_enrollments - source_enrollments
       extra_enrollments.each do |enrollment_group_id, project_id, data_source_id|

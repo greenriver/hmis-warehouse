@@ -71,14 +71,12 @@ module ServiceHistory::Builder
     #
     # @param client_ids A destination client id, or an array of destination client ids
     def queue_clients(client_ids)
-      client_ids = [client_ids] if client_ids.is_a? Integer # Wrap single client_ids
+      client_ids = Array.wrap(client_ids)
 
       GrdaWarehouse::Hud::Enrollment.with_advisory_lock(ADVISORY_LOCK_NAME) do
         # Force rebuilds for any clients with invalidated service histories
-        client_ids.each do |client_id|
-          client = GrdaWarehouse::Hud::Client.destination.find_by(id: client_id)
-          next if client.blank?
 
+        GrdaWarehouse::Hud::Client.destination.where(id: client_ids).find_each do |client|
           client.force_full_service_history_rebuild if client.service_history_invalidated?
         end
 
@@ -112,7 +110,7 @@ module ServiceHistory::Builder
     # @param client_ids A destination client id, or an array of destination client ids
     # @return [Boolean] is any of the client's enrollment processing incomplete?
     def clients_still_processing?(client_ids:)
-      client_ids = [client_ids] if client_ids.is_a? Integer # Wrap single client_ids
+      client_ids = Array.wrap(client_ids)
 
       GrdaWarehouse::Hud::Enrollment.where(
         id: enrollment_ids(client_ids),
