@@ -216,6 +216,10 @@ module IncomeBenefitsReport
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
+    def can_see_client_details?(user)
+      user.can_access_some_version_of_clients?
+    end
+
     def yn(boolean)
       boolean ? 'Yes' : 'No'
     end
