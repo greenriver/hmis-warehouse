@@ -9,6 +9,7 @@ module PublicReports
   class Report < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
     include S3Toolset
+    include Filter::FilterScopes
     belongs_to :user
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?
@@ -110,6 +111,14 @@ module PublicReports
 
     def font_weight
       settings.font_weight
+    end
+
+    private def start_report
+      update(started_at: Time.current, state: :started)
+    end
+
+    private def complete_report
+      update(completed_at: Time.current, state: 'pre-computed')
     end
   end
 end
