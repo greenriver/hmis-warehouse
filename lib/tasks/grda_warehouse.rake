@@ -243,7 +243,7 @@ namespace :grda_warehouse do
   desc 'Sanity Check Service History; defaults: n=50'
   task :sanity_check_service_history, [:n] => [:environment, 'log:info_to_stdout'] do |task, args|
     n = args.n
-    GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(( n || 50 ).to_i).run!
+    GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(sample_size: ( n || 50 ).to_i).run!
   end
 
   desc 'Full import routine'

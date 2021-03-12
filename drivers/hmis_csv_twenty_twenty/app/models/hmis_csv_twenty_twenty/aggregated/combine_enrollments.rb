@@ -187,7 +187,7 @@ module HmisCsvTwentyTwenty::Aggregated
             ProjectID: combined_project_ids,
           ),
         ).distinct.pluck(:id)
-      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
+      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: dest_clients).run!
     end
 
     def combined_project_ids

@@ -33,6 +33,36 @@ module GrdaWarehouse::Tasks::ServiceHistory
       queue_enrollments(open_during_range(date_range))
     end
 
+    def self.ensure_there_are_no_extra_enrollments_in_service_history(client_ids)
+      wait_for_clients(client_ids: client_ids)
+
+      sh_enrollments = service_history_enrollment_source.
+        entry.
+        where(client_id: client_ids).
+        joins(:client).
+        order(enrollment_group_id: :asc, project_id: :asc, data_source_id: :asc).
+        distinct.
+        pluck(:enrollment_group_id, :project_id, :data_source_id)
+
+      source_enrollments = client_ids.map do |client_id|
+        client = GrdaWarehouse::Hud::Client.find(client_id)
+        client.source_enrollments.
+          order(EnrollmentID: :asc, ProjectID: :asc, data_source_id: :asc).
+          distinct.
+          pluck(:EnrollmentID, :ProjectID, :data_source_id)
+      end.flatten(1)
+
+      extra_enrollments = sh_enrollments - source_enrollments
+      extra_enrollments.each do |enrollment_group_id, project_id, data_source_id|
+        service_history_enrollment_source.where(
+          # client_id: client_id, # We are doing this in batches, so, we have to trust the enrollment/datasource id pair
+          enrollment_group_id: enrollment_group_id,
+          project_id: project_id,
+          data_source_id: data_source_id,
+        ).delete_all
+      end
+    end
+
     def invalidate_source_data!
       update(processed_as: nil)
     end

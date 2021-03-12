@@ -13,6 +13,32 @@ module ServiceHistory::Builder
   # Advisory lock name
   ADVISORY_LOCK_NAME = 'rebuild_enrollments'.freeze
 
+  # Queue delayed jobs for the enrollments associated with destination clients
+  #
+  # @param client_ids A destination client id, or an array of destination client ids
+  def queue_clients(client_ids)
+    self.class.queue_clients(client_ids)
+  end
+
+  # Wait until there are no queued enrollment processing jobs for the enrollments associated with
+  # destination client ids.
+  #
+  # @param client_ids A destination client id, or an array of destination client ids
+  # @param interval [Integer] The number of seconds between queries
+  # @param max_wait_seconds [Integer] The maximum number of seconds to wait
+  def wait_for_clients(client_ids:, interval: 30, max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
+    self.class.wait_for_clients(client_ids: client_ids, interval: interval, max_wait_seconds: max_wait_seconds)
+  end
+
+  # Test to see if there are queued enrollment processing jobs for the enrollments associated
+  # with destination client ids.
+  #
+  # @param client_ids A destination client id, or an array of destination client ids
+  # @return [Boolean] is any of the client's enrollment processing incomplete?
+  def clients_still_processing?(client_ids:)
+    self.class.clients_still_processing?(client_ids: client_ids)
+  end
+
   class_methods do
     # Queue delayed jobs for processing enrollments.
     #
@@ -49,7 +75,7 @@ module ServiceHistory::Builder
 
       GrdaWarehouse::Hud::Enrollment.with_advisory_lock(ADVISORY_LOCK_NAME) do
         # Force rebuilds for any clients with invalidated service histories
-        client_ids.find_each do |client_id|
+        client_ids.each do |client_id|
           client = GrdaWarehouse::Hud::Client.destination.find(client_id)
           next if client.blank?
 
@@ -111,7 +137,7 @@ module ServiceHistory::Builder
       scope.unassigned.joins(:project, :destination_client).
         pluck_in_batches(:id, batch_size: 250) do |batch|
         job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch))
-        where(id: batch).update_all(service_history_processing_job_id: job.id)
+        GrdaWarehouse::Hud::Enrollment.where(id: batch).update_all(service_history_processing_job_id: job.id)
       end
     end
   end

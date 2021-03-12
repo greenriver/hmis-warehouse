@@ -10,6 +10,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     include ActiveSupport::Benchmarkable
     include ArelHelper
     include NotifierConfig
+    include ::ServiceHistory::Builder
 
     attr_accessor :logger, :send_notifications, :notifier_config
 
@@ -39,72 +40,16 @@ module GrdaWarehouse::Tasks::ServiceHistory
         batches = @client_ids.each_slice(@batch_size)
         started_at = DateTime.now
         log = GrdaWarehouse::GenerateServiceHistoryLog.create(started_at: started_at, batches: batches.size)
-        batches.each do |batch|
-          if @force_sequential_processing
-            ::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id).perform_now
-          else
-            job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id))
-
-          end
-        end
+        queue_clients(@client_ids)
+        wait_for_clients(client_ids: @clients) if @force_sequential_processing
       ensure
-        Rails.cache.delete('sanity_check_count')
+        Rails.cache.delete(GrdaWarehouse::Tasks::SanityCheckServiceHistory::CACHE_KEY)
       end
-    end
-
-    def self.wait_for_processing(interval: 30, max_wait_seconds: 21_600, queue: :long_running) # 6 hours
-      # you must manually process these in the test environment since there are no workers
-      if Rails.env.test?
-        Delayed::Worker.new.work_off(2)
-      else
-        started = Time.current
-        # Limit the scope of the check to only rebuilding service history jobs
-        dj_t = Delayed::Job.arel_table
-        dj_scope = Delayed::Job.where(queue: queue, failed_at: nil).
-         jobs_for_class('ServiceHistory::RebuildEnrollments')
-        while dj_scope.count > 0 do
-          break if (Time.current - started) > max_wait_seconds
-
-          sleep(interval)
-        end
-      end
-    end
-
-    # sanity check anyone we've touched
-    def sanity_check
-      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(10_000).run!
-      # batches = @sanity_check.each_slice(@batch_size)
-      # batches.each_with_index do |batch, index|
-      #   # log_and_send_message "Sanity Checking all #{@sanity_check.size} clients in batches of #{batch.size}.  Batch #{index + 1}"
-      #   GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, batch).run!
-      # end
     end
 
     def log_and_send_message msg
       logger.info msg
       @notifier.ping msg if @send_notifications
-    end
-
-    def ensure_there_are_no_extra_enrollments_in_service_history client_id
-      client = GrdaWarehouse::Hud::Client.destination.find(client_id)
-      return unless client.present?
-      sh_enrollments = service_history_enrollment_source.entry.where(client_id: client_id).
-        order(enrollment_group_id: :asc, project_id: :asc, data_source_id: :asc).
-        distinct.
-        pluck(:enrollment_group_id, :project_id, :data_source_id)
-      source_enrollments = client.source_enrollments.
-        order(EnrollmentID: :asc, ProjectID: :asc, data_source_id: :asc).
-        distinct.
-        pluck(:EnrollmentID, :ProjectID, :data_source_id)
-      extra_enrollments = sh_enrollments - source_enrollments
-      extra_enrollments.each do |enrollment_group_id, project_id, data_source_id|
-        service_history_enrollment_source.where(
-          client_id: client_id,
-          enrollment_group_id: enrollment_group_id,
-          project_id: project_id,
-          data_source_id: data_source_id,
-        ).delete_all
-      end
     end
 
     def client_source
@@ -117,18 +62,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def service_history_enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment
-    end
-
-    def service_history_service_source
-      GrdaWarehouse::ServiceHistoryService
-    end
-
-    # def service_history_source
-    #   GrdaWarehouse::ServiceHistory
-    # end
-
-    def warehouse_clients_processed_source
-      GrdaWarehouse::WarehouseClientsProcessed
     end
   end
 end

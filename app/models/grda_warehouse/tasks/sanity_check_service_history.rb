@@ -8,13 +8,13 @@ module GrdaWarehouse::Tasks
   class SanityCheckServiceHistory
     include ArelHelper
     include NotifierConfig
-    include ServiceHistory::Builder
+    include ::ServiceHistory::Builder
 
     attr_accessor :logger, :send_notifications, :notifier_config
     MAX_ATTEMPTS = 3 # We'll check anything a few times, but don't run forever
     CACHE_KEY = 'sanity_check_service_history'
 
-    def initialize(sample_size = 10, client_ids = [])
+    def initialize(sample_size: 10, client_ids: [])
       @sample_size = sample_size
       @client_ids = client_ids
       setup_notifier('Sanity Checker')
