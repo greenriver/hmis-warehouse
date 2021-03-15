@@ -43,9 +43,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   end
 
   def default_filter
-    HudSpmReport::Filters::SpmFilter.new(
-      shared_filter.merge(project_ids: []), # FIXME
-    )
+    HudSpmReport::Filters::SpmFilter.new(shared_filter)
   end
 
   def assert_report_completed

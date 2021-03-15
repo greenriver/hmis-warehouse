@@ -48,7 +48,7 @@ module HudSpmReport::Generators::Fy2020
         'J' => 'Percentage of Returns in 2 Years',
       }.freeze
 
-      # basically HudSpmReport::Generators::Fy2020 with slightly differing scope
+      # basically HudSpmReport::Generators::Fy2020::MeasureTwo with slightly differing scope
 
       {
         4 => TH,
@@ -92,9 +92,19 @@ module HudSpmReport::Generators::Fy2020
         4 => '% Successful exits',
       }.freeze, CHANGE_TABLE_COLS
 
-      c2 = universe.members.none
-      c3 = c2.none
+      # 5. Of the remaining leavers, report the distinct number of clients in
+      # cell C2.
+      c2 = universe.members.where(t[:m6c1_destination].not_eq(0))
 
+      # 6. Of the remaining leavers, report the distinct number of clients
+      # whose destination is “permanent” as indicated with a  (values 26, 11,
+      # 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34) in Appendix A in cell C3.
+      c3 = c2.where(t[:m6c1_destination].in(PERMANENT_DESTINATIONS))
+
+      # 7. Because each client is reported only once in cell C2 and no more
+      # than once in cell C3, cell C4 is a simple formula indicated in the
+      # table shell. The HMIS system should still generate these numbers to 2
+      # decimals places.
       handle_clause_based_cells table_name, [
         ['C2', c2, c2.count],
         ['C3', c3, c3.count],
@@ -109,9 +119,20 @@ module HudSpmReport::Generators::Fy2020
         4 => '% Successful exits/retention',
       }.freeze, CHANGE_TABLE_COLS
 
-      c2 = universe.members.none
-      c3 = c2.none
+      # 6. Of the selected clients, report the distinct number of stayers and
+      # leavers in cell C2.
+      c2 = universe.members.where(t[:m6c2_destination].not_eq(0))
 
+      # 7. Of the selected clients, report the distinct number of leavers
+      # whose destination is “permanent” as indicated with a  (values 26, 11,
+      # 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34) in Appendix A + the
+      # distinct number of stayers in cell C3.
+      c3 = c2.where(t[:m6c2_destination].in?(PERMANENT_DESTINATIONS))
+
+      # 8. Because each client is reported only once in cell C2 and no more
+      # than once in cell C3, cell C4 is a simple formula indicated in the
+      # table shell. The HMIS system should still generate these numbers to 2
+      # decimals places.
       handle_clause_based_cells table_name, [
         ['C2', c2, c2.count],
         ['C3', c3, c3.count],

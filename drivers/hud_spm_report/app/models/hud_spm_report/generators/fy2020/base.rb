@@ -363,7 +363,7 @@ module HudSpmReport::Generators::Fy2020
         # Use the calculation of [length of stay] as described in the HMIS Reporting
         # Glossary, including time in the project prior to the [report start date].
         long_enrollments = enrollments.select do |e|
-          # FIXME? N+1
+          # PERF N+1
           night_count = if e[:project_tracking_method] == 3
             GrdaWarehouse::ServiceHistoryService.
               service.
@@ -451,7 +451,7 @@ module HudSpmReport::Generators::Fy2020
 
     private def add_m5_clients
       measure_five = 'Measure 5'
-      # TODO?: merge with M3
+      # This could be merged with M3
       return unless add_clients_for_question?(measure_five)
 
       process_scope_by_client measure_five, m5_enrollments_scope, SHE_COLUMNS do |_client_id, client_enrollments|
@@ -512,12 +512,33 @@ module HudSpmReport::Generators::Fy2020
       # required only for CoC-program-funded projects in communities approved by HUD
       # to serve Category 3 persons.
 
-      add_exiting_clients('Measure 6', exits_scope.category_3, :m6)
+      add_exiting_clients 'Measure 6', exits_scope.category_3, :m6
+
+      add_project_leavers_and_stayers 'Measure 6', :m6
     end
 
     private def add_m7_clients
-      measure_seven = 'Measure 7'
-      return unless add_clients_for_question?(measure_seven)
+      add_project_leavers_and_stayers 'Measure 7', :m7
+    end
+
+    private def add_project_leavers_and_stayers(question_name, m_code)
+      return unless add_clients_for_question?(question_name)
+
+      fields = if m_code == :m7
+        {
+          table_1: :m7b1_destination,
+          table_2: :m7b2_destination,
+          history: :m7_history,
+        }
+      elsif m_code == :m6
+        {
+          table_1: :m6c1_destination,
+          table_2: :m6c2_destination,
+          history: :m6_history,
+        }
+      else
+        raise 'Unexpected m_code'
+      end
 
       m7_stays = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(
         on_date: @report.end_date,
@@ -541,41 +562,44 @@ module HudSpmReport::Generators::Fy2020
         end_date: @report.end_date + 1.day,
       ).joins(:enrollment) # because we need MoveInDate
 
-      # Table 7a.1
-      # 1. Select leavers across all SO projects in the in the report date
-      # range. A “leaver” in this metric means the client must have exited an
-      # SO project in the report date range and was not active in that or any
-      # other SO project as of the [report end date].
+      if m_code == :m6
+        m7_exits = m7_exits.category_3
+      elsif m_code == :m7
+        # Table 7a.1
+        # 1. Select leavers across all SO projects in the in the report date
+        # range. A “leaver” in this metric means the client must have exited an
+        # SO project in the report date range and was not active in that or any
+        # other SO project as of the [report end date].
 
-      m7a1_exits = add_filters m7_exits.
-        hud_project_type(SO).
-        where.not(client_id: m7_stays.hud_project_type(SO).select(:client_id))
+        m7a1_exits = add_filters m7_exits.
+          hud_project_type(SO).
+          where.not(client_id: m7_stays.hud_project_type(SO).select(:client_id))
 
-      process_scope_by_client measure_seven, m7a1_exits, m7_columns do |_client, client_enrollments|
-        # 2. Of the project exits selected in step 1, determine the latest
-        # project exit for each client.
-        last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
+        process_scope_by_client question_name, m7a1_exits, m7_columns do |_client, client_enrollments|
+          # 2. Of the project exits selected in step 1, determine the latest
+          # project exit for each client.
+          last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
 
-        # 3. Reference the destinations of the project exits against Appendix A
-        # (row headers) and the “SO” column. Destinations indicated with an X
-        # (values 6, 29, and 24) cause leavers with those destinations to be
-        # completely excluded from the entire measure (all of column C).
-        next if last_exit[:destination].in? [6, 29, 24]
+          # 3. Reference the destinations of the project exits against Appendix A
+          # (row headers) and the “SO” column. Destinations indicated with an X
+          # (values 6, 29, and 24) cause leavers with those destinations to be
+          # completely excluded from the entire measure (all of column C).
+          next if last_exit[:destination].in? [6, 29, 24]
 
-        {
-          m7a1_destination: last_exit[:destination],
-          m7_history: client_enrollments,
-        }
+          {
+            m7a1_destination: last_exit[:destination],
+            m7_history: client_enrollments,
+          }
+        end
       end
 
-      m7b_excluded_destinations = [15, 6, 25, 24]
-
-      # Table 7b.1
+      # Table 7b.1 / 6c.1
       # 1. Select leavers across all ES, SH, TH, PH-RRH, and PH projects in
       # the in the report date range. A “leaver” in this metric means the
       # client must have exited from a project of one of the given types in
       # the report date range and was not active in that or any other project
       # among the given types as of the [report end date].
+      m7b_excluded_destinations = [15, 6, 25, 24]
       m7b1_project_types = ES + SH + TH + PH
       m7b1_exits = add_filters m7_exits.
         hud_project_type(
@@ -584,7 +608,7 @@ module HudSpmReport::Generators::Fy2020
           client_id: m7_stays.hud_project_type(m7b1_project_types).select(:client_id),
         )
 
-      process_scope_by_client measure_seven, m7b1_exits, m7_columns do |_client, client_enrollments|
+      process_scope_by_client question_name, m7b1_exits, m7_columns do |_client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
         last_exit = client_enrollments.max_by { |e| e[:date] }
@@ -605,12 +629,12 @@ module HudSpmReport::Generators::Fy2020
         next if last_exit[:destination].in?(m7b_excluded_destinations)
 
         {
-          m7b1_destination: last_exit[:destination],
-          m7_history: client_enrollments,
+          fields[:table_1] => last_exit[:destination],
+          fields[:history] => client_enrollments,
         }
       end
 
-      # Table 7b.2
+      # Table 7b.2 / 6c.2
       # 1. Select stayers and leavers across selected PH projects (types 3, 9
       # and 10). A “leaver” in this metric means the client must have exited
       # from a project of one of the given types in the report date range and
@@ -620,7 +644,7 @@ module HudSpmReport::Generators::Fy2020
       m7b2_stays = m7_stays.hud_project_type(PH_PSH)
       m7b2_exits = m7_exits.hud_project_type(PH_PSH).where.not(client_id: m7b2_stays.select(:client_id))
       m7b2_cutoff_for_missing_move_in_date = '2015-01-01'.to_date
-      process_scope_by_client measure_seven, m7b2_stays, m7_columns do |_client, client_enrollments|
+      process_scope_by_client question_name, m7b2_stays, m7_columns do |_client, client_enrollments|
         last_stay = client_enrollments.max_by { |e| e[:date] }
 
         # 3. Of the stayers selected in step 1, if the latest stay has
@@ -641,11 +665,11 @@ module HudSpmReport::Generators::Fy2020
         next if last_stay[:destination].in?(m7b_excluded_destinations)
 
         {
-          m7b2_destination: last_stay[:destination],
-          m7_history: client_enrollments,
+          fields[:table_2] => last_stay[:destination],
+          fields[:history] => client_enrollments,
         }
       end
-      process_scope_by_client measure_seven, m7b2_exits, m7_columns do |_client, client_enrollments|
+      process_scope_by_client question_name, m7b2_exits, m7_columns do |_client, client_enrollments|
         # 4. Of the leavers selected in step 1, determine the latest project
         # exit for each client. If there is no [housing move-in date] for
         # that stay, the client is completely excluded from this measure
@@ -661,8 +685,8 @@ module HudSpmReport::Generators::Fy2020
         next if last_exit[:destination].in?(m7b_excluded_destinations)
 
         {
-          m7b2_destination: last_exit[:destination],
-          m7_history: client_enrollments,
+          fields[:table_2] => last_exit[:destination],
+          fields[:history] => client_enrollments,
         }
       end
     end
@@ -845,7 +869,7 @@ module HudSpmReport::Generators::Fy2020
     #     ]
     # }
     private def income_and_benfits(client_id:, enrollment_group_id:, data_source_id:)
-      # FIXME? N+1
+      # PERF N+1
       columns = [
         :IncomeFromAnySource,
         :TotalMonthlyIncome,
@@ -903,7 +927,7 @@ module HudSpmReport::Generators::Fy2020
       # [information date of annual assessment from step 2g.] and [data
       # collection stage] = 5 or 1
 
-      # TODO? We have done the below is FY2019
+      # TODO? What we have done the below is FY2019
 
       # If we have more than one 5, use the first as the earliest,
       # otherwise if we have a 1 group use that, if not, we won't calculate
@@ -967,7 +991,7 @@ module HudSpmReport::Generators::Fy2020
       # [Lookback Stop Date] may be required. [information date] = [project
       # start date] and [data collection stage] = 1
 
-      # TODO? We have done the below is FY2019
+      # TODO? What we have done the below is FY2019
 
       # Latest entry interview (Stage=1) associated with this enrollment's entry.
       # The spec compare InformationDate but we historically just found the best candidate
@@ -1027,7 +1051,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def children_without_destination(project_types)
-      # FIXME?: batch this... right now it loads ALL enrollments with service during the report range
+      # PERF: batch this... right now it loads ALL enrollments with service during the report range
       # 99 = Not collected
       destination_not_collected = [99]
 
@@ -1067,7 +1091,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def hoh_destinations(project_types)
-      # FIXME?: batch this... right now it loads ALL enrollments with service during the report range
+      # PERF: batch this... right now it loads ALL enrollments with service during the report range
       @hoh_destinations ||= {}
       @hoh_destinations[project_types] ||= begin
         GrdaWarehouse::ServiceHistoryEnrollment.exit.
@@ -1340,7 +1364,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def literally_homeless?(night)
-      # FIXME?: reduce SQL queries and consolidate the logic to find the HOH
+      # PERF: reduce SQL queries and consolidate the logic to find the HOH
 
       client_id = night[:client_id]
       enrollment_id = night[:enrollment_id]
@@ -1423,7 +1447,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def children_without_living_situation(project_types)
-      # FIXME?: batch reduce SQL queries
+      # PERF: batch reduce SQL queries
 
       @child_ids ||= {}
       @child_ids[project_types] ||= begin

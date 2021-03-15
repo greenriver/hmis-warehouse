@@ -44,6 +44,8 @@ class CreateHudReportSpmClients < ActiveRecord::Migration[5.2]
       t.integer :m6_exit_from_project_type
       t.integer :m6_exit_to_destination
       t.integer :m6_reentry_days
+      t.integer :m6c1_destination
+      t.integer :m6c2_destination
       t.jsonb :m6_history
 
       t.integer :m7a1_destination

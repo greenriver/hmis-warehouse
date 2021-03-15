@@ -66,7 +66,6 @@ module HudSpmReport
 
     private def path_for_question(question, report: nil)
       hud_reports_spm_measure_path(spm_id: report&.id || 0, id: question)
-      # TODO
     end
 
     private def path_for_questions(question)
