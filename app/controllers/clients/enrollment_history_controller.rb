@@ -9,6 +9,7 @@ module Clients
     include ClientController
     include ClientPathGenerator
     include ClientDependentControllers
+    include ClientShowPages
 
     before_action :require_can_edit_clients!
     before_action :set_client

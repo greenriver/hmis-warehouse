@@ -8,7 +8,6 @@ require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
     self.primary_key = :id
-    include RailsDrivers::Extensions
     include Rails.application.routes.url_helpers
     include RandomScope
     include ArelHelper
@@ -27,7 +26,7 @@ module GrdaWarehouse::Hud
     self.table_name = :Client
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
+    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.seconds end
 
     has_many :client_files
     has_many :health_files
@@ -180,6 +179,19 @@ module GrdaWarehouse::Hud
     delegate :first_date_served, to: :processed_service_history, allow_nil: true
     delegate :last_date_served, to: :processed_service_history, allow_nil: true
 
+    # User access control, override in extensions
+    scope :destination_visible_to, ->(_user) do
+      none
+    end
+
+    scope :source_visible_to, ->(_user) do
+      none
+    end
+
+    scope :searchable_to, ->(_user) do
+      none
+    end
+    # End User access control
 
     scope :destination, -> do
       where(data_source: GrdaWarehouse::DataSource.destination)
@@ -2773,70 +2785,6 @@ module GrdaWarehouse::Hud
       self.class.service_types
     end
 
-    # build an array of useful hashes for the enrollments roll-ups
-    def enrollments_for en_scope, include_confidential_names: false
-      Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_in: CACHE_EXPIRY) do
-
-        enrollments = en_scope.joins(:project, :source_client).
-          includes(:service_history_services, :project, :organization, :source_client, enrollment: [:enrollment_cocs, :exit]).
-          order(first_date_in_program: :desc)
-        enrollments.
-        map do |entry|
-          project = entry.project
-          organization = entry.organization
-          services = entry.service_history_services
-          project_name = if project.confidential? && ! include_confidential_names
-             project.safe_project_name
-          else
-            cocs = ''
-            if GrdaWarehouse::Config.get(:expose_coc_code)
-              cocs = entry.enrollment&.enrollment_cocs&.map(&:CoCCode)&.uniq&.join(', ')
-              cocs = " (#{cocs})" if cocs.present?
-            end
-            "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
-          end
-          dates_served = services.select{|m| service_types.include?(m.record_type)}.map(&:date).uniq
-          count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
-          # days included in adjusted days that are not also served by a residential project
-          adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
-          homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: enrollments)
-          most_recent_service = services.sort_by(&:date)&.last&.date
-          new_episode = new_episode?(enrollments: enrollments, enrollment: entry)
-          {
-            client_source_id: entry.source_client.id,
-            project_id: project.id,
-            ProjectID: project.ProjectID,
-            project_name: project_name,
-            confidential_project: project.confidential,
-            entry_date: entry.first_date_in_program,
-            living_situation: entry.enrollment.LivingSituation,
-            exit_date: entry.last_date_in_program,
-            destination: entry.destination,
-            move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
-            move_in_date: entry.move_in_date,
-            days: dates_served.count,
-            homeless: entry.computed_project_type.in?(Project::HOMELESS_PROJECT_TYPES),
-            homeless_days: homeless_dates_for_enrollment.count,
-            adjusted_days: adjusted_dates_for_similar_programs.count,
-            months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
-            household: self.household(entry.household_id, entry.enrollment.data_source_id),
-            project_type: ::HUD::project_type_brief(entry.computed_project_type),
-            project_type_id: entry.computed_project_type,
-            class: "client__service_type_#{entry.computed_project_type}",
-            most_recent_service: most_recent_service,
-            new_episode: new_episode,
-            enrollment_id: entry.enrollment.EnrollmentID,
-            data_source_id: entry.enrollment.data_source_id,
-            created_at: entry.enrollment.DateCreated,
-            updated_at: entry.enrollment.DateUpdated,
-            hmis_id: entry.enrollment.id,
-            hmis_exit_id: entry.enrollment&.exit&.id,
-            # support: dates_served,
-          }
-        end
-      end
-    end
-
     def ongoing_enrolled_project_ids
       service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id])
     end
@@ -2856,18 +2804,6 @@ module GrdaWarehouse::Hud
     end
     def enrolled_in_es
       (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es] & ongoing_enrolled_project_types).present?
-    end
-
-    def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false
-      Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}", expires_in: CACHE_EXPIRY) do
-        if en_scope.count == 0
-          []
-        else
-          enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names)
-          enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
-          enrollments || []
-        end
-      end
     end
 
     def total_days enrollments
@@ -3005,5 +2941,7 @@ module GrdaWarehouse::Hud
       return ! other_homeless
     end
 
+    # Include extensions at the end so they can override default behavior
+    include RailsDrivers::Extensions
   end
 end

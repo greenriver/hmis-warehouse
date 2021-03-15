@@ -10,7 +10,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
     included do
       scope :visible_to, ->(user) do
-        GrdaWarehouse::Config.arbiter_class.enrollments_visible_to(scope, user)
+        GrdaWarehouse::Config.arbiter_class.new.enrollments_visible_to(user)
       end
     end
   end

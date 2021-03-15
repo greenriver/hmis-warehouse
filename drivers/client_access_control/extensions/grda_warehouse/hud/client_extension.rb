@@ -11,15 +11,20 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
     included do
       scope :destination_visible_to, ->(user) do
-        GrdaWarehouse::Config.arbiter_class.clients_destination_visible_to(current_scope, user)
+        current_scope ||= destination
+        GrdaWarehouse::Config.arbiter_class.new.clients_destination_visible_to(current_scope, user)
       end
 
       scope :source_visible_to, ->(user) do
-        GrdaWarehouse::Config.arbiter_class.clients_source_visible_to(current_scope, user)
+        GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(current_scope, user)
       end
 
+      # can search even if no ROI
       scope :searchable_to, ->(user) do
-        # TODO
+        current_scope ||= source
+        return current_scope if user.can_search_all_clients?
+
+        GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(current_scope, user)
       end
 
       # LEGACY Scopes
@@ -29,29 +34,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
       end
 
       scope :searchable_by, ->(user) do
-        if user.can_view_clients_with_roi_in_own_coc?
-          current_scope
-        elsif user.can_view_clients? || user.can_edit_clients?
-          current_scope
-        else
-          ds_ids = user.data_sources.pluck(:id)
-          project_query = exists_with_inner_clients(visible_by_project_to(user))
-          window_query = exists_with_inner_clients(visible_in_window_to(user))
-
-          if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-            where(
-              arel_table[:data_source_id].in(ds_ids).
-              or(project_query).
-              or(window_query),
-            )
-          else
-            where(
-              arel_table[:id].eq(0). # no client should have a 0 id
-              or(project_query).
-              or(window_query),
-            )
-          end
-        end
+        searchable_to(user)
       end
 
       scope :viewable_by, ->(user) do
@@ -101,8 +84,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
         end
       end
 
-      # should always return a destination client, but some visibility
-      # is governed by the source client, some by the destination
+      # accepts either a destination or source client id, determines if the destination client is visible
       def self.destination_client_viewable_by_user(client_id:, user:)
         destination.where(
           Arel.sql(
@@ -191,6 +173,81 @@ module ClientAccessControl::GrdaWarehouse::Hud
       GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
         define_method "#{disability_type}_response?".to_sym do
           send("#{disability_type}_response".to_sym) == 'Yes'
+        end
+      end
+
+      # build an array of useful hashes for the enrollments roll-ups
+      def enrollments_for(en_scope, user:, include_confidential_names: false)
+        Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}/#{user.id}", expires_in: ::GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+          en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
+          enrollments = en_scope.joins(:project, :source_client, :enrollment).
+            includes(:service_history_services, :project, :organization, :source_client, enrollment: [:enrollment_cocs, :exit]).
+            order(first_date_in_program: :desc)
+          enrollments.map do |entry|
+            project = entry.project
+            organization = entry.organization
+            services = entry.service_history_services
+            project_name = if project.confidential? && ! include_confidential_names
+              project.safe_project_name
+            else
+              cocs = ''
+              if ::GrdaWarehouse::Config.get(:expose_coc_code)
+                cocs = entry.enrollment&.enrollment_cocs&.map(&:CoCCode)&.uniq&.join(', ')
+                cocs = " (#{cocs})" if cocs.present?
+              end
+              "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
+            end
+            dates_served = services.select { |m| service_types.include?(m.record_type) }.map(&:date).uniq
+            count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
+            # days included in adjusted days that are not also served by a residential project
+            adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
+            homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: enrollments)
+            most_recent_service = services.sort_by(&:date)&.last&.date
+            new_episode = new_episode?(enrollments: enrollments, enrollment: entry)
+            {
+              client_source_id: entry.source_client.id,
+              project_id: project.id,
+              ProjectID: project.ProjectID,
+              project_name: project_name,
+              confidential_project: project.confidential,
+              entry_date: entry.first_date_in_program,
+              living_situation: entry.enrollment.LivingSituation,
+              exit_date: entry.last_date_in_program,
+              destination: entry.destination,
+              move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
+              move_in_date: entry.move_in_date,
+              days: dates_served.count,
+              homeless: entry.computed_project_type.in?(::GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES),
+              homeless_days: homeless_dates_for_enrollment.count,
+              adjusted_days: adjusted_dates_for_similar_programs.count,
+              months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
+              household: household(entry.household_id, entry.enrollment.data_source_id),
+              project_type: ::HUD.project_type_brief(entry.computed_project_type),
+              project_type_id: entry.computed_project_type,
+              class: "client__service_type_#{entry.computed_project_type}",
+              most_recent_service: most_recent_service,
+              new_episode: new_episode,
+              enrollment_id: entry.enrollment.EnrollmentID,
+              data_source_id: entry.enrollment.data_source_id,
+              created_at: entry.enrollment.DateCreated,
+              updated_at: entry.enrollment.DateUpdated,
+              hmis_id: entry.enrollment.id,
+              hmis_exit_id: entry.enrollment&.exit&.id,
+              # support: dates_served,
+            }
+          end
+        end
+      end
+
+      def enrollments_for_rollup(user:, en_scope: scope, include_confidential_names: false, only_ongoing: false)
+        Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}/#{user.id}", expires_in: ::GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+          if en_scope.count.zero?
+            []
+          else
+            enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names, user: user)
+            enrollments = enrollments.select { |m| m[:exit_date].blank? } if only_ongoing
+            enrollments || []
+          end
         end
       end
     end

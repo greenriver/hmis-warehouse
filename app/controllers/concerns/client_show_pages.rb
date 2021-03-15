@@ -68,13 +68,34 @@ module ClientShowPages
       @js_clients ||= if can_view_confidential_enrollment_details?
         source_clients.each_with_index.map { |c, i| [c.id, [i, c.uuid, c.data_source&.short_name, c.organizations.map(&:name).to_sentence]] }.to_h
       else
-        source_clients.each_with_index.map { |c, i| [c.id, [i, c.uuid, c.data_source&.short_name, c.organizations.map { |o| o.name unless source_clients.joins(enrollments: :project).where(Project: { OrganizationID: o.OrganizationID, data_source_id: o.data_source_id }).where(Project: { confidential: true }).any? }.compact.to_sentence]] }.to_h
+        source_clients.each_with_index.map do |c, i|
+          [
+            c.id,
+            [
+              i,
+              c.uuid,
+              c.data_source&.short_name,
+              c.organizations.map { |o| o.name unless contains_confidential_projects?(o) }.compact.to_sentence,
+            ],
+          ]
+        end.to_h
       end
+      @js_clients
     end
     helper_method :js_clients
 
+    private def contains_confidential_projects?(organization)
+      source_clients.joins(enrollments: :project).
+        merge(
+          GrdaWarehouse::Hud::Project.confidential.where(
+            OrganizationID: organization.OrganizationID,
+            data_source_id: organization.data_source_id,
+          ),
+        ).exists?
+    end
+
     def source_clients
-      @source_clients ||= @client.source_clients.preload(:data_source, :organizations)
+      @source_clients ||= @client.source_clients.source_visible_to(current_user).preload(:data_source, :organizations)
     end
     helper_method :source_clients
 
