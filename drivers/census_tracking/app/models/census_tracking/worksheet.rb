@@ -21,7 +21,7 @@ module CensusTracking
         viewable_by(@filter.user).
         where(id: @filter.effective_project_ids).
         map do |project|
-          [HUD.project_type(project.computed_project_type), project.organization.name, project.safe_project_name, project.id]
+          [HUD.project_type(project.computed_project_type) || 'Unknown Project Type', project.organization.name, "#{project.safe_project_name} (#{project.ProjectID})", project.id]
         end.
         sort_by { |project| [project[0], project[1], project[2]] }
     end
