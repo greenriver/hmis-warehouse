@@ -57,7 +57,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
 
   it 'counts lines/records correctly with skipped rows' do
     stats = @loader.loader_log.summary['Client.csv']
-    expect(stats['total_lines']).to eq(@client_rows + 1)
+    expect(stats['total_lines']).to eq(@client_rows)
     expect(stats['lines_loaded']).to eq(@expected_client_rows)
   end
 

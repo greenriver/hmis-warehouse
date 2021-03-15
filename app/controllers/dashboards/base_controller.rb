@@ -29,6 +29,7 @@ module Dashboards
 
     def index
       @report = active_report_class.new(
+        user: current_user,
         months: @report_months,
         organization_ids: @organization_ids,
         project_ids: @project_ids,
@@ -49,7 +50,7 @@ module Dashboards
           render 'dashboards/base/index'
         end
         format.xlsx do
-          require_can_view_clients!
+          require_can_access_some_version_of_clients!
           @enrollments = @report.enrolled_clients
           @clients = GrdaWarehouse::Hud::Client.where(
             id: @enrollments.distinct.pluck(:client_id),
@@ -69,6 +70,7 @@ module Dashboards
 
     def section
       @report = active_report_class.new(
+        user: current_user,
         months: @report_months,
         organization_ids: @organization_ids,
         project_ids: @project_ids,
@@ -150,7 +152,7 @@ module Dashboards
 
     private def can_see_client_details?
       @can_see_client_details ||= if @project_ids == []
-        current_user.can_view_clients?
+        current_user.can_access_some_version_of_clients?
       else
         true
       end

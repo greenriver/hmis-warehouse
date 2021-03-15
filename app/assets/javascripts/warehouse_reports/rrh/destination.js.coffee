@@ -52,6 +52,7 @@ class App.WarehouseReports.Rrh.Destination
     html
 
   _follow_link: (d, e) =>
+    return unless @support_url.length > 1
     url = @support_url + encodeURI("&destination=#{d.id}")
     # console.log(d, @data, url)
 
