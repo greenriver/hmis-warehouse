@@ -26,6 +26,6 @@ RSpec.describe HudDataQualityReport::Generators::Fy2020::QuestionFive, type: :mo
   it 'counts at least one invalid record' do
     answer = report_result.answer(question: 'Q5', cell: 'H5').summary
     expect(answer).not_to eq(nil)
-    expect(answer).not_to eq('1.0000')
+    expect(answer).not_to eq('0.0000')
   end
 end
