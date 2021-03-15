@@ -32,8 +32,16 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(4)
     end
 
+    it 'the database will have four service history enrollment entry records' do
+      expect(GrdaWarehouse::ServiceHistoryEnrollment.entry.count).to eq(4)
+    end
+
     it 'the database will have 18 services' do
       expect(GrdaWarehouse::Hud::Service.count).to eq(18)
+    end
+
+    it 'the database will have 18 service history service records' do
+      expect(GrdaWarehouse::ServiceHistoryService.count).to eq(18)
     end
 
     it 'the effective export end date is 2017-09-20' do

@@ -115,8 +115,7 @@ module GrdaWarehouse::Tasks
       end
       return unless @run_post_processing
 
-      Importing::RunAddServiceHistoryJob.perform_later
-      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing(max_wait_seconds: 1_800)
+      GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
     def find_current_id_for(id)

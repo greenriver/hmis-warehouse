@@ -19,14 +19,14 @@ module ServiceHistory
       @enrollment_ids.each do |id|
         Rails.logger.info "===RebuildEnrollmentsByBatchJob=== Processing enrollment #{id}"
         # Rails.logger.debug "rebuilding enrollment #{enrollment_id}"
-        # NOTE: Using find_by(id: ) instead of find to avoid throwing an error
-        # when the enrollment is no longer available.
-        enrollment = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_by(id: id)
-        enrollment&.rebuild_service_history!
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.
+          where(id: id).
+          each(&:rebuild_service_history!)
       end
     end
 
-    def enqueue(job, queue: :long_running)
+    def enqueue(job, queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name)
+      super(job, queue: queue)
     end
 
     def max_attempts

@@ -804,7 +804,8 @@ module GrdaWarehouse::Hud
 
       destination_ids = GrdaWarehouse::WarehouseClient.where(source_id: all_clients).pluck(:destination_id)
       # Force reloads of client views
-      GrdaWarehouse::Tasks::ServiceHistory::Update.new(client_ids: destination_ids).run!
+      GrdaWarehouse::Hud::Client.where(id: destination_ids).each(&:force_full_service_history_rebuild)
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
       destination_ids.each do |id|
         GrdaWarehouse::Hud::Client.clear_view_cache(id)
       end

@@ -20,7 +20,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         logger.info "Nothing to do."
         return
       end
-      process()
+      process
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: @client_ids)
     end
 
     def clients_needing_update_count

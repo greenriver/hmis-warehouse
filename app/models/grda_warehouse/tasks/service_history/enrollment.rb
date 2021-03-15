@@ -20,9 +20,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       builder_batch_job_scope.pluck(:id)
     end
 
-    def self.batch_process_unprocessed!(max_wait_seconds: 21_600)
+    def self.batch_process_unprocessed!(max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
       queue_batch_process_unprocessed!
-      wait_for_processing(max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
+      wait_for_processing(max_wait_seconds: max_wait_seconds)
     end
 
     def self.queue_batch_process_unprocessed!

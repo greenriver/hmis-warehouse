@@ -151,11 +151,6 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
   end
 
-  desc 'Generate Service History'
-  task generate_service_history: [:environment, 'log:info_to_stdout'] do |task, args|
-    GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new.run!
-  end
-
   desc 'Initialize ServiceHistortService homeless fields'
   task initialize_service_service_homelessness: [:environment, 'log:info_to_stdout'] do
     # Clients enrolled in homeless projects are homeless
