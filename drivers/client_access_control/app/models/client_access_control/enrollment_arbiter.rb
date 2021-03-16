@@ -12,21 +12,23 @@ module ClientAccessControl
     # 2. ROI
     # 3. data source visible in window
     # 4. authoritative data source directly assigned to user
-    def clients_destination_visible_to(scope, user)
+    def clients_destination_visible_to(user)
       return ::GrdaWarehouse::Hud::Client.none unless user
 
-      scope.joins(:warehouse_client_destination).merge(::GrdaWarehouse::WarehouseClient.where(source_id: ::GrdaWarehouse::Hud::Client.source_visible_to(user).select(:id)))
+      unscoped_clients.joins(:warehouse_client_destination).
+        where(warehouse_clients: { source_id: clients_source_visible_to(user).select(:id) })
     end
 
-    def clients_source_visible_to(scope, user)
+    def clients_source_visible_to(user)
       return ::GrdaWarehouse::Hud::Client.none unless user
       return ::GrdaWarehouse::Hud::Client.none unless user.can_access_some_version_of_clients?
 
       data_source_ids = ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
       data_source_ids += ::GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
-      scope.where(
-        c_t[:id].in(Arel.sql(scope.joins(:enrollments).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).select(:id).to_sql)). # 1, 2
-        or(c_t[:id].in(Arel.sql(scope.joins(:data_source).where(ds_t[:id].in(data_source_ids)).select(:id).to_sql))), # 3, 4
+      client_scope = unscoped_clients.source
+      client_scope.where(
+        c_t[:id].in(Arel.sql(client_scope.joins(:enrollments).merge(enrollments_visible_to(user)).select(:id).to_sql)). # 1, 2
+        or(c_t[:id].in(Arel.sql(client_scope.joins(:data_source).where(ds_t[:id].in(data_source_ids)).select(:id).to_sql))), # 3, 4
       )
     end
 
@@ -35,8 +37,14 @@ module ClientAccessControl
       coc_codes = user.coc_codes
       ::GrdaWarehouse::Hud::Enrollment.where(
         e_t[:id].in(Arel.sql(::GrdaWarehouse::Hud::Enrollment.joins(:project).where(p_t[:id].in(project_ids)).select(:id).to_sql)). # 1
-        or(e_t[:id].in(Arel.sql(::GrdaWarehouse::Hud::Client.active_confirmed_consent_in_cocs(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))), # 2
+        or(e_t[:id].in(Arel.sql(unscoped_clients.active_confirmed_consent_in_cocs(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))), # 2
       )
+    end
+
+    # NOTE: because we call EnrollmentArbiter within a scope on client, the
+    # default scope is mutated and must be removed
+    def unscoped_clients
+      ::GrdaWarehouse::Hud::Client.unscoped.paranoia_scope
     end
   end
 end

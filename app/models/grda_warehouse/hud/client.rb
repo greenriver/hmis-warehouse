@@ -194,14 +194,14 @@ module GrdaWarehouse::Hud
     # End User access control
 
     scope :destination, -> do
-      where(data_source: GrdaWarehouse::DataSource.destination)
+      where(data_source_id: GrdaWarehouse::DataSource.destination.pluck(:id))
     end
     scope :source, -> do
-      where(data_source: GrdaWarehouse::DataSource.source)
+      where(data_source_id: GrdaWarehouse::DataSource.source.pluck(:id))
     end
 
     scope :searchable, -> do
-      where(data_source: GrdaWarehouse::DataSource.source)
+      where(data_source_id: GrdaWarehouse::DataSource.source.pluck(:id))
     end
     # For now, this is way to slow, calculate in ruby
     # scope :unmatched, -> do

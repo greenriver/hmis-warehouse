@@ -1,6 +1,6 @@
 RSpec.shared_context 'visibility test context', shared_context: :metadata do
   # data
-  let!(:warehouse_data_source) { create :grda_warehouse_data_source }
+  let!(:warehouse_data_source) { create :grda_warehouse_data_source, source_type: nil }
 
   let!(:window_visible_data_source) { create :visible_data_source }
   let!(:window_organization) { create :grda_warehouse_hud_organization, data_source_id: window_visible_data_source.id, OrganizationName: 'Visible Org' }

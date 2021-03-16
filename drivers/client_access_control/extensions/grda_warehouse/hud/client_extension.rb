@@ -11,21 +11,21 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
     included do
       scope :destination_visible_to, ->(user) do
-        current_scope ||= all
-        GrdaWarehouse::Config.arbiter_class.new.clients_destination_visible_to(current_scope, user)
+        limited_scope = GrdaWarehouse::Config.arbiter_class.new.clients_destination_visible_to(user)
+        merge(limited_scope)
       end
 
       scope :source_visible_to, ->(user) do
-        current_scope ||= all
-        GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(current_scope, user)
+        limited_scope = GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(user)
+        merge(limited_scope)
       end
 
       # can search even if no ROI
       scope :searchable_to, ->(user) do
-        current_scope ||= all
         return current_scope if user.can_search_all_clients?
 
-        GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(current_scope, user)
+        limited_scope = GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(user)
+        merge(limited_scope)
       end
 
       # LEGACY Scopes

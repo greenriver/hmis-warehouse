@@ -8,6 +8,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     before do
       GrdaWarehouse::Config.delete_all
       GrdaWarehouse::Config.invalidate_cache
+      AccessGroup.maintain_system_groups
     end
     let!(:config) { create :config_b }
     let!(:user) { create :user }
@@ -21,19 +22,22 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       before do
         user.roles << can_view_clients
       end
-      it 'user can see all clients' do
-        expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
-      end
-    end
-    describe 'and the user has a role granting can view window clients' do
-      before do
-        user.roles << can_view_client_window
-      end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).pluck(:id)).to include(window_source_client.id)
       end
+
+      describe 'and the user has all data source group' do
+        before do
+          AccessGroup.where(name: 'All Data Sources').first.users << user
+        end
+        it 'user can see all clients' do
+          expect(GrdaWarehouse::Hud::Client.source.source_visible_to(user).count).to eq(2)
+          expect(GrdaWarehouse::Hud::Client.destination.destination_visible_to(user).count).to eq(2)
+        end
+      end
     end
+
     describe 'and the user has a role granting can search window' do
       before do
         user.roles << can_search_window
