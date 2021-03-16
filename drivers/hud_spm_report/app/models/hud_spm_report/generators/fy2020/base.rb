@@ -513,7 +513,6 @@ module HudSpmReport::Generators::Fy2020
       # to serve Category 3 persons.
 
       add_exiting_clients 'Measure 6', exits_scope.category_3, :m6
-
       add_project_leavers_and_stayers 'Measure 6', :m6
     end
 

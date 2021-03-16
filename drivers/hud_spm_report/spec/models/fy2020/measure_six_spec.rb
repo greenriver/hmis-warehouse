@@ -96,7 +96,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
     ['6a.1 and 6b.1', 'J7', 66.67, '% returning in <2yr'],
 
     # FIXME
-    ['6c.1', 'C2', 7, 'Cat. 3 Persons in SH, TH and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing'],
+    ['6c.1', 'C2', 4, 'Cat. 3 Persons in SH, TH and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing'],
     ['6c.1', 'C3', 0, 'with the desired final state'],
     ['6c.1', 'C4', 0, '.. as percentage'],
 
