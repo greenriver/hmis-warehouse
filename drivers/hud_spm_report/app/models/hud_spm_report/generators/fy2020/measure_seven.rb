@@ -19,8 +19,6 @@ module HudSpmReport::Generators::Fy2020
       ]
       @report.start(self.class.question_number, tables.map(&:first))
 
-      universe
-
       tables.each do |name, msg, _title|
         send(msg, name)
       end

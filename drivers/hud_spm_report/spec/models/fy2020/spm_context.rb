@@ -29,8 +29,18 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
       FileUtils.rm_rf(path)
     end
 
-    HudSpmReport::Fy2020::SpmClient.delete_all
+    # these should have been impossible
+    HudReports::ReportCell.with_deleted.where(report_instance_id: nil).delete_all
+
+    # scrub any past reports
+    reports = HudReports::ReportInstance.with_deleted.where(report_name: HudSpmReport::Generators::Fy2020::Generator.title)
+    HudSpmReport::Fy2020::SpmClient.with_deleted.delete_all
+    HudReports::UniverseMember.with_deleted.where(universe_membership_type: HudSpmReport::Fy2020::SpmClient.sti_name).delete_all
+    HudReports::ReportCell.with_deleted.where(report_instance_id: reports.select(:id)).delete_all
+    reports.delete_all
+
     GrdaWarehouse::Utility.clear!
+
     User.with_deleted.where(email: SPM_USER_EMAIL).delete_all
   end
 
