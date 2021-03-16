@@ -20,11 +20,22 @@ module ClientAccessControl
     end
 
     def clients_source_visible_to(user)
-      return ::GrdaWarehouse::Hud::Client.none unless user
       return ::GrdaWarehouse::Hud::Client.none unless user.can_access_some_version_of_clients?
 
       data_source_ids = ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
+      data_source_ids += ::GrdaWarehouse::DataSource.visible_in_window.pluck(:id) unless ::GrdaWarehouse::Config.get(:window_access_requires_release)
+      visible_client_scope(user, data_source_ids)
+    end
+
+    def clients_source_searchable_to(user)
+      return ::GrdaWarehouse::Hud::Client.none unless user
+
+      data_source_ids = ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
       data_source_ids += ::GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
+      visible_client_scope(user, data_source_ids)
+    end
+
+    private def visible_client_scope(user, data_source_ids)
       client_scope = unscoped_clients.source
       client_scope.where(
         c_t[:id].in(Arel.sql(client_scope.joins(:enrollments).merge(enrollments_visible_to(user)).select(:id).to_sql)). # 1, 2

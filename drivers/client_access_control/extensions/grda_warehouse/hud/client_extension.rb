@@ -24,100 +24,44 @@ module ClientAccessControl::GrdaWarehouse::Hud
       scope :searchable_to, ->(user) do
         return current_scope if user.can_search_all_clients?
 
-        limited_scope = GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(user)
+        limited_scope = GrdaWarehouse::Config.arbiter_class.new.clients_source_searchable_to(user)
         merge(limited_scope)
       end
 
       # LEGACY Scopes
-      def self.exists_with_inner_clients(inner_scope)
-        inner_scope = inner_scope.to_sql.gsub('"Client".', '"inner_clients".').gsub('"Client"', '"Client" as "inner_clients"')
-        Arel.sql("EXISTS (#{inner_scope} and \"Client\".\"id\" = \"inner_clients\".\"id\")")
-      end
-
       scope :searchable_by, ->(user) do
         searchable_to(user)
       end
 
       scope :viewable_by, ->(user) do
-        project_query = exists_with_inner_clients(visible_by_project_to(user))
-        window_query = exists_with_inner_clients(visible_in_window_to(user))
-        active_consent_query = if GrdaWarehouse::Config.get(:multi_coc_installation)
-          exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
-        else
-          exists_with_inner_clients(consent_form_valid)
-        end
-        if user.can_view_clients_with_roi_in_own_coc?
-          # At a high level if you can see clients with ROI in your COC, you need to be able
-          # to see everyone for searching purposes.
-          # limits will be imposed on accessing the actual client dashboard pages
-          # current_scope
-
-          # If the user has coc-codes specified, this will limit to users
-          # with a valid consent form in the coc or with no-coc specified
-          # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
-          # are included.
-          if user&.can_see_clients_in_window_for_assigned_data_sources?
-            ds_ids = user.data_sources.pluck(:id)
-            sql = arel_table[:data_source_id].in(ds_ids).
-              or(active_consent_query).
-              or(project_query)
-            sql = sql.or(window_query) unless GrdaWarehouse::Config.get(:window_access_requires_release)
-            where(sql)
-          else
-            active_confirmed_consent_in_cocs(user.coc_codes)
-          end
-        elsif user.can_view_clients? || user.can_edit_clients?
-          current_scope
-        else
-          ds_ids = user.data_sources.pluck(:id)
-          sql = if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-            arel_table[:data_source_id].in(ds_ids)
-          else
-            arel_table[:id].eq(0) # no client should have a 0 id
-          end
-          sql = sql.or(project_query)
-          if GrdaWarehouse::Config.get(:window_access_requires_release)
-            sql = sql.or(active_consent_query)
-          else
-            sql = sql.or(window_query)
-          end
-          where(sql)
-        end
+        source_visible_to(user)
       end
-
-      scope :visible_in_window_to, ->(user) do
-        joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
-      end
-
-      scope :visible_by_project_to, ->(user) do
-        joins(enrollments: :project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
-      end
+      # End LEGACY Scopes
 
       # Instance Methods
       def show_demographics_to?(user)
+        return false unless user.can_view_clients?
+
         visible_because_of_permission?(user) || visible_because_of_relationship?(user)
       end
 
-      def visible_because_of_permission?(user)
-        user.can_view_clients? ||
+      private def visible_because_of_permission?(user)
+        visible_because_of_window?(user) ||
         visible_because_of_release?(user) ||
-        visible_because_of_assigned_data_source?(user) ||
-        visible_because_of_coc_association?(user)
+        visible_because_of_data_assignment?(user)
       end
 
-      def visible_because_of_release?(user)
-        any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
-        # user can see the window, and client has a valid release, or none is required (by the site config)
-        user.can_view_client_window? &&
-        (
-          release_valid? ||
-          ! GrdaWarehouse::Config.get(:window_access_requires_release) && any_window_clients
-        )
+      private def visible_because_of_window?(user)
+        # defer this to release if required
+        return false if GrdaWarehouse::Config.get(:window_access_requires_release)
+        return false unless user.can_view_clients?
+
+        (source_clients.distinct.pluck(:data_source_id) & GrdaWarehouse::DataSource.visible_in_window.pluck(:id)).any?
       end
 
-      # This permission is mis-named a bit, it should check all project ids visible to the user
-      def visible_because_of_assigned_data_source?(user)
-        return false unless user.can_see_clients_in_window_for_assigned_data_sources?
+      # Check all project ids visible to the user
+      private def visible_because_of_data_assignment?(user)
+        return false unless user.can_view_clients?
 
         visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
         visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
@@ -125,38 +69,33 @@ module ClientAccessControl::GrdaWarehouse::Hud
         visible_because_of_enrollments || visible_because_of_data_sources
       end
 
-      def visible_because_of_coc_association?(user)
-        user.can_view_clients_with_roi_in_own_coc? &&
-        release_valid? &&
-        (
-          consented_coc_codes == [] ||
-          (consented_coc_codes & user.coc_codes).present?
-        )
+      private def visible_because_of_release?(user)
+        return false unless user.can_view_clients?
+        return unless release_valid?
+
+        valid_in_any_coc = consented_coc_codes == []
+        user_client_coc_codes_match = (consented_coc_codes & user.coc_codes).present?
+        valid_in_any_coc || user_client_coc_codes_match
       end
 
-      def visible_because_of_relationship?(user)
+      private def visible_because_of_relationship?(user)
         user_clients.pluck(:user_id).include?(user.id) && release_valid? && user.can_search_window?
       end
-      # Define a bunch of disability methods we can use to get the response needed
-      # for CAS integration
-      # This generates methods like: substance_response()
-      GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
-        define_method "#{disability_type}_response".to_sym do
-          disability_check = "#{disability_type}?".to_sym
-          source_disabilities.response_present.
-            newest_first.
-            detect(&disability_check).try(:response)
-        end
-      end
 
-      GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
-        define_method "#{disability_type}_response?".to_sym do
-          send("#{disability_type}_response".to_sym) == 'Yes'
+      def enrollments_for_rollup(user:, en_scope: scope, include_confidential_names: false, only_ongoing: false)
+        Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}/#{user.id}", expires_in: ::GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+          if en_scope.count.zero?
+            []
+          else
+            enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names, user: user)
+            enrollments = enrollments.select { |m| m[:exit_date].blank? } if only_ongoing
+            enrollments || []
+          end
         end
       end
 
       # build an array of useful hashes for the enrollments roll-ups
-      def enrollments_for(en_scope, user:, include_confidential_names: false)
+      private def enrollments_for(en_scope, user:, include_confidential_names: false)
         Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}/#{user.id}", expires_in: ::GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
           en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
           enrollments = en_scope.joins(:project, :source_client, :enrollment).
@@ -214,18 +153,6 @@ module ClientAccessControl::GrdaWarehouse::Hud
               hmis_exit_id: entry.enrollment&.exit&.id,
               # support: dates_served,
             }
-          end
-        end
-      end
-
-      def enrollments_for_rollup(user:, en_scope: scope, include_confidential_names: false, only_ongoing: false)
-        Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}/#{user.id}", expires_in: ::GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
-          if en_scope.count.zero?
-            []
-          else
-            enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names, user: user)
-            enrollments = enrollments.select { |m| m[:exit_date].blank? } if only_ongoing
-            enrollments || []
           end
         end
       end

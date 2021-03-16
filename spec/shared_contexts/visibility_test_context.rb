@@ -27,8 +27,8 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   end
 
   let!(:non_window_visible_data_source) { create :non_window_data_source }
-  let!(:non_window_organization) { create :grda_warehouse_hud_organization, data_source_id: non_window_visible_data_source.id, OrganizationName: 'Visible Org' }
-  let!(:non_window_project) { create :grda_warehouse_hud_project, data_source_id: non_window_visible_data_source.id, ProjectName: 'Visible Project' }
+  let!(:non_window_organization) { create :grda_warehouse_hud_organization, data_source_id: non_window_visible_data_source.id, OrganizationName: 'Non-Window  Org' }
+  let!(:non_window_project) { create :grda_warehouse_hud_project, data_source_id: non_window_visible_data_source.id, ProjectName: 'Non-Window Project' }
   let!(:non_window_project_coc) { create :grda_warehouse_hud_project_coc, data_source_id: non_window_visible_data_source.id, ProjectID: non_window_project.ProjectID, CoCCode: 'ZZ-000' }
   let!(:non_window_source_client) { create :grda_warehouse_hud_client, data_source_id: non_window_visible_data_source.id }
   let!(:non_window_enrollment) do

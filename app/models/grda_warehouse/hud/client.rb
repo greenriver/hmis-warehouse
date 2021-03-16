@@ -1063,6 +1063,24 @@ module GrdaWarehouse::Hud
       ].include?('Yes')
     end
 
+    # Define a bunch of disability methods we can use to get the response needed
+    # for CAS integration
+    # This generates methods like: substance_response()
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
+      define_method "#{disability_type}_response".to_sym do
+        disability_check = "#{disability_type}?".to_sym
+        source_disabilities.response_present.
+          newest_first.
+          detect(&disability_check).try(:response)
+      end
+    end
+
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
+      define_method "#{disability_type}_response?".to_sym do
+        send("#{disability_type}_response".to_sym) == 'Yes'
+      end
+    end
+
     # Use the Pathways answer if available, otherwise, HMIS
     def domestic_violence?
       return pathways_domestic_violence if pathways_domestic_violence

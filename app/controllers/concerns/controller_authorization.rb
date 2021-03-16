@@ -44,15 +44,4 @@ module ControllerAuthorization
     your_root_path = current_user.my_root_path if current_user
     redirect_to(your_root_path, alert: 'Sorry you are not authorized to do that.')
   end
-
-  # This should no longer be needed
-  # We can rely on searchable_by and viewable_by scopes on Client
-  # def check_release
-  #   return true unless GrdaWarehouse::Config.get(:window_access_requires_release)
-  #   return true if can_view_clients? || can_see_clients_in_window_for_assigned_data_sources?
-  #   return true if @client&.consent_form_valid?
-
-  #   flash[:alert] = "Client #{@client&.full_name} is not viewable due to an expired/missing signed release"
-  #   redirect_to clients_path
-  # end
 end
