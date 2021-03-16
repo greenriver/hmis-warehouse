@@ -12,7 +12,7 @@ module Health::He
     before_action :set_client, only: [:show, :edit, :update, :destroy]
 
     def new
-      client = GrdaWarehouse::Hud::Client.viewable_by(current_user).find_by(id: params[:client_id].to_i)
+      client = GrdaWarehouse::Hud::Client.destination_visible_to(current_user).find_by(id: params[:client_id].to_i)
       case_data = {}
       if client.present?
         case_data = {

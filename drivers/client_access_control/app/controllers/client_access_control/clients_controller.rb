@@ -107,10 +107,8 @@ class ClientAccessControl::ClientsController < ApplicationController
     GrdaWarehouse::Hud::Client
   end
 
-  # should always return a destination client, but some visibility
-  # is governed by the source client, some by the destination
   private def client_scope(id: nil)
-    client_source.destination_client_viewable_by_user(client_id: id, user: current_user)
+    client_source.destination_visible_to(current_user).where(id: id)
   end
 
   # Should always return any clients, source or destination that match

@@ -12,7 +12,7 @@ module GrdaWarehouse::ClientNotes
 
     # anyone who can see the client and project
     scope :visible_by, ->(user, _client) do
-      joins(:client).merge(GrdaWarehouse::Hud::Client.viewable_by(user)).
+      joins(:client).merge(GrdaWarehouse::Hud::Client.destination_visible_to(user)).
         joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
     end
 

@@ -13,15 +13,14 @@ module ClientAccessControl
     # 3. data source visible in window
     # 4. authoritative data source directly assigned to user
     def clients_destination_visible_to(scope, user)
-      return none unless user
+      return ::GrdaWarehouse::Hud::Client.none unless user
 
-      scope.joins(:source_clients).
-        merge(scope.source_visible_to(user))
+      scope.joins(:warehouse_client_destination).merge(::GrdaWarehouse::WarehouseClient.where(source_id: ::GrdaWarehouse::Hud::Client.source_visible_to(user).select(:id)))
     end
 
     def clients_source_visible_to(scope, user)
-      return none unless user
-      return none unless user.can_access_some_version_of_clients?
+      return ::GrdaWarehouse::Hud::Client.none unless user
+      return ::GrdaWarehouse::Hud::Client.none unless user.can_access_some_version_of_clients?
 
       data_source_ids = ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
       data_source_ids += ::GrdaWarehouse::DataSource.visible_in_window.pluck(:id)

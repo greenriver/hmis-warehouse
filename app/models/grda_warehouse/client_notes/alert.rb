@@ -14,7 +14,7 @@ module GrdaWarehouse::ClientNotes
 
     # anyone who can see this client
     scope :visible_by, ->(user, _client) do
-      joins(:client).merge(GrdaWarehouse::Hud::Client.viewable_by(user))
+      joins(:client).merge(GrdaWarehouse::Hud::Client.destination_visible_to(user))
     end
 
     def notify_users

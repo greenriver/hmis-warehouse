@@ -1,5 +1,5 @@
 = cache(['clients', 'disability_types', @client, controller_path], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
-  - items = @client.source_enrollment_disabilities.joins( enrollment: :client ).sorted_entry_date_information_date.group_by{|d| [d.enrollment, d.InformationDate]}
+  - items = @client.source_enrollment_disabilities.joins( enrollment: :client ).merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user)).sorted_entry_date_information_date.group_by{|d| [d.enrollment, d.InformationDate]}
   - if items.any?
     %div
       %table.table

@@ -676,7 +676,7 @@ module GrdaWarehouse::Hud
       names.join(',')
     end
 
-    def client_names user:, health: false
+    def client_names(user:, health: false)
       names = source_clients.joins(:data_source).searchable_by(user).includes(:data_source).map do |m|
         {
           ds: m.data_source&.short_name,
@@ -685,10 +685,8 @@ module GrdaWarehouse::Hud
           health: m.data_source&.authoritative_type == 'health',
         }
       end
-      if health && patient.present? && names.detect { |name| name[:health] }.blank?
-        names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name }
-      end
-      return names
+      names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name } if health && patient.present? && names.detect { |name| name[:health] }.blank?
+      names
     end
 
     # client has a disability response in the affirmative
@@ -2070,11 +2068,10 @@ module GrdaWarehouse::Hud
     def previous_permanent_locations_for_display(user)
       labels = ('A'..'Z').to_a
       seen_addresses = {}
-      addresses_from_enrollments = source_enrollments.visible_in_window_to(user).
+      addresses_from_enrollments = source_enrollments.visible_to(user).
         any_address.
         order(EntryDate: :desc).
-        preload(:client).
-        map do |enrollment|
+        preload(:client).map do |enrollment|
           lat_lon = enrollment.address_lat_lon
           address = {
             year: enrollment.EntryDate.year,
@@ -2084,15 +2081,14 @@ module GrdaWarehouse::Hud
             state: enrollment.LastPermanentState,
             zip: enrollment.LastPermanentZIP.try(:rjust, 5, '0'),
           }
-          if lat_lon.present?
-            address.merge!(lat_lon)
-          end
+          address.merge!(lat_lon) if lat_lon.present?
           address
       end
 
       addresses_from_hmis_clients = source_hmis_clients.map do |hmis_client|
         lat_lon = hmis_client.address_lat_lon
         next unless lat_lon.present?
+
         address = {
           year: 'Unknown',
           client_id: hmis_client.client_id,
@@ -2111,6 +2107,7 @@ module GrdaWarehouse::Hud
     # returns an array of hashes representing the state of each required document
     def document_readiness(required_documents)
       return [] unless required_documents.any?
+
       @document_readiness ||= begin
         @document_readiness = []
         required_documents.each do |tag|

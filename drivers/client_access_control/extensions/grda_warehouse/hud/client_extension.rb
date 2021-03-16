@@ -11,17 +11,18 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
     included do
       scope :destination_visible_to, ->(user) do
-        current_scope ||= destination
+        current_scope ||= all
         GrdaWarehouse::Config.arbiter_class.new.clients_destination_visible_to(current_scope, user)
       end
 
       scope :source_visible_to, ->(user) do
+        current_scope ||= all
         GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(current_scope, user)
       end
 
       # can search even if no ROI
       scope :searchable_to, ->(user) do
-        current_scope ||= source
+        current_scope ||= all
         return current_scope if user.can_search_all_clients?
 
         GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(current_scope, user)
@@ -82,28 +83,6 @@ module ClientAccessControl::GrdaWarehouse::Hud
           end
           where(sql)
         end
-      end
-
-      # accepts either a destination or source client id, determines if the destination client is visible
-      def self.destination_client_viewable_by_user(client_id:, user:)
-        destination.where(
-          Arel.sql(
-            arel_table[:id].in(visible_by_source(id: client_id, user: user)).
-            or(arel_table[:id].in(visible_by_destination(id: client_id, user: user))).to_sql,
-          ),
-        )
-      end
-
-      def self.visible_by_source(id:, user:)
-        query = GrdaWarehouse::WarehouseClient.joins(:source).merge(viewable_by(user))
-        query = query.where(destination_id: id) if id.present?
-        Arel.sql(query.select(:destination_id).to_sql)
-      end
-
-      def self.visible_by_destination(id:, user:)
-        query = viewable_by(user)
-        query = query.where(id: id) if id.present?
-        Arel.sql(query.select(:id).to_sql)
       end
 
       scope :visible_in_window_to, ->(user) do
