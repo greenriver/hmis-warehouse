@@ -1,0 +1,31 @@
+- title = 'Public Report Configuration'
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'public'
+%h1.mb-5= title
+
+= simple_form_for @config, as: :config, url: public_reports_warehouse_reports_public_configs_path, method: :post do |f|
+  - content_for :filters_col_l do
+    %section
+      %h3 Public S3
+      %p This information will be used to determine where to send the static pages and charts for your public reports.
+      = f.input :s3_region, collection: GrdaWarehouse::RecurringHmisExport.available_s3_regions, as: :select_two, label: 'Region'
+      = f.input :s3_bucket, label: 'Bucket'
+      = f.input :s3_prefix, label: 'Prefix', hint: 'optional'
+      = f.input :s3_access_key_id, label: 'Access Key ID'
+      = f.input :s3_secret, label: 'Secret Access Key', as: :password
+  - content_for :filters_col_r do
+    %section
+      %h3 Appearance
+      %p The following are all optional and will override the appearance of any public report.
+      = f.input :font_url, input_html: { value: @config.font_path }
+      = f.input :font_family_0, label: 'Font family', input_html: { value: @config.font_family }
+      = f.input :font_size_0, label: 'Font size', input_html: { value: @config.font_size }
+      = f.input :font_weight_0, label: 'Font weight', input_html: { value: @config.font_weight }
+      - @config.num_colors.each do |i|
+        = f.input "color_#{i}", input_html: { value: @config.color(i)}
+
+  - content_for :filter_actions do
+    = f.submit 'Update Configuration', class: ['btn', 'btn-primary']
+
+  = render 'warehouse_reports/filters', f:f

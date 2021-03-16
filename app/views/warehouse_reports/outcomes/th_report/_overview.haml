@@ -1,5 +1,5 @@
 .ho-container.rrh
-  .ho-container__header  
+  .ho-container__header
     %h3 Overview
   .d-flex.text-center.justify-content-center.mt-4.mb-6
     .rrh__enrolled.chunk.pr-4.mr-4.mb-4
@@ -8,7 +8,7 @@
       %i.icon-group.metric
       .metric
         - client_count = @report.stabilization_clients.distinct.select(:client_id).count
-        = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_th_index_path(passed_params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
+        = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), clients_warehouse_reports_th_index_path(passed_params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
       .description
         - if client_count != 1
           were enrolled in the
@@ -27,7 +27,7 @@
       %i.icon-enter.metric
       .metric
         - client_count = @report.entering_stabilization.distinct.select(:client_id).count
-        = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_th_index_path(passed_params.merge(metric: :entering_stabilization)), data: { loads_in_pjax_modal: true }
+        = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), clients_warehouse_reports_th_index_path(passed_params.merge(metric: :entering_stabilization)), data: { loads_in_pjax_modal: true }
       .description
         entered during the reporting period.
     .rrh__exited-stabilization.chunk.pl-4.ml-4
@@ -36,7 +36,6 @@
       %i.icon-exit.metric
       .metric
         - client_count = @report.exiting_stabilization.distinct.select(:client_id).count
-        = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_th_index_path(passed_params.merge(metric: :exiting_stabilization)), data: { loads_in_pjax_modal: true }
+        = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), clients_warehouse_reports_th_index_path(passed_params.merge(metric: :exiting_stabilization)), data: { loads_in_pjax_modal: true }
       .description
         exited during the reporting period.
-

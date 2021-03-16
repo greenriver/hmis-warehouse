@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+
 gem 'rails', '~>5.2.4'
 gem 'rails_drivers'
 
@@ -183,6 +184,7 @@ gem 'attr_encrypted', '~> 3.1.0'
 
 gem 'ajax_modal_rails', '~> 1.0'
 gem 'browser'
+gem 'ansi'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

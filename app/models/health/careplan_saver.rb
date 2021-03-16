@@ -25,19 +25,35 @@ module Health
 
     def update
       success = true
+      # limited to only signatures 11/27 per request from BHCHP, only save QA for signatures
       should_really_create_qa = @careplan.just_signed? && @create_qa
       @careplan.compact_future_issues
       begin
         @careplan.class.transaction do
           if should_really_create_qa
-            @qualifying_activity.activity = :pctp_signed
-            @qualifying_activity.mode_of_contact = :other
-            @qualifying_activity.reached_client = :collateral
-            @qualifying_activity.mode_of_contact_other = 'On-line'
-            @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
+            signature_date = @careplan.provider_signed_on
+            @qualifying_activity.date_of_activity = signature_date
+
+            case @careplan.provider_signature_mode.to_s
+            when 'email'
+              @qualifying_activity.mode_of_contact = :other
+              @qualifying_activity.reached_client = :collateral
+              @qualifying_activity.mode_of_contact_other = 'On-line'
+              @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
+            when 'in_person'
+              @qualifying_activity.mode_of_contact = :in_person
+              @qualifying_activity.reached_client = :yes
+            else
+              # default to email signature
+              @qualifying_activity.mode_of_contact = :other
+              @qualifying_activity.reached_client = :collateral
+              @qualifying_activity.mode_of_contact_other = 'On-line'
+              @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
+            end
           end
+
           @careplan.save
-          # limited to only signatures 11/27 per request from BHCHP, only save QA for signatures
+
           if should_really_create_qa
             @qualifying_activity.source_id = @careplan.id
 
@@ -56,13 +72,10 @@ module Health
         source_type: @careplan.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.current,
-        activity: :care_planning,
+        activity: :pctp_signed,
         follow_up: 'Implement Person-Centered Treatment Planning',
-        reached_client: :in_person,
         patient_id: @careplan.patient_id,
       )
     end
-
   end
 end

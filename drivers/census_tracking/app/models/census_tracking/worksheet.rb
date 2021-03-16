@@ -51,102 +51,102 @@ module CensusTracking
       return @population_sum[population]
     end
 
-    def populations
+    def populations # rubocop:disable Metrics/AbcSize
       @populations ||= {
         'Individual Males Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age < 18 },
-            ->(client) { client.gender == 1 },
+            ->(client) { client.age.present? && client.age < 18 },
+            ->(client) { client.gender == HUD.gender('Male', true) },
           ],
         'Individual Trans Males Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age < 18 },
-            ->(client) { client.gender == 3 },
+            ->(client) { client.age.present? && client.age < 18 },
+            ->(client) { client.gender == HUD.gender('Trans Male (FTM or Female to Male)', true) },
           ],
         'Individual Females Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age < 18 },
-            ->(client) { client.gender == 0 }, # rubocop:disable Style/NumericPredicate
+            ->(client) { client.age.present? && client.age < 18 },
+            ->(client) { client.gender == HUD.gender('Female', true) },
           ],
         'Individual Trans Females Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age < 18 },
-            ->(client) { client.gender == 2 },
+            ->(client) { client.age.present? && client.age < 18 },
+            ->(client) { client.gender == HUD.gender('Trans Female (MTF or Male to Female)', true) },
           ],
         'Gender Non-conforming Individuals Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age < 18 },
-            ->(client) { client.gender == 4 },
+            ->(client) { client.age.present? && client.age < 18 },
+            ->(client) { client.gender == HUD.gender('Gender non-conforming (i.e. not exclusively male or female)', true) },
           ],
         'Individual Adult Males Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 1 },
+            ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
+            ->(client) { client.gender == HUD.gender('Male', true) },
           ],
         'Individual Adult Trans Males Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 3 },
+            ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
+            ->(client) { client.gender == HUD.gender('Trans Male (FTM or Female to Male)', true) },
           ],
         'Individual Adult Females Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 0 }, # rubocop:disable Style/NumericPredicate
+            ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
+            ->(client) { client.gender == HUD.gender('Female', true) },
           ],
         'Individual Adult Trans Females Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 2 },
+            ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
+            ->(client) { client.gender == HUD.gender('Trans Female (MTF or Male to Female)', true) },
           ],
         'Gender Non-conforming Individual Adults Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 4 },
+            ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
+            ->(client) { client.gender == HUD.gender('Gender non-conforming (i.e. not exclusively male or female)', true) },
           ],
         'Individual Adult Males Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 25 },
-            ->(client) { client.gender == 1 },
+            ->(client) { client.age.present? && client.age >= 25 },
+            ->(client) { client.gender == HUD.gender('Male', true) },
           ],
         'Individual Adult Trans Males Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 25 },
-            ->(client) { client.gender == 3 },
+            ->(client) { client.age.present? && client.age >= 25 },
+            ->(client) { client.gender == HUD.gender('Trans Male (FTM or Female to Male)', true) },
           ],
         'Individual Adult Females Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 25 },
-            ->(client) { client.gender == 0 }, # rubocop:disable Style/NumericPredicate
+            ->(client) { client.age.present? && client.age >= 25 },
+            ->(client) { client.gender == HUD.gender('Female', true) },
           ],
         'Individual Adult Trans Females Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 25 },
-            ->(client) { client.gender == 2 },
+            ->(client) { client.age.present? && client.age >= 25 },
+            ->(client) { client.gender == HUD.gender('Trans Female (MTF or Male to Female)', true) },
           ],
         'Gender Non-conforming Individual Adults Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
-            ->(client) { client.age >= 25 },
-            ->(client) { client.gender == 4 },
+            ->(client) { client.age.present? && client.age >= 25 },
+            ->(client) { client.gender == HUD.gender('Gender non-conforming (i.e. not exclusively male or female)', true) },
           ],
         'Number of households with at least one adult age 18+ and at least one child under age 18' =>
           [
             ->(client) { client.head_of_household == true },
-            ->(client) { client.age >= 18 },
+            ->(client) { client.age.present? && client.age >= 18 },
             ->(client) { client.other_clients_under_18.positive? },
           ],
         'Number of households with all members under age 18' =>
@@ -157,17 +157,17 @@ module CensusTracking
         'Number of clients under age 18 in all households served' =>
           [
             ->(client) { client.presented_as_individual == false },
-            ->(client) { client.age < 18 },
+            ->(client) { client.age.present? && client.age < 18 },
           ],
         'Number of clients age 18-24 in all households served' =>
           [
             ->(client) { client.presented_as_individual == false },
-            ->(client) { client.age >= 18 && client.age <= 24 },
+            ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
           ],
         'Number of clients age 25+ in all households served' =>
           [
             ->(client) { client.presented_as_individual == false },
-            ->(client) { client.age >= 25 },
+            ->(client) { client.age.present? && client.age >= 25 },
           ],
         'Total PIT (including clients of unknown gender)' =>
           [],
@@ -207,9 +207,11 @@ module CensusTracking
     end
 
     private def service_data_by_project(project_id)
-      data = transform(service_scope(project_id))
-
-      data
+      if @last_project_id != project_id
+        @data = transform(service_scope(project_id))
+        @last_project_id = project_id
+      end
+      @data
     end
 
     private def transform(scope)
@@ -221,13 +223,15 @@ module CensusTracking
 
       rows = rows.map do |row|
         row.other_clients_under_18 = rows.select do |candidate|
+          candidate.household_id.present? &&
           candidate.household_id == row.household_id &&
             candidate.client_id != row.client_id &&
-            candidate.age < 18
+            candidate.age.present? && candidate.age < 18
         end.count
         row.only_children = rows.select do |candidate|
+          candidate.household_id.present? &&
           candidate.household_id == row.household_id &&
-            candidate.age >= 18
+            candidate.age.present? && candidate.age >= 18
         end.empty?
 
         row
@@ -242,6 +246,7 @@ module CensusTracking
         service_on_date(@filter.on).
         in_project(project_id)
 
+      scope = filter_for_user_access(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)

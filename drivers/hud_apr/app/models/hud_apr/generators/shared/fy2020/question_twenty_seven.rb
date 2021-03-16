@@ -117,7 +117,7 @@ module HudApr::Generators::Shared::Fy2020
             end
           end
 
-          members = members.where(client_id: source_client_ids) if source_client_ids.any?
+          members = members.where(a_t[:client_id].in(source_client_ids)) if source_client_ids.any?
 
           value = members.count
 
@@ -264,7 +264,9 @@ module HudApr::Generators::Shared::Fy2020
               positive = members.where(q27f_destinations['Total persons exiting to positive housing destinations']).count
               total = members.count
               excluded = members.where(q27f_destinations['Total persons whose destinations excluded them from the calculation']).count
-              value = (positive.to_f / (total - excluded) * 100).round(4) if total.positive? && excluded != total
+              percent = 0
+              percent = positive.to_f / (total - excluded) if total.positive? && excluded != total
+              value = percentage(percent)
             end
           else
             members = members.where(destination_clause)

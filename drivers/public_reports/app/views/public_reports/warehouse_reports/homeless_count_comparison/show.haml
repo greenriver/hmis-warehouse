@@ -1,0 +1,17 @@
+- title = @report.instance_title
+- content_for :title, title
+= render 'breadcrumbs'
+%h1.mb-5= title
+= render 'beta_warning'
+
+.well.warehouse-reports__completed
+  %p This report was published on #{@report.published_at.to_date} with the following limits.
+  .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
+  %p
+    The report is publicly available at
+    = link_to @report.published_url, @report.published_url, target: '_blank'
+    and can be embedded using the following code.
+  %code= @report.embed_code
+
+.well
+  %iframe{src: raw_public_reports_warehouse_reports_homeless_count_comparison_path(@report), width: '100%', height: 400, frameBorder: 0}

@@ -21,7 +21,8 @@
             %td= ssn c.SSN
             %td= @client.warehouse_client_destination.last.reviewed_at
             %td
-              - if (user = User.find(@client.warehouse_client_destination.last.reviewd_by.to_i))
+              - reviewer_id = @client.warehouse_client_destination.last.reviewd_by.to_i
+              - if reviewer_id != 0 && user = User.find(reviewer_id)
                 = user.name
       - if ! split_froms
         %tr
@@ -45,7 +46,8 @@
             %td= ssn c.SSN
             %td= c.warehouse_client_destination.first.reviewed_at
             %td
-              - if (user = User.find(c.warehouse_client_destination.first.reviewd_by.to_i))
+              - reviewer_id = @client.warehouse_client_destination.last.reviewd_by.to_i
+              - if reviewer_id != 0 && user = User.find(reviewer_id)
                 = user.name
       - if ! split_tos
         %tr

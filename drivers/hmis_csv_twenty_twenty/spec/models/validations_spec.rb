@@ -58,7 +58,9 @@ RSpec.describe 'Validate import files', type: :model do
   end
 
   it 'includes expected assessments validations' do
-    expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(6)
+    expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(3)
+    # Line 5 also would also raise 3 validation errors but its filtered out in the loader
+    # expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(6)
   end
 
   it 'excludes expected assessments failures' do

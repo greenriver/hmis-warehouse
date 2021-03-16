@@ -7,7 +7,7 @@
 module Reporting::MonthlyReports::MonthlyReportCharts
   extend ActiveSupport::Concern
   included do
-    attr_accessor :organization_ids, :project_ids, :months, :project_types, :filter, :age_ranges, :gender, :race, :ethnicity
+    attr_accessor :organization_ids, :project_ids, :months, :project_types, :filter, :age_ranges, :gender, :race, :ethnicity, :user
 
     # accepts an array of months in the format:
     # [[year, month], [year, month]]
@@ -181,7 +181,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def clients_for_report
-      @clients_for_report ||= self.class.in_months(months).
+      @clients_for_report ||= self.class.
+        where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).
+        in_months(months).
         for_organizations(organization_ids).
         for_projects(project_ids).
         for_project_types(project_types).
