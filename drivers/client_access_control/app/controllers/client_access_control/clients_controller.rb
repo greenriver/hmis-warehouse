@@ -6,7 +6,6 @@
 
 class ClientAccessControl::ClientsController < ApplicationController
   include AjaxModalRails::Controller
-  # include ClientController
   include ClientAccessControl::SearchConcern
   include ClientAccessControl::ClientConcern
   include ClientShowPages
@@ -18,8 +17,9 @@ class ClientAccessControl::ClientsController < ApplicationController
   before_action :require_can_access_some_client_search!, only: [:index, :simple]
   before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details_tab!, only: [:enrollment_details]
-  before_action :require_can_see_this_client_demographics!, except: [:index, :simple, :appropriate]
+  before_action :require_can_see_this_client_demographics!, except: [:index, :simple, :appropriate, :new]
   before_action :set_client, only: [:show, :service_range, :rollup, :image, :enrollment_details]
+  before_action :require_can_create_clients!, only: [:new]
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :rollup]
   after_action :log_client, only: [:show]
@@ -72,6 +72,11 @@ class ClientAccessControl::ClientsController < ApplicationController
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     log_item(@client)
     @note = GrdaWarehouse::ClientNotes::Base.new
+  end
+
+  def new
+    @existing_matches ||= []
+    @client = client_source.new
   end
 
   def simple

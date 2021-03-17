@@ -1,5 +1,5 @@
 BostonHmis::Application.routes.draw do
-  resources :clients, only: [:index, :show], controller: 'client_access_control/clients' do
+  resources :clients, only: [:index, :show, :new], controller: 'client_access_control/clients' do
     member do
       get :appropriate
       get :simple

@@ -230,7 +230,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   describe 'logged in, and can view client window' do
     # implies 'can_see_this_client_demographics!'
-    let(:role) { create :can_view_client_window }
+    let(:role) { create :vt_can_view_clients }
     let(:role_search) { create :can_search_window }
     let(:user) { create :user, roles: [role, role_search] }
 
@@ -279,7 +279,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     # through can_see_this_client_demographics
     it 'allows assessment' do
       sign_in user
-      get assessment_client_path(destination, client_id: destination.id)
+      form = client.hmis_forms.create(data_source_id: client.data_source_id)
+      get assessment_client_path(form, client_id: destination.id)
       expect(response).to have_http_status(200)
     end
 
@@ -312,7 +313,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   describe 'logged in, and can edit clients' do
     let(:role) { create :can_edit_clients }
-    let(:role2) { create :can_view_client_window }
+    let(:role2) { create :vt_can_view_clients }
     let(:role_search) { create :can_search_window }
     let(:user) { create :user, roles: [role, role2, role_search] }
 
@@ -361,7 +362,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     # through can_see_this_client_demographics
     it 'allows assessment' do
       sign_in user
-      get assessment_client_path(destination, client_id: destination.id)
+      form = client.hmis_forms.create(data_source_id: client.data_source_id)
+      get assessment_client_path(form, client_id: destination.id)
       expect(response).to have_http_status(200)
     end
 

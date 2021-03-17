@@ -25,7 +25,7 @@ module ControllerAuthorization
 
     # attempt to set the client various ways
     if params[:client_id].present?
-      set_client_from_client_id
+      set_client
     elsif params[:id].present?
       begin
         set_client

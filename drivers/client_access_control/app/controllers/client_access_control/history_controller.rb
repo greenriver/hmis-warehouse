@@ -186,7 +186,6 @@ module ClientAccessControl
         end
       end
     end
-    alias set_client_from_client_id set_client
 
     def require_client_needing_processing!
       return true if @client.generate_history_pdf || @client.generate_manual_history_pdf

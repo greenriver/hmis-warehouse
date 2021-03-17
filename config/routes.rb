@@ -441,7 +441,7 @@ Rails.application.routes.draw do
       get :destination
     end
   end
-  resources :clients, only: [:new, :create, :update, :edit] do
+  resources :clients, only: [:create, :update, :edit] do
     member do
       # get :appropriate
       # get :simple

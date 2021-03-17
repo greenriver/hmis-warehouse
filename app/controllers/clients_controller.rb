@@ -15,12 +15,12 @@ class ClientsController < ApplicationController
   helper ClientHelper
 
   before_action :require_can_access_some_client_search!, only: [:index, :simple]
-  before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
+  before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image, :assessment]
   before_action :require_can_view_enrollment_details_tab!, only: [:enrollment_details]
-  before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create, :simple, :appropriate]
+  before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create, :simple, :appropriate, :assessment]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details, :assessment]
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -31,23 +31,80 @@ class ClientsController < ApplicationController
 
   helper_method :sort_column, :sort_direction
 
+  def create
+    clean_params = client_create_params
+    clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
+    existing_matches = look_for_existing_match(clean_params)
+    @bypass_search = false
+    # If we only have one authoritative data source, we don't bother sending it, just use it
+    clean_params[:data_source_id] ||= GrdaWarehouse::DataSource.authoritative.first.id
+    @client = client_source.new(clean_params)
+
+    params_valid = validate_new_client_params(clean_params)
+
+    @existing_matches ||= []
+    if ! params_valid
+      flash[:error] = 'Unable to create client'
+      render action: :new
+    elsif existing_matches.any? && ! clean_params[:bypass_search].present?
+      # Show the new page with the option to go to an existing client
+      # add bypass_search as a hidden field so we don't end up here again
+      # raise @existing_matches.inspect
+      @bypass_search = true
+      @existing_matches = client_source.where(id: existing_matches).
+        joins(:warehouse_client_source).
+        includes(:warehouse_client_source, :data_source)
+      render action: :new
+    elsif clean_params[:bypass_search].present? || existing_matches.empty?
+      # Create a new source and destination client
+      # and redirect to the new client show page
+      client_source.transaction do
+        destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
+        @client.save
+        @client.update(PersonalID: @client.id)
+
+        destination_client = client_source.new(clean_params.
+          merge(
+            data_source_id: destination_ds_id,
+            PersonalID: @client.id,
+            creator_id: current_user.id,
+          ))
+        destination_client.send_notifications = true
+        destination_client.save
+
+        warehouse_client = GrdaWarehouse::WarehouseClient.create(
+          id_in_source: @client.id,
+          source_id: @client.id,
+          destination_id: destination_client.id,
+          data_source_id: @client.data_source_id,
+        )
+        if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
+          flash[:notice] = "Client #{@client.full_name} created."
+          after_create_path = client_path_generator
+          if @client.data_source.after_create_path.present?
+            after_create_path += [@client.data_source.after_create_path]
+            redirect_to polymorphic_path(after_create_path, client_id: destination_client.id)
+          else
+            redirect_to polymorphic_path(after_create_path, id: destination_client.id)
+          end
+        else
+          flash[:error] = 'Unable to create client'
+          render action: :new
+        end
+      end
+    end
+  end
+
   def edit
     @search_clients = client_source.text_search(params[:q], client_scope: client_source).where.not(id: @client.id).limit(50) if params[:q].present?
   end
 
   # display an assessment form in a modal
   def assessment
-    if can_view_clients?
+    if @client&.consent_form_valid?
       @form = assessment_scope.find(params.require(:id).to_i)
-      @client = @form.client
     else
-      client_id = params[:client_id].to_i
-      @client = client_scope(id: client_id).find(client_id)
-      if @client&.consent_form_valid?
-        @form = assessment_scope.find(params.require(:id).to_i)
-      else
-        @form = assessment_scope.new
-      end
+      @form = assessment_scope.new
     end
     render 'assessment_form'
   end
