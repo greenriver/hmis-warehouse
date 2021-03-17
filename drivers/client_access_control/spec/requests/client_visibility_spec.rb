@@ -2,7 +2,7 @@ require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 require 'nokogiri'
 
-RSpec.describe ClientsController, type: :request do
+RSpec.describe ClientAccessControl::ClientsController, type: :request do
   include_context 'visibility test context'
 
   context 'when config b is in effect' do

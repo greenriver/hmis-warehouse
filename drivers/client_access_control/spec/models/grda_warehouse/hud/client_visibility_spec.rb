@@ -249,14 +249,16 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has a role granting can view clients' do
       before do
         user.roles << can_view_clients
+        AccessGroup.where(name: 'All Data Sources').first.users << user
       end
       it 'user can see all clients' do
-        expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
+        expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(2)
+        expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(2)
       end
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_client_window
+        user.roles << can_view_clients
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(1)
@@ -267,14 +269,14 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       before do
         user.roles << can_search_window
       end
-      it 'user can see only window clients' do
-        expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(1)
-        expect(GrdaWarehouse::Hud::Client.source_visible_to(user).pluck(:id)).to include(window_source_client.id)
+      it 'user can search only window clients' do
+        expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(1)
+        expect(GrdaWarehouse::Hud::Client.searchable_by(user).pluck(:id)).to include(window_source_client.id)
       end
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_see_clients_in_window_for_assigned_data_sources
+        user.roles << can_view_clients
       end
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(1)
@@ -324,7 +326,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_client_window
+        user.roles << can_view_clients
       end
       it 'user can only search, not see, window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(1)
@@ -359,7 +361,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_see_clients_in_window_for_assigned_data_sources
+        user.roles << can_view_clients
       end
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(1)

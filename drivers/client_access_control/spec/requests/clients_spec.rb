@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe ClientsController, type: :request do
+RSpec.describe ClientAccessControl::ClientsController, type: :request do
   let!(:warehouse_data_source) { create :grda_warehouse_data_source, visible_in_window: true }
   let!(:window_data_source) { create :visible_data_source }
   let!(:destination) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id }
