@@ -84,7 +84,7 @@ module HudSpmReport
       hud_reports_spms_path
     end
 
-    private def path_for_cell(_report:, _question:, _cell_label:, _table:)
+    private def path_for_cell(report:, question:, cell_label:, table:) # rubocop:disable Lint/UnusedMethodArgument
       'javascript:alert("TODO");'
     end
   end

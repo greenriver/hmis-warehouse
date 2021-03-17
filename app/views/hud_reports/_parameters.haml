@@ -6,15 +6,19 @@
       %label.label.label-default.parameter-label Projects
       %label.label.label-primary.parameter-value
         %strong
-          - compacted = value.compact.delete_if(&:blank?)
-          - compacted[0..4].each do |project_id|
-            - project = GrdaWarehouse::Hud::Project.find(project_id)
-            = link_to_if can_view_projects?, project.name, project_path(project_id)
+          :ruby
+            project_ids = value.compact.delete_if(&:blank?)
+            projects = GrdaWarehouse::Hud::Project.with_deleted.where(id: project_ids).index_by(&:id)
+          - project_ids[0..4].each do |id|
+            - if project = projects[id]
+              = link_to_if can_view_projects?, project.name, project_path(id)
+            - else
+              = "##{id} (deleted)"
             %br
-          - if compacted.size > 5
-            - tooltip = compacted.map { |project_id| GrdaWarehouse::Hud::Project.find(project_id).name }.join('<br />').html_safe
+          - if project_ids.size > 5
+            - tooltip = project_ids.map { |id| projects[id] &.name || "##{id} (deleted)" }.join('<br />').html_safe
             %span.action{data: {toggle: :tooltip, html: 'true', title: tooltip}}
-              #{compacted.size - 5} more...
+              #{project_ids.size - 5} more...
     - else
       %label.label.label-default.parameter-label
         = param.to_s.humanize

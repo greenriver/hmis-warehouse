@@ -1,5 +1,8 @@
-- columns = exporter.display_column_names
-- rows = exporter.as_array
+:ruby
+  report ||= @report
+  question ||= @question
+  columns = exporter.display_column_names
+  rows = exporter.as_array
 .table-responsive
   %table.table.table-sm.table-bordered
     %thead.thead-dark
@@ -18,4 +21,4 @@
             - cell_color = 'table-primary' if value.nil? || value == ''
             - value = '0.0000' if value == 'NaN'
             %td{class: cell_color}
-              = link_to_if value.is_a?(Integer) && value.positive?, value, path_for_cell(report: @report, question: @question, cell_label: cell, table: exporter.table)
+              = link_to_if value.is_a?(Integer) && value.positive?, value, path_for_cell(report: report, question: question, cell_label: cell, table: exporter.table)

@@ -16,7 +16,7 @@ module HudSpmReport::Generators::Fy2020
     def run_question!
       table_name = '2'
 
-      @report.start(self.class.question_number, table_name)
+      @report.start(self.class.question_number, [table_name])
 
       exit_project_types = SO + ES + TH + SH + PH
       universe_members = universe.members.where(t[:m2_exit_from_project_type].in(exit_project_types))
