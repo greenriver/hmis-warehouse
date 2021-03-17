@@ -212,6 +212,8 @@ module Health
         vaccinated_on + 28.days if similar_vaccinations.count.zero?
       when PFIZER
         vaccinated_on + 21.days if similar_vaccinations.count.zero?
+      when JANSSEN
+        return # no follow-up needed
       end
     end
 
