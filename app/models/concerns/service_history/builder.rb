@@ -113,7 +113,7 @@ module ServiceHistory::Builder
       client_ids = Array.wrap(client_ids)
 
       GrdaWarehouse::Hud::Enrollment.where(
-        id: enrollment_ids(client_ids),
+        id: builder_client_enrollment_ids(client_ids),
         service_history_processing_job_id: builder_batch_job_scope.select(:id),
       ).exists?
     end

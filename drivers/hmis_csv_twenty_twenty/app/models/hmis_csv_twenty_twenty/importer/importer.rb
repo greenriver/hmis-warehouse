@@ -737,6 +737,7 @@ module HmisCsvTwentyTwenty::Importer
 
       # Enrollment.processed_as is cleared if the enrollment changed
       # queue up a rebuild to keep things as in sync as possible
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
     end
 

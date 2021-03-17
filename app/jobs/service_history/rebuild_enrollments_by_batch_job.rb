@@ -26,7 +26,6 @@ module ServiceHistory
     end
 
     def enqueue(job, queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name)
-      super(job, queue: queue)
     end
 
     def max_attempts
