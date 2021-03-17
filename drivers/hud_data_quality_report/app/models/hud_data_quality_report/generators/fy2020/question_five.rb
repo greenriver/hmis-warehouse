@@ -89,13 +89,19 @@ module HudDataQualityReport::Generators::Fy2020
 
       # times homeless dk/r/missing
       answer = @report.answer(question: table_name, cell: 'F2')
-      times_homeless_members = es_sh_so.where(a_t[:times_homeless].in([nil, 8, 9]))
+      times_homeless_members = es_sh_so.where(
+        a_t[:times_homeless].in([8, 9]).
+          or(a_t[:times_homeless].eq(nil)),
+      )
       answer.add_members(times_homeless_members)
       answer.update(summary: times_homeless_members.count)
 
       # months homeless dk/r/missing
       answer = @report.answer(question: table_name, cell: 'G2')
-      months_homeless_members = es_sh_so.where(a_t[:months_homeless].in([nil, 8, 9]))
+      months_homeless_members = es_sh_so.where(
+        a_t[:months_homeless].in([8, 9]).
+          or(a_t[:months_homeless].eq(nil)),
+      )
       answer.add_members(months_homeless_members)
       answer.update(summary: months_homeless_members.count)
 
@@ -129,26 +135,31 @@ module HudDataQualityReport::Generators::Fy2020
         {
           cell: 'D3',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-            and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+            and(a_t[:prior_length_of_stay].in([8, 9]).
+              or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # missing time in housing
         {
           cell: 'E3',
-          clause: a_t[:prior_living_situation].in([nil, 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
-            and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+            or(a_t[:prior_living_situation].eq(nil)).
+            and(a_t[:prior_length_of_stay].in([8, 9]).
+              or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # times homeless dk/r/missing
         {
           cell: 'F3',
-          clause: a_t[:times_homeless].in([nil, 8, 9]),
+          clause: a_t[:times_homeless].in([8, 9]).
+            or(a_t[:times_homeless].eq(nil)),
           include_in_percent: true,
         },
         # months homeless dk/r/missing
         {
           cell: 'G3',
-          clause: a_t[:months_homeless].in([nil, 8, 9]),
+          clause: a_t[:months_homeless].in([8, 9]).
+            or(a_t[:months_homeless].eq(nil)),
           include_in_percent: true,
         },
       ]
@@ -162,7 +173,7 @@ module HudDataQualityReport::Generators::Fy2020
       # percent
       answer = @report.answer(question: table_name, cell: 'H3')
       ors = th_buckets.select { |m| m[:include_in_percent] }.map do |cell|
-        cell[:clause].to_sql
+        "(#{cell[:clause].to_sql})"
       end
       members = th.where(Arel.sql(ors.join(' or ')))
       answer.add_members(members)
@@ -191,26 +202,31 @@ module HudDataQualityReport::Generators::Fy2020
         {
           cell: 'D4',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-            and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+            and(a_t[:prior_length_of_stay].in([8, 9]).
+              or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # missing time in housing
         {
           cell: 'E4',
-          clause: a_t[:prior_living_situation].in([nil, 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
-            and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+            or(a_t[:prior_living_situation].eq(nil)).
+            and(a_t[:prior_length_of_stay].in([8, 9]).
+              or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # times homeless dk/r/missing
         {
           cell: 'F4',
-          clause: a_t[:times_homeless].in([nil, 8, 9]),
+          clause: a_t[:times_homeless].in([8, 9]).
+            or(a_t[:times_homeless].eq(nil)),
           include_in_percent: true,
         },
         # months homeless dk/r/missing
         {
           cell: 'G4',
-          clause: a_t[:months_homeless].in([nil, 8, 9]),
+          clause: a_t[:months_homeless].in([8, 9]).
+            or(a_t[:months_homeless].eq(nil)),
           include_in_percent: true,
         },
       ]
@@ -224,7 +240,7 @@ module HudDataQualityReport::Generators::Fy2020
       # percent
       answer = @report.answer(question: table_name, cell: 'H4')
       ors = ph_buckets.select { |m| m[:include_in_percent] }.map do |cell|
-        cell[:clause].to_sql
+        "(#{cell[:clause].to_sql})"
       end
       members = ph.where(Arel.sql(ors.join(' or ')))
       answer.add_members(members)

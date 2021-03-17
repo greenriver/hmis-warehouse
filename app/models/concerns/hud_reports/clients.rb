@@ -84,6 +84,17 @@ module HudReports::Clients
       enrollment.head_of_household? && enrollment.first_date_in_program + 1.years < report_end_date
     end
 
+    private def annual_assessment_in_window?(enrollment, assessment_date)
+      enrollment_date = enrollment.first_date_in_program
+      return nil if assessment_date.nil?
+
+      anniversary_date = Date.new(report_end_date.year, enrollment_date.month, enrollment_date.day)
+      anniversary_date -= 1.year if anniversary_date > report_end_date
+      return nil if anniversary_date < enrollment_date
+
+      assessment_date.between?(anniversary_date - 30.days, anniversary_date + 30.days)
+    end
+
     private def living_situations
       {
         'Homeless Situations' => nil,
