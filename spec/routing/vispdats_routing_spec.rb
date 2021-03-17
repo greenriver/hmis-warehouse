@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Clients::VispdatsController, type: :routing do
   describe 'routing' do
-    ['clients', 'window/clients'].each do |client_path|
+    ['clients'].each do |client_path|
       it "routes to #{client_path}/:client_id/vispdats#index" do
         expect(get: "#{client_path}/1/vispdats").to route_to(
           controller: 'clients/vispdats',
