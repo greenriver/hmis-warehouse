@@ -265,7 +265,7 @@ module Health
     def signature_modes
       @signature_modes ||= {
         in_person: 'In Person',
-        email: 'Via Email',
+        email: 'Other: Email',
       }.invert.freeze
     end
 
