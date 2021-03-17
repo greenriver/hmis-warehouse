@@ -21,6 +21,26 @@
       "note": ""
     },
     {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "13a7f90845cffdc12900858d9d2d0e853dcd03c123ae71ebfe37e725f6d6453a",
+      "check_name": "FileAccess",
+      "message": "Parameter value used in file name",
+      "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
+      "line": 69,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientAccessControl::HistoryController",
+        "method": "pdf"
+      },
+      "user_input": "params[:client_id]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "149f43ca0c9d46c20323967d168bcf5e5dc81816dd870fc6ce1cd8f047d79639",
@@ -289,46 +309,6 @@
       },
       "user_input": "params[:id]",
       "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "3d82622799cff1c1bd95924a259f22509eaa2e1caf0634be9542d832017983e2",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/income_benefits_report/app/models/income_benefits_report/report.rb",
-      "line": 166,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"GREATEST('#{(@filter.start_date - 18.years).to_s(:db)}', #{she_t[:first_date_in_program].to_sql} - interval '18 years')\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "IncomeBenefitsReport::Report",
-        "method": "filter_for_children"
-      },
-      "user_input": "(@filter.start_date - 18.years)",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "3e94c32e2e326e0b24e275e1018e19c8d8e04b138e81da4366a9ab06617bdb85",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 389,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"EXISTS (#{inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")} and \\\"Client\\\".\\\"id\\\" = \\\"inner_clients\\\".\\\"id\\\")\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::Hud::Client",
-        "method": "GrdaWarehouse::Hud::Client.exists_with_inner_clients"
-      },
-      "user_input": "inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")",
-      "confidence": "Medium",
       "note": ""
     },
     {
@@ -673,6 +653,26 @@
       },
       "user_input": "db_user",
       "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "7b07960e8183fd903d2b5da2531174a58e52432690e67a5e83a5db857acdf1e2",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "drivers/client_access_control/app/controllers/client_access_control/search_concern.rb",
+      "line": 43,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientAccessControl::SearchConcern",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
       "note": ""
     },
     {
@@ -1322,7 +1322,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 66,
+      "line": 68,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1362,7 +1362,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 533,
+      "line": 634,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -1412,26 +1412,6 @@
         "method": "create_database!"
       },
       "user_input": "database",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "e1164ff93dbb556c28c45e8621bd8bb1782ba1aab0f5d389a8a9e74a36590a29",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/income_benefits_report/app/models/income_benefits_report/report.rb",
-      "line": 162,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"GREATEST('#{(@filter.start_date - 18.years).to_s(:db)}', #{she_t[:first_date_in_program].to_sql} - interval '18 years')\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "IncomeBenefitsReport::Report",
-        "method": "filter_for_adults"
-      },
-      "user_input": "(@filter.start_date - 18.years)",
       "confidence": "Medium",
       "note": ""
     },
@@ -1615,26 +1595,6 @@
       "note": ""
     },
     {
-      "warning_type": "File Access",
-      "warning_code": 16,
-      "fingerprint": "fe05ee0a6f1d111361975dbd3e6e21a0f4e6b22841baf874cda4bf1cd5f21c0e",
-      "check_name": "FileAccess",
-      "message": "Model attribute used in file name",
-      "file": "app/controllers/clients/history_controller.rb",
-      "line": 69,
-      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Clients::HistoryController",
-        "method": "pdf"
-      },
-      "user_input": "GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "fe7de455d82a4e3fef770c1272e861fb8f1d73042b2f82f1b417753f2d17bec7",
@@ -1655,6 +1615,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-02-19 23:57:04 +0000",
+  "updated": "2021-03-17 19:23:21 +0000",
   "brakeman_version": "5.0.0"
 }
