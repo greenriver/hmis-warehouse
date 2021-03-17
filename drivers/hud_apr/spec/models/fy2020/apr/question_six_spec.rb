@@ -64,7 +64,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSix, type: :model do
       it 'counts at least one invalid record' do
         answer = report_result.answer(question: 'Q6d', cell: 'H5').summary
         expect(answer).not_to eq(nil)
-        expect(answer).not_to eq('1.0000')
+        expect(answer).not_to eq('0.0000')
       end
     end
 
@@ -88,7 +88,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSix, type: :model do
       expect(report_result.answer(question: 'Q6f', cell: 'B2').summary).to eq(5)
     end
 
-    it 'there was a contact' do
+    it 'there was at least one a contact' do
       answer = report_result.answer(question: 'Q6f', cell: 'D2').summary
       expect(answer).not_to eq(nil)
       expect(answer).not_to eq('1.0000')

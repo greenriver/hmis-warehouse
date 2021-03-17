@@ -31,7 +31,8 @@ module HudApr::Generators::Shared::Fy2020
         a_t[:other_clients_over_25].eq(false).and(
           a_t[:age].between(12..24).and(a_t[:dob_quality].in([1, 2])).
           or(
-            a_t[:dob_quality].in([nil, 8, 9, 99]).
+            a_t[:dob_quality].in([8, 9, 99]).
+            or(a_t[:dob_quality].eq(nil)).
             or(a_t[:age].lt(0)).
             or(a_t[:age].eq(nil)),
           ),
