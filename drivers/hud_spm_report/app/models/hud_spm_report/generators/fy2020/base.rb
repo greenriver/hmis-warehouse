@@ -1485,6 +1485,10 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
+    private def head_of_household_for(project_types, client_id, household_id)
+      hoh_client_ids(project_types)[[client_id, household_id]]
+    end
+
     private def hoh_for_children_without_living_situation(project_types, client_id, enrollment_id)
       children_without_living_situation(project_types)[[client_id, enrollment_id]]
     end
