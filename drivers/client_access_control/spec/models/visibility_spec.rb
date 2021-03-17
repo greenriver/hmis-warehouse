@@ -68,11 +68,11 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     # Positive test
     describe 'and the user has permission to see full dashboard can see client based on project enrollment' do
       before do
-        role.update(can_view_full_client_dashboard: true)
+        role.update(can_view_full_client_dashboard: true, can_view_clients: true)
         user.roles = [role]
         user.add_viewable(visible_project)
       end
-      it 'user cannot see any clients' do
+      it 'user can see one client' do
         expect(GrdaWarehouse::Hud::Client.source.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(1)

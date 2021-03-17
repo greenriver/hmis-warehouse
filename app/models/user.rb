@@ -375,7 +375,7 @@ class User < ApplicationRecord
   end
 
   def coc_codes
-    access_groups.map(&:coc_codes).flatten
+    (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).compact
   end
 
   def coc_codes= (codes)
