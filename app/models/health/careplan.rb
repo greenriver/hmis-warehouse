@@ -97,7 +97,8 @@ module Health
     serialize :backup_plan_archive, Array
 
     validates_presence_of :provider_id, if: -> { self.provider_signed_on.present? }
-    validates_presence_of :patient_signature_mode, if: -> { self.patient_signed_on.present? }
+    # We are not collecting patient signature mode yet, so don't enforce this
+    # validates_presence_of :patient_signature_mode, if: -> { self.patient_signed_on.present? }
     validates_presence_of :provider_signature_mode, if: -> { self.provider_signed_on.present? }
 
     # Scopes
