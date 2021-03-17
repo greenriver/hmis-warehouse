@@ -556,15 +556,10 @@ module GrdaWarehouse::Hud
 
     def organization_and_name(include_confidential_names: false)
       project_name = name(include_confidential_names: include_confidential_names, include_project_type: true)
-      if include_confidential_names
-        "#{organization&.OrganizationName} / #{project_name}"
-      else
-        if confidential_name?
-          "#{project_name}"
-        else
-          "#{organization&.OrganizationName} / #{project_name}"
-        end
-      end
+      return "#{organization&.OrganizationName} / #{project_name}" if include_confidential_names
+      "#{organization&.OrganizationName} / #{project_name}" unless confidential_name?
+
+      project_name
     end
 
     def name_and_type(include_confidential_names: false)
