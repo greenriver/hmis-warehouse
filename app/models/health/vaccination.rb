@@ -14,6 +14,7 @@ module Health
 
     MODERNA = 'ModernaTX, Inc.'.freeze
     PFIZER = 'Pfizer, Inc., and BioNTech'.freeze
+    JANSSEN = 'Janssen'.freeze
 
     phi_patient :medicaid_id
     phi_attr :id, Phi::OtherIdentifier
@@ -197,7 +198,7 @@ module Health
       {
         'Moderna' => MODERNA,
         'Pfizer' => PFIZER,
-
+        'Janssen' => JANSSEN,
       }[vaccination_type]
     end
 
