@@ -5,20 +5,23 @@
     - if param == :project_ids
       %label.label.label-default.parameter-label Projects
       %label.label.label-primary.parameter-value
-        %strong
+        %div
           :ruby
             project_ids = value.compact.delete_if(&:blank?)
-            projects = GrdaWarehouse::Hud::Project.with_deleted.where(id: project_ids).index_by(&:id)
-          - project_ids[0..4].each do |id|
-            - if project = projects[id]
-              = link_to_if can_view_projects?, project.name, project_path(id)
-            - else
-              = "##{id} (deleted)"
-            %br
-          - if project_ids.size > 5
-            - tooltip = project_ids.map { |id| projects[id] &.name || "##{id} (deleted)" }.join('<br />').html_safe
-            %span.action{data: {toggle: :tooltip, html: 'true', title: tooltip}}
-              #{project_ids.size - 5} more...
+            projects = GrdaWarehouse::Hud::Project.where(
+              id: project_ids
+            ).order(name: :asc)
+            missing_ids = project_ids - projects.map(&:id)
+          - projects[0..4].each do |project|
+            %div= link_to_if can_view_projects?, project.name, project_path(project)
+          - if projects.size > 5 || missing_ids.any?
+            %details
+              %summary= "#{project_ids.size - 5} more..."
+              - projects[5..].each do |project|
+                %div=  project.name
+              - missing_ids.each do |id|
+                %div=  "##{id} (deleted)"
+
     - else
       %label.label.label-default.parameter-label
         = param.to_s.humanize
