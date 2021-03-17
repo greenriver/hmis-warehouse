@@ -5,6 +5,7 @@ class UniqUniverseMemberships < ActiveRecord::Migration[5.2]
     end
     add_index :hud_report_universe_members, [:report_cell_id, :universe_membership_id, :universe_membership_type],
       unique: true,
+      where: "universe_membership_type = 'HudSpmReport::Fy2020::SpmClient'",
       name: 'uniq_hud_report_universe_members'
   end
 end
