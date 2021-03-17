@@ -691,7 +691,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     # m2 and m6 use almost the same logic
-    private def add_exiting_clients(question_name, exits_scope, m_code)
+    private def add_exiting_clients(question_name, m_exits_scope, m_code)
       return unless add_clients_for_question?(question_name)
 
       project_types = (SO + ES + TH + SH + PH).freeze
@@ -712,10 +712,10 @@ module HudSpmReport::Generators::Fy2020
         history_col,
       ].freeze
 
-      each_client_batch exits_scope do |clients_by_id|
+      each_client_batch m_exits_scope do |clients_by_id|
         spm_clients = {}
 
-        exits_by_client_id = exits_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
+        exits_by_client_id = exits_for_batch(m_exits_scope, clients_by_id.keys, SHE_COLUMNS).group_by do |e|
           e[:client_id]
         end.freeze
         entries_by_client_id = entries_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
@@ -725,7 +725,7 @@ module HudSpmReport::Generators::Fy2020
         exits_by_client_id.each do |client_id, client_exits|
           # 2. Of the universe of project exits, determine each client’s
           # earliest [project exit date] where the [destination] was permanent housing.
-          p_exit = client_exits.detect do |client_exit|
+          p_exit = client_exits.sort_by { |d| d[:last_date_in_program] }.detect do |client_exit|
             # inherit destination from HoH if age <= 17 and destination not collected
             destination = destination_for(project_types, client_exit[:client_id], client_exit[:household_id])
             client_exit[:destination] = destination if destination.present?
@@ -1034,8 +1034,8 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
-    private def exits_for_batch(client_ids, columns)
-      pluck_to_hash columns, exits_scope.where(
+    private def exits_for_batch(scope, client_ids, columns)
+      pluck_to_hash columns, scope.where(
         client_id: client_ids,
       )
     end

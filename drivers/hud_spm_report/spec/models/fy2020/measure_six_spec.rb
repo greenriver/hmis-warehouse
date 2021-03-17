@@ -34,8 +34,8 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
 
     ['6a.1 and 6b.1', 'B2', nil, 'exiting to PH from SO'],
     ['6a.1 and 6b.1', 'B3', nil, 'exiting to PH from ES'],
-    ['6a.1 and 6b.1', 'B4', 1, 'exiting to PH from TH'],
-    ['6a.1 and 6b.1', 'B5', 2, 'exiting to PH from SH'],
+    ['6a.1 and 6b.1', 'B4', 0, 'exiting to PH from TH'],
+    ['6a.1 and 6b.1', 'B5', 3, 'exiting to PH from SH'],
     ['6a.1 and 6b.1', 'B6', 0, 'exiting to PH from PH'],
     ['6a.1 and 6b.1', 'B7', 3, 'exiting to PH'],
 
@@ -69,29 +69,29 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
 
     ['6a.1 and 6b.1', 'G2', nil, 'returning in 13-24mo from SO'],
     ['6a.1 and 6b.1', 'G3', nil, 'returning in 13-24mo from ES'],
-    ['6a.1 and 6b.1', 'G4', 1, 'returning in 13-24mo from TH'],
-    ['6a.1 and 6b.1', 'G5', 1, 'returning in 13-24mo from SH'],
+    ['6a.1 and 6b.1', 'G4', 0, 'returning in 13-24mo from TH'],
+    ['6a.1 and 6b.1', 'G5', 2, 'returning in 13-24mo from SH'],
     ['6a.1 and 6b.1', 'G6', 0, 'returning in 13-24mo from PH'],
     ['6a.1 and 6b.1', 'G7', 2, 'returning in 13-24mo'],
 
     ['6a.1 and 6b.1', 'H2', nil, '% returning in 13-24mo from SO'],
     ['6a.1 and 6b.1', 'H3', nil, '% returning in 13-24mo from ES'],
-    ['6a.1 and 6b.1', 'H4', 100, '% returning in 13-24mo from TH'],
-    ['6a.1 and 6b.1', 'H5', 50, '% returning in 13-24mo from SH'],
+    ['6a.1 and 6b.1', 'H4', 0, '% returning in 13-24mo from TH'],
+    ['6a.1 and 6b.1', 'H5', 66.67, '% returning in 13-24mo from SH'],
     ['6a.1 and 6b.1', 'H6', 0, '% returning in 13-24mo from PH'],
     ['6a.1 and 6b.1', 'H7', 66.67, '% returning in 13-24mo'],
 
     ['6a.1 and 6b.1', 'I2', nil, 'returning in <2yr from SO'],
     ['6a.1 and 6b.1', 'I3', nil, 'returning in <2yr from ES'],
-    ['6a.1 and 6b.1', 'I4', 1, 'returning in <2yr from TH'],
-    ['6a.1 and 6b.1', 'I5', 1, 'returning in <2yr from SH'],
+    ['6a.1 and 6b.1', 'I4', 0, 'returning in <2yr from TH'],
+    ['6a.1 and 6b.1', 'I5', 2, 'returning in <2yr from SH'],
     ['6a.1 and 6b.1', 'I6', 0, 'returning in <2yr from SO'],
     ['6a.1 and 6b.1', 'I7', 2, 'returning in <2yr'],
 
     ['6a.1 and 6b.1', 'J2', nil, '% returning in <2yr from SO'],
     ['6a.1 and 6b.1', 'J3', nil, '% returning in <2yr from ES'],
-    ['6a.1 and 6b.1', 'J4', 100, '% returning in <2yr from TH'],
-    ['6a.1 and 6b.1', 'J5', 50, '% returning in <2yr from SH'],
+    ['6a.1 and 6b.1', 'J4', 0, '% returning in <2yr from TH'],
+    ['6a.1 and 6b.1', 'J5', 66.67, '% returning in <2yr from SH'],
     ['6a.1 and 6b.1', 'J6', 0, '% returning in <2yr from SO'],
     ['6a.1 and 6b.1', 'J7', 66.67, '% returning in <2yr'],
 
@@ -104,14 +104,14 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
     ['6c.2', 'C2', 0, 'Cat. 3 Persons in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project'],
     ['6c.2', 'C3', 0, 'with the desired final state'],
     ['6c.2', 'C4', 0, '.. as percentage'],
-  ].each do |question, cell, expected_value, label|
+  ].each do |table, cell, expected_value, label|
     test_name = if expected_value.nil?
-      "does not fill #{question} #{cell} #{label}".strip
+      "does not fill #{table} #{cell} #{label}".strip
     else
-      "fills #{question} #{cell} (#{label}) with #{expected_value}"
+      "fills #{table} #{cell} (#{label}) with #{expected_value}"
     end
     it test_name do
-      expect(report_result.answer(question: question, cell: cell).summary).to eq(expected_value)
+      expect(report_result.answer(question: table, cell: cell).summary).to eq(expected_value)
     end
   end
 end
