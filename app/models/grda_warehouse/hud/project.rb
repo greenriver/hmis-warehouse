@@ -525,6 +525,8 @@ module GrdaWarehouse::Hud
         @psh_types.include?(self.compute_project_type)
     end
 
+    alias_attribute :name, :ProjectName
+
     # Get the name for this project, protecting confidential names if appropriate
     #
     # @param include_confidential_names [Boolean] include confidential names, or replace them with a generic string?
