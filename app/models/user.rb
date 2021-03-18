@@ -34,16 +34,28 @@ class User < ApplicationRecord
          otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
          otp_number_of_backup_codes: 10
 
-  if ENV['OKTA_CLIENT_ID'].present?
-    devise :omniauthable, omniauth_providers: [:okta]
-  end
+  devise :omniauthable, omniauth_providers: [:okta] if ENV['OKTA_CLIENT_ID'].present?
 
   def self.from_omniauth(auth)
-    user = User.find_or_create_by(email: auth['info']['email']) do |user|
-      user.provider = auth['provider']
-      user.uid = auth['uid']
-      user.email = auth['info']['email']
+    user = find_by(
+      provider: auth['provider'],
+      uid: auth['uid'],
+    ) || find_by(
+      email: auth['info']['email'],
+    ) || create! do |u|
+      u.provider = auth['provider']
+      u.uid = auth['uid']
+      u.email = auth['info']['email']
+      u.first_name = auth.extra.raw_info[:given_name]
+      u.last_name = auth.extra.raw_info[:family_name]
+      u.password = Devise.friendly_token
+      u.confirmed_at = Time.current if auth.extra.raw_info[:email_verified]
+
+      default_agency_name = 'Default'
+      u.agency = Agency.where(name: default_agency_name).first_or_create!
     end
+
+    user
   end
 
   # Connect users to login attempts
