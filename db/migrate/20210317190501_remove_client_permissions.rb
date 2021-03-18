@@ -12,8 +12,9 @@ class RemoveClientPermissions < ActiveRecord::Migration[5.2]
       :can_see_clients_in_window_for_assigned_data_sources,
       :can_view_clients_with_roi_in_own_coc,
     ]
+    # Upgrade, but don't yet disable old permissions so it can be rolled-back
     deprecated_permissions.each do |perm|
-      Role.where(perm => true).update_all(can_view_clients: true, perm => false)
+      Role.where(perm => true).update_all(can_view_clients: true)
     end
   end
 end
