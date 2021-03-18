@@ -53,8 +53,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for non-window client' do
-        get client_path(non_window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(non_window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -144,8 +145,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for window client' do
-        get client_path(window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
       it 'user can see client dashboard for window client with release' do
         past_date = 5.days.ago
@@ -159,8 +161,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for non-window client' do
-        get client_path(non_window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(non_window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -207,8 +210,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             expect(response).to have_http_status(200)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
       end
@@ -262,8 +266,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for non-window client' do
-        get client_path(non_window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(non_window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -355,8 +360,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for non-window client' do
-        get client_path(non_window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(non_window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -446,8 +452,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for window client' do
-        get client_path(window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
       it 'user can see client dashboard for window client with release' do
         past_date = 5.days.ago
@@ -461,8 +468,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for non-window client' do
-        get client_path(non_window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(non_window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -509,8 +517,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             expect(response).to have_http_status(200)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
       end
@@ -535,8 +544,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.coc_codes = ['ZZ-999']
         end
         it 'user cannot see client details' do
-          get client_path(non_window_destination_client)
-          expect(response).to have_http_status(302)
+          expect do
+            get client_path(non_window_destination_client)
+          end.to raise_error(ActiveRecord::RecordNotFound)
         end
         describe 'when the client has a valid consent in any coc' do
           before do
@@ -554,8 +564,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             expect(response).to have_http_status(200)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
         describe 'when the client has a valid consent in the user\'s coc' do
@@ -575,8 +586,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             expect(response).to have_http_status(200)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
         describe 'when the client has a valid consent in the user\'s coc and another coc' do
@@ -596,8 +608,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             expect(response).to have_http_status(200)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
         describe 'when the client has a valid consent in another coc' do
@@ -613,12 +626,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             )
           end
           it 'user cannot see client dashboard for assigned client' do
-            get client_path(non_window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(non_window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
       end
@@ -668,8 +683,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to redirect_to(user.my_root_path)
       end
       it 'user cannot see client dashboard for window client' do
-        get client_path(window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
       it 'user can see client dashboard for window client with release' do
         past_date = 5.days.ago
@@ -683,8 +699,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for non-window client' do
-        get client_path(non_window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(non_window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -731,8 +748,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             expect(response).to have_http_status(200)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
       end
@@ -756,8 +774,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.coc_codes = ['ZZ-999']
         end
         it 'user cannot see client details' do
-          get client_path(non_window_destination_client)
-          expect(response).to have_http_status(302)
+          expect do
+            get client_path(non_window_destination_client)
+          end.to raise_error(ActiveRecord::RecordNotFound)
         end
         describe 'when the client has a valid consent in any coc' do
           before do
@@ -775,8 +794,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             expect(response).to have_http_status(200)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
         describe 'when the client has a valid consent in the user\'s coc' do
@@ -795,8 +815,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             expect(response).to have_http_status(200)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
         describe 'when the client has a valid consent in the user\'s coc and another coc' do
@@ -815,8 +836,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             expect(response).to have_http_status(200)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
         describe 'when the client has a valid consent in another coc' do
@@ -831,12 +853,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
             )
           end
           it 'user cannot see client dashboard for assigned client' do
-            get client_path(non_window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(non_window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
           it 'user cannot see client dashboard for window client' do
-            get client_path(window_destination_client)
-            expect(response).to redirect_to(user.my_root_path)
+            expect do
+              get client_path(window_destination_client)
+            end.to raise_error(ActiveRecord::RecordNotFound)
           end
         end
       end
