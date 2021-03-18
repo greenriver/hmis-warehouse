@@ -191,7 +191,10 @@ module GrdaWarehouse::Hud
 
     scope :unassigned, -> do
       jobs = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_job_ids
+      return current_scope unless jobs.present?
+
       where(e_t[:service_history_processing_job_id].eq(nil).or(e_t[:service_history_processing_job_id].in(jobs)))
+      end
     end
 
     def self.related_item_keys
