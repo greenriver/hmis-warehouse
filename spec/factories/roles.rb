@@ -65,6 +65,7 @@ FactoryBot.define do
     name { 'vispdat editor' }
     can_view_vspdat { true }
     can_edit_vspdat { true }
+    can_view_clients { true }
     can_search_window { true }
   end
 
@@ -129,6 +130,7 @@ FactoryBot.define do
     name { 'can edit own agency youth intake' }
     can_edit_own_agency_youth_intake { true }
     can_search_window { true }
+    can_view_clients { true }
   end
 
   factory :can_create_clients, class: 'Role' do
