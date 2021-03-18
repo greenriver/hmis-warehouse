@@ -119,8 +119,7 @@ module ServiceHistory::Builder
     end
 
     private def builder_batch_job_scope
-      @builder_batch_job_scope ||= Delayed::Job.where(queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name, failed_at: nil).
-        jobs_for_class('ServiceHistory::RebuildEnrollments')
+      @builder_batch_job_scope ||= Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
     end
 
     private def builder_client_enrollment_ids(client_ids)

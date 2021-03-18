@@ -191,7 +191,7 @@ module GrdaWarehouse::Hud
 
     scope :unassigned, -> do
       jobs = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_job_ids
-      where(service_history_processing_job_id: nil).or(where.not(service_history_processing_job_id: jobs))
+      where(e_t[:service_history_processing_job_id].eq(nil).or(e_t[:service_history_processing_job_id].in(jobs)))
     end
 
     def self.related_item_keys

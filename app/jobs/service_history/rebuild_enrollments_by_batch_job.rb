@@ -25,7 +25,7 @@ module ServiceHistory
       end
     end
 
-    def enqueue(job, queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name)
+    def enqueue(job, queue: :long_running)
     end
 
     def max_attempts
