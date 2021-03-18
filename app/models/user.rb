@@ -46,6 +46,7 @@ class User < ApplicationRecord
       u.provider = auth['provider']
       u.uid = auth['uid']
       u.email = auth['info']['email']
+      u.phone = auth['info']['phone_number']
       u.first_name = auth.extra.raw_info[:given_name]
       u.last_name = auth.extra.raw_info[:family_name]
       u.password = Devise.friendly_token
@@ -54,7 +55,7 @@ class User < ApplicationRecord
       default_agency_name = 'Default'
       u.agency = Agency.where(name: default_agency_name).first_or_create!
     end
-
+    user.update_columns(provider_raw_info: auth.extra.raw_info)
     user
   end
 
