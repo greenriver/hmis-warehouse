@@ -194,7 +194,6 @@ module GrdaWarehouse::Hud
       return current_scope unless jobs.present?
 
       where(e_t[:service_history_processing_job_id].eq(nil).or(e_t[:service_history_processing_job_id].in(jobs)))
-      end
     end
 
     def self.related_item_keys
