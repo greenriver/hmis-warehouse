@@ -21,7 +21,7 @@ module ControllerAuthorization
   end
 
   def require_can_see_this_client_demographics!
-    return true if current_user.can_view_client_window?
+    return true if current_user.can_view_clients?
 
     # attempt to set the client various ways
     if params[:client_id].present?
