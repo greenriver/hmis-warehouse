@@ -14,10 +14,10 @@ class ClientsController < ApplicationController
   helper ClientMatchHelper
   helper ClientHelper
 
-  before_action :require_can_access_some_client_search!, only: [:index, :simple]
+  before_action :require_can_access_some_client_search!, only: [:simple]
   before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image, :assessment]
   before_action :require_can_view_enrollment_details_tab!, only: [:enrollment_details]
-  before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create, :simple, :appropriate, :assessment]
+  before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
   before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details, :assessment]
