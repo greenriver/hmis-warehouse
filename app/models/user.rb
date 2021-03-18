@@ -14,7 +14,6 @@ class User < ApplicationRecord
   attr_accessor :remember_device, :device_name
 
   # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :invitable,
          :recoverable,
          :rememberable,
@@ -34,7 +33,19 @@ class User < ApplicationRecord
          password_length: 10..128,
          otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
          otp_number_of_backup_codes: 10
-  # has_secure_password # not needed with devise
+
+  if ENV['OKTA_CLIENT_ID'].present?
+    devise :omniauthable, omniauth_providers: [:okta]
+  end
+
+  def self.from_omniauth(auth)
+    user = User.find_or_create_by(email: auth['info']['email']) do |user|
+      user.provider = auth['provider']
+      user.uid = auth['uid']
+      user.email = auth['info']['email']
+    end
+  end
+
   # Connect users to login attempts
   has_many :login_activities, as: :user
 

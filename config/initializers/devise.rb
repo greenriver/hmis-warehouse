@@ -402,4 +402,26 @@ Devise.setup do |config|
   # Time period for account expiry from last_activity_at
   expire_after = ENV.fetch('ACCOUNT_EXPIRATION_DAYS') { 180 }.to_i
   config.expire_after = expire_after.days
+
+  if ENV['OKTA_CLIENT_ID'].present?
+    require 'omniauth-okta'
+    # require 'omniauth-rails_csrf_protection'
+    domain = ENV.fetch('OKTA_DOMAIN')
+    auth_server = ENV.fetch('OKTA_AUTH_SERVER') { 'default'}
+    config.omniauth(
+      :okta,
+      ENV.fetch('OKTA_CLIENT_ID'),
+      ENV.fetch('OKTA_CLIENT_SECRET'),
+      scope: 'openid profile email',
+      fields: ['profile', 'email'],
+        client_options: {
+        site:          "https://#{domain}",
+        authorize_url: "https://#{domain}/oauth2/#{auth_server}/v1/authorize",
+        token_url:     "https://#{domain}/oauth2/#{auth_server}/v1/token",
+        user_info_url: "https://#{domain}/oauth2/#{auth_server}/v1/userinfo",
+      },
+      strategy_class: OmniAuth::Strategies::Okta,
+    )
+    OmniAuth.config.logger = Rails.logger if Rails.env.development?
+  end
 end
