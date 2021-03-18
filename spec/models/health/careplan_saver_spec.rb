@@ -10,7 +10,7 @@ RSpec.describe Health::CareplanSaver, type: :model do
     careplan.provider_signed_on = Date.today
     careplan.provider_signature_mode = :email
     careplan.patient_signed_on = Date.today
-    careplan.patient_signature_mode = :email
+    # careplan.patient_signature_mode = :email
 
     Health::CareplanSaver.new(user: user, careplan: careplan, create_qa: true).update
 
@@ -21,7 +21,7 @@ RSpec.describe Health::CareplanSaver, type: :model do
     careplan.provider_signed_on = Date.today
     careplan.provider_signature_mode = :in_person
     careplan.patient_signed_on = Date.today
-    careplan.patient_signature_mode = :email
+    # careplan.patient_signature_mode = :email
 
     Health::CareplanSaver.new(user: user, careplan: careplan, create_qa: true).update
 
@@ -32,7 +32,7 @@ RSpec.describe Health::CareplanSaver, type: :model do
     careplan.provider_signed_on = Date.today
     careplan.provider_signature_mode = :email
     careplan.patient_signed_on = Date.today
-    careplan.patient_signature_mode = :in_person
+    # careplan.patient_signature_mode = :in_person
 
     Health::CareplanSaver.new(user: user, careplan: careplan, create_qa: true).update
 

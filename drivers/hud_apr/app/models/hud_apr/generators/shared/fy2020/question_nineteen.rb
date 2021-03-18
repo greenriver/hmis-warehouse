@@ -77,7 +77,7 @@ module HudApr::Generators::Shared::Fy2020
       suffix = :annual_assessment
       # All adult stayers where the head of household has been in the project 365 days or more
       inclusion_clause = a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
-        and(adult_clause.or(a_t[:head_of_household].eq(true))).
+        and(adult_clause).
         and(stayers_clause)
 
       q19a(
@@ -107,7 +107,7 @@ module HudApr::Generators::Shared::Fy2020
       q19a(
         table_name,
         metadata,
-        income_status_method: :income_stati_stayers,
+        income_status_method: :income_stati_leavers,
         suffix: suffix,
         inclusion_clause: inclusion_clause,
       )
