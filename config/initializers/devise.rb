@@ -403,7 +403,7 @@ Devise.setup do |config|
   expire_after = ENV.fetch('ACCOUNT_EXPIRATION_DAYS') { 180 }.to_i
   config.expire_after = expire_after.days
 
-  if ENV['OKTA_CLIENT_ID'].present?
+  if ENV['OKTA_DOMAIN'].present?
     require 'omniauth-okta'
     # require 'omniauth-rails_csrf_protection'
     domain = ENV.fetch('OKTA_DOMAIN')

@@ -34,7 +34,7 @@ class User < ApplicationRecord
          otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
          otp_number_of_backup_codes: 10
 
-  devise :omniauthable, omniauth_providers: [:okta] if ENV['OKTA_CLIENT_ID'].present?
+  devise :omniauthable, omniauth_providers: [:okta] if ENV['OKTA_DOMAIN'].present?
 
   def self.from_omniauth(auth)
     user = find_by(
