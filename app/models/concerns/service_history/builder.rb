@@ -114,7 +114,7 @@ module ServiceHistory::Builder
 
       GrdaWarehouse::Hud::Enrollment.where(
         id: builder_client_enrollment_ids(client_ids),
-        service_history_processing_job_id: builder_batch_job_scope.select(:id),
+        service_history_processing_job_id: builder_batch_job_scope.pluck(:id),
       ).exists?
     end
 
