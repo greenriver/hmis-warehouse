@@ -96,41 +96,13 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :visible_in_window_to, ->(user) do
-    return none unless user
+    return none unless user&.can_view_clients?
 
     ds_ids = user.data_sources.pluck(:id)
-
-    if user.can_view_clients? || user.can_edit_clients?
-      current_scope
-    elsif user&.can_view_clients_with_roi_in_own_coc?
-      if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-        working_scope = current_scope || none
-        sql = arel_table[:id].in(ds_ids).or(arel_table[:id].in(working_scope.select(:id)))
-        sql = sql.or(arel_table[:visible_in_window].eq(true)) if user.can_view_or_search_clients_or_window?
-        where(sql)
-      else
-        # this will get limited by client visibility, but force window acces only
-        where(visible_in_window: true)
-      end
-    elsif user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-      # some users can see all clients for a specific data source,
-      # even if the data source as a whole is not available to anyone else in the window
-      sql = arel_table[:id].in(ds_ids)
-      if user.can_view_or_search_clients_or_window?
-        sql = sql.or(arel_table[:visible_in_window].eq(true))
-      end
-      where(sql)
-    elsif user.can_view_or_search_clients_or_window?
-      health_id = self.health_authoritative_id
-      # only show record in window if the data source is visible in the window or
-      # the record is a health record and the user has access to health..
-      sql = arel_table[:visible_in_window].eq(true)
-      sql = sql.or(arel_table[:id].eq(health_id)) if user&.has_some_patient_access?
-      where(sql)
-    else
-      # Note this should be `none` but active record is being incorrigible
-      where(Arel.sql('0=1'))
-    end
+    scope = where('0=1')
+    scope = scope.or(where(visible_in_window: true)) if ::GrdaWarehouse::Config.get(:window_access_requires_release)
+    scope = scope.or(where(id: ds_ids)) if ds_ids.any?
+    scope
   end
 
   scope :youth, -> do

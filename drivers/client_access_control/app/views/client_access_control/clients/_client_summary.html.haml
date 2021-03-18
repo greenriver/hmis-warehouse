@@ -29,5 +29,5 @@
 
       - if RailsDrivers.loaded.include?(:service_scanning)
         .d-none--empty.mb-6.w-100<
-          - if can_view_client_window?
+          - if can_view_clients?
             = render 'service_scanning/scanner_ids/clients/register'

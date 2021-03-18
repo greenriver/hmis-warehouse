@@ -6,13 +6,11 @@
 
 module GrdaWarehouse::Hud
   class Enrollment < Base
-    include RailsDrivers::Extensions
     include ArelHelper
     include HudSharedScopes
     include TsqlImport
     include NotifierConfig
     include ::HMIS::Structure::Enrollment
-    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 
@@ -128,19 +126,19 @@ module GrdaWarehouse::Hud
     scope :hud_non_residential, -> do
       joins(:project).merge(Project.hud_non_residential)
     end
-    scope :with_project_type, -> (project_types) do
+    scope :with_project_type, ->(project_types) do
       joins(:project).merge(Project.with_project_type(project_types))
     end
 
-    scope :visible_in_window_to, -> (user) do
-      if user.can_view_clients? || user.can_view_client_window?
-        joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
-      else
-        joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
-      end
+    scope :visible_in_window_to, ->(user) do
+      visible_to(user)
     end
 
-    scope :open_during_range, -> (range) do
+    scope :visible_to, ->(_user) do
+      none
+    end
+
+    scope :open_during_range, ->(range) do
       # convert the range into a standard range for backwards compatability
       range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
       d_1_start = range.first
@@ -414,5 +412,7 @@ module GrdaWarehouse::Hud
 
       return dk_or_r_or_missing(self.MonthsHomelessPastThreeYears) if dk_or_r_or_missing(self.MonthsHomelessPastThreeYears)
     end
+    #NOTE: this must be included at the end of the class so that scopes can override correctly
+    include RailsDrivers::Extensions
   end # End Enrollment
 end

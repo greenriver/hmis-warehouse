@@ -19,7 +19,7 @@
           %tr
             - row.each do |header, v|
               - if @clients.client_headers.include?(header)
-                - if current_user.can_view_clients? || current_user.can_edit_clients? || current_user.can_view_client_window?
+                - if current_user.can_access_some_version_of_clients?
                   - url = appropriate_client_path(id: client_id)
                 %td= link_to_if url.present?, v, url, target: '_blank'
               - else

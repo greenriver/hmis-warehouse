@@ -72,7 +72,7 @@ module UserPermissions
     end
 
     def can_view_clients_or_window
-      can_edit_clients? || can_view_client_window? || can_view_clients?
+      can_edit_clients? || can_view_clients?
     end
 
     def can_view_or_search_clients_or_window
@@ -80,7 +80,7 @@ module UserPermissions
     end
 
     def can_view_enrollment_details_tab
-      can_edit_clients? || ((can_view_client_window? || can_view_clients?) && can_view_enrollment_details?)
+      can_edit_clients? || (can_view_clients? && can_view_enrollment_details?)
     end
 
     def can_access_client_search
@@ -172,7 +172,7 @@ module UserPermissions
     end
 
     def can_access_some_version_of_clients
-      can_view_client_window? || can_view_clients? || can_edit_clients?
+      can_view_clients? || can_edit_clients?
     end
 
     def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicateName

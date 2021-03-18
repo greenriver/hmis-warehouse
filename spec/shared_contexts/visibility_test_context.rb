@@ -52,11 +52,8 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
 
   # roles
   let!(:can_view_clients) { create :role, can_view_clients: true }
-  let!(:can_see_clients_in_window_for_assigned_data_sources) { create :role, can_see_clients_in_window_for_assigned_data_sources: true }
-  let!(:can_view_clients_with_roi_in_own_coc) { create :role, can_view_clients_with_roi_in_own_coc: true }
   let!(:can_search_window) { create :role, can_search_window: true }
   let!(:can_use_strict_search) { create :role, can_use_strict_search: true }
-  let!(:can_view_client_window) { create :role, can_view_client_window: true }
   let!(:can_use_separated_consent) { create :role, can_use_separated_consent: true }
   let!(:can_view_all_reports) { create :role, can_view_all_reports: true }
   let!(:can_edit_users) { create :role, can_edit_users: true }

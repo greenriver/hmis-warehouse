@@ -9,7 +9,7 @@ module ServiceScanning
     include AjaxModalRails::Controller
     include ClientController
     include ClientPathGenerator
-    before_action :require_can_view_client_window!
+    before_action :require_can_view_clients!
     before_action :require_can_use_service_register!
 
     def index
