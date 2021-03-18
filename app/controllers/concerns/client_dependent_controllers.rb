@@ -13,7 +13,7 @@ module ClientDependentControllers
     end
 
     def searchable_client_scope(id: nil)
-      destination_client = client_source.find(id: id) if id
+      destination_client = client_source.find_by(id: id) if id
       scope = client_source.destination_visible_to(current_user)
       scope = scope.where(id: destination_client.source_clients.pluck(:id)) if destination_client
       scope
