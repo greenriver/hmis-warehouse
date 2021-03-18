@@ -8,7 +8,7 @@ In a recent #{@sender.receiver_name} eligibility check,
 
   %ul
     - @ineligible_ids.each do |patient|
-      %li= link_to nil, window_client_health_patient_index_url(patient)
+      %li= link_to nil, client_health_patient_index_url(patient)
 - else
   - connector = ' the'
 
@@ -17,4 +17,4 @@ In a recent #{@sender.receiver_name} eligibility check,
 
   %ul
     - @no_aco_ids.each do |patient|
-      %li= link_to nil, window_client_health_patient_index_url(patient)
+      %li= link_to nil, client_health_patient_index_url(patient)

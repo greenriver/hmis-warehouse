@@ -24,7 +24,7 @@ module ServiceHistory
         host: ENV['FQDN'],
         protocol: 'https',
       }
-      app.get(pdf_window_client_history_url(options))
+      app.get(pdf_client_history_url(options))
     end
 
     def enqueue(job, queue: :short_running)

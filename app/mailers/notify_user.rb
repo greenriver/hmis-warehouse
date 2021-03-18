@@ -68,7 +68,7 @@ class NotifyUser < DatabaseMailer
       @url = if user.can_edit_client_notes?
         client_notes_url(@client)
       elsif user.can_edit_window_client_notes?
-        window_client_notes_url(@client)
+        client_notes_url(@client)
       end
       next if @url.nil?
 
