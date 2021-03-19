@@ -659,7 +659,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def pause_import
-      logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log_id)}"
+      logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log.id)}"
       importer_log.update(status: :paused)
     end
 
