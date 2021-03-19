@@ -5,7 +5,7 @@
 ###
 
 BostonHmis::Application.routes.draw do
-  resources :clients do
+  resources :clients, only: [:none] do
     namespace :health_flexible_service do
       resources :vprs
     end
