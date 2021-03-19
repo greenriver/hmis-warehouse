@@ -296,7 +296,7 @@ module GrdaWarehouse::Tasks
           entry.
           joins(:enrollment).
           where(data_source_id: data_source_id, project_id: project_id, household_id: household_ids)
-        query = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where(
+        query = GrdaWarehouse::Hud::Enrollment.where(
           EnrollmentID: service_history_query.
             select(:enrollment_group_id),
           data_source_id: data_source_id,
@@ -315,7 +315,7 @@ module GrdaWarehouse::Tasks
         [project_id, data_source_id]
       end.each do |(project_id, data_source_id), batch|
         household_ids = batch.map(&:first)
-        query = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.
+        query = GrdaWarehouse::Hud::Enrollment.
           where(data_source_id: data_source_id, ProjectID: project_id, HouseholdID: household_ids)
         if @dry_run
           notes << "Invalidating #{query.count} in ds_id: #{data_source_id} project_id: #{project_id}\n\t#{household_ids.inspect}"

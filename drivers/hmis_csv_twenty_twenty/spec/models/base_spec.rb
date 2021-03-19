@@ -13,6 +13,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       GrdaWarehouse::Utility.clear!
       @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+      GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'Warehouse', source_type: nil, authoritative: false)
       file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_test_files'
       import(file_path, @data_source)
     end
@@ -32,8 +33,16 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(4)
     end
 
+    it 'the database will have four service history enrollment entry records' do
+      expect(GrdaWarehouse::ServiceHistoryEnrollment.entry.count).to eq(4)
+    end
+
     it 'the database will have 18 services' do
       expect(GrdaWarehouse::Hud::Service.count).to eq(18)
+    end
+
+    it 'the database will have 17 service history service records' do
+      expect(GrdaWarehouse::ServiceHistoryService.count).to eq(17)
     end
 
     it 'the effective export end date is 2017-09-20' do
@@ -372,6 +381,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     )
     loader.load!
     loader.import!
+    Delayed::Worker.new.work_off(2)
   end
 
   def cleanup_files
