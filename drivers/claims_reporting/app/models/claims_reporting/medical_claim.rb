@@ -181,6 +181,10 @@ module ClaimsReporting
                primary_key: :member_id,
                foreign_key: :member_id
 
+    def self.service_overlaps(date_range)
+      where ['daterange(service_start_date, service_end_date) && daterange(:min, :max)', { min: date_range.min, max: date_range.max }]
+    end
+
     def modifiers
       [
         procedure_modifier_1,
@@ -193,6 +197,11 @@ module ClaimsReporting
     def procedure_with_modifiers
       # sort is here since this is used as a key to match against other data
       ([procedure_code] + modifiers.sort).join('>').to_s
+    end
+
+    # Qualifying Activity: BH CP Treatment Plan Complete
+    def bh_cp_1?
+      procedure_code == 'T1020' # && 'U4'.in?(modifiers)
     end
   end
 end

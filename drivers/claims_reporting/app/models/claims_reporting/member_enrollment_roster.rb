@@ -2,6 +2,11 @@ module ClaimsReporting
   class MemberEnrollmentRoster < HealthBase
     phi_patient :member_id
 
+    belongs_to :member_roster,
+               primary_key: 'member_id',
+               foreign_key: 'member_id',
+               class_name: 'ClaimsReporting::MemberRoster'
+
     include ClaimsReporting::CsvHelpers
     def self.conflict_target
       ['member_id', 'span_start_date']

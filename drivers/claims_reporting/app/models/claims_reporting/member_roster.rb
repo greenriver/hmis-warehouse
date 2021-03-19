@@ -7,6 +7,11 @@ module ClaimsReporting
             foreign_key: 'member_id',
             class_name: 'ClaimsReporting::MemberDiagnosisClassification'
 
+    has_many :enrollment_rosters,
+             primary_key: 'member_id',
+             foreign_key: 'member_id',
+             class_name: 'ClaimsReporting::MemberEnrollmentRoster'
+
     include ClaimsReporting::CsvHelpers
     def self.conflict_target
       ['member_id']
