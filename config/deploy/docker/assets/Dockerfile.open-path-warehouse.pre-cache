@@ -40,7 +40,9 @@ COPY shape_files/CoC/make.inserts ./shape_files/CoC
 COPY shape_files/zip_codes.census.2018/make.inserts ./shape_files/zip_codes.census.2018
 
 # Get self-signed cert
-COPY --from=cert /key.pem /cert.pem /app/config/
+RUN mkdir -p /puma_keys
+COPY --from=cert /key.pem /cert.pem /puma_keys
+RUN cp /puma_keys/key.pem /puma_keys/cert.pem /app/config/
 
 ##################
 ## Actual Build ##

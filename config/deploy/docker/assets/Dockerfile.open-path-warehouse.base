@@ -33,6 +33,8 @@ COPY vendor ./vendor
 COPY drivers ./drivers
 COPY locale ./locale
 
+RUN cp /puma_keys/key.pem /puma_keys/cert.pem /app/config/
+
 COPY config/deploy/docker/assets/REVISION ./
 
 ##################
@@ -55,6 +57,7 @@ LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=2.7.2
 
 COPY config/deploy/docker/assets/entrypoint.sh /usr/bin/
+RUN rm -rf /app/*
 COPY --from=code /app /app/
 
 RUN chmod +x /usr/bin/entrypoint.sh \
