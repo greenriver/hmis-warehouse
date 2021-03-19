@@ -90,5 +90,6 @@ RSpec.describe 'Clean Up Move In Dates', type: :model do
     )
     @loader.load!
     @loader.import!
+    Delayed::Worker.new.work_off(2)
   end
 end

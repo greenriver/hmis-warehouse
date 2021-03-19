@@ -148,7 +148,7 @@ class ClientsController < ApplicationController
       @client.merge_from c, reviewed_by: current_user, reviewed_at: DateTime.current
       merged << c
     end
-    Importing::RunAddServiceHistoryJob.perform_later
+    GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     redirect_to({ action: :edit }, notice: "Client records merged with #{merged.map(&:name).join(', ')}. Service history rebuild queued.")
   rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error e.inspect
@@ -172,7 +172,7 @@ class ClientsController < ApplicationController
     Rails.logger.info '@client.invalidate_service_history'
     @client.invalidate_service_history
 
-    Importing::RunAddServiceHistoryJob.perform_later
+    GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     redirect_to({ action: :edit }, notice: "Client records split from #{client_names.join(', ')}. Service history rebuild queued.")
   rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error e.inspect

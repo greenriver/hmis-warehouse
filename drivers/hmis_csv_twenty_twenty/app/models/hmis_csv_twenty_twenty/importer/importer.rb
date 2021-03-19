@@ -19,6 +19,7 @@ module HmisCsvTwentyTwenty::Importer
     include TsqlImport
     include NotifierConfig
     include HmisTwentyTwenty
+    include ArelHelper
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :importer_log
 
@@ -37,6 +38,7 @@ module HmisCsvTwentyTwenty::Importer
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @logger = logger
       @debug = debug # no longer used for anything. instead we use logger.levels.
+      @updated_source_client_ids = []
 
       @deidentified = deidentified
       self.importer_log = setup_import
@@ -480,6 +482,7 @@ module HmisCsvTwentyTwenty::Importer
                     data_source_id: incoming.data_source_id,
                     PersonalID: incoming.PersonalID,
                   ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+                  @updated_source_client_ids << incoming.PersonalID
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
@@ -496,6 +499,7 @@ module HmisCsvTwentyTwenty::Importer
                 data_source_id: incoming.data_source_id,
                 PersonalID: incoming.PersonalID,
               ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+              @updated_source_client_ids << incoming.id
             end
             note_processed(file_name, batch.count, 'updated')
           else
@@ -655,7 +659,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def pause_import
-      logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log_id)}"
+      logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log.id)}"
       importer_log.update(status: :paused)
     end
 
@@ -724,8 +728,16 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     private def post_process
+      # Clean up any dangling enrollments for updated clients
+      updated_client_ids = GrdaWarehouse::Hud::Client.
+        joins(:warehouse_client_source).
+        where(PersonalID: @updated_source_client_ids, data_source_id: @data_source.id).
+        pluck(wc_t[:destination_id])
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
+
       # Enrollment.processed_as is cleared if the enrollment changed
       # queue up a rebuild to keep things as in sync as possible
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
     end
 

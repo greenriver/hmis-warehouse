@@ -27,6 +27,7 @@ RSpec.describe 'Combine Enrollments', type: :model do
     )
     @loader.load!
     @loader.import!
+    Delayed::Worker.new.work_off(2)
   end
 
   after(:all) do

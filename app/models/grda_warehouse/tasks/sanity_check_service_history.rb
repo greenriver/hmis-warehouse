@@ -8,11 +8,13 @@ module GrdaWarehouse::Tasks
   class SanityCheckServiceHistory
     include ArelHelper
     include NotifierConfig
+    include ::ServiceHistory::Builder
+
     attr_accessor :logger, :send_notifications, :notifier_config
     MAX_ATTEMPTS = 3 # We'll check anything a few times, but don't run forever
     CACHE_KEY = 'sanity_check_service_history'
 
-    def initialize(sample_size = 10, client_ids = [])
+    def initialize(sample_size: 10, client_ids: [])
       @sample_size = sample_size
       @client_ids = client_ids
       setup_notifier('Sanity Checker')
@@ -46,13 +48,12 @@ module GrdaWarehouse::Tasks
     def sanity_check
       messages = []
       @destinations.each do |id, counts|
-        if counts[:service_history].except(:service) != counts[:source].except(:service)
+        if counts[:service_history].except(:service) != counts[:source].except(:service) && ! clients_still_processing?(id)
           msg = "```client: #{id} \n#{counts.except(:source_personal_ids).inspect}```\n"
           logger.warn msg
           messages << msg
           client_source.find(id).invalidate_service_history
           add_attempt(id)
-        else
         end
       end
       update_attempts()
