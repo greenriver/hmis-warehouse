@@ -110,7 +110,9 @@ module CoreDemographicsReport
     # @return filtered scope
     def report_scope(all_project_types: false)
       # Report range
-      scope = filter_for_range(report_scope_source)
+      scope = report_scope_source
+      scope = filter_for_user_access(scope)
+      scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_sub_population(scope)
       scope = filter_for_household_type(scope)
@@ -156,6 +158,10 @@ module CoreDemographicsReport
       @household_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         report_scope.select(:household_id).distinct.count
       end
+    end
+
+    def can_see_client_details?(user)
+      user.can_access_some_version_of_clients?
     end
 
     def self.data_for_export(reports)

@@ -337,6 +337,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       order(created_at: :desc).
       select(:id, :data_source_id, :user_id, :completed_at).
       first
+    return nil unless most_recent_upload
     return nil if most_recent_upload.completed_at > 48.hours.ago
 
     most_recent_upload.completed_at.to_date

@@ -7,21 +7,22 @@
 class WarehouseReport::Outcomes::Base
   include ArelHelper
 
-  attr_accessor :organization_ids, :data_source_ids, :project_ids, :coc_codes, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status
+  attr_accessor :organization_ids, :data_source_ids, :project_ids, :coc_codes, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status, :filter
 
-  def initialize(organization_ids:, data_source_ids:, project_ids:, coc_codes:, start_date:, end_date:, subpopulation:, household_type:, race:, ethnicity:, gender:, veteran_status:) # rubocop:disable Metrics/ParameterLists
-    @organization_ids = organization_ids
-    @data_source_ids = data_source_ids
-    @project_ids = project_ids
-    @coc_codes = coc_codes
-    @start_date = start_date
-    @end_date = end_date
-    @subpopulation = self.class.subpopulation(subpopulation)
-    @household_type = Reporting::Housed.household_type(household_type)
-    @race = Reporting::Housed.race(race)
-    @ethnicity = Reporting::Housed.ethnicity(ethnicity)
-    @gender = Reporting::Housed.gender(gender)
-    @veteran_status = Reporting::Housed.veteran_status(veteran_status)
+  def initialize(filter)
+    @filter = filter
+    @organization_ids = @filter.organization_ids
+    @data_source_ids = @filter.data_source_ids
+    @project_ids = @filter.project_ids
+    @coc_codes = @filter.coc_codes
+    @start_date = @filter.start
+    @end_date = @filter.end
+    @subpopulation = self.class.subpopulation(@filter.sub_population)
+    @household_type = Reporting::Housed.household_type(@filter.household_type)
+    @race = Reporting::Housed.race(@filter.races.first)
+    @ethnicity = Reporting::Housed.ethnicity(@filter.ethnicities.first)
+    @gender = Reporting::Housed.gender(@filter.genders.first)
+    @veteran_status = Reporting::Housed.veteran_status(@filter.veteran_statuses.first)
   end
 
   def pre_placement_project_name
@@ -1026,7 +1027,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   def project_source
-    GrdaWarehouse::Hud::Project
+    GrdaWarehouse::Hud::Project.viewable_by(@filter.user)
   end
 
   def client_source
@@ -1048,6 +1049,8 @@ class WarehouseReport::Outcomes::Base
 
   def housed_scope
     scope = housed_source.all
+    # Enforce project access limits
+    scope = scope.where(project_id: project_source.pluck(:id))
     scope = scope.where(project_id: @project_ids) unless all_projects
     scope = scope.where(project_id: GrdaWarehouse::Hud::Project.in_coc(coc_code: @coc_codes).pluck(:id)) if @coc_codes.present?
 
@@ -1066,6 +1069,19 @@ class WarehouseReport::Outcomes::Base
 
   def all_projects
     @project_ids == []
+  end
+
+  def can_see_client_details?(user)
+    user.can_access_some_version_of_clients?
+    # Potentially this will also want to see if any options have been selected
+    # return false unless user.can_access_some_version_of_clients?
+    # return true if any_options_chosen?
+
+    # false
+  end
+
+  private def any_options_chosen?
+    @project_ids.any? || @coc_codes.present? || ! [@race, @ethnicity, @gender, @veteran_status, @household_type, @subpopulation].all?(:current_scope)
   end
 
   def ho_t

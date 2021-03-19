@@ -107,20 +107,7 @@ module WarehouseReports
     end
 
     private def set_report
-      @report = report_class.new(
-        data_source_ids: @filter.data_source_ids,
-        organization_ids: @filter.organization_ids,
-        project_ids: @filter.project_ids,
-        coc_codes: @filter.coc_codes,
-        start_date: @filter.start,
-        end_date: @filter.end,
-        subpopulation: @filter.sub_population,
-        household_type: @filter.household_type,
-        race: @filter.races.first,
-        ethnicity: @filter.ethnicities.first,
-        gender: @filter.genders.first,
-        veteran_status: @filter.veteran_statuses.first,
-      )
+      @report = report_class.new(@filter)
     end
 
     private def available_projects
@@ -174,7 +161,7 @@ module WarehouseReports
 
     private def can_see_client_details?
       @can_see_client_details ||= if @filter.project_ids == :all
-        current_user.can_view_clients?
+        current_user.can_access_some_version_of_clients?
       else
         true
       end

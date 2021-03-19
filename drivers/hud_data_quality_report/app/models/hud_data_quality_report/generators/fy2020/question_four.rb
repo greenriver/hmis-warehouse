@@ -16,7 +16,7 @@ module HudDataQualityReport::Generators::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
+    def run_question! # rubocop:disable Metrics/AbcSize
       @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
       table_name = QUESTION_TABLE_NUMBER
 
@@ -43,7 +43,10 @@ module HudDataQualityReport::Generators::Fy2020
       leavers = universe.members.where(leavers_clause)
 
       answer = @report.answer(question: table_name, cell: 'B2')
-      members = leavers.where(a_t[:destination].in([nil, 8, 9, 30]))
+      members = leavers.where(
+        a_t[:destination].in([8, 9, 30]).
+          or(a_t[:destination].eq(nil)),
+      )
       answer.add_members(members)
       answer.update(summary: members.count)
 
@@ -57,7 +60,8 @@ module HudDataQualityReport::Generators::Fy2020
       members = adults_and_hohs.where(
         a_t[:income_date_at_start].eq(nil).
           or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
-          or(a_t[:income_from_any_source_at_start].in([nil, 8, 9])).
+          or(a_t[:income_from_any_source_at_start].in([8, 9])).
+          or(a_t[:income_from_any_source_at_start].eq(nil)).
           or(a_t[:income_from_any_source_at_start].eq(0).
             and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql))).
           or(a_t[:income_from_any_source_at_start].eq(1).
@@ -77,13 +81,14 @@ module HudDataQualityReport::Generators::Fy2020
 
       answer = @report.answer(question: table_name, cell: 'B4')
       members = stayers_with_anniversary.where(
-        a_t[:income_date_at_start].eq(nil).
-          or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
-          or(a_t[:income_from_any_source_at_start].in([nil, 8, 9])).
-          or(a_t[:income_from_any_source_at_start].eq(0).
-            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql))).
-          or(a_t[:income_from_any_source_at_start].eq(1).
-            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql, negation: true))),
+        a_t[:income_date_at_annual_assessment].eq(nil).
+          or(a_t[:annual_assessment_in_window].eq(false)).
+          or(a_t[:income_from_any_source_at_annual_assessment].in([8, 9])).
+          or(a_t[:income_from_any_source_at_annual_assessment].eq(nil)).
+          or(a_t[:income_from_any_source_at_annual_assessment].eq(0).
+            and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql))).
+          or(a_t[:income_from_any_source_at_annual_assessment].eq(1).
+            and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql, negation: true))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -98,11 +103,12 @@ module HudDataQualityReport::Generators::Fy2020
       members = leavers.where(
         a_t[:income_date_at_exit].eq(nil).
           or(a_t[:income_date_at_exit].not_eq(a_t[:last_date_in_program])).
-          or(a_t[:income_from_any_source_at_exit].in([nil, 8, 9])).
+          or(a_t[:income_from_any_source_at_exit].in([8, 9])).
+          or(a_t[:income_from_any_source_at_exit].eq(nil)).
           or(a_t[:income_from_any_source_at_exit].eq(0).
-            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql))).
+            and(income_jsonb_clause(1, a_t[:income_sources_at_exit].to_sql))).
           or(a_t[:income_from_any_source_at_exit].eq(1).
-            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql, negation: true))),
+            and(income_jsonb_clause(1, a_t[:income_sources_at_exit].to_sql, negation: true))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)

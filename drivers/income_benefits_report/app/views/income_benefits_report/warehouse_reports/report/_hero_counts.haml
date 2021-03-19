@@ -14,7 +14,7 @@
         - report.hero_counts_data.each do |k, data|
           .hero-prs1
             .d-flex.align-items-center
-              .h1.hero-value-prs1.mr-3= link_to number_with_delimiter(data[:count]),details_income_benefits_report_warehouse_reports_report_path(report, key: k, comparison: index.positive?)
+              .h1.hero-value-prs1.mr-3= link_to_if(report.can_see_client_details?(current_user), number_with_delimiter(data[:count]), details_income_benefits_report_warehouse_reports_report_path(report, key: k, comparison: index.positive?))
               .hero-label-prs1.h5-prs1
                 - if data[:description]
                   %i.icon-info{data: { toggle: :tooltip, title: data[:description]}}

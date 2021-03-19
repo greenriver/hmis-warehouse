@@ -40,19 +40,27 @@ module ProjectScorecard
         ].compact.sum
       end
 
+      def data_quality_max
+        30
+      end
+
       def data_quality_percentage
-        (((data_quality_score / 30.0) * 0.2) * 100).round
+        (((data_quality_score / data_quality_max.to_f) * 0.2) * 100).round
       end
 
       def ce_score
         [
           lease_up_score,
-          accepted_referrals_score,
+          # accepted_referrals_score,
         ].compact.sum
       end
 
+      def ce_max
+        10 # accepted_referrals_score is not yet included
+      end
+
       def ce_percentage
-        (((ce_score / 20.0) * 0.2) * 100).round
+        (((ce_score / ce_max.to_f) * 0.2) * 100).round
       end
 
       def m_and_f_score
@@ -65,8 +73,12 @@ module ProjectScorecard
         ].compact.sum
       end
 
+      def m_and_f_max
+        50
+      end
+
       def m_and_f_percentage
-        (((m_and_f_score / 50.0) * 0.1) * 100).round
+        (((m_and_f_score / m_and_f_max.to_f) * 0.1) * 100).round
       end
     end
   end

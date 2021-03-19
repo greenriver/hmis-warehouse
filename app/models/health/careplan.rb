@@ -97,7 +97,8 @@ module Health
     serialize :backup_plan_archive, Array
 
     validates_presence_of :provider_id, if: -> { self.provider_signed_on.present? }
-    validates_presence_of :patient_signature_mode, if: -> { self.patient_signed_on.present? }
+    # We are not collecting patient signature mode yet, so don't enforce this
+    # validates_presence_of :patient_signature_mode, if: -> { self.patient_signed_on.present? }
     validates_presence_of :provider_signature_mode, if: -> { self.provider_signed_on.present? }
 
     # Scopes
@@ -264,7 +265,7 @@ module Health
     def signature_modes
       @signature_modes ||= {
         in_person: 'In Person',
-        email: 'Via Email',
+        email: 'Other: Email',
       }.invert.freeze
     end
 
