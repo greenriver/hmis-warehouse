@@ -35,7 +35,12 @@ module ReportGenerators::Lsa::Fy2019
       if @report.options['project_id'].delete_if(&:blank?).any?
         @project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
         # Limit to only those projects the user who queued the report can see
-        @project_ids &= GrdaWarehouse::Hud::Project.viewable_by(@report.user).pluck(:id)
+        # and to only those that the LSA can handle
+        @project_ids &= GrdaWarehouse::Hud::Project.viewable_by(@report.user).
+          in_coc(coc_code: @coc_code).
+          with_hud_project_type([1, 2, 3, 8, 9, 10, 13]).
+          coc_funded.
+          pluck(:id)
       else
         # Confirmed with HUD only project types 1, 2, 3, 8, 9, 10, 13 need to be included in hmis_ tables.
         @project_ids = system_wide_project_ids
