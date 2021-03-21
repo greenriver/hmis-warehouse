@@ -42,6 +42,7 @@ module PublicReports
     end
 
     private def chart_data
+      filter_object.comparison_pattern = :prior_period
       {
         count: percent_change_in_count,
         date_range: filter_object.date_range_words,
