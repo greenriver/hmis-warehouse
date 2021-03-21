@@ -5,6 +5,7 @@
 ###
 
 BostonHmis::Application.routes.draw do
+  # NOTE: using only: [:none] because leaving it blank inserts the default routes, which we have moved to a driver
   resources :clients, only: [:none] do
     namespace :health_flexible_service do
       resources :vprs
