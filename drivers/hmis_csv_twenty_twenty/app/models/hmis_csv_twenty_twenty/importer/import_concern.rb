@@ -240,8 +240,12 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       []
     end
 
+    def self.hmis_2020_keys
+      @hmis_2020_keys ||= hmis_structure(version: '2020').keys
+    end
+
     def hmis_data
-      slice(*self.class.hmis_structure(version: '2020').keys)
+      slice(*self.class.hmis_2020_keys) # self.class.hmis_2020_keys is used to avoid realloc/calc'ing these static keys in tight import loops
     end
 
     def calculate_source_hash
