@@ -151,11 +151,6 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
   end
 
-  desc 'Generate Service History'
-  task generate_service_history: [:environment, 'log:info_to_stdout'] do |task, args|
-    GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new.run!
-  end
-
   desc 'Initialize ServiceHistortService homeless fields'
   task initialize_service_service_homelessness: [:environment, 'log:info_to_stdout'] do
     # Clients enrolled in homeless projects are homeless
@@ -243,7 +238,7 @@ namespace :grda_warehouse do
   desc 'Sanity Check Service History; defaults: n=50'
   task :sanity_check_service_history, [:n] => [:environment, 'log:info_to_stdout'] do |task, args|
     n = args.n
-    GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(( n || 50 ).to_i).run!
+    GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(sample_size: ( n || 50 ).to_i).run!
   end
 
   desc 'Full import routine'
@@ -341,9 +336,8 @@ namespace :grda_warehouse do
   task :force_rebuild_for_homeless_enrollments, [] => [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.invalidate_processing!
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
-      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :long_running)
-    end
+
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
     GrdaWarehouse::ServiceHistoryServiceMaterialized.delay(queue: :long_running).rebuild!
   end
 

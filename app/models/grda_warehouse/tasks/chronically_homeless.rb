@@ -133,7 +133,7 @@ module GrdaWarehouse::Tasks
       # before we return, sanity check these clients, then load them again if
       # any don't pass
       if @sanity_check
-        if GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, @clients).run!
+        if GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: @clients).run!
           @clients = active_client_scope unless @limited
         end
       end
