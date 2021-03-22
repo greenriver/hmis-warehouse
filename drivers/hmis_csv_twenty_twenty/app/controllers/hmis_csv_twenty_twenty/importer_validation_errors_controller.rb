@@ -14,6 +14,8 @@ class HmisCsvTwentyTwenty::ImporterValidationErrorsController < ApplicationContr
       find_by(importer_log_id: importer_log.id)
 
     @filename = detect_filename
+    @klass = HmisCsvTwentyTwenty::Importer::Importer.importable_files[@filename]
+    @data_source = @import.data_source
 
     @validations = importer_log.import_validations.
       where(HmisCsvValidation::Base.arel_table[:source_type].lower.matches(pattern)).

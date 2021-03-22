@@ -71,7 +71,6 @@ module Importing
         @notifier.ping('Clients cleaned') if @send_notifications
 
         range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
         # Make sure there are no unprocessed invalidated enrollments
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
@@ -79,7 +78,7 @@ module Importing
         @notifier.ping('Service history generated') if @send_notifications
         # Fix anyone who received a new exit or entry added prior to the last year
         dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
-        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
+        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: dest_clients).run!
         @notifier.ping('Full sanity check complete') if @send_notifications
         # Rebuild residential first dates
         GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
@@ -136,7 +135,7 @@ module Importing
         # For now we are checking all destination clients.  This should catch any old
         # entries or exits that were added or removed.
         dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
-        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
+        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: dest_clients).run!
         @notifier.ping('Sanity checked') if @send_notifications
 
         # pre-populate the cache for data source date spans
