@@ -240,7 +240,11 @@ module GrdaWarehouse
 
       return unless consent_form?
 
-      coc_codes_chosen = coc_codes.presence || ['All CoCs']
+      coc_codes_chosen = if coc_codes.include?('All CoCs')
+        ['All CoCs']
+      else
+        coc_codes.presence || ['All CoCs']
+      end
 
       if ! client.consent_form_valid?
         if consent_form_signed_on.present? && consent_revoked_at.blank?
