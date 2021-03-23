@@ -84,8 +84,8 @@ module PublicReports
     private def average_daily_client_count_for_month(date)
       client_count = report_scope.joins(:service_history_services).
         where(shs_t[:date].between(date.beginning_of_month..date.end_of_month)).
-        select(:client_id).
-        distinct.count
+        pluck(shs_t[:client_id].to_sql, shs_t[:date].to_sql).
+        uniq.count
       return 0 unless client_count.positive?
 
       client_count / days_in_month(date)
