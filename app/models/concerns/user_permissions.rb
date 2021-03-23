@@ -44,7 +44,6 @@ module UserPermissions
         :can_manage_an_agency,
         :can_view_hud_reports,
         :can_access_some_cohorts,
-        :can_access_client_search,
         :can_access_window_search,
         :can_delete_projects_or_data_sources,
       ].freeze
@@ -81,10 +80,6 @@ module UserPermissions
 
     def can_view_enrollment_details_tab
       can_edit_clients? || (can_view_clients? && can_view_enrollment_details?)
-    end
-
-    def can_access_client_search
-      can_edit_clients? || can_view_clients?
     end
 
     def can_access_window_search
