@@ -1,0 +1,25 @@
+= simple_form_for @filter, as: :filters, url: public_reports_warehouse_reports_pit_by_month_index_path do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-3
+        = f.input :start, as: :date_picker, label: 'Start'
+      .col-sm-3
+        = f.input :end, as: :date_picker, label: 'End'
+      - if GrdaWarehouse::Config.get(:multi_coc_installation)
+        .col-sm
+          = f.input :coc_codes, as: :select_two, collection: @filter.coc_code_options_for_select(user: current_user), input_html: { multiple: true, data: { placeholder: 'Any CoC' }}, include_blank: false, label: 'CoCs'
+    .row
+      .col-sm
+        = f.input :data_source_ids, as: :select_two, collection: @filter.data_source_options_for_select(user: current_user), input_html: { multiple: true, data: {placeholder: 'Any Data Source' }}, include_blank: false, label: 'Data Sources'
+      .col-sm
+        = f.input :organization_ids, as: :grouped_select, group_method: :last, collection: @filter.organization_options_for_select(user: current_user), input_html: { class: :select2, multiple: true, data: {placeholder: 'Any Organization' }}, include_blank: false, label: 'Organizations'
+    .row
+      .col-sm
+        = f.input :project_ids, as: :grouped_select, group_method: :last, collection: @filter.project_options_for_select(user: current_user), input_html: { class: :select2, multiple: true, data: {placeholder: 'Any Project' }}, include_blank: false, label: 'Projects'
+      .col-sm
+        = f.input :project_type_numbers, as: :select_two, collection: @filter.project_type_options_for_select, input_html: { multiple: true, data: { placeholder: 'Any Project Type' }}, include_blank: false, label: 'Project Types'
+
+  - content_for :filter_actions do
+    = f.submit 'Queue Report', class: ['btn', 'btn-primary']
+
+  = render 'warehouse_reports/filters', f:f

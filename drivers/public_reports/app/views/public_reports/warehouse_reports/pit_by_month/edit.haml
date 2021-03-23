@@ -10,8 +10,8 @@
   %p If the report contents below are correct, you can publish this publicly.  Once published, any prior version will be replaced and the new version will be available at #{@report.generate_publish_url}.
 
   .text-right
-    = simple_form_for(@report, url: public_reports_warehouse_reports_point_in_time_path, as: :public_report) do |f|
+    = simple_form_for(@report, url: public_reports_warehouse_reports_pit_by_month_path, as: :public_report) do |f|
       = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
       = f.submit 'Publish', data: { confirm: @report.publish_warning }
 .well
-  %iframe{src: raw_public_reports_warehouse_reports_point_in_time_path(@report), width: '100%', height: 400, frameBorder: 0}
+  %iframe{src: raw_public_reports_warehouse_reports_pit_by_month_path(@report), width: '100%', height: 400, frameBorder: 0}
