@@ -97,10 +97,12 @@ module ClientAccessControl::GrdaWarehouse::Hud
       # build an array of useful hashes for the enrollments roll-ups
       private def enrollments_for(en_scope, user:, include_confidential_names: false)
         Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}/#{user.id}", expires_in: ::GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+          total_enrollment_count = en_scope.joins(:project, :source_client, :enrollment).count
           en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
           enrollments = en_scope.joins(:project, :source_client, :enrollment).
             includes(:service_history_services, :project, :organization, :source_client, enrollment: [:enrollment_cocs, :exit]).
             order(first_date_in_program: :desc)
+          visible_enrollment_count = enrollments.count
           enrollments.map do |entry|
             project = entry.project
             organization = entry.organization
@@ -151,6 +153,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
               updated_at: entry.enrollment.DateUpdated,
               hmis_id: entry.enrollment.id,
               hmis_exit_id: entry.enrollment&.exit&.id,
+              total_enrollment_count: total_enrollment_count,
+              visible_enrollment_count: visible_enrollment_count,
               # support: dates_served,
             }
           end
