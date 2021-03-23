@@ -79,7 +79,7 @@ module UserPermissions
     end
 
     def can_view_enrollment_details_tab
-      can_edit_clients? || (can_view_clients? && can_view_enrollment_details?)
+      can_view_clients? && can_view_enrollment_details?
     end
 
     def can_access_window_search
