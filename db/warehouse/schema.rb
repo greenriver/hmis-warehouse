@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_05_204708) do
+ActiveRecord::Schema.define(version: 2021_03_12_200044) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -571,6 +571,7 @@ ActiveRecord::Schema.define(version: 2021_03_05_204708) do
     t.string "SexualOrientationOther", limit: 100
     t.date "history_generated_on"
     t.string "original_household_id"
+    t.bigint "service_history_processing_job_id"
     t.index ["DateCreated"], name: "enrollment_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Enrollment_on_DateDeleted_and_data_source_id"
     t.index ["DateDeleted"], name: "index_Enrollment_on_DateDeleted"
@@ -586,6 +587,7 @@ ActiveRecord::Schema.define(version: 2021_03_05_204708) do
     t.index ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Enrollment_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Enrollment_on_pending_date_deleted"
+    t.index ["service_history_processing_job_id"], name: "index_Enrollment_on_service_history_processing_job_id"
   end
 
   create_table "EnrollmentCoC", id: :serial, force: :cascade do |t|
@@ -4609,6 +4611,7 @@ ActiveRecord::Schema.define(version: 2021_03_05_204708) do
     t.boolean "parenting_juvenile"
     t.datetime "deleted_at"
     t.integer "destination_client_id"
+    t.boolean "annual_assessment_in_window"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 
@@ -4745,6 +4748,7 @@ ActiveRecord::Schema.define(version: 2021_03_05_204708) do
     t.integer "time_to_move_in"
     t.integer "times_homeless"
     t.integer "veteran_status"
+    t.boolean "annual_assessment_in_window"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "dq_client_conflict_columns", unique: true
   end
 

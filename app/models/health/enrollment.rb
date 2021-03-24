@@ -56,7 +56,10 @@ module Health
     end
 
     def audits
-      transactions.select{ |transaction| self.class.maintenance_type(transaction) == '030'}
+      audits = transactions.select{ |transaction| self.class.maintenance_type(transaction) == '030'}
+      # Order the audits so that if a disenrollment and subsequent enrollment both appear, the disenrollment is
+      # appears first
+      audits.sort_by { |t| self.class.disenrollment_date(t) || self.class.enrollment_date(t) }
     end
 
     def self.subscriber_id(transaction)

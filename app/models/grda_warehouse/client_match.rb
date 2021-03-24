@@ -183,7 +183,7 @@ module GrdaWarehouse
       dst = destination_client.destination_client
       src = source_client
       dst.merge_from(src, reviewed_by: user, reviewed_at: Time.current, client_match_id: id)
-      Importing::RunAddServiceHistoryJob.perform_later
+      GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
     def flag_as(user: nil, status:)
