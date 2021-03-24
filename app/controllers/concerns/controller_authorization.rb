@@ -21,22 +21,15 @@ module ControllerAuthorization
   end
 
   def require_can_see_this_client_demographics!
-    return true if current_user.can_view_clients?
-
-    # attempt to set the client various ways
-    if params[:client_id].present?
+    begin
       set_client
-    elsif params[:id].present?
-      begin
-        set_client
-      rescue ActiveRecord::RecordNotFound
-        not_authorized!
-        return false
-      end
+      return true if @client&.show_demographics_to?(current_user)
+    rescue ActiveRecord::RecordNotFound
+      # ignore records we can't see
     end
-    return true if @client&.show_demographics_to?(current_user)
 
     not_authorized!
+    return false
   end
 
   def not_authorized!

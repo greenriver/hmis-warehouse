@@ -37,7 +37,7 @@ module ClientAccessControl::SearchConcern
         )
       end
 
-      # Filter by population with whitelist
+      # Filter by population for known populations
       if params[:population].present? && GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(params[:population].to_sym)
         population = params[:population].to_sym
         @clients = @clients.public_send(population) if GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(population)

@@ -15,7 +15,6 @@ class ClientAccessControl::ClientsController < ApplicationController
   helper ClientHelper
 
   before_action :require_can_access_some_client_search!, only: [:index, :simple]
-  # before_action :require_can_access_window_search!, only: [:index]
   before_action :require_can_view_clients!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details_tab!, only: [:enrollment_details]
   before_action :require_can_see_this_client_demographics!, except: [:index, :simple, :appropriate, :new]
@@ -138,7 +137,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     @potential_matches = @client.potential_matches
   end
 
-  # Only allow a trusted parameter "white list" through.
+  # Only allow a trusted parameters.
   private def client_params
     params.require(:grda_warehouse_hud_client).
       permit(

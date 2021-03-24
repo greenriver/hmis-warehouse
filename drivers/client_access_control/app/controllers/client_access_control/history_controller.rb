@@ -12,7 +12,6 @@ module ClientAccessControl
     skip_before_action :authenticate_user!, only: [:pdf]
     before_action :require_can_see_this_client_demographics!, except: [:pdf]
     before_action :set_client, except: [:pdf]
-    # before_action :check_release, unless: :can_view_clients?, except: [:pdf]
     before_action :set_dates, only: [:show]
     after_action :log_client
 

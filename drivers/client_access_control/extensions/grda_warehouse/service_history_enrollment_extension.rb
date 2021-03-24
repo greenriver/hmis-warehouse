@@ -10,6 +10,7 @@ module ClientAccessControl::GrdaWarehouse
 
     included do
       scope :visible_to, ->(user) do
+        joins(:enrollment).merge(GrdaWarehouse::Hud::Enrollment.visible_to(user))
       end
     end
   end

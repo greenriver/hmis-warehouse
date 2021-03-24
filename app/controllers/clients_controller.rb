@@ -24,20 +24,17 @@ class ClientsController < ApplicationController
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
-  # This should no longer be needed
-  # We can rely on searchable_by and viewable_by scopes on Client
-  # before_action :check_release, only: [:show]
   after_action :log_client, only: [:show, :edit, :merge, :unmerge]
 
   helper_method :sort_column, :sort_direction
 
   def create
     clean_params = client_create_params
-    clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
+    clean_params[:SSN] = clean_params[:SSN]&.gsub(/\D/, '')
     existing_matches = look_for_existing_match(clean_params)
     @bypass_search = false
     # If we only have one authoritative data source, we don't bother sending it, just use it
-    clean_params[:data_source_id] ||= GrdaWarehouse::DataSource.authoritative.first.id
+    clean_params[:data_source_id] ||= GrdaWarehouse::DataSource.authoritative.first.id if GrdaWarehouse::DataSource.authoritative.count == 1
     @client = client_source.new(clean_params)
 
     params_valid = validate_new_client_params(clean_params)
