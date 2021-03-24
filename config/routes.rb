@@ -697,7 +697,9 @@ Rails.application.routes.draw do
         resources :top_providers, only: [:index]
       end
     end
-    resources :projects, only: [:index]
+    resources :projects, only: [:none] do
+      post :index, on: :collection
+    end
   end
 
   namespace :admin do

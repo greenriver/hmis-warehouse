@@ -1,0 +1,24 @@
+- if @reports.exists?
+  %p= paginate @reports
+  .card.warehouse-reports__completed
+    %table.table.table-striped.mb-0.table-responsive
+      %thead
+        %tr
+          %th Status
+          %th Published?
+          %th Options
+          %th Author
+      %tbody
+        - @reports.each do |report|
+          %tr
+            %td
+              - if report.published?
+                = link_to report.status, public_reports_warehouse_reports_pit_by_month_path(report)
+              - else
+                = link_to_if report.completed?, report.status, edit_public_reports_warehouse_reports_pit_by_month_path(report)
+            %td.text-center= yes_no(report.published?)
+            %td.report-parameters.parameter-label= report.filter_object.describe_filter_as_html
+            %td= report&.user&.name
+- else
+  %p
+    No reports on file

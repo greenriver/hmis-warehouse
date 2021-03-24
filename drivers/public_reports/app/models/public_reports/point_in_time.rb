@@ -6,6 +6,7 @@
 
 module PublicReports
   class PointInTime < ::PublicReports::Report
+    include ArelHelper
     acts_as_paranoid
 
     def title
@@ -71,9 +72,30 @@ module PublicReports
       pit_count_dates.map do |date|
         [
           date,
-          GrdaWarehouse::ServiceHistoryService.where(homeless: true, date: date).count,
+          client_count_for_date(date),
         ]
       end
+    end
+
+    private def client_count_for_date(date)
+      report_scope.joins(:service_history_services).
+        where(shs_t[:date].eq(date)).
+        select(:client_id).
+        distinct.count
+    end
+
+    private def report_scope
+      # for compatability with FilterScopes
+      @filter = filter_object
+      @project_types = @filter.project_type_numbers
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
+      scope = filter_for_range(scope)
+      scope = filter_for_cocs(scope)
+      scope = filter_for_project_type(scope)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_projects(scope)
+      scope
     end
   end
 end

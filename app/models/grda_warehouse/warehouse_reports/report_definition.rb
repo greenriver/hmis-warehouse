@@ -930,6 +930,13 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           }
           r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/pit_by_month',
+            name: 'Public Point-in-Time by Month Report Generator',
+            description: 'Use this to review and publish Point-in-Time by month charts for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
             url: 'public_reports/warehouse_reports/public_configs',
             name: 'Public Report Configuration',
             description: 'Settings for colors, fonts, etc. related to reports which can be published publicly.',
@@ -1048,6 +1055,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       unless RailsDrivers.loaded.include?(:public_reports)
         cleanup << 'public_reports/warehouse_reports/point_in_time'
+        cleanup << 'public_reports/warehouse_reports/pit_by_month'
         cleanup << 'public_reports/warehouse_reports/public_configs'
         cleanup << 'public_reports/warehouse_reports/number_housed'
         cleanup << 'public_reports/warehouse_reports/homeless_count'
