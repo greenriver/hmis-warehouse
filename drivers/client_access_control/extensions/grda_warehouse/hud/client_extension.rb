@@ -73,7 +73,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
         return false unless user.can_view_clients?
         return unless release_valid?
 
-        valid_in_any_coc = consented_coc_codes == []
+        valid_in_any_coc = consented_coc_codes == [] || consented_coc_codes.include?('All CoCs')
         user_client_coc_codes_match = (consented_coc_codes & user.coc_codes).present?
         valid_in_any_coc || user_client_coc_codes_match
       end
