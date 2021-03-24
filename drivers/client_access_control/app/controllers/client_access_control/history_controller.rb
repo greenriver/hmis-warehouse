@@ -57,11 +57,11 @@ module ClientAccessControl
       file_name = 'service_history.pdf'
 
       # DEBUGGING
-      # render pdf: file_name, template: "client_access_control/clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
+      # render pdf: file_name, template: "client_access_control/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
       # return
       # END DEBUGGING
 
-      pdf = render_to_string pdf: file_name, template: 'client_access_control/clients/history/pdf', layout: false, encoding: 'UTF-8', page_size: 'Letter'
+      pdf = render_to_string pdf: file_name, template: 'client_access_control/history/pdf', layout: false, encoding: 'UTF-8', page_size: 'Letter'
       @file = ::GrdaWarehouse::ClientFile.new
       begin
         tmp_path = Rails.root.join('tmp', "service_history_pdf_#{@client.id}.pdf")
