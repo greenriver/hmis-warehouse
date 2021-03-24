@@ -18,7 +18,6 @@ module UserPermissions
         :can_see_raw_hmis_data,
         :can_receive_secure_files,
         :can_assign_or_view_users_to_clients,
-        :can_view_clients_or_window,
         :can_view_or_search_clients_or_window,
         :can_view_enrollment_details_tab,
         :can_access_some_client_search,
@@ -70,12 +69,8 @@ module UserPermissions
       can_assign_users_to_clients? || can_view_client_user_assignments?
     end
 
-    def can_view_clients_or_window
-      can_edit_clients? || can_view_clients?
-    end
-
     def can_view_or_search_clients_or_window
-      can_view_clients_or_window? || can_search_window?
+      can_view_clients? || can_search_window?
     end
 
     def can_view_enrollment_details_tab

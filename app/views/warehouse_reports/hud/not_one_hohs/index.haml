@@ -44,7 +44,7 @@
           %tr
             %td
               - if destination_client
-                = link_to_if(can_view_clients_or_window?, destination_client&.name, appropriate_client_path(destination_client))
+                = link_to_if(can_view_clients?, destination_client&.name, appropriate_client_path(destination_client))
               - else
                 Not yet Processed
             %td= project.name

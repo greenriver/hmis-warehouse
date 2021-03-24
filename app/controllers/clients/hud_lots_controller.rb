@@ -12,7 +12,6 @@ class Clients::HudLotsController < ApplicationController
 
   before_action :require_can_see_this_client_demographics!
   before_action :set_client
-  # before_action :check_release, unless: :can_view_clients?
   before_action :set_dates
   before_action :set_filter
   before_action :set_report
