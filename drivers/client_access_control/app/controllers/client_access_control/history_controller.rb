@@ -174,14 +174,14 @@ module ClientAccessControl
       # Do we have this client?
       # If not, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found
-      if searchable_client_scope.where(id: params[:client_id].to_i).exists?
-        @client = searchable_client_scope.find(params[:client_id].to_i)
+      if destination_searchable_client_scope.where(id: params[:client_id].to_i).exists?
+        @client = destination_searchable_client_scope.find(params[:client_id].to_i)
       else
         client_id = ::GrdaWarehouse::ClientMergeHistory.new.current_destination params[:client_id].to_i
         if client_id
           redirect_to controller: controller_name, action: action_name, client_id: client_id
         else
-          @client = searchable_client_scope.find(params[:client_id].to_i)
+          @client = destination_searchable_client_scope.find(params[:client_id].to_i)
         end
       end
     end

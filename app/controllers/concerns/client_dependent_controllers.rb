@@ -12,11 +12,8 @@ module ClientDependentControllers
       GrdaWarehouse::Hud::Client
     end
 
-    def searchable_client_scope(id: nil)
-      destination_client = client_source.find_by(id: id) if id
-      scope = client_source.destination_visible_to(current_user)
-      scope = scope.where(id: destination_client.source_clients.pluck(:id)) if destination_client
-      scope
+    def destination_searchable_client_scope
+      client_source.destination_from_searchable_to(current_user)
     end
   end
 end

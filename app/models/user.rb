@@ -359,7 +359,7 @@ class User < ApplicationRecord
   end
 
   def access_group
-    AccessGroup.for_user(self).first_or_initialize
+    @access_group ||= AccessGroup.for_user(self).first_or_initialize
   end
 
   def set_viewables(viewables)

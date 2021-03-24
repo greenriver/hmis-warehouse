@@ -28,6 +28,12 @@ module ClientAccessControl::GrdaWarehouse::Hud
         merge(limited_scope)
       end
 
+      scope :destination_from_searchable_to, ->(user) do
+        destination.where(id: searchable_to(user).
+          joins(:warehouse_client_source).
+          select(:destination_id))
+      end
+
       # LEGACY Scopes
       scope :searchable_by, ->(user) do
         searchable_to(user)

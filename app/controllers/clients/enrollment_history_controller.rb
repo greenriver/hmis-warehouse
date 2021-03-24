@@ -24,7 +24,7 @@ module Clients
     private
 
     def set_client
-      @client = searchable_client_scope.find(params[:id].to_i)
+      @client = destination_searchable_client_scope.find(params[:id].to_i)
     end
 
     def client_source
