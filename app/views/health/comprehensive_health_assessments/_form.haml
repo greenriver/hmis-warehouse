@@ -17,7 +17,8 @@
         = cha_radios     f, :a_q2
         .row.mb-1.pr-8
           .col-md-8.col-lg-4
-            = cha_datepicker f, :a_q3, input_html: { disabled: true, value: @client.DOB }
+            - value = f.object.answers.try(:[], 'A').try(:[], 'answers').try(:[], 'a_q3').try(:[], 'answer')
+            = cha_datepicker f, :a_q3, input_html: { value: value&.to_date || @client.DOB }
         = cha_radios     f, :a_q4
         .form-group
           %label.control-label= _('CHA A_Q5')

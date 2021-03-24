@@ -25,7 +25,19 @@ module ArelHelper
     end
 
     # NOTE: quoted_table_name must be quoted, use something like User.quoted_table_name
-    def exists_sql(ar_query, quoted_table_name:, alias_name:, column_name:)
+    def exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
+      self.class.exists_sql(ar_query, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name)
+    end
+
+    # This will create a correlated exists clause and attach it to the relation it is called in
+    # it functions similar to a merge, but can be used when you need two merges with the same key
+    # Usage:
+    # User.joins(:role).correlated_exists(Role.health)
+    def self.correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
+      where(exists_sql(scope, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name))
+    end
+
+    def self.exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
       sql = ar_query.select(column_name).to_sql.
         gsub("#{quoted_table_name}.", "\"#{alias_name}\"."). # alias all columns
         gsub(quoted_table_name, "#{quoted_table_name} as \"#{alias_name}\"") # alias table
@@ -84,6 +96,40 @@ module ArelHelper
 
     def checksum(*args)
       self.class.checksum(*args)
+    end
+
+    # Example
+    # Returns most-recently started enrollment that matches the scope (open in 2020) for each client
+    # GrdaWarehouse::ServiceHistoryEnrollment.entry.
+    #  one_for_column(
+    #   :first_date_in_program,
+    #   source_arel_table: she_t,
+    #   group_on: :client_id,
+    #   scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
+    #     start_date: '2020-01-01'.to_date,
+    #     end_date: '2020-12-31'.to_date,
+    #   ),
+    # )
+    def self.one_for_column(column, source_arel_table:, group_on:, direction: :desc, scope: nil)
+      most_recent = source_arel_table.alias("most_recent_#{source_arel_table.name}_#{SecureRandom.alphanumeric}".downcase)
+
+      source = if scope
+        scope.arel
+      else
+        source_arel_table.project(source_arel_table[:id])
+      end
+
+      direction = :desc unless direction.in?([:asc, :desc])
+
+      max_by_group = source.distinct_on(source_arel_table[group_on]).
+        order(source_arel_table[group_on], source_arel_table[column].send(direction))
+
+      join = source_arel_table.create_join(
+        max_by_group.as(most_recent.name),
+        source_arel_table.create_on(source_arel_table[:id].eq(most_recent[:id])),
+      )
+
+      joins(join)
     end
   end
 

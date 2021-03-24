@@ -14,6 +14,20 @@ module TextMessage
       where(unsubscribed_at: nil)
     end
 
+    scope :valid_phone, -> do
+      # ignore some really obvious bad numbers
+      where.not(
+        arel_table[:phone_number].matches('999%').
+        or(arel_table[:phone_number].matches('911%')).
+        or(arel_table[:phone_number].matches('0%')).
+        or(arel_table[:phone_number].matches('1%')),
+      ).where.not(phone_number: repeated_phone_numbers.select(:phone_number))
+    end
+
+    scope :repeated_phone_numbers, -> do
+      group(:phone_number).having("count('phone_number') > 5")
+    end
+
     def name
       "#{first_name} #{last_name}"
     end

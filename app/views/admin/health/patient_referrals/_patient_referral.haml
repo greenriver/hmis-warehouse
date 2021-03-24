@@ -23,7 +23,7 @@
           = pr.medicaid_id
         %div
           %strong ACO:
-          = pr.aco_name
+          = pr.aco_name.presence || pr.aco&.short_name
           - if pr.accountable_care_organization_id.present?
             (matched)
         %div

@@ -21,14 +21,20 @@ module HmisCsvTwentyTwenty::Loader
     include TsqlImport
     include NotifierConfig
     include HmisTwentyTwenty
-    include ActionView::Helpers::DateHelper
     # The HMIS spec limits the field to 50 characters
-    EXPORT_ID_FIELD_WIDTH = 50
-    SELECT_BATCH_SIZE = 10_000
-    INSERT_BATCH_SIZE = 5_000
+    # EXPORT_ID_FIELD_WIDTH = 50
+    # SELECT_BATCH_SIZE = 10_000
+    # INSERT_BATCH_SIZE = 5_000
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :loader_log
 
+    # Prepare a loader for HmisCsvTwentyTwenty CSVs
+    # in the directory `file_path`
+    # and attribute the data to data_source_id a GrdaWarehouse::DataSource#id .
+    #
+    # debug: log progress to the logger
+    # remove_files: The directory will be removed after calling #load!
+    # deidentified: Passed to HmisCsvTwentyTwenty::Importer::Importer when #import! is called
     def initialize( # rubocop:disable Metrics/ParameterLists
       data_source_id:,
       file_path: File.join('tmp', 'hmis_import'),
@@ -37,6 +43,8 @@ module HmisCsvTwentyTwenty::Loader
       remove_files: true,
       deidentified: false
     )
+      raise ArgumentError, 'file_path must be a directory containing HMIS csv data' unless File.directory?(file_path)
+
       setup_notifier('HMIS CSV Loader 2020')
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @file_path = file_path
@@ -64,8 +72,8 @@ module HmisCsvTwentyTwenty::Loader
 
         load_source_files! if export_valid
         complete_load(status: :loaded)
-      rescue StandardError
-        complete_load(status: :failed)
+      rescue StandardError => e
+        complete_load(status: :failed, err: e)
       ensure
         remove_import_files if @remove_files
       end
@@ -134,18 +142,6 @@ module HmisCsvTwentyTwenty::Loader
     #   row
     # end
 
-    def open_csv_file(file_path)
-      file = File.read(file_path)
-      # Look at the file to see if we can determine the encoding
-      file_encoding = CharlockHolmes::EncodingDetector.
-        detect(file).
-        try(:[], :encoding)
-      file_lines = IO.readlines(file_path).size - 1
-      @loader_log.summary[File.basename(file_path)]['total_lines'] = file_lines
-      log("Loading #{file_lines} lines in: #{file_path}")
-      File.open(file_path, "r:#{file_encoding}:utf-8")
-    end
-
     def expand(file_path:)
       Rails.logger.info "Expanding #{file_path}"
       Zip::File.open(file_path) do |zipped_file|
@@ -157,86 +153,152 @@ module HmisCsvTwentyTwenty::Loader
       FileUtils.rm(file_path)
     end
 
+    def encoding_detector
+      @encoding_detector ||= CharlockHolmes::EncodingDetector.new
+    end
+
     def load_source_files!
       @loader_log.update(status: :loading)
+
+      use_encoding_detector = true # Cost:~4s for spec/fixtures/files/importers/hmis_twenty_twenty/hud_sample/source
+
       importable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)
         next unless File.file?(source_file_path)
 
-        file = open_csv_file(source_file_path)
-        load_source_file(read_from: file, klass: klass)
+        # Look at the file to see if we can determine the encoding
+        file_mode = if use_encoding_detector && encoding_detector
+          file_encoding = encoding_detector.detect(File.read(source_file_path)).try(:[], :encoding)
+          if file_encoding == 'UTF-32BE'
+            'r'
+          else
+            "r:#{file_encoding}:utf-8"
+          end
+        else
+          'r'
+        end
+        File.open(source_file_path, file_mode) do |file|
+          load_source_file_pg(read_from: file, klass: klass)
+        end
       end
     end
 
-    def load_source_file(read_from:, klass:)
-      file_name = File.basename(read_from.path)
-      csv = CSV.new(read_from, headers: false, liberal_parsing: true)
-      # read the first row so we can set the headers
-      headers = csv.first
-      csv.rewind
+    def load_source_file_pg(read_from:, klass:)
+      raise 'data_source.id must be set' unless data_source.id.present?
+      raise '@loader_log.id must be set' unless @loader_log.id.present?
+      raise '@loaded_at must be set' unless @loaded_at.present?
 
-      if headers.blank?
-        err = 'No data.'
-        msg = "Unable to import #{file_name}: #{err}"
-        log(msg)
-        add_error(file_path: read_from.path, message: err, line: '')
-        return
+      file_name = read_from.path
+      base_name = File.basename(file_name)
+
+      logger.debug do
+        "Loading #{base_name} into #{klass.table_name} #{hash_as_log_str(loader_id: @loader_log.id)}"
       end
 
-      if header_invalid?(headers, klass)
-        err = "Header invalid: \n#{headers}; \nexpected a subset of: \n#{klass.hud_csv_headers.map(&:to_s)}"
-        msg = "Unable to import #{file_name}, #{err}"
-        log(msg)
-        add_error(file_path: read_from.path, message: err, line: '')
-        return
-      end
+      meta_data = [data_source.id, @loader_log.id, @loaded_at]
 
-      # we need to accept different cased headers, but we need our
-      # case for import, so we'll fix that up here and use ours going forward
-      csv_headers = clean_header_row(headers, klass)
+      header_row = CSV.parse_line(read_from, headers: false, liberal_parsing: true)
+      copy_cols = clean_header_row(header_row, klass, file_name)
+      return unless copy_cols
 
-      # Strip internal newlines
-      # add data_source_id
-      # add loader_id
-      csv = CSV.new(read_from, headers: csv_headers, liberal_parsing: true, empty_value: nil, skip_blanks: true)
+      col_list = copy_cols.map { |c| klass.connection.quote_column_name c }.join(',')
+      copy_sql = <<~SQL.strip
+        COPY #{klass.quoted_table_name} (#{col_list})
+        FROM STDIN
+        WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER ',', NULL '')
+      SQL
+      # logger.debug { "   #{copy_sql}" }
 
-      headers = csv_headers + ['data_source_id', 'loader_id', 'loaded_at']
-      batch = []
-      begin
-        csv.drop(1).each do |row|
-          row.each do |k, v|
-            row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip.presence
-          end
-          if row.count == csv_headers.count
-            batch << row.fields + [data_source.id, @loader_log.id, @loaded_at]
-            if batch.count == INSERT_BATCH_SIZE
-              klass.import(headers, batch)
-              loaded_lines(file_name, batch.count)
-              batch = []
+      lines_loaded = nil
+      total_lines = nil
+      expect_col_count = copy_cols.size - meta_data.size
+      row_errors = []
+      # SLOW_CHECK; klass.connection.transaction do
+      bm = Benchmark.measure do
+        pg_conn = klass.connection.raw_connection
+        pg_result = pg_conn.copy_data copy_sql do
+          read_from.rewind
+          begin
+            parser = CSV.new(read_from, headers: false, liberal_parsing: true)
+            parser.each do |row|
+              # There were excess columns, probably due to an unquoted comma
+              if row.size > expect_col_count
+                row_errors << {
+                  file_name: base_name,
+                  message: 'Too many columns found',
+                  details: "Line number: #{parser.lineno}",
+                  source: row.to_csv,
+                }
+              elsif row.size < expect_col_count
+                row_errors << {
+                  file_name: base_name,
+                  message: 'Too few columns found',
+                  details: "Line number: #{parser.lineno}",
+                  source: row.to_csv,
+                }
+              else
+                pg_conn.put_copy_data (row + meta_data).to_csv
+              end
             end
-          else
-            msg = "Line length is incorrect: #{row.count}"
-            add_error(file_path: read_from.path, message: msg, line: row.to_s)
+          ensure
+            # Remove header from count
+            total_lines = parser.lineno - 1
+            parser&.close
           end
+          # SLOW_CHECK; data = copy_cols.zip(row + meta_data).to_h
+          # SLOW_CHECK;  klass.create! data
         end
-        if batch.present?
-          klass.import(headers, batch) # ensure we get the last batch
-          loaded_lines(file_name, batch.count)
+        if row_errors.any?
+          @loader_log.load_errors.import(row_errors)
+          row_errors.group_by { |e| e[:message] }.each do |message, errors|
+            log("#{base_name}: #{message} on #{errors.count} lines")
+          end
+          @loader_log.summary[base_name]['total_errors'] += row_errors.size
         end
-      rescue ActiveModel::MissingAttributeError
-      rescue Errno::ENOENT
-        # FIXME
+        lines_loaded = pg_result.cmd_tuples
       end
+      # SLOW_CHECK; end
+
+      @loader_log.summary[base_name].tap do |stat|
+        stat['total_lines'] = total_lines
+        stat['secs'] = bm.real.round(3)
+        stat['cpu'] = "#{(bm.total * 100 / bm.real).round}%"
+        if lines_loaded.positive?
+          stat['lines_loaded'] = lines_loaded
+          stat['rps'] = (lines_loaded / bm.real).round
+        end
+        logger.debug do
+          # line_loaded comes from pg directly, if we dont trust it we can go back for a count
+          # if lines_loaded > 1
+          #   scope = klass.where(data_source_id: data_source.id, loader_id: @loader_log.id)
+          #   scope = scope.with_deleted if klass.respond_to?(:with_deleted)
+          #   stat['verified'] = scope.count
+          # end
+          " Loaded #{base_name} #{hash_as_log_str({ loader_id: @loader_log.id }.merge(stat))}"
+        end
+      end
+    rescue PG::Error => e
+      add_error(file_path: read_from.path, message: e.message, line: lines_loaded)
     end
 
     # Headers need to match our style
-    def clean_header_row(source_headers, klass)
+    def clean_header_row(source_headers, klass, file_path)
+      if source_headers.none?
+        add_error(file_path: file_path, message: 'No header row found', line: 1)
+        return
+      end
+      if header_invalid?(source_headers, klass)
+        add_error(file_path: file_path, message: "Header invalid: \n#{source_headers}; \nexpected a subset of: \n#{klass.hud_csv_headers.map(&:to_s)}", line: 1)
+        return
+      end
+
       indexed_headers = klass.hud_csv_headers.map do |k|
         [k.to_s.downcase, k]
       end.to_h
+
       source_headers.map do |k|
         indexed_headers[k&.downcase].to_s
-      end
+      end + ['data_source_id', 'loader_id', 'loaded_at']
     end
 
     def importable_files
@@ -253,11 +315,11 @@ module HmisCsvTwentyTwenty::Loader
 
     def remove_import_files
       Rails.logger.info "Removing #{@file_path}"
-      FileUtils.rm_rf(@file_path) if File.exist?(@file_path)
+      FileUtils.rm_rf(@file_path) if File.directory?(@file_path)
     end
 
     def build_loader_log(data_source:)
-      HmisCsvTwentyTwenty::Loader::LoaderLog.create(
+      HmisCsvTwentyTwenty::Loader::LoaderLog.create!(
         data_source_id: data_source.id,
         started_at: Time.current,
         status: :started,
@@ -300,33 +362,33 @@ module HmisCsvTwentyTwenty::Loader
       end
     end
 
+    def log_ids
+      { data_source_id: data_source.id, loader_id: @loader_log.id }
+    end
+
     def start_load
       @loaded_at = Time.current
-      log("Starting HMIS CSV Data Load for data source: #{data_source.id} loader log: #{@loader_log.id}")
+      log("Starting load for #{hash_as_log_str log_ids}.")
     end
 
-    def complete_load(status:)
+    def complete_load(status:, err: nil)
       elapsed = Time.current - @loaded_at
-      @loader_log.update(completed_at: Time.current, status: status)
-      log("Completed HMIS CSV Data Load for data source: #{data_source.id} in #{distance_of_time_in_words(elapsed)}")
-    end
-
-    def loaded_lines(file, count)
-      @loader_log.summary[file]['lines_loaded'] += count
+      @loader_log.update(
+        completed_at: Time.current,
+        status: status,
+      )
+      status = "#{status} error:#{err}" if err
+      # log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}", summary_as_log_str(loader_log.summary))
+      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
     end
 
     def setup_summary(file)
       @loader_log.summary ||= {}
       @loader_log.summary[file] ||= {
-        'total_lines' => -1,
+        'total_lines' => 0,
         'lines_loaded' => 0,
         'total_errors' => 0,
       }
-    end
-
-    def log(message)
-      @notifier&.ping message
-      logger.info message if @debug
     end
 
     def add_error(file_path:, message:, line:)
@@ -337,8 +399,8 @@ module HmisCsvTwentyTwenty::Loader
         details: message,
         source: line,
       )
-      @loader_log.summary[file]['total_errors'] += 1
       log(message)
+      @loader_log.summary[file]['total_errors'] += 1
     end
   end
 end

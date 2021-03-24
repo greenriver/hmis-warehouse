@@ -24,6 +24,7 @@ class App.WarehouseReports.Rrh.Returns
       bindto: @wrapper
 
   _follow_link: (d, e) =>
+    return unless @support_url.length > 1
     # if @data.projects_selected == true
     bucket = @data.labels[d.index]
     url = @support_url + encodeURI("&selected_project=#{d.name}&bucket=#{bucket}")

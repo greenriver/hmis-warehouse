@@ -4,10 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module
-  Filter::FilterScopes
+module Filter::FilterScopes
   extend ActiveSupport::Concern
   included do
+    private def filter_for_user_access(scope)
+      scope.joins(:project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+    end
+
     private def filter_for_range(scope)
       scope.open_between(start_date: @filter.start_date, end_date: @filter.end_date).
         with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)

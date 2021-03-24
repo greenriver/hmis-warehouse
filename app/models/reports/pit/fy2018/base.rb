@@ -45,7 +45,18 @@ module Reports::Pit::Fy2018
     def value_for_options options
       value = "PIT: #{options['pit_date']}, Chronic: #{options['chronic_date']}" if options.present?
       value += ", CoC Code(s): #{options['coc_codes'].join(' ')}" if options['coc_codes'].present? && options['coc_codes'].select(&:present?).any?
+      value += ", Project(s): #{project_names(options['project_ids']).join(' ')}" if options['project_ids'].present? && options['project_ids'].select(&:present?).any?
+      value += ", Project Group(s): #{project_group_names(options['project_group_ids']).join(' ')}" if options['project_group_ids'].present? && options['project_group_ids'].select(&:present?).any?
+
       value
+    end
+
+    private def project_names(ids)
+      GrdaWarehouse::Hud::Project.where(id: ids).map(&:organization_and_name)
+    end
+
+    private def project_group_names(ids)
+      GrdaWarehouse::ProjectGroup.where(id: ids).map(&:name)
     end
   end
 end

@@ -6,7 +6,6 @@
 
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
-
     has_many :group_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::GroupViewableEntity'
 
     scope :enabled, -> do
@@ -57,6 +56,10 @@ module GrdaWarehouse::WarehouseReports
           r.save!
         end
       end
+    end
+
+    def new_report?
+      created_at > Date.current - 2.weeks
     end
 
     # Reports
@@ -695,13 +698,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: true,
             health: false,
           },
-          {
-            url: 'performance_dashboards/household',
-            name: 'Household Performance',
-            description: 'Overview of warehouse performance.',
-            limitable: true,
-            health: false,
-          },
+          # {
+          #   url: 'performance_dashboards/household',
+          #   name: 'Household Performance',
+          #   description: 'Overview of warehouse performance.',
+          #   limitable: true,
+          #   health: false,
+          # },
           {
             url: 'performance_dashboards/project_type',
             name: 'Project Type Performance',
@@ -847,7 +850,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Health: BH CP Claims/Payments'] << {
           url: 'claims_reporting/warehouse_reports/performance',
           name: 'BH CP Performance',
-          description: 'Explore performance .',
+          description: 'Performance metrics based on paid MassHealth claims.',
           limitable: false,
           health: true,
         }
@@ -879,6 +882,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:destination_report)
+        r_list['Operational'] << {
+          url: 'destination_report/warehouse_reports/reports',
+          name: 'Destination Breakdowns',
+          description: 'Details of Destination at Exit (3.12.1)',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:disability_summary)
         r_list['Operational'] << {
           url: 'disability_summary/warehouse_reports/disability_summary',
@@ -896,6 +908,63 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: false,
         }
+      end
+      if RailsDrivers.loaded.include?(:census_tracking)
+        r_list['Operational'] << {
+          url: 'census_tracking/warehouse_reports/census_trackers',
+          name: 'Census Tracking Worksheet',
+          description: 'Breakdown of PIT Census data for chosen date',
+          limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:public_reports)
+        # Only attempt this if the driver is loaded, and only install the reports
+        # if the bucket can be setup correctly
+        if PublicReports::Report.new.ready_public_s3_bucket!
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/point_in_time',
+            name: 'Public Point-in-Time Report Generator',
+            description: 'Use this to review and publish Point-in-Time charts for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/pit_by_month',
+            name: 'Public Point-in-Time by Month Report Generator',
+            description: 'Use this to review and publish Point-in-Time by month charts for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/public_configs',
+            name: 'Public Report Configuration',
+            description: 'Settings for colors, fonts, etc. related to reports which can be published publicly.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/number_housed',
+            name: 'Public Number Housed Report Generator',
+            description: 'Use this to review and publish the number of clients housed for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/homeless_count',
+            name: 'Public Number Homeless Report Generator',
+            description: 'Use this to review and publish the number of homeless clients for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/homeless_count_comparison',
+            name: 'Public Percent Homeless Comparison Report Generator',
+            description: 'Use this to review and publish the change of homeless clients for public consumption.',
+            limitable: false,
+            health: false,
+          }
+        end
       end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
         r_list['Population Dashboards'] << {
@@ -951,6 +1020,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:income_benefits_report)
+        r_list['Operational'] << {
+          url: 'income_benefits_report/warehouse_reports/report',
+          name: 'Income, Non-Cash Benefits, Health Insurance Report',
+          description: 'Performance indicators and aggregate statistics for income, benefits, and health insurance from HMIS data.',
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -960,6 +1038,7 @@ module GrdaWarehouse::WarehouseReports
         'warehouse_reports/veteran_details/actives',
         'warehouse_reports/veteran_details/entries',
         'warehouse_reports/veteran_details/exits',
+        'performance_dashboards/household',
       ]
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
@@ -971,14 +1050,25 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
       cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
       cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
+      cleanup << 'destination_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:destination_report)
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
+      unless RailsDrivers.loaded.include?(:public_reports)
+        cleanup << 'public_reports/warehouse_reports/point_in_time'
+        cleanup << 'public_reports/warehouse_reports/pit_by_month'
+        cleanup << 'public_reports/warehouse_reports/public_configs'
+        cleanup << 'public_reports/warehouse_reports/number_housed'
+        cleanup << 'public_reports/warehouse_reports/homeless_count'
+        cleanup << 'public_reports/warehouse_reports/homeless_count_comparison'
+      end
       cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
       cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
       cleanup << 'dashboards/child_only_households' unless RailsDrivers.loaded.include?(:child_only_households_sub_pop)
       cleanup << 'dashboards/clients' unless RailsDrivers.loaded.include?(:clients_sub_pop)
       cleanup << 'dashboards/non_veterans' unless RailsDrivers.loaded.include?(:non_veterans_sub_pop)
       cleanup << 'dashboards/veterans' unless RailsDrivers.loaded.include?(:veterans_sub_pop)
+      cleanup << 'census_tracking/warehouse_reports/census_trackers' unless RailsDrivers.loaded.include?(:census_tracking)
+      cleanup << 'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all

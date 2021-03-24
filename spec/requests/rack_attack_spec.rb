@@ -25,7 +25,7 @@ describe Rack::Attack, type: :request do
 
   before do
     Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
-    Timecop.scale(1 / 100.to_f)
+    Timecop.scale(1 / 50.to_f)
   end
 
   describe 'when not-logged in' do
@@ -45,7 +45,7 @@ describe Rack::Attack, type: :request do
           requests_to_send: request_limit,
           params: { rack_attack_enabled: true },
         )
-        expect(requests_sent).to be(throttled_at)
+        expect(requests_sent).to be_between(throttled_at, throttled_at * 2)
       end
     end
 
@@ -76,7 +76,7 @@ describe Rack::Attack, type: :request do
             user: { email: 'test@example.com', password: 'password' },
           },
         )
-        expect(requests_sent).to be(throttled_at)
+        expect(requests_sent).to be_between(throttled_at, throttled_at * 2)
       end
     end
   end
@@ -86,7 +86,7 @@ describe Rack::Attack, type: :request do
       sign_in user
     end
     describe 'and hitting the homepage' do
-      let(:throttled_at) { 251 }
+      let(:throttled_at) { 151 }
       let(:request_limit) { (throttled_at * 4).to_i }
       let(:path) { '/' }
 
@@ -97,7 +97,7 @@ describe Rack::Attack, type: :request do
 
       it 'throttle excessive requests by IP address - enabled' do
         requests_sent = till_throttled(:get, path, params: { rack_attack_enabled: true }, requests_to_send: request_limit)
-        expect(requests_sent).to be < throttled_at + 5 # There appears to be some play in Rack when testing
+        expect(requests_sent).to be_between(throttled_at, throttled_at * 2) # There appears to be some play in Rack when testing
       end
     end
     describe 'and hitting client rollups' do
@@ -112,7 +112,7 @@ describe Rack::Attack, type: :request do
 
       it 'throttle excessive requests by IP address - enabled' do
         requests_sent = till_throttled(:get, path, params: { rack_attack_enabled: true }, requests_to_send: request_limit)
-        expect(requests_sent).to be(throttled_at)
+        expect(requests_sent).to be_between(throttled_at, throttled_at * 2)
       end
     end
   end

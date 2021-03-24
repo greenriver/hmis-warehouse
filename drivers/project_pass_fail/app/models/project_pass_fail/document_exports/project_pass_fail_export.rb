@@ -48,7 +48,7 @@ module ProjectPassFail::DocumentExports
 
     class ProjectPassFailExportTemplate < PdfExportTemplateBase
       def show_client_details?
-        @show_client_details ||= current_user.can_view_clients?
+        @show_client_details ||= current_user.can_access_some_version_of_clients?
       end
     end
   end

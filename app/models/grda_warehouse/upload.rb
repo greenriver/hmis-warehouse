@@ -20,6 +20,10 @@ module GrdaWarehouse
     validates :data_source, presence: true
     validates :file, presence: true, on: :create
 
+    scope :completed, -> do
+      where(percent_complete: 100)
+    end
+
     def has_import_log?
       @has_import_log ||= GrdaWarehouse::ImportLog.where.not(completed_at: nil).
         where(data_source_id: data_source_id, completed_at: completed_at).

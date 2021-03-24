@@ -4,6 +4,8 @@ tmp/*
 log/*
 vendor/cache*
 public/packs*
+var/*
+coverage/*
 
 # Dev cruft
 *.swp
@@ -19,3 +21,10 @@ byebug_history
 untracked
 .bundle
 .github
+tags
+shape_files/**/*.zip
+shape_files/**/*.xml
+shape_files/**/*.shp
+shape_files/**/*.prj
+shape_files/**/*.dbf
+shape_files/**/*.cpg

@@ -11,6 +11,7 @@ module GrdaWarehouse::HealthEmergency
 
     MODERNA = 'ModernaTX, Inc.'.freeze
     PFIZER = 'Pfizer, Inc., and BioNTech'.freeze
+    JANSSEN = 'Janssen'.freeze
     VACCINATED = 'Vaccinated'.freeze
 
     validates_presence_of :vaccinated_on, :vaccination_type, on: :create
@@ -81,6 +82,7 @@ module GrdaWarehouse::HealthEmergency
       {
         'ModernaTX, Inc.' => MODERNA,
         'Pfizer, Inc., and BioNTech' => PFIZER,
+        'Janssen COVID-19 Vaccine' => JANSSEN,
       }
     end
 

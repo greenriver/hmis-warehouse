@@ -8,6 +8,22 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
   extend ActiveSupport::Concern
   SELECT_BATCH_SIZE = 10_000
   INSERT_BATCH_SIZE = 2_000
+  RE_YYYYMMDD = /(?<y>\d{4})-(?<m>\d{1,2})-(?<d>\d{1,2})/.freeze
+
+  HMIS_DATE_FORMATS = [
+    ['%Y-%m-%d', RE_YYYYMMDD],
+    ['%m-%d-%Y'],
+    ['%d-%b-%Y'],
+  ].freeze
+
+  HMIS_TIME_FORMATS = ([
+    ['%Y-%m-%d %H:%M:%S', RE_YYYYMMDD],
+    ['%m-%d-%Y %H:%M:%S'],
+    ['%d-%b-%Y %H:%M:%S'],
+    ['%Y-%m-%d %H:%M', RE_YYYYMMDD],
+    ['%m-%d-%Y %H:%M'],
+    ['%d-%b-%Y %H:%M'],
+  ] + HMIS_DATE_FORMATS).freeze # order matters, we need to try more logical and longer patterns first
 
   included do
     belongs_to :importer_log
@@ -28,6 +44,10 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     # Override as necessary
     def self.clean_row_for_import(row, deidentified:) # rubocop:disable  Lint/UnusedMethodArgument
       row
+    end
+
+    def self.replace_blanks_with_nils(row)
+      row.transform_values!(&:presence)
     end
 
     def self.upsert_column_names(version: '2020')
@@ -58,13 +78,22 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
     # memoize :time_columns
 
-    def self.new_from(loaded, deidentified: false)
+    def self.attrs_from(loaded, deidentified: false)
       # we need to attempt a fix of date columns before ruby auto converts them
       csv_data = loaded.hmis_data
       csv_data = fix_date_columns(csv_data)
       csv_data = fix_time_columns(csv_data)
       csv_data = clean_row_for_import(csv_data, deidentified: deidentified)
-      new(csv_data.merge(source_type: loaded.class.name, source_id: loaded.id, data_source_id: loaded.data_source_id))
+      csv_data = replace_blanks_with_nils(csv_data)
+      csv_data.merge(
+        source_type: loaded.class.name,
+        source_id: loaded.id,
+        data_source_id: loaded.data_source_id,
+      )
+    end
+
+    def self.new_from(loaded, deidentified: false)
+      new attrs_from(loaded, deidentified: deidentified)
     end
 
     # Override as necessary
@@ -86,6 +115,20 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       existing_keys = existing_keys.with_deleted if paranoid?
 
       where(importer_log_id: importer_log_id).should_import.where.not(hud_key => existing_keys)
+    end
+
+    def self.existing_data(data_source_id:, project_ids:, date_range:)
+      existing_scope = involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      )
+      existing_scope = existing_scope.with_deleted if paranoid?
+      existing_scope
+    end
+
+    def self.incoming_data(importer_log_id:)
+      where(importer_log_id: importer_log_id).should_import
     end
 
     def self.existing_destination_data(data_source_id:, project_ids:, date_range:)
@@ -127,8 +170,6 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
     def self.fix_date_columns(row)
       date_columns.each do |col|
-        next if row[col].blank? || correct_date_format?(row[col])
-
         row[col] = fix_date_format(row[col])
       end
       row
@@ -136,125 +177,73 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
     def self.fix_time_columns(row)
       time_columns.each do |col|
-        next if row[col].blank? || correct_time_format?(row[col])
-
         row[col] = fix_time_format(row[col])
       end
       row
     end
 
-    def self.correct_date_format?(string)
-      accepted_date_pattern.match?(string)
-    end
+    # HMIS CSV FORMAT SPECIFICATIONS says under "Data Types"
+    # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.8.pdf
+    #
+    # Date fields must be in the format yyyy-mm-dd
+    # Datetime aka T fields must be in the format yyyy-mm-dd hh:mm:ss with no reference to timezones.
+    #
+    # In practice HMIS systems send us data in a local timezone and
+    # we run their instance in the same timezone but we currently
+    # store data in a postgres timestamp column in the databases configured
+    # timezone. Be default this is UTC. Rails can handle the timezone math for
+    # us as long as we are passing around ActiveSupport::TimeWithZone objects
+    # so this method is careful to generate those assuming we are in
+    # Time.zone  (the configured timezone for Rails)
+    #
+    # We also need to handle non-compliant data sources as best we can
+    # so we also test for and recognize other common date formats in the US
+    # and handle 2-digit years. Nearly all dates in HMIS are in the past or
+    # current year so we choose an interpretation of a 2 digit year
+    # in that range on import if we have to.
 
-    def self.accepted_date_pattern
-      /\d{4}-\d{2}-\d{2}/.freeze
-    end
-
-    def self.correct_time_format?(string)
-      accepted_time_pattern.match?(string)
-    end
-
-    def self.accepted_time_pattern
-      @accepted_time_pattern ||= /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.freeze
-    end
-
-    # We sometimes see very odd dates, this will attempt to make them sane.
-    # Since most dates should be not too far in the future, we'll check for anything less
-    # Than a year out
     def self.fix_date_format(string)
-      return unless string
-
-      string = string.gsub('/', '-')
-      # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
-      return string if /\d{4}-\d{1,2}-\d{1,2}/.match?(string)
-
-      # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
-      if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
-        month, day, year = string.split('-')
-        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')}"
-      elsif /\d{1,2}-\d{1,2}-\d{2}/.match?(string) # Handle m/d/yy
-        month, day, year = string.split('-')
-        year = year.to_i
-        # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
-        # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
-        # Since we're almost always dealing with dates that are in the past
-        # If the year is between 00 and next year, we'll add 2000,
-        # otherwise, we'll add 1900
-        next_year = Date.current.next_year.strftime('%y').to_i
-
-        if year <= next_year
-          year += 2000
-        elsif year < 100
-          year += 1900
-        end
-        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')}"
-      end
-
-      begin
-        d = Date.parse(string, false)
-      rescue ArgumentError
-        return nil
-      end
-      next_year = Date.current.next_year.strftime('%y').to_i
-      if d.year <= next_year
-        d = d.next_year(2000)
-      elsif d.year < 100
-        d = d.next_year(1900)
-      end
-      d.strftime('%Y-%m-%d')
+      result = fix_time_format(string, formats: HMIS_DATE_FORMATS)
+      result = result.strftime('%F') if result.respond_to?(:strftime)
+      result
     end
 
-    def self.fix_time_format(string)
-      return unless string
+    def self.fix_time_format(string, formats: HMIS_TIME_FORMATS)
+      return string if string.blank?
+      return string if string.acts_like?(:time)
 
-      string = string.gsub('/', '-')
-      # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
-      return string if /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.match?(string)
-      return string.to_time.strftime('%Y-%m-%d %H:%M:%S') if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+      # We don't care if we have slashes or hyphens
+      normalized = string.tr('/', '-')
 
-      # Sometimes times come in mm-dd-yyyy hh:mm
-      if /\d{1,2}-\d{1,2}-\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
-        date, time = string.split(' ')
-        month, day, year = date.split('-')
+      # try various pattern, starting with the standard
+      t = nil
+      formats.detect do |strptime_pattern, regexp_filter|
+        # puts "#{string} #{normalized} #{strptime_pattern} #{regexp_filter}"
+        next if regexp_filter && !normalized.match?(regexp_filter)
 
-        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}".to_time.strftime('%Y-%m-%d %H:%M:%S')
-      elsif /\d{1,2}-\d{1,2}-\d{2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
-        date, time = string.split(' ')
-        month, day, year = date.split('-')
-        year = year.to_i
+        t ||= begin
+                Time.zone.strptime(normalized, strptime_pattern)
+              rescue StandardError
+                nil
+              end
+      end
 
-        # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
-        # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
-        # Since we're almost always dealing with dates that are in the past
-        # If the year is between 00 and next year, we'll add 2000,
-        # otherwise, we'll add 1900
-        next_year = Date.current.next_year.strftime('%y').to_i
-        if year <= next_year
-          year += 2000
+      return unless t
+
+      if t.year < 100
+        # We will choose between 19XX and 20XX based on the idea
+        # that our dates are most likely to be in the recent past and not
+        # to far into the future
+        next_year = Date.current.next_year.year % 100
+        if t.year <= next_year # a two digit year we think is in this century
+          t = t.change(year: t.year + 2000)
         else
-          year += 1900
+          # a two digit year we think is in the prior century
+          t = t.change(year: t.year + 1900)
         end
-
-        string = "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}"
-        return string if /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.match?(string)
-
-        string.to_time.strftime('%Y-%m-%d %H:%M:%S')
       end
 
-      begin
-        d = DateTime.parse(string, false)
-      rescue ArgumentError
-        # If there is still garbage in a date field, return an nil
-        return nil
-      end
-      next_year = Date.current.next_year.strftime('%y').to_i
-      if d.year <= next_year
-        d = d.next_year(2000)
-      elsif d.year < 100
-        d = d.next_year(1900)
-      end
-      d.strftime('%Y-%m-%d %H:%M:%S')
+      t
     end
 
     def self.hmis_validations
@@ -265,9 +254,16 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       []
     end
 
+    def self.hmis_2020_keys
+      @hmis_2020_keys ||= hmis_structure(version: '2020').keys
+    end
+
+    def hmis_data
+      slice(*self.class.hmis_2020_keys) # self.class.hmis_2020_keys is used to avoid realloc/calc'ing these static keys in tight import loops
+    end
+
     def calculate_source_hash
-      keys = self.class.hmis_structure(version: '2020').keys - [:ExportID]
-      Digest::SHA256.hexdigest(slice(keys).to_s)
+      Digest::SHA256.hexdigest(hmis_data.except(:ExportID).to_s)
     end
 
     # NOTE: this may be way faster, but would need to be done as a second step
@@ -280,29 +276,10 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       self.source_hash = calculate_source_hash
     end
 
-    def hmis_data
-      slice(*self.class.hmis_structure(version: '2020').keys)
-    end
-
-    def run_row_validations(filename, importer_log)
-      failures = []
-      self.class.hmis_validations.each do |column, checks|
-        next unless checks.present?
-
-        checks.each do |check|
-          arguments = check.dig(:arguments)
-          failures << check[:class].check_validity!(self, column, arguments)
-        end
-      end
-      failures.compact!
-      importer_log.summary[filename]['total_flags'] ||= 0
-      importer_log.summary[filename]['total_flags'] += failures.count
-      failures
-    end
-
     def self.run_complex_validations!(importer_log, filename)
       failures = []
       complex_validations.each do |check|
+        logger.debug { "Running #{check[:class]} for #{self}" }
         arguments = check.dig(:arguments)
         failures += check[:class].check_validity!(self, importer_log, arguments)
       end

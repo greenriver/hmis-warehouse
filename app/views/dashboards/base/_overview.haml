@@ -15,9 +15,9 @@
       %h4.title
         Enrolled Clients
       .metric
-        = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.enrolled_client_count), 'client'), warehouse_reports_enrolled_project_type_index_path(filter: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_type: @report.project_types, project_ids: @project_ids, organization_ids: @organization_ids, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, coc_codes: @coc_codes }), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.enrolled_client_count), 'client'), warehouse_reports_enrolled_project_type_index_path(filter: support_filter), target: :_blank
         \/
-        = pluralize(@report.enrolled_household_count, 'households')
+        = pluralize(number_with_delimiter(@report.enrolled_household_count), 'households')
       .description
         had open enrollments during this time period
     .rrh__enrolled.chunk.l-page__w-50.pr-2
@@ -25,9 +25,9 @@
       %h4.title
         Active Clients
       .metric
-        = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.active_client_count), 'client'), warehouse_reports_client_details_actives_path(filter: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, coc_codes: @coc_codes }), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.active_client_count), 'client'), warehouse_reports_client_details_actives_path(filter: support_filter), target: :_blank
         \/
-        = pluralize(@report.active_household_count, 'households')
+        = pluralize(number_with_delimiter(@report.active_household_count), 'households')
       .description
         had a service during this time period
     .rrh__enrolled.chunk.l-page__w-50.pr-2
@@ -35,9 +35,9 @@
       %h4.title
         Enterers
       .metric
-        = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.entered_client_count), 'client'), warehouse_reports_client_details_entries_path(filter: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, project_type: @report.project_types, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, coc_codes: @coc_codes }), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.entered_client_count), 'client'), warehouse_reports_client_details_entries_path(filter: support_filter), target: :_blank
         \/
-        = pluralize(@report.entered_household_count, 'households')
+        = pluralize(number_with_delimiter(@report.entered_household_count), 'households')
       .description
         started enrollments during the reporting period
     .rrh__enrolled.chunk.l-page__w-50.pr-2
@@ -45,8 +45,8 @@
       %h4.title
         Exiters
       .metric
-        = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.exited_client_count), 'client'), warehouse_reports_client_details_exits_path(filter: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, coc_codes: @coc_codes }), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.exited_client_count), 'client'), warehouse_reports_client_details_exits_path(filter: support_filter), target: :_blank
         \/
-        = pluralize(@report.exited_household_count, 'households')
+        = pluralize(number_with_delimiter(@report.exited_household_count), 'households')
       .description
         exited enrollments during the reporting period

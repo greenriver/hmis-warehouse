@@ -297,7 +297,7 @@ module HUD
   # 1.6
   def race_none(id, reverse = false)
     map = {
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -343,7 +343,7 @@ module HUD
     {
       0 => 'No',
       1 => 'Yes',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -606,7 +606,7 @@ module HUD
     {
       1 => 'Full name reported',
       2 => 'Partial, street name, or code name reported',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -621,7 +621,7 @@ module HUD
     {
       1 => 'Full SSN reported',
       2 => 'Approximate or partial SSN reported',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -638,7 +638,7 @@ module HUD
     {
       1 => 'Full DOB reported',
       2 => 'Approximate or partial DOB reported',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }.freeze
@@ -655,7 +655,7 @@ module HUD
     {
       0 => 'Non-Hispanic/Non-Latino',
       1 => 'Hispanic/Latino',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -674,10 +674,10 @@ module HUD
       2 => 'Trans Female (MTF or Male to Female)',
       3 => 'Trans Male (FTM or Female to Male)',
       4 => 'Gender non-conforming (i.e. not exclusively male or female)',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
-    }
+    }.freeze
   end
 
   # 3.917.1
@@ -706,7 +706,7 @@ module HUD
       3 => 'One month or more, but less than 90 days',
       4 => '90 days or more but less than one year',
       5 => 'One year or longer',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       10 => 'One night or less',
       11 => 'Two to six nights',
@@ -747,7 +747,7 @@ module HUD
       2 => 'Two times',
       3 => 'Three times',
       4 => 'Four or more times',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -799,7 +799,7 @@ module HUD
 
   def month_categories
     {
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
       101 => '1',
@@ -838,7 +838,7 @@ module HUD
       5 => 'Substance abuse treatment facility or detox center',
       6 => 'Hospital or other residential non-psychiatric medical facility',
       7 => 'Jail, prison or juvenile detention facility',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       10 => 'Rental by client, no ongoing housing subsidy',
       11 => 'Owned by client, no ongoing housing subsidy',
@@ -865,8 +865,8 @@ module HUD
       32 => 'Host Home (non-crisis)',
       33 => 'Rental by client, with HCV voucher (tenant or project based)',
       34 => 'Rental by client in a public housing unit',
-      35 => 'Staying or living in a family member’s room, apartment or house',
-      36 => 'Staying or living in a friend’s room, apartment or house',
+      35 => 'Staying or living in a family member\'s room, apartment or house',
+      36 => 'Staying or living in a friend\'s room, apartment or house',
       37 => 'Worker unable to determine',
       99 => 'Data not collected',
     }
@@ -1083,7 +1083,7 @@ module HUD
       4 => 'Stably housed',
       5 => 'Category 3 - Homeless only under other federal statutes',
       6 => 'Category 4 - Fleeing domestic violence',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1098,7 +1098,7 @@ module HUD
       2 => 'Applied; client not eligible',
       3 => 'Client did not apply',
       4 => 'Insurance type n/a for this client',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1125,7 +1125,7 @@ module HUD
       1 => 'Unconfirmed; presumptive or self-report',
       2 => 'Confirmed through assessment and clinical evaluation',
       3 => 'Confirmed by prior evaluation or clinical records',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1146,7 +1146,7 @@ module HUD
       1 => 'Alcohol abuse',
       2 => 'Drug abuse',
       3 => 'Both alcohol and drug abuse',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }.freeze
@@ -1164,7 +1164,7 @@ module HUD
       2 => 'Three to six months ago (excluding six months exactly)',
       3 => 'Six months to one year ago (excluding one year exactly)',
       4 => 'One year or more',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1299,7 +1299,7 @@ module HUD
       7 => 'Legal services - child support',
       8 => 'Legal services - eviction prevention',
       9 => 'Legal services - outstanding fines and penalties',
-      10 => 'Legal services - restore / acquire driver’s license',
+      10 => 'Legal services - restore / acquire driver\'s license',
       11 => 'Legal services - other',
       12 => 'Child care',
       13 => 'Housing counseling',
@@ -1318,7 +1318,7 @@ module HUD
       5 => 'Legal services - child support',
       6 => 'Legal services - eviction prevention',
       7 => 'Legal services - outstanding fines and penalties',
-      8 => 'Legal services - restore / acquire driver’s license',
+      8 => 'Legal services - restore / acquire driver\'s license',
       9 => 'Legal services - other',
       10 => 'Child care',
       11 => 'Housing counseling',
@@ -1456,7 +1456,7 @@ module HUD
       5 => 'Moved to a transitional or temporary housing facility or program',
       6 => 'Client became homeless - moving to a shelter or other place unfit for human habitation',
       7 => 'Client went to jail/prison',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       10 => 'Client died',
       99 => 'Data not collected',
@@ -1591,7 +1591,7 @@ module HUD
       4 => 'Bisexual',
       5 => 'Questioning / unsure',
       6 => 'Other',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1609,11 +1609,11 @@ module HUD
       5 => 'Grade 12',
       6 => 'School program does not have grade levels',
       7 => 'GED',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       10 => 'Some college',
-      11 => 'Associate’s degree',
-      12 => 'Bachelor’s degree',
+      11 => 'Associate\'s degree',
+      12 => 'Bachelor\'s degree',
       13 => 'Graduate degree',
       14 => 'Vocational certification',
       99 => 'Data not collected',
@@ -1632,7 +1632,7 @@ module HUD
       5 => 'Dropped out',
       6 => 'Suspended',
       7 => 'Expelled',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1672,7 +1672,7 @@ module HUD
       3 => 'Good',
       4 => 'Fair',
       5 => 'Poor',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1714,7 +1714,7 @@ module HUD
       # 5 => 'Individual: partner/spouse',
       # 6 => 'Individual: foster parent',
       7 => 'Outreach Project',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       10 => 'Outreach project: other',
       11 => 'Temporary Shelter',
@@ -1759,7 +1759,7 @@ module HUD
       2 => '4-7',
       3 => '8-11',
       4 => '12 or more',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1845,7 +1845,7 @@ module HUD
       2 => 'Applied; client not eligible',
       3 => 'Client did not apply',
       4 => 'Insurance type not applicable for this client',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1861,7 +1861,7 @@ module HUD
       3 => 'Navy',
       4 => 'Marines',
       6 => 'Coast Guard',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1878,7 +1878,7 @@ module HUD
       5 => 'Dishonorable',
       6 => 'Under other than honorable conditions (OTH)',
       7 => 'Uncharacterized',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -1903,7 +1903,7 @@ module HUD
     map = {
       1 => 'Full address',
       2 => 'Incomplete or estimated address',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -2079,7 +2079,7 @@ module HUD
       0 => 'Not available',
       1 => 'Available',
       2 => 'Undetectable',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -2199,7 +2199,7 @@ module HUD
       3 => '6-10',
       4 => '11-20',
       5 => 'More than 20',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -2387,7 +2387,7 @@ module HUD
       'NC-502' => 'Durham City & County CoC',
       'NJ-509' => 'Morris County CoC',
       'MO-602' => 'Joplin/Jasper, Newton Counties CoC',
-      'MO-604' => 'Kansas City (MO&KS), Independence, Lee’s Summit/Jackson, Wyandotte Counties CoC',
+      'MO-604' => 'Kansas City (MO&KS), Independence, Lee\'s Summit/Jackson, Wyandotte Counties CoC',
       'MO-606' => 'Missouri Balance of State CoC',
       'MS-501' => 'Mississippi Balance of State CoC',
       'MS-503' => 'Gulf Port/Gulf Coast Regional CoC',

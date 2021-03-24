@@ -16,13 +16,14 @@ module WarehouseReports::ClientDetails
 
     def index
       columns = {
-        client_id: she_t[:client_id].as('client_id'),
-        date: she_t[:date].as('date'),
-        destination: she_t[:destination].as('destination'),
-        first_name: c_t[:FirstName].as('first_name'),
-        last_name: c_t[:LastName].as('last_name'),
-        project_name: she_t[:project_name].as('project_name'),
-      }
+        client_id: she_t[:client_id],
+        date: she_t[:date],
+        destination: she_t[:destination],
+        first_name: c_t[:FirstName],
+        last_name: c_t[:LastName],
+        project_name: she_t[:project_name],
+        ethnicity: c_t[:Ethnicity],
+      }.merge(GrdaWarehouse::Hud::Client.race_fields.map { |f| [f.to_sym, c_t[f]] }.to_h)
       @buckets = Hash.new(0)
 
       @clients = exits_from_homelessness
@@ -58,6 +59,9 @@ module WarehouseReports::ClientDetails
       hsh_scope = filter_for_age_ranges(hsh_scope)
       hsh_scope = filter_for_hoh(hsh_scope)
       hsh_scope = filter_for_coc_codes(hsh_scope)
+      hsh_scope = filter_for_gender(hsh_scope)
+      hsh_scope = filter_for_race(hsh_scope)
+      hsh_scope = filter_for_ethnicity(hsh_scope)
       hsh_scope
     end
 
@@ -70,6 +74,9 @@ module WarehouseReports::ClientDetails
         :sub_population,
         :heads_of_household,
         :ph,
+        :gender,
+        :race,
+        :ethnicity,
         age_ranges: [],
         organization_ids: [],
         project_ids: [],

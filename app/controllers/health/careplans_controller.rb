@@ -113,7 +113,7 @@ module Health
       @careplan.user = current_user
       @careplan.assign_attributes(careplan_params)
       @careplan.health_file.set_calculated!(current_user.id, @client.id) if @careplan.health_file&.new_record?
-      Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: false).update
+      Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: true).update
       @form_button = 'Save Care Plan'
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
@@ -167,7 +167,9 @@ module Health
           :initial_date,
           :review_date,
           :patient_signed_on,
+          :patient_signature_mode,
           :provider_signed_on,
+          :provider_signature_mode,
           :case_manager_id,
           :responsible_team_member_id,
           :responsible_team_member_signed_on,
@@ -175,7 +177,6 @@ module Health
           :representative_signed_on,
           :provider_id,
           :provider_signature_requested_at,
-          :provider_signed_on,
           :patient_health_problems,
           :patient_strengths,
           :patient_goals,

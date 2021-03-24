@@ -70,6 +70,7 @@ module ReportGenerators::Pit::Fy2018
         @coc_codes = GrdaWarehouse::Hud::ProjectCoc.viewable_by(@user).
           distinct.pluck(:CoCCode)
       end
+      @project_ids = options.try(:[], :project_ids) || []
     end
 
     def run!
@@ -282,7 +283,7 @@ module ReportGenerators::Pit::Fy2018
         # Vets
         chronic_veteran_individuals = chronic_individuals & veteran_client_ids
         chronic_veterans_in_families = chronic_clients_in_families & veteran_client_ids
-        veteran_chronic_housenolds = chronic_households.select do |_, members|
+        veteran_chronic_households = chronic_households.select do |_, members|
           veteran = false
           members.each do |m|
             veteran = true if veteran_client_ids.include?(m[:client_id])
@@ -291,12 +292,14 @@ module ReportGenerators::Pit::Fy2018
         end
 
         # Family
-        @answers[:homeless][:family][:chronically_homeless_persons][k] = chronic_clients_in_families.size
-        @support[:homeless][:family][:chronically_homeless_persons][k] = {
-          headers: ['Client ID'],
-          counts: chronic_clients_in_families.map{|m| [m]}
-        }
-        @answers[:homeless][:family][:chronically_homeless_households][k] = chronic_households.size
+        if k.in?(HOMELESS_BREAKDOWNS)
+          @answers[:homeless][:family][:chronically_homeless_persons][k] = chronic_clients_in_families.size
+          @support[:homeless][:family][:chronically_homeless_persons][k] = {
+            headers: ['Client ID'],
+            counts: chronic_clients_in_families.map{|m| [m]}
+          }
+          @answers[:homeless][:family][:chronically_homeless_households][k] = chronic_households.size
+        end
 
         # Child only
         @answers[:homeless][:children][:chronically_homeless_persons][k] = chronic_child_individuals.size
@@ -320,12 +323,14 @@ module ReportGenerators::Pit::Fy2018
         }
 
         # Parenting Youth
-        @answers[:youth][:youth_family][:chronically_homeless_persons][k] = chronic_youth_in_families.size
-        @support[:youth][:youth_family][:chronically_homeless_persons][k] = {
-          headers: ['Client ID'],
-          counts: chronic_youth_in_families.map{|m| [m]}
-        }
-        @answers[:youth][:youth_family][:chronically_homeless_households][k] = chronic_youth_households.size
+        if k.in?(HOMELESS_BREAKDOWNS)
+          @answers[:youth][:youth_family][:chronically_homeless_persons][k] = chronic_youth_in_families.size
+          @support[:youth][:youth_family][:chronically_homeless_persons][k] = {
+            headers: ['Client ID'],
+            counts: chronic_youth_in_families.map{|m| [m]}
+          }
+          @answers[:youth][:youth_family][:chronically_homeless_households][k] = chronic_youth_households.size
+        end
 
         # Veterans - Adult only
         @answers[:veteran][:veteran_adults][:chronically_homeless_persons][k] = chronic_veteran_individuals.size
@@ -335,12 +340,14 @@ module ReportGenerators::Pit::Fy2018
         }
 
         # Veterans - Family
-        @answers[:veteran][:veteran_family][:chronically_homeless_persons][k] = chronic_veterans_in_families.size
-        @support[:veteran][:veteran_family][:chronically_homeless_persons][k] = {
-          headers: ['Client ID'],
-          counts: chronic_veterans_in_families.map{|m| [m]}
-        }
-        @answers[:veteran][:veteran_family][:chronically_homeless_households][k] = veteran_chronic_housenolds.size
+        if k.in?(HOMELESS_BREAKDOWNS)
+          @answers[:veteran][:veteran_family][:chronically_homeless_persons][k] = chronic_veterans_in_families.size
+          @support[:veteran][:veteran_family][:chronically_homeless_persons][k] = {
+            headers: ['Client ID'],
+            counts: chronic_veterans_in_families.map{|m| [m]}
+          }
+          @answers[:veteran][:veteran_family][:chronically_homeless_households][k] = veteran_chronic_households.size
+        end
       end
     end
 
@@ -819,14 +826,18 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def service_history_scope
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:service_history_services).
         where(
           shs_t[:date].eq(@pit_date).
           and(shs_t[:record_type].eq('service'))
         ).
         joins(project: :project_cocs).
-        where(pc_t[:CoCCode].in(@coc_codes)).
+        where(pc_t[:CoCCode].in(@coc_codes))
+
+      scope = scope.where(p_t[:id].in(@project_ids)) if @project_ids.present?
+
+      scope.
         joins(:enrollment).
         distinct
     end

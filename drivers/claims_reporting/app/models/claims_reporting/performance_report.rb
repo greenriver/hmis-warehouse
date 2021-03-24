@@ -35,20 +35,25 @@ module ClaimsReporting
     def filter_inputs
       {
         age_bucket: {
-          label: _('Age Bucket'),
-          collection: age_bucket_options, include_blank: '(any)',
-          hint: "Member's reported age as of #{roster_as_of}"
+          label: _('Age'),
+          collection: age_bucket_options,
+          include_blank: 'All ages',
+          as: :select_two,
+          # hint: "Member's reported age as of #{roster_as_of}",
         },
         gender: {
           label: _('Gender'),
-          collection: gender_options, include_blank: '(any)',
-          hint: "Member's reported gender as of #{roster_as_of}"
+          collection: gender_options,
+          include_blank: 'All genders',
+          as: :select_two,
+          # hint: "Member's reported gender as of #{roster_as_of}",
         },
         race: {
           label: _('Race'),
           collection: race_options,
-          include_blank: '(any)',
-          hint: "Member's reported race as of #{roster_as_of}",
+          include_blank: 'All races',
+          as: :select_two,
+          # hint: "Member's reported race as of #{roster_as_of}",
         },
         # aco: {
         #   label: _('ACO'),
@@ -421,15 +426,16 @@ module ClaimsReporting
         ['Average Raw DxCG Score', formatter.format_d(average_raw_dxcg_score)],
         ['Normalized DxCG Score', formatter.format_d(normalized_dxcg_score)],
         ['% Female', formatter.format_pct(pct_female)],
-        ['% with Psychoses/Bipolar/Schizophrenia', formatter.format_pct(pct_with_pbd)],
-        ['% with Depression/Anxiety/Stress Disorders', formatter.format_pct(pct_with_das)],
+        #        ['% with Psychoses/Bipolar/Schizophrenia', formatter.format_pct(pct_with_pbd)],
+        #        ['% with Depression/Anxiety/Stress Disorders', formatter.format_pct(pct_with_das)],
       ]
     end
 
     DETAIL_COLS = {
-      count: '# Claims',
+      count: '#&nbsp;Claims'.html_safe,
+      n_members: 'Distinct Members'.html_safe,
       annual_admits_per_mille: 'Annual Admissions per 1,000', # admits
-      avg_length_of_stay: 'Length of Stay', # days
+      avg_length_of_stay: 'Length of Stay in days', # days
       utilization_per_mille: 'Annual Utilization per 1,000', # days/cases/procedures/visits/scripts/etc
       # pct_of_cohorit_with_utilization: '% of Selected Cohort with Utilization',
       # avg_cost_per_service: 'Average Cost per Service (Paid $)',
@@ -480,6 +486,7 @@ module ClaimsReporting
         Arel.sql(%[COALESCE(cde_cos_rollup,'Unclassified')]).as('cde_cos_rollup'),
         Arel.sql(%[COALESCE(cde_cos_category,'Unclassified')]).as('cde_cos_category'),
         Arel.star.count.as('count'),
+        Arel.sql(sql_member_count).as('n_members'),
         utilization_per_mille,
         annual_admits_per_mille,
         Arel.sql("ROUND(AVG(

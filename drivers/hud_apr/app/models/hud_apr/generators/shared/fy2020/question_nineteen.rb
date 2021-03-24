@@ -25,12 +25,7 @@ module HudApr::Generators::Shared::Fy2020
           calculation = income_options[:calculation]
           answer = @report.answer(question: table_name, cell: cell)
           adults = universe.members.
-            where(inclusion_clause).
-            where( # with Income and Sources at start and at <suffix>
-              a_t[:income_from_any_source_at_start].eq(1).
-              and(a_t["income_from_any_source_at_#{suffix}".to_sym].eq(1)).
-              and(a_t["income_total_at_#{suffix}".to_sym].gt(0)),
-            )
+            where(inclusion_clause)
 
           case column[:amount_at_start]
           when :positive
@@ -38,8 +33,6 @@ module HudApr::Generators::Shared::Fy2020
           when :zero
             adults = adults.where(a_t[:income_total_at_start].eq(0))
           end
-
-          adults = adults.where(a_t["income_total_at_#{suffix}".to_sym].gt(0)) unless column[:column] == 'H'
 
           (ids, amounts) = ids_and_amounts(
             adults,
@@ -84,7 +77,7 @@ module HudApr::Generators::Shared::Fy2020
       suffix = :annual_assessment
       # All adult stayers where the head of household has been in the project 365 days or more
       inclusion_clause = a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
-        and(adult_clause.or(a_t[:head_of_household].eq(true))).
+        and(adult_clause).
         and(stayers_clause)
 
       q19a(
@@ -114,7 +107,7 @@ module HudApr::Generators::Shared::Fy2020
       q19a(
         table_name,
         metadata,
-        income_status_method: :income_stati_stayers,
+        income_status_method: :income_stati_leavers,
         suffix: suffix,
         inclusion_clause: inclusion_clause,
       )

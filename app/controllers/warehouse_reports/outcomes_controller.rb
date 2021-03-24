@@ -82,10 +82,10 @@ module WarehouseReports
       start_date = reporting_scope.minimum(:search_start).presence || reporting_scope.minimum(:housed_date).presence || 1.years.ago.to_date
       end_date = reporting_scope.maximum(:housing_exit).presence || Date.current
       @start_months = (start_date.to_date..end_date.to_date).map do |m|
-        [m.strftime('%b %Y'), m.beginning_of_month]
+        [m.beginning_of_month, m.beginning_of_month]
       end.uniq.reverse.drop(1).to_h
       @end_months = (start_date.to_date..end_date.to_date).map do |m|
-        [m.strftime('%b %Y'), m.end_of_month]
+        [m.end_of_month, m.end_of_month]
       end.uniq.reverse.to_h
     end
 
@@ -107,20 +107,7 @@ module WarehouseReports
     end
 
     private def set_report
-      @report = report_class.new(
-        data_source_ids: @filter.data_source_ids,
-        organization_ids: @filter.organization_ids,
-        project_ids: @filter.project_ids,
-        coc_codes: @filter.coc_codes,
-        start_date: @filter.start,
-        end_date: @filter.end,
-        subpopulation: @filter.sub_population,
-        household_type: @filter.household_type,
-        race: @filter.races.first,
-        ethnicity: @filter.ethnicities.first,
-        gender: @filter.genders.first,
-        veteran_status: @filter.veteran_statuses.first,
-      )
+      @report = report_class.new(@filter)
     end
 
     private def available_projects
@@ -133,7 +120,16 @@ module WarehouseReports
     end
 
     private def report_params
-      params.require(:filter).permit(
+      params.require(:filter).permit(shared_params)
+    end
+
+    private def passed_params
+      params.permit(filter: shared_params)
+    end
+    helper_method :passed_params
+
+    private def shared_params
+      [
         :start,
         :end,
         :sub_population,
@@ -146,26 +142,8 @@ module WarehouseReports
         organization_ids: [],
         project_ids: [],
         coc_codes: [],
-      )
+      ]
     end
-
-    private def passed_params
-      params.permit(filter:
-        [
-          :start,
-          :end,
-          :sub_population,
-          :household_type,
-          :race,
-          :ethnicity,
-          :gender,
-          :veteran_status,
-          data_source_ids: [],
-          organization_ids: [],
-          project_ids: [],
-        ])
-    end
-    helper_method :passed_params
 
     private def project_ids(project_ids)
       return :all unless project_ids.present?
@@ -183,7 +161,7 @@ module WarehouseReports
 
     private def can_see_client_details?
       @can_see_client_details ||= if @filter.project_ids == :all
-        current_user.can_view_clients?
+        current_user.can_access_some_version_of_clients?
       else
         true
       end

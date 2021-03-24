@@ -74,7 +74,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
              enrollment_start_date: month.beginning_of_month - (engagement_days - 10.days),
              pending_disenrollment_date: month.end_of_month,
              disenrollment_date: nil)
-      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month)
+      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month, provider_signature_mode: :in_person)
       create(:qualifying_activity,
              patient: patient,
              date_of_activity: month.beginning_of_month + 11.days,
@@ -88,7 +88,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
              enrollment_start_date: month.beginning_of_month - (engagement_days - 10.days),
              pending_disenrollment_date: month.end_of_month,
              disenrollment_date: nil)
-      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month + 11.days)
+      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month + 11.days, provider_signature_mode: :in_person)
       create(:qualifying_activity,
              patient: patient,
              date_of_activity: month.beginning_of_month + 15.days,
@@ -103,7 +103,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
              enrollment_start_date: month.beginning_of_month - (engagement_days - 10.days),
              pending_disenrollment_date: month.end_of_month,
              disenrollment_date: nil)
-      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month + 15.days)
+      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month + 15.days, provider_signature_mode: :in_person)
       create(:qualifying_activity,
              patient: patient,
              date_of_activity: month.beginning_of_month + 11.days,
@@ -117,7 +117,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
              enrollment_start_date: month.beginning_of_month - (engagement_days - 10.days),
              pending_disenrollment_date: month.beginning_of_month + 10.days,
              disenrollment_date: month.end_of_month)
-      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month)
+      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month, provider_signature_mode: :in_person)
       create(:qualifying_activity,
              patient: patient,
              date_of_activity: month.beginning_of_month + 15.days,
@@ -131,7 +131,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
              enrollment_start_date: month.beginning_of_month - (engagement_days - 10.days),
              pending_disenrollment_date: nil,
              disenrollment_date: nil)
-      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month - 2.years)
+      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month - 2.years, provider_signature_mode: :in_person)
       create(:qualifying_activity,
              patient: patient,
              date_of_activity: month.beginning_of_month + 15.days,
@@ -144,7 +144,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
                         patient: patient,
                         enrollment_start_date: month.beginning_of_month - (engagement_days - 10.days),
                         disenrollment_date: month.beginning_of_month + 10.days)
-      cp = create(:careplan, patient: patient, provider_signed_on: referral.enrollment_start_date + 1.days)
+      cp = create(:careplan, patient: patient, provider_signed_on: referral.enrollment_start_date + 1.days, provider_signature_mode: :in_person)
       create(:qualifying_activity,
              patient: patient,
              date_of_activity: month.beginning_of_month + 15.days,
@@ -159,7 +159,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
              enrollment_start_date: month.beginning_of_month - (engagement_days - 10.days),
              pending_disenrollment_date: month.end_of_month,
              disenrollment_date: nil)
-      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month + 15.days)
+      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month + 15.days, provider_signature_mode: :in_person)
       create(:qualifying_activity,
              patient: patient,
              activity: 'care_planning',
@@ -178,7 +178,9 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
       cp = create(:careplan,
                   patient: patient,
                   provider_signed_on: referral.enrollment_start_date,
-                  patient_signed_on: referral.enrollment_start_date)
+                  provider_signature_mode: :in_person,
+                  patient_signed_on: referral.enrollment_start_date,
+                  patient_signature_mode: :in_person)
       create(:qualifying_activity,
              patient: patient,
              date_of_activity: month.beginning_of_month + 11.days,

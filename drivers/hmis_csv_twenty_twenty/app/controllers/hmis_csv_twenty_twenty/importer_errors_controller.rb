@@ -14,7 +14,11 @@ class HmisCsvTwentyTwenty::ImporterErrorsController < ApplicationController
       find_by(importer_log_id: importer_log.id)
 
     @filename = detect_filename
+    @klass = HmisCsvTwentyTwenty::Importer::Importer.importable_files[@filename]
+    @data_source = @import.data_source
 
-    @errors = importer_log.import_errors.where(HmisCsvTwentyTwenty::Importer::ImportError.arel_table[:source_type].lower.matches(pattern)).page(params[:page])
+    @errors = importer_log.import_errors.where(HmisCsvTwentyTwenty::Importer::ImportError.arel_table[:source_type].lower.matches(pattern)).
+      page(params[:page]).
+      per(200)
   end
 end

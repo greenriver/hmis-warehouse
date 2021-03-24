@@ -94,11 +94,6 @@ module HmisCsvTwentyTwenty::Importer
             arguments: { valid_options: HUD.length_of_stays.keys.map(&:to_s).freeze },
           },
         ],
-        DateToStreetESSH: [
-          {
-            class: HmisCsvValidation::NonBlankValidation,
-          },
-        ],
         DisablingCondition: [
           {
             class: HmisCsvValidation::NonBlankValidation,

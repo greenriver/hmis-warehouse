@@ -134,6 +134,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
 
     it 'updated dates appear correctly' do
       client = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: 6801)
+      expect(client.DateCreated.strftime('%Y-%m-%d %H:%M:%S')).to eq('2015-09-10 21:40:00')
       expect(client.DateUpdated.strftime('%Y-%m-%d %H:%M:%S')).to eq('2015-09-10 21:39:00')
       client = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: 6803)
       expect(client.DateUpdated.strftime('%Y-%m-%d %H:%M:%S')).to eq('2015-09-10 21:39:00')
@@ -158,6 +159,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     )
     loader.load!
     loader.import!
+    Delayed::Worker.new.work_off(2)
   end
 
   def cleanup_files

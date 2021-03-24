@@ -26,6 +26,7 @@ RSpec.describe 'Validate import files', type: :model do
     )
     @loader.load!
     @loader.import!
+    Delayed::Worker.new.work_off(2)
   end
 
   after(:all) do
@@ -58,7 +59,9 @@ RSpec.describe 'Validate import files', type: :model do
   end
 
   it 'includes expected assessments validations' do
-    expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(6)
+    expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(3)
+    # Line 5 also would also raise 3 validation errors but its filtered out in the loader
+    # expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(6)
   end
 
   it 'excludes expected assessments failures' do
@@ -173,7 +176,7 @@ RSpec.describe 'Validate import files', type: :model do
   it 'includes expected enrollments validations' do
     aggregate_failures 'validating' do
       expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Enrollment').count).to eq(4)
-      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Enrollment').count).to eq(4)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Enrollment').count).to eq(2)
     end
   end
 

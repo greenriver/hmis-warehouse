@@ -28,5 +28,10 @@ module BaseFilters
       render_to_string partial: '/filters/filter_controls/helpers/items_selection_summary', locals: { value: value, default: default }
     end
     helper_method :filter_item_selection_summary
+
+    def breakdown
+      @breakdown ||= params[:breakdown]&.to_sym || :none
+    end
+    helper_method :breakdown
   end
 end

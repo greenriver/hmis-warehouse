@@ -97,6 +97,9 @@ module Health
     serialize :backup_plan_archive, Array
 
     validates_presence_of :provider_id, if: -> { self.provider_signed_on.present? }
+    # We are not collecting patient signature mode yet, so don't enforce this
+    # validates_presence_of :patient_signature_mode, if: -> { self.patient_signed_on.present? }
+    validates_presence_of :provider_signature_mode, if: -> { self.provider_signed_on.present? }
 
     # Scopes
     scope :locked, -> do
@@ -257,6 +260,13 @@ module Health
       issues.compact.each_with_index do |issue, i|
         self["future_issues_#{i}"] = issue
       end
+    end
+
+    def signature_modes
+      @signature_modes ||= {
+        in_person: 'In Person',
+        email: 'Other: Email',
+      }.invert.freeze
     end
 
     def self.encounter_report_details

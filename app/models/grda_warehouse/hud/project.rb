@@ -505,8 +505,6 @@ module GrdaWarehouse::Hud
       project_type_to_use.in?(PERFORMANCE_REPORTING[:psh])
     end
 
-    alias_attribute :name, :ProjectName
-
     def self.related_item_keys
       [:OrganizationID]
     end
@@ -527,22 +525,47 @@ module GrdaWarehouse::Hud
         @psh_types.include?(self.compute_project_type)
     end
 
-    def organization_and_name(include_confidential_names: false)
-      text = if include_confidential_names
-        "#{organization&.OrganizationName} / #{self.ProjectName}"
+    alias_attribute :name, :ProjectName
+
+    # Get the name for this project, protecting confidential names if appropriate
+    #
+    # @param include_confidential_names [Boolean] include confidential names, or replace them with a generic string?
+    # FIXME: include_confidential_names should default to false
+    # @param include_project_type [Boolean] include the HUD project type in the name?
+    def name(include_confidential_names: true, include_project_type: false)
+      project_name = if include_confidential_names
+        self.ProjectName
       else
-        project_name = self.class.confidentialize(name: self.ProjectName)
-        if project_name == self.class.confidential_project_name
-          "#{project_name}"
-        else
-          "#{organization&.OrganizationName} / #{self.ProjectName}"
-        end
+        safe_project_name
       end
-      text += " (#{HUD.project_type_brief(computed_project_type)})"
+      project_name += " (#{HUD.project_type_brief(computed_project_type)})" if include_project_type
+
+      project_name
+    end
+
+    # Get the safe name for this project.
+    def safe_project_name
+      if confidential_name?
+        self.class.confidential_project_name
+      else
+        self.ProjectName
+      end
+    end
+
+    def confidential_name?
+      self.confidential? || /healthcare/i.match(self.ProjectName).present?
+    end
+
+    def organization_and_name(include_confidential_names: false)
+      project_name = name(include_confidential_names: include_confidential_names, include_project_type: true)
+      return "#{organization&.OrganizationName} / #{project_name}" if include_confidential_names
+      "#{organization&.OrganizationName} / #{project_name}" unless confidential_name?
+
+      project_name
     end
 
     def name_and_type(include_confidential_names: false)
-      "#{name} (#{HUD.project_type_brief(computed_project_type)})"
+      name(include_confidential_names: include_confidential_names, include_project_type: true)
     end
 
     def self.project_names_for_coc coc_code
@@ -663,14 +686,6 @@ module GrdaWarehouse::Hud
       'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
 
-    def safe_project_name
-      if confidential?
-        self.class.confidential_project_name
-      else
-        self.ProjectName
-      end
-    end
-
     # Sometimes all we have is a name, we still want to try and
     # protect those
     def self.confidentialize(name:)
@@ -753,9 +768,7 @@ module GrdaWarehouse::Hud
             org_name = project.organization.OrganizationName
             org_name += " at #{project.data_source.short_name}" if Rails.env.development?
             options[org_name] ||= []
-            name = confidentialize(name: project.ProjectName)
-            name = project.ProjectName if user.can_view_confidential_enrollment_details?
-            text = "#{name} (#{HUD.project_type_brief(project.computed_project_type)})"
+            text = project.name(include_confidential_names: user.can_view_confidential_enrollment_details?, include_project_type: true)
             # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
             options[org_name] << [
               text,
@@ -804,7 +817,8 @@ module GrdaWarehouse::Hud
 
       destination_ids = GrdaWarehouse::WarehouseClient.where(source_id: all_clients).pluck(:destination_id)
       # Force reloads of client views
-      GrdaWarehouse::Tasks::ServiceHistory::Update.new(client_ids: destination_ids).run!
+      GrdaWarehouse::Hud::Client.where(id: destination_ids).each(&:force_full_service_history_rebuild)
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
       destination_ids.each do |id|
         GrdaWarehouse::Hud::Client.clear_view_cache(id)
       end

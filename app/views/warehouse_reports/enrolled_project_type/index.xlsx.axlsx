@@ -13,7 +13,8 @@ wb.add_worksheet(name: "Enrolled Clients") do |sheet|
     'Veteran Status',
     "Cumulative Days Homeless as of #{Date.current}",
     "Days Homeless in The Past Three Years as of #{Date.current}",
-  ])
+    'Ethnicity',
+  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') })
   @clients.each do |client|
     sheet.add_row([
       client.id,
@@ -23,6 +24,7 @@ wb.add_worksheet(name: "Enrolled Clients") do |sheet|
       HUD.veteran_status(client.VeteranStatus),
       client.days_homeless,
       client.days_homeless_in_last_three_years,
-    ])
+      HUD.ethnicity(client.Ethnicity),
+    ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| HUD.no_yes_reasons_for_missing_data(m&.to_i) })
   end
 end

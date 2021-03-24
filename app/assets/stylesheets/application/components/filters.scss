@@ -10,7 +10,7 @@
 .c-filters__row,
 .c-filters__group {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   flex-wrap: wrap;
   margin-bottom: space(4);
 }
@@ -22,7 +22,7 @@
 
 // Fix for IE11
 .c-filters__group > .row {
-  flex: 1 1 atuo;
+  flex: 1 1 auto;
   min-width: 100%;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .c-filters__group .form-group {
-  margin-bottom: 0;
+  margin-bottom: space(4);
   margin-right: space(3);
   flex: 1 1 auto;
 }

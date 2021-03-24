@@ -23,6 +23,8 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
+      # FIXME: this should refuse to run if an import is in-process
+      # See GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}")
       remove_unused_source_clients
       remove_unused_warehouse_clients_processed
       GrdaWarehouseBase.transaction do
@@ -219,7 +221,7 @@ module GrdaWarehouse::Tasks
       return if @dry_run
 
       without_enrollments.each_slice(500) do |batch|
-        GrdaWarehouse::Hud::Client.where(id: batch).update_all(DateDeleted: deleted_at)
+        GrdaWarehouse::Hud::Client.where(id: batch).update_all(DateDeleted: deleted_at, source_hash: nil)
       end
     end
 
@@ -294,7 +296,7 @@ module GrdaWarehouse::Tasks
           entry.
           joins(:enrollment).
           where(data_source_id: data_source_id, project_id: project_id, household_id: household_ids)
-        query = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where(
+        query = GrdaWarehouse::Hud::Enrollment.where(
           EnrollmentID: service_history_query.
             select(:enrollment_group_id),
           data_source_id: data_source_id,
@@ -313,7 +315,7 @@ module GrdaWarehouse::Tasks
         [project_id, data_source_id]
       end.each do |(project_id, data_source_id), batch|
         household_ids = batch.map(&:first)
-        query = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.
+        query = GrdaWarehouse::Hud::Enrollment.
           where(data_source_id: data_source_id, ProjectID: project_id, HouseholdID: household_ids)
         if @dry_run
           notes << "Invalidating #{query.count} in ds_id: #{data_source_id} project_id: #{project_id}\n\t#{household_ids.inspect}"
@@ -326,6 +328,7 @@ module GrdaWarehouse::Tasks
       @notifier.ping notes if @dry_run && @send_notifications
     end
 
+    # NOTE: Deprecated/ removed from nightly process
     def remove_clients_without_enrollments!
       all_clients = GrdaWarehouse::Hud::Client.where(
         data_source_id: GrdaWarehouse::DataSource.importable.select(:id)
@@ -356,10 +359,10 @@ module GrdaWarehouse::Tasks
           hud_classes.each do |klass|
             klass.joins(:direct_client).
               where(Client: {id: un_enrolled_clients}).
-              update_all(DateDeleted: deleted_at)
+              update_all(DateDeleted: deleted_at, source_hash: nil)
           end
 
-          GrdaWarehouse::Hud::Client.where(id: un_enrolled_clients).update_all(DateDeleted: deleted_at)
+          GrdaWarehouse::Hud::Client.where(id: un_enrolled_clients).update_all(DateDeleted: deleted_at, source_hash: nil)
         end
       end
     end
@@ -543,7 +546,6 @@ module GrdaWarehouse::Tasks
       }
       munge_clients = clients_to_munge
       client_source = GrdaWarehouse::Hud::Client
-      total_clients = munge_clients.size
       logger.info "Munging #{munge_clients.size} clients"
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|

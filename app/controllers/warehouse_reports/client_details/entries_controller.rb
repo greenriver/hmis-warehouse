@@ -73,20 +73,24 @@ module WarehouseReports::ClientDetails
       scope = filter_for_age_ranges(scope)
       scope = filter_for_hoh(scope)
       scope = filter_for_coc_codes(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
       scope
     end
 
     def entered_columns
       {
-        project_type: she_t[service_history_source.project_type_column].as('project_type'),
-        first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program'),
-        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program'),
-        client_id: she_t[:client_id].as('client_id'),
-        project_name: she_t[:project_name].as('project_name'),
-        first_name: c_t[:FirstName].as('first_name'),
-        last_name: c_t[:LastName].as('last_name'),
-        organization_name: o_t[:OrganizationName].as('organization_name'),
-      }
+        project_type: she_t[service_history_source.project_type_column],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        client_id: she_t[:client_id],
+        project_name: she_t[:project_name],
+        first_name: c_t[:FirstName],
+        last_name: c_t[:LastName],
+        organization_name: o_t[:OrganizationName],
+        ethnicity: c_t[:Ethnicity],
+      }.merge(GrdaWarehouse::Hud::Client.race_fields.map { |f| [f.to_sym, c_t[f]] }.to_h)
     end
 
     def setup_data_structure
@@ -152,6 +156,9 @@ module WarehouseReports::ClientDetails
         :end,
         :sub_population,
         :heads_of_household,
+        :gender,
+        :race,
+        :ethnicity,
         age_ranges: [],
         organization_ids: [],
         project_ids: [],

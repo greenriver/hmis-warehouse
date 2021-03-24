@@ -21,7 +21,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionTwentySeven, type: :mode
 
   # This is just a smoke test, the underlying logic should already have been tested
   it 'runs' do
-    expect(report_result.answer(question: 'Q27c', cell: 'B9').summary).to eq(6)
+    expect(report_result.answer(question: 'Q27c', cell: 'B9').summary).to eq(8)
   end
 
   describe 'Q27a: Age of Youth' do

@@ -9,9 +9,14 @@ module Filters
   class FilterBase < ::ModelForm
     include AvailableSubPopulations
     include ArelHelper
+    include ApplicationHelper
+    include ActionView::Helpers::TagHelper
+    include ActionView::Context
 
+    attribute :on, Date, lazy: true, default: ->(r, _) { r.default_on }
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
+    attribute :enforce_one_year_range, Boolean, default: true
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
@@ -27,6 +32,7 @@ module Filters
     attribute :length_of_times, Array, default: []
     attribute :destination_ids, Array, default: []
     attribute :prior_living_situation_ids, Array, default: []
+    attribute :default_on, Date, default: Date.current
     attribute :default_start, Date, default: (Date.current - 1.year).beginning_of_year
     attribute :default_end, Date, default: (Date.current - 1.year).end_of_year
 
@@ -68,8 +74,12 @@ module Filters
     def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName
       return self unless filters.present?
 
+      self.on = filters.dig(:on)&.to_date || default_on
       self.start = filters.dig(:start)&.to_date || default_start
       self.end = filters.dig(:end)&.to_date || default_end
+      # Allow multi-year filters if we explicitly passed in something that isn't truthy
+      enforce_range = filters.dig(:enforce_one_year_range)
+      self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
       self.coc_code = filters.dig(:coc_code) if available_coc_codes.include?(filters.dig(:coc_code))
@@ -105,6 +115,8 @@ module Filters
     def for_params
       {
         filters: {
+          # NOTE: order specified here is used to echo selections in describe_filter
+          on: on,
           start: start,
           end: self.end,
           comparison_pattern: comparison_pattern,
@@ -137,9 +149,13 @@ module Filters
       }
     end
 
-    def selected_params_for_display
+    def selected_params_for_display(single_date: false)
       {}.tap do |opts|
-        opts['Report Range'] = date_range_words
+        if single_date
+          opts['On Date'] = on
+        else
+          opts['Report Range'] = date_range_words
+        end
         opts['Comparison Range'] = comparison_range_words if includes_comparison?
         opts['CoC Codes'] = chosen_coc_codes if coc_codes.present?
         opts['Project Types'] = chosen_project_types
@@ -467,6 +483,7 @@ module Filters
     end
 
     def ensure_date_span
+      return unless enforce_one_year_range
       return if last - first < 365
 
       self.end = first + 1.years - 1.days
@@ -488,8 +505,90 @@ module Filters
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
+    def describe_filter_as_html
+      describe_filter.uniq.map do |(k, v)|
+        content_tag(:div, class: 'report-parameters__parameter') do
+          label = content_tag(:label, k, class: 'label label-default parameter-label')
+          if v.is_a?(Array)
+            count = v.count
+            v = v.first(5)
+            v << "#{count - 5} more" if count > 5
+            v = v.to_sentence
+          end
+          label.concat(content_tag(:label, v, class: 'label label-primary parameter-value'))
+        end
+      end.join.html_safe
+    end
+
+    def describe_filter
+      [].tap do |descriptions|
+        for_params[:filters].each_key do |key|
+          descriptions << describe(key)
+        end
+      end.compact
+    end
+
+    def describe(key, value = chosen(key))
+      title = case key
+      when :start
+        'Report Range'
+      when :end
+        nil
+      when :comparison_pattern
+        'Comparison Range' if includes_comparison?
+      when :project_type_codes, :project_type_ids, :project_type_numbers
+        'Project Type'
+      when :sub_population
+        'Sub-Population'
+      when :age_ranges
+        'Age Ranges'
+      when :races
+        'Races'
+      when :ethnicities
+        'Ethnicities'
+      when :genders
+        'Genders'
+      when :coc_codes
+        'CoCs'
+      when :organization_ids
+        'Organizations'
+      when :project_ids
+        'Projects'
+      when :data_source_ids
+        'Data Sources'
+      when :project_group_ids
+        'Project Groups'
+      when :veteran_statuses
+        'Veteran Status'
+      when :household_type
+        'Household Type'
+      when :prior_living_situation_ids
+        'Prior Living Situations'
+      when :destination_ids
+        'Destinations'
+      when :disabilities
+        'Disabilities'
+      when :indefinite_disabilities
+        'Indefinite Disability'
+      when :dv_status
+        'DV Status'
+      when :heads_of_household
+        'Heads of Household Only?'
+      end
+
+      return unless value.present?
+
+      [title, value]
+    end
+
     def chosen(key)
       case key
+      when :start
+        date_range_words
+      when :end
+        nil
+      when :comparison_pattern
+        comparison_range_words if includes_comparison?
       when :project_type_codes, :project_type_ids, :project_type_numbers
         chosen_project_types
       when :sub_population
@@ -526,6 +625,8 @@ module Filters
         chosen_indefinite_disabilities
       when :dv_status
         chosen_dv_status
+      when :heads_of_household
+        yes_no(heads_of_household)
       end
     end
 
@@ -602,10 +703,12 @@ module Filters
     end
 
     def chosen_household_type
-      household_type_string(household_type.to_sym)
+      household_type_string(household_type&.to_sym)
     end
 
     def household_type_string(type)
+      return unless type
+
       available_household_types.invert[type] || 'Unknown'
     end
 

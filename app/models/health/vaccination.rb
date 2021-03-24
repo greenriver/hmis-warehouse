@@ -14,6 +14,7 @@ module Health
 
     MODERNA = 'ModernaTX, Inc.'.freeze
     PFIZER = 'Pfizer, Inc., and BioNTech'.freeze
+    JANSSEN = 'Janssen'.freeze
 
     phi_patient :medicaid_id
     phi_attr :id, Phi::OtherIdentifier
@@ -97,6 +98,8 @@ module Health
 
     # Called from ImportEpic
     def self.process_new_data(values)
+      # Ensure we only have one per conflict key or SQL will be very unhappy
+      values = values.index_by{|m| m.slice(*conflict_key)}.values
       # Remove any that were removed from the source
       remove_missing!(values)
 
@@ -195,7 +198,7 @@ module Health
       {
         'Moderna' => MODERNA,
         'Pfizer' => PFIZER,
-
+        'Janssen' => JANSSEN,
       }[vaccination_type]
     end
 
@@ -209,6 +212,8 @@ module Health
         vaccinated_on + 28.days if similar_vaccinations.count.zero?
       when PFIZER
         vaccinated_on + 21.days if similar_vaccinations.count.zero?
+      when JANSSEN
+        return # no follow-up needed
       end
     end
 

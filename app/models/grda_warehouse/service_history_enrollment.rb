@@ -309,6 +309,14 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     current_scope.where(age_exists.and(accumulative))
   end
 
+  # NOTE: at the moment this is Postgres only
+  # Arguments:
+  #   an optional column, usually first_date_in_program or last_date_in_program
+  #   an optional scope which is passed to the sub query that determines which record to return
+  scope :only_most_recent_by_client, ->(column: :first_date_in_program, scope: nil) do
+    one_for_column(column, source_arel_table: arel_table, group_on: :client_id, direction: :desc, scope: scope)
+  end
+
   #################################
   # Standard Cohort Scopes
 

@@ -1,0 +1,21 @@
+:ruby
+  reports = [@report]
+  if @report.include_comparison?
+    reports << @comparison
+  end
+.ml-4.d-flex
+  - reports.each_with_index do |report, index|
+    .ml-4
+      %h4.d-flex
+        - if @report.include_comparison?
+          .pb-4.mr-2.c-swatch__display{class: "c-swatch__display--chart-#{index}"}
+        .title= report.filter.date_range_words
+      .d-flex.flex-wrap
+        - report.hero_counts_data.each do |k, data|
+          .hero-prs1
+            .d-flex.align-items-center
+              .h1.hero-value-prs1.mr-3= link_to_if(report.can_see_client_details?(current_user), number_with_delimiter(data[:count]), details_income_benefits_report_warehouse_reports_report_path(report, key: k, comparison: index.positive?))
+              .hero-label-prs1.h5-prs1
+                - if data[:description]
+                  %i.icon-info{data: { toggle: :tooltip, title: data[:description]}}
+                = data[:title]

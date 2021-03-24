@@ -10,32 +10,52 @@ module GrdaWarehouse::Tasks::ServiceHistory
     include TsqlImport
     include ArelHelper
     include ActiveSupport::Benchmarkable
+    include ::ServiceHistory::Builder
 
     after_commit :force_validity_calculation
 
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]
 
-    def self.batch_process_unprocessed!(max_wait_seconds: 21_600)
+    def self.batch_job_ids
+      builder_batch_job_scope.pluck(:id)
+    end
+
+    def self.batch_process_unprocessed!(max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
       queue_batch_process_unprocessed!
-      GrdaWarehouse::Tasks::ServiceHistory::Base.
-        wait_for_processing(max_wait_seconds: max_wait_seconds)
+      wait_for_processing(max_wait_seconds: max_wait_seconds)
     end
 
     def self.queue_batch_process_unprocessed!
-      unprocessed.joins(:project, :destination_client).
-        pluck_in_batches(:id, batch_size: 250) do |batch|
-        Delayed::Job.enqueue(
-          ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch),
-          queue: :long_running,
-        )
-      end
+      queue_enrollments(unprocessed)
     end
 
     def self.batch_process_date_range!(date_range)
-      open_during_range(date_range).
-        joins(:project, :destination_client).
-        pluck_in_batches(:id, batch_size: 250) do |batch|
-        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :long_running)
+      queue_enrollments(open_during_range(date_range))
+    end
+
+    def self.ensure_there_are_no_extra_enrollments_in_service_history(client_ids)
+      wait_for_clients(client_ids: client_ids)
+
+      sh_enrollments = service_history_enrollment_source.
+        entry.
+        where(client_id: client_ids).
+        joins(:client).
+        distinct.
+        pluck(:enrollment_group_id, :project_id, :data_source_id)
+
+      source_enrollments = GrdaWarehouse::Hud::Client.joins(:source_enrollments).
+        distinct.
+        where(id: client_ids).
+        pluck(e_t[:EnrollmentID], e_t[:ProjectID], e_t[:data_source_id])
+
+      extra_enrollments = sh_enrollments - source_enrollments
+      extra_enrollments.each do |enrollment_group_id, project_id, data_source_id|
+        service_history_enrollment_source.where(
+          # client_id: client_id, # We are doing this in batches, so, we have to trust the enrollment/datasource id pair
+          enrollment_group_id: enrollment_group_id,
+          project_id: project_id,
+          data_source_id: data_source_id,
+        ).delete_all
       end
     end
 

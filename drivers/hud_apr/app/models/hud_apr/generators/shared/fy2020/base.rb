@@ -29,7 +29,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
-      @generator.client_scope.find_in_batches do |batch|
+      @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
 
         # Pre-calculate some values
@@ -103,6 +103,7 @@ module HudApr::Generators::Shared::Fy2020
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
             annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
+            annual_assessment_in_window: annual_assessment_in_window?(last_service_history_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,
             chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
@@ -269,11 +270,14 @@ module HudApr::Generators::Shared::Fy2020
           :exit,
         ],
       }
+      enrollment_scope_without_preloads.preload(preloads)
+    end
+
+    private def enrollment_scope_without_preloads
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
-        joins(:enrollment).
-        preload(preloads)
+        joins(:enrollment)
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
     end
@@ -299,32 +303,32 @@ module HudApr::Generators::Shared::Fy2020
     private def races
       {
         'AmIndAKNative' => {
-          order: 1,
+          order: 4,
           label: 'American Indian or Alaska Native',
           clause: a_t[:race].eq(race_number('AmIndAKNative')),
         },
         'Asian' => {
-          order: 2,
+          order: 3,
           label: 'Asian',
           clause: a_t[:race].eq(race_number('Asian')),
         },
         'BlackAfAmerican' => {
-          order: 3,
+          order: 2,
           label: 'Black or African American',
           clause: a_t[:race].eq(race_number('BlackAfAmerican')),
         },
         'NativeHIOtherPacific' => {
-          order: 4,
+          order: 5,
           label: 'Native Hawaiian or Other Pacific Islander',
           clause: a_t[:race].eq(race_number('NativeHIOtherPacific')),
         },
         'White' => {
-          order: 5,
+          order: 1,
           label: 'White',
           clause: a_t[:race].eq(race_number('White')),
         },
         'Multiple' => {
-          order: 7,
+          order: 6,
           label: 'Multiple Races',
           clause: a_t[:race].eq(6),
         },

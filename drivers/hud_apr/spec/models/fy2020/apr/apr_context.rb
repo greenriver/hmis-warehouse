@@ -14,7 +14,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
       start: Date.parse('2019-01-01'),
       end: Date.parse('2019-12-31'),
       coc_codes: ['XX-500'],
-      user_id: 0,
+      user_id: User.setup_system_user.id,
     }.freeze
   end
 
@@ -25,6 +25,11 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
 
   def night_by_night_shelter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'NBN').id
+    HudApr::Filters::AprFilter.new(shared_filter.merge(project_ids: [project_id]))
+  end
+
+  def ph
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-PH').id
     HudApr::Filters::AprFilter.new(shared_filter.merge(project_ids: [project_id]))
   end
 
