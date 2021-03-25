@@ -11,7 +11,7 @@ if params[:summary].present?
       Date.current.strftime('%Y%m%d'),
       receiver,
     ]
-    sheet.add_row(row)
+    sheet.add_row(row, types: [:string] * row.length)
   end
 else
   wb.add_worksheet(name: 'Outreach') do |sheet|
@@ -29,7 +29,7 @@ else
           row << value
         end
       end
-      sheet.add_row(row)
+      sheet.add_row(row, types: [:string] * row.length)
     end
   end
 end
