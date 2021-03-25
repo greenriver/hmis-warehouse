@@ -202,40 +202,47 @@ module Health
     # Has Participation Form
     # Has Release Form
     # Has CHA
-    scope :engaged, -> do
+    scope :engaged, -> (on_date: Date.current) do
       # This lives in the warehouse DB and must be materialized
       # hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
 
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
         completed.
         allowed_for_engagement.
+        where(completed_at: ('2015-01-01'.to_time..on_date.to_time)).
         select(:patient_id)
 
       epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
         allowed_for_engagement.
+        where(ssm_updated_at: ('2015-01-01'.to_time..on_date.to_time)).
         select(hp_t[:id].to_sql)
 
       participation_form_patient_id_scope = Health::ParticipationForm.distinct.
         valid.
         allowed_for_engagement.
+         where(reviewed_at: ('2015-01-01'.to_time..on_date.to_time)).
         select(:patient_id)
 
       release_form_patient_id_scope = Health::ReleaseForm.distinct.
         valid.
         allowed_for_engagement.
+        where(reviewed_at: ('2015-01-01'.to_time..on_date.to_time)).
         select(:patient_id)
 
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
         reviewed.
         allowed_for_engagement.
+        where(reviewed_at: ('2015-01-01'.to_time..on_date.to_time)).
         select(:patient_id)
 
       epic_cha_patient_id_scope = Health::EpicCha.distinct.
         allowed_for_engagement.
+        where(cha_updated_at: ('2015-01-01'.to_time..on_date.to_time)).
         select(hp_t[:id].to_sql)
 
       pctp_signed_patient_id_scope = Health::Careplan.distinct.
         pcp_signed.
+        where(provider_signed_on: ('2015-01-01'.to_time..on_date.to_time)).
         select(:patient_id)
       # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
