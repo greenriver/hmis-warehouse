@@ -28,7 +28,7 @@ module WarehouseReports::Health
         flash[:error] = 'You must specify an ACO'
         render :index
       else
-        @report = Health::EnrollmentDisenrollment.new(@start_date, @end_date, @acos, @enrollment_reasons.reasons)
+        @report = Health::EnrollmentDisenrollment.new(@start_date, @end_date, @effective_date, @acos, @enrollment_reasons.reasons)
         summary = render_to_string 'summary.xlsx'
         report = render_to_string 'report.xlsx'
         stringio = Zip::OutputStream.write_buffer do |zio|
@@ -69,6 +69,7 @@ module WarehouseReports::Health
       current_month = Date.current.month
       @start_month = params.dig(:report, :start_month)&.to_i || current_month
       @end_month = params.dig(:report, :end_month)&.to_i || current_month
+      @effective_date = params.dig(:report, :effective_date)&.to_date || Date.current
 
       current_year = Date.current.year
       @start_date = if @start_month <= current_month
