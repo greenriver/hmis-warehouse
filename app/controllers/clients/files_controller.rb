@@ -139,6 +139,8 @@ module Clients
         flash[:notice] = 'File was successfully deleted.'
         # Keep various client fields in sync with files if appropriate
         @client.invalidate_consent! if @client.consent_form_id == @file.id
+        # Remove any view caches for this client since permissions may have changed
+        @client.clear_view_cache
         @client.sync_cas_attributes_with_files
       rescue Exception
         flash[:error] = 'File could not be deleted.'
