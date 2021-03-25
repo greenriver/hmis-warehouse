@@ -28,10 +28,10 @@ module ClientAccessControl
     def queue
       @years = (params[:pdf].try(:[], :years) || 3).to_i
       @client.update(generate_manual_history_pdf: true)
-      Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
+      ServiceHistory::ChronicVerificationJob.perform_later(
         client_id: @client.id,
         years: @years,
-      ), queue: :short_running
+      )
       flash[:notice] = 'Homeless Verification PDF queued for generation.  The PDF will be available for download under the Files tab within a few minutes.'
       redirect_to action: :show
     end
