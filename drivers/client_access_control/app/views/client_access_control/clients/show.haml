@@ -6,7 +6,7 @@
   .o-page__header
     = render 'clients/aliases'
   = render 'clients/tab_navigation', current: client_path(@client)
-  - if can_access_some_version_of_clients?
+  - if can_access_some_version_of_clients? && ! GrdaWarehouse::Config.get(:multi_coc_installation)
     %section.o-dashboard__block--primary.client__summary
       = render 'client_access_control/clients/client_summary'
   - if can_view_full_client_dashboard?

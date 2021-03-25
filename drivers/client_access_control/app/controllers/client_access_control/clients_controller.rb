@@ -80,6 +80,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   end
 
   def simple
+    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
   end
 
   # It can be expensive to calculate the appropriate link to show a user for a batch of clients
