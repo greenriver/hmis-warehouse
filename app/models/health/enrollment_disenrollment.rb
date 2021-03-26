@@ -6,7 +6,7 @@
 
 module Health
   class EnrollmentDisenrollment
-    def initialize(start_date, end_date, effective_date, aco_ids, enrollment_reasons)
+    def initialize(start_date:, end_date:, effective_date:, aco_ids:, enrollment_reasons:)
       @start_date = start_date
       @end_date = end_date
       @effective_date = effective_date
