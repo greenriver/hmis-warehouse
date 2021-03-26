@@ -20,6 +20,14 @@ module Health
       where(enrolled: true)
     end
 
+    scope :enrolled_before, -> (date) do
+      enrolled.where(arel_table[:date].lt(date))
+    end
+
+    scope :engaged_before, -> (date) do
+      engaged.where(arel_table[:date].lt(date))
+    end
+
     # NOTE: the following methods are used to populate and maintain the table
     # they are instance methods only to allow for useful caching
     def maintain

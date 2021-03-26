@@ -854,6 +854,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: true,
         }
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'claims_reporting/warehouse_reports/engagement_trends',
+          name: 'Patient Engagement Trends',
+          description: 'Engagement metrics by length of engagement',
+          limitable: false,
+          health: true,
+        }
       end
       if RailsDrivers.loaded.include?(:project_pass_fail)
         r_list['Data Quality'] << {
@@ -1045,6 +1052,7 @@ module GrdaWarehouse::WarehouseReports
       unless RailsDrivers.loaded.include?(:claims_reporting)
         cleanup << 'claims_reporting/warehouse_reports/reconciliation'
         cleanup << 'claims_reporting/warehouse_reports/performance'
+        cleanup << 'claims_reporting/warehouse_reports/engagement_trends'
       end
       cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
       cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)

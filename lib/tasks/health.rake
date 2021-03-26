@@ -10,6 +10,7 @@ namespace :health do
     Importing::RunHealthImportJob.new.perform
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
     Health::Tasks::CalculateValidUnpayableQas.new.run!
+    Health::StatusDate.new.maintain
   end
 
   desc "Enrollments and Eligibility"

@@ -1,5 +1,7 @@
 module ClaimsReporting
   class MemberRoster < HealthBase
+    include ArelHelper
+
     phi_patient :member_id
 
     has_one :diagnosis_classification,
@@ -12,7 +14,32 @@ module ClaimsReporting
              foreign_key: 'member_id',
              class_name: 'ClaimsReporting::MemberEnrollmentRoster'
 
+    belongs_to :patient, primary_key: 'member_id', foreign_key: 'medicaid_id', class_name: 'Health::Patient', optional: true
+
     include ClaimsReporting::CsvHelpers
+
+    scope :pre_assigned, ->(date = Date.current) do
+      where.not(
+        member_id: ::Health::Patient.enrolled_before(date).
+          select(:medicaid_id),
+      )
+    end
+
+    scope :pre_engaged, ->(date = Date.current) do
+      where(
+        member_id: ::Health::Patient.enrolled_before(date).
+        select(:medicaid_id),
+      ).
+        where.not(
+          member_id: ::Health::Patient.engaged_before(date).
+            select(:medicaid_id),
+        )
+    end
+
+    scope :engaged_for, ->(range) do
+      where(member_id: ::Health::Patient.engaged_for(range).select(:medicaid_id))
+    end
+
     def self.conflict_target
       ['member_id']
     end

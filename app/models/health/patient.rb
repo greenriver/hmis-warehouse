@@ -108,6 +108,7 @@ module Health
     belongs_to :care_coordinator, class_name: 'User'
     belongs_to :nurse_care_manager, class_name: 'User'
     has_many :qualifying_activities
+    has_many :status_dates
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
@@ -311,6 +312,19 @@ module Health
       where.not(housing_status: [nil, ''], housing_status_timestamp: nil)
     end
 
+    scope :enrolled_before, -> (date) do
+      joins(:status_dates).merge(Health::StatusDate.enrolled_before(date))
+    end
+
+    scope :engaged_before, -> (date) do
+      joins(:status_dates).merge(Health::StatusDate.engaged_before(date))
+    end
+
+    scope :engaged_for, -> (range) do
+      where(id: Health::StatusDate.engaged.group(h_sd_t[:patient_id]).
+        having(nf('count', [h_sd_t[:patient_id]]).between(range)).select(:patient_id))
+    end
+
     delegate :effective_date, to: :patient_referral
     delegate :enrollment_start_date, to: :patient_referral
     delegate :aco, to: :patient_referral
@@ -387,7 +401,7 @@ module Health
     def prior_contributed_enrollment_ranges
       patient_referrals.map do |referral|
         next unless referral.contributing?
-        next if current?
+        next if referral.current?
         next unless referral.enrollment_start_date
 
         (referral.enrollment_start_date..referral.actual_or_pending_disenrollment_date)

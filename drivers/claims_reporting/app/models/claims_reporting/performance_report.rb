@@ -396,7 +396,7 @@ module ClaimsReporting
     private def formatter
       ClaimsReporting::Formatter.new
     end
-    memoize :formtter
+    memoize :formatter
 
     def formatted_value(fld, row)
       val = row[fld.to_s]

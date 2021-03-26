@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_26_143558) do
+ActiveRecord::Schema.define(version: 2021_03_26_150547) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -60,7 +60,7 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.datetime "appointment_time"
     t.string "id_in_source"
     t.string "patient_id"
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
   end
 
   create_table "backup_plans", force: :cascade do |t|
@@ -252,6 +252,20 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.index ["user_id"], name: "index_claims_reporting_cp_payment_uploads_on_user_id"
   end
 
+  create_table "claims_reporting_engagement_trends", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.jsonb "options"
+    t.jsonb "results"
+    t.string "processing_errors"
+    t.datetime "completed_at"
+    t.datetime "started_at"
+    t.datetime "failed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["user_id"], name: "index_claims_reporting_engagement_trends_on_user_id"
+  end
+
   create_table "claims_reporting_imports", force: :cascade do |t|
     t.string "source_url", null: false
     t.datetime "started_at"
@@ -423,6 +437,7 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.string "cde_cos_category", limit: 50
     t.string "cde_cos_subcategory", limit: 50
     t.string "ind_mco_aco_cvd_svc", limit: 50
+    t.index "daterange(service_start_date, service_end_date, '[]'::text)", name: "claims_reporting_medical_claims_service_daterange", using: :gist
     t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
     t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
     t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_medical_claim", unique: true
@@ -434,27 +449,27 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.string "member_id", null: false
     t.boolean "currently_assigned"
     t.boolean "currently_engaged"
-    t.boolean "ast", comment: "asthma"
-    t.boolean "cpd", comment: "copd"
-    t.boolean "cir", comment: "cardiac disease"
-    t.boolean "dia", comment: "diabetes"
-    t.boolean "spn", comment: "degenerative spinal disease/chronic pain"
-    t.boolean "gbt", comment: "gi and biliary tract disease"
-    t.boolean "obs", comment: "obesity"
-    t.boolean "hyp", comment: "hypertension"
-    t.boolean "hep", comment: "hepatitis"
-    t.boolean "sch", comment: "schizophrenia"
-    t.boolean "pbd", comment: "psychoses/bipolar disorders"
-    t.boolean "das", comment: "depression/anxiety/stress reactions"
-    t.boolean "pid", comment: "personality/impulse disorder"
-    t.boolean "sia", comment: "suicidal ideation/attempt"
-    t.boolean "sud", comment: "substance Abuse Disorder"
-    t.boolean "other_bh", comment: "other behavioral health"
-    t.boolean "coi", comment: "cohort of interest"
-    t.boolean "high_er", comment: "5+ ER Visits with No IP Psych Admission"
-    t.boolean "psychoses", comment: "1+ Psychoses Admissions"
-    t.boolean "other_ip_psych", comment: "+ IP Psych Admissions"
-    t.boolean "high_util", comment: "3+ inpatient stays or 5+ emergency room visits throughout their claims experience"
+    t.boolean "ast"
+    t.boolean "cpd"
+    t.boolean "cir"
+    t.boolean "dia"
+    t.boolean "spn"
+    t.boolean "gbt"
+    t.boolean "obs"
+    t.boolean "hyp"
+    t.boolean "hep"
+    t.boolean "sch"
+    t.boolean "pbd"
+    t.boolean "das"
+    t.boolean "pid"
+    t.boolean "sia"
+    t.boolean "sud"
+    t.boolean "other_bh"
+    t.boolean "coi"
+    t.boolean "high_er"
+    t.boolean "psychoses"
+    t.boolean "other_ip_psych"
+    t.boolean "high_util"
     t.integer "er_visits"
     t.integer "ip_admits"
     t.integer "ip_admits_psychoses"
@@ -1046,7 +1061,7 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.datetime "goal_created_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
     t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
@@ -1082,7 +1097,7 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.string "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean "pilot", default: false, null: false
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
     t.datetime "deleted_at"
     t.date "death_date"
     t.index ["deleted_at"], name: "index_epic_patients_on_deleted_at"
@@ -1433,7 +1448,7 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.datetime "updated_at", null: false
     t.string "id_in_source"
     t.string "patient_id"
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
   end
 
   create_table "member_status_report_patients", id: :serial, force: :cascade do |t|
@@ -1529,6 +1544,7 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.integer "rejected_reason", default: 0, null: false
     t.integer "patient_id"
     t.integer "accountable_care_organization_id"
+    t.datetime "effective_date", default: -> { "now()" }
     t.string "middle_initial"
     t.string "suffix"
     t.string "gender"
@@ -1575,7 +1591,6 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.date "record_updated_on"
     t.date "exported_on"
     t.boolean "removal_acknowledged", default: false, null: false
-    t.datetime "effective_date"
     t.date "disenrollment_date"
     t.string "stop_reason_description"
     t.date "pending_disenrollment_date"
@@ -1611,10 +1626,10 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.string "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean "pilot", default: false, null: false
-    t.integer "data_source_id", default: 6, null: false
+    t.datetime "deleted_at"
+    t.integer "data_source_id", default: 1, null: false
     t.date "engagement_date"
     t.integer "care_coordinator_id"
-    t.datetime "deleted_at"
     t.date "death_date"
     t.string "coverage_level"
     t.date "coverage_inquiry_date"
@@ -1652,7 +1667,7 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.datetime "updated_at", null: false
     t.string "id_in_source"
     t.string "patient_id"
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
   end
 
   create_table "qualifying_activities", id: :serial, force: :cascade do |t|
@@ -1945,6 +1960,10 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.index ["careplan_id"], name: "index_teams_on_careplan_id"
   end
 
+  create_table "todd_test", id: false, force: :cascade do |t|
+    t.integer "x"
+  end
+
   create_table "tracing_cases", force: :cascade do |t|
     t.integer "client_id"
     t.string "health_emergency", null: false
@@ -2145,7 +2164,7 @@ ActiveRecord::Schema.define(version: 2021_03_26_143558) do
     t.datetime "updated_at", null: false
     t.string "patient_id"
     t.datetime "date_of_service"
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
   end
 
   add_foreign_key "claims_reporting_cp_payment_details", "claims_reporting_cp_payment_uploads", column: "cp_payment_upload_id"
