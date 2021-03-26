@@ -73,8 +73,6 @@ module ClaimsReporting
       connection.select_one(selected_member_roster.select(
                               mrt[:member_id].count(true).as('selected_members'),
                               Arel.sql(%[SUM(CASE WHEN sex = 'Female' THEN 1 ELSE 0 END)]).as('selected_females'),
-                              Arel.sql(%[SUM(pbd::int)]).as('selected_pbd'),
-                              Arel.sql(%[SUM(das::int)]).as('selected_das'),
                               Arel.sql(%[AVG(ABS(EXTRACT(YEAR FROM AGE(date_of_birth, #{connection.quote roster_as_of}))))]).as('average_age'),
                               Arel.sql(%[AVG(NULLIF(raw_dxcg_risk_score,'')::decimal)]).as('average_raw_dxcg_score'),
                             ), 'member_summary').with_indifferent_access
