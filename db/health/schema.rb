@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_18_212736) do
+ActiveRecord::Schema.define(version: 2021_03_26_143558) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -423,12 +423,11 @@ ActiveRecord::Schema.define(version: 2021_03_18_212736) do
     t.string "cde_cos_category", limit: 50
     t.string "cde_cos_subcategory", limit: 50
     t.string "ind_mco_aco_cvd_svc", limit: 50
-    t.index "daterange(service_start_date, service_end_date, '[]'::text)", name: "claims_reporting_medical_claims_service_daterange", using: :gist
     t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
     t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
-    t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
     t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_medical_claim", unique: true
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
+    t.index ["service_start_date"], name: "index_claims_reporting_medical_claims_on_service_start_date"
   end
 
   create_table "claims_reporting_member_diagnosis_classifications", force: :cascade do |t|
@@ -1492,6 +1491,7 @@ ActiveRecord::Schema.define(version: 2021_03_18_212736) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.date "effective_date"
     t.index ["deleted_at"], name: "index_member_status_reports_on_deleted_at"
   end
 
@@ -1906,6 +1906,15 @@ ActiveRecord::Schema.define(version: 2021_03_18_212736) do
     t.index ["created_at"], name: "index_ssm_exports_on_created_at"
     t.index ["updated_at"], name: "index_ssm_exports_on_updated_at"
     t.index ["user_id"], name: "index_ssm_exports_on_user_id"
+  end
+
+  create_table "status_dates", force: :cascade do |t|
+    t.bigint "patient_id", null: false
+    t.date "date", null: false
+    t.boolean "engaged", null: false
+    t.boolean "enrolled", null: false
+    t.index ["date"], name: "index_status_dates_on_date"
+    t.index ["patient_id"], name: "index_status_dates_on_patient_id"
   end
 
   create_table "team_members", id: :serial, force: :cascade do |t|

@@ -35,9 +35,9 @@ module WarehouseReports::Health
       respond_to do |format|
         format.xlsx do
           if params[:summary].present?
-            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_SUMMARY_FULL_#{Date.current.strftime('%Y%m%d')}.xlsx\""
+            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_SUMMARY_FULL_#{@report.effective_date.strftime('%Y%m%d')}.xlsx\""
           else
-            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_STATUSOUTREACH_FULL_#{Date.current.strftime('%Y%m%d')}.xlsx\""
+            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_STATUSOUTREACH_FULL_#{@report.effective_date.strftime('%Y%m%d')}.xlsx\""
           end
         end
       end
@@ -68,6 +68,7 @@ module WarehouseReports::Health
       {
         report_start_date: 1.months.ago.to_date,
         report_end_date: 1.days.ago.to_date,
+        effective_date: Date.current,
       }
     end
 
@@ -75,6 +76,7 @@ module WarehouseReports::Health
       params.require(:report).permit(
         :report_start_date,
         :report_end_date,
+        :effective_date,
         :receiver,
       )
     end

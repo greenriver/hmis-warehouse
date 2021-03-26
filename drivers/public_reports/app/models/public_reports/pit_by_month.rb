@@ -43,7 +43,7 @@ module PublicReports
 
     private def chart_data
       x = ['x']
-      pit_count = ['Average people experiencing homelessness per day']
+      pit_count = ['Average people homeless per day']
       new_count = ['Average newly homeless per day']
       pit_counts.each do |date, (pit, newly)|
         x << date
