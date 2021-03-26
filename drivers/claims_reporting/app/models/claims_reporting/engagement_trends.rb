@@ -25,6 +25,12 @@ module ClaimsReporting
       order(updated_at: :desc)
     end
 
+    # The maximum possible date range
+    # where we have claims data
+    def self.max_date_range
+      ClaimsReporting::MedicalClaim.minimum(:service_start_date) .. ClaimsReporting::MedicalClaim.maximum(:service_start_date)
+    end
+
     def run_and_save!
       update(started_at: Time.current)
       begin

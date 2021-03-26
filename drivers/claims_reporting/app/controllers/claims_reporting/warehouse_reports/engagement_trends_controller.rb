@@ -19,11 +19,13 @@ module ClaimsReporting::WarehouseReports
     end
 
     def create
+      dates = report_class.max_date_range
+
       @report = report_class.new(
         user_id: current_user.id,
         options: {
-          start_date: Health::PatientReferral.first_enrollment_start_date,
-          end_date: Date.current,
+          start_date: dates.min.iso8601,
+          end_date: dates.max.iso8601,
         },
       )
       @report.save

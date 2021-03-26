@@ -34,61 +34,6 @@ module ClaimsReporting
     # https://www.rubydoc.info/github/plataformatec/simple_form/SimpleForm%2FFormBuilder:input options for them
     def filter_inputs
       {
-        age_bucket: {
-          label: _('Age'),
-          collection: age_bucket_options,
-          include_blank: 'All ages',
-          as: :select_two,
-          # hint: "Member's reported age as of #{roster_as_of}",
-        },
-        gender: {
-          label: _('Gender'),
-          collection: gender_options,
-          include_blank: 'All genders',
-          as: :select_two,
-          # hint: "Member's reported gender as of #{roster_as_of}",
-        },
-        race: {
-          label: _('Race'),
-          collection: race_options,
-          include_blank: 'All races',
-          as: :select_two,
-          # hint: "Member's reported race as of #{roster_as_of}",
-        },
-        # aco: {
-        #   label: _('ACO'),
-        #   collection: aco_options,
-        #   include_blank: '(any)',
-        #   hint: 'The ACO that the member was assigned to at the time the claim is incurred',
-        # },
-        # mental_health_diagnosis_category: {
-        #   label: _('Mental Health Diagnosis Category'),
-        #   collection: mental_health_diagnosis_category_options,
-        #   include_blank: '(any)',
-        #   hint: 'The mental health diagnosis category represents a group of conditions classified by mental health and substance abuse categories included in the Clinical Classification Software (CCS)',
-        # },
-        # medical_diagnosis_category: {
-        #   label: _('Medical Diagnosis Category'),
-        #   collection: medical_diagnosis_category_options,
-        #   include_blank: '(any)',
-        #   hint: 'The medical diagnosis category represents a group of conditions classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS',
-        # },
-        # coi: {
-        #   label: _('Cohorts of Interest'),
-        #   collection: age_bucket_options,
-        #   include_blank: '(any)',
-        #   hint: 'Selects members based on their psychiatric inpatient and emergency room utilization history',
-        # },
-        # high_util: {
-        #   label: _('High Utilizing'),
-        #   as: :boolean,
-        #   hint: 'High Utilizing consists of members with either 3+ inpatient admissions or 5+ emergency room visits',
-        # },
-        # currently_assigned: {
-        #   label: _('Currently Assigned'),
-        #   as: :boolean,
-        #   hint: "Member assigned to the CP as of the date of #{roster_as_of}",
-        # },
       }.freeze
     end
 
@@ -97,138 +42,8 @@ module ClaimsReporting
       respond_to?(msg) ? send(msg) : nil
     end
 
-    # Age Bucket – The age of the member as of the report
-    attr_accessor :age_bucket
-
-    def age_bucket_options
-      [
-        '<18', # never used
-        '18-21',
-        '22-29',
-        '30-39',
-        '40-49',
-        '50-59',
-        '60-64',
-        '65+', # never used
-      ].freeze
-    end
-
-    # Gender – The member’s gender
-    attr_accessor :gender
-
-    def gender_options
-      # member_roster.group(:sex).count.keys
-      ['Female', 'Male'].freeze
-    end
-
-    # Race – The member’s race
-    attr_accessor :race
-
-    def race_options
-      # member_roster.group(:race).count.keys
-      # American Indian Or Alaskan American
-      # Asian Or Pacific Islander
-      # Black-Not Of Hispanic Origin
-      # Caucasian
-      # Hispanic
-      # Interracial
-      # Race Unknown
-      [
-        # FIXME: '(blank)',
-        'AMERICAN INDIAN OR ALASKAN AMERICAN',
-        'ASIAN OR PACIFIC ISLANDER',
-        'BLACK-NOT OF HISPANIC ORIGIN',
-        'CAUCASIAN',
-        'HISPANIC',
-        'INTERRACIAL',
-        'RACE UNKNOWN',
-      ].freeze
-    end
-
-    # ACO – The ACO that the member was assigned to at the time the claim is incurred
-    attr_accessor :aco
-
-    def aco_options
-      # FIXME: '(blank)',
-      medical_claims.distinct.pluck(:aco_name).compact.sort.freeze
-    end
-    memoize :aco_options
-
-    # Mental Health Diagnosis Category –
-    # The mental health diagnosis category represents a group of conditions
-    # classified by mental health and substance abuse categories included
-    # in the Clinical Classification Software (CCS) available at
-    # https://www.hcup-us.ahrq.gov/toolssoftware/ccs/ccsfactsheet.jsp.
-    #
-    attr_accessor :mental_health_diagnosis_category
-
-    def mental_health_diagnosis_category_options
-      {
-        sch: 'Schizophrenia',
-        pbd: 'Psychoses/Bipolar Disorders',
-        das: 'Depression/Anxiety/Stress Reactions',
-        pid: 'Personality/Impulse Disorder',
-        sia: 'Suicidal Ideation/Attempt',
-        sud: 'Substance Abuse Disorder',
-        other_bh: 'Other',
-      }.invert.to_a
-    end
-
-    # Medical Diagnosis Category – The medical diagnosis category represents a group of conditions
-    # classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS).
-    # Every member is categorized as having a medical diagnosis based on the claims they
-    # incurred - a member can be assigned to more than one category.
-    attr_accessor :medical_diagnosis_category
-
-    def medical_diagnosis_category_options
-      {
-        ast: 'Asthma',
-        cpd: 'COPD',
-        cir: 'Cardiac Disease',
-        dia: 'Diabetes',
-        spn: 'Degenerative Spinal Disease/Chronic Pain',
-        gbt: 'GI and Biliary Tract Disease',
-        obs: 'Obesity',
-        hyp: 'Hypertension',
-        hep: 'Hepatitis',
-      }.invert.to_a
-    end
-
-    # High Utilizing Member – ‘High Utilizing’ represents high utilizers (3+ inpatient stays or 5+ emergency room visits throughout their claims experience).
-    attr_accessor :high_util
-
-    # Cohorts of Interest– The user may select members based on their psychiatric inpatient and emergency room utilization history. The user can select the following utilization categories:
-    attr_accessor :coi
-
-    def coi_options
-      {
-        coi: 'All COIs',
-        psychoses: '1+ Psychoses Admission: patients that have had at least 1 inpatient admission for psychoses.',
-        other_ip_psych: '1+ IP Psych Admission: patients that have had at least 1 non-psychoses psychiatric inpatient admission',
-        high_er: '5+ ER Visits with No IP Psych Admission: patients that had at least 5 emergency room visits and no inpatient psychiatric admissions',
-      }.invert.to_a
-    end
-
-    # Currently Assigned - If the member is still assigned to the CP as of the most recent member_roster
-    attr_accessor :currently_assigned
-
-    ## medical claim calcs
-    # css_id
-    # assigned
-    # is_acs
-    # is_acs_demon
-    # is_pp
-    # is_pp_denom
-
     def detail_cols
       DETAIL_COLS
-    end
-
-    def detail_footnotes
-      {
-        '¹' => 'TODO',
-        '²' => 'TODO',
-      }
     end
 
     def roster_as_of
@@ -376,92 +191,22 @@ module ClaimsReporting
         ['Average Raw DxCG Score', formatter.format_d(average_raw_dxcg_score)],
         ['Normalized DxCG Score', formatter.format_d(normalized_dxcg_score)],
         ['% Female', formatter.format_pct(pct_female)],
-        #        ['% with Psychoses/Bipolar/Schizophrenia', formatter.format_pct(pct_with_pbd)],
-        #        ['% with Depression/Anxiety/Stress Disorders', formatter.format_pct(pct_with_das)],
       ]
     end
 
-    # DETAIL_COLS = {
-    #   # member_count: {
-    #   #   label: _('member_count'),
-    #   # },
-    #   # paid_amount_sum: 'paid_amount_sum',
-    #   annual_admits_per_mille: {
-    #     label: _('Annual Admissions per 1,000'),
-    #     units: 'admits',
-    #   },
-    #   # avg_length_of_stay: {
-    #   #   label: _('Length of Stay'),
-    #   #   units: 'days',
-    #   # },
-    #   # utilization_per_mille: {
-    #   #   label: _('Annual Utilization per 1,000'),
-    #   #   units: lambda { |_row| 'days/cases/procedures/visits/scripts/etc' },
-    #   # },
-    #   # pct_of_cohorit_with_utilization: {
-    #   #   label: _('% of Selected Cohort with Utilization'),
-    #   # },
-    #   # avg_cost_per_service: {
-    #   #   label: _('Average Cost per Service (Paid $)'),
-    #   # },
-    #   # cohort_per_member_month_spend: {
-    #   #   label: _('Selected Cohort PMPM (Paid $)'),
-    #   # },
-    #   # pct_of_pop_spend_cohort: {
-    #   #   label: _('Cohort Spend as a % of Total Population Spend'),
-    #   # },
-    #   # pct_of_service_sepend_cohort: {
-    #   #   label: _('Selected Cohort Spend as a % of Service Line Population Spend'),
-    #   # },
-    #   # pct_of_admissions_acs: {
-    #   #   label: _('Percent of Admissions that are Ambulatory Care Sensitive'),
-    #   #   note: '¹',
-    #   # },
-    #   # pct_of_cost_acs: {
-    #   #   label: _('Percent of Admission Cost that is Ambulatory Care Sensitive'),
-    #   #   note: '¹',
-    #   # },
-    #   # pct_of_visits_perventable: {
-    #   #   label: _('Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable'),
-    #   #   note: '²',
-    #   # },
-    #   # pct_of_cost_perventable: {
-    #   #   label: _('Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable'),
-    #   #   note: '²',
-    #   # },
-    # }.freeze
-
     DETAIL_COLS = {
-      # count: '#&nbsp;Claims'.html_safe,
-      # n_members: 'Distinct Members'.html_safe,
       annual_admits_per_mille: 'Annual Utilization per 1,000', # admits
-      # avg_length_of_stay: 'Length of Stay in days', # days
-      # utilization_per_mille: 'Annual Utilization per 1,000', # days/cases/procedures/visits/scripts/etc
-      # pct_of_cohorit_with_utilization: '% of Selected Cohort with Utilization',
-      # avg_cost_per_service: 'Average Cost per Service (Paid $)',
-      # cohort_per_member_month_spend: 'Selected Cohort PMPM (Paid $)',
-      # pct_of_pop_spend_cohort: 'Cohort Spend as a % of Total Population Spend',
-      # pct_of_service_sepend_cohort: 'Selected Cohort Spend as a % of Service Line Population Spend',
-      # pct_of_admissions_acs: 'Percent of Admissions that are Ambulatory Care Sensitive',
-      # pct_of_cost_acs: 'Percent of Admission Cost that is Ambulatory Care Sensitive',
-      # pct_of_visits_perventable: 'Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable',
-      # pct_of_cost_perventable: 'Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable',
     }.freeze
 
-    def engagement_span
-      # from the Milliman prototype -- mix max stay in days
-      0 .. 9_999
-    end
-
-    def mrt
+    private def mrt
       member_roster.arel_table
     end
 
-    def mct
+    private def mct
       medical_claims.arel_table
     end
 
-    def claims_query
+    private def claims_query
       sql_member_id = "#{selected_medical_claims.quoted_table_name}.#{connection.quote_column_name :member_id}"
 
       sql_member_count = %[COUNT(DISTINCT #{sql_member_id})::numeric]
@@ -489,10 +234,6 @@ module ClaimsReporting
       HealthBase.connection
     end
 
-    def detail_rows
-      engagement_rows
-    end
-
     def engagement_rows
       return [] unless selected_members&.positive?
 
@@ -505,24 +246,12 @@ module ClaimsReporting
             'I-06',
             'I-05',
             'I-12',
+            'I-22',
+            'I-22',
+            'I-22',
           ],
         ),
       )
-    end
-
-    def all_detail_rows
-      return [] unless selected_members&.positive?
-
-      connection.select_all(claims_query)
-    end
-
-    private def valid_option?(value, options)
-      return unless value.present?
-
-      options.detect do |opt|
-        opt = opt.second if opt.is_a?(Array)
-        opt.to_s == value.to_s
-      end
     end
 
     COS_ROLLUPS = {
@@ -610,32 +339,10 @@ module ClaimsReporting
     end
 
     def selected_member_roster
-      dct = ClaimsReporting::MemberDiagnosisClassification
-      scope = member_roster.left_joins(:diagnosis_classification)
-      if valid_option?(age_bucket, age_bucket_options)
-        min, max = *age_bucket.split(/[^\d]+/)
-        min = (min.presence || 0).to_i
-        max = (max.presence || 1_000).to_i
-        # FIXME: Do we mean age at the time of service or age now?
-        scope = scope.where(date_of_birth: max.years.ago.to_date .. min.years.ago.to_date)
-      end
+      scope = member_roster
 
-      scope = scope.where(race: race) if valid_option?(race, race_options)
+      # handle any member roster filtering here
 
-      scope = scope.where(sex: gender) if valid_option?(gender, gender_options)
-
-      scope = scope.merge(dct.where(mental_health_diagnosis_category.to_sym => true)) if valid_option?(mental_health_diagnosis_category, mental_health_diagnosis_category_options)
-
-      scope = scope.merge(dct.where(medical_diagnosis_category.to_sym => true)) if valid_option?(medical_diagnosis_category, medical_diagnosis_category_options)
-
-      scope = scope.merge(dct.where(coi.to_sym => true)) if valid_option?(coi, coi_options)
-
-      scope = scope.merge(dct.where(currently_assigned: true)) if currently_assigned.present?
-
-      scope = scope.merge(dct.where(high_util: true)) if high_util.present?
-
-      # # aco at the time of service
-      # scope = scope.where(member_id: medical_claims.where(aco_name: aco).select(:member_id)) if valid_option?(aco, aco_options)
       scope
     end
 
@@ -647,7 +354,7 @@ module ClaimsReporting
 
     private def selected_medical_claims
       scope = medical_claims.joins(:member_roster).merge(selected_member_roster)
-      scope = medical_claims.where(aco_name: aco) if valid_option?(aco, aco_options)
+      # handle any claim based filters here
       scope
     end
   end
