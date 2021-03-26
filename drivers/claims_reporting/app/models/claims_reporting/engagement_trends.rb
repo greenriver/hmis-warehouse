@@ -79,7 +79,7 @@ module ClaimsReporting
         },
         pre_assigned: {
           scope: ClaimsReporting::MemberRoster.pre_assigned,
-          title: 'Pre-Assigned',
+          title: 'Not Enrolled',
         },
         pre_engaged: {
           scope: ClaimsReporting::MemberRoster.pre_engaged,
