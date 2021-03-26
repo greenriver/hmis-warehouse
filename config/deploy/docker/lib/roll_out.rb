@@ -115,11 +115,12 @@ class RollOut
   end
 
   def run!
+    # Needs to go first so the others can know the task definition
+    register_workoff_worker!
+
     register_cron_job_worker!
 
     mark_spot_instances!
-
-    register_workoff_worker!
 
     run_deploy_tasks!
 
