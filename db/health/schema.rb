@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_09_150436) do
+ActiveRecord::Schema.define(version: 2021_03_26_143558) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1003,6 +1003,7 @@ ActiveRecord::Schema.define(version: 2021_03_09_150436) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -1046,6 +1047,7 @@ ActiveRecord::Schema.define(version: 2021_03_09_150436) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
+    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -1489,6 +1491,7 @@ ActiveRecord::Schema.define(version: 2021_03_09_150436) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.date "effective_date"
     t.index ["deleted_at"], name: "index_member_status_reports_on_deleted_at"
   end
 
@@ -1903,6 +1906,15 @@ ActiveRecord::Schema.define(version: 2021_03_09_150436) do
     t.index ["created_at"], name: "index_ssm_exports_on_created_at"
     t.index ["updated_at"], name: "index_ssm_exports_on_updated_at"
     t.index ["user_id"], name: "index_ssm_exports_on_user_id"
+  end
+
+  create_table "status_dates", force: :cascade do |t|
+    t.bigint "patient_id", null: false
+    t.date "date", null: false
+    t.boolean "engaged", null: false
+    t.boolean "enrolled", null: false
+    t.index ["date"], name: "index_status_dates_on_date"
+    t.index ["patient_id"], name: "index_status_dates_on_patient_id"
   end
 
   create_table "team_members", id: :serial, force: :cascade do |t|
