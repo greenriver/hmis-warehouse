@@ -30,8 +30,8 @@ module Health
 
     # NOTE: the following methods are used to populate and maintain the table
     # they are instance methods only to allow for useful caching
-    def maintain
-      Health::Patient.pluck(:id).each_slice(100) do |patient_ids|
+    def maintain(scope = Health::Patient)
+      scope.pluck(:id).each_slice(100) do |patient_ids|
         reset_batch!
 
         patient_ids.each do |patient_id|
