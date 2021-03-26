@@ -156,6 +156,13 @@ module Health
     belongs_to :patient, optional: true
     belongs_to :aco, class_name: 'Health::AccountableCareOrganization', foreign_key: :accountable_care_organization_id
 
+    def self.first_enrollment_start_date
+      Rails.cache.fetch('first_health_enrollment_start_date', expires_in: 1.hours) do
+        # We never want to calculate this back before 2017, so ignore any bad enrollment start dates before that
+        [Health::PatientReferral.minimum(:enrollment_start_date), '2017-01-01'.to_date].compact.max
+      end
+    end
+
     def self.create_referral(patient, args)
       referral_args = args.merge(current: true, contributing: true)
       if patient.present?
