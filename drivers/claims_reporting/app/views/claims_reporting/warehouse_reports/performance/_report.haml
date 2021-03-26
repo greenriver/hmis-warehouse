@@ -11,6 +11,8 @@
           %td.pr-4= html_value
 
 %h3 By Service Category
+%pre= pp report.detail_rows.to_a
+
 - table = report.detail_rows
 .card.mb-4
   %table.table.table-sm.table-striped.table-bordered.mb-0
