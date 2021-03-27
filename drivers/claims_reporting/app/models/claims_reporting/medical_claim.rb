@@ -27,6 +27,14 @@ module ClaimsReporting
       )
     end
 
+    scope :engaging, -> do
+      where(
+        procedure_code: 'T2024',
+        procedure_modifier_1: 'U4',
+        claim_status: 'P',
+      )
+    end
+
     def self.service_overlaps(date_range)
       where ["daterange(service_start_date, service_end_date, '[]') && daterange(:min, :max, '[]')", { min: date_range.min, max: date_range.max }]
     end

@@ -6,8 +6,18 @@ module ClaimsReporting
                primary_key: 'member_id',
                foreign_key: 'member_id',
                class_name: 'ClaimsReporting::MemberRoster'
+    has_many :medical_claims, primary_key: 'member_id', foreign_key: 'member_id', class_name: 'ClaimsReporting::MedicalClaim'
 
     include ClaimsReporting::CsvHelpers
+
+    scope :unprocessed_engagement, -> do
+      where(engagement_date: nil).or(
+        where(
+          arel_table[:enrollment_end_at_engagement_calculation].lt(arel_table[:span_end_date]),
+        ),
+      )
+    end
+
     def self.conflict_target
       ['member_id', 'span_start_date']
     end
@@ -52,6 +62,51 @@ module ClaimsReporting
         35,ind_medicare_b,Indicates whether the member has Medicare Part B coverage ,50,string,-
         36,tpl_coverage_cat,Coverage category type of the member’s verified TPL coverage,50,string,-
       CSV
+    end
+
+    # Figure out when the patient became engaged
+    # save the engagement date
+    # calculate the number of days engaged for the enrollment
+    # note the span end when the calculation was done
+
+    def maintain_engagement!
+      self.class.unprocessed_engagement.find_in_batches do |enrollment_batch|
+        update_batch = []
+        enrollment_batch.each do |enrollment|
+          claim_dates = engagement_claims_for(enrollment.member_id)
+          next unless claim_dates
+
+          # Find the most-recent claim date before the end of the enrollment
+          # NOTE: we might need to adjust this for re-ups of care plans
+          engagement_date = claim_dates.sort.reverse.detect { |d| d < enrollment.span_end_date }
+          next unless engagement_date
+
+          engagement_date = [enrollment.span_start_date, engagement_date].max
+          days_engaged = enrollment.span_mem_days - (engagement_date - enrollment.span_start_date).to_i
+          enrollment.assign_attributes(
+            engagement_date: engagement_date,
+            engaged_days: days_engaged,
+            enrollment_end_at_engagement_calculation: enrollment.span_end_date,
+          )
+          update_batch << enrollment
+        end
+        self.class.import(update_batch, on_duplicate_key_update: [:engagement_date, :engaged_days, :enrollment_end_at_engagement_calculation])
+      end
+      # Add zeros for later calculations
+      self.class.where(engagement_date: nil).update_all(engaged_days: 0)
+    end
+
+    private def engagement_claims_for(medicaid_id)
+      @engagement_claims_for ||= {}.tap do |claim_dates|
+        ClaimsReporting::MedicalClaim.engaging.
+          distinct.
+          pluck(:member_id, :service_start_date).
+          each do |member_id, service_start_date|
+            claim_dates[member_id] ||= []
+            claim_dates[member_id] << service_start_date
+          end
+      end
+      @engagement_claims_for[medicaid_id]
     end
   end
 end
