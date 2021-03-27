@@ -18,6 +18,24 @@ module ClaimsReporting
       )
     end
 
+    scope :enrolled, -> do
+      where(member_id: ::Health::PatientReferral.select(:medicaid_id)).
+        where(arel_table[:span_mem_days].gt(0))
+    end
+
+    scope :not_engaged, -> do
+      where(engaged_days: 0)
+    end
+
+    scope :engaged, -> do
+      where(arel_table[:engaged_days].gt(0))
+    end
+
+    scope :engaged_for, ->(range) do
+      where(member_id: engaged.having(nf('sum', [arel_table[:engaged_days]]).between(range)).
+        group(:member_id).select(:member_id))
+    end
+
     def self.conflict_target
       ['member_id', 'span_start_date']
     end

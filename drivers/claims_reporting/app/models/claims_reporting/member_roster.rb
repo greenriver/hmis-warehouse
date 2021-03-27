@@ -18,26 +18,25 @@ module ClaimsReporting
 
     include ClaimsReporting::CsvHelpers
 
+    # Anyone who exists in member roster, but not in Health::PatientReferral
     scope :pre_assigned, ->(date = Date.current) do
       where.not(
-        member_id: ::Health::Patient.enrolled_before(date).
+        member_id: ::Health::PatientReferral.where(hpr_t[:enrollment_start_date].lt(date)).
           select(:medicaid_id),
       )
     end
 
+    # Anyone who has been enrolled, but has 0 total days engaged
     scope :pre_engaged, ->(date = Date.current) do
-      where(
-        member_id: ::Health::Patient.enrolled_before(date).
-        select(:medicaid_id),
-      ).
-        where.not(
-          member_id: ::Health::Patient.engaged_before(date).
-            select(:medicaid_id),
-        )
+      a_t = ClaimsReporting::MemberEnrollmentRoster.arel_table
+      joins(:enrollment_rosters).
+        merge(ClaimsReporting::MemberEnrollmentRoster.enrolled.not_engaged.where(a_t[:span_end_date].lt(date)))
     end
 
+    # Anyone who exists in Health::PatientReferral with sum days engaged in range
     scope :engaged_for, ->(range) do
-      where(member_id: ::Health::Patient.engaged_for(range).select(:medicaid_id))
+      joins(:enrollment_rosters).
+        merge(ClaimsReporting::MemberEnrollmentRoster.engaged_for(range))
     end
 
     def self.conflict_target

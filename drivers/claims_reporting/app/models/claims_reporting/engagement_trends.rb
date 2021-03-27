@@ -74,7 +74,7 @@ module ClaimsReporting
     def cohorts
       {
         total_population: {
-          scope: ClaimsReporting::MemberRoster.distinct,
+          scope: ClaimsReporting::MemberRoster.all,
           title: 'Total Population',
         },
         pre_assigned: {
