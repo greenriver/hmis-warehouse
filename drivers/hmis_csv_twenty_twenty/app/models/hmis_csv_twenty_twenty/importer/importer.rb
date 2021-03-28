@@ -14,6 +14,17 @@
 
 # reload!; importer = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: 2, data_source_id: 14, debug: true); importer.import!
 
+# Some notes on how to manually run imports where the delayed job expires or fails for non-data related issue
+# il = GrdaWarehouse::ImportLog.last
+# loader = HmisCsvTwentyTwenty::Loader::LoaderLog.last
+# imp_log = HmisCsvTwentyTwenty::Importer::ImporterLog.last
+# # NOTE: newing up an importer currently creates an ImporterLog, this should be deleted
+# imp = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: loader.id, data_source_id: loader.data_source_id)
+# imp.importer_log = imp_log
+# il.update(import_errors: nil)
+# # at this point, you can call any of the various import methods, usually, the last one that was attempted
+# imp.log_timing(:process_existing)
+
 module HmisCsvTwentyTwenty::Importer
   class Importer
     include TsqlImport
