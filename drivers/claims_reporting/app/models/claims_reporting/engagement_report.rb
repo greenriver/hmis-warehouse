@@ -10,18 +10,26 @@ module ClaimsReporting
     extend Memoist
     attr_reader :member_roster, :rx_claims, :medical_claims, :claim_date_range
 
+    # The maximum possible date range
+    # where we have claims data
+    def self.max_date_range
+      ClaimsReporting::MedicalClaim.minimum(:service_start_date) .. ClaimsReporting::MedicalClaim.maximum(:service_start_date)
+    end
+
     def initialize(
       member_roster: ClaimsReporting::MemberRoster.all,
-      claim_date_range: Date.iso8601('2020-01-01') .. Date.iso8601('2020-12-31')
+      claim_date_range: nil
     )
-      @claim_date_range = claim_date_range
+      @member_roster = member_roster
+
+      @claim_date_range = claim_date_range || self.class.max_date_range
+
       @medical_claims = ClaimsReporting::MedicalClaim.where(
-        service_start_date: claim_date_range,
+        service_start_date: @claim_date_range,
       )
       @rx_claims = ClaimsReporting::RxClaim.where(
-        service_start_date: claim_date_range,
+        service_start_date: @claim_date_range,
       )
-      @member_roster = member_roster
     end
 
     # Member classification bits from Milliman
@@ -40,10 +48,6 @@ module ClaimsReporting
     def filter_options(filter)
       msg = "#{filter}_options"
       respond_to?(msg) ? send(msg) : nil
-    end
-
-    def detail_cols
-      DETAIL_COLS
     end
 
     def roster_as_of
@@ -87,6 +91,7 @@ module ClaimsReporting
     private def claims_summary
       connection.select_one(selected_medical_claims.select(
                               Arel.sql(%[SUM(paid_amount)]).as('paid_amount'),
+                              Arel.sql(%[COUNT(*)]).as('medical_claim_lines'),
                             ), 'claims_summary').with_indifferent_access
     end
 
@@ -182,19 +187,14 @@ module ClaimsReporting
 
     def summary_rows
       [
-        ['Selected Members', "#{formatter.format_i selected_members} (#{formatter.format_pct percent_members_selected, precision: 1} of members)"],
+        ['Members', formatter.format_i(selected_members)],
         ['Average Age', formatter.format_d(average_age)],
-        ['Member Months', formatter.format_d(member_months)],
-        ['Average $PMPM', formatter.number_to_currency(average_per_member_per_month_spend)],
-        ['Average Raw DxCG Score', formatter.format_d(average_raw_dxcg_score)],
-        ['Normalized DxCG Score', formatter.format_d(normalized_dxcg_score)],
         ['% Female', formatter.format_pct(pct_female)],
+        ['Member Months', formatter.format_d(member_months)],
+        ['Average Raw DxCG Score', formatter.format_d(average_raw_dxcg_score)],
+        ['Average $PMPM', formatter.number_to_currency(average_per_member_per_month_spend)],
       ]
     end
-
-    DETAIL_COLS = {
-      annual_admits_per_mille: 'Annual Utilization per 1,000', # admits
-    }.freeze
 
     private def mrt
       member_roster.arel_table
@@ -209,23 +209,47 @@ module ClaimsReporting
 
       sql_member_count = %[COUNT(DISTINCT #{sql_member_id})::numeric]
 
-      annual_admits_per_mille = Arel.sql(
+      n_claims = Arel.sql(
         %[NULLIF(
-            ROUND(
-              COUNT(DISTINCT
-                CASE WHEN admit_date IS NOT NULL THEN CONCAT(#{sql_member_id}, admit_date)
-              END
-            )*1000/(#{sql_member_count}/#{report_years}))
-            , 0)],
-      ).as('annual_admits_per_mille')
+            COUNT(DISTINCT
+              CASE WHEN claim_number IS NOT NULL THEN CONCAT(#{sql_member_id}, claim_number) END
+            ), 0
+          )],
+      ).as('n_claims')
+
+      n_admits = Arel.sql(
+        %[NULLIF(
+            COUNT(DISTINCT
+              CASE WHEN admit_date IS NOT NULL THEN CONCAT(#{sql_member_id}, admit_date) END
+            ), 0
+          )],
+      ).as('admit_date')
+
+      avg_length_of_stay = Arel.sql("ROUND(AVG(
+        CASE
+          WHEN discharge_date-admit_date < #{engagement_span.min} THEN NULL
+          WHEN discharge_date-admit_date > #{engagement_span.max} THEN NULL
+          ELSE discharge_date-admit_date
+        END
+      ))").as('avg_length_of_stay')
 
       selected_medical_claims.group(
         Arel.sql(%[ROLLUP(1,2)]),
       ).select(
         Arel.sql(%[COALESCE(cde_cos_rollup,'Unclassified')]).as('cde_cos_rollup'),
         Arel.sql(%[COALESCE(cde_cos_category,'Unclassified')]).as('cde_cos_category'),
-        annual_admits_per_mille,
+        Arel.sql(report_years.to_s).as('claim_years'),
+        Arel.sql(sql_member_count.to_s).as('n_members'),
+        n_claims,
+        n_admits,
+        Arel.sql(%[SUM(COALESCE(paid_amount, 0))]).as('paid_amount_sum'),
+        avg_length_of_stay,
       ).order('1 ASC NULLS FIRST,2 ASC NULLS FIRST')
+    end
+
+    def engagement_span
+      # from the Milliman prototype -- mix max stay in days
+      0 .. 9_999
     end
 
     private def connection
@@ -233,22 +257,20 @@ module ClaimsReporting
     end
 
     def engagement_rows
-      return [] unless selected_members&.positive?
+      return [] unless selected_members&.positive? && report_years.positive?
 
-      connection.select_all(
-        claims_query.where(
-          cde_cos_category: [
-            'I-01 MED',
-            'I-01 SURG',
-            'I-01 BH',
-            'I-06',
-            'I-05',
-            'I-12',
-            'I-22',
-            'I-22',
-            'I-22',
-          ],
-        ),
+      connection.select_all claims_query.where(
+        cde_cos_category: [
+          'I-01 MED',
+          'I-01 SURG',
+          'I-01 BH',
+          'I-06',
+          'I-05',
+          'I-12',
+          'I-22',
+          'I-22',
+          'I-22',
+        ],
       )
     end
 

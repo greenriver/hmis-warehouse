@@ -28,7 +28,7 @@ module ClaimsReporting
     # The maximum possible date range
     # where we have claims data
     def self.max_date_range
-      ClaimsReporting::MedicalClaim.minimum(:service_start_date) .. ClaimsReporting::MedicalClaim.maximum(:service_start_date)
+      ClaimsReporting::EngagementReport.max_date_range
     end
 
     def run_and_save!
@@ -55,18 +55,40 @@ module ClaimsReporting
           member_roster: cohort[:scope],
           claim_date_range: options['start_date'].to_date..options['end_date'].to_date,
         )
-        results[population] = report.engagement_rows
+        results[population] = {
+          summary: report.summary_rows,
+          detail: report.engagement_rows,
+        }
       end
     end
 
+    def details(cohort)
+      results.dig(cohort.to_s, 'detail') || {}
+    end
+
+    def summary(cohort)
+      (results.dig(cohort.to_s, 'summary') || {}).to_h
+    end
+
     def result_for(cohort, rollup, category)
-      results[cohort.to_s].detect do |result|
+      d = details(cohort).detect do |result|
         rollup.to_s == result['cde_cos_rollup'].to_s && category.to_s == result['cde_cos_category'].to_s
       end || {}
+
+      # we calculate utilization in terms of n_claims per year per 1000 members
+      years = d['claim_years'].to_f
+      n_members = d['n_members'].to_f
+      d['utilization'] = ((d['n_claims'].to_f * 1000 / n_members) / years if years.positive? && n_members.positive?)
+
+      d
+    end
+
+    def summary_headers
+      summary(:total_population).keys
     end
 
     def detail_row_headers
-      results['total_population'].map do |metric|
+      details(:total_population).map do |metric|
         metric.slice('cde_cos_rollup', 'cde_cos_category')
       end
     end
@@ -94,11 +116,11 @@ module ClaimsReporting
           title: 'Engaged 7-12 Months',
         },
         engaged_24_months: {
-          scope: ClaimsReporting::MemberRoster.engaged_for(366..545),
+          scope: ClaimsReporting::MemberRoster.engaged_for(366..730),
           title: 'Engaged 1-2 Years',
         },
         engaged_24_months_or_more: {
-          scope: ClaimsReporting::MemberRoster.engaged_for(546..10_000),
+          scope: ClaimsReporting::MemberRoster.engaged_for(731..Float::INFINITY),
           title: 'Engaged 2+ years',
         },
       }.freeze

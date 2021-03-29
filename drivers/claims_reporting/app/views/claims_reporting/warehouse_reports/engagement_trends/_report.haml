@@ -1,37 +1,53 @@
 %p
   Data shown reflects claims for services starting between #{report.claim_date_range.first} and #{report.claim_date_range.last} and paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
-
--# %h3 Summary
--# .card.mb-4
--#   %table.table.table-sm.table-striped.mb-0
--#     - report.summary_rows.in_groups_of(3).transpose.each do |group|
--#       %tr
--#         - group.each do |label, html_value|
--#           %th= label
--#           %td.pr-4= html_value
-
-%h3 By Service Category
+- f = ClaimsReporting::Formatter.new
 .card.mb-4
   %table.table.table-sm.table-striped.table-bordered.mb-0
     %thead
       %tr
-        %th Category
+        %th
         - @report.cohorts.each do |_, cohort|
           %th.text-center= cohort[:title]
     %tbody
+      - @report.summary_headers.each do |summary_field|
+        %tr
+          %th= summary_field
+          - @report.cohorts.each do |corhort_id, cohort|
+            %td.text-right= @report.summary(corhort_id)[summary_field.to_s]
+      %tr
+        %th
+      %tr
+        %th
+        %th.text-center{colspan: @report.cohorts.size}
+          Utilization - events per 1000 members per year
+      %tr
+        %th Claim Categories
+        - @report.cohorts.each do |_, cohort|
+          %th.text-center= cohort[:title]
       - @report.detail_row_headers.group_by(&:first).each do |cos_rollup, rollup_rows|
         - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'AAAA'}.each_with_index do |row, idx|
+          :ruby
+            rollup_label = report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
+            category_label = report.cos_description(row['cde_cos_category']).presence || ''
+            sentence_label = (category_label.presence || rollup_label).downcase.gsub(/all claims/,'total claims')
           - next unless idx.zero? || rollup_rows.size > 2
           %tr
             - if row['cde_cos_category'].blank?
-              %th{axis: :row}= report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
+              %th{axis: :row}= rollup_label
             - else
               %td.pl-4{axis: :row}
-                = report.cos_description(row['cde_cos_category']).presence || ''
-            - @report.cohorts.each do |key, _|
-              %td.text-right= report.formatted_value('annual_admits_per_mille', @report.result_for(key, row['cde_cos_rollup'], row['cde_cos_category']))
-            -# - report.detail_cols.each do |fld, _label|
-            -#   %td.text-right= report.formatted_value fld, row
+                = category_label
+            - @report.cohorts.each do |cohort_id, cohort|
+              :ruby
+                d = @report.result_for(cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
+                cohort_phrase = cohort_id.to_s == 'total_population' ? 'members' : "members #{ cohort[:title].downcase }"
+                tooltip = "Based on #{f.format_i d['n_claims']} #{sentence_label} claims from #{f.format_i d['n_members']} #{cohort_phrase}."
+                tooltip +=" Total Paid¹: #{f.number_to_currency d['paid_amount_sum']}."
+              %td.text-right{data: {toggle: :tooltip, title: tooltip}}
+                = f.format_i d['utilization']
+%p
+  %b Notes:
+  %div ¹ "Total Paid" is currently based on paid_amount record which is frequently missing from the data.
 -# - unless Rails.env.production?
 -#   %details
 -#     %summary Query

@@ -18,25 +18,28 @@ module ClaimsReporting
 
     include ClaimsReporting::CsvHelpers
 
+    # Members with a ::Health::PatientReferral who
+    # have been engaged for a range of total days in
+    # enrollment spans starting by the provided date
+    scope :engaged_for, ->(range, date = Date.current) do
+      where(
+        member_id: ClaimsReporting::MemberEnrollmentRoster.where(
+          ['span_start_date <= ?', date],
+        ).engaged_for(range).select(:member_id),
+      )
+    end
+
+    # Having a total of 0 engaged days
+    scope :pre_engaged, ->(date = Date.current) do
+      engaged_for(0..0, date)
+    end
+
     # Anyone who exists in member roster, but not in Health::PatientReferral
     scope :pre_assigned, ->(date = Date.current) do
       where.not(
         member_id: ::Health::PatientReferral.where(hpr_t[:enrollment_start_date].lt(date)).
           select(:medicaid_id),
       )
-    end
-
-    # Anyone who has been enrolled, but has 0 total days engaged
-    scope :pre_engaged, ->(date = Date.current) do
-      a_t = ClaimsReporting::MemberEnrollmentRoster.arel_table
-      joins(:enrollment_rosters).
-        merge(ClaimsReporting::MemberEnrollmentRoster.enrolled.not_engaged.where(a_t[:span_end_date].lt(date)))
-    end
-
-    # Anyone who exists in Health::PatientReferral with sum days engaged in range
-    scope :engaged_for, ->(range) do
-      joins(:enrollment_rosters).
-        merge(ClaimsReporting::MemberEnrollmentRoster.engaged_for(range))
     end
 
     def self.conflict_target

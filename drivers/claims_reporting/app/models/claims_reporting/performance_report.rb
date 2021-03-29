@@ -467,7 +467,7 @@ module ClaimsReporting
       sql_member_count = %[COUNT(DISTINCT #{sql_member_id})::numeric]
 
       utilization_per_mille = Arel.sql(
-        %[ROUND(count(*)+1000/(#{sql_member_count}/#{report_days}))],
+        %[ROUND(count(*)*1000/(#{sql_member_count}/#{report_days}))],
       ).as('utilization_per_mille')
 
       annual_admits_per_mille = Arel.sql(
