@@ -38,7 +38,8 @@ $(document).on 'change', '.jFileTag', (e) ->
   else
     $('.jConsentFormCoC').hide()
 
-$('.jFileTag').trigger('change')
+$(document).ready ->
+  $('.jFileTag:checked').trigger('change')
 
 $(document).on 'change', '.jDownload', (e) ->
   ids = $('.jDownload:checked').map ->
