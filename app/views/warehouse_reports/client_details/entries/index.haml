@@ -7,21 +7,22 @@
 
 = render 'filter'
 
-.row
-  .col-sm-12.text-right
+.d-flex
+  %p
+    = pluralize(@enrollments.count, 'Client')
+    have entries in
+    = @filter.selected_project_type_names.join(', ')
+    between
+    = @filter.start
+    and
+    = "#{@filter.end}."
+    %br
+    This report was built to provide supporting details to the "Enterers" section of the Population Dashboards.
+  .ml-auto.mb-2
     - if  can_view_clients?
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
-
-%p
-  = pluralize(@enrollments.count, 'Client')
-  have entries in
-  = @filter.selected_project_type_names.join(', ')
-  between
-  = @filter.start
-  and
-  = "#{@filter.end}."
-  = render 'common/population_warnings'
+= render 'common/population_warnings'
 = render 'warehouse_reports/limited_by_project_note'
 
 - @buckets.each do |group, clients|

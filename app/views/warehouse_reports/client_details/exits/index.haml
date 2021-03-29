@@ -10,8 +10,6 @@
 %h3 Summary
 .d-flex
   %p
-    This report was built to provide supporting details to the "Exiters" and Exits to Permanent Housing" sections of the Population Dashboards.
-    %br
     The following exit details are for clients who exited from the selected project types between
     = @filter.start
     and
@@ -22,6 +20,8 @@
     = @clients.count
     exits consisting of
     #{pluralize(@clients.map{ |row| row[:client_id]}.uniq.count, 'unique client')}.
+    %br
+    This report was built to provide supporting details to the "Exiters" and Exits to Permanent Housing" sections of the Population Dashboards.
   .ml-auto.mb-2
     - if can_view_clients?
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
