@@ -13,6 +13,7 @@ $('.jThumb').each (e) ->
     $(thumb).html(link)
 
 $(document).on 'change', '.jFileTag', (e) ->
+  console.log('triggered')
   # Show notes
   if $(this).data('toggle') == 'popover' && $(this).is(':checked')
     $('.jFileTag').not(this).popover('hide')
@@ -38,7 +39,8 @@ $(document).on 'change', '.jFileTag', (e) ->
   else
     $('.jConsentFormCoC').hide()
 
-$('.jFileTag').trigger('change')
+$(document).ready ->
+  $('.jFileTag:checked').trigger('change')
 
 $(document).on 'change', '.jDownload', (e) ->
   ids = $('.jDownload:checked').map ->
