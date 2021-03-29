@@ -13,7 +13,6 @@ $('.jThumb').each (e) ->
     $(thumb).html(link)
 
 $(document).on 'change', '.jFileTag', (e) ->
-  console.log('triggered')
   # Show notes
   if $(this).data('toggle') == 'popover' && $(this).is(':checked')
     $('.jFileTag').not(this).popover('hide')
