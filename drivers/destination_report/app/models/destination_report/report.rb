@@ -33,6 +33,10 @@ module DestinationReport
         viewable_by(user).exists?
     end
 
+    def can_see_client_details?(user)
+      user.can_access_some_version_of_clients?
+    end
+
     def self.url
       'destination_report/warehouse_reports/destination_report'
     end

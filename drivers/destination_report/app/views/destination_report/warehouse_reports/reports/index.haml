@@ -21,9 +21,8 @@
       %h1.mb-5= title
       .mb-4= render 'hero_counts'
       .main-inner-prs1
-        - if false
-          .text-right.mb-4
-            = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: destination_report_warehouse_reports_destination_reports_path({format: :xlsx}.merge(@filter.for_params))
+        .text-right.mb-4
+          = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: destination_report_warehouse_reports_reports_path({format: :xlsx}.merge(@filter.for_params))
         .row
           - reports.each_with_index do |report, index|
             - comparison_class = ''
@@ -41,8 +40,9 @@
                           %th.text-center= destination
                     %tbody
                       %tr
-                        - data.each do |_, ids|
-                          %th.text-center= number_with_delimiter(ids.count)
+                        - data.each do |key, ids|
+                          %th.text-center
+                            = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(ids.count), details_destination_report_warehouse_reports_reports_path(report.filter.for_params.deep_merge(key: "destination_#{key}_population_universe", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               - report.data_for_destinations[:by_coc].each do |coc_code, data|
                 .mb-4
                   %h3= coc_code
