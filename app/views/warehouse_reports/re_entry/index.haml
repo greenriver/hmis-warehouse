@@ -4,27 +4,24 @@
 = render '/warehouse_reports/breadcrumbs'
 
 = render 'filter'
-= render 'warehouse_reports/limited_by_project_note'
-
 - if @enrollments.any?
-
-  .row
-    .col.text-right
-      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-        Download Excel
-  .row
-    .col-sm-12
+  .d-flex
+    .mr-2
       %p
-        Clients re-entered homelessness between
+        Clients re-entered homelessness (ES, SO, SH, or TH) between
         = @filter.start
         and
         = @filter.end
         after a break of 60 days or more.
+        %br
+        This report was built to provide supporting details to the "Entry and Re-Entry" section of the Population Dashboards.
       %p
         The following #{pluralize(@enrollments.distinct.select(:client_id).count, 'client')} had #{@enrollments.count} re-entries between #{@filter.start} and #{@filter.end}.
-      %p
-        = render 'common/population_warnings'
-
+    .ml-auto
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+        Download Excel
+  = render 'common/population_warnings'
+  = render 'warehouse_reports/limited_by_project_note'
   %table.table.table-condensed.table-hover
     %thead
       %tr

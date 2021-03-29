@@ -7,23 +7,26 @@
 
 = render 'filter'
 
-.row
-  .col-sm-12.text-right
+%h3 Summary
+.d-flex
+  %p
+    This report was built to provide supporting details to the "Exiters" and Exits to Permanent Housing" sections of the Population Dashboards.
+    %br
+    The following exit details are for clients who exited from the selected project types between
+    = @filter.start
+    and
+    = "#{@filter.end}."
+
+    %br
+    During that time there were
+    = @clients.count
+    exits consisting of
+    #{pluralize(@clients.map{ |row| row[:client_id]}.uniq.count, 'unique client')}.
+  .ml-auto.mb-2
     - if can_view_clients?
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
-
-%h3 Summary
-%p
-  The following is exit data for clients who exited homelessness between
-  = @filter.start
-  and
-  = "#{@filter.end}."
-  During that time there were
-  = @clients.count
-  exits consisting of
-  #{pluralize(@clients.map{ |row| row[:client_id]}.uniq.count, 'unique client')}.
-  = render 'common/population_warnings'
+= render 'common/population_warnings'
 = render 'warehouse_reports/limited_by_project_note'
 %table.table.table-sm.table-hover
   %thead
