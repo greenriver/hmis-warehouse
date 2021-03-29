@@ -6,6 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2020
   class Base < ::HudReports::QuestionBase
+    include ArelHelper
     include HudReports::Util
     include HudReports::Clients
     include HudReports::Ages
