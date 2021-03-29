@@ -22,36 +22,37 @@
         Download Excel
   = render 'common/population_warnings'
   = render 'warehouse_reports/limited_by_project_note'
-  %table.table.table-condensed.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Veteran Status
-        %th Entry Date
-        %th Project Type
-        %th Project
-        %th Organization
-        %th Days Since Previous Exit
-        %th Previous Project Type
-        %th Previous Destination
-    %tbody
-      - @enrollments.each do |enrollment|
-        - client = enrollment.client
-        - re_entry = @re_entries[enrollment.id]
+  .card
+    %table.mb-0.table.table-striped
+      %thead
         %tr
-          %td
-            %nobr= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
-          %td
-            %nobr= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
-          %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
-          %td= enrollment.first_date_in_program
-          %td= HUD.project_type enrollment.computed_project_type
-          %td= enrollment.project_name
-          %td= enrollment.organization.try(:OrganizationName)
-          %td= re_entry.days_since_last_exit
-          %td= HUD.project_type re_entry.prior_exit_project_type
-          %td= HUD.destination re_entry.prior_exit_destination_id
+          %th Last Name
+          %th First Name
+          %th Veteran Status
+          %th Entry Date
+          %th Project Type
+          %th Project
+          %th Organization
+          %th Days Since Previous Exit
+          %th Previous Project Type
+          %th Previous Destination
+      %tbody
+        - @enrollments.each do |enrollment|
+          - client = enrollment.client
+          - re_entry = @re_entries[enrollment.id]
+          %tr
+            %td
+              %nobr= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
+            %td
+              %nobr= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
+            %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
+            %td= enrollment.first_date_in_program
+            %td= HUD.project_type enrollment.computed_project_type
+            %td= enrollment.project_name
+            %td= enrollment.organization.try(:OrganizationName)
+            %td= re_entry.days_since_last_exit
+            %td= HUD.project_type re_entry.prior_exit_project_type
+            %td= HUD.destination re_entry.prior_exit_destination_id
 
 - else
   %p.text-center No clients found

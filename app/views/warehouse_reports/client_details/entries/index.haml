@@ -26,12 +26,12 @@
 = render 'warehouse_reports/limited_by_project_note'
 
 - @buckets.each do |group, clients|
-  .row.mb-1
-    .col-sm-12
-      %h3
-        = @data[group][:label]
-        = "(#{clients.count})"
-      %table.table
+  .mb-1
+    %h3
+      = @data[group][:label]
+      = "(#{clients.count})"
+    .card
+      %table.mb-0.table
         %thead
           %tr
             %th
@@ -47,16 +47,17 @@
             %th
               Organization
         %tbody
-          - clients.each do |client_id|
+          - clients.each_with_index do |client_id, i|
             - meta = @enrollments[client_id].first
             - enrollments = @enrollments[client_id]
-            %tr
+            - odd_class = if i % 2 == 0 then 'odd' else 'even' end
+            %tr{class: odd_class}
               %td{rowspan: enrollments.count + 1}
                 = link_to_if can_view_clients_or_window?, "#{meta[:first_name]} #{meta[:last_name]}", appropriate_client_path(client_id)
             - enrollments.each_with_index do |enrollment, index|
               - highlight = ''
               - highlight = 'warehouse-reports__enrollment-highlighted' if index == 0
-              %tr{class: highlight}
+              %tr{class: [highlight, odd_class]}
                 %td
                   = enrollment[:first_date_in_program]
                 %td
