@@ -45,7 +45,7 @@ module ClaimsReporting
     end
 
     def source_report
-      ClaimsReporting::EngagementReport.new(claim_date_range: options['start_date'].to_date..options['end_date'].to_date)
+      ClaimsReporting::EngagementReport.new(enrollment_roster: ClaimsReporting::MemberEnrollmentRoster)
     end
 
     def calculate
@@ -77,12 +77,12 @@ module ClaimsReporting
       s = summary(cohort)
       # we calculate utilization in terms of n_claims per year per 1000 members
       n_members = d['n_members'].to_f
-      years = if cohort.to_s.starts_with('engaged_for')
-        s[:engaged_days].to_f
-      elsif cohort.to_s.starts_with('pre_engaged')
-        s[:pre_engagement_days].to_f
+      years = if cohort.to_s.starts_with?('engaged_for')
+        s['engaged_days'].to_f
+      elsif cohort.to_s.starts_with?('pre_engaged')
+        s['pre_engagement_days'].to_f
       else
-        s[:span_mem_days].to_f
+        s['span_mem_days'].to_f
       end / 365
       d['utilization'] = ((d['n_claims'].to_f * 1000 / n_members) / years if years.positive? && n_members.positive?)
 
@@ -101,13 +101,9 @@ module ClaimsReporting
 
     def cohorts
       {
-        total_population: {
-          scope: ClaimsReporting::MemberEnrollmentRoster.all,
-          title: 'Total Population',
-        },
         pre_engaged: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(0..0),
-          title: 'Assigned-Not-Engaged',
+          title: 'Pre-engaged',
         },
         engaged_6_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(1..180),

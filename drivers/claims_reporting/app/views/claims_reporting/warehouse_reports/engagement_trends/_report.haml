@@ -13,7 +13,7 @@
         %tr
           %th= summary_field.gsub('$PMPM','$PMPM¹')
           - @report.cohorts.each do |corhort_id, cohort|
-            %td.text-right= @report.summary(corhort_id)[summary_field.to_s]
+            %td.text-right= f.format_i @report.summary(corhort_id)[summary_field.to_s]
 .card.mb-4
   - cohorts_with_data = @report.cohorts.except(:pre_assigned, :not_assigned)
   %table.table.table-sm.table-striped.table-bordered.mb-0
