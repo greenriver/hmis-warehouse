@@ -52,11 +52,10 @@ module ClaimsReporting
       self.results = {}
       cohorts.each do |population, cohort|
         report = ClaimsReporting::EngagementReport.new(
-          member_roster: cohort[:scope],
-          claim_date_range: options['start_date'].to_date..options['end_date'].to_date,
+          enrollment_roster: cohort[:scope],
         )
         results[population] = {
-          summary: report.summary_rows,
+          summary: report.selection_summary,
           detail: report.engagement_rows,
         }
       end
@@ -75,9 +74,16 @@ module ClaimsReporting
         rollup.to_s == result['cde_cos_rollup'].to_s && category.to_s == result['cde_cos_category'].to_s
       end || {}
 
+      s = summary(cohort)
       # we calculate utilization in terms of n_claims per year per 1000 members
-      years = d['claim_years'].to_f
       n_members = d['n_members'].to_f
+      years = if cohort.to_s.starts_with('engaged_for')
+        s[:engaged_days].to_f
+      elsif cohort.to_s.starts_with('pre_engaged')
+        s[:pre_engagement_days].to_f
+      else
+        s[:span_mem_days].to_f
+      end / 365
       d['utilization'] = ((d['n_claims'].to_f * 1000 / n_members) / years if years.positive? && n_members.positive?)
 
       d
@@ -96,31 +102,27 @@ module ClaimsReporting
     def cohorts
       {
         total_population: {
-          scope: ClaimsReporting::MemberRoster.all,
+          scope: ClaimsReporting::MemberEnrollmentRoster.all,
           title: 'Total Population',
         },
-        pre_assigned: {
-          scope: ClaimsReporting::MemberRoster.pre_assigned,
-          title: 'Not Enrolled',
-        },
         pre_engaged: {
-          scope: ClaimsReporting::MemberRoster.pre_engaged,
+          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(0..0),
           title: 'Assigned-Not-Engaged',
         },
         engaged_6_months: {
-          scope: ClaimsReporting::MemberRoster.engaged_for(1..180),
+          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(1..180),
           title: 'Engaged 0-6 Months',
         },
         engaged_12_months: {
-          scope: ClaimsReporting::MemberRoster.engaged_for(181..365),
+          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(181..365),
           title: 'Engaged 7-12 Months',
         },
         engaged_24_months: {
-          scope: ClaimsReporting::MemberRoster.engaged_for(366..730),
+          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(366..730),
           title: 'Engaged 1-2 Years',
         },
         engaged_24_months_or_more: {
-          scope: ClaimsReporting::MemberRoster.engaged_for(731..Float::INFINITY),
+          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(731..Float::INFINITY),
           title: 'Engaged 2+ years',
         },
       }.freeze

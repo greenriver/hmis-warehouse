@@ -19,19 +19,24 @@ module ClaimsReporting
     end
 
     def initialize(
-      member_roster: ClaimsReporting::MemberRoster.all,
+      enrollment_roster: nil,
+      member_roster: nil,
       claim_date_range: nil
     )
-      @member_roster = member_roster
+      if enrollment_roster.present?
+        raise ArgumentError, 'member_roster or enrollment_roster not both' if member_roster
 
-      @claim_date_range = claim_date_range || self.class.max_date_range
-
-      @medical_claims = ClaimsReporting::MedicalClaim.where(
-        service_start_date: @claim_date_range,
-      )
-      @rx_claims = ClaimsReporting::RxClaim.where(
-        service_start_date: @claim_date_range,
-      )
+        @enrollment_roster = ClaimsReporting::MemberEnrollmentRoster.where(id: enrollment_roster.select(:id))
+        @member_roster = ClaimsReporting::MemberRoster.where(member_id: enrollment_roster.select(:member_id))
+        @medical_claims = ClaimsReporting::MedicalClaim.where(
+          id: enrollment_roster.select(ClaimsReporting::MedicalClaim.arel_table[:id]),
+        )
+        @claim_date_range = @medical_claims.minimum(:service_start_date) .. @medical_claims.maximum(:service_start_date)
+      else
+        @claim_date_range = claim_date_range
+        raise 'FIXME'
+      end
+      @rx_claims = ClaimsReporting::RxClaim.none # TBD
     end
 
     # Member classification bits from Milliman
@@ -80,13 +85,15 @@ module ClaimsReporting
                               mrt[:member_id].count(true).as('selected_members'),
                               Arel.sql(%[SUM(CASE WHEN sex = 'Female' THEN 1 ELSE 0 END)]).as('selected_females'),
                               Arel.sql(%[AVG(ABS(EXTRACT(YEAR FROM AGE(date_of_birth, #{connection.quote roster_as_of}))))]).as('average_age'),
-                              Arel.sql(%[AVG(NULLIF(raw_dxcg_risk_score,'')::decimal)]).as('average_raw_dxcg_score'),
+                              Arel.sql(%[AVG(NULLIF(raw_dxcg_risk_score,'')::numeric)]).as('average_raw_dxcg_score'),
                             ), 'member_summary').with_indifferent_access
     end
 
     private def enrollment_summary
       connection.select_one(selected_enrollments.select(
                               Arel.sql(%[SUM(span_mem_days)]).as('span_mem_days'),
+                              Arel.sql(%[SUM(pre_engagement_days)]).as('pre_engagement_days'),
+                              Arel.sql(%[SUM(engaged_days)]).as('engaged_days'),
                             ), 'enrollment_summary').with_indifferent_access
     end
 
@@ -219,30 +226,21 @@ module ClaimsReporting
         )
       ]).as('n_claims')
 
-      n_admits = Arel.sql(%[
-        NULLIF(
-          COUNT(DISTINCT
-            CASE WHEN admit_date IS NOT NULL THEN CONCAT(#{sql_member_id}, admit_date) END
-          ), 0
-        )
-      ]).as('admit_date')
+      # n_admits = Arel.sql(%[
+      #   NULLIF(
+      #     COUNT(DISTINCT
+      #       CASE WHEN admit_date IS NOT NULL THEN CONCAT(#{sql_member_id}, admit_date) END
+      #     ), 0
+      #   )
+      # ]).as('admit_date')
 
-      # TODO: Is it fair to assume that we have the full report years
-      # history for all members? when we are figuring cost
-      #
-      #
-      # enrolled_days = Arel.sql(%[
-      #   0
-      # ]).as('enrolled_days')
-      claim_years = Arel.sql(report_years.to_s).as('claim_years')
-
-      avg_length_of_stay = Arel.sql("ROUND(AVG(
-        CASE
-          WHEN discharge_date-admit_date < #{engagement_span.min} THEN NULL
-          WHEN discharge_date-admit_date > #{engagement_span.max} THEN NULL
-          ELSE discharge_date-admit_date
-        END
-      ))").as('avg_length_of_stay')
+      # avg_length_of_stay = Arel.sql("ROUND(AVG(
+      #   CASE
+      #     WHEN discharge_date-admit_date < #{engagement_span.min} THEN NULL
+      #     WHEN discharge_date-admit_date > #{engagement_span.max} THEN NULL
+      #     ELSE discharge_date-admit_date
+      #   END
+      # ))").as('avg_length_of_stay')
 
       n_members = Arel.sql(sql_member_count.to_s).as('n_members')
 
@@ -257,11 +255,8 @@ module ClaimsReporting
         Arel.sql(%[COALESCE(cde_cos_rollup,'Unclassified')]).as('cde_cos_rollup'),
         Arel.sql(%[COALESCE(cde_cos_category,'Unclassified')]).as('cde_cos_category'),
         n_members,
-        claim_years,
         n_claims,
-        n_admits,
         paid_amount_sum,
-        avg_length_of_stay,
       ).order('1 ASC NULLS FIRST,2 ASC NULLS FIRST')
     end
 
@@ -373,9 +368,7 @@ module ClaimsReporting
     end
 
     private def selected_enrollments
-      ClaimsReporting::MemberEnrollmentRoster.where(
-        member_id: selected_medical_claims.select(:member_id),
-      )
+      @enrollment_roster
     end
 
     private def selected_medical_claims

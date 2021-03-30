@@ -51,7 +51,7 @@ module ClaimsReporting
     end
 
     scope :engaged_for, ->(range) do
-      engaged.where(member_id: enrolled.having(nf('sum', [arel_table[:engaged_days]]).between(range)).
+      where(member_id: enrolled.having(nf('sum', [arel_table[:engaged_days]]).between(range)).
         group(:member_id).select(:member_id))
     end
 
