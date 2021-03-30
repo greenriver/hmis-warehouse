@@ -154,7 +154,8 @@ module ClaimsReporting
           next unless date
 
           enrollment.first_claim_date = date
-          enrollment.pre_engagement_days = ([enrollment.engagement_date, enrollment.span_start_date, Date.current].compact.min - date).to_i
+          # Ignore any days before the first claim if it happens after the engagement date
+          enrollment.pre_engagement_days = ([enrollment.engagement_date, enrollment.span_start_date, Date.current].compact.min - [date, enrollment.span_start_date].min).to_i
           batch << enrollment
         end
       self.class.transaction do
