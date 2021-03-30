@@ -8,6 +8,30 @@ module ClaimsReporting
                class_name: 'ClaimsReporting::MemberRoster'
     has_many :medical_claims, primary_key: 'member_id', foreign_key: 'member_id', class_name: 'ClaimsReporting::MedicalClaim'
 
+    has_many :engaged_claims, -> do
+      h_mer_t = ClaimsReporting::MemberEnrollmentRoster.arel_table
+      h_mc_t = ClaimsReporting::MedicalClaim.arel_table
+      where(
+        h_mer_t[:engagement_date].not_eq(nil).
+        and(
+          h_mc_t[:service_start_date].gteq(h_mer_t[:engagement_date]).
+          and(h_mc_t[:service_start_date].lt(cl(h_mer_t[:span_end_date], Date.current))),
+        ),
+      )
+      # where(['engagement_date is not null and service_start_date between (engagement_date and coalesce(span_end_date, ?))', Date.current])
+    end, primary_key: 'member_id', foreign_key: 'member_id', class_name: 'ClaimsReporting::MedicalClaim'
+
+    has_many :pre_engaged_claims, -> do
+      h_mer_t = ClaimsReporting::MemberEnrollmentRoster.arel_table
+      h_mc_t = ClaimsReporting::MedicalClaim.arel_table
+      where(
+        h_mc_t[:service_start_date].gteq(h_mer_t[:span_start_date]).
+        and(h_mc_t[:service_start_date].lt(cl(h_mer_t[:engagement_date], h_mer_t[:span_end_date], Date.current))),
+      )
+      # TODO: include time before enrollment
+      # where(['service_start_date between (span_start_date and coalesce(engagement_date, span_end_date, ?))', Date.current])
+    end, primary_key: 'member_id', foreign_key: 'member_id', class_name: 'ClaimsReporting::MedicalClaim'
+
     include ClaimsReporting::CsvHelpers
 
     scope :unprocessed_engagement, -> do
@@ -116,6 +140,24 @@ module ClaimsReporting
           end
       end
       @engagement_claims_for[medicaid_id]
+    end
+
+    def maintain_first_claim_date!
+      batch = []
+      self.class.distinct_on(:member_id).
+        order(member_id: :asc, span_start_date: :asc).each do |enrollment|
+          enrollment.first_claim_date = min_claim_date_for(enrollment.member_id)
+          batch << enrollment
+        end
+      self.class.transaction do
+        self.class.update_all(first_claim_date: nil)
+        self.class.import(batch, on_duplicate_key_update: [:first_claim_date])
+      end
+    end
+
+    private def min_claim_date_for(medicaid_id)
+      @min_claim_date_for ||= ClaimsReporting::MedicalClaim.group(:member_id).minimum(:service_start_date)
+      @min_claim_date_for[medicaid_id]
     end
   end
 end

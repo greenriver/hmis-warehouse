@@ -50,6 +50,8 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
+    active_record_distinct_on (1.0.0)
+      activerecord (>= 5.2, < 6.2)
     active_record_extended (1.4.0)
       activerecord (>= 5.0, < 6.1)
       ar_outer_joins (~> 0.2)
@@ -799,6 +801,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  active_record_distinct_on
   active_record_extended (~> 1.4.0)
   active_record_query_trace
   activerecord-import
@@ -969,4 +972,4 @@ DEPENDENCIES
   with_advisory_lock
 
 BUNDLED WITH
-   2.2.6
+   2.2.11

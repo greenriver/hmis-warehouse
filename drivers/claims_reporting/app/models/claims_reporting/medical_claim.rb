@@ -35,6 +35,10 @@ module ClaimsReporting
       )
     end
 
+    scope :paid, -> do
+      where(patient_status: 'P')
+    end
+
     def self.service_overlaps(date_range)
       where ["daterange(service_start_date, service_end_date, '[]') && daterange(:min, :max, '[]')", { min: date_range.min, max: date_range.max }]
     end
