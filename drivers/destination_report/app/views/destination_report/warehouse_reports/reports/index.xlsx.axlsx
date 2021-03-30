@@ -1,0 +1,73 @@
+reports = [@report]
+if @report.include_comparison?
+  reports << @comparison
+end
+wb = xlsx_package.workbook
+wb_styles = wb.styles
+report_style = wb_styles.add_style({ border: { style: :thick, color: '00918C', edges: [:left] } })
+comparison_style = wb_styles.add_style({ border: { style: :thick, color: 'FFA600', edges: [:left] } })
+header_style = wb_styles.add_style({ sz: 14 })
+th_style = wb_styles.add_style(
+  {
+    bg_color: '81adb9',
+    b: true,
+    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
+  }
+)
+wb_styles.add_style(
+  {
+    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
+  }
+)
+wb.add_worksheet(name: 'Report Info') do |sheet|
+  sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.add_row(
+    [
+      'Destination Report',
+    ],
+    style: header_style,
+  )
+  @filter.selected_params_for_display.each do |title, value|
+    value = value.join(', ') if value.is_a?(Array)
+    sheet.add_row(
+      [
+        "#{title}:",
+        value,
+      ],
+      style: [th_style, nil],
+    )
+  end
+end
+wb.add_worksheet(name: 'Data') do |sheet|
+  sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
+  @report.class.data_for_export(reports).each_with_index do |(title, row), index|
+    if index.zero?
+      style = []
+    elsif index.positive?
+      if reports.count > 1
+        if title.starts_with?('_')
+          title = ''
+          style = [nil, report_style, nil, nil, nil, nil, nil, comparison_style, nil, nil, nil, nil, nil]
+        else
+          style = [th_style, report_style, nil, nil, nil, nil, nil, comparison_style, nil, nil, nil, nil, nil]
+        end
+      else
+        style = [th_style, nil]
+      end
+      if title.starts_with?('*')
+        title = title.sub('*', '')
+        style = Array.new(12, th_style)
+      elsif title.starts_with?('_')
+        title = ''
+      end
+    end
+
+    sheet.add_row(
+      [
+        title,
+        *row,
+      ],
+      style: style,
+    )
+  end
+end
