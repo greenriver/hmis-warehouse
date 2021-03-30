@@ -54,6 +54,12 @@ every 5.minutes do
   rake 'reporting:frequent'
 end
 
+if ENV['ECS'] == 'true'
+  every 2.minutes do
+    rake 'jobs:arbitrate_workoff'
+  end
+end
+
 every 4.hours do
   # Defers to delayed jobs
   rake "grda_warehouse:save_service_history_snapshots"
