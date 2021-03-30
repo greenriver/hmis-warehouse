@@ -20,21 +20,18 @@ class UniqUniverseMemberships < ActiveRecord::Migration[5.2]
     deletion = Date.current.to_time
     HudReports::UniverseMember.where(id: duplicate_ids).update(deleted_at: deletion) if duplicate_ids.size.positive?
 
-    cells_with_duplicates.each do |cell_id|
-      HudReports::UniverseMember.where(report_cell_id: cell_id)
-    end
-
-    HudReports::UniverseMember.where.not(id:
-      HudReports::UniverseMember.
-        group(:report_cell_id, :universe_membership_id, :universe_membership_type).
-        select('max(id)'),
-    ).delete_all
-
     if index_exists? :hud_report_universe_members, [:report_cell_id]
       remove_index :hud_report_universe_members, column: [:report_cell_id]
     end
     add_index :hud_report_universe_members, [:report_cell_id, :universe_membership_id, :universe_membership_type],
       unique: true,
-      name: 'uniq_hud_report_universe_members'
+      name: 'uniq_hud_report_universe_members',
+      where: 'deleted_at IS NULL'
+  end
+
+  def down
+    if index_exists? hud_report_universe_members, [:report_cell_id, :universe_membership_id, :universe_membership_type]
+      remove_index :hud_report_universe_members, name: :uniq_hud_report_universe_members
+    end
   end
 end
