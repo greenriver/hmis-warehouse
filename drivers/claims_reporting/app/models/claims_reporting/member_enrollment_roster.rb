@@ -46,8 +46,12 @@ module ClaimsReporting
       where(member_id: ::Health::PatientReferral.select(:medicaid_id))
     end
 
+    scope :engaged, -> do
+      where.not(engagement_date: nil)
+    end
+
     scope :engaged_for, ->(range) do
-      where(member_id: enrolled.having(nf('sum', [arel_table[:engaged_days]]).between(range)).
+      engaged.where(member_id: enrolled.having(nf('sum', [arel_table[:engaged_days]]).between(range)).
         group(:member_id).select(:member_id))
     end
 
