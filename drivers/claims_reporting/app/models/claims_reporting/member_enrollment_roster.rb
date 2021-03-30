@@ -150,12 +150,16 @@ module ClaimsReporting
       batch = []
       self.class.distinct_on(:member_id).
         order(member_id: :asc, span_start_date: :asc).each do |enrollment|
-          enrollment.first_claim_date = min_claim_date_for(enrollment.member_id)
+          date = min_claim_date_for(enrollment.member_id)
+          next unless date
+
+          enrollment.first_claim_date = date
+          enrollment.pre_engagement_days = ([enrollment.engagement_date, enrollment.span_start_date, Date.current].compact.min - date).to_i
           batch << enrollment
         end
       self.class.transaction do
-        self.class.update_all(first_claim_date: nil)
-        self.class.import(batch, on_duplicate_key_update: [:first_claim_date])
+        self.class.update_all(first_claim_date: nil, pre_engagement_days: 0)
+        self.class.import(batch, on_duplicate_key_update: [:first_claim_date, :pre_engagement_days])
       end
     end
 

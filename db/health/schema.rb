@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_30_155241) do
+ActiveRecord::Schema.define(version: 2021_03_30_181230) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -529,6 +529,7 @@ ActiveRecord::Schema.define(version: 2021_03_30_155241) do
     t.integer "engaged_days"
     t.date "enrollment_end_at_engagement_calculation"
     t.date "first_claim_date"
+    t.integer "pre_engagement_days", default: 0
     t.index ["member_id", "span_start_date"], name: "unk_cr_member_enrollment_roster", unique: true
   end
 
