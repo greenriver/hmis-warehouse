@@ -61,7 +61,7 @@ class WorkoffArbiter
 
     ecs.run_task(payload)
 
-    @notifier.ping("Added a workoff worker. Metric was #{metric.round} with #{_current_worker_count} workers right now (this might include the just-created one).")
+    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
   end
 
   private
@@ -107,19 +107,19 @@ class WorkoffArbiter
   end
 
   def metric
-    @metric ||=
-      begin
-        # Get all non-failed, non-running jobs
-        scope = Delayed::Job.
-          select('created_at, priority, queue').
-          where(failed_at: nil, locked_at: nil, locked_by: nil)
-
-        scope.sum do |job|
-          # puts  "#{job.queue} job: 1 + #{priority_factor(job.priority)} + #{age_factor(job.created_at)}"
-          1 + priority_factor(job.priority) + age_factor(job.created_at)
-        end
-      end
+    @metric ||= _dj_scope.sum do |job|
+      # puts  "#{job.queue} job: 1 + #{priority_factor(job.priority)} + #{age_factor(job.created_at)}"
+      1 + priority_factor(job.priority) + age_factor(job.created_at)
+    end
   end
+
+  # Get all non-failed, non-running jobs
+  def _dj_scope
+    Delayed::Job.
+      select('created_at, priority, queue').
+      where(failed_at: nil, locked_at: nil, locked_by: nil)
+  end
+
 
   def _task_family
     _task_definition.split(%r{/}).last.split(/:/).first
@@ -128,7 +128,6 @@ class WorkoffArbiter
   def _task_definition
     ENV.fetch('WORKOFF_TASK_DEFINITION')
   end
-
 
   define_method(:ecs) { Aws::ECS::Client.new }
 end
