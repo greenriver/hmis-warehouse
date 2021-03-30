@@ -10,6 +10,8 @@ module ClaimsReporting
     extend Memoist
     attr_reader :member_roster, :rx_claims, :medical_claims, :claim_date_range
 
+    DAYS_PER_YEAR = 365.2422
+
     # The maximum possible date range
     # where we have claims data
     def self.max_date_range
@@ -59,7 +61,7 @@ module ClaimsReporting
     end
 
     def report_years
-      report_days / 365.2422
+      report_days / DAYS_PER_YEAR
     end
 
     def latest_payment_date
@@ -209,21 +211,30 @@ module ClaimsReporting
 
       sql_member_count = %[COUNT(DISTINCT #{sql_member_id})::numeric]
 
-      n_claims = Arel.sql(
-        %[NULLIF(
-            COUNT(DISTINCT
-              CASE WHEN claim_number IS NOT NULL THEN CONCAT(#{sql_member_id}, claim_number) END
-            ), 0
-          )],
-      ).as('n_claims')
+      n_claims = Arel.sql(%[
+        NULLIF(
+          COUNT(DISTINCT
+            CASE WHEN claim_number IS NOT NULL THEN CONCAT(#{sql_member_id}, claim_number) END
+          ), 0
+        )
+      ]).as('n_claims')
 
-      n_admits = Arel.sql(
-        %[NULLIF(
-            COUNT(DISTINCT
-              CASE WHEN admit_date IS NOT NULL THEN CONCAT(#{sql_member_id}, admit_date) END
-            ), 0
-          )],
-      ).as('admit_date')
+      n_admits = Arel.sql(%[
+        NULLIF(
+          COUNT(DISTINCT
+            CASE WHEN admit_date IS NOT NULL THEN CONCAT(#{sql_member_id}, admit_date) END
+          ), 0
+        )
+      ]).as('admit_date')
+
+      # TODO: Is it fair to assume that we have the full report years
+      # history for all members? when we are figuring cost
+      #
+      #
+      # enrolled_days = Arel.sql(%[
+      #   0
+      # ]).as('enrolled_days')
+      claim_years = Arel.sql(report_years.to_s).as('claim_years')
 
       avg_length_of_stay = Arel.sql("ROUND(AVG(
         CASE
@@ -233,16 +244,23 @@ module ClaimsReporting
         END
       ))").as('avg_length_of_stay')
 
+      n_members = Arel.sql(sql_member_count.to_s).as('n_members')
+
+      # TODO: paid_amount is frequently NULL even on paid claims.
+      # We likely need something like:
+      # http://info.commerce.ama-assn.org/procedure-price-lookup-licensing
+      paid_amount_sum = Arel.sql(%[SUM(COALESCE(paid_amount, 0))]).as('paid_amount_sum')
+
       selected_medical_claims.group(
         Arel.sql(%[ROLLUP(1,2)]),
       ).select(
         Arel.sql(%[COALESCE(cde_cos_rollup,'Unclassified')]).as('cde_cos_rollup'),
         Arel.sql(%[COALESCE(cde_cos_category,'Unclassified')]).as('cde_cos_category'),
-        Arel.sql(report_years.to_s).as('claim_years'),
-        Arel.sql(sql_member_count.to_s).as('n_members'),
+        n_members,
+        claim_years,
         n_claims,
         n_admits,
-        Arel.sql(%[SUM(COALESCE(paid_amount, 0))]).as('paid_amount_sum'),
+        paid_amount_sum,
         avg_length_of_stay,
       ).order('1 ASC NULLS FIRST,2 ASC NULLS FIRST')
     end
@@ -259,19 +277,7 @@ module ClaimsReporting
     def engagement_rows
       return [] unless selected_members&.positive? && report_years.positive?
 
-      connection.select_all claims_query.where(
-        cde_cos_category: [
-          'I-01 MED',
-          'I-01 SURG',
-          'I-01 BH',
-          'I-06',
-          'I-05',
-          'I-12',
-          'I-22',
-          'I-22',
-          'I-22',
-        ],
-      )
+      connection.select_all claims_query
     end
 
     COS_ROLLUPS = {

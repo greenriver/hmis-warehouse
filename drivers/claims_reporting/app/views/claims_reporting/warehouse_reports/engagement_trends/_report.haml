@@ -11,19 +11,22 @@
     %tbody
       - @report.summary_headers.each do |summary_field|
         %tr
-          %th= summary_field
+          %th= summary_field.gsub('$PMPM','$PMPM¹')
           - @report.cohorts.each do |corhort_id, cohort|
             %td.text-right= @report.summary(corhort_id)[summary_field.to_s]
-      %tr
-        %th
+.card.mb-4
+  - cohorts_with_data = @report.cohorts.except(:pre_assigned, :not_assigned)
+  %table.table.table-sm.table-striped.table-bordered.mb-0
+    %thead
       %tr
         %th
         %th.text-center{colspan: @report.cohorts.size}
           Utilization - events per 1000 members per year
       %tr
         %th Claim Categories
-        - @report.cohorts.each do |_, cohort|
+        - cohorts_with_data.each do |_, cohort|
           %th.text-center= cohort[:title]
+    %tbody
       - @report.detail_row_headers.group_by(&:first).each do |cos_rollup, rollup_rows|
         - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'AAAA'}.each_with_index do |row, idx|
           :ruby
@@ -32,12 +35,12 @@
             sentence_label = (category_label.presence || rollup_label).downcase.gsub(/all claims/,'total claims')
           - next unless idx.zero? || rollup_rows.size > 2
           %tr
-            - if row['cde_cos_category'].blank?
+            - if category_label.blank?
               %th{axis: :row}= rollup_label
             - else
               %td.pl-4{axis: :row}
                 = category_label
-            - @report.cohorts.each do |cohort_id, cohort|
+            - cohorts_with_data.each do |cohort_id, cohort|
               :ruby
                 d = @report.result_for(cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
                 cohort_phrase = cohort_id.to_s == 'total_population' ? 'members' : "members #{ cohort[:title].downcase }"
@@ -47,7 +50,7 @@
                 = f.format_i d['utilization']
 %p
   %b Notes:
-  %div ¹ "Total Paid" is currently based on paid_amount record which is frequently missing from the data.
+  %div ¹ "PMPM" is the per member per month total paid amount. It and "Total Paid" amounts are requently missing from the data.
 -# - unless Rails.env.production?
 -#   %details
 -#     %summary Query
