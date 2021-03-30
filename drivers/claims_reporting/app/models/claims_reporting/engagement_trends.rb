@@ -76,15 +76,15 @@ module ClaimsReporting
 
       s = summary(cohort)
       # we calculate utilization in terms of n_claims per year per 1000 members
-      n_members = d['n_members'].to_f
-      years = if cohort.to_s.starts_with?('engaged_for')
+      member_years = if cohort.to_s.starts_with?('engaged_for')
         s['engaged_days'].to_f
       elsif cohort.to_s.starts_with?('pre_engaged')
         s['pre_engagement_days'].to_f
       else
         s['span_mem_days'].to_f
       end / 365
-      d['utilization'] = ((d['n_claims'].to_f * 1000 / n_members) / years if years.positive? && n_members.positive?)
+
+      d['utilization'] = d['n_claims'].to_f / member_years * 1000.0 if member_months.positive?
 
       d
     end
@@ -106,20 +106,24 @@ module ClaimsReporting
           title: 'Pre-engaged',
         },
         engaged_6_months: {
-          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(1..180),
-          title: 'Engaged 0-6 Months',
+          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(1..182),
+          title: 'Engaged <= 6 Months',
         },
         engaged_12_months: {
-          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(181..365),
+          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(183..365),
           title: 'Engaged 7-12 Months',
         },
+        engaged_18_months: {
+          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(366..547),
+          title: 'Engaged 13-18 Months',
+        },
         engaged_24_months: {
-          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(366..730),
-          title: 'Engaged 1-2 Years',
+          scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(548..730),
+          title: 'Engaged 19-24 Months',
         },
         engaged_24_months_or_more: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(731..Float::INFINITY),
-          title: 'Engaged 2+ years',
+          title: 'Engaged > 2 years',
         },
       }.freeze
     end

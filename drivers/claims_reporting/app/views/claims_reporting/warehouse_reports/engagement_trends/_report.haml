@@ -33,12 +33,12 @@
             rollup_label = report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
             category_label = report.cos_description(row['cde_cos_category']).presence || ''
             sentence_label = (category_label.presence || rollup_label).downcase.gsub(/all claims/,'total claims')
-          - next unless idx.zero? || rollup_rows.size > 2
           %tr
             - if category_label.blank?
               %th{axis: :row}= rollup_label
             - else
               %td.pl-4{axis: :row}
+                = row['cde_cos_category']
                 = category_label
             - cohorts_with_data.each do |cohort_id, cohort|
               :ruby
