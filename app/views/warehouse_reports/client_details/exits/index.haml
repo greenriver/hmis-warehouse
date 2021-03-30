@@ -7,65 +7,70 @@
 
 = render 'filter'
 
-.row
-  .col-sm-12.text-right
+%h3 Summary
+.d-flex
+  %p
+    The following exit details are for clients who exited from the selected project types between
+    = @filter.start
+    and
+    = "#{@filter.end}."
+
+    %br
+    During that time there were
+    = @clients.count
+    exits consisting of
+    #{pluralize(@clients.map{ |row| row[:client_id]}.uniq.count, 'unique client')}.
+    %br
+    This report was built to provide supporting details to the "Exiters" and Exits to Permanent Housing" sections of the Population Dashboards.
+  .ml-auto.mb-2
     - if can_view_clients?
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
-
-%h3 Summary
-%p
-  The following is exit data for clients who exited homelessness between
-  = @filter.start
-  and
-  = "#{@filter.end}."
-  During that time there were
-  = @clients.count
-  exits consisting of
-  #{pluralize(@clients.map{ |row| row[:client_id]}.uniq.count, 'unique client')}.
-  = render 'common/population_warnings'
+= render 'common/population_warnings'
 = render 'warehouse_reports/limited_by_project_note'
-%table.table.table-sm.table-hover
-  %thead
-    %tr
-      %th
-        Destination
-      %th
-        Count
-  %tbody
-    - @buckets.each do |destination_id, count|
-      %tr
-        %td
-          = HUD.destination(destination_id)
-        %td
-          = count
-  %tfoot
-    %tr
-      %th
-        Total
-      %th
-        = @buckets.values.sum
-- if can_view_clients?
-  %h3 Exit Details
-  %table.table.table-hover
+.card.mb-4
+  %table.mb-0.table.table-striped
     %thead
       %tr
         %th
-          Client
-        %th
-          Date
-        %th
           Destination
         %th
-          Exit From
+          Count
     %tbody
-      - @clients.each do |client|
+      - @buckets.each do |destination_id, count|
         %tr
           %td
-            = link_to_if can_view_clients_or_window?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(id: client[:client_id])
+            = HUD.destination(destination_id)
           %td
-            = client[:date]
-          %td
-            = HUD.destination(client[:destination])
-          %td
-            = client[:project_name]
+            = count
+    %tfoot
+      %tr
+        %th
+          Total
+        %th
+          = @buckets.values.sum
+- if can_view_clients?
+  %h3 Exit Details
+  .card
+    %table.mb-0.table.table-striped
+      %thead
+        %tr
+          %th
+            Client
+          %th
+            Date
+          %th
+            Destination
+          %th
+            Exit From
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td
+              = link_to_if can_view_clients_or_window?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(id: client[:client_id])
+            %td
+              = client[:date]
+            %td
+              = HUD.destination(client[:destination])
+            %td
+              = client[:project_name]

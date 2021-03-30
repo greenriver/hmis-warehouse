@@ -6,42 +6,44 @@
     %h1= title
 = render 'filter'
 
-.row
-  .col-sm-12.text-right.mb-2
+.d-flex
+  %p
+    = "The following #{@enrollments.count} clients with #{@enrollments.values.flatten(1).count} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
+    %br
+    This report was built to provide supporting details to the "Active Clients" section of the Population Dashboards.
+
+  .ml-auto.mb-2
     - if  can_view_clients?
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary', data: {toggle: :tooltip, title: 'Download includes the following additional fields: Length of Stay (to-date), Living Situation, Destination, Race, Ethnicity.'}}) do
         Download Excel
-%p
-  = "The following #{@enrollments.count} clients with #{@enrollments.values.flatten(1).count} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
-  = render 'common/population_warnings'
+= render 'common/population_warnings'
 = render 'warehouse_reports/limited_by_project_note'
 
-.row
-  .col-sm-12
-    %table.table.table-hover
-      %thead
-        %tr
-          %th
-            Client
-          %th
-            Project Type
-          %th
-            Project
-          %th
-            Entry Date
-          %th
-            Exit Date
-      %tbody
-        - @enrollments.each do |client_id, enrollments|
-          - enrollments.each do |enrollment|
-            %tr
-              %td
-                = link_to_if can_view_clients_or_window?, "#{enrollment[:first_name]} #{enrollment[:last_name]}", appropriate_client_path(id: client_id)
-              %td
-                = HUD.project_type(enrollment[:project_type])
-              %td
-                = enrollment[:project_name]
-              %td
-                = enrollment[:first_date_in_program]
-              %td
-                = enrollment[:last_date_in_program]
+.card
+  %table.mb-0.table.table-striped
+    %thead
+      %tr
+        %th
+          Client
+        %th
+          Project Type
+        %th
+          Project
+        %th
+          Entry Date
+        %th
+          Exit Date
+    %tbody
+      - @enrollments.each do |client_id, enrollments|
+        - enrollments.each do |enrollment|
+          %tr
+            %td
+              = link_to_if can_view_clients_or_window?, "#{enrollment[:first_name]} #{enrollment[:last_name]}", appropriate_client_path(id: client_id)
+            %td
+              = HUD.project_type(enrollment[:project_type])
+            %td
+              = enrollment[:project_name]
+            %td
+              = enrollment[:first_date_in_program]
+            %td
+              = enrollment[:last_date_in_program]
