@@ -23,7 +23,7 @@ wb.add_worksheet(name: 'Report Info') do |sheet|
   sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
-      _('Destination Report'),
+      _('Prior Living Situation Report'),
     ],
     style: header_style,
   )
@@ -47,9 +47,9 @@ wb.add_worksheet(name: 'Data') do |sheet|
       if reports.count > 1
         if title.starts_with?('_')
           title = ''
-          style = [nil, report_style, nil, nil, nil, nil, comparison_style, nil, nil, nil, nil]
+          style = [nil, report_style, nil, nil, nil, comparison_style, nil, nil, nil]
         else
-          style = [th_style, report_style, nil, nil, nil, nil, comparison_style, nil, nil, nil, nil]
+          style = [th_style, report_style, nil, nil, nil, comparison_style, nil, nil, nil]
         end
       else
         style = [th_style, nil]
