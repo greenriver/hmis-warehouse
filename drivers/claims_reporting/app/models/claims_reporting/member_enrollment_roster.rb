@@ -25,10 +25,10 @@ module ClaimsReporting
       h_mer_t = ClaimsReporting::MemberEnrollmentRoster.arel_table
       h_mc_t = ClaimsReporting::MedicalClaim.arel_table
       where(
-        h_mc_t[:service_start_date].gteq(h_mer_t[:span_start_date]).
+        # Include claims that occurred before the first enrollment, or within any enrollment before the engagement date
+        h_mc_t[:service_start_date].gteq(cl(h_mer_t[:first_claim_date], h_mer_t[:span_start_date])).
         and(h_mc_t[:service_start_date].lt(cl(h_mer_t[:engagement_date], h_mer_t[:span_end_date], Date.current))),
       )
-      # TODO: include time before enrollment
       # where(['service_start_date between (span_start_date and coalesce(engagement_date, span_end_date, ?))', Date.current])
     end, primary_key: 'member_id', foreign_key: 'member_id', class_name: 'ClaimsReporting::MedicalClaim'
 
