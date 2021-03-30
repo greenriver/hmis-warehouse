@@ -26,19 +26,18 @@ module GrdaWarehouse
     validate :note_if_other
     mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
 
-    validates_presence_of :expiration_date, on: :requires_expiration_date
-    validates_presence_of :effective_date, on: :requires_effective_date
+    validates_presence_of :expiration_date, on: :requires_expiration_date, message: 'Expiration date is required'
+    validates_presence_of :effective_date, on: :requires_effective_date, message: 'Effective date is required'
 
     # because Rails cannot supply two contexts at once
-    validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates
-    validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates
-
+    validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates, message: 'Effective date is required'
+    validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates, message: 'Expiration date is required'
 
     scope :window, -> do
       where(visible_in_window: true)
     end
 
-    scope :visible_by?, -> (user) do
+    scope :visible_by?, ->(user) do
       # If you can see all client files, show everything
       if user.can_manage_client_files?
         current_scope
@@ -46,33 +45,25 @@ module GrdaWarehouse
       #   show those with full releases and those you uploaded
       elsif user.can_manage_window_client_files? || user.can_use_separated_consent?
         sql = arel_table[:client_id].in(
-          Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)
-        ).
-        or(arel_table[:user_id].eq(user.id))
+          Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql),
+        ).or(arel_table[:user_id].eq(user.id))
 
-        if GrdaWarehouse::Config.get(:consent_visible_to_all)
-          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
-        end
-        if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
-          sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql)))
-        end
+        sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))) if GrdaWarehouse::Config.get(:consent_visible_to_all)
+        sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))) if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
+
         window.where(sql)
       # You can only see files you uploaded
       elsif user.can_see_own_file_uploads? || user.can_use_separated_consent?
         sql = arel_table[:user_id].eq(user.id)
-        if GrdaWarehouse::Config.get(:consent_visible_to_all)
-          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
-        end
-        if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
-          sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql)))
-        end
+        sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))) if GrdaWarehouse::Config.get(:consent_visible_to_all)
+        sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))) if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
         where(sql)
       else
         none
       end
     end
 
-    scope :editable_by?, -> (user) do
+    scope :editable_by?, ->(user) do
       # If you can see all client files, show everything
       if user.can_manage_client_files?
         current_scope
@@ -89,24 +80,26 @@ module GrdaWarehouse
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
       consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name)
+        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
       ).pluck(:id)
       consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
-        where(taggable_type: "GrdaWarehouse::File").
+        where(taggable_type: 'GrdaWarehouse::File').
         pluck(:taggable_id)
-      self.where(id: consent_form_tagging_ids)
+
+      where(id: consent_form_tagging_ids)
     end
 
     scope :non_consent, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
       consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name)
+        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
       ).pluck(:id)
       consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
-        where(taggable_type: "GrdaWarehouse::File").
+        where(taggable_type: 'GrdaWarehouse::File').
         pluck(:taggable_id)
-      self.where.not(id: consent_form_tagging_ids)
+
+      where.not(id: consent_form_tagging_ids)
     end
 
     scope :non_cache, -> do
@@ -117,12 +110,13 @@ module GrdaWarehouse
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
       verified_homeless_history_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.verified_homeless_history.pluck(:name)
+        name: GrdaWarehouse::AvailableFileTag.verified_homeless_history.pluck(:name),
       ).pluck(:id)
       verified_homeless_history_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: verified_homeless_history_tag_ids).
-        where(taggable_type: "GrdaWarehouse::File").
+        where(taggable_type: 'GrdaWarehouse::File').
         pluck(:taggable_id)
-      self.where(id: verified_homeless_history_tagging_ids)
+
+      where(id: verified_homeless_history_tagging_ids)
     end
 
     scope :confirmed, -> do
@@ -133,7 +127,7 @@ module GrdaWarehouse
       where(consent_form_confirmed: [false, nil])
     end
 
-    scope :signed_on, -> (date) do
+    scope :signed_on, ->(date) do
       where(consent_form_signed_on: date)
     end
 
@@ -150,7 +144,7 @@ module GrdaWarehouse
       tagged_with(GrdaWarehouse::AvailableFileTag.notification_triggers.pluck(:name), any: true)
     end
 
-    scope :for_coc, -> (coc_codes) do
+    scope :for_coc, ->(coc_codes) do
       coc_codes = Array.wrap(coc_codes) + [nil, '']
       where(coc_codes: coc_codes)
     end
@@ -173,6 +167,7 @@ module GrdaWarehouse
     def editable_by?(user)
       return true if user.can_manage_client_files?
       return true if (user.can_manage_window_client_files? || user.can_see_own_file_uploads?) && user_id == user.id
+
       false
     end
 
@@ -221,9 +216,7 @@ module GrdaWarehouse
     end
 
     def adjust_consent_date
-      if GrdaWarehouse::AvailableFileTag.contains_consent_form?(tag_list)
-        self.consent_form_signed_on = effective_date
-      end
+      self.consent_form_signed_on = effective_date if GrdaWarehouse::AvailableFileTag.contains_consent_form?(tag_list)
     end
 
     def note_changes_in_consent
@@ -277,7 +270,7 @@ module GrdaWarehouse
 
       # notify related users if the client has a full release and the file is visible in the window
       if client.release_valid? && visible_in_window
-        NotifyUser.file_uploaded( self.id ).deliver_later
+        NotifyUser.file_uploaded(id).deliver_later
       end
       # Send out administrative notifications as appropriate
       if GrdaWarehouse::AvailableFileTag.should_send_notifications?(tag_list)
@@ -286,14 +279,12 @@ module GrdaWarehouse
     end
 
     def file_exists_and_not_too_large
-      errors.add :file, "No uploaded file found" if (content&.size || 0) < 100
-      errors.add :file, "File size should be less than 4 MB" if (content&.size || 0) > 4.megabytes
+      errors.add :file, 'No uploaded file found' if (content&.size || 0) < 100
+      errors.add :file, 'File size should be less than 4 MB' if (content&.size || 0) > 4.megabytes
     end
 
     def note_if_other
-      if tag_list.include?('Other') && note.blank?
-        errors.add :note, "Note is required if Other is chosen above"
-      end
+      errors.add :note, 'Note is required if Other is chosen above' if tag_list.include?('Other') && note.blank?
     end
 
     def self.available_tags
@@ -302,6 +293,7 @@ module GrdaWarehouse
 
     def as_preview
       return content unless content_type == 'image/jpeg'
+
       image = MiniMagick::Image.read(content)
       image.auto_level
       image.strip
@@ -311,12 +303,12 @@ module GrdaWarehouse
 
     def as_thumb
       return nil unless content_type == 'image/jpeg'
+
       image = MiniMagick::Image.read(content)
       image.auto_level
       image.strip
       image.resize('400x400')
       image.to_blob
     end
-
   end
 end
