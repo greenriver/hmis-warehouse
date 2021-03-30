@@ -216,6 +216,7 @@ module ClaimsReporting
 
     private def run_post_import_hook
       ClaimsReporting::MemberEnrollmentRoster.new.maintain_engagement!
+      ClaimsReporting::MemberEnrollmentRoster.new.maintain_first_claim_date!
     end
 
     private def record_start(method_name, method_args, source_url)
