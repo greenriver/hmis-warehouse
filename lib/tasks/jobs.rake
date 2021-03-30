@@ -11,4 +11,11 @@ namespace :jobs do
       arbiter.add_worker!
     end
   end
+
+  desc "fill the queue test"
+  task :fill_queue, [] => [:environment] do |t, args|
+    200.times do
+      TestJob.perform_later(length_in_seconds: 60, memory_bloat_per_second: 10)
+    end
+  end
 end
