@@ -152,26 +152,32 @@ module ClaimsReporting
         pre_engaged: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(0..0),
           title: 'Pre-engaged',
+          tooltip: 'This category includes the time prior to engagement for anyone in the Engaged categories, plus all time for anyone who has yet to engage.',
         },
         engaged_6_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(1..182),
           title: 'Engaged <= 6 Months',
+          tooltip: '',
         },
         engaged_12_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(183..365),
           title: 'Engaged 7-12 Months',
+          tooltip: '',
         },
         engaged_18_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(366..547),
           title: 'Engaged 13-18 Months',
+          tooltip: '',
         },
         engaged_24_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(548..730),
           title: 'Engaged 19-24 Months',
+          tooltip: '',
         },
         engaged_24_months_or_more: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(731..Float::INFINITY),
           title: 'Engaged > 2 years',
+          tooltip: '',
         },
       }.freeze
     end

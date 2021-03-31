@@ -9,7 +9,7 @@
       %tr
         %th
         - report.cohorts.each do |_, cohort|
-          %th.text-center= cohort[:title]
+          %th.text-center{data: {toggle: :tooltip, title: cohort[:tooltip]}}= cohort[:title]
     %tbody
       - report.summary_headers.each do |summary_field|
         %tr
