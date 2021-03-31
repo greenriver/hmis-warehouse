@@ -7,11 +7,6 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionTwentySix < Base
     QUESTION_NUMBER = 'Question 26'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q26a', 'Q26b', 'Q26c', 'Q26d', 'Q26e', 'Q26f', 'Q26g', 'Q26h'].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def q26a_chronic_households
       table_name = 'Q26a'

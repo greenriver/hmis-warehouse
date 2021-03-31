@@ -9,6 +9,7 @@ module DestinationReport
     include Filter::ControlSections
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
+    include DestinationReport::Details
     include ArelHelper
 
     attr_reader :filter
@@ -31,6 +32,10 @@ module DestinationReport
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
         viewable_by(user).exists?
+    end
+
+    def can_see_client_details?(user)
+      user.can_access_some_version_of_clients?
     end
 
     def self.url
@@ -189,18 +194,36 @@ module DestinationReport
           rows['Heads of Household'] += [report.hoh_count, nil, nil, nil]
           rows['Households'] ||= []
           rows['Households'] += [report.household_count, nil, nil, nil]
-
-          rows = report.age_data_for_export(rows)
-          rows = report.gender_data_for_export(rows)
-          rows = report.race_data_for_export(rows)
-          rows = report.ethnicity_data_for_export(rows)
-          rows = report.relationship_data_for_export(rows)
-          rows = report.disability_data_for_export(rows)
-          rows = report.dv_status_data_for_export(rows)
-          rows = report.priors_data_for_export(rows)
-          rows = report.household_type_data_for_export(rows)
+          rows = rows_for_export(rows, report)
         end
       end
+    end
+
+    def self.rows_for_export(rows, report)
+      rows['*Universe'] ||= []
+      rows['*Universe'] += report.data_for_destinations[:all].keys
+      rows['_Universe - Universe'] ||= []
+      rows['_Universe - Universe'] += report.data_for_destinations[:all].values.map(&:count)
+      rows['*By CoC'] ||= []
+      report.data_for_destinations[:by_coc].each do |coc_code, data|
+        rows["*#{coc_code}"] ||= []
+        rows["*#{coc_code}"] += data[:destinations].keys
+        rows["_#{coc_code}"] ||= []
+        rows["_#{coc_code}"] = data[:destinations].map { |_, ids| ids.count }
+
+        data[:destination_details].each do |destination, d_data|
+          rows["*#{coc_code} - #{destination}"] ||= []
+          rows["*#{coc_code} - #{destination}"] += ['Destination', 'Destination Detail', 'Client Count', nil, nil]
+          d_data.each do |(detailed_destination, ids)|
+            next if ids.empty?
+
+            rows["_#{coc_code} - #{destination} #{detailed_destination}"] ||= []
+            rows["_#{coc_code} - #{destination} #{detailed_destination}"] += [destination, detailed_destination, ids.count, nil, nil]
+          end
+        end
+      end
+
+      rows
     end
 
     private def hoh_scope

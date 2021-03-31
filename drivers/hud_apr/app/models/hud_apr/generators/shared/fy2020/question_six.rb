@@ -6,18 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2020
   class QuestionSix < Base
-    include ArelHelper
-
     QUESTION_NUMBER = 'Question 6'.freeze
-    QUESTION_TABLE_NUMBERS = ('Q6a'..'Q6f').to_a.freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
-
-    private def a_t
-      @a_t ||= report_client_universe.arel_table
-    end
 
     private def q6a_pii
       table_name = 'Q6a'

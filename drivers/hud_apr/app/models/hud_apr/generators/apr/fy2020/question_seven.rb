@@ -6,8 +6,6 @@
 
 module HudApr::Generators::Apr::Fy2020
   class QuestionSeven < HudApr::Generators::Shared::Fy2020::QuestionSeven
-    include ArelHelper
-
     QUESTION_TABLE_NUMBERS = ['Q7a', 'Q7b'].freeze
 
     def run_question!

@@ -375,7 +375,9 @@ class User < ApplicationRecord
   end
 
   def coc_codes
-    access_groups.map(&:coc_codes).flatten
+    Rails.cache.fetch([self, 'coc_codes'], expires_in: 1.minutes) do
+      access_groups.map(&:coc_codes).flatten
+    end
   end
 
   def coc_codes= (codes)

@@ -9,6 +9,7 @@ module PriorLivingSituation
     include Filter::ControlSections
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
+    include PriorLivingSituation::Details
     include ArelHelper
 
     attr_reader :filter
@@ -31,6 +32,10 @@ module PriorLivingSituation
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
         viewable_by(user).exists?
+    end
+
+    def can_see_client_details?(user)
+      user.can_access_some_version_of_clients?
     end
 
     def self.url
@@ -147,7 +152,7 @@ module PriorLivingSituation
             data[:by_coc][coc_code][:clients][client_id] ||= {
               living_situation_id: living_situation_id,
               living_situation: living_situation,
-              length_of_stay: length_of_stay,
+              length_of_stay: length_of_stay || 'unknown',
               coc_code: coc_code,
             }
 
@@ -194,18 +199,34 @@ module PriorLivingSituation
           rows['Heads of Household'] += [report.hoh_count, nil, nil, nil]
           rows['Households'] ||= []
           rows['Households'] += [report.household_count, nil, nil, nil]
-
-          rows = report.age_data_for_export(rows)
-          rows = report.gender_data_for_export(rows)
-          rows = report.race_data_for_export(rows)
-          rows = report.ethnicity_data_for_export(rows)
-          rows = report.relationship_data_for_export(rows)
-          rows = report.disability_data_for_export(rows)
-          rows = report.dv_status_data_for_export(rows)
-          rows = report.priors_data_for_export(rows)
-          rows = report.household_type_data_for_export(rows)
+          rows = rows_for_export(rows, report)
         end
       end
+    end
+
+    def self.rows_for_export(rows, report)
+      rows['*Universe'] ||= []
+      rows['*Universe'] += report.data_for_living_situations[:all].keys
+      rows['_Universe - Universe'] ||= []
+      rows['_Universe - Universe'] += report.data_for_living_situations[:all].values.map(&:count)
+      rows['*By CoC'] ||= []
+      report.data_for_living_situations[:by_coc].each do |coc_code, data|
+        rows["*#{coc_code}"] ||= []
+        rows["*#{coc_code}"] += data[:situations].keys
+        rows["_#{coc_code}"] ||= []
+        rows["_#{coc_code}"] += data[:situations].map { |_, ids| ids.count }
+
+        data[:situations_length].each do |living_situation, d_data|
+          rows["*#{coc_code} - #{living_situation}"] ||= []
+          rows["*#{coc_code} - #{living_situation}"] += ['Situation', 'Length of Stay in Days', 'Client Count', nil]
+          d_data.each do |(detailed_living_situation, ids)|
+            rows["_#{coc_code} - #{living_situation} #{detailed_living_situation}"] ||= []
+            rows["_#{coc_code} - #{living_situation} #{detailed_living_situation}"] += [living_situation, detailed_living_situation, ids.count, nil]
+          end
+        end
+      end
+
+      rows
     end
 
     private def hoh_scope
