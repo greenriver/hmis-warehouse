@@ -12,12 +12,15 @@
       = link_to 'configuration.', admin_health_accountable_care_organizations_path
 
     .row
-      .col-sm-6
+      .col
         = f.input :acos, collection: available_acos, selected: @acos, input_html: {class: :select2, multiple: true}, label: 'ACO/MCOs to include'
-      .col-sm-3
+    .row
+      .col
         = f.input :start_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @start_month, input_html: {class: :select2}, label: 'From the start of'
-      .col-sm-3
+      .col
         = f.input :end_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @end_month, input_html: {class: :select2}, label: 'To the end of'
+      .col
+        = f.input :effective_date, as: :date_picker, input_html: { value: @effective_date }
 
     .row
       .col
