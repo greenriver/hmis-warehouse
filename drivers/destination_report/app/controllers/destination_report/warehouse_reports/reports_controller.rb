@@ -89,7 +89,7 @@ module DestinationReport::WarehouseReports
     end
 
     private def set_pdf_export
-      @pdf_export = pdf_export_source.new
+      # @pdf_export = pdf_export_source.new
     end
 
     private def pdf_export_source
