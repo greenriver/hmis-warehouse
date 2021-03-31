@@ -16,6 +16,10 @@ class ClaimsReporting::Formatter
     format_d value, precision: precision
   end
 
+  def format_c(value, precision: 0)
+    number_to_currency value, precision: precision
+  end
+
   def format_pct(value, precision: 1)
     too_small = 10**-precision
     return "<#{number_to_percentage too_small, precision: precision}" if value.to_d.positive? && value.to_d < too_small

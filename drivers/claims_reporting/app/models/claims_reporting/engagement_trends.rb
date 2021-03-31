@@ -114,7 +114,19 @@ module ClaimsReporting
     end
 
     def summary(cohort)
-      (results.dig(cohort.to_s, 'summary')&.to_h || {}).with_indifferent_access
+      (results.dig(cohort.to_s, 'summary')&.to_h || {}).with_indifferent_access.tap do |s|
+        member_months = if cohort.to_s.starts_with?('engaged_for')
+          s['engaged_days'].to_f
+        elsif cohort.to_s.starts_with?('pre_engaged')
+          s['pre_engagement_days'].to_f
+        else
+          s['span_mem_days'].to_f
+        end / 30
+
+        paid = s['paid_amount_sum'].to_f
+
+        s[:pmpm] = paid / member_months if paid.positive? && member_months.positive?
+      end
     end
 
     def result_for(cohort, rollup, category)
@@ -145,7 +157,8 @@ module ClaimsReporting
         'span_mem_days' => ['Enrolled Member Days', :format_i],
         'pre_engagement_days' => ['Pre-engaged Member Days', :format_i],
         'engaged_days' => ['Engaged Member Days', :format_i],
-        'paid_amount_sum' => ['Total Paid', :number_to_currency],
+        # 'paid_amount_sum' => ['Total Paid', :format_c],
+        'pmpm' => ['Paid <abbr title="Per member per month">PMPM</abbr>', :format_c],
         'average_raw_dxcg_score' => ['Average DXCG Score', :format_d],
       }
     end
@@ -166,27 +179,27 @@ module ClaimsReporting
         engaged_6_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(1..182),
           title: 'Engaged <= 6 Months',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have six or fewer months of time being engaged.',
         },
         engaged_12_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(183..365),
           title: 'Engaged 7-12 Months',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have between seven to twelve months of time being engaged.',
         },
         engaged_18_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(366..547),
           title: 'Engaged 13-18 Months',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have between thirteen to eighteen months of time being engaged.',
         },
         engaged_24_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(548..730),
           title: 'Engaged 19-24 Months',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have between nineteen to twenty four months of time being engaged.',
         },
         engaged_24_months_or_more: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(731..Float::INFINITY),
           title: 'Engaged > 2 years',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have two years or more of time being engaged.',
         },
       }.freeze
     end
