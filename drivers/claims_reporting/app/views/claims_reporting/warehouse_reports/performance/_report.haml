@@ -1,5 +1,5 @@
 %p
-  Data shown reflects claims submitted between #{report.claim_date_range.first} and #{report.claim_date_range.last} and paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
+  Data shown reflects claims for services starting between #{report.claim_date_range.first} and #{report.claim_date_range.last} and paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
 
 %h3 Summary
 .card.mb-4
@@ -11,6 +11,8 @@
           %td.pr-4= html_value
 
 %h3 By Service Category
+%pre= pp report.detail_rows.to_a
+
 - table = report.detail_rows
 .card.mb-4
   %table.table.table-sm.table-striped.table-bordered.mb-0
