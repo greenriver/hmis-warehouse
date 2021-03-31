@@ -61,12 +61,55 @@ module ClaimsReporting
       end
     end
 
+    def cos_rollup(code)
+      ClaimsReporting::EngagementReport::COS_ROLLUPS.fetch(code, code)
+    end
+
+    def cos_description(code)
+      ClaimsReporting::EngagementReport::COS_DESCRIPTIONS.fetch(code, code)
+    end
+
+    def claim_date_range
+      min = summary(:total_population)[:min_claim_date]
+      max = summary(:total_population)[:max_claim_date]
+      if min && max
+        min.to_date .. max.to_date
+      else
+        source_report.claim_date_range
+      end
+    end
+
+    def latest_payment_date
+      date = summary(:total_population)[:latest_paid_date]
+      if date
+        date.to_date
+      else
+        source_report.latest_payment_date
+      end
+    end
+
+    def roster_as_of
+      claim_date_range.last
+    end
+
+    def highlighted_cos_categories
+      [
+        'I-06', # Outpatient ER
+        'P-01', # Office/Home Services
+        'P-23', # Case Management
+        'P-23', # Case Management
+        'P-08', # Behavioral Health
+        'I-11', # Nursing - Inpatient
+        'P-10', # Nursing - Office
+      ]
+    end
+
     def details(cohort)
-      results.dig(cohort.to_s, 'detail') || {}
+      results.dig(cohort.to_s, 'detail') || {}.with_indifferent_access
     end
 
     def summary(cohort)
-      (results.dig(cohort.to_s, 'summary') || {}).to_h
+      (results.dig(cohort.to_s, 'summary')&.to_h || {}).with_indifferent_access
     end
 
     def result_for(cohort, rollup, category)
@@ -84,17 +127,17 @@ module ClaimsReporting
         s['span_mem_days'].to_f
       end / 365
 
-      d['utilization'] = d['n_claims'].to_f / member_years * 1000.0 if member_months.positive?
+      d['utilization'] = d['n_claims'].to_f / member_years * 1000.0 if member_years.positive?
 
       d
     end
 
     def summary_headers
-      summary(:total_population).keys
+      summary(cohorts.keys.first).keys
     end
 
     def detail_row_headers
-      details(:total_population).map do |metric|
+      details(cohorts.keys.first).map do |metric|
         metric.slice('cde_cos_rollup', 'cde_cos_category')
       end
     end

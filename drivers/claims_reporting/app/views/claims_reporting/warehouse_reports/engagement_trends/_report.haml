@@ -1,33 +1,34 @@
+:ruby
+  f = ClaimsReporting::Formatter.new
 %p
   Data shown reflects claims for services starting between #{report.claim_date_range.first} and #{report.claim_date_range.last} and paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
-- f = ClaimsReporting::Formatter.new
+-# = debug report.results
 .card.mb-4
   %table.table.table-sm.table-striped.table-bordered.mb-0
     %thead
       %tr
         %th
-        - @report.cohorts.each do |_, cohort|
+        - report.cohorts.each do |_, cohort|
           %th.text-center= cohort[:title]
     %tbody
-      - @report.summary_headers.each do |summary_field|
+      - report.summary_headers.each do |summary_field|
         %tr
-          %th= summary_field.gsub('$PMPM','$PMPM¹')
-          - @report.cohorts.each do |corhort_id, cohort|
-            %td.text-right= f.format_i @report.summary(corhort_id)[summary_field.to_s]
+          %th= summary_field
+          - report.cohorts.each do |corhort_id, cohort|
+            %td.text-right= f.format_i report.summary(corhort_id)[summary_field.to_s]
 .card.mb-4
-  - cohorts_with_data = @report.cohorts.except(:pre_assigned, :not_assigned)
   %table.table.table-sm.table-striped.table-bordered.mb-0
     %thead
       %tr
         %th
-        %th.text-center{colspan: @report.cohorts.size}
+        %th.text-center{colspan: report.cohorts.size}
           Utilization - events per 1000 members per year
       %tr
         %th Claim Categories
-        - cohorts_with_data.each do |_, cohort|
+        - report.cohorts.each do |_, cohort|
           %th.text-center= cohort[:title]
     %tbody
-      - @report.detail_row_headers.group_by(&:first).each do |cos_rollup, rollup_rows|
+      - report.detail_row_headers.group_by(&:first).each do |cos_rollup, rollup_rows|
         - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'AAAA'}.each_with_index do |row, idx|
           :ruby
             rollup_label = report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
@@ -40,17 +41,16 @@
               %td.pl-4{axis: :row}
                 = row['cde_cos_category']
                 = category_label
-            - cohorts_with_data.each do |cohort_id, cohort|
+            - report.cohorts.each do |cohort_id, cohort|
               :ruby
-                d = @report.result_for(cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
+                d = report.result_for(cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
                 cohort_phrase = cohort_id.to_s == 'total_population' ? 'members' : "members #{ cohort[:title].downcase }"
                 tooltip = "Based on #{f.format_i d['n_claims']} #{sentence_label} claims from #{f.format_i d['n_members']} #{cohort_phrase}."
-                tooltip +=" Total Paid¹: #{f.number_to_currency d['paid_amount_sum']}."
+                tooltip +=" Total Paid: #{f.number_to_currency d['paid_amount_sum']}."
               %td.text-right{data: {toggle: :tooltip, title: tooltip}}
                 = f.format_i d['utilization']
-%p
-  %b Notes:
-  %div ¹ "PMPM" is the per member per month total paid amount. It and "Total Paid" amounts are requently missing from the data.
+-#  %b Notes:
+-#  %div ¹ "Total Paid" amounts are based on incompleted.
 -# - unless Rails.env.production?
 -#   %details
 -#     %summary Query

@@ -86,7 +86,7 @@ module ClaimsReporting
                               Arel.sql(%[SUM(CASE WHEN sex = 'Female' THEN 1 ELSE 0 END)]).as('selected_females'),
                               Arel.sql(%[AVG(ABS(EXTRACT(YEAR FROM AGE(date_of_birth, #{connection.quote roster_as_of}))))]).as('average_age'),
                               Arel.sql(%[AVG(NULLIF(raw_dxcg_risk_score,'')::numeric)]).as('average_raw_dxcg_score'),
-                            ), 'member_summary').with_indifferent_access
+                            ), 'member_summary')
     end
 
     private def enrollment_summary
@@ -94,18 +94,29 @@ module ClaimsReporting
                               Arel.sql(%[SUM(span_mem_days)]).as('span_mem_days'),
                               Arel.sql(%[SUM(pre_engagement_days)]).as('pre_engagement_days'),
                               Arel.sql(%[SUM(engaged_days)]).as('engaged_days'),
-                            ), 'enrollment_summary').with_indifferent_access
+                            ), 'enrollment_summary')
     end
 
     private def claims_summary
       connection.select_one(selected_medical_claims.select(
-                              Arel.sql(%[SUM(paid_amount)]).as('paid_amount'),
+                              Arel.sql(%[MAX(paid_date)]).as('latest_paid_date'),
+                              paid_amount_sum,
+                              n_claims,
                               Arel.sql(%[COUNT(*)]).as('medical_claim_lines'),
-                            ), 'claims_summary').with_indifferent_access
+                            ), 'claims_summary')
     end
 
     def selection_summary
-      member_summary.merge(enrollment_summary).merge(claims_summary)
+      ActiveSupport::HashWithIndifferentAccess.new(
+        min_claim_date: claim_date_range.min,
+        max_claim_date: claim_date_range.max,
+      ).merge(
+        member_summary,
+      ).merge(
+        enrollment_summary,
+      ).merge(
+        claims_summary,
+      )
     end
     memoize :selection_summary
 
@@ -131,7 +142,7 @@ module ClaimsReporting
     end
 
     def average_per_member_per_month_spend
-      paid_amount = selection_summary[:paid_amount]
+      paid_amount = selection_summary[:paid_amount_sum]
 
       return unless paid_amount && member_months && member_months.positive?
 
@@ -150,24 +161,6 @@ module ClaimsReporting
       return unless selected_members&.positive?
 
       (selection_summary[:selected_females].to_d * 100.0 / selected_members)
-    end
-
-    def pct_with_pbd
-      return unless selected_members&.positive?
-
-      (selection_summary[:selected_pbd].to_d * 100.0 / selected_members)
-    end
-
-    def pct_with_das
-      return unless selected_members&.positive?
-
-      (selection_summary[:selected_das].to_d * 100.0 / selected_members)
-    end
-
-    def normalized_dxcg_score
-      return unless selected_members&.positive?
-
-      'TODO'
     end
 
     private def formatter
@@ -213,19 +206,19 @@ module ClaimsReporting
       medical_claims.arel_table
     end
 
+    private def n_claims
+      Arel.sql(%[COUNT(DISTINCT claim_number)]).as('n_claims')
+    end
+
+    private def n_members
+      mrt[:member_id].count(true).as('n_members')
+    end
+
+    private def paid_amount_sum
+      Arel.sql(%[SUM(COALESCE(paid_amount, 0))]).as('paid_amount_sum')
+    end
+
     private def claims_query
-      sql_member_id = "#{selected_medical_claims.quoted_table_name}.#{connection.quote_column_name :member_id}"
-
-      sql_member_count = %[COUNT(DISTINCT #{sql_member_id})::numeric]
-
-      n_claims = Arel.sql(%[
-        NULLIF(
-          COUNT(DISTINCT
-            CASE WHEN claim_number IS NOT NULL THEN CONCAT(#{sql_member_id}, claim_number) END
-          ), 0
-        )
-      ]).as('n_claims')
-
       # n_admits = Arel.sql(%[
       #   NULLIF(
       #     COUNT(DISTINCT
@@ -241,13 +234,6 @@ module ClaimsReporting
       #     ELSE discharge_date-admit_date
       #   END
       # ))").as('avg_length_of_stay')
-
-      n_members = Arel.sql(sql_member_count.to_s).as('n_members')
-
-      # TODO: paid_amount is frequently NULL even on paid claims.
-      # We likely need something like:
-      # http://info.commerce.ama-assn.org/procedure-price-lookup-licensing
-      paid_amount_sum = Arel.sql(%[SUM(COALESCE(paid_amount, 0))]).as('paid_amount_sum')
 
       selected_medical_claims.group(
         Arel.sql(%[ROLLUP(1,2)]),

@@ -11,4 +11,4 @@
         %strong Run on:
         #{@report.completed_at.to_date} by #{@report.user&.name}
 
-= render 'report', report: @report.source_report
+= render 'report', report: @report
