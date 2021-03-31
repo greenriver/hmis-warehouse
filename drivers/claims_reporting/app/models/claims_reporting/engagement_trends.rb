@@ -138,7 +138,16 @@ module ClaimsReporting
     end
 
     def summary_headers
-      summary(cohorts.keys.first).keys
+      {
+        'selected_members' => ['Selected Members', :format_i],
+        'average_age' => ['Average Age', :format_d],
+        'n_claims' => ['Medical Claims', :format_i],
+        'span_mem_days' => ['Enrolled Member Days', :format_i],
+        'pre_engagement_days' => ['Pre-engaged Member Days', :format_i],
+        'engaged_days' => ['Engaged Member Days', :format_i],
+        'paid_amount_sum' => ['Total Paid', :number_to_currency],
+        'average_raw_dxcg_score' => ['Average DXCG Score', :format_d],
+      }
     end
 
     def detail_row_headers
