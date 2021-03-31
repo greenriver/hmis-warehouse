@@ -23,7 +23,7 @@ module ClientAccessControl
       return ::GrdaWarehouse::Hud::Client.none unless user.can_access_some_version_of_clients?
 
       data_source_ids = ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
-      data_source_ids += ::GrdaWarehouse::DataSource.visible_in_window.pluck(:id) unless ::GrdaWarehouse::Config.get(:window_access_requires_release)
+      data_source_ids += window_data_source_ids unless ::GrdaWarehouse::Config.get(:window_access_requires_release)
       visible_client_scope(user, data_source_ids)
     end
 
@@ -31,7 +31,7 @@ module ClientAccessControl
       return ::GrdaWarehouse::Hud::Client.none unless user
 
       data_source_ids = ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
-      data_source_ids += ::GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
+      data_source_ids += window_data_source_ids # always include window data sources in search
       visible_client_scope(user, data_source_ids)
     end
 
@@ -44,12 +44,10 @@ module ClientAccessControl
     end
 
     def enrollments_visible_to(user)
-      project_ids = ::GrdaWarehouse::Hud::Project.visible_to(user).pluck(:id).uniq
       coc_codes = user.coc_codes
       ::GrdaWarehouse::Hud::Enrollment.where(
-        e_t[:id].in(Arel.sql(::GrdaWarehouse::Hud::Enrollment.joins(:project).where(p_t[:id].in(project_ids)).select(:id).to_sql)). # 1
-        or(e_t[:id].in(Arel.sql(unscoped_clients.active_confirmed_consent_in_cocs(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))). # 2
-        or(e_t[:data_source_id].in(::GrdaWarehouse::DataSource.visible_in_window.pluck(:id))), # 3
+        e_t[:id].in(Arel.sql(::GrdaWarehouse::Hud::Enrollment.joins(:project).where(p_t[:id].in(project_ids(user))).select(:id).to_sql)). # 1
+        or(e_t[:id].in(Arel.sql(unscoped_clients.active_confirmed_consent_in_cocs(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))), # 2
       )
     end
 
@@ -57,6 +55,17 @@ module ClientAccessControl
     # default scope is mutated and must be removed
     def unscoped_clients
       ::GrdaWarehouse::Hud::Client.unscoped.paranoia_scope
+    end
+
+    private def window_data_source_ids
+      ::GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
+    end
+
+    private def project_ids(user)
+      ids = ::GrdaWarehouse::Hud::Project.visible_to(user).pluck(:id).uniq
+      return ids if ::GrdaWarehouse::Config.get(:window_access_requires_release)
+
+      ids + ::GrdaWarehouse::Hud::Project.where(data_source_id: window_data_source_ids).pluck(:id)
     end
   end
 end
