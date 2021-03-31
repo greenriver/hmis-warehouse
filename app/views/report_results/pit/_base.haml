@@ -7,17 +7,17 @@
         - display_title = "#{title.humanize}-population"
       - else
         - display_title = "#{title.humanize} population"
-      %li.nav-item{role: :presentation, class: active}
-        %a{href: "\##{title}", role: :tab, data: {toggle: :tab}, class: 'nav-link'}= display_title
+      %li.nav-item{role: :presentation}
+        %a{href: "\##{title}", role: :tab, data: {toggle: :tab}, class: ['nav-link', active]}= display_title
       - active = ''
   .tab-content
     - active = 'active'
     - @result.results.each do |title, sections|
       .tab-pane{role: :tabpanel, class: active, id: title}
         - active = ''
-        - sections.each do |section_title, section|
-          - _, breakdowns = section.first
-          %h3= section_title.humanize
+        - ReportGenerators::Pit::Fy2018::Base::POPULATIONS[title.to_sym].each do |population, category_keys|
+          - _, breakdowns = sections[population.to_s].first
+          %h3= population.to_s.humanize
           .table-responsive
             %table.table.table-sm.table-hover
               %thead
@@ -34,14 +34,15 @@
                   - breakdowns.keys.each do |k|
                     %th.report-result__section-header=k.upcase
               %tbody
-                - section.each do |question, breakdowns|
-                  - question_slug = question.parameterize.underscore.to_sym
+                - category_keys.each_key do |category|
+                  - breakdowns = sections[population.to_s][category.to_s]
+                  - question_slug = category.to_s.parameterize.underscore.to_sym
                   %tr
-                    %td= question.humanize
-                    - breakdowns.each do |category, v|
+                    %td= category.to_s.humanize
+                    - breakdowns.each do |cat, v|
                       %td
-                        - if @result.support[title][section_title][question][category].is_a? Hash
-                          %a.launch-modal{href: '#', data: {toggle: :modal, target: "\##{section_title}-#{question_slug}-#{category}-support"}}
+                        - if @result.support[title][population.to_s][category.to_s][cat.to_s].is_a? Hash
+                          %a.launch-modal{href: '#', data: {toggle: :modal, target: "\##{population.to_s}-#{question_slug}-#{cat}-support"}}
                             = v
                         - else
                           = v

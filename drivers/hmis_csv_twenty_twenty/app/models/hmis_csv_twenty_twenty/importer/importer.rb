@@ -14,6 +14,17 @@
 
 # reload!; importer = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: 2, data_source_id: 14, debug: true); importer.import!
 
+# Some notes on how to manually run imports where the delayed job expires or fails for non-data related issue
+# il = GrdaWarehouse::ImportLog.last
+# loader = HmisCsvTwentyTwenty::Loader::LoaderLog.last
+# imp_log = HmisCsvTwentyTwenty::Importer::ImporterLog.last
+# # NOTE: newing up an importer currently creates an ImporterLog, this should be deleted
+# imp = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: loader.id, data_source_id: loader.data_source_id)
+# imp.importer_log = imp_log
+# il.update(import_errors: nil)
+# # at this point, you can call any of the various import methods, usually, the last one that was attempted
+# imp.log_timing(:process_existing)
+
 module HmisCsvTwentyTwenty::Importer
   class Importer
     include TsqlImport
@@ -350,14 +361,16 @@ module HmisCsvTwentyTwenty::Importer
         destination_class = klass.reflect_on_association(:destination_record).klass
         # logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
         batch = []
-        scope = klass.new_data(
+        existing_keys = klass.existing_data(
           data_source_id: data_source.id,
           project_ids: involved_project_ids,
           date_range: date_range,
-          importer_log_id: importer_log.id,
-        )
+        ).pluck(klass.hud_key).to_set
+
         bm = Benchmark.measure do
-          scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+          klass.incoming_data(importer_log_id: importer_log.id).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+            next if existing_keys.include?(row[klass.hud_key])
+
             batch << row.as_destination_record
             if batch.count == INSERT_BATCH_SIZE
               # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that

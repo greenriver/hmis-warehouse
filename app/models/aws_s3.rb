@@ -51,13 +51,25 @@ class AwsS3
   end
 
   def list_objects(max_keys=1_000, prefix: '')
-    client.list_objects_v2(
+    objects = []
+    batch = client.list_objects_v2(
       {
         bucket: bucket_name,
         prefix: prefix,
       },
-    ).contents.
-    sort_by(&:last_modified).
+    )
+    objects += batch.contents
+    while batch.is_truncated
+      batch = client.list_objects_v2(
+        {
+          bucket: bucket_name,
+          prefix: prefix,
+          start_after: batch.contents.last.key,
+        },
+      )
+      objects += batch.contents
+    end
+    objects.sort_by(&:last_modified).
     reverse!&.
     first(max_keys)
   end

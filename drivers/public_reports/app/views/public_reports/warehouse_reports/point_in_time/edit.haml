@@ -2,7 +2,7 @@
 - content_for :title, title
 = render 'breadcrumbs'
 %h1.mb-5= title
-= render 'beta_warning'
+
 
 .well.warehouse-reports__completed
   %p This report was generated on #{@report.completed_at.to_date} by #{@report.user&.name} with the following limits.
