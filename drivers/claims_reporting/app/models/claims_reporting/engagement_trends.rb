@@ -114,7 +114,19 @@ module ClaimsReporting
     end
 
     def summary(cohort)
-      (results.dig(cohort.to_s, 'summary')&.to_h || {}).with_indifferent_access
+      (results.dig(cohort.to_s, 'summary')&.to_h || {}).with_indifferent_access.tap do |s|
+        member_months = if cohort.to_s.starts_with?('engaged_for')
+          s['engaged_days'].to_f
+        elsif cohort.to_s.starts_with?('pre_engaged')
+          s['pre_engagement_days'].to_f
+        else
+          s['span_mem_days'].to_f
+        end / 30
+
+        paid = s['paid_amount_sum'].to_f
+
+        s[:pmpm] = paid / member_months if paid.positive? && member_months.positive?
+      end
     end
 
     def result_for(cohort, rollup, category)
@@ -145,7 +157,8 @@ module ClaimsReporting
         'span_mem_days' => ['Enrolled Member Days', :format_i],
         'pre_engagement_days' => ['Pre-engaged Member Days', :format_i],
         'engaged_days' => ['Engaged Member Days', :format_i],
-        'paid_amount_sum' => ['Total Paid', :number_to_currency],
+        # 'paid_amount_sum' => ['Total Paid', :format_c],
+        'pmpm' => ['Paid <abbr title="Per member per month">PMPM</abbr>', :format_c],
         'average_raw_dxcg_score' => ['Average DXCG Score', :format_d],
       }
     end

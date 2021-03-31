@@ -11,9 +11,10 @@
         - report.cohorts.each do |_, cohort|
           %th.text-center{data: {toggle: :tooltip, title: cohort[:tooltip]}}= cohort[:title]
     %tbody
-      - report.summary_headers.each do |key, (label, formatter)|
+      - report.summary_headers.each do |key, (html_label, formatter)|
         %tr
-          %th= label
+          %th
+            = raw html_label
           - report.cohorts.each do |corhort_id, cohort|
             %td.text-right= f.send(formatter, report.summary(corhort_id)[key.to_s])
 
@@ -53,7 +54,7 @@
 
                 tooltip = "Based on #{f.format_i d['n_claims']} #{sentence_label} claims from #{f.format_i d['n_members']} #{cohort_phrase}."
                 if d['paid_amount_sum'].to_f.positive?
-                  tooltip +="\nTotal Paid: #{f.number_to_currency d['paid_amount_sum']}."
+                  tooltip +="\nTotal Paid: #{f.format_c d['paid_amount_sum']}."
                 end
 
                 dead_band = 10 # percentage points
@@ -72,7 +73,7 @@
                 end
 
                 if utilization_change
-                  tooltip +="\n#{utilization_change > 0 ? 'Up' : 'Down'} #{utilization_change}% vs. #{baseline_cohort}."
+                  tooltip +="\n#{utilization_change > 0 ? 'Up' : 'Down'} #{utilization_change.abs}% vs. #{baseline_cohort}."
                 end
               %td.text-right{data: {toggle: :tooltip, title: tooltip }, tabindex: 0}
                 = f.format_i d['utilization']
