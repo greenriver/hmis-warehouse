@@ -92,16 +92,21 @@ module ClaimsReporting
       claim_date_range.last
     end
 
-    def highlighted_cos_categories
-      [
-        'I-06', # Outpatient ER
-        'P-01', # Office/Home Services
-        'P-23', # Case Management
-        'P-23', # Case Management
-        'P-08', # Behavioral Health
-        'I-11', # Nursing - Inpatient
-        'P-10', # Nursing - Office
-      ]
+    HIGHLIGHT_COS_CATEGORIES = [
+      'I-06', # Outpatient ER
+      'I-01 BH', # BH Inpatient Behavioral Health
+      'P-01', # Office/Home Services
+      'P-23', # Case Management
+      'P-23', # Case Management
+      'P-08', # Behavioral Health
+      'I-11', # Nursing - Inpatient
+      'P-10', # Nursing - Office
+      'P-35', # Other Services'
+      'I-08', # Hospital Outpatient Clinic
+    ].to_set
+
+    def highlighted_categories
+      HIGHLIGHT_COS_CATEGORIES
     end
 
     def details(cohort)

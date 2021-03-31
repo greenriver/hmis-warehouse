@@ -15,7 +15,7 @@
         %tr
           %th= summary_field
           - report.cohorts.each do |corhort_id, cohort|
-            %td.text-right= f.format_i report.summary(corhort_id)[summary_field.to_s]
+            %td.text-right= f.format_d report.summary(corhort_id)[summary_field.to_s]
 
 %h3 Claims
 .card.mb-4
@@ -34,15 +34,16 @@
         - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'AAAA'}.each_with_index do |row, idx|
           :ruby
             rollup_label = report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
-            category_label = report.cos_description(row['cde_cos_category']).presence || ''
+            category_code = row['cde_cos_category']
+            category_label = report.cos_description(category_code).presence || ''
             sentence_label = (category_label.presence || rollup_label).downcase.gsub(/all claims/,'total claims')
-          %tr
+          %tr{class: ('table-warning' if category_code.in? report.highlighted_categories)}
             - if category_label.blank?
               %th{axis: :row}= rollup_label
             - else
               %td.pl-4{axis: :row}
-                = row['cde_cos_category']
                 = category_label
+                = category_code
             - report.cohorts.each do |cohort_id, cohort|
               :ruby
                 d = report.result_for(cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
