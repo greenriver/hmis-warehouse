@@ -148,6 +148,7 @@ module ClaimsReporting
 
     def maintain_first_claim_date!
       batch = []
+      # On the first enrollment per member, note the number of days since the first claim
       self.class.distinct_on(:member_id).
         order(member_id: :asc, span_start_date: :asc).each do |enrollment|
           date = min_claim_date_for(enrollment.member_id)
@@ -161,6 +162,16 @@ module ClaimsReporting
       self.class.transaction do
         self.class.update_all(first_claim_date: nil, pre_engagement_days: 0)
         self.class.import(batch, on_duplicate_key_update: [:first_claim_date, :pre_engagement_days])
+      end
+      # On all enrollments that still have 0 days pre-engaged, note time not engaged
+      # This will include any enrollment where there are actually 0 days pre-engagement, and those that aren't the first enrollment
+      batch = []
+      self.class.where(pre_engagement_days: 0).each do |enrollment|
+        enrollment.pre_engagement_days = enrollment.span_mem_days - enrollment.engaged_days
+        batch << enrollment
+      end
+      self.class.transaction do
+        self.class.import(batch, on_duplicate_key_update: [:pre_engagement_days])
       end
     end
 
