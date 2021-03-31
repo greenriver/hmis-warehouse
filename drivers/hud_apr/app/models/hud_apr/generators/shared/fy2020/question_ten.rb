@@ -6,14 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2020
   class QuestionTen < Base
-    include ArelHelper
-
     QUESTION_NUMBER = 'Question 10'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q10a', 'Q10b', 'Q10c', 'Q10d'].freeze
-
-    private def a_t
-      @a_t ||= report_client_universe.arel_table
-    end
 
     private def table_rows
       {
@@ -26,10 +19,6 @@ module HudApr::Generators::Shared::Fy2020
         'Data Not Collected' => [8, a_t[:gender].eq(99)],
         'Subtotal' => [9, Arel.sql('1=1')],
       }.freeze
-    end
-
-    def self.question_number
-      QUESTION_NUMBER
     end
 
     private def q10a_gender_of_adults

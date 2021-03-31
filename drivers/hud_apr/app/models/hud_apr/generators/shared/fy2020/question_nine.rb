@@ -6,10 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2020
   class QuestionNine < Base
-    include ArelHelper
-
     QUESTION_NUMBER = 'Question 9'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q9a', 'Q9b'].freeze
 
     HEADER_ROW = [
       'Number of Persons Contacted',
@@ -18,10 +15,6 @@ module HudApr::Generators::Shared::Fy2020
       'First contact - WAS staying on Streets, ES, or SH',
       'First contact - Worker unable to determine',
     ].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def a_t
       @a_t ||= report_client_universe.arel_table
