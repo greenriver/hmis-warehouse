@@ -20,7 +20,7 @@ class ClientsController < ApplicationController
   before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details, :assessment]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -98,8 +98,11 @@ class ClientsController < ApplicationController
 
   # display an assessment form in a modal
   def assessment
-    if @client&.consent_form_valid?
-      @form = assessment_scope.find(params.require(:id).to_i)
+    form = assessment_scope.find(params.require(:id).to_i)
+    client = form.client&.destination_client
+    if client&.show_demographics_to?(current_user)
+      @form = form
+      @client = client
     else
       @form = assessment_scope.new
     end
@@ -107,9 +110,12 @@ class ClientsController < ApplicationController
   end
 
   def health_assessment
-    if can_view_patients_for_own_agency?
-      @form = health_assessment_scope.find(params.require(:id).to_i)
-      @client = @form.client
+    form = health_assessment_scope.find(params.require(:id).to_i)
+    client = form.client&.destination_client
+    patient = client&.patient
+    if patient&.visible_to(current_user)
+      @form = form
+      @client = client
     else
       @form = health_assessment_scope.new
     end
