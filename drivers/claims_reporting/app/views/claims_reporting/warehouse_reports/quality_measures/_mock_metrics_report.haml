@@ -1,0 +1,42 @@
+:ruby
+  metrics = ClaimsReporting::QualityMeasuresReport::AVAILABLE_MEASURES
+  reports = ['2019','2020'].map do |year|
+    ClaimsReporting::QualityMeasuresReport.for_plan_year(year)
+  end
+
+  # subpopulations
+  # By ACO
+  # My Patients
+  # Race/Gender/Age?
+.row
+  .col-12
+    .pb-4
+      %h3 MassHealth BH CP Quality Measures
+      %table.table.table-sm.table-striped
+        %thead
+          %tr
+            %th{rowspan: 2} Measure
+            - reports.each do |report|
+              %th{colspan: 3}= report.title
+          %tr
+            - reports.each do |report|
+              %th Value
+              %th Num.
+              %th Denom.
+        - metrics.each do |id, info|
+          %tr
+            %td
+              %div
+                %b= info.title
+              = simple_format info.desc
+            - reports.each do |report|
+              %td.text-right
+                = report.measure_value(id).presence
+              %td
+                - if info.numerator.present?
+                  .text-center{data: {toggle: :tooltip, title: info.numerator}}
+                    = "-"
+              %td
+                - if info.denominator.present?
+                  .text-center{data: {toggle: :tooltip, title: info.denominator}}
+                    = "-"

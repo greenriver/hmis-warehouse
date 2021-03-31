@@ -1,0 +1,10 @@
+= simple_form_for @report, url: url_for, as: :f, method: :get do |f|
+  - content_for :filters_col_full do
+    - f.object.available_filters.in_groups_of(4, false).each do |row|
+      .row
+        - row.each do |filter|
+          .col-sm-3
+            = f.input filter, **@report.filter_inputs[filter]
+  - content_for :filter_actions do
+    = f.submit 'Update Report', class: 'btn btn-primary'
+  = render 'warehouse_reports/filters', f:f, submit_button: nil
