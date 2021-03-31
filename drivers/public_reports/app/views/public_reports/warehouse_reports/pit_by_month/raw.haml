@@ -1,0 +1,26 @@
+.pit-chart
+
+:javascript
+  var chart = bb.generate({
+    data: {
+      x: 'x',
+      columns: #{@report.precalculated_data&.html_safe},
+      type: 'line'
+    },
+    bind_to: '.pit-chart',
+    axis: {
+      x: {
+        type: 'timeseries',
+        tick: {
+          format: '%b. %Y'
+        },
+        padding: {
+          right: 1000*60*60*24*60, // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
+          left: 1000*60*60*24*60 // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
+        }
+      }
+    },
+    color: {
+      pattern: #{@report.chart_color_pattern}
+    }
+  });

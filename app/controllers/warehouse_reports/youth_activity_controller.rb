@@ -6,6 +6,7 @@
 
 module WarehouseReports
   class YouthActivityController < ApplicationController
+    include WarehouseReportAuthorization
     include AjaxModalRails::Controller
 
     before_action :set_filter
@@ -39,17 +40,24 @@ module WarehouseReports
 
     private def available_agencies
       Agency.where(
-        id: User.where(
-          id: GrdaWarehouse::YouthIntake::Base.distinct.pluck(:user_id),
+        id: User.active.where(
+          id: user_editor_ids,
         ).select(:agency_id),
       )
     end
     helper_method :available_agencies
 
     private def available_users
-      User.where(id: GrdaWarehouse::YouthIntake::Base.distinct.pluck(:user_id))
+      User.active.where(id: user_editor_ids)
     end
     helper_method :available_users
+
+    private def user_editor_ids
+      GrdaWarehouse::YouthIntake::Base.distinct.pluck(:user_id) +
+      GrdaWarehouse::Youth::YouthReferral.distinct.pluck(:user_id) +
+      GrdaWarehouse::Youth::YouthCaseManagement.distinct.pluck(:user_id) +
+      GrdaWarehouse::Youth::DirectFinancialAssistance.distinct.pluck(:user_id)
+    end
 
     private def intakes_in_range
       scope = GrdaWarehouse::YouthIntake::Base.where(updated_at: @filter.range)

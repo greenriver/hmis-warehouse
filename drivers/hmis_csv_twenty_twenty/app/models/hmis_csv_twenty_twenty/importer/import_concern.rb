@@ -117,6 +117,20 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       where(importer_log_id: importer_log_id).should_import.where.not(hud_key => existing_keys)
     end
 
+    def self.existing_data(data_source_id:, project_ids:, date_range:)
+      existing_scope = involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      )
+      existing_scope = existing_scope.with_deleted if paranoid?
+      existing_scope
+    end
+
+    def self.incoming_data(importer_log_id:)
+      where(importer_log_id: importer_log_id).should_import
+    end
+
     def self.existing_destination_data(data_source_id:, project_ids:, date_range:)
       involved_warehouse_scope(
         data_source_id: data_source_id,
@@ -240,8 +254,12 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       []
     end
 
+    def self.hmis_2020_keys
+      @hmis_2020_keys ||= hmis_structure(version: '2020').keys
+    end
+
     def hmis_data
-      slice(*self.class.hmis_structure(version: '2020').keys)
+      slice(*self.class.hmis_2020_keys) # self.class.hmis_2020_keys is used to avoid realloc/calc'ing these static keys in tight import loops
     end
 
     def calculate_source_hash

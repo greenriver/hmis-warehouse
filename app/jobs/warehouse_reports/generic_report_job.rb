@@ -42,6 +42,7 @@ module WarehouseReports
       reports['ProjectPassFail::ProjectPassFail'] = ProjectPassFail::ProjectPassFail if RailsDrivers.loaded.include?(:project_pass_fail)
       reports['ProjectScorecard::Report'] = ProjectScorecard::Report if RailsDrivers.loaded.include?(:project_scorecard)
       reports['PublicReports::PointInTime'] = PublicReports::PointInTime if RailsDrivers.loaded.include?(:public_reports)
+      reports['PublicReports::PitByMonth'] = PublicReports::PitByMonth if RailsDrivers.loaded.include?(:public_reports)
       reports['PublicReports::NumberHoused'] = PublicReports::NumberHoused if RailsDrivers.loaded.include?(:public_reports)
       reports['PublicReports::HomelessCount'] = PublicReports::HomelessCount if RailsDrivers.loaded.include?(:public_reports)
       reports['PublicReports::HomelessCountComparison'] = PublicReports::HomelessCountComparison if RailsDrivers.loaded.include?(:public_reports)

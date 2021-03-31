@@ -436,7 +436,7 @@ module Filters
     end
 
     def user
-      User.find(user_id)
+      @user ||= User.find(user_id)
     end
 
     def available_age_ranges
