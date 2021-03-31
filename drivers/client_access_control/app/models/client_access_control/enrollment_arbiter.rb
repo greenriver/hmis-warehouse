@@ -48,7 +48,8 @@ module ClientAccessControl
       coc_codes = user.coc_codes
       ::GrdaWarehouse::Hud::Enrollment.where(
         e_t[:id].in(Arel.sql(::GrdaWarehouse::Hud::Enrollment.joins(:project).where(p_t[:id].in(project_ids)).select(:id).to_sql)). # 1
-        or(e_t[:id].in(Arel.sql(unscoped_clients.active_confirmed_consent_in_cocs(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))), # 2
+        or(e_t[:id].in(Arel.sql(unscoped_clients.active_confirmed_consent_in_cocs(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))). # 2
+        or(e_t[:data_source_id].in(::GrdaWarehouse::DataSource.visible_in_window.pluck(:id))), # 3
       )
     end
 
