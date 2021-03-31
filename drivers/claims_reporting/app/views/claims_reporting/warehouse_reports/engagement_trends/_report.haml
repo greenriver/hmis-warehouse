@@ -1,6 +1,7 @@
 %p
   Data shown reflects claims for services starting between #{report.claim_date_range.first} and #{report.claim_date_range.last} and paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
 - f = ClaimsReporting::Formatter.new
+%h3 Patients
 .card.mb-4
   %table.table.table-sm.table-striped.table-bordered.mb-0
     %thead
@@ -14,6 +15,8 @@
           %th= summary_field.gsub('$PMPM','$PMPM¹')
           - @report.cohorts.each do |corhort_id, cohort|
             %td.text-right= f.format_i @report.summary(corhort_id)[summary_field.to_s]
+
+%h3 Claims
 .card.mb-4
   - cohorts_with_data = @report.cohorts.except(:pre_assigned, :not_assigned)
   %table.table.table-sm.table-striped.table-bordered.mb-0
