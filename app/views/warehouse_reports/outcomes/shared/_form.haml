@@ -11,7 +11,7 @@
     - if GrdaWarehouse::Config.get(:multi_coc_installation)
       .row
         .col
-          = f.input :coc_codes, collection: GrdaWarehouse::Lookups::CocCode.options_for_select(user: current_user), placeholder: 'All', as: :select_two, input_html: { multiple: true }, include_blank: false, label: 'CoC Codes'
+          = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), placeholder: 'All', as: :select_two, input_html: { multiple: true }, include_blank: false, label: 'CoC Codes'
         .col
           = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, project_type_ids: @filter.project_type_numbers)}}, include_blank: false
     .row

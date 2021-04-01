@@ -432,13 +432,7 @@ module Reporting
         where(client_id: client_id_batch).
         joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: affiliated_projects.values)).
-        where(
-          she_t[:first_date_in_program].lt(Date.current).
-          and(
-            she_t[:last_date_in_program].gt(lookback_date).
-            or(she_t[:last_date_in_program].eq(nil)),
-          )
-        ).
+        open_between(start_date: lookback_date, end_date: Date.current).
         order(she_t[:first_date_in_program].desc).
         pluck(*two_project_service_columns.values).
         map do |row|
@@ -520,13 +514,7 @@ module Reporting
         where(client_id: client_id_batch).
         joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: one_project_ids)).
-        where(
-          she_t[:first_date_in_program].lt(Date.current).
-          and(
-            she_t[:last_date_in_program].gt(lookback_date).
-            or(she_t[:last_date_in_program].eq(nil)),
-          )
-        ).
+        open_between(start_date: lookback_date, end_date: Date.current).
         pluck(*one_project_columns.values).
         map do |row|
           residential_enrollment = Hash[one_project_columns.keys.zip(row)]
