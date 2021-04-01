@@ -622,7 +622,7 @@ module GrdaWarehouse::Tasks
     end
 
     def log message
-      log message
+      Rails.logger.info(message)
       @notifier.ping(message) if @send_notifications
     end
 
