@@ -31,8 +31,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
   let!(:new_referral_out) { create :referral_out, :new_referral_out, client: existing_intake.client }
 
   let!(:past_follow_up) { create :follow_up, :past_follow_up, client: existing_intake.client }
-  let!(:protected_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, :follow_up_from_at_risk, client: new_at_risk_contact.client }
-  let!(:rehoused_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, :follow_up_from_homeless, client: new_homeless_contact.client }
+  let!(:protected_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, :follow_up_from_housed_to_at_risk, client: new_at_risk_contact.client }
+  let!(:rehoused_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, :follow_up_from_homeless_to_housed, client: new_homeless_contact.client }
 
   let(:report) { build :homeless_youth_report }
 

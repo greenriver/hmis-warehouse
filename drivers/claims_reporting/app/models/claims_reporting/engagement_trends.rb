@@ -179,27 +179,27 @@ module ClaimsReporting
         engaged_6_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(1..182),
           title: 'Engaged <= 6 Months',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have six or fewer months of time being engaged.',
         },
         engaged_12_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(183..365),
           title: 'Engaged 7-12 Months',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have between seven to twelve months of time being engaged.',
         },
         engaged_18_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(366..547),
           title: 'Engaged 13-18 Months',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have between thirteen to eighteen months of time being engaged.',
         },
         engaged_24_months: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(548..730),
           title: 'Engaged 19-24 Months',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have between nineteen to twenty four months of time being engaged.',
         },
         engaged_24_months_or_more: {
           scope: ClaimsReporting::MemberEnrollmentRoster.engaged_for(731..Float::INFINITY),
           title: 'Engaged > 2 years',
-          tooltip: '',
+          tooltip: 'Patients who have fully engaged, and have two years or more of time being engaged.',
         },
       }.freeze
     end
