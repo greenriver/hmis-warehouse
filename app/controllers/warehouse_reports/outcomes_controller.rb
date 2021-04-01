@@ -138,6 +138,7 @@ module WarehouseReports
         :ethnicity,
         :gender,
         :veteran_status,
+        :hoh_only,
         data_source_ids: [],
         organization_ids: [],
         project_ids: [],
