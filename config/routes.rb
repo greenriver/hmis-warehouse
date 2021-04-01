@@ -15,7 +15,7 @@ Rails.application.routes.draw do
   devise_for :users, controllers: {
     invitations: 'users/invitations',
     sessions: 'users/sessions',
-    omniauth_callbacks: 'users/omniauth_callbacks',
+    omniauth_callbacks: ('users/omniauth_callbacks' if ENV['OKTA_DOMAIN'].present?),
   }
 
   devise_scope :user do
