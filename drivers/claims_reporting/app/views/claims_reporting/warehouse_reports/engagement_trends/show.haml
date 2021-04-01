@@ -1,0 +1,14 @@
+- title = _('Patient Engagement Trends')
+- content_for :title, title
+
+= render 'breadcrumbs'
+%h1= title
+
+.well.warehouse-reports__completed
+  .d-flex
+    .mt-2
+      %p
+        %strong Run on:
+        #{@report.completed_at.to_date} by #{@report.user&.name}
+
+= render 'report', report: @report

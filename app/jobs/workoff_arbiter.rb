@@ -61,7 +61,7 @@ class WorkoffArbiter
 
     ecs.run_task(payload)
 
-    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
+    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.pluck(:id).count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
   end
 
   private
@@ -120,9 +120,8 @@ class WorkoffArbiter
       where(failed_at: nil, locked_at: nil, locked_by: nil)
   end
 
-
   def _task_family
-    _task_definition.split(%r{/}).last.split(/:/).first
+    _task_definition.split(/\//).last.split(/:/).first
   end
 
   def _task_definition
