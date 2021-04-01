@@ -8,7 +8,7 @@ class User < ApplicationRecord
   include Rails.application.routes.url_helpers
   include UserPermissions
   include PasswordRules
-  has_paper_trail
+  has_paper_trail ignore: [:provider_raw_info]
   acts_as_paranoid
 
   attr_accessor :remember_device, :device_name
@@ -54,7 +54,7 @@ class User < ApplicationRecord
     end
 
     # update this info from the provider whenever we can
-    user.update_columns(
+    user.assign_attributes(
       provider: auth['provider'],
       uid: auth['uid'],
       email: auth['info']['email'],
@@ -63,6 +63,7 @@ class User < ApplicationRecord
       last_name: auth['info']['last_name'],
       provider_raw_info: auth.extra.raw_info,
     )
+    user.save(validate: :false)
     user
   end
 
