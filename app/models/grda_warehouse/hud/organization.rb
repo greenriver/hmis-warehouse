@@ -141,6 +141,8 @@ module GrdaWarehouse::Hud
               #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              AND
+              #{data_source_table}.#{qc.(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
             WHERE
               #{organization_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
         )
