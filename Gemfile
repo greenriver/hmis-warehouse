@@ -72,7 +72,8 @@ gem 'devise-two-factor'
 
 # master since the latest release doesnt support dotenv (and has other useful fixes)
 gem 'omniauth-okta', require: false, git: 'https://github.com/dandrews/omniauth-okta.git', branch: 'master'
-# gem 'omniauth-rails_csrf_protection', require: false
+gem 'omniauth-rails_csrf_protection', require: false
+
 gem 'pretender'
 gem 'rqrcode-rails3'
 gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
