@@ -34,85 +34,8 @@ class User < ApplicationRecord
          otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
          otp_number_of_backup_codes: 10
 
-  devise :omniauthable, omniauth_providers: [:okta] if ENV['OKTA_DOMAIN'].present?
+  include OmniauthSupport
 
-  def self.from_omniauth(auth)
-    logger.debug do
-      "User#from_omniauth #{auth['info']}"
-    end
-
-    user = find_by(
-      provider: auth['provider'],
-      uid: auth['uid'],
-    ) || find_by(
-      email: auth['info']['email'],
-    ) || new(
-      password: Devise.friendly_token,
-      confirmed_at: Time.current, # we are assuming its the providers job, not ours.
-      agency: Agency.where(name: 'Default').first_or_create!
-    )
-
-    # update this info from the provider whenever we can
-    user.assign_attributes(
-      provider: auth['provider'],
-      uid: auth['uid'],
-      email: auth['info']['email'],
-      phone: auth.extra.raw_info[:phone_number],
-      first_name: auth['info']['first_name'],
-      last_name: auth['info']['last_name'],
-      provider_raw_info: auth.extra.raw_info,
-    )
-
-    # notify existing users the first time OKTA is used
-    # to sign into their account
-    if !user.new_record? && user.provider_changed?
-      :ImmediateMailer.immediate(
-        "Your account has just been signed into via #{user.provider.upcase} for the first time. If you did not expect this please contact your administrator.",
-        user.email
-      ).deliver_later
-    end
-
-    user.save(validate: :false)
-    user
-  end
-
-  def external_idp?
-    provider.present?
-  end
-
-  def email_change_enabled?
-    !external_idp?
-  end
-
-  def password_change_enabled?
-    !external_idp?
-  end
-
-  def self.find_for_database_authentication(*args)
-    user = super
-
-    return nil if user&.external_idp? # these users cannot log in via a database password
-
-    user
-  end
-
-  def send_reset_password_instructions
-    return false if external_idp?
-
-    super
-  end
-
-  def password_expiration_enabled?
-    return false if external_idp? # these users cannot log in via a password
-
-    super
-  end
-
-  def pwned?
-    return false if external_idp? # these users cannot log in via a password
-
-    super
-  end
 
   # Connect users to login attempts
   has_many :login_activities, as: :user

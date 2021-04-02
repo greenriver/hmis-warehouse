@@ -14,7 +14,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   end
 
   def failure
-    logger.warn "OmniauthCallbacksController#failure #{request.env['omniauth.auth']}"
+    logger.error "OmniauthCallbacksController#failure #{request.env['omniauth.auth']}"
     super
   end
 end

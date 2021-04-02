@@ -20,6 +20,16 @@ class ApplicationMailer < ActionMailer::Base
     self.class.prefix
   end
 
+  def provider_linked
+    @user = params[:user]
+    @provider_name = @user.provider.upcase
+
+    mail(
+      to: @user.email,
+      subject: _("Sign in via #{@provider_name}"),
+    )
+  end
+
   def self.remove_prefix(subject)
     if subject.starts_with? prefix
       subject[prefix.length..].strip
