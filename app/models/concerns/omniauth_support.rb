@@ -16,6 +16,11 @@ module OmniauthSupport
       user
     end
 
+    # Find or create a from omniauth info.
+    # If the user is new they will be assigned to a "Unknown" Agency and considered #confirmed_at Time.current.
+    # If the user already exists their name etc may be updated to reflect info from the provider.
+    # If the user already exist and #provider_changed? an ::ApplicationMailer#provider_linked
+    #    email letting them know will be scheduled.
     def from_omniauth(auth)
       logger.debug do
         "User#from_omniauth #{auth['info']}"
@@ -32,7 +37,7 @@ module OmniauthSupport
         agency: Agency.where(name: 'Unknown').first_or_create!,
       )
 
-      # update this info from the provider whenever we can
+      # Update this info from the provider whenever we can
       user.assign_attributes(
         provider: auth['provider'],
         uid: auth['uid'],
@@ -54,35 +59,72 @@ module OmniauthSupport
     end
   end
 
+  # Does this user use an external identity provider. #provider says which one.
   def external_idp?
     provider.present?
   end
 
+  # Remove the IDP present, reseting the password and
+  # reactivating by default.
+  #
+  # @returns true if the external_idp? was previously true
+  def unlink_idp(reset_password: true, reactivate: true)
+    raise 'user must be saved first' if new_record?
+
+    return false unless external_idp? # nothing to do
+
+    assign_attributes(
+      provider: nil,
+      uid: nil,
+    )
+
+    if reactivate
+      self.last_activity_at = Time.current
+      self.expired_at = nil
+      self.active = true
+    end
+
+    self.password = Devise.friendly_token if reset_password
+
+    save(validate: false)
+
+    send_reset_password_instructions if reset_password
+
+    true
+  end
+
+  # Users who don't have a local password cannot be asked to confirm it
   def confirm_password_for_admin_actions?
     !external_idp?
   end
 
+  # Users who use a external IDP probably dont want to change
+  # their email here only.
   def email_change_enabled?
     !external_idp?
   end
 
+  # Users who don't have a local password cannot be asked to change it
   def password_change_enabled?
     !external_idp?
   end
 
   def send_reset_password_instructions
+    # doesn't make sense for users who cant use a local password
     return false if external_idp?
 
     super
   end
 
   def password_expiration_enabled?
+    # doesn't make sense for users who cant use a local password
     return false if external_idp?
 
     super
   end
 
   def pwned?
+    # doesn't make sense for users who cant use a local password
     return false if external_idp?
 
     super
