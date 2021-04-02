@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+cmd = "aws-vault exec openpath -- bin/deploy #{ARGV.join(' ')}"
+system(cmd)
