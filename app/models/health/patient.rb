@@ -221,13 +221,11 @@ module Health
       participation_form_patient_id_scope = Health::ParticipationForm.distinct.
         valid.
         allowed_for_engagement.
-         where(reviewed_at: (first_date..on.to_time)).
         select(:patient_id)
 
       release_form_patient_id_scope = Health::ReleaseForm.distinct.
         valid.
         allowed_for_engagement.
-        where(reviewed_at: (first_date..on.to_time)).
         select(:patient_id)
 
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
