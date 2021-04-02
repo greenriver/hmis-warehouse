@@ -103,7 +103,7 @@ class ContainerList
 
     raise 'Check you VPN. Your public IP seems incorrect' unless my_ip.match?(/^(54\.85|64.223)/)
 
-    raise 'set AWS_PROFILE' if ENV['AWS_PROFILE'].nil?
+    raise 'set AWS_PROFILE' if ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }.nil?
   end
 
   def instances
