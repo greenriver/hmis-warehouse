@@ -2,8 +2,6 @@ require 'aws-sdk-route53'
 require 'awesome_print'
 
 class Domains
-  AWS_PROFILE = ENV.fetch('AWS_PROFILE')
-
   def list!
     results = route53.list_resource_record_sets(hosted_zone_id: hosted_zone).flat_map do |r|
       r.resource_record_sets
@@ -29,5 +27,5 @@ class Domains
     @hosted_zone = found[:id]
   end
 
-  define_method(:route53) { Aws::Route53::Client.new(profile: AWS_PROFILE) }
+  define_method(:route53) { Aws::Route53::Client.new }
 end

@@ -46,8 +46,7 @@ class RollOut
   SPOT_CAPACITY_PROVIDER_NAME = WorkoffArbiter::SPOT_CAPACITY_PROVIDER_NAME
 
   def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:)
-    self.aws_profile         = ENV.fetch('AWS_PROFILE')
-    self.cluster             = ENV.fetch('AWS_CLUSTER') { self.aws_profile }
+    self.cluster             = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
     self.image_base          = image_base
     self.secrets_arn         = secrets_arn
     self.target_group_arn    = target_group_arn
