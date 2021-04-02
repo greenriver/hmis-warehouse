@@ -303,7 +303,17 @@ module Reporting
     end
 
     def enrollment_data(client_id_batch)
-      one_project_data(client_id_batch) + two_project_data(client_id_batch)
+      future_cutoff = 1.years.from_now.to_date
+      (one_project_data(client_id_batch) + two_project_data(client_id_batch)).map do |row|
+        # Throw out any records where the start date is more than one year in the future
+        next if row[:search_start].present? && row[:search_start] > future_cutoff
+
+        # Wipe any future dates from the other fields since they aren't valid
+        row[:search_end] = nil if row[:search_end].present? && row[:search_end] > future_cutoff
+        row[:housed_date] = nil if row[:housed_date].present? && row[:housed_date] > future_cutoff
+        row[:housing_exit] = nil if row[:housing_exit].present? && row[:housing_exit] > future_cutoff
+        row
+      end.compact
     end
 
     def default_row
@@ -432,13 +442,7 @@ module Reporting
         where(client_id: client_id_batch).
         joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: affiliated_projects.values)).
-        where(
-          she_t[:first_date_in_program].lt(Date.current).
-          and(
-            she_t[:last_date_in_program].gt(lookback_date).
-            or(she_t[:last_date_in_program].eq(nil)),
-          )
-        ).
+        open_between(start_date: lookback_date, end_date: Date.current).
         order(she_t[:first_date_in_program].desc).
         pluck(*two_project_service_columns.values).
         map do |row|
@@ -520,13 +524,7 @@ module Reporting
         where(client_id: client_id_batch).
         joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: one_project_ids)).
-        where(
-          she_t[:first_date_in_program].lt(Date.current).
-          and(
-            she_t[:last_date_in_program].gt(lookback_date).
-            or(she_t[:last_date_in_program].eq(nil)),
-          )
-        ).
+        open_between(start_date: lookback_date, end_date: Date.current).
         pluck(*one_project_columns.values).
         map do |row|
           residential_enrollment = Hash[one_project_columns.keys.zip(row)]

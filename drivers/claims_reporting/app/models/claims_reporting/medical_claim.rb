@@ -8,8 +8,61 @@ module ClaimsReporting
   class MedicalClaim < HealthBase
     phi_patient :member_id
 
-    include ClaimsReporting::CsvHelpers
+    belongs_to :patient,
+               class_name: 'Health::Patient',
+               primary_key: :member_id,
+               foreign_key: :medicaid_id
 
+    belongs_to :member_roster,
+               primary_key: :member_id,
+               foreign_key: :member_id
+
+    scope :service_in, ->(date_range) do
+      where(
+        arel_table[:service_start_date].lt(date_range.max).
+        and(
+          arel_table[:service_end_date].gteq(date_range.min).
+          or(arel_table[:service_end_date].eq(nil)),
+        ),
+      )
+    end
+
+    scope :engaging, -> do
+      where(
+        procedure_code: 'T2024',
+        procedure_modifier_1: 'U4',
+        claim_status: 'P',
+      )
+    end
+
+    scope :paid, -> do
+      where(patient_status: 'P')
+    end
+
+    def self.service_overlaps(date_range)
+      where ["daterange(service_start_date, service_end_date, '[]') && daterange(:min, :max, '[]')", { min: date_range.min, max: date_range.max }]
+    end
+
+    def modifiers
+      [
+        procedure_modifier_1,
+        procedure_modifier_2,
+        procedure_modifier_3,
+        procedure_modifier_4,
+      ].select(&:present?)
+    end
+
+    def procedure_with_modifiers
+      # sort is here since this is used as a key to match against other data
+      ([procedure_code] + modifiers.sort).join('>').to_s
+    end
+
+    # Qualifying Activity: BH CP Treatment Plan Complete
+    def bh_cp_1?
+      procedure_code == 'T2024' && 'U4'.in?(modifiers)
+    end
+
+    include ClaimsReporting::CsvHelpers
     def self.conflict_target
       ['member_id', 'claim_number', 'line_number']
     end
@@ -170,29 +223,6 @@ module ClaimsReporting
         151,cde_cos_subcategory,,50,string,-
         151,ind_mco_aco_cvd_svc,,50,string,-
       CSV
-    end
-
-    belongs_to :patient,
-               class_name: 'Health::Patient',
-               primary_key: :member_id,
-               foreign_key: :medicaid_id
-
-    belongs_to :member_roster,
-               primary_key: :member_id,
-               foreign_key: :member_id
-
-    def modifiers
-      [
-        procedure_modifier_1,
-        procedure_modifier_2,
-        procedure_modifier_3,
-        procedure_modifier_4,
-      ].select(&:present?)
-    end
-
-    def procedure_with_modifiers
-      # sort is here since this is used as a key to match against other data
-      ([procedure_code] + modifiers.sort).join('>').to_s
     end
   end
 end

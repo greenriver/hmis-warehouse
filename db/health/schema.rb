@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_25_190312) do
+ActiveRecord::Schema.define(version: 2021_03_30_181230) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -252,6 +252,20 @@ ActiveRecord::Schema.define(version: 2021_03_25_190312) do
     t.index ["user_id"], name: "index_claims_reporting_cp_payment_uploads_on_user_id"
   end
 
+  create_table "claims_reporting_engagement_trends", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.jsonb "options"
+    t.jsonb "results"
+    t.string "processing_errors"
+    t.datetime "completed_at"
+    t.datetime "started_at"
+    t.datetime "failed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["user_id"], name: "index_claims_reporting_engagement_trends_on_user_id"
+  end
+
   create_table "claims_reporting_imports", force: :cascade do |t|
     t.string "source_url", null: false
     t.datetime "started_at"
@@ -423,6 +437,7 @@ ActiveRecord::Schema.define(version: 2021_03_25_190312) do
     t.string "cde_cos_category", limit: 50
     t.string "cde_cos_subcategory", limit: 50
     t.string "ind_mco_aco_cvd_svc", limit: 50
+    t.index "daterange(service_start_date, service_end_date)", name: "claims_reporting_medical_claims_service_dates", using: :gist
     t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
     t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
     t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_medical_claim", unique: true
@@ -510,6 +525,11 @@ ActiveRecord::Schema.define(version: 2021_03_25_190312) do
     t.string "tpl_coverage_cat", limit: 50
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.date "engagement_date"
+    t.integer "engaged_days"
+    t.date "enrollment_end_at_engagement_calculation"
+    t.date "first_claim_date"
+    t.integer "pre_engagement_days", default: 0
     t.index ["member_id", "span_start_date"], name: "unk_cr_member_enrollment_roster", unique: true
   end
 
@@ -1003,6 +1023,7 @@ ActiveRecord::Schema.define(version: 2021_03_25_190312) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -1046,6 +1067,7 @@ ActiveRecord::Schema.define(version: 2021_03_25_190312) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
+    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -1904,6 +1926,15 @@ ActiveRecord::Schema.define(version: 2021_03_25_190312) do
     t.index ["created_at"], name: "index_ssm_exports_on_created_at"
     t.index ["updated_at"], name: "index_ssm_exports_on_updated_at"
     t.index ["user_id"], name: "index_ssm_exports_on_user_id"
+  end
+
+  create_table "status_dates", force: :cascade do |t|
+    t.bigint "patient_id", null: false
+    t.date "date", null: false
+    t.boolean "engaged", null: false
+    t.boolean "enrolled", null: false
+    t.index ["date"], name: "index_status_dates_on_date"
+    t.index ["patient_id"], name: "index_status_dates_on_patient_id"
   end
 
   create_table "team_members", id: :serial, force: :cascade do |t|

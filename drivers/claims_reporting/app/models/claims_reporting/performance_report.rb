@@ -393,42 +393,25 @@ module ClaimsReporting
       'TODO'
     end
 
-    include ActionView::Helpers::NumberHelper
-    private def format_d(value, precision: 1)
-      return if value.blank?
-
-      too_small = precision.zero? ? 1 : 10**-precision
-      value = value.to_d
-      return "<#{number_with_precision too_small, precision: precision}" if value.positive? && value < too_small
-
-      number_with_precision value, precision: precision, strip_insignificant_zeros: true, delimiter: ','
+    private def formatter
+      ClaimsReporting::Formatter.new
     end
-
-    private def format_i(value, precision: 0)
-      format_d value, precision: precision
-    end
-
-    private def format_pct(value, precision: 1)
-      too_small = 10**-precision
-      return "<#{number_to_percentage too_small, precision: precision}" if value.to_d.positive? && value.to_d < too_small
-
-      number_to_percentage value, precision: precision, strip_insignificant_zeros: true
-    end
+    memoize :formatter
 
     def formatted_value(fld, row)
       val = row[fld.to_s]
       if val.blank?
         val
       elsif fld.in?([:paid_amount_sum, :avg_cost_per_service, :cohort_per_member_month_spend])
-        number_to_currency val
+        formatter.number_to_currency val
       elsif fld.to_s =~ /pct_of/
-        format_pct val, precision: 2
+        formatter.format_pct val, precision: 2
       elsif (number = begin
                       val.to_d
                     rescue StandardError
                       nil
                     end)
-        format_d number, precision: 2
+        formatter.format_d number, precision: 2
       else
         val
       end
@@ -436,18 +419,15 @@ module ClaimsReporting
 
     def summary_rows
       [
-        ['Selected Members', "#{format_i selected_members} (#{format_pct percent_members_selected, precision: 1} of members)"],
-        ['Average Age', format_d(average_age)],
-        ['Member Months', format_d(member_months)],
-        ['Average $PMPM', number_to_currency(average_per_member_per_month_spend)],
-        ['Average Raw DxCG Score', format_d(average_raw_dxcg_score)],
-        # ['Normalized DxCG Score', format_d(normalized_dxcg_score)],
-        ['Normalized DxCG Score', 'N/A'],
-        ['% Female', format_pct(pct_female)],
-        ['% with Psychoses/Bipolar/Schizophrenia', 'N/A'],
-        # ['% with Psychoses/Bipolar/Schizophrenia', format_pct(pct_with_pbd)],
-        ['% with Depression/Anxiety/Stress Disorders', 'N/A'],
-        # ['% with Depression/Anxiety/Stress Disorders', format_pct(pct_with_das)],
+        ['Selected Members', "#{formatter.format_i selected_members} (#{formatter.format_pct percent_members_selected, precision: 1} of members)"],
+        ['Average Age', formatter.format_d(average_age)],
+        ['Member Months', formatter.format_d(member_months)],
+        ['Average $PMPM', formatter.number_to_currency(average_per_member_per_month_spend)],
+        ['Average Raw DxCG Score', formatter.format_d(average_raw_dxcg_score)],
+        ['Normalized DxCG Score', formatter.format_d(normalized_dxcg_score)],
+        ['% Female', formatter.format_pct(pct_female)],
+        #        ['% with Psychoses/Bipolar/Schizophrenia', formatter.format_pct(pct_with_pbd)],
+        #        ['% with Depression/Anxiety/Stress Disorders', formatter.format_pct(pct_with_das)],
       ]
     end
 
@@ -487,7 +467,7 @@ module ClaimsReporting
       sql_member_count = %[COUNT(DISTINCT #{sql_member_id})::numeric]
 
       utilization_per_mille = Arel.sql(
-        %[ROUND(count(*)+1000/(#{sql_member_count}/#{report_days}))],
+        %[ROUND(count(*)*1000/(#{sql_member_count}/#{report_days}))],
       ).as('utilization_per_mille')
 
       annual_admits_per_mille = Arel.sql(

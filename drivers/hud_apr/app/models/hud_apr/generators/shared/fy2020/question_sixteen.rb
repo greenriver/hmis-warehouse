@@ -7,11 +7,6 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionSixteen < Base
     QUESTION_NUMBER = 'Question 16'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q16'].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def q16_cash_ranges
       table_name = 'Q16'

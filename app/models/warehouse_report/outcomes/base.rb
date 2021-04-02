@@ -1043,6 +1043,7 @@ class WarehouseReport::Outcomes::Base
       open_between(start_date: @start_date, end_date: @end_date)
     scope = scope.where(data_source_id: @data_source_ids) if @data_source_ids.present?
     scope = scope.where(organization_id: @organization_ids) if @organization_ids.present?
+    scope = scope.heads_of_households if @filter.hoh_only
 
     scope
   end
@@ -1063,6 +1064,7 @@ class WarehouseReport::Outcomes::Base
     scope = scope.where(ethnicity: @ethnicity&.to_s&.to_i) unless @ethnicity == :current_scope
     scope = scope.where(gender: @gender&.to_s&.to_i) unless @gender == :current_scope
     scope = scope.where(veteran_status: @veteran_status&.to_s&.to_i) unless @veteran_status == :current_scope
+    scope = scope.heads_of_households if @filter.hoh_only
 
     scope
   end
@@ -1081,7 +1083,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   private def any_options_chosen?
-    @project_ids.any? || @coc_codes.present? || ! [@race, @ethnicity, @gender, @veteran_status, @household_type, @subpopulation].all?(:current_scope)
+    @project_ids.any? || @coc_codes.present? || ! [@race, @ethnicity, @gender, @veteran_status, @household_type, @subpopulation, @filter.only_hoh].all?(:current_scope)
   end
 
   def ho_t

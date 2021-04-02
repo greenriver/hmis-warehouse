@@ -6,10 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2020
   class QuestionEight < Base
-    include ArelHelper
-
     QUESTION_NUMBER = 'Question 8'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q8a', 'Q8b'].freeze
 
     HEADER_ROW = [
       ' ',
@@ -19,10 +16,6 @@ module HudApr::Generators::Shared::Fy2020
       'With Only Children',
       'Unknown Household Type',
     ].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def q8a_persons_served
       table_name = 'Q8a'

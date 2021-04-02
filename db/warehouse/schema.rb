@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_12_200044) do
+ActiveRecord::Schema.define(version: 2021_03_30_124825) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4793,7 +4793,7 @@ ActiveRecord::Schema.define(version: 2021_03_12_200044) do
     t.string "last_name"
     t.datetime "deleted_at"
     t.index ["client_id"], name: "index_hud_report_universe_members_on_client_id"
-    t.index ["report_cell_id"], name: "index_hud_report_universe_members_on_report_cell_id"
+    t.index ["report_cell_id", "universe_membership_id", "universe_membership_type"], name: "uniq_hud_report_universe_members", unique: true, where: "(deleted_at IS NULL)"
     t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
   end
 

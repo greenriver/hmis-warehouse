@@ -6,14 +6,7 @@
 
 module HudApr::Generators::Caper::Fy2020
   class QuestionSix < HudApr::Generators::Shared::Fy2020::QuestionSix
-    include ArelHelper
-
-    QUESTION_NUMBER = 'Question 6'.freeze
     QUESTION_TABLE_NUMBERS = ('Q6a'..'Q6f').to_a.freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
