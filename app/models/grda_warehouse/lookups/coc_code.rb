@@ -17,6 +17,7 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
     coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
       merge(GrdaWarehouse::Hud::Project.viewable_by(user)).distinct.
       pluck(:CoCCode, :hud_coc_code).flatten.uniq.map(&:presence).compact
+    coc_codes &= user.coc_codes if user.coc_codes.present?
     active.where(coc_code: coc_codes)
   end
 
