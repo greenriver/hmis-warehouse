@@ -7,7 +7,6 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionFour < Base
     QUESTION_NUMBER = 'Question 4'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q4a'].freeze
 
     TABLE_HEADER = [
       'Organization Name',
@@ -27,10 +26,6 @@ module HudApr::Generators::Shared::Fy2020
     ].freeze
 
     HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def q4_project_identifiers
       table_name = 'Q4a'

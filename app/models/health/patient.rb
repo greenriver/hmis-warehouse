@@ -108,6 +108,7 @@ module Health
     belongs_to :care_coordinator, class_name: 'User'
     belongs_to :nurse_care_manager, class_name: 'User'
     has_many :qualifying_activities
+    has_many :status_dates
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
@@ -202,17 +203,19 @@ module Health
     # Has Participation Form
     # Has Release Form
     # Has CHA
-    scope :engaged, -> do
+    scope :engaged, -> (on: Date.current) do
       # This lives in the warehouse DB and must be materialized
       # hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
-
+      first_date = Health::PatientReferral.first_enrollment_start_date&.to_time || '2015-01-01'.to_time
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
         completed.
         allowed_for_engagement.
+        where(completed_at: (first_date..on.to_time)).
         select(:patient_id)
 
       epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
         allowed_for_engagement.
+        where(ssm_updated_at: (first_date..on.to_time)).
         select(hp_t[:id].to_sql)
 
       participation_form_patient_id_scope = Health::ParticipationForm.distinct.
@@ -228,14 +231,17 @@ module Health
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
         reviewed.
         allowed_for_engagement.
+        where(reviewed_at: (first_date..on.to_time)).
         select(:patient_id)
 
       epic_cha_patient_id_scope = Health::EpicCha.distinct.
         allowed_for_engagement.
+        where(cha_updated_at: (first_date..on.to_time)).
         select(hp_t[:id].to_sql)
 
       pctp_signed_patient_id_scope = Health::Careplan.distinct.
         pcp_signed.
+        where(provider_signed_on: (first_date..on.to_time)).
         select(:patient_id)
       # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
@@ -302,6 +308,19 @@ module Health
 
     scope :with_housing_status, -> do
       where.not(housing_status: [nil, ''], housing_status_timestamp: nil)
+    end
+
+    scope :enrolled_before, -> (date) do
+      joins(:status_dates).merge(Health::StatusDate.enrolled_before(date))
+    end
+
+    scope :engaged_before, -> (date) do
+      joins(:status_dates).merge(Health::StatusDate.engaged_before(date))
+    end
+
+    scope :engaged_for, -> (range) do
+      where(id: Health::StatusDate.engaged.group(h_sd_t[:patient_id]).
+        having(nf('count', [h_sd_t[:patient_id]]).between(range)).select(:patient_id))
     end
 
     delegate :effective_date, to: :patient_referral
@@ -379,17 +398,37 @@ module Health
       (patient_referral.enrollment_start_date..end_date)
     end
 
+    # def prior_contributed_enrollment_ranges
+    #   patient_referrals.contributing.prior.map do |referral|
+    #     (referral.enrollment_start_date..referral.actual_or_pending_disenrollment_date)
+    #   end
+    # end
+
     def prior_contributed_enrollment_ranges
-      patient_referrals.contributing.prior.map do |referral|
+      patient_referrals.map do |referral|
+        next unless referral.contributing?
+        next if referral.current?
+        next unless referral.enrollment_start_date
+
         (referral.enrollment_start_date..referral.actual_or_pending_disenrollment_date)
       end
     end
 
+    # def contributed_enrollment_ranges
+    #   patient_referrals.contributing.map do |referral|
+    #     end_date = referral.actual_or_pending_disenrollment_date || Date.current
+    #     (referral.enrollment_start_date..end_date)
+    #   end
+    # end
+
     def contributed_enrollment_ranges
-      patient_referrals.contributing.map do |referral|
+      patient_referrals.map do |referral|
+        next unless referral.contributing?
+        next unless referral.enrollment_start_date
+
         end_date = referral.actual_or_pending_disenrollment_date || Date.current
         (referral.enrollment_start_date..end_date)
-      end
+      end.compact
     end
 
     def careplan_signed_in_122_days?
