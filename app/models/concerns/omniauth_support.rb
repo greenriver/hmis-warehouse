@@ -58,6 +58,10 @@ module OmniauthSupport
     provider.present?
   end
 
+  def confirm_password_for_admin_actions?
+    !external_idp?
+  end
+
   def email_change_enabled?
     !external_idp?
   end
