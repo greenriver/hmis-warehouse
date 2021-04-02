@@ -412,9 +412,9 @@ Devise.setup do |config|
       :okta,
       ENV.fetch('OKTA_CLIENT_ID'),
       ENV.fetch('OKTA_CLIENT_SECRET'),
-      scope: 'openid profile email',
-      fields: ['profile', 'email'],
-        client_options: {
+      scope: 'openid profile email phone',
+      fields: ['profile', 'email', 'phone'],
+      client_options: {
         site:          "https://#{domain}",
         authorize_url: "https://#{domain}/oauth2/#{auth_server}/v1/authorize",
         token_url:     "https://#{domain}/oauth2/#{auth_server}/v1/token",

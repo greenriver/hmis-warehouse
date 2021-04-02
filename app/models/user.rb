@@ -37,21 +37,20 @@ class User < ApplicationRecord
   devise :omniauthable, omniauth_providers: [:okta] if ENV['OKTA_DOMAIN'].present?
 
   def self.from_omniauth(auth)
+    logger.debug do
+      "User#from_omniauth #{auth['info']}"
+    end
+
     user = find_by(
       provider: auth['provider'],
       uid: auth['uid'],
     ) || find_by(
       email: auth['info']['email'],
-    ) || create! do |u|
-      u.password = Devise.friendly_token
-      u.confirmed_at = Time.current # we are assuming its the providers job, not ours.
-      default_agency_name = 'Default'
-      u.agency = Agency.where(name: default_agency_name).first_or_create!
-    end
-
-    logger.debug do
-      "User#from_omniauth #{auth['info']}"
-    end
+    ) || new(
+      password: Devise.friendly_token,
+      confirmed_at: Time.current, # we are assuming its the providers job, not ours.
+      agency: Agency.where(name: 'Default').first_or_create!
+    )
 
     # update this info from the provider whenever we can
     user.assign_attributes(
@@ -63,6 +62,16 @@ class User < ApplicationRecord
       last_name: auth['info']['last_name'],
       provider_raw_info: auth.extra.raw_info,
     )
+
+    # notify existing users the first time OKTA is used
+    # to sign into their account
+    if !user.new_record? && user.provider_changed?
+      :ImmediateMailer.immediate(
+        "Your account has just been signed into via #{user.provider.upcase} for the first time. If you did not expect this please contact your administrator.",
+        user.email
+      ).deliver_later
+    end
+
     user.save(validate: :false)
     user
   end
