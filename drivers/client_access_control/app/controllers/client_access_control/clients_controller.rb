@@ -119,7 +119,7 @@ class ClientAccessControl::ClientsController < ApplicationController
 
   # Should always return any clients, source or destination that match
   def client_search_scope
-    client_source.searchable_by(current_user)
+    client_source.searchable_to(current_user)
   end
 
   private def project_scope

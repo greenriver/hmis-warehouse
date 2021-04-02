@@ -88,7 +88,12 @@ module ClientAccessControl::SearchConcern
       @client = client_search_scope.find_by(id: id)
       return if @client.present?
 
-      # search source and destination clients
+      # search source clients for this destination if the id passed in isn't a source
+      # if you can see any source client, you should be able to search for the destination (and get minimal access)
+      destination = client_source.find_by(id: id)
+      @client = destination if client_search_scope.where(id: destination.source_client_ids).exists?
+      return if @client.present?
+
       # for authoritative data sources, this can be the only way to
       # find someone since the data source doesn't have any projects
       @client = client_scope(id: id).find_by(id: id)
