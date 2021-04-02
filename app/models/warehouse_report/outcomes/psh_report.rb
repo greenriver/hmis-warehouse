@@ -9,6 +9,19 @@
 class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
   include ArelHelper
 
+  def title
+    'Permanent Supportive Housing Dashboard'
+  end
+
+  def clients_path_array
+    [
+      :clients,
+      :warehouse_reports,
+      :psh,
+      :index,
+    ]
+  end
+
   def default_support_columns
     {
       service_project: _('Housing Search'),

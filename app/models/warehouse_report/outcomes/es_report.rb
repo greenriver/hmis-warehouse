@@ -9,6 +9,19 @@
 class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
   include ArelHelper
 
+  def title
+    'Emergency Shelter Dashboard'
+  end
+
+  def clients_path_array
+    [
+      :clients,
+      :warehouse_reports,
+      :shelter,
+      :index,
+    ]
+  end
+
   def default_support_columns
     {
       residential_project: _('Project Name'),

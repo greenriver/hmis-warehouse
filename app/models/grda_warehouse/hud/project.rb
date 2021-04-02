@@ -447,6 +447,8 @@ module GrdaWarehouse::Hud
               #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              AND
+              #{data_source_table}.#{qc.(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
             WHERE
               #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
         )
@@ -471,6 +473,8 @@ module GrdaWarehouse::Hud
               #{project_coc_table}.#{qc[:ProjectID]}      = pt.#{qc[:ProjectID]}
               AND
               #{project_coc_table}.#{qc[:data_source_id]} = pt.#{qc[:data_source_id]}
+              AND
+              #{project_coc_table}.#{qc.(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
             WHERE
               (
                 (
