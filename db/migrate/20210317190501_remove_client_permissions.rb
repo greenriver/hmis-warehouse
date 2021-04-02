@@ -6,6 +6,16 @@ class RemoveClientPermissions < ActiveRecord::Migration[5.2]
     User.joins(:roles).merge(Role.where(can_view_clients: true)).to_a.uniq do |user|
       AccessGroup.where(name: 'All Data Sources').first.users << user
     end
+
+    # Give access the appropriate dashboard view
+    Role.all.each do |role|
+      if role.can_view_clients
+        role.update(can_view_full_client_dashboard: true)
+      elsif role.can_view_client_window
+        role.update(can_view_limited_client_dashboard: true)
+      end
+    end
+
     deprecated_permissions = [
       :can_edit_anything_super_user,
       :can_view_client_window,
