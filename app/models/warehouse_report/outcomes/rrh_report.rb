@@ -7,6 +7,19 @@
 class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
   include ArelHelper
 
+  def title
+    'Rapid Rehousing Dashboard'
+  end
+
+  def clients_path_array
+    [
+      :clients,
+      :warehouse_reports,
+      :rrh,
+      :index,
+    ]
+  end
+
   def default_support_columns
     {
       service_project: _('Pre-Placement Project'),

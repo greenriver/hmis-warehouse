@@ -1,8 +1,11 @@
 
 = render 'breadcrumbs'
-.row
+.row.mb-4
   .col-sm-6
     %h1= @data_source.name
+    %em.text-muted
+      Data Source ID:
+      %strong= @data_source.id
   .col-sm-6.text-right
 .row
   .col-sm-8

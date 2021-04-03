@@ -9,6 +9,19 @@
 class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
   include ArelHelper
 
+  def title
+    'Transitional Housing Dashboard'
+  end
+
+  def clients_path_array
+    [
+      :clients,
+      :warehouse_reports,
+      :th,
+      :index,
+    ]
+  end
+
   def default_support_columns
     {
       residential_project: _('Project Name'),

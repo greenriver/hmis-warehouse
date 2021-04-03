@@ -81,7 +81,7 @@ module Filters
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
-      self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
+      self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }.presence || user.coc_codes
       self.coc_code = filters.dig(:coc_code) if available_coc_codes.include?(filters.dig(:coc_code))
       self.household_type = filters.dig(:household_type)&.to_sym
       self.heads_of_household = self.hoh_only = filters.dig(:hoh_only).in?(['1', 'true', true])
@@ -465,7 +465,11 @@ module Filters
     end
 
     def available_coc_codes
-      GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
+      @available_coc_codes ||= begin
+        cocs = GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
+        # If a user has coc code limits assigned, enforce them
+        cocs & user&.coc_codes if user&.coc_codes.present?
+      end
     end
 
     # disallow selection > 1 year, and reverse dates
