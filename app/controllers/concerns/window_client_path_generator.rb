@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module ClientPathGenerator
+module WindowClientPathGenerator
   extend ActiveSupport::Concern
   included do
     def source_client_path_generator
