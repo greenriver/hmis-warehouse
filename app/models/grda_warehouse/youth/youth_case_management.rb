@@ -115,7 +115,7 @@ module GrdaWarehouse::Youth
     end
 
     def complete_required_follow_up!
-      due_follow_up = youth_follow_ups.due.first
+      due_follow_up = youth_follow_ups.due(engaged_on).first
       return unless due_follow_up
 
       due_follow_up.update(
