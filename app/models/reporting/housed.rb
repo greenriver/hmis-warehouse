@@ -188,7 +188,7 @@ module Reporting
     end
 
     def self.available_races
-      ::HUD.races
+      ::HUD.races(multi_racial: true)
     end
 
     def self.available_ethnicities
