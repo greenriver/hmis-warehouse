@@ -1,6 +1,5 @@
 :ruby
-  report ||= @report
-  question ||= @question
+  exporter = HudReports::CsvExporter.new(report, table)
   columns = exporter.display_column_names
   rows = exporter.as_array
 .table-responsive
