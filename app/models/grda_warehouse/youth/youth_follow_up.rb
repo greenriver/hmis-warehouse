@@ -107,7 +107,7 @@ module GrdaWarehouse::Youth
       end
     end
 
-    private def self.event_date(event)
+    def self.event_date(event)
       (event.is_a?(GrdaWarehouse::YouthIntake::Base) && event.engagement_date) || event.engaged_on
     end
 
