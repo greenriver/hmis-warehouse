@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
@@ -9,14 +11,14 @@ module HudSpmReport
     before_action :require_can_view_hud_reports!
 
     LEGACY_REPORT_TYPES = [
-      'One',
-      'Two',
-      'Three',
-      'Four',
-      'Five',
-      'Six',
-      'Seven',
-    ].map { |n| "Reports::SystemPerformance::Fy2019::Measure#{n}" }.freeze
+      'Reports::SystemPerformance::Fy2019::MeasureOne',
+      'Reports::SystemPerformance::Fy2019::MeasureTwo',
+      'Reports::SystemPerformance::Fy2019::MeasureThree',
+      'Reports::SystemPerformance::Fy2019::MeasureFour',
+      'Reports::SystemPerformance::Fy2019::MeasureFive',
+      'Reports::SystemPerformance::Fy2019::MeasureSix',
+      'Reports::SystemPerformance::Fy2019::MeasureSeven',
+    ].freeze
 
     def index
       @reports = report_source.where(type: LEGACY_REPORT_TYPES).order(name: :asc)
