@@ -8,7 +8,7 @@ module WarehouseReports::Health
   class AgencyPerformanceController < ApplicationController
     include ArelHelper
     include AjaxModalRails::Controller
-    include WindowClientPathGenerator
+    include ClientPathGenerator
     include WarehouseReportAuthorization
 
     before_action :require_can_view_aggregate_health!
