@@ -32,7 +32,7 @@ module HudApr::Generators::Shared::Fy2020
           members = universe.members.
             where(population_clause).
             where(assessment_clause).
-            where(a_t[:project_type].eq(12))
+            where(a_t[:project_type].eq(12)) # Only prevention project enrollments are counted
           value = members.count
 
           answer.add_members(members)
