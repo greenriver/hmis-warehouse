@@ -55,7 +55,14 @@ module WarehouseReports
       else
         WarehouseReport::RrhReport::Support.new(clients: [], rows: [], headers: [])
       end
-      render layout: 'ajax_modal_rails/content'
+      respond_to do |format|
+        format.html do
+          render layout: 'ajax_modal_rails/content'
+        end
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=#{@report.title} - Supporting Data.xlsx"
+        end
+      end
     end
 
     def describe_computations
@@ -138,6 +145,7 @@ module WarehouseReports
         :ethnicity,
         :gender,
         :veteran_status,
+        :hoh_only,
         data_source_ids: [],
         organization_ids: [],
         project_ids: [],
