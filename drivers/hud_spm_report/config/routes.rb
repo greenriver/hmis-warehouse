@@ -11,6 +11,7 @@ BostonHmis::Application.routes.draw do
       resources :measures, only: [:show, :create] do
         get :result, on: :member
         get :running, on: :member
+        resources :cells, only: :show
       end
     end
     resources :legacy_spms, only: [:index, :show] do

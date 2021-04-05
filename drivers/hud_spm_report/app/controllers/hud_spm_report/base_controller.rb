@@ -65,7 +65,7 @@ module HudSpmReport
     helper_method :generator
 
     private def path_for_question(question, report: nil)
-      hud_reports_spm_measure_path(spm_id: report&.id || 0, id: question)
+      hud_reports_spm_measure_path(spm_id: report&.to_param || 0, id: question)
     end
 
     private def path_for_questions(question)
@@ -73,7 +73,7 @@ module HudSpmReport
     end
 
     private def path_for_question_result(question, report: nil)
-      result_hud_reports_spm_measure_path(spm_id: report&.id || 0, id: question)
+      result_hud_reports_spm_measure_path(spm_id: report&.to_param || 0, id: question)
     end
 
     private def path_for_report(report)
@@ -84,8 +84,8 @@ module HudSpmReport
       hud_reports_spms_path
     end
 
-    private def path_for_cell(report:, question:, cell_label:, table:) # rubocop:disable Lint/UnusedMethodArgument
-      'javascript:alert("TODO");'
+    private def path_for_cell(report:, question:, cell_label:, table:)
+      hud_reports_spm_measure_cell_path(spm_id: report&.to_param || 0, measure_id: question, id: cell_label, table: table)
     end
   end
 end

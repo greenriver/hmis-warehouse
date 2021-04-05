@@ -10,6 +10,10 @@ module HudSpmReport
     before_action :set_question
     before_action :set_reports
 
+    private def report_param_name
+      :spm_id
+    end
+
     def running
     end
 
@@ -38,10 +42,6 @@ module HudSpmReport
       @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
       @reports = @reports.order(created_at: :desc).
         page(params[:page]).per(10)
-    end
-
-    private def report_param_name
-      :spm_id
     end
   end
 end

@@ -10,15 +10,5 @@ module HudSpmReport::Fy2020
     acts_as_paranoid
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
-
-    # Hide ID, move client_id, and name to the front
-    def self.detail_headers
-      special = ['client_id', 'first_name', 'last_name']
-      remove = ['id', 'created_at', 'updated_at']
-      cols = special + (column_names - special - remove)
-      cols.map do |h|
-        [h, h.humanize]
-      end.to_h
-    end
   end
 end
