@@ -97,7 +97,24 @@ module Filter::FilterScopes
       race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
       race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
 
+      # Include anyone who has more than one race listed, anded with any previous alternatives
+      race_scope ||= scope
+      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if keys.include?('MultiRacial')
+
       scope.merge(race_scope)
+    end
+
+    private def multi_racial_clients
+      # Looking at all races with responses of 1, where we have a sum > 1
+      columns = [
+        c_t[:AmIndAKNative],
+        c_t[:Asian],
+        c_t[:BlackAfAmerican],
+        c_t[:NativeHIOtherPacific],
+        c_t[:White],
+      ]
+      report_scope_source.joins(:client).
+        where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
     end
 
     private def add_alternative(scope, alternative)
