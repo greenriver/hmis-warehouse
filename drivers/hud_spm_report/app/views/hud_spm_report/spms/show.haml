@@ -6,13 +6,14 @@
 - if @show_recent
   .well
     .d-flex
-      %h2 System Performance Measure
+      %h2 System Performance Measures
       .ml-auto
         = link_to({format: :zip},{class: 'btn btn-primary'}) do
           %span.icon-download2
           Download Zip File
 
     = render 'hud_reports/questions', question_label: 'Measure'
+
 .text-right
   = link_to 'Generate New Reports for all System Performance Measures', new_hud_reports_spm_path, class: 'btn btn-secondary'
 
