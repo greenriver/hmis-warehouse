@@ -285,8 +285,8 @@ class WarehouseReport::Outcomes::Base
         distinct.
         pluck(*columns).map do |row|
         row = Hash[columns.zip(row)]
-        destination = destination_bucket(row[:client_id], row[:destination])
-        destinations[destination][:destination] ||= destination_bucket(row[:client_id], row[:destination])
+        destination = destination_bucket(row[:destination])
+        destinations[destination][:destination] ||= destination
         destinations[destination][:count] ||= 0
         destinations[destination][:client_ids] ||= Set.new
         # Only count each client once per bucket
@@ -308,8 +308,7 @@ class WarehouseReport::Outcomes::Base
     end
   end
 
-  def destination_bucket(client_id, dest_id)
-    return 'returned to shelter' if returns_to_shelter_after_ph.keys.include?(client_id)
+  def destination_bucket(dest_id)
     return 'exited to other institution' if HUD.institutional_destinations.include?(dest_id)
     return 'successful exit to PH' if HUD.permanent_destinations.include?(dest_id)
     return 'exited to temporary destination' if HUD.temporary_destinations.include?(dest_id)
