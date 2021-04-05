@@ -25,5 +25,15 @@ module PublicReports::WarehouseReports
     private def flash_interpolation_options
       { resource_name: 'Point-in-Time Report' }
     end
+
+    private def default_filter_options
+      {
+        filters: {
+          start: 3.years.ago.beginning_of_year.to_date,
+          end: 1.years.ago.end_of_year.to_date,
+          project_type_numbers: [1, 2, 8, 4],
+        },
+      }
+    end
   end
 end

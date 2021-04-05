@@ -83,7 +83,7 @@ module ClaimsReporting::CsvHelpers
         pg_result = pg_conn.copy_data copy_sql do
           io.each_line do |line|
             lines_read += 1
-            pg_conn.put_copy_data(line)
+            pg_conn.put_copy_data(line.encode!('UTF-8', 'UTF-8', undef: :replace, invalid: :replace))
           end
         end
         records_read = pg_result.cmd_tuples

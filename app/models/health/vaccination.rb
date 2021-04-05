@@ -14,6 +14,7 @@ module Health
 
     MODERNA = 'ModernaTX, Inc.'.freeze
     PFIZER = 'Pfizer, Inc., and BioNTech'.freeze
+    JANSSEN = 'Janssen'.freeze
 
     phi_patient :medicaid_id
     phi_attr :id, Phi::OtherIdentifier
@@ -197,7 +198,7 @@ module Health
       {
         'Moderna' => MODERNA,
         'Pfizer' => PFIZER,
-
+        'Janssen' => JANSSEN,
       }[vaccination_type]
     end
 
@@ -211,6 +212,8 @@ module Health
         vaccinated_on + 28.days if similar_vaccinations.count.zero?
       when PFIZER
         vaccinated_on + 21.days if similar_vaccinations.count.zero?
+      when JANSSEN
+        return # no follow-up needed
       end
     end
 

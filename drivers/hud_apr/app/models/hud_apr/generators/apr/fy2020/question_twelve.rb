@@ -6,12 +6,7 @@
 
 module HudApr::Generators::Apr::Fy2020
   class QuestionTwelve < HudApr::Generators::Shared::Fy2020::QuestionTwelve
-    QUESTION_NUMBER = 'Question 12'.freeze
     QUESTION_TABLE_NUMBERS = ['Q12a', 'Q12b'].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)

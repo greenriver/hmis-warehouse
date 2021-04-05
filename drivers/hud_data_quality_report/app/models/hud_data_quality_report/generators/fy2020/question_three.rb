@@ -43,7 +43,8 @@ module HudDataQualityReport::Generators::Fy2020
       # veteran status
       answer = @report.answer(question: table_name, cell: 'B2')
       members = universe.members.where(
-        a_t[:veteran_status].in([nil, 8, 9]).
+        a_t[:veteran_status].in([8, 9]).
+          or(a_t[:veteran_status].eq(nil)).
           or(a_t[:veteran_status].eq(1).
             and(a_t[:age].lt(18))),
       )
@@ -101,7 +102,8 @@ module HudDataQualityReport::Generators::Fy2020
       # disabling condition
       answer = @report.answer(question: table_name, cell: 'B6')
       members = universe.members.where(
-        a_t[:disabling_condition].in([8, 9, nil]).
+        a_t[:disabling_condition].in([8, 9]).
+          or(a_t[:disabling_condition].eq(nil)).
           or(a_t[:disabling_condition].eq(0).
             and(a_t[:indefinite_and_impairs].eq(true).
               and(a_t[:developmental_disability].eq(true).

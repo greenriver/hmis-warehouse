@@ -7,11 +7,6 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionTwentySeven < Base
     QUESTION_NUMBER = 'Question 27'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q27a', 'Q27b', 'Q27c', 'Q27d', 'Q27e', 'Q27f', 'Q27g', 'Q27h'].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def q27a_youth_age
       table_name = 'Q27a'
@@ -31,7 +26,8 @@ module HudApr::Generators::Shared::Fy2020
         a_t[:other_clients_over_25].eq(false).and(
           a_t[:age].between(12..24).and(a_t[:dob_quality].in([1, 2])).
           or(
-            a_t[:dob_quality].in([nil, 8, 9, 99]).
+            a_t[:dob_quality].in([8, 9, 99]).
+            or(a_t[:dob_quality].eq(nil)).
             or(a_t[:age].lt(0)).
             or(a_t[:age].eq(nil)),
           ),
@@ -149,7 +145,7 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
 
           members = universe.members.where(
-            a_t[:age].between(18..24).and(a_t[:other_clients_over_25].eq(false)),
+            a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false)),
           ).
             where(population_clause).
             where(response_clause)
@@ -183,7 +179,7 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
             where(
-              hoh_clause.and(a_t[:age].in(18..24)).and(a_t[:other_clients_over_25].eq(false)),
+              hoh_clause.and(a_t[:age].in(12..24)).and(a_t[:other_clients_over_25].eq(false)),
             ).
             where(population_clause).
             where(situation_clause)
@@ -215,7 +211,7 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
 
           members = universe.members.where(
-            a_t[:age].between(18..24).and(a_t[:other_clients_over_25].eq(false)),
+            a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false)),
           ).
             where(population_clause).
             where(length_clause)
@@ -254,7 +250,7 @@ module HudApr::Generators::Shared::Fy2020
           members = leavers.
             where(population_clause).
             where(
-              a_t[:age].between(18..24).
+              a_t[:age].between(12..24).
                 and(a_t[:other_clients_over_25].eq(false)),
             )
 
@@ -305,7 +301,7 @@ module HudApr::Generators::Shared::Fy2020
               a_t[:other_clients_over_25].eq(false).
                 and(
                   hoh_clause.and(a_t[:age].between(0..24)).
-                  or(a_t[:age].between(18..24)),
+                  or(a_t[:age].between(12..24)),
                 ),
             )
 
@@ -350,7 +346,7 @@ module HudApr::Generators::Shared::Fy2020
               a_t[:other_clients_over_25].eq(false).
                 and(
                   hoh_clause.and(a_t[:age].between(0..24)).
-                    or(a_t[:age].between(18..24)),
+                    or(a_t[:age].between(12..24)),
                 ),
             )
           youth = youth.where(stayers_clause) if suffix == :annual_assessment
@@ -407,7 +403,7 @@ module HudApr::Generators::Shared::Fy2020
               a_t[:other_clients_over_25].eq(false).
                 and(
                   hoh_clause.and(a_t[:age].between(0..24)).
-                    or(a_t[:age].between(18..24)),
+                    or(a_t[:age].between(12..24)),
                 ),
             ).
             where(leavers_clause).

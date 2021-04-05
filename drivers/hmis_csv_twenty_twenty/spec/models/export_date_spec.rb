@@ -86,6 +86,7 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
     )
     loader.load!
     loader.import!
+    Delayed::Worker.new.work_off(2)
   end
 
   def cleanup_files

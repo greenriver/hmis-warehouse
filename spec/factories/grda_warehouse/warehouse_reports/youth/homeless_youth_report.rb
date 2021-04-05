@@ -119,12 +119,12 @@ FactoryBot.define do
     contacted_on { Date.parse('2019-01-01') }
   end
 
-  trait :follow_up_from_at_risk do
+  trait :follow_up_from_housed_to_at_risk do
     action { :at_risk }
   end
 
-  trait :follow_up_from_homeless do
-    action { :homeless }
+  trait :follow_up_from_homeless_to_housed do
+    action { :housed }
   end
 
   trait :homeless_at_followup do

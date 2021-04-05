@@ -349,7 +349,9 @@ module GrdaWarehouse::Hud
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = user.access_groups.pluck(:id)
+      group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
+        user.access_groups.pluck(:id)
+      end
       group_id_query = if group_ids.empty?
         "0=1"
       else
@@ -381,7 +383,9 @@ module GrdaWarehouse::Hud
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = user.access_groups.pluck(:id)
+      group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
+        user.access_groups.pluck(:id)
+      end
       group_id_query = if group_ids.empty?
         "0=1"
       else
@@ -419,7 +423,9 @@ module GrdaWarehouse::Hud
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = user.access_groups.pluck(:id)
+      group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
+        user.access_groups.pluck(:id)
+      end
       group_id_query = if group_ids.empty?
         "0=1"
       else
@@ -505,8 +511,6 @@ module GrdaWarehouse::Hud
       project_type_to_use.in?(PERFORMANCE_REPORTING[:psh])
     end
 
-    alias_attribute :name, :ProjectName
-
     def self.related_item_keys
       [:OrganizationID]
     end
@@ -527,22 +531,47 @@ module GrdaWarehouse::Hud
         @psh_types.include?(self.compute_project_type)
     end
 
-    def organization_and_name(include_confidential_names: false)
-      text = if include_confidential_names
-        "#{organization&.OrganizationName} / #{self.ProjectName}"
+    alias_attribute :name, :ProjectName
+
+    # Get the name for this project, protecting confidential names if appropriate
+    #
+    # @param include_confidential_names [Boolean] include confidential names, or replace them with a generic string?
+    # FIXME: include_confidential_names should default to false
+    # @param include_project_type [Boolean] include the HUD project type in the name?
+    def name(include_confidential_names: true, include_project_type: false)
+      project_name = if include_confidential_names
+        self.ProjectName
       else
-        project_name = self.class.confidentialize(name: self.ProjectName)
-        if project_name == self.class.confidential_project_name
-          "#{project_name}"
-        else
-          "#{organization&.OrganizationName} / #{self.ProjectName}"
-        end
+        safe_project_name
       end
-      text += " (#{HUD.project_type_brief(computed_project_type)})"
+      project_name += " (#{HUD.project_type_brief(computed_project_type)})" if include_project_type
+
+      project_name
+    end
+
+    # Get the safe name for this project.
+    def safe_project_name
+      if confidential_name?
+        self.class.confidential_project_name
+      else
+        self.ProjectName
+      end
+    end
+
+    def confidential_name?
+      self.confidential? || /healthcare/i.match(self.ProjectName).present?
+    end
+
+    def organization_and_name(include_confidential_names: false)
+      project_name = name(include_confidential_names: include_confidential_names, include_project_type: true)
+      return "#{organization&.OrganizationName} / #{project_name}" if include_confidential_names
+      "#{organization&.OrganizationName} / #{project_name}" unless confidential_name?
+
+      project_name
     end
 
     def name_and_type(include_confidential_names: false)
-      "#{name} (#{HUD.project_type_brief(computed_project_type)})"
+      name(include_confidential_names: include_confidential_names, include_project_type: true)
     end
 
     def self.project_names_for_coc coc_code
@@ -663,14 +692,6 @@ module GrdaWarehouse::Hud
       'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
 
-    def safe_project_name
-      if confidential?
-        self.class.confidential_project_name
-      else
-        self.ProjectName
-      end
-    end
-
     # Sometimes all we have is a name, we still want to try and
     # protect those
     def self.confidentialize(name:)
@@ -753,9 +774,7 @@ module GrdaWarehouse::Hud
             org_name = project.organization.OrganizationName
             org_name += " at #{project.data_source.short_name}" if Rails.env.development?
             options[org_name] ||= []
-            name = confidentialize(name: project.ProjectName)
-            name = project.ProjectName if user.can_view_confidential_enrollment_details?
-            text = "#{name} (#{HUD.project_type_brief(project.computed_project_type)})"
+            text = project.name(include_confidential_names: user.can_view_confidential_enrollment_details?, include_project_type: true)
             # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
             options[org_name] << [
               text,
@@ -772,22 +791,22 @@ module GrdaWarehouse::Hud
 
       deleted_timestamp = Time.current
       # Inventory related
-      project_cocs.update_all(DateDeleted: deleted_timestamp)
+      project_cocs.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
       geographies.update_all(DateDeleted: deleted_timestamp)
-      inventories.update_all(DateDeleted: deleted_timestamp)
-      funders.update_all(DateDeleted: deleted_timestamp)
-      affiliations.update_all(DateDeleted: deleted_timestamp)
-      residential_affiliations.update_all(DateDeleted: deleted_timestamp)
+      inventories.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      funders.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      affiliations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      residential_affiliations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
 
       # Client enrollment related
-      income_benefits.update_all(DateDeleted: deleted_timestamp)
-      disabilities.update_all(DateDeleted: deleted_timestamp)
-      employment_educations.update_all(DateDeleted: deleted_timestamp)
-      health_and_dvs.update_all(DateDeleted: deleted_timestamp)
-      services.update_all(DateDeleted: deleted_timestamp)
-      exits.update_all(DateDeleted: deleted_timestamp)
-      enrollment_cocs.update_all(DateDeleted: deleted_timestamp)
-      enrollments.update_all(DateDeleted: deleted_timestamp)
+      income_benefits.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      disabilities.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      employment_educations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      health_and_dvs.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      services.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      exits.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      enrollment_cocs.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      enrollments.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
 
       # Remove any clients who no longer have any enrollments
       all_clients = []
@@ -800,15 +819,15 @@ module GrdaWarehouse::Hud
           where(data_source_id: data_source_id, PersonalID: ids).pluck(id)
       end
       no_enrollments = all_clients - with_enrollments
-      GrdaWarehouse::Hud::Client.where(id: no_enrollments).update_all(DateDeleted: deleted_timestamp) if no_enrollments.present?
+      GrdaWarehouse::Hud::Client.where(id: no_enrollments).update_all(DateDeleted: deleted_timestamp, source_hash: nil) if no_enrollments.present?
 
       destination_ids = GrdaWarehouse::WarehouseClient.where(source_id: all_clients).pluck(:destination_id)
       # Force reloads of client views
-      GrdaWarehouse::Tasks::ServiceHistory::Update.new(client_ids: destination_ids).run!
+      GrdaWarehouse::Hud::Client.where(id: destination_ids).each(&:force_full_service_history_rebuild)
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
       destination_ids.each do |id|
         GrdaWarehouse::Hud::Client.clear_view_cache(id)
       end
-
     end
   end
 end

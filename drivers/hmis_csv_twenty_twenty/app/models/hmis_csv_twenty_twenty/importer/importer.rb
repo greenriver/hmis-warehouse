@@ -14,11 +14,23 @@
 
 # reload!; importer = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: 2, data_source_id: 14, debug: true); importer.import!
 
+# Some notes on how to manually run imports where the delayed job expires or fails for non-data related issue
+# il = GrdaWarehouse::ImportLog.last
+# loader = HmisCsvTwentyTwenty::Loader::LoaderLog.last
+# imp_log = HmisCsvTwentyTwenty::Importer::ImporterLog.last
+# # NOTE: newing up an importer currently creates an ImporterLog, this should be deleted
+# imp = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: loader.id, data_source_id: loader.data_source_id)
+# imp.importer_log = imp_log
+# il.update(import_errors: nil)
+# # at this point, you can call any of the various import methods, usually, the last one that was attempted
+# imp.log_timing(:process_existing)
+
 module HmisCsvTwentyTwenty::Importer
   class Importer
     include TsqlImport
     include NotifierConfig
     include HmisTwentyTwenty
+    include ArelHelper
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :importer_log
 
@@ -37,6 +49,7 @@ module HmisCsvTwentyTwenty::Importer
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @logger = logger
       @debug = debug # no longer used for anything. instead we use logger.levels.
+      @updated_source_client_ids = []
 
       @deidentified = deidentified
       self.importer_log = setup_import
@@ -348,14 +361,16 @@ module HmisCsvTwentyTwenty::Importer
         destination_class = klass.reflect_on_association(:destination_record).klass
         # logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
         batch = []
-        scope = klass.new_data(
+        existing_keys = klass.existing_data(
           data_source_id: data_source.id,
           project_ids: involved_project_ids,
           date_range: date_range,
-          importer_log_id: importer_log.id,
-        )
+        ).pluck(klass.hud_key).to_set
+
         bm = Benchmark.measure do
-          scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+          klass.incoming_data(importer_log_id: importer_log.id).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+            next if existing_keys.include?(row[klass.hud_key])
+
             batch << row.as_destination_record
             if batch.count == INSERT_BATCH_SIZE
               # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
@@ -416,7 +431,7 @@ module HmisCsvTwentyTwenty::Importer
 
         # Never delete Projects, Organizations, or Clients, but cleanup any pending deletions
         if klass.hud_key.in?([:ProjectID, :OrganizationID, :PersonalID])
-          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil)
+          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, source_hash: nil)
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
           klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
@@ -480,6 +495,7 @@ module HmisCsvTwentyTwenty::Importer
                     data_source_id: incoming.data_source_id,
                     PersonalID: incoming.PersonalID,
                   ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+                  @updated_source_client_ids << incoming.PersonalID
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
@@ -496,6 +512,7 @@ module HmisCsvTwentyTwenty::Importer
                 data_source_id: incoming.data_source_id,
                 PersonalID: incoming.PersonalID,
               ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+              @updated_source_client_ids << incoming.id
             end
             note_processed(file_name, batch.count, 'updated')
           else
@@ -655,7 +672,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def pause_import
-      logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log_id)}"
+      logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log.id)}"
       importer_log.update(status: :paused)
     end
 
@@ -724,8 +741,16 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     private def post_process
+      # Clean up any dangling enrollments for updated clients
+      updated_client_ids = GrdaWarehouse::Hud::Client.
+        joins(:warehouse_client_source).
+        where(PersonalID: @updated_source_client_ids, data_source_id: @data_source.id).
+        pluck(wc_t[:destination_id])
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
+
       # Enrollment.processed_as is cleared if the enrollment changed
       # queue up a rebuild to keep things as in sync as possible
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
     end
 

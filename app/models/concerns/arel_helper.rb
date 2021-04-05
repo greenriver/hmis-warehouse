@@ -322,6 +322,10 @@ module ArelHelper
     Health::Tracing::Contact.arel_table
   end
 
+  def h_sd_t
+    Health::StatusDate.arel_table
+  end
+
   def r_monthly_t
     Reporting::MonthlyReports::Base.arel_table
   end
@@ -649,6 +653,10 @@ module ArelHelper
 
     def htco_t
       Health::Tracing::Contact.arel_table
+    end
+
+    def h_sd_t
+      Health::StatusDate.arel_table
     end
 
     def r_monthly_t

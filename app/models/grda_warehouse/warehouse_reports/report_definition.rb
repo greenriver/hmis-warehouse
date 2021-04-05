@@ -854,6 +854,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: true,
         }
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'claims_reporting/warehouse_reports/engagement_trends',
+          name: 'Patient Engagement Trends',
+          description: 'Engagement metrics by length of engagement',
+          limitable: false,
+          health: true,
+        }
       end
       if RailsDrivers.loaded.include?(:project_pass_fail)
         r_list['Data Quality'] << {
@@ -926,6 +933,13 @@ module GrdaWarehouse::WarehouseReports
             url: 'public_reports/warehouse_reports/point_in_time',
             name: 'Public Point-in-Time Report Generator',
             description: 'Use this to review and publish Point-in-Time charts for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/pit_by_month',
+            name: 'Public Point-in-Time by Month Report Generator',
+            description: 'Use this to review and publish Point-in-Time by month charts for public consumption.',
             limitable: false,
             health: false,
           }
@@ -1038,6 +1052,7 @@ module GrdaWarehouse::WarehouseReports
       unless RailsDrivers.loaded.include?(:claims_reporting)
         cleanup << 'claims_reporting/warehouse_reports/reconciliation'
         cleanup << 'claims_reporting/warehouse_reports/performance'
+        cleanup << 'claims_reporting/warehouse_reports/engagement_trends'
       end
       cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
       cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
@@ -1048,6 +1063,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       unless RailsDrivers.loaded.include?(:public_reports)
         cleanup << 'public_reports/warehouse_reports/point_in_time'
+        cleanup << 'public_reports/warehouse_reports/pit_by_month'
         cleanup << 'public_reports/warehouse_reports/public_configs'
         cleanup << 'public_reports/warehouse_reports/number_housed'
         cleanup << 'public_reports/warehouse_reports/homeless_count'

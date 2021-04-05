@@ -1,5 +1,7 @@
 module ClaimsReporting
   class MemberRoster < HealthBase
+    include ArelHelper
+
     phi_patient :member_id
 
     has_one :diagnosis_classification,
@@ -7,7 +9,39 @@ module ClaimsReporting
             foreign_key: 'member_id',
             class_name: 'ClaimsReporting::MemberDiagnosisClassification'
 
+    has_many :enrollment_rosters,
+             primary_key: 'member_id',
+             foreign_key: 'member_id',
+             class_name: 'ClaimsReporting::MemberEnrollmentRoster'
+
+    belongs_to :patient, primary_key: 'member_id', foreign_key: 'medicaid_id', class_name: 'Health::Patient', optional: true
+
     include ClaimsReporting::CsvHelpers
+
+    # Members with a ::Health::PatientReferral who
+    # have been engaged for a range of total days in
+    # enrollment spans starting by the provided date
+    scope :engaged_for, ->(range, date = Date.current) do
+      where(
+        member_id: ClaimsReporting::MemberEnrollmentRoster.where(
+          ['span_start_date <= ?', date],
+        ).engaged_for(range).select(:member_id),
+      )
+    end
+
+    # Having a total of 0 engaged days
+    scope :pre_engaged, ->(date = Date.current) do
+      engaged_for(0..0, date)
+    end
+
+    # Anyone who exists in member roster, but not in Health::PatientReferral
+    scope :pre_assigned, ->(date = Date.current) do
+      where.not(
+        member_id: ::Health::PatientReferral.where(hpr_t[:enrollment_start_date].lt(date)).
+          select(:medicaid_id),
+      )
+    end
+
     def self.conflict_target
       ['member_id']
     end

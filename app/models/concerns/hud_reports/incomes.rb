@@ -35,7 +35,9 @@ module HudReports::Incomes
       income&.attributes&.slice(*(sources + amounts)) || sources.map { |k| [k, 99] }.to_h.merge(amounts.map { |k| [k, nil] }.to_h)
     end
     private def earned_amount(universe_client, suffix)
-      universe_client["income_sources_at_#{suffix}"]['EarnedAmount']
+      return unless universe_client["income_sources_at_#{suffix}"].present?
+
+      universe_client["income_sources_at_#{suffix}"]['EarnedAmount'] || 0
     end
 
     private def other_amount(universe_client, suffix)
@@ -96,8 +98,8 @@ module HudReports::Incomes
     private def income_change(universe_client, category:, initial:, subsequent:)
       case category
       when :total
-        initial_amount = universe_client["income_total_at_#{initial}"]
-        subsequent_amount = universe_client["income_total_at_#{subsequent}"]
+        initial_amount = total_amount(universe_client, initial)
+        subsequent_amount = total_amount(universe_client, subsequent)
       when :earned
         initial_amount = earned_amount(universe_client, initial)
         subsequent_amount = earned_amount(universe_client, subsequent)

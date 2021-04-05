@@ -80,6 +80,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       deidentified: true,
       file_path: import_path,
     ).import!
+    Delayed::Worker.new.work_off(2)
   end
 
   def cleanup_files
