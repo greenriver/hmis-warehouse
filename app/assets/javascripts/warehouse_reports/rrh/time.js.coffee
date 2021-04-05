@@ -38,9 +38,9 @@ class App.WarehouseReports.Rrh.Time
           ticks: 4
       legend:
         show: true
-        position: 'right'
+        position: 'bottom'
       size:
-        height: 200
+        height: 250
       bindto: @chart_selector
     })
 
