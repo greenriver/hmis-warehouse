@@ -541,7 +541,8 @@ module HudSpmReport::Generators::Fy2020
 
       m7_stays = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(
         on_date: @report.end_date,
-      )
+      ).joins(:enrollment) # because we include MoveInDate
+
       m7_columns = {
         client_id: :client_id,
         project_type: :computed_project_type,
