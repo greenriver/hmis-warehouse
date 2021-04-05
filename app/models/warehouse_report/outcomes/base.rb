@@ -1117,7 +1117,23 @@ class WarehouseReport::Outcomes::Base
         client = @clients[client_id]
         first_name = client&.try(:[], 1)
         last_name = client&.try(:[], 2)
-        Hash[@headers.zip([client_id, first_name, last_name] + row.drop(1))]
+        hashed = Hash[@headers.zip([client_id, first_name, last_name] + row.drop(1))]
+        format_support(hashed)
+      end
+    end
+
+    private def format_support(row)
+      row.each do |header, value|
+        case header
+        when 'Race'
+          row[header] = HUD.race(value)
+        when 'Ethnicity'
+          row[header] = HUD.ethnicity(value)
+        when 'Gender'
+          row[header] = HUD.gender(value)
+        else
+          value
+        end
       end
     end
   end

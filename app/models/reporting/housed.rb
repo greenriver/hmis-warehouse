@@ -337,6 +337,7 @@ module Reporting
         month_year: nil,
         ph_destination: nil,
         project_id: nil,
+        hmis_project_id: nil,
         age_at_search_start: nil,
         age_at_search_end: nil,
         age_at_housed_date: nil,
@@ -433,6 +434,7 @@ module Reporting
         children_only: she_t[:children_only],
         individual_adult: she_t[:individual_adult],
         project_id: p_t[:id],
+        hmis_project_id: p_t[:ProjectID],
         head_of_household: she_t[:head_of_household],
       }.freeze
     end
@@ -568,6 +570,7 @@ module Reporting
         children_only: she_t[:children_only],
         individual_adult: she_t[:individual_adult],
         project_id: p_t[:id],
+        hmis_project_id: p_t[:ProjectID],
         head_of_household: she_t[:head_of_household],
       }.freeze
     end

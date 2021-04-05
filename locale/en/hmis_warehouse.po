@@ -65,6 +65,9 @@ msgstr ""
 msgid "Boston HMIS staff at DND"
 msgstr ""
 
+msgid "Bulk set Health Prioritization for CAS."
+msgstr ""
+
 msgid "CHA A_Q1"
 msgstr ""
 
@@ -3503,10 +3506,16 @@ msgstr ""
 msgid "Entry Date"
 msgstr ""
 
+msgid "Ethnicity"
+msgstr ""
+
 msgid "Exit Date"
 msgstr ""
 
 msgid "Files downloaded from this page may contain Personal Protected Information from a secured environment.  Once you download this file, you and your agency are responsible for maintaining all related Privacy, Security and Confidentiality protections."
+msgstr ""
+
+msgid "Find clients who need a Coordinated Entry re-assessment."
 msgstr ""
 
 msgid "Full HAN Release"
@@ -3516,6 +3525,9 @@ msgid "Full HAN Release on File"
 msgstr ""
 
 msgid "Fully signed data sharing agreement"
+msgstr ""
+
+msgid "Gender"
 msgstr ""
 
 msgid "Green River"
@@ -3707,10 +3719,16 @@ msgstr ""
 msgid "Project Groups"
 msgstr ""
 
+msgid "Project ID"
+msgstr ""
+
 msgid "Project Name"
 msgstr ""
 
 msgid "Projects"
+msgstr ""
+
+msgid "Race"
 msgstr ""
 
 msgid "Releases of Information"
@@ -3741,6 +3759,9 @@ msgid "Requires wheelchair accessible unit"
 msgstr ""
 
 msgid "Scan Card Services"
+msgstr ""
+
+msgid "Scanned Services"
 msgstr ""
 
 msgid "Search"
@@ -3821,7 +3842,7 @@ msgstr ""
 msgid "View Reports"
 msgstr ""
 
-msgid "Warehouse Reports"
+msgid "Warehouse Project ID"
 msgstr ""
 
 msgid "Willing to live in congregate housing"
