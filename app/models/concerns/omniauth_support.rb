@@ -94,7 +94,7 @@ module OmniauthSupport
   end
 
   def idp_signout_url(post_logout_redirect_uri: nil, state: 'provider-was-okta')
-    return root_url unless provider == 'okta'
+    return post_logout_redirect_uri unless provider == 'okta'
 
     # https://developer.okta.com/docs/reference/api/oidc/#logout
     #
