@@ -22,7 +22,7 @@ module PublicReports
     end
 
     def url
-      public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'))
+      public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     def generate_publish_url
