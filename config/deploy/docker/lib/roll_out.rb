@@ -46,8 +46,7 @@ class RollOut
   SPOT_CAPACITY_PROVIDER_NAME = WorkoffArbiter::SPOT_CAPACITY_PROVIDER_NAME
 
   def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:)
-    self.aws_profile         = ENV.fetch('AWS_PROFILE')
-    self.cluster             = ENV.fetch('AWS_CLUSTER') { self.aws_profile }
+    self.cluster             = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
     self.image_base          = image_base
     self.secrets_arn         = secrets_arn
     self.target_group_arn    = target_group_arn
@@ -658,13 +657,18 @@ class RollOut
           puts "[WARN] exiting"
           exit
         elsif response.downcase.match(/v/)
-          resp = cwl.get_log_events({
-            log_group_name: target_group_name,
-            log_stream_name: log_stream_name,
-            start_from_head: true,
-          })
-          resp.events.each do |event|
-            puts "[TASK] #{event.message}"
+          begin
+            resp = cwl.get_log_events({
+              log_group_name: target_group_name,
+              log_stream_name: log_stream_name,
+              start_from_head: true,
+            })
+            resp.events.each do |event|
+              puts "[TASK] #{event.message}"
+            end
+          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
+            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found"
+            sleep 30
           end
         else
           puts "[INFO] Waiting 30 seconds since we didn't understand your response"

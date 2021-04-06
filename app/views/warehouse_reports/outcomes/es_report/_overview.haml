@@ -8,7 +8,7 @@
       %i.icon-group.metric
       .metric
         - client_count = @report.stabilization_clients.distinct.select(:client_id).count
-        = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), clients_warehouse_reports_shelter_index_path(passed_params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
+        = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
       .description
         - if client_count != 1
           were enrolled in the
@@ -27,7 +27,7 @@
       %i.icon-enter.metric
       .metric
         - client_count = @report.entering_stabilization.distinct.select(:client_id).count
-        = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), clients_warehouse_reports_shelter_index_path(passed_params.merge(metric: :entering_stabilization)), data: { loads_in_pjax_modal: true }
+        = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :entering_stabilization)), data: { loads_in_pjax_modal: true }
       .description
         entered during the reporting period.
     .rrh__exited-stabilization.chunk.pl-4.ml-4
@@ -36,6 +36,6 @@
       %i.icon-exit.metric
       .metric
         - client_count = @report.exiting_stabilization.distinct.select(:client_id).count
-        = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), clients_warehouse_reports_shelter_index_path(passed_params.merge(metric: :exiting_stabilization)), data: { loads_in_pjax_modal: true }
+        = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :exiting_stabilization)), data: { loads_in_pjax_modal: true }
       .description
         exited during the reporting period.
