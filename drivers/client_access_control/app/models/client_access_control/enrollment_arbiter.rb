@@ -37,8 +37,18 @@ module ClientAccessControl
 
     private def visible_client_scope(user, data_source_ids)
       client_scope = unscoped_clients.source
+      coc_codes = user.coc_codes
       client_scope.where(
-        c_t[:id].in(Arel.sql(client_scope.joins(:enrollments).merge(enrollments_visible_to(user)).select(:id).to_sql)). # 1, 2
+        # NOTE: you need to merge in Enrollment to get the where DateDeleted is null
+        # also, it is more performant to sub-query enrollments for unknown reasons
+        c_t[:id].in(
+          Arel.sql(
+            client_scope.joins(:enrollments).merge(::GrdaWarehouse::Hud::Enrollment.paranoia_scope).
+            where(e_t[:id].in(Arel.sql(enrollment_sub_query(user).select(:id).to_sql))).
+            select(c_t[:id]).to_sql,
+          ),
+        ). # 1
+        or(c_t[:id].in(Arel.sql(consent_sub_query(coc_codes).joins(:warehouse_client_destination).select(wc_t[:source_id]).to_sql))). # 2
         or(c_t[:id].in(Arel.sql(client_scope.joins(:data_source).where(ds_t[:id].in(data_source_ids)).select(:id).to_sql))), # 3, 4
       )
     end
@@ -46,9 +56,17 @@ module ClientAccessControl
     def enrollments_visible_to(user)
       coc_codes = user.coc_codes
       ::GrdaWarehouse::Hud::Enrollment.where(
-        e_t[:id].in(Arel.sql(::GrdaWarehouse::Hud::Enrollment.joins(:project).where(p_t[:id].in(project_ids(user))).select(:id).to_sql)). # 1
-        or(e_t[:id].in(Arel.sql(unscoped_clients.active_confirmed_consent_in_cocs(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))), # 2
+        e_t[:id].in(Arel.sql(enrollment_sub_query(user).select(:id).to_sql)). # 1
+        or(e_t[:id].in(Arel.sql(consent_sub_query(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))), # 2
       )
+    end
+
+    private def enrollment_sub_query(user)
+      ::GrdaWarehouse::Hud::Enrollment.joins(:project).where(p_t[:id].in(project_ids(user)))
+    end
+
+    private def consent_sub_query(coc_codes)
+      unscoped_clients.active_confirmed_consent_in_cocs(coc_codes)
     end
 
     # NOTE: because we call EnrollmentArbiter within a scope on client, the
