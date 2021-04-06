@@ -164,6 +164,15 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def after_sign_out_path_for(scope)
+    if (user = request.env['last_user'])
+      url = user.idp_signout_url(post_logout_redirect_uri: root_url)
+      return url if url.present?
+    else
+      super
+    end
+  end
+
   def allowed_setup_controllers
     controller_path.in?(
       [
