@@ -277,7 +277,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         next
       end
 
-      # anyone who is under 60 and has a score of 1 in the most-recent vi-spdat
+      # anyone who is under 60 and has a non-zero score in the most-recent vi-spdat
       client = potential_destination_clients[client_id]
       next unless client
 
