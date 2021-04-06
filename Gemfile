@@ -70,8 +70,7 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 
-# master since the latest release doesnt support dotenv (and has other useful fixes)
-gem 'omniauth-okta', require: false, git: 'https://github.com/dandrews/omniauth-okta.git', branch: 'master'
+gem 'omniauth-oauth2', require: false
 gem 'omniauth-rails_csrf_protection', require: false
 
 gem 'pretender'

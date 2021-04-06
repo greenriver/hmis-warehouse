@@ -45,7 +45,7 @@ module OmniauthSupport
         phone: auth.extra.raw_info[:phone_number],
         first_name: auth['info']['first_name'],
         last_name: auth['info']['last_name'],
-        provider_raw_info: auth.extra.raw_info,
+        provider_raw_info: auth['extra'].merge(auth['credentials']),
       )
 
       # Notify existing users the first time OKTA is used
@@ -91,6 +91,23 @@ module OmniauthSupport
     send_reset_password_instructions if reset_password
 
     true
+  end
+
+  def idp_signout_url(post_logout_redirect_uri: nil, state: 'provider-was-okta')
+    return unless provider == 'okta'
+
+    # https://developer.okta.com/docs/reference/api/oidc/#logout
+    #
+    issuer = provider_raw_info.dig('id_info', 'iss')
+    id_token = provider_raw_info['id_token']
+
+    return unless issuer.present? && id_token.present?
+
+    "#{issuer}/v1/logout?" + {
+      id_token_hint: id_token,
+      post_logout_redirect_uri: post_logout_redirect_uri,
+      state: state,
+    }.compact.to_param
   end
 
   # Users who don't have a local password cannot be asked to confirm it

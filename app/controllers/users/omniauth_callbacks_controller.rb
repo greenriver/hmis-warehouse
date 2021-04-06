@@ -19,18 +19,15 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       if using_memorized_device?(user) && bypass_2fa_enabled?
         two_factor_successful(user)
 
-        redirect_to after_sign_in_path_for user
+        redirect_to after_sign_in_path_for(user)
       else
         prompt_for_two_factor(user)
       end
     else
-      sign_in_and_redirect user, event: :authentication # this will throw if @user is not activated
+      sign_in user, event: :authentication
       set_flash_message(:notice, :success, kind: 'OKTA') if is_navigational_format?
+      redirect_to after_sign_in_path_for(user)
     end
-  end
-
-  private def user_params
-    {}
   end
 
   def failure
