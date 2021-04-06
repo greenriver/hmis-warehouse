@@ -657,13 +657,18 @@ class RollOut
           puts "[WARN] exiting"
           exit
         elsif response.downcase.match(/v/)
-          resp = cwl.get_log_events({
-            log_group_name: target_group_name,
-            log_stream_name: log_stream_name,
-            start_from_head: true,
-          })
-          resp.events.each do |event|
-            puts "[TASK] #{event.message}"
+          begin
+            resp = cwl.get_log_events({
+              log_group_name: target_group_name,
+              log_stream_name: log_stream_name,
+              start_from_head: true,
+            })
+            resp.events.each do |event|
+              puts "[TASK] #{event.message}"
+            end
+          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
+            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found"
+            sleep 30
           end
         else
           puts "[INFO] Waiting 30 seconds since we didn't understand your response"
