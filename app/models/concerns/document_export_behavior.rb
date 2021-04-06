@@ -90,5 +90,7 @@ module DocumentExportBehavior
 
   def generator_url
     report_class.url
+  rescue NoMethodError
+    # ignore these
   end
 end

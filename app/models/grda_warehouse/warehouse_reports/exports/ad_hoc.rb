@@ -26,7 +26,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     end
 
     def url
-      warehouse_reports_ad_hoc_analysis_index_url(host: ENV.fetch('FQDN'))
+      warehouse_reports_ad_hoc_analysis_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     def run_and_save!
