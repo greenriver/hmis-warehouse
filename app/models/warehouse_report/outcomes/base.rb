@@ -285,8 +285,8 @@ class WarehouseReport::Outcomes::Base
         distinct.
         pluck(*columns).map do |row|
         row = Hash[columns.zip(row)]
-        destination = destination_bucket(row[:client_id], row[:destination])
-        destinations[destination][:destination] ||= destination_bucket(row[:client_id], row[:destination])
+        destination = destination_bucket(row[:destination])
+        destinations[destination][:destination] ||= destination
         destinations[destination][:count] ||= 0
         destinations[destination][:client_ids] ||= Set.new
         # Only count each client once per bucket
@@ -308,8 +308,7 @@ class WarehouseReport::Outcomes::Base
     end
   end
 
-  def destination_bucket(client_id, dest_id)
-    return 'returned to shelter' if returns_to_shelter_after_ph.keys.include?(client_id)
+  def destination_bucket(dest_id)
     return 'exited to other institution' if HUD.institutional_destinations.include?(dest_id)
     return 'successful exit to PH' if HUD.permanent_destinations.include?(dest_id)
     return 'exited to temporary destination' if HUD.temporary_destinations.include?(dest_id)
@@ -1118,7 +1117,23 @@ class WarehouseReport::Outcomes::Base
         client = @clients[client_id]
         first_name = client&.try(:[], 1)
         last_name = client&.try(:[], 2)
-        Hash[@headers.zip([client_id, first_name, last_name] + row.drop(1))]
+        hashed = Hash[@headers.zip([client_id, first_name, last_name] + row.drop(1))]
+        format_support(hashed)
+      end
+    end
+
+    private def format_support(row)
+      row.each do |header, value|
+        case header
+        when 'Race'
+          row[header] = HUD.race(value)
+        when 'Ethnicity'
+          row[header] = HUD.ethnicity(value)
+        when 'Gender'
+          row[header] = HUD.gender(value)
+        else
+          value
+        end
       end
     end
   end
