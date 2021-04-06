@@ -34,5 +34,7 @@ class AccountPasswordsController < ApplicationController
 
   private def set_user
     @user = current_user
+
+    return redirect_to edit_account_path, alert: 'Change password not available.' unless @user.password_change_enabled?
   end
 end

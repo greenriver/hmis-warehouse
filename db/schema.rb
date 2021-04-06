@@ -665,6 +665,9 @@ ActiveRecord::Schema.define(version: 2021_03_17_190501) do
     t.json "provider_raw_info"
     t.string "uuid"
     t.boolean "receive_account_request_notifications", default: false
+    t.string "uid"
+    t.string "provider"
+    t.json "provider_raw_info"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -672,6 +675,7 @@ ActiveRecord::Schema.define(version: 2021_03_17_190501) do
     t.index ["invitations_count"], name: "index_users_on_invitations_count"
     t.index ["invited_by_id"], name: "index_users_on_invited_by_id"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end
 

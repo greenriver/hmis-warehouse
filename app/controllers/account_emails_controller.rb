@@ -36,5 +36,7 @@ class AccountEmailsController < ApplicationController
 
   private def set_user
     @user = current_user
+
+    return redirect_to edit_account_path, alert: 'Change email is not available.' unless @user.email_change_enabled?
   end
 end
