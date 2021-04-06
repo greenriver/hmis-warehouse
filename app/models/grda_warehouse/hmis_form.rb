@@ -251,18 +251,20 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   # or if they are under 60 and have a score = 1
   # Only check the box if the most-recent VI-SPDAT qualifies
   def self.set_part_of_a_family
-    family_source_client_ids = Set.new
+    family_destination_client_ids = Set.new
+    # keyed on destination client id
     vispdats = {}
-    GrdaWarehouse::HmisForm.vispdat.joins(:client).order(collected_at: :desc).
-      pluck(:client_id, :vispdat_family_score, :collected_at).
-      each do |client_id, vispdat_family_score, collected_at|
+    GrdaWarehouse::HmisForm.vispdat.joins(client: :warehouse_client_source).order(collected_at: :desc).
+      pluck(:destination_id, :client_id, :vispdat_family_score, :collected_at).
+      each do |client_id, source_client_id, vispdat_family_score, collected_at|
         vispdats[client_id] ||= {
+          source_client_id: source_client_id,
           score: vispdat_family_score,
           collected_at: collected_at,
         }
       end
 
-    potential_clients = GrdaWarehouse::Hud::Client.where(id: vispdats.keys).
+    potential_destination_clients = GrdaWarehouse::Hud::Client.where(id: vispdats.keys).
       select(:id, :DOB).
       index_by(&:id)
     vispdats.each do |client_id, score|
@@ -271,23 +273,22 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
       # anyone with the most-recent score > 2 is included
       if score[:score].present? && score[:score] > 2
-        family_source_client_ids << client_id
+        family_destination_client_ids << client_id
         next
       end
 
       # anyone who is under 60 and has a score of 1 in the most-recent vi-spdat
-      client = potential_clients[client_id]
+      client = potential_destination_clients[client_id]
       next unless client
 
       collected_at = score[:collected_at]
       age = client.age_on(collected_at.to_date)
       next if age.blank? || age >= 60
 
-      family_source_client_ids << client_id
+      family_destination_client_ids << client_id
     end
 
-    GrdaWarehouse::Hud::Client.joins(:warehouse_client_destination).
-      merge(GrdaWarehouse::WarehouseClient.where(source_id: family_source_client_ids)).
+    GrdaWarehouse::Hud::Client.where(id: family_destination_client_ids).
       update_all(family_member: true)
   end
 

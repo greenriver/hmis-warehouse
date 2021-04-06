@@ -29,6 +29,15 @@ module GrdaWarehouse
       available_stati[status]
     end
 
+    def self.reminder_text
+      # Will show up only if translated
+      _('anomaly reminder text')
+    end
+
+    def self.reminder_text_translated?
+      _('anomaly reminder text') != 'anomaly reminder text'
+    end
+
     def current_status
       self.class.available_stati[status.to_sym]
     end
