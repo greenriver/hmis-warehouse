@@ -402,7 +402,7 @@ Devise.setup do |config|
   config.expire_after = expire_after.days
 
   if ENV['OKTA_DOMAIN'].present?
-    require_dependency 'app/omni_auth/strategies/custom_okta'
+    require_dependency 'omni_auth/strategies/custom_okta'
 
     domain = ENV.fetch('OKTA_DOMAIN')
     auth_server = ENV.fetch('OKTA_AUTH_SERVER') { 'default' }
