@@ -1,3 +1,7 @@
+- if @user.idp_id_info['amr']&.include? 'mfa'
+  .alert.alert-info
+    - auth_time = Time.at(@user.idp_id_info['auth_time'])
+    %p= "Note: You have MFA setup in #{@user.provider.upcase}. It was last confirmed at #{auth_time} (#{time_ago_in_words auth_time} ago)."
 - if @user.two_factor_enabled?
   .row
     .col-sm
