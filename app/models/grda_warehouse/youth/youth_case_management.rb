@@ -9,8 +9,8 @@ module GrdaWarehouse::Youth
     include ArelHelper
     include YouthExport
 
-    after_save :create_required_follow_up!
-    after_save :complete_required_follow_up!
+    # after_save :create_required_follow_up!
+    # after_save :complete_required_follow_up!
 
     has_paper_trail
     acts_as_paranoid
