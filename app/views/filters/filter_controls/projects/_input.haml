@@ -1,1 +1,1 @@
-= f.input :project_ids, label: control.label, collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
+= f.input :project_ids, label: control.label, collection: [], as: :grouped_select, input_html: {class: 'select2', multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false

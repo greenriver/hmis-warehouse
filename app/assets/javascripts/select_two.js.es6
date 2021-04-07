@@ -11,6 +11,7 @@ App.Form.Select2Input = class Select2Input {
     if (!field) {
       console.debug(`Select2Input could not find element: ${element}`)
     } else {
+      this.select = field
       this.$select = $(field)
       this.$select2Container = this.$select.next('.select2-container')
 
@@ -48,21 +49,13 @@ App.Form.Select2Input = class Select2Input {
         options.closeOnSelect = false
         this.$select.select2(options)
         this.initToggleSelectAll()
-      }
-      else {
-        // Init!
+      } else {
         this.$select.select2(options)
       }
 
       // Parenthetical
       $(".select2-search__field").attr('aria-label', 'Search')
 
-      // Trigger toggle select of sub-items for opt-groups
-      this.$select.on('select2:open', this.initToggleChildren.bind(this))
-      this.$select.on('select2:select', this.updateOptGroupState)
-      this.$select.on('select2:unselect', this.updateOptGroupState)
-      this.$select.on('select2:open', this.updateOptGroupState)
-      this.$select.on('select2:close', this.removeToggleChildren.bind(this))
     }
   }
 
@@ -86,130 +79,35 @@ App.Form.Select2Input = class Select2Input {
     return this.numberOfSelectedItems() === this.$select.find('option').length && this.$select.find('option').length > 0
   }
 
-  toggleSelectAll(isManualChange=false) {
-    if (!isManualChange) {
-      this.$select.find('option').prop('selected', !this.allItemsAreSelected)
-      this.allItemsAreSelected = !this.allItemsAreSelected
-    } else {
-      if (this.someItemsSelected() || this.allItemsSelected()) {
-        this.allItemsAreSelected = true
-      } else {
-        this.allItemsAreSelected = false
-      }
-    }
-    this.$select.trigger('change')
-
-    // Update DOM element to reflect selections
-    const $selectAllLink = this.$formGroup.find('.select2-select-all')
-    // this.$select2Container[classAction]('all-selected')
-    let html = this.selectAllHtml()
-    if (this.allItemsSelected() || this.numberOfSelectedItems()) {
-      html = this.selectAllHtml()
-    }
-    $selectAllLink.html(html)
-  }
-
-  // called on every open
-  initToggleChildren(e) {
-    const self = this
-    $('body').on('click', '.select2-results__group', function(e){
-      let group_ids = self.optionGroupOptionIds(self.optionsForGroup($(this)))
-      let previously_selected = self.$select.find(':selected').map(function () {
-        return this.value
-      }).get()
-      // uncheck
-      if ($(this).hasClass('j-all-selected')) {
-        let now_selected = previously_selected.filter(id => !group_ids.includes(id))
-        self.$select.val(now_selected)
-        self.$select.trigger('change.select2')
-        self.optionsForGroup($(this)).each(function () {
-          $(this).attr('aria-selected', 'false')
-        })
-        $(this).removeClass('j-all-selected')
-      }
-      // check
-      else {
-        // select anything within the opt group and the previously selected items
-        self.$select.val(previously_selected.concat(group_ids))
-        self.$select.trigger('change.select2')
-
-        // Trigger change.select2 should really do this, but it doesn't, so we manually set the selected nature
-        self.optionsForGroup($(this)).each(function () {
-          $(this).attr('aria-selected', 'true')
-        })
-        // update the optgroup to reflect selected state
-        $(this).addClass('j-all-selected')
-      }
-    })
-  }
-
-  updateOptGroupState(e) {
-    // FIXME: the open event is firing before the drop-down is populated completely,
-    // so the optgroups can't get populated with select none when fully selected
-    if (e.type == 'select2:open') {
-      // if triggered by open, just remove all indication of state, and rebuild later
-      $(this).find('.j-all-selected').removeClass('j-all-selected')
-    }
-    else {
-      // If triggered by select, clear the parent state and rebuild later
-      $(e.params.originalEvent.delegateTarget)
-        .closest('.select2-dropdown')
-        .find('.j-all-selected')
-        .removeClass('j-all-selected')
-    }
-
-    // If options are selected, update state of all optgroups to match selection
-    if ($(this).select2('data').length && $(this).find('optgroup').length) {
-      let selected_ids = $(this).select2('data').map(function(e){
-        return e.id
-      })
-
-      $($(this).select2('data')).each(function () {
-        let sibs = $(this.element).parent().children().get().map(function (e) {
-          return $(e).val()
-        })
-
-        let all_selected = sibs.every(val => selected_ids.includes(val))
-        let optgroup = $(`#${this._resultId}`).parent().siblings('.select2-results__group')
-        if(all_selected) {
-          optgroup.addClass('j-all-selected')
-        }
-      })
-    }
-  }
-
-  optionsForGroup(opt_group) {
-    return opt_group.next('ul').find('li.select2-results__option')
-  }
-
-  selectedOptionsForGroup(opt_group) {
-    return opt_group.next('ul').find('li.select2-results__option[aria-selected=true]')
-  }
-
-  allOptionsSelected(opt_group) {
-    let group_ids = this.optionGroupOptionIds(this.optionsForGroup(opt_group))
-    let selected_ids = this.optionGroupOptionIds(this.selectedOptionsForGroup(opt_group))
-    return group_ids.every(val => selected_ids.includes(val))
-  }
-
-  optionGroupOptionIds(options) {
-    return options.map(function () {
-      return this.id.split('-').pop()
-    }).get()
-  }
-
-  removeToggleChildren(e){
-    $('body').off('click', '.select2-results__group')
-  }
-
   noneSelected() {
     return (this.$formGroup.find('select').val() === 0) ||
       (this.$select.select2('data').length === 0)
   }
 
   initToggleSelectAll() {
-    // Init here
-    const hasItemsSelectedOnInit = this.numberOfSelectedItems()
+    // Init optgroup select all
+    const self = this
+    const resultsId = `select2-${this.select.id}-results`
+    const groupSelector = `#${resultsId} .select2-results__group`
+    $(document).on('click', groupSelector, function() {
+      const label = this.parentElement.getAttribute('aria-label')
+      const selected = !!this.dataset.allSelected
+      self.$select.find('option').each((i, option) => {
+        if (!option.parentElement.label.match(label)) return
+        $(option).prop('selected', selected ? null : 'selected')
+      })
+      if (this.dataset.allSelected) {
+        this.removeAttribute('data-all-selected')
+      } else {
+        this.setAttribute('data-all-selected', true)
+      }
+      self.$select.trigger("change")
+      $(`#${resultsId} .select2-results__options--nested  li`).each((i, el) => {
+        el.setAttribute('aria-selected', !selected)
+      })
+    });
+
+    // Init external select all items
     this.$formGroup = this.$select.closest('.form-group')
     this.$formGroup.addClass('select2-wrapper')
     const $label = this.$formGroup.find('> label')
@@ -236,4 +134,28 @@ App.Form.Select2Input = class Select2Input {
     // Initial state based on existing options
     this.allItemsAreSelected = this.numberOfSelectedItems()
   }
+
+  toggleSelectAll(isManualChange=false) {
+    if (!isManualChange) {
+      this.$select.find('option').prop('selected', !this.allItemsAreSelected)
+      this.allItemsAreSelected = !this.allItemsAreSelected
+    } else {
+      if (this.someItemsSelected() || this.allItemsSelected()) {
+        this.allItemsAreSelected = true
+      } else {
+        this.allItemsAreSelected = false
+      }
+    }
+    this.$select.trigger('change')
+
+    // Update DOM element to reflect selections
+    const $selectAllLink = this.$formGroup.find('.select2-select-all')
+    // this.$select2Container[classAction]('all-selected')
+    let html = this.selectAllHtml()
+    if (this.allItemsSelected() || this.numberOfSelectedItems()) {
+      html = this.selectAllHtml()
+    }
+    $selectAllLink.html(html)
+  }
+
 }

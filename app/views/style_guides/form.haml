@@ -90,15 +90,26 @@
             %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
             = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
 
-            - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).viewable_by(current_user).last.id
-            %h4 Select 2 - Ajax load of Options for Projects #{selected} pre-selected (warehouse)
-            = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
-
             %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
             = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, multiple: true}, label: 'Projects'
 
             %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
             = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
+
+            - title = 'Grouped collection with select all in modal'
+            %h4 Select 2 - #{title}
+            - modal_slug = 'grouped_collection_modal'
+            %a.btn.btn-primary{href: '#', data: {toggle: 'modal', target: "\#modal-#{modal_slug}"}}  Open Modal
+            .modal.fade{id: "modal-#{modal_slug}", role: 'dialog'}
+              .modal-dialog{role: 'document'}
+                .modal-content
+                  .modal-header
+                    %h4= title
+                    %button.close{data: {dismiss: 'modal'}}
+                      %i.modal-icon-close
+                  .modal-body
+                    = f.input :grouped_collection_in_modal, label: title, collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path()}}, include_blank: false
+
           %h4 Password
           = f.input :password, as: :password, required: true, **validate_html
 
