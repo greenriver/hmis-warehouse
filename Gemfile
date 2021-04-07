@@ -69,6 +69,10 @@ gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
+
+gem 'omniauth-oauth2', require: false
+gem 'omniauth-rails_csrf_protection', require: false
+
 gem 'pretender'
 gem 'rqrcode-rails3'
 gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3

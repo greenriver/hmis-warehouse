@@ -16,7 +16,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def url
-      warehouse_reports_touch_point_exports_url(host: ENV.fetch('FQDN'))
+      warehouse_reports_touch_point_exports_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     def run_and_save!
