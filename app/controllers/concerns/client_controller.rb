@@ -82,86 +82,8 @@ module ClientController
       @active_filter = @data_source_id.present? || @start_date.present? || params[:data_sharing].present? || params[:vulnerability].present? || params[:population].present? || age_group.present?
     end
 
-    def title_for_show
-      @client.full_name
-    end
-    alias_method :title_for_edit, :title_for_show
-    alias_method :title_for_destroy, :title_for_show
-    alias_method :title_for_update, :title_for_show
-    alias_method :title_for_merge, :title_for_show
-    alias_method :title_for_unmerge, :title_for_show
-
     def title_for_index
       'Client Search'
-    end
-
-    def new
-      @existing_matches ||= []
-      @client = client_source.new
-    end
-
-    def create
-      clean_params = client_create_params
-      clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
-      existing_matches = look_for_existing_match(clean_params)
-      @bypass_search = false
-      # If we only have one authoritative data source, we don't bother sending it, just use it
-      clean_params[:data_source_id] ||= GrdaWarehouse::DataSource.authoritative.first.id
-      @client = client_source.new(clean_params)
-
-      params_valid = validate_new_client_params(clean_params)
-
-      @existing_matches ||= []
-      if ! params_valid
-        flash[:error] = 'Unable to create client'
-        render action: :new
-      elsif existing_matches.any? && ! clean_params[:bypass_search].present?
-        # Show the new page with the option to go to an existing client
-        # add bypass_search as a hidden field so we don't end up here again
-        # raise @existing_matches.inspect
-        @bypass_search = true
-        @existing_matches = client_source.where(id: existing_matches).
-          joins(:warehouse_client_source).
-          includes(:warehouse_client_source, :data_source)
-        render action: :new
-      elsif clean_params[:bypass_search].present? || existing_matches.empty?
-        # Create a new source and destination client
-        # and redirect to the new client show page
-        client_source.transaction do
-          destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
-          @client.save
-          @client.update(PersonalID: @client.id)
-
-          destination_client = client_source.new(clean_params.
-            merge(
-              data_source_id: destination_ds_id,
-              PersonalID: @client.id,
-              creator_id: current_user.id,
-            ))
-          destination_client.send_notifications = true
-          destination_client.save
-
-          warehouse_client = GrdaWarehouse::WarehouseClient.create(
-            id_in_source: @client.id,
-            source_id: @client.id,
-            destination_id: destination_client.id,
-            data_source_id: @client.data_source_id,
-          )
-          if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
-            flash[:notice] = "Client #{@client.full_name} created."
-            after_create_path = client_path_generator
-            if @client.data_source.after_create_path.present?
-              after_create_path += [@client.data_source.after_create_path]
-              redirect_to polymorphic_path(after_create_path, client_id: destination_client.id)
-            else
-              redirect_to polymorphic_path(after_create_path, id: destination_client.id)
-            end
-          else
-            flash[:error] = 'Unable to create client'
-            render action: :new
-          end
-        end
-      end
     end
 
     def validate_new_client_params(clean_params)
@@ -225,104 +147,13 @@ module ClientController
         )
     end
 
-    # ajaxy method to render a particular rollup table
-    def rollup
-      allowed_rollups = [
-        '/clients/rollup/assessments',
-        '/clients/rollup/verifications',
-        '/clients/rollup/assessments_without_data',
-        '/clients/rollup/case_manager',
-        '/clients/rollup/chronic_days',
-        '/clients/rollup/contact_information',
-        '/clients/rollup/demographics',
-        '/clients/rollup/disability_types',
-        '/clients/rollup/entry_assessments',
-        '/clients/rollup/error',
-        '/clients/rollup/exit_assessments',
-        '/clients/rollup/family',
-        '/clients/rollup/income_benefits',
-        '/clients/rollup/ongoing_residential_enrollments',
-        '/clients/rollup/other_enrollments',
-        '/clients/rollup/residential_enrollments',
-        '/clients/rollup/services',
-        '/clients/rollup/services_full',
-        '/clients/rollup/special_populations',
-        '/clients/rollup/zip_details',
-        '/clients/rollup/zip_map',
-        '/clients/rollup/client_notes',
-        '/clients/rollup/chronic_notes',
-        '/clients/rollup/cohorts',
-        '/clients/rollup/ce_assessments',
-        '/clients/rollup/enrollment_cocs',
-        '/clients/rollup/current_living_situations',
-        '/clients/rollup/ce_events',
-        '/clients/rollup/employment_education',
-        '/clients/rollup/hmis_clients',
-      ]
-      rollup = allowed_rollups.detect do |m|
-        m == '/clients/rollup/' + params.require(:partial).underscore
-      end
-
-      raise 'Rollup not in allowlist' unless rollup.present?
-
-      render partial: rollup, layout: false if request.xhr?
-    end
-
-    def js_clients
-      @js_clients ||= if can_view_confidential_enrollment_details?
-        source_clients.each_with_index.map { |c, i| [c.id, [i, c.uuid, c.data_source&.short_name, c.organizations.map(&:name).to_sentence]] }.to_h
-      else
-        source_clients.each_with_index.map { |c, i| [c.id, [i, c.uuid, c.data_source&.short_name, c.organizations.map { |o| o.name unless source_clients.joins(enrollments: :project).where(Project: { OrganizationID: o.OrganizationID, data_source_id: o.data_source_id }).where(Project: { confidential: true }).any? }.compact.to_sentence]] }.to_h
-      end
-    end
-    helper_method :js_clients
-
-    def source_clients
-      @source_clients ||= @client.source_clients.preload(:data_source, :organizations)
-    end
-    helper_method :source_clients
-
-    def ds_short_name_for(source_client_id)
-      js_clients.dig(source_client_id, 2)
-    end
-    helper_method :ds_short_name_for
-
-    private def source_client_personal_id_from(source_client_id)
-      js_clients.dig(source_client_id, 1)
-    end
-
-    private def org_name_for(source_client_id)
-      js_clients.dig(source_client_id, 3)
-    end
-
-    def ds_tooltip_content(source_client_id, ds_id)
-      content_tag(:div) do
-        content_tag(:div, org_name_for(source_client_id), class: :org) +
-        content_tag(:div) do
-          [
-            'PersonalID: ',
-            content_tag(:span, source_client_personal_id_from(source_client_id), class: :pid),
-          ].join.html_safe
-        end +
-        content_tag(:div, "Data source: #{ds_id}", class: :data_source_id) +
-        content_tag(:div, "Source Client ID: #{source_client_id}", class: :source_client_id) +
-        content_tag(:span) do
-          content_tag(:i) do
-            'click to copy personal id'
-          end
-        end
-      end
-
-      # <div><div class="org"/>PersonalID: <span class="pid"/><br>Data source: <span class="data_source_id"/><br>Source Client ID: <span class="source_client_id"/><br><i>click to copy personal id</i></div>
-    end
-    helper_method :ds_tooltip_content
-
     protected def set_client
       # Do we have this client?
       # If we don't, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found
       # This query is slow, even as an exists query, so just attempt to load the client
-      id = params[:id].to_i
+      # Sometimes we have a client_id (when dealing with sub-pages) so check for that first
+      id = params[:client_id].presence || params[:id].to_i
       @client = client_scope(id: id).find_by(id: id)
       return if @client.present?
 

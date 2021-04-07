@@ -11,7 +11,7 @@ class User < ApplicationRecord
   has_paper_trail ignore: [:provider_raw_info]
   acts_as_paranoid
 
-  attr_accessor :remember_device, :device_name
+  attr_accessor :remember_device, :device_name, :client_access_arbiter
 
   # Include default devise modules. Others available are:
   devise :invitable,
@@ -362,7 +362,7 @@ class User < ApplicationRecord
   end
 
   def access_group
-    AccessGroup.for_user(self).first_or_initialize
+    @access_group ||= AccessGroup.for_user(self).first_or_initialize
   end
 
   def set_viewables(viewables)
@@ -379,7 +379,7 @@ class User < ApplicationRecord
 
   def coc_codes
     Rails.cache.fetch([self, 'coc_codes'], expires_in: 1.minutes) do
-      access_groups.map(&:coc_codes).flatten
+      (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).compact.uniq
     end
   end
 

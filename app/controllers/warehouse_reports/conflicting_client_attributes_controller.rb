@@ -33,7 +33,7 @@ module WarehouseReports
     end
 
     def client_scope
-      GrdaWarehouse::Hud::Client.viewable_by(current_user)
+      GrdaWarehouse::Hud::Client.source_visible_to(current_user)
     end
   end
 end

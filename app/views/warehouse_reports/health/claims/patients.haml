@@ -4,7 +4,7 @@
 - if @clients.any?
   %ul
     - @clients.each do |client|
-      %li= link_to client.name, window_client_health_qualifying_activities_path(client), target: '_blank'
+      %li= link_to client.name, client_health_qualifying_activities_path(client), target: '_blank'
 
 - else
   %p

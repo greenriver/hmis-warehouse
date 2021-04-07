@@ -442,26 +442,27 @@ Rails.application.routes.draw do
       get :destination
     end
   end
-  resources :clients, except: [:update, :destroy] do
+
+  resources :clients, only: [:create, :update, :edit] do
     member do
-      get :appropriate
-      get :simple
+      # get :appropriate
+      # get :simple
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
       get :health_assessment
-      get :image
+      # get :image
       get :chronic_days
       patch :merge
       patch :unmerge
       resource :cas_active, only: :update
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
-      get :enrollment_details
+      # get :enrollment_details
     end
-    resource :history, only: [:show], controller: 'clients/history' do
-      get :pdf, on: :collection
-      post :queue, on: :collection
-    end
+    # resource :history, only: [:show], controller: 'clients/history' do
+    #   get :pdf, on: :collection
+    #   post :queue, on: :collection
+    # end
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'
     resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
     resources :vispdats, controller: 'clients/vispdats' do
@@ -527,53 +528,7 @@ Rails.application.routes.draw do
       resources :ama_restrictions, only: [:create, :destroy]
     end
   end
-
-  # scope
-  namespace :window do
-    resources :source_clients, only: [:edit, :update], controller: '/source_clients' do
-      member do
-        get :image
-        get :destination
-      end
-    end
-    resources :clients, controller: '/clients' do
-      # resources :print, only: [:index]
-      healthcare_routes(window: true)
-      get 'rollup/:partial', to: '/clients#rollup', as: :rollup
-      get :assessment
-      get :health_assessment
-      get :image
-      resource :history, only: [:show], controller: '/clients/history' do
-        get :pdf, on: :collection
-        post :queue, on: :collection
-      end
-      resources :vispdats, controller: '/clients/vispdats' do
-        member do
-          put :add_child
-          delete :remove_child
-          put :upload_file
-          delete :destroy_file
-        end
-      end
-      resources :coordinated_entry_assessments, controller: '/clients/coordinated_entry_assessments'
-      resources :youth_intakes, controller: '/clients/youth/intakes'
-      resources :youth_case_managements, except: [:index], controller: '/clients/youth/case_managements'
-      resources :direct_financial_assistances, except: [:index], controller: '/clients/youth/direct_financial_assistances'
-      resources :youth_referrals, except: [:index], controller: '/clients/youth/referrals'
-      resources :youth_follow_ups, except: [:index], controller: '/clients/youth/follow_ups'
-
-      resources :files, controller: '/clients/files' do
-        get :preview, on: :member
-        get :thumb, on: :member
-        get :has_thumb, on: :member
-        get :show_delete_modal, on: :member
-        post :batch_download, on: :collection
-      end
-      resources :notes, only: [:index, :create, :destroy], controller: '/clients/notes'
-      resource :eto_api, only: [:show, :update], controller: '/clients/eto_api'
-      resources :users, only: [:index, :create, :update, :destroy], controller: '/clients/users'
-    end
-  end
+  # END clients
 
   namespace :assigned do
     resources :clients, only: [:index]
