@@ -194,14 +194,14 @@ module GrdaWarehouse::Hud
     # End User access control
 
     scope :destination, -> do
-      where(data_source_id: GrdaWarehouse::DataSource.destination.pluck(:id))
+      where(data_source_id: GrdaWarehouse::DataSource.destination_data_source_ids)
     end
     scope :source, -> do
-      where(data_source_id: GrdaWarehouse::DataSource.source.pluck(:id))
+      where(data_source_id: GrdaWarehouse::DataSource.source_data_source_ids)
     end
 
     scope :searchable, -> do
-      where(data_source_id: GrdaWarehouse::DataSource.source.pluck(:id))
+      where(data_source_id: GrdaWarehouse::DataSource.source_data_source_ids)
     end
     # For now, this is way to slow, calculate in ruby
     # scope :unmatched, -> do
@@ -651,23 +651,27 @@ module GrdaWarehouse::Hud
 
     def self.extended_age_groups
       {
-        range_0_to_1: { name: "< 1 yr old", range: (0..0)},
-        range_1_to_5: { name: "1 - 5 yrs old", range: (1..5)},
-        range_6_to_13: { name: "6 - 13 yrs old", range: (6..13)},
-        range_14_to_17: { name: "14 - 17 yrs old", range: (14..17)},
-        range_18_to_21: { name: "18 - 21 yrs old", range: (18..21)},
-        range_19_to_24: { name: "19 - 24 yrs old", range: (19..24)},
-        range_25_to_30: { name: "25 - 30 yrs old", range: (25..30)},
-        range_31_to_35: { name: "31 - 35 yrs old", range: (31..35)},
-        range_36_to_40: { name: "36 - 40 yrs old", range: (36..40)},
-        range_41_to_45: { name: "41 - 45 yrs old", range: (41..45)},
-        range_44_to_50: { name: "45 - 50 yrs old", range: (45..50)},
-        range_51_to_55: { name: "51 - 55 yrs old", range: (51..55)},
-        range_55_to_60: { name: "56 - 60 yrs old", range: (55..60)},
-        range_61_to_62: { name: "61 - 62 yrs old", range: (61..62)},
-        range_62_plus: { name: "62+ yrs old", range: (62..Float::INFINITY)},
-        missing: {name: "Missing", range: [nil]}
+        range_0_to_1: { name: "< 1 yr old", range: (0..0) },
+        range_1_to_5: { name: "1 - 5 yrs old", range: (1..5) },
+        range_6_to_13: { name: "6 - 13 yrs old", range: (6..13) },
+        range_14_to_17: { name: "14 - 17 yrs old", range: (14..17) },
+        range_18_to_21: { name: "18 - 21 yrs old", range: (18..21) },
+        range_19_to_24: { name: "19 - 24 yrs old", range: (19..24) },
+        range_25_to_30: { name: "25 - 30 yrs old", range: (25..30) },
+        range_31_to_35: { name: "31 - 35 yrs old", range: (31..35) },
+        range_36_to_40: { name: "36 - 40 yrs old", range: (36..40) },
+        range_41_to_45: { name: "41 - 45 yrs old", range: (41..45) },
+        range_44_to_50: { name: "45 - 50 yrs old", range: (45..50) },
+        range_51_to_55: { name: "51 - 55 yrs old", range: (51..55) },
+        range_55_to_60: { name: "56 - 60 yrs old", range: (55..60) },
+        range_61_to_62: { name: "61 - 62 yrs old", range: (61..62) },
+        range_62_plus: { name: "62+ yrs old", range: (62..Float::INFINITY) },
+        missing: { name: "Missing", range: [nil] },
       }
+    end
+
+    def source_clients_searchable_to(user)
+      @source_clients_searchable_to ||= self.class.searchable_to(user, client_ids: source_client_ids).preload(:data_source).to_a
     end
 
     def alternate_names
@@ -677,7 +681,7 @@ module GrdaWarehouse::Hud
     end
 
     def client_names(user:, health: false)
-      names = source_clients.joins(:data_source).searchable_by(user).includes(:data_source).map do |m|
+      names = source_clients_searchable_to(user).map do |m|
         {
           ds: m.data_source&.short_name,
           ds_id: m.data_source&.id,

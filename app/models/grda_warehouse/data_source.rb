@@ -121,6 +121,22 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative_type: 'coordinated_assessment')
   end
 
+  def self.source_data_source_ids
+    GrdaWarehouse::DataSource.source.pluck(:id)
+  end
+
+  def self.destination_data_source_ids
+    GrdaWarehouse::DataSource.destination.pluck(:id)
+  end
+
+  def self.authoritative_data_source_ids
+    GrdaWarehouse::DataSource.authoritative.pluck(:id)
+  end
+
+  def self.window_data_source_ids
+    GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
+  end
+
   def self.can_see_all_data_sources?(user)
     visible_source_ds = viewable_by(user).source.distinct
     # If we can't see any, it may be because there are none

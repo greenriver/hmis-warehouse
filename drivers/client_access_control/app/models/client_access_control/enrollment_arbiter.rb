@@ -22,21 +22,22 @@ module ClientAccessControl
     def clients_source_visible_to(user)
       return ::GrdaWarehouse::Hud::Client.none unless user.can_access_some_version_of_clients?
 
-      data_source_ids = ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
+      data_source_ids = authoritative_viewable_ds_ids(user)
       data_source_ids += window_data_source_ids unless ::GrdaWarehouse::Config.get(:window_access_requires_release)
       visible_client_scope(user, data_source_ids)
     end
 
-    def clients_source_searchable_to(user)
+    def clients_source_searchable_to(user, client_ids: nil)
       return ::GrdaWarehouse::Hud::Client.none unless user
 
-      data_source_ids = ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
+      data_source_ids = authoritative_viewable_ds_ids(user)
       data_source_ids += window_data_source_ids # always include window data sources in search
-      visible_client_scope(user, data_source_ids)
+      visible_client_scope(user, data_source_ids, client_ids: client_ids)
     end
 
-    private def visible_client_scope(user, data_source_ids)
+    private def visible_client_scope(user, data_source_ids, client_ids: nil)
       client_scope = unscoped_clients.source
+      client_scope = client_scope.where(id: client_ids) if client_ids.present?
       coc_codes = user.coc_codes
       client_scope.where(
         # NOTE: you need to merge in Enrollment to get the where DateDeleted is null
@@ -75,15 +76,23 @@ module ClientAccessControl
       ::GrdaWarehouse::Hud::Client.unscoped.paranoia_scope
     end
 
+    private def authoritative_viewable_ds_ids(user)
+      @authoritative_viewable_ds_ids ||= ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
+    end
+
     private def window_data_source_ids
-      ::GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
+      @window_data_source_ids ||= ::GrdaWarehouse::DataSource.window_data_source_ids
     end
 
     private def project_ids(user)
-      ids = ::GrdaWarehouse::Hud::Project.visible_to(user).pluck(:id).uniq
-      return ids if ::GrdaWarehouse::Config.get(:window_access_requires_release)
-
-      ids + ::GrdaWarehouse::Hud::Project.where(data_source_id: window_data_source_ids).pluck(:id)
+      @project_ids ||= begin
+        ids = ::GrdaWarehouse::Hud::Project.visible_to(user).pluck(:id).uniq
+        if ::GrdaWarehouse::Config.get(:window_access_requires_release)
+          ids
+        else
+          ids + ::GrdaWarehouse::Hud::Project.where(data_source_id: window_data_source_ids).pluck(:id)
+        end
+      end
     end
   end
 end

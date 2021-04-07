@@ -11,20 +11,21 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
     included do
       scope :destination_visible_to, ->(user) do
-        limited_scope = GrdaWarehouse::Config.arbiter_class.new.clients_destination_visible_to(user)
+        limited_scope = arbiter(user).clients_destination_visible_to(user)
         merge(limited_scope)
       end
 
       scope :source_visible_to, ->(user) do
-        limited_scope = GrdaWarehouse::Config.arbiter_class.new.clients_source_visible_to(user)
+        limited_scope = arbiter(user).clients_source_visible_to(user)
         merge(limited_scope)
       end
 
       # can search even if no ROI
-      scope :searchable_to, ->(user) do
+      scope :searchable_to, ->(user, client_ids: nil) do
         return current_scope if user.can_search_all_clients?
 
-        limited_scope = GrdaWarehouse::Config.arbiter_class.new.clients_source_searchable_to(user)
+        limited_scope = arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
+        limited_scope.where(id: client_ids) if client_ids.present?
         merge(limited_scope)
       end
 
@@ -34,9 +35,14 @@ module ClientAccessControl::GrdaWarehouse::Hud
           select(:destination_id))
       end
 
+      def self.arbiter(user)
+        # GrdaWarehouse::Config.arbiter_class.new
+        user.client_access_arbiter ||= GrdaWarehouse::Config.arbiter_class.new
+      end
+
       # LEGACY Scopes
-      scope :searchable_by, ->(user) do
-        searchable_to(user)
+      scope :searchable_by, ->(user, client_ids: nil) do
+        searchable_to(user, client_ids: client_ids)
       end
 
       scope :viewable_by, ->(user) do
