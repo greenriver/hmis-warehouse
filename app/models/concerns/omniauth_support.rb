@@ -29,7 +29,7 @@ module OmniauthSupport
       user = find_by(
         provider: auth['provider'],
         uid: auth['uid'],
-      ) || find_by(
+      ) || find_for_authentication(
         email: auth['info']['email'],
       ) || new(
         password: Devise.friendly_token,
