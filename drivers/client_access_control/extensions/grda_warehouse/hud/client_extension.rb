@@ -22,10 +22,12 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
       # can search even if no ROI
       scope :searchable_to, ->(user, client_ids: nil) do
-        return current_scope if user.can_search_all_clients?
-
-        limited_scope = arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
-        limited_scope.where(id: client_ids) if client_ids.present?
+        limited_scope = if user.can_search_all_clients?
+          current_scope || all
+        else
+          arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
+        end
+        limited_scope = limited_scope.where(id: client_ids) if client_ids.present?
         merge(limited_scope)
       end
 

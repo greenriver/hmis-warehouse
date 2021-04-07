@@ -671,7 +671,10 @@ module GrdaWarehouse::Hud
     end
 
     def source_clients_searchable_to(user)
-      @source_clients_searchable_to ||= self.class.searchable_to(user, client_ids: source_client_ids).preload(:data_source).to_a
+      @source_clients_searchable_to = {}.tap do |clients|
+        clients[user.id] ||= self.class.searchable_to(user, client_ids: source_client_ids).preload(:data_source).to_a
+      end
+      @source_clients_searchable_to[user.id]
     end
 
     def alternate_names
