@@ -59,6 +59,14 @@ App.Form.Select2Input = class Select2Input {
     }
   }
 
+  getGroupSelectors() {
+    const resultsId = `select2-${this.select.id}-results`
+    return {
+      groupSelector: `#${resultsId} .select2-results__group`,
+      resultsId,
+    }
+  }
+
   selectAllHtml() {
     let text = 'all'
     if (this.someItemsSelected() || this.allItemsSelected()) {
@@ -84,11 +92,11 @@ App.Form.Select2Input = class Select2Input {
       (this.$select.select2('data').length === 0)
   }
 
+
   initToggleSelectAll() {
     // Init optgroup select all
     const self = this
-    const resultsId = `select2-${this.select.id}-results`
-    const groupSelector = `#${resultsId} .select2-results__group`
+    const { resultsId, groupSelector } =  this.getGroupSelectors()
     $(document).on('click', groupSelector, function() {
       const label = this.parentElement.getAttribute('aria-label')
       const selected = !!this.dataset.allSelected
@@ -101,7 +109,9 @@ App.Form.Select2Input = class Select2Input {
       } else {
         this.setAttribute('data-all-selected', true)
       }
+      // Trigger change on the select2 instance so items are added/subtracted
       self.$select.trigger("change")
+      // Update class of list items so they are visually highlighted
       $(`#${resultsId} .select2-results__options--nested  li`).each((i, el) => {
         el.setAttribute('aria-selected', !selected)
       })
