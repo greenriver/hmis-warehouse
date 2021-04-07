@@ -72,7 +72,7 @@ module Health
     end
 
     def url
-      warehouse_reports_health_encounters_url(host: ENV.fetch('FQDN'))
+      warehouse_reports_health_encounters_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     def status

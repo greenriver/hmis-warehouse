@@ -143,8 +143,8 @@
         - client = c_en.cohort_client.client
         -# - associated_exit = c_en.associated_exit
         %tr
-          %td= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
-          %td= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
+          %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
+          %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
           %td= c_en.entry_date&.to_date
           %td= c_en&.exit_date&.to_date
           %td= c_en&.change_reason

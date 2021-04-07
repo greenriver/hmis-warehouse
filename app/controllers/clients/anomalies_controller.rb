@@ -54,7 +54,7 @@ module Clients
     end
 
     def set_client
-      @client = searchable_client_scope.find(params[:client_id].to_i)
+      @client = destination_searchable_client_scope.find(params[:client_id].to_i)
     end
 
     def anomaly_scope

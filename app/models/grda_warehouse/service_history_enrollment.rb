@@ -272,11 +272,9 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :visible_in_window_to, ->(user) do
-    if user.can_view_clients? || user.can_view_client_window?
-      joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
-    else
-      joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
-    end
+    return none unless user.can_view_clients?
+
+    joins(:enrollment).merge(GrdaWarehouse::Hud::Enrollment.visible_to(user))
   end
 
   scope :with_move_in_date_before, ->(date) do

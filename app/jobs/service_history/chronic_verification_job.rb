@@ -10,12 +10,9 @@ module ServiceHistory
     include Rails.application.routes.url_helpers
     queue_as :short_running
 
-    def initialize(client_id:, years:)
+    def perform(client_id:, years:)
       @client_id = client_id
       @years = years
-    end
-
-    def perform
       app = ActionDispatch::Integration::Session.new(Rails.application)
 
       options = {
@@ -24,10 +21,7 @@ module ServiceHistory
         host: ENV['FQDN'],
         protocol: 'https',
       }
-      app.get(pdf_window_client_history_url(options))
-    end
-
-    def enqueue(job, queue: :short_running)
+      app.get(pdf_client_history_url(options))
     end
 
     def max_attempts

@@ -1,6 +1,46 @@
 {
   "ignored_warnings": [
     {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "0d56b723a341f97ce38e8bd32d706526cad0a202177cc4c9ab6e22a23f7a3676",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/users/omniauth_callbacks_controller.rb",
+      "line": 22,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(after_sign_in_path_for(User.from_omniauth(request.env[\"omniauth.auth\"])))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Users::OmniauthCallbacksController",
+        "method": "okta"
+      },
+      "user_input": "User.from_omniauth(request.env[\"omniauth.auth\"])",
+      "confidence": "Weak",
+      "note": "after_sign_in_path_for does sometimes return an offsite redirect but not an uncontrolled one"
+    },
+    {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "0d56b723a341f97ce38e8bd32d706526cad0a202177cc4c9ab6e22a23f7a3676",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/users/omniauth_callbacks_controller.rb",
+      "line": 29,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(after_sign_in_path_for(User.from_omniauth(request.env[\"omniauth.auth\"])))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Users::OmniauthCallbacksController",
+        "method": "okta"
+      },
+      "user_input": "User.from_omniauth(request.env[\"omniauth.auth\"])",
+      "confidence": "Weak",
+      "note": "after_sign_in_path_for does sometimes return an offsite redirect but not an uncontrolled one"
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "0fc8bda3aa0534d15b8341980b3cd903e10cf9bf203e38eb3abbc26ff6b5c0c2",
@@ -18,6 +58,26 @@
       },
       "user_input": "lftp_bookmark",
       "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "13a7f90845cffdc12900858d9d2d0e853dcd03c123ae71ebfe37e725f6d6453a",
+      "check_name": "FileAccess",
+      "message": "Parameter value used in file name",
+      "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
+      "line": 68,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientAccessControl::HistoryController",
+        "method": "pdf"
+      },
+      "user_input": "params[:client_id]",
+      "confidence": "Weak",
       "note": ""
     },
     {
@@ -289,26 +349,6 @@
       },
       "user_input": "params[:id]",
       "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "3e94c32e2e326e0b24e275e1018e19c8d8e04b138e81da4366a9ab06617bdb85",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 389,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"EXISTS (#{inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")} and \\\"Client\\\".\\\"id\\\" = \\\"inner_clients\\\".\\\"id\\\")\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::Hud::Client",
-        "method": "GrdaWarehouse::Hud::Client.exists_with_inner_clients"
-      },
-      "user_input": "inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")",
-      "confidence": "Medium",
       "note": ""
     },
     {
@@ -633,6 +673,26 @@
       },
       "user_input": "db_user",
       "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "7b07960e8183fd903d2b5da2531174a58e52432690e67a5e83a5db857acdf1e2",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "drivers/client_access_control/app/controllers/client_access_control/search_concern.rb",
+      "line": 43,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientAccessControl::SearchConcern",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
       "note": ""
     },
     {
@@ -1555,26 +1615,6 @@
       "note": ""
     },
     {
-      "warning_type": "File Access",
-      "warning_code": 16,
-      "fingerprint": "fe05ee0a6f1d111361975dbd3e6e21a0f4e6b22841baf874cda4bf1cd5f21c0e",
-      "check_name": "FileAccess",
-      "message": "Model attribute used in file name",
-      "file": "app/controllers/clients/history_controller.rb",
-      "line": 69,
-      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Clients::HistoryController",
-        "method": "pdf"
-      },
-      "user_input": "GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "fe7de455d82a4e3fef770c1272e861fb8f1d73042b2f82f1b417753f2d17bec7",
@@ -1595,6 +1635,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-04-02 11:27:35 -0400",
+  "updated": "2021-04-07 07:39:21 -0400",
   "brakeman_version": "5.0.0"
 }

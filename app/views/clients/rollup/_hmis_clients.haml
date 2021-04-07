@@ -2,7 +2,7 @@
   hmis_clients = @client.
     source_hmis_clients.
     joins(:client).
-    merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
+    merge(GrdaWarehouse::Hud::Client.source_visible_to(current_user)).
     order(eto_last_updated: :desc).
     pluck(:eto_last_updated, :updated_at, :subject_id, :processed_fields)
 - if hmis_clients.any?

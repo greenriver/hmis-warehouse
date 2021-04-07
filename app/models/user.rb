@@ -8,13 +8,12 @@ class User < ApplicationRecord
   include Rails.application.routes.url_helpers
   include UserPermissions
   include PasswordRules
-  has_paper_trail
+  has_paper_trail ignore: [:provider_raw_info]
   acts_as_paranoid
 
-  attr_accessor :remember_device, :device_name
+  attr_accessor :remember_device, :device_name, :client_access_arbiter
 
   # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :invitable,
          :recoverable,
          :rememberable,
@@ -34,17 +33,20 @@ class User < ApplicationRecord
          password_length: 10..128,
          otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
          otp_number_of_backup_codes: 10
-  # has_secure_password # not needed with devise
+
+  include OmniauthSupport
+
+
   # Connect users to login attempts
   has_many :login_activities, as: :user
 
   # Ensure that users have a user-specific access group
   after_save :create_access_group
 
-  validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
+  validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: { maximum: 250 }, on: :update
   validate :password_cannot_be_sequential, on: :update
-  validates :last_name, presence: true, length: {maximum: 40}
-  validates :first_name, presence: true, length: {maximum: 40}
+  validates :last_name, presence: true, length: { maximum: 40 }
+  validates :first_name, presence: true, length: { maximum: 40 }
   validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
   validates :agency_id, presence: true
 
@@ -82,15 +84,15 @@ class User < ApplicationRecord
     where(
       arel_table[:active].eq(true).and(
         arel_table[:expired_at].eq(nil).
-        or(arel_table[:expired_at].gt(Time.current))
-      )
+        or(arel_table[:expired_at].gt(Time.current)),
+      ),
     )
   end
 
   scope :inactive, -> do
     where(
-     arel_table[:active].eq(false).
-     or(arel_table[:expired_at].lteq(Time.current))
+      arel_table[:active].eq(false).
+      or(arel_table[:expired_at].lteq(Time.current)),
     )
   end
 
@@ -127,14 +129,14 @@ class User < ApplicationRecord
     # Methods for determining if a user has permission
     # e.g. the_user.can_administer_health?
     define_method("#{permission}?") do
-      self.send(permission)
+      send(permission)
     end
 
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
     scope permission, -> do
       joins(:roles).
-      where(roles: {permission => true})
+        where(roles: { permission => true })
     end
   end
 
@@ -175,12 +177,12 @@ class User < ApplicationRecord
   end
 
   def training_status
-    return "Not Started" unless Talentlms::Login.find_by(user: self)
+    return 'Not Started' unless Talentlms::Login.find_by(user: self)
 
     if last_training_completed
       "Completed #{last_training_completed}"
     else
-      "In Progress"
+      'In Progress'
     end
   end
 
@@ -222,6 +224,7 @@ class User < ApplicationRecord
   # ensure we have a secret
   def set_initial_two_factor_secret!
     return if otp_secret.present?
+
     update(otp_secret: User.generate_otp_secret)
   end
 
@@ -261,9 +264,9 @@ class User < ApplicationRecord
 
     query = "%#{text}%"
     where(
-      arel_table[:last_name].matches(query)
-      .or(arel_table[:first_name].matches(query))
-      .or(arel_table[:email].matches(query))
+      arel_table[:last_name].matches(query).
+      or(arel_table[:first_name].matches(query)).
+      or(arel_table[:email].matches(query)),
     )
   end
 
@@ -359,7 +362,7 @@ class User < ApplicationRecord
   end
 
   def access_group
-    AccessGroup.for_user(self).first_or_initialize
+    @access_group ||= AccessGroup.for_user(self).first_or_initialize
   end
 
   def set_viewables(viewables)
@@ -376,11 +379,11 @@ class User < ApplicationRecord
 
   def coc_codes
     Rails.cache.fetch([self, 'coc_codes'], expires_in: 1.minutes) do
-      access_groups.map(&:coc_codes).flatten
+      (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).compact.uniq
     end
   end
 
-  def coc_codes= (codes)
+  def coc_codes=(codes)
     access_group.update(coc_codes: codes)
   end
 
@@ -398,7 +401,7 @@ class User < ApplicationRecord
     users = User.active.order(:first_name, :last_name)
     unless can_manage_all_agencies?
       # The users in the user's agency
-      users = users.where(agency_id: self.agency_id)
+      users = users.where(agency_id: agency_id)
     end
     users
   end
@@ -439,7 +442,7 @@ class User < ApplicationRecord
     true
   end
 
-  def self.describe_changes(version, changes)
+  def self.describe_changes(_version, changes)
     changes.slice(*whitelist_for_changes_display).map do |name, values|
       "Changed #{humanize_attribute_name(name)}: from \"#{values.first}\" to \"#{values.last}\"."
     end

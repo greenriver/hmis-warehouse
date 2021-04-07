@@ -8,7 +8,6 @@ require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
     self.primary_key = :id
-    include RailsDrivers::Extensions
     include Rails.application.routes.url_helpers
     include RandomScope
     include ArelHelper
@@ -27,7 +26,7 @@ module GrdaWarehouse::Hud
     self.table_name = :Client
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
+    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.seconds end
 
     has_many :client_files
     has_many :health_files
@@ -180,16 +179,29 @@ module GrdaWarehouse::Hud
     delegate :first_date_served, to: :processed_service_history, allow_nil: true
     delegate :last_date_served, to: :processed_service_history, allow_nil: true
 
+    # User access control, override in extensions
+    scope :destination_visible_to, ->(_user) do
+      none
+    end
+
+    scope :source_visible_to, ->(_user) do
+      none
+    end
+
+    scope :searchable_to, ->(_user) do
+      none
+    end
+    # End User access control
 
     scope :destination, -> do
-      where(data_source: GrdaWarehouse::DataSource.destination)
+      where(data_source_id: GrdaWarehouse::DataSource.destination_data_source_ids)
     end
     scope :source, -> do
-      where(data_source: GrdaWarehouse::DataSource.source)
+      where(data_source_id: GrdaWarehouse::DataSource.source_data_source_ids)
     end
 
     scope :searchable, -> do
-      where(data_source: GrdaWarehouse::DataSource.source)
+      where(data_source_id: GrdaWarehouse::DataSource.source_data_source_ids)
     end
     # For now, this is way to slow, calculate in ruby
     # scope :unmatched, -> do
@@ -309,15 +321,7 @@ module GrdaWarehouse::Hud
       where.not(hiv_positive: false)
     end
 
-    scope :visible_in_window_to, -> (user) do
-      joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
-    end
-
-    scope :visible_by_project_to, -> (user) do
-      joins(enrollments: :project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
-    end
-
-    scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
+    scope :has_homeless_service_after_date, ->(date: 31.days.ago) do
       where(id:
         GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(sh_t[:date].gt(date)).
@@ -325,7 +329,7 @@ module GrdaWarehouse::Hud
       )
     end
 
-    scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.current) do
+    scope :has_homeless_service_between_dates, ->(start_date: 31.days.ago, end_date: Date.current) do
       where(id:
         GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
@@ -347,7 +351,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :age_group_within_range, -> (start_age: 0, end_age: nil, start_date: Date.current, end_date: Date.current) do
+    scope :age_group_within_range, ->(start_age: 0, end_age: nil, start_date: Date.current, end_date: Date.current) do
       start_age = 0 unless start_age.is_a?(Integer)
       end_age   = nil unless end_age.is_a?(Integer)
       if end_age.present?
@@ -382,118 +386,6 @@ module GrdaWarehouse::Hud
         distinct.pluck(:client_id)
       joins(:client_files).
       where(id: (unconfirmed_consent + unconfirmed_disability).uniq)
-    end
-
-    def self.exists_with_inner_clients(inner_scope)
-      inner_scope = inner_scope.to_sql.gsub('"Client".', '"inner_clients".').gsub('"Client"', '"Client" as "inner_clients"')
-      Arel.sql("EXISTS (#{inner_scope} and \"Client\".\"id\" = \"inner_clients\".\"id\")")
-    end
-
-    scope :searchable_by, -> (user) do
-      if user.can_view_clients_with_roi_in_own_coc?
-        current_scope
-      elsif user.can_view_clients? || user.can_edit_clients?
-        current_scope
-      else
-        ds_ids = user.data_sources.pluck(:id)
-        project_query = exists_with_inner_clients(visible_by_project_to(user))
-        window_query = exists_with_inner_clients(visible_in_window_to(user))
-
-        if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-          where(
-            arel_table[:data_source_id].in(ds_ids).
-            or(project_query).
-            or(window_query)
-          )
-        else
-          where(
-            arel_table[:id].eq(0). # no client should have a 0 id
-            or(project_query).
-            or(window_query)
-          )
-        end
-      end
-    end
-
-    scope :viewable_by, -> (user) do
-      project_query = exists_with_inner_clients(visible_by_project_to(user))
-      window_query = exists_with_inner_clients(visible_in_window_to(user))
-      active_consent_query = if GrdaWarehouse::Config.get(:multi_coc_installation)
-        exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
-      else
-        exists_with_inner_clients(consent_form_valid)
-      end
-      if user.can_view_clients_with_roi_in_own_coc?
-        # At a high level if you can see clients with ROI in your COC, you need to be able
-        # to see everyone for searching purposes.
-        # limits will be imposed on accessing the actual client dashboard pages
-        # current_scope
-
-        # If the user has coc-codes specified, this will limit to users
-        # with a valid consent form in the coc or with no-coc specified
-        # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
-        # are included.
-        if user&.can_see_clients_in_window_for_assigned_data_sources?
-          ds_ids = user.data_sources.pluck(:id)
-          sql = arel_table[:data_source_id].in(ds_ids).
-            or(active_consent_query).
-            or(project_query)
-          unless GrdaWarehouse::Config.get(:window_access_requires_release)
-            sql = sql.or(window_query)
-          end
-
-          where(sql)
-        else
-          active_confirmed_consent_in_cocs(user.coc_codes)
-        end
-      elsif user.can_view_clients? || user.can_edit_clients?
-        current_scope
-      else
-        ds_ids = user.data_sources.pluck(:id)
-        if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-          sql = arel_table[:data_source_id].in(ds_ids)
-          sql = sql.or(project_query)
-          if GrdaWarehouse::Config.get(:window_access_requires_release)
-            sql = sql.or(active_consent_query)
-          else
-            sql = sql.or(window_query)
-          end
-          where(sql)
-        else
-          sql = arel_table[:id].eq(0) # no client should have a 0 id
-          sql = sql.or(project_query)
-          if GrdaWarehouse::Config.get(:window_access_requires_release)
-            sql = sql.or(active_consent_query)
-          else
-            sql = sql.or(window_query)
-          end
-
-          where(sql)
-        end
-      end
-    end
-
-    # should always return a destination client, but some visibility
-    # is governed by the source client, some by the destination
-    def self.destination_client_viewable_by_user(client_id:, user:)
-      destination.where(
-        Arel.sql(
-          arel_table[:id].in(visible_by_source(id: client_id, user: user)).
-          or(arel_table[:id].in(visible_by_destination(id: client_id, user: user))).to_sql,
-        ),
-      )
-    end
-
-    def self.visible_by_source(id:, user:)
-      query = GrdaWarehouse::WarehouseClient.joins(:source).merge(viewable_by(user))
-      query = query.where(destination_id: id) if id.present?
-      Arel.sql(query.select(:destination_id).to_sql)
-    end
-
-    def self.visible_by_destination(id:, user:)
-      query = viewable_by(user)
-      query = query.where(id: id) if id.present?
-      Arel.sql(query.select(:id).to_sql)
     end
 
     def hmis_source_visible_by?(user)
@@ -759,23 +651,30 @@ module GrdaWarehouse::Hud
 
     def self.extended_age_groups
       {
-        range_0_to_1: { name: "< 1 yr old", range: (0..0)},
-        range_1_to_5: { name: "1 - 5 yrs old", range: (1..5)},
-        range_6_to_13: { name: "6 - 13 yrs old", range: (6..13)},
-        range_14_to_17: { name: "14 - 17 yrs old", range: (14..17)},
-        range_18_to_21: { name: "18 - 21 yrs old", range: (18..21)},
-        range_19_to_24: { name: "19 - 24 yrs old", range: (19..24)},
-        range_25_to_30: { name: "25 - 30 yrs old", range: (25..30)},
-        range_31_to_35: { name: "31 - 35 yrs old", range: (31..35)},
-        range_36_to_40: { name: "36 - 40 yrs old", range: (36..40)},
-        range_41_to_45: { name: "41 - 45 yrs old", range: (41..45)},
-        range_44_to_50: { name: "45 - 50 yrs old", range: (45..50)},
-        range_51_to_55: { name: "51 - 55 yrs old", range: (51..55)},
-        range_55_to_60: { name: "56 - 60 yrs old", range: (55..60)},
-        range_61_to_62: { name: "61 - 62 yrs old", range: (61..62)},
-        range_62_plus: { name: "62+ yrs old", range: (62..Float::INFINITY)},
-        missing: {name: "Missing", range: [nil]}
+        range_0_to_1: { name: "< 1 yr old", range: (0..0) },
+        range_1_to_5: { name: "1 - 5 yrs old", range: (1..5) },
+        range_6_to_13: { name: "6 - 13 yrs old", range: (6..13) },
+        range_14_to_17: { name: "14 - 17 yrs old", range: (14..17) },
+        range_18_to_21: { name: "18 - 21 yrs old", range: (18..21) },
+        range_19_to_24: { name: "19 - 24 yrs old", range: (19..24) },
+        range_25_to_30: { name: "25 - 30 yrs old", range: (25..30) },
+        range_31_to_35: { name: "31 - 35 yrs old", range: (31..35) },
+        range_36_to_40: { name: "36 - 40 yrs old", range: (36..40) },
+        range_41_to_45: { name: "41 - 45 yrs old", range: (41..45) },
+        range_44_to_50: { name: "45 - 50 yrs old", range: (45..50) },
+        range_51_to_55: { name: "51 - 55 yrs old", range: (51..55) },
+        range_55_to_60: { name: "56 - 60 yrs old", range: (55..60) },
+        range_61_to_62: { name: "61 - 62 yrs old", range: (61..62) },
+        range_62_plus: { name: "62+ yrs old", range: (62..Float::INFINITY) },
+        missing: { name: "Missing", range: [nil] },
       }
+    end
+
+    def source_clients_searchable_to(user)
+      @source_clients_searchable_to = {}.tap do |clients|
+        clients[user.id] ||= self.class.searchable_to(user, client_ids: source_client_ids).preload(:data_source).to_a
+      end
+      @source_clients_searchable_to[user.id]
     end
 
     def alternate_names
@@ -784,8 +683,8 @@ module GrdaWarehouse::Hud
       names.join(',')
     end
 
-    def client_names user:, health: false
-      names = source_clients.joins(:data_source).searchable_by(user).includes(:data_source).map do |m|
+    def client_names(user:, health: false)
+      names = source_clients_searchable_to(user).map do |m|
         {
           ds: m.data_source&.short_name,
           ds_id: m.data_source&.id,
@@ -793,10 +692,8 @@ module GrdaWarehouse::Hud
           health: m.data_source&.authoritative_type == 'health',
         }
       end
-      if health && patient.present? && names.detect { |name| name[:health] }.blank?
-        names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name }
-      end
-      return names
+      names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name } if health && patient.present? && names.detect { |name| name[:health] }.blank?
+      names
     end
 
     # client has a disability response in the affirmative
@@ -934,10 +831,10 @@ module GrdaWarehouse::Hud
     alias_attribute :dob, :DOB
     alias_attribute :ssn, :SSN
 
-    def window_link_for? user
+    def appropriate_path_for?(user)
       return false if user.blank?
 
-      if show_window_demographic_to?(user)
+      if show_demographics_to?(user)
         client_path(self)
       elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)
         client_vispdats_path(self)
@@ -960,67 +857,6 @@ module GrdaWarehouse::Hud
 
     def show_health_hpc_for?(user)
       patient.present? && patient.hpc_patient? && user.has_some_patient_access? && GrdaWarehouse::Config.get(:healthcare_available)
-    end
-
-    def show_window_demographic_to?(user)
-      visible_because_of_permission?(user) || visible_because_of_relationship?(user)
-    end
-
-    def visible_because_of_permission?(user)
-      user.can_view_clients? ||
-      visible_because_of_release?(user) ||
-      visible_because_of_assigned_data_source?(user) ||
-      visible_because_of_coc_association?(user)
-    end
-
-    def visible_because_of_release?(user)
-      any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
-      # user can see the window, and client has a valid release, or none is required (by the site config)
-      user.can_view_client_window? &&
-      (
-        release_valid? ||
-        ! GrdaWarehouse::Config.get(:window_access_requires_release) && any_window_clients
-      )
-    end
-
-    # This permission is mis-named a bit, it should check all project ids visible to the user
-    def visible_because_of_assigned_data_source?(user)
-      return false unless user.can_see_clients_in_window_for_assigned_data_sources?
-
-      visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
-      visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
-
-      visible_because_of_enrollments || visible_because_of_data_sources
-    end
-
-    def visible_because_of_coc_association?(user)
-      user.can_view_clients_with_roi_in_own_coc? &&
-      release_valid? &&
-      (
-        consented_coc_codes == [] ||
-        (consented_coc_codes & user.coc_codes).present?
-      )
-    end
-
-    def visible_because_of_relationship?(user)
-      self.user_clients.pluck(:user_id).include?(user.id) && release_valid? && user.can_search_window?
-    end
-    # Define a bunch of disability methods we can use to get the response needed
-    # for CAS integration
-    # This generates methods like: substance_response()
-    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
-      define_method "#{disability_type}_response".to_sym do
-        disability_check = "#{disability_type}?".to_sym
-        source_disabilities.response_present.
-          newest_first.
-          detect(&disability_check).try(:response)
-      end
-    end
-
-    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
-      define_method "#{disability_type}_response?".to_sym do
-        self.send("#{disability_type}_response".to_sym) == 'Yes'
-      end
     end
 
     def sync_cas_attributes_with_files
@@ -1232,6 +1068,24 @@ module GrdaWarehouse::Hud
         hiv_response,
         mental_response,
       ].include?('Yes')
+    end
+
+    # Define a bunch of disability methods we can use to get the response needed
+    # for CAS integration
+    # This generates methods like: substance_response()
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
+      define_method "#{disability_type}_response".to_sym do
+        disability_check = "#{disability_type}?".to_sym
+        source_disabilities.response_present.
+          newest_first.
+          detect(&disability_check).try(:response)
+      end
+    end
+
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
+      define_method "#{disability_type}_response?".to_sym do
+        send("#{disability_type}_response".to_sym) == 'Yes'
+      end
     end
 
     # Use the Pathways answer if available, otherwise, HMIS
@@ -2239,11 +2093,10 @@ module GrdaWarehouse::Hud
     def previous_permanent_locations_for_display(user)
       labels = ('A'..'Z').to_a
       seen_addresses = {}
-      addresses_from_enrollments = source_enrollments.visible_in_window_to(user).
+      addresses_from_enrollments = source_enrollments.visible_to(user).
         any_address.
         order(EntryDate: :desc).
-        preload(:client).
-        map do |enrollment|
+        preload(:client).map do |enrollment|
           lat_lon = enrollment.address_lat_lon
           address = {
             year: enrollment.EntryDate.year,
@@ -2253,15 +2106,14 @@ module GrdaWarehouse::Hud
             state: enrollment.LastPermanentState,
             zip: enrollment.LastPermanentZIP.try(:rjust, 5, '0'),
           }
-          if lat_lon.present?
-            address.merge!(lat_lon)
-          end
+          address.merge!(lat_lon) if lat_lon.present?
           address
       end
 
       addresses_from_hmis_clients = source_hmis_clients.map do |hmis_client|
         lat_lon = hmis_client.address_lat_lon
         next unless lat_lon.present?
+
         address = {
           year: 'Unknown',
           client_id: hmis_client.client_id,
@@ -2280,6 +2132,7 @@ module GrdaWarehouse::Hud
     # returns an array of hashes representing the state of each required document
     def document_readiness(required_documents)
       return [] unless required_documents.any?
+
       @document_readiness ||= begin
         @document_readiness = []
         required_documents.each do |tag|
@@ -2533,6 +2386,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::HealthEmergency::Quarantine,
         GrdaWarehouse::HealthEmergency::UploadedTest,
         GrdaWarehouse::HealthEmergency::Vaccination,
+        GrdaWarehouse::Anomaly,
       ]
     end
 
@@ -2954,70 +2808,6 @@ module GrdaWarehouse::Hud
       self.class.service_types
     end
 
-    # build an array of useful hashes for the enrollments roll-ups
-    def enrollments_for en_scope, include_confidential_names: false
-      Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_in: CACHE_EXPIRY) do
-
-        enrollments = en_scope.joins(:project, :source_client).
-          includes(:service_history_services, :project, :organization, :source_client, enrollment: [:enrollment_cocs, :exit]).
-          order(first_date_in_program: :desc)
-        enrollments.
-        map do |entry|
-          project = entry.project
-          organization = entry.organization
-          services = entry.service_history_services
-          project_name = if project.confidential? && ! include_confidential_names
-             project.safe_project_name
-          else
-            cocs = ''
-            if GrdaWarehouse::Config.get(:expose_coc_code)
-              cocs = entry.enrollment&.enrollment_cocs&.map(&:CoCCode)&.uniq&.join(', ')
-              cocs = " (#{cocs})" if cocs.present?
-            end
-            "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
-          end
-          dates_served = services.select{|m| service_types.include?(m.record_type)}.map(&:date).uniq
-          count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
-          # days included in adjusted days that are not also served by a residential project
-          adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
-          homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: enrollments)
-          most_recent_service = services.sort_by(&:date)&.last&.date
-          new_episode = new_episode?(enrollments: enrollments, enrollment: entry)
-          {
-            client_source_id: entry.source_client.id,
-            project_id: project.id,
-            ProjectID: project.ProjectID,
-            project_name: project_name,
-            confidential_project: project.confidential,
-            entry_date: entry.first_date_in_program,
-            living_situation: entry.enrollment.LivingSituation,
-            exit_date: entry.last_date_in_program,
-            destination: entry.destination,
-            move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
-            move_in_date: entry.move_in_date,
-            days: dates_served.count,
-            homeless: entry.computed_project_type.in?(Project::HOMELESS_PROJECT_TYPES),
-            homeless_days: homeless_dates_for_enrollment.count,
-            adjusted_days: adjusted_dates_for_similar_programs.count,
-            months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
-            household: self.household(entry.household_id, entry.enrollment.data_source_id),
-            project_type: ::HUD::project_type_brief(entry.computed_project_type),
-            project_type_id: entry.computed_project_type,
-            class: "client__service_type_#{entry.computed_project_type}",
-            most_recent_service: most_recent_service,
-            new_episode: new_episode,
-            enrollment_id: entry.enrollment.EnrollmentID,
-            data_source_id: entry.enrollment.data_source_id,
-            created_at: entry.enrollment.DateCreated,
-            updated_at: entry.enrollment.DateUpdated,
-            hmis_id: entry.enrollment.id,
-            hmis_exit_id: entry.enrollment&.exit&.id,
-            # support: dates_served,
-          }
-        end
-      end
-    end
-
     def ongoing_enrolled_project_ids
       service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id])
     end
@@ -3037,18 +2827,6 @@ module GrdaWarehouse::Hud
     end
     def enrolled_in_es
       (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es] & ongoing_enrolled_project_types).present?
-    end
-
-    def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false
-      Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}", expires_in: CACHE_EXPIRY) do
-        if en_scope.count == 0
-          []
-        else
-          enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names)
-          enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
-          enrollments || []
-        end
-      end
     end
 
     def total_days enrollments
@@ -3186,5 +2964,7 @@ module GrdaWarehouse::Hud
       return ! other_homeless
     end
 
+    # Include extensions at the end so they can override default behavior
+    include RailsDrivers::Extensions
   end
 end

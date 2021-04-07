@@ -7,6 +7,7 @@
         %th Generated From
     %tbody
       - @items.each.map do |item|
+        - next unless item.generator_url
         %tr
           %td
             = link_to item.download_title, item.download_url, download: 'download'

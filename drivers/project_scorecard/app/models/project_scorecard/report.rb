@@ -156,7 +156,7 @@ module ProjectScorecard
     end
 
     def url
-      project_scorecard_warehouse_reports_scorecard_url(host: ENV.fetch('FQDN'), id: id)
+      project_scorecard_warehouse_reports_scorecard_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
 
     def run_and_save!

@@ -1,5 +1,10 @@
 - if enrollments.any?
   - any_homeless = enrollments.any?{ |e| e[:homeless] }
+  - total = enrollments.first[:total_enrollment_count]
+  - visible = enrollments.first[:visible_enrollment_count]
+  - if total > visible
+    %p.text-right.mt-2.mr-2
+      %em Showing #{pluralize(visible, 'enrollment')} of #{pluralize(total, 'total enrollment')}
   %table.table
     %thead
       %tr

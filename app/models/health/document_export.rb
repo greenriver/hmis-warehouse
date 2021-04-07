@@ -12,7 +12,7 @@ class Health::DocumentExport < HealthBase
   end
 
   def download_url
-    download_health_document_export_url(id, host: ENV['FQDN'])
+    download_health_document_export_url(id, host: ENV['FQDN'], protocol: 'https')
   end
 
   def self.with_current_version

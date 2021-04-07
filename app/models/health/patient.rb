@@ -345,6 +345,14 @@ module Health
       end
     end
 
+    def visible_to(user)
+      return false unless user
+      return true if user.can_administer_health?
+      return true if (user.can_edit_client_health? || user.can_view_client_health?) && consent_revoked.blank?
+
+      user.can_view_patients_for_own_agency? && user.health_agencies.include?(health_agency)
+    end
+
     def contributing_enrollment_start_date
       patient_referrals.contributing.minimum(:enrollment_start_date)
     end
@@ -663,7 +671,6 @@ module Health
     private def expired_careplan?
       @expired_careplan ||= careplans.fully_signed.recent.expired.during_current_enrollment.exists?
     end
-
 
     def pilot_patient?
       pilot == true
