@@ -229,7 +229,7 @@ module ClaimsReporting
     end
 
     def url
-      claims_reporting_warehouse_reports_engagement_trends_url(host: ENV.fetch('FQDN'), id: id)
+      claims_reporting_warehouse_reports_engagement_trends_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
 
     def title

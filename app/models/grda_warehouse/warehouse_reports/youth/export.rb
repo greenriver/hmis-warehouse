@@ -18,7 +18,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def url
-      warehouse_reports_youth_export_index_url(host: ENV.fetch('FQDN'))
+      warehouse_reports_youth_export_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     def run_and_save!

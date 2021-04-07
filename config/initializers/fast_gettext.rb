@@ -1,14 +1,18 @@
 Rails.logger.debug "Running initializer in #{__FILE__}"
 
-# db access is cached <-> only first lookup hits the db
-def database_exists?
+def enable_transation_db?
+  return false if ENV['DISABLE_FAST_GETTEXT_DB']
+  # db access is cached <-> only first lookup hits the db
   ActiveRecord::Base.connection
 rescue ActiveRecord::NoDatabaseError, PG::ConnectionBad
   false
 else
   true
 end
-if database_exists? && ActiveRecord::Base.connection.table_exists?('translation_keys')
+
+FastGettext.default_available_locales = ['en']
+FastGettext.default_text_domain = 'hmis_warehouse'
+if enable_transation_db? && ActiveRecord::Base.connection.table_exists?('translation_keys')
   require 'gettext_i18n_rails'
   require 'fast_gettext'
   require 'gettext'
@@ -16,13 +20,12 @@ if database_exists? && ActiveRecord::Base.connection.table_exists?('translation_
   FastGettext::TranslationRepository::Db.require_models #load and include default models
 
   FastGettext.add_text_domain(
-    'hmis_warehouse',
-    :path => 'locale',
-    :type => :db,
-    :model => TranslationKey,
-    :ignore_fuzzy => true,
-    # :report_warning => false
+    FastGettext.default_text_domain,
+    path: 'locale',
+    type: :db,
+    model: TranslationKey,
+    ignore_fuzzy: true,
   )
-  FastGettext.default_available_locales = ['en']
-  FastGettext.default_text_domain = 'hmis_warehouse'
+else
+  FastGettext.add_text_domain(FastGettext.default_text_domain, path: 'config/locales', type: :yaml)
 end
