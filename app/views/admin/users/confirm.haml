@@ -3,11 +3,10 @@
   Edit User Account:
   = @user.name
 .well
-  %p
-    By adding the role
-    = @admin_role_name
-    to this account, you are granting the user administrative privileges. To confirm this change, please
-    enter your password below.
+  .alert.alert-warning
+    %p
+      %i.icon-warning
+      By assigning the role <b>#{@admin_role_name}</b> to this account, you are granting the user administrative privileges.
 
   = simple_form_for [:admin, @user] do |f|
     = f.error_notification
@@ -25,7 +24,8 @@
       - else
         = f.hidden_field key, value: value
 
-    = f.input "confirmation_password", as: :password
+    - if current_user.confirm_password_for_admin_actions?
+      = f.input "confirmation_password", as: :password, label: 'Confirm your password to grant administrative privileges'
 
     .form-actions.mt-4
       = f.button :submit, class: 'btn btn-primary'

@@ -7,18 +7,6 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionThirteen < Base
     QUESTION_NUMBER = 'Question 13'.freeze
-    QUESTION_TABLE_NUMBERS = [
-      'Q13a1',
-      'Q13b1',
-      'Q13c1',
-      'Q13a2',
-      'Q13b2',
-      'Q13c2',
-    ].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def disability_stages
       [

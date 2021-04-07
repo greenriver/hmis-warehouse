@@ -9,12 +9,29 @@
 class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
   include ArelHelper
 
+  def title
+    'Emergency Shelter Dashboard'
+  end
+
+  def clients_path_array
+    [
+      :clients,
+      :warehouse_reports,
+      :shelter,
+      :index,
+    ]
+  end
+
   def default_support_columns
     {
       residential_project: _('Project Name'),
       housed_date: _('Entry Date'),
       housing_exit: _('Exit Date'),
-      project_id: _('Project ID'),
+      project_id: _('Warehouse Project ID'),
+      hmis_project_id: _('HMIS Project ID'),
+      race: _('Race'),
+      ethnicity: _('Ethnicity'),
+      gender: _('Gender'),
     }
   end
 
@@ -24,7 +41,11 @@ class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
       destination: _('Destination'),
       housed_date: _('Entry Date'),
       housing_exit: _('Exit Date'),
-      project_id: _('Project ID'),
+      project_id: _('Warehouse Project ID'),
+      hmis_project_id: _('HMIS Project ID'),
+      race: _('Race'),
+      ethnicity: _('Ethnicity'),
+      gender: _('Gender'),
     }
   end
 
@@ -33,7 +54,11 @@ class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
       exit_date: _('Exit Date'),
       return_date: _('Date of Return'),
       days_to_return: _('Days to Return'),
-      project_id: _('Project ID'),
+      project_id: _('Warehouse Project ID'),
+      hmis_project_id: _('HMIS Project ID'),
+      race: _('Race'),
+      ethnicity: _('Ethnicity'),
+      gender: _('Gender'),
     }
   end
 
@@ -43,7 +68,11 @@ class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
       destination: _('Destination'),
       housed_date: _('Entry Date'),
       housing_exit: _('Exit Date'),
-      project_id: _('Project ID'),
+      project_id: _('Warehouse Project ID'),
+      hmis_project_id: _('HMIS Project ID'),
+      race: _('Race'),
+      ethnicity: _('Ethnicity'),
+      gender: _('Gender'),
     }
   end
 

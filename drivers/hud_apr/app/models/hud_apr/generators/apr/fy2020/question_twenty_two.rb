@@ -6,7 +6,6 @@
 
 module HudApr::Generators::Apr::Fy2020
   class QuestionTwentyTwo < HudApr::Generators::Shared::Fy2020::QuestionTwentyTwo
-    QUESTION_NUMBER = 'Question 22'.freeze
     QUESTION_TABLE_NUMBERS = ['Q22a1', 'Q22b', 'Q22c', 'Q22e'].freeze
 
     def run_question!

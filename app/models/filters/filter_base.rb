@@ -71,7 +71,7 @@ module Filters
       ]
     end
 
-    def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName
+    def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName, Metrics/AbcSize
       return self unless filters.present?
 
       self.on = filters.dig(:on)&.to_date || default_on
@@ -81,8 +81,8 @@ module Filters
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
-      self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
-      self.coc_code = filters.dig(:coc_code) if available_coc_codes.include?(filters.dig(:coc_code))
+      self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || user.coc_codes
+      self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
       self.household_type = filters.dig(:household_type)&.to_sym
       self.heads_of_household = self.hoh_only = filters.dig(:hoh_only).in?(['1', 'true', true])
       self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject { |type| type.blank? }.presence
@@ -95,7 +95,7 @@ module Filters
       self.age_ranges = filters.dig(:age_ranges)&.reject(&:blank?)&.map { |range| range.to_sym }
       self.genders = filters.dig(:genders)&.reject(&:blank?)&.map { |gender| gender.to_i }
       self.sub_population = filters.dig(:sub_population)&.to_sym
-      self.races = filters.dig(:races)&.select { |race| HUD.races.keys.include?(race) }
+      self.races = filters.dig(:races)&.select { |race| HUD.races(multi_racial: true).keys.include?(race) }
       self.ethnicities = filters.dig(:ethnicities)&.reject(&:blank?)&.map { |ethnicity| ethnicity.to_i }
       self.project_group_ids = filters.dig(:project_group_ids)&.reject(&:blank?)&.map { |group| group.to_i }
       self.prior_living_situation_ids = filters.dig(:prior_living_situation_ids)&.reject(&:blank?)&.map { |m| m.to_i }
@@ -436,7 +436,7 @@ module Filters
     end
 
     def user
-      User.find(user_id)
+      @user ||= User.find(user_id)
     end
 
     def available_age_ranges
@@ -465,7 +465,11 @@ module Filters
     end
 
     def available_coc_codes
-      GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
+      @available_coc_codes ||= begin
+        cocs = GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
+        # If a user has coc code limits assigned, enforce them
+        cocs & user&.coc_codes if user&.coc_codes.present?
+      end
     end
 
     # disallow selection > 1 year, and reverse dates
@@ -642,7 +646,7 @@ module Filters
 
     def chosen_races
       races.map do |race|
-        HUD.race(race)
+        HUD.race(race, multi_racial: true)
       end
     end
 

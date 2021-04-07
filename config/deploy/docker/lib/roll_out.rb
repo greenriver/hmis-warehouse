@@ -46,8 +46,7 @@ class RollOut
   SPOT_CAPACITY_PROVIDER_NAME = WorkoffArbiter::SPOT_CAPACITY_PROVIDER_NAME
 
   def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:)
-    self.aws_profile         = ENV.fetch('AWS_PROFILE')
-    self.cluster             = ENV.fetch('AWS_CLUSTER') { self.aws_profile }
+    self.cluster             = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
     self.image_base          = image_base
     self.secrets_arn         = secrets_arn
     self.target_group_arn    = target_group_arn
@@ -115,11 +114,12 @@ class RollOut
   end
 
   def run!
+    # Needs to go first so the others can know the task definition
+    register_workoff_worker!
+
     register_cron_job_worker!
 
     mark_spot_instances!
-
-    register_workoff_worker!
 
     run_deploy_tasks!
 
@@ -483,7 +483,7 @@ class RollOut
       end
 
       # In the interim before switching everything over to capacity providers, we only allow workoff workers
-      # to use capacity providers.
+      # and deploy tasks to use capacity providers.
       # FIXME: Eventually, we will remove this if-statement and replace with
       # running DJ services with the on-demand, non-default capacity provider
       # strategy. We need
@@ -492,7 +492,7 @@ class RollOut
       #   3) redeploy everything
       #   4) spin down the (at this point) defunct auto-scaling group to no instances
 
-      if !name.match?(/workoff/)
+      if !name.match?(/workoff/) && !name.match?(/deploy-tasks/)
         puts "[INFO][CONST] Not constraining #{name} based on spot/non-spot"
         pc << {
           type: 'memberOf',
@@ -541,6 +541,19 @@ class RollOut
       cluster: cluster,
       task_definition: task_definition,
     }
+
+    if _capacity_providers.length > 0 && _capacity_providers.include?(SPOT_CAPACITY_PROVIDER_NAME)
+      puts "[INFO] Using spot capacity provider: #{SPOT_CAPACITY_PROVIDER_NAME}"
+      run_task_payload[:capacity_provider_strategy] = [
+        {
+          capacity_provider: SPOT_CAPACITY_PROVIDER_NAME,
+          weight: 1,
+          base: 1,
+        },
+      ]
+    else
+      puts "[ERROR] No dynamic work capacity provider found. Just running the task."
+    end
 
     while (incomplete) do
       results = ecs.run_task(run_task_payload)
@@ -644,13 +657,18 @@ class RollOut
           puts "[WARN] exiting"
           exit
         elsif response.downcase.match(/v/)
-          resp = cwl.get_log_events({
-            log_group_name: target_group_name,
-            log_stream_name: log_stream_name,
-            start_from_head: true,
-          })
-          resp.events.each do |event|
-            puts "[TASK] #{event.message}"
+          begin
+            resp = cwl.get_log_events({
+              log_group_name: target_group_name,
+              log_stream_name: log_stream_name,
+              start_from_head: true,
+            })
+            resp.events.each do |event|
+              puts "[TASK] #{event.message}"
+            end
+          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
+            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found"
+            sleep 30
           end
         else
           puts "[INFO] Waiting 30 seconds since we didn't understand your response"

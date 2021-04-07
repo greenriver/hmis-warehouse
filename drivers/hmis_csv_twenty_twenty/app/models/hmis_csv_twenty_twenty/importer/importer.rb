@@ -14,6 +14,17 @@
 
 # reload!; importer = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: 2, data_source_id: 14, debug: true); importer.import!
 
+# Some notes on how to manually run imports where the delayed job expires or fails for non-data related issue
+# il = GrdaWarehouse::ImportLog.last
+# loader = HmisCsvTwentyTwenty::Loader::LoaderLog.last
+# imp_log = HmisCsvTwentyTwenty::Importer::ImporterLog.last
+# # NOTE: newing up an importer currently creates an ImporterLog, this should be deleted
+# imp = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: loader.id, data_source_id: loader.data_source_id)
+# imp.importer_log = imp_log
+# il.update(import_errors: nil)
+# # at this point, you can call any of the various import methods, usually, the last one that was attempted
+# imp.log_timing(:process_existing)
+
 module HmisCsvTwentyTwenty::Importer
   class Importer
     include TsqlImport
@@ -420,7 +431,7 @@ module HmisCsvTwentyTwenty::Importer
 
         # Never delete Projects, Organizations, or Clients, but cleanup any pending deletions
         if klass.hud_key.in?([:ProjectID, :OrganizationID, :PersonalID])
-          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil)
+          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, source_hash: nil)
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
           klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)

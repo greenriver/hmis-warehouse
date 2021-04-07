@@ -6,9 +6,10 @@
 
 module Health
   class EnrollmentDisenrollment
-    def initialize(start_date, end_date, aco_ids, enrollment_reasons)
+    def initialize(start_date:, end_date:, effective_date:, aco_ids:, enrollment_reasons:)
       @start_date = start_date
       @end_date = end_date
+      @effective_date = effective_date
       @acos = Health::AccountableCareOrganization.find(aco_ids)
       @enrollment_reasons = enrollment_reasons
       @cp = Health::Cp.first
@@ -89,7 +90,7 @@ module Health
     end
 
     private def timestamp
-      @timestamp ||= format_date(Date.current)
+      @timestamp ||= format_date(@effective_date)
     end
 
     private def receiver_text

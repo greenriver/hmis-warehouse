@@ -1,4 +1,6 @@
 = simple_form_for :anomaly do |f|
-  = f.input :description, as: :text
+  - hint = ''
+  - hint = GrdaWarehouse::Anomaly.reminder_text if GrdaWarehouse::Anomaly.reminder_text_translated?
+  = f.input :description, as: :text, hint: hint
   .text-right
     = f.submit class: 'btn btn-primary', value: 'Track New Issue'

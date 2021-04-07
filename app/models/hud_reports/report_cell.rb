@@ -47,6 +47,7 @@ module HudReports
       UniverseMember.import(
         members.map { |member| copy_member(member) },
         validate: false,
+        on_duplicate_key_ignore: true,
       )
     end
 

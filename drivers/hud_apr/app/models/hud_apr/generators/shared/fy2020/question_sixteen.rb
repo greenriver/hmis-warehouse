@@ -7,11 +7,6 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionSixteen < Base
     QUESTION_NUMBER = 'Question 16'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q16'].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def q16_cash_ranges
       table_name = 'Q16'
@@ -36,8 +31,17 @@ module HudApr::Generators::Shared::Fy2020
           members = universe.members.
             where(adult_clause).
             where(income_clause)
-          members = members.where(stayers_clause) if suffix == :annual_assessment
-          members = members.where(leavers_clause) if suffix == :exit
+
+          case suffix
+          when :start
+            # Nothing
+          when :annual_assessment
+            members = members.where(stayers_clause)
+            members = members.where(a_t[:annual_assessment_expected].eq(true)) unless ignore_annual_assessment_filter.include?(cell)
+          when :exit
+            members = members.where(leavers_clause)
+          end
+
           answer.add_members(members)
           answer.update(summary: members.count)
         end
@@ -90,6 +94,13 @@ module HudApr::Generators::Shared::Fy2020
         'B13',
         'D12',
         'D13',
+      ].freeze
+    end
+
+    private def ignore_annual_assessment_filter
+      [
+        'C12',
+        'C13',
       ].freeze
     end
   end

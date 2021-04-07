@@ -349,7 +349,9 @@ module GrdaWarehouse::Hud
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = user.access_groups.pluck(:id)
+      group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
+        user.access_groups.pluck(:id)
+      end
       group_id_query = if group_ids.empty?
         "0=1"
       else
@@ -381,7 +383,9 @@ module GrdaWarehouse::Hud
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = user.access_groups.pluck(:id)
+      group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
+        user.access_groups.pluck(:id)
+      end
       group_id_query = if group_ids.empty?
         "0=1"
       else
@@ -419,7 +423,9 @@ module GrdaWarehouse::Hud
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = user.access_groups.pluck(:id)
+      group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
+        user.access_groups.pluck(:id)
+      end
       group_id_query = if group_ids.empty?
         "0=1"
       else
@@ -441,6 +447,8 @@ module GrdaWarehouse::Hud
               #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              AND
+              #{data_source_table}.#{qc.(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
             WHERE
               #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
         )
@@ -465,6 +473,8 @@ module GrdaWarehouse::Hud
               #{project_coc_table}.#{qc[:ProjectID]}      = pt.#{qc[:ProjectID]}
               AND
               #{project_coc_table}.#{qc[:data_source_id]} = pt.#{qc[:data_source_id]}
+              AND
+              #{project_coc_table}.#{qc.(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
             WHERE
               (
                 (
@@ -785,22 +795,22 @@ module GrdaWarehouse::Hud
 
       deleted_timestamp = Time.current
       # Inventory related
-      project_cocs.update_all(DateDeleted: deleted_timestamp)
+      project_cocs.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
       geographies.update_all(DateDeleted: deleted_timestamp)
-      inventories.update_all(DateDeleted: deleted_timestamp)
-      funders.update_all(DateDeleted: deleted_timestamp)
-      affiliations.update_all(DateDeleted: deleted_timestamp)
-      residential_affiliations.update_all(DateDeleted: deleted_timestamp)
+      inventories.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      funders.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      affiliations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      residential_affiliations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
 
       # Client enrollment related
-      income_benefits.update_all(DateDeleted: deleted_timestamp)
-      disabilities.update_all(DateDeleted: deleted_timestamp)
-      employment_educations.update_all(DateDeleted: deleted_timestamp)
-      health_and_dvs.update_all(DateDeleted: deleted_timestamp)
-      services.update_all(DateDeleted: deleted_timestamp)
-      exits.update_all(DateDeleted: deleted_timestamp)
-      enrollment_cocs.update_all(DateDeleted: deleted_timestamp)
-      enrollments.update_all(DateDeleted: deleted_timestamp)
+      income_benefits.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      disabilities.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      employment_educations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      health_and_dvs.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      services.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      exits.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      enrollment_cocs.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      enrollments.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
 
       # Remove any clients who no longer have any enrollments
       all_clients = []
@@ -813,7 +823,7 @@ module GrdaWarehouse::Hud
           where(data_source_id: data_source_id, PersonalID: ids).pluck(id)
       end
       no_enrollments = all_clients - with_enrollments
-      GrdaWarehouse::Hud::Client.where(id: no_enrollments).update_all(DateDeleted: deleted_timestamp) if no_enrollments.present?
+      GrdaWarehouse::Hud::Client.where(id: no_enrollments).update_all(DateDeleted: deleted_timestamp, source_hash: nil) if no_enrollments.present?
 
       destination_ids = GrdaWarehouse::WarehouseClient.where(source_id: all_clients).pluck(:destination_id)
       # Force reloads of client views
@@ -822,7 +832,6 @@ module GrdaWarehouse::Hud
       destination_ids.each do |id|
         GrdaWarehouse::Hud::Client.clear_view_cache(id)
       end
-
     end
   end
 end

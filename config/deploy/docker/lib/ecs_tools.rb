@@ -185,6 +185,6 @@ class EcsTools
     end
   end
 
-  define_method(:ecs) { Aws::ECS::Client.new(profile: ENV.fetch('AWS_PROFILE') ) }
-  define_method(:ecr) { Aws::ECR::Client.new(profile: ENV.fetch('AWS_PROFILE') ) }
+  define_method(:ecs) { Aws::ECS::Client.new }
+  define_method(:ecr) { Aws::ECR::Client.new }
 end

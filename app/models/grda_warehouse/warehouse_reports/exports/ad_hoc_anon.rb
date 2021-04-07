@@ -13,7 +13,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     self.table_name = :exports_ad_hoc_anons
 
     def url
-      warehouse_reports_ad_hoc_anon_analysis_index_url(host: ENV.fetch('FQDN'))
+      warehouse_reports_ad_hoc_anon_analysis_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     # Don't limit by user visibility, end results are de-identified

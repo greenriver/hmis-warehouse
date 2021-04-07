@@ -6,6 +6,7 @@
 
 module WarehouseReports
   class YouthFollowUpsController < ApplicationController
+    include WarehouseReportAuthorization
     include WindowClientPathGenerator
     def index
       @end_date = report_params.dig(:filter, :end)&.to_date || Date.current

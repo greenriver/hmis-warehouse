@@ -68,17 +68,17 @@ module Health
           cp_care_plan_returned_pcp_date: care_plan_provider_signed_date(patient&.id),
           key_contact_name_first: sender_cp.key_contact_first_name,
           key_contact_name_last: sender_cp.key_contact_last_name,
-          key_contact_phone: sender_cp.key_contact_phone&.gsub('-', '')&.truncate(10),
+          key_contact_phone: sender_cp.key_contact_phone&.gsub(/\D/, '')&.try(:[], 0, 10),
           key_contact_email: sender_cp.key_contact_email,
           care_coordinator_first_name: patient&.care_coordinator&.first_name,
           care_coordinator_last_name: patient&.care_coordinator&.last_name,
-          care_coordinator_phone: patient&.care_coordinator&.phone&.gsub('-', '')&.truncate(10),
+          care_coordinator_phone: patient&.care_coordinator&.phone&.gsub(/\D/, '')&.try(:[], 0, 10),
           care_coordinator_email: patient&.care_coordinator&.email,
           # report_start_date: report_start_date&.strftime('%Y%M%d'),
           # report_end_date: report_end_date&.strftime('%Y%M%d'),
           record_status: pr.record_status,
           record_update_date: patient_updated_at.to_date,
-          export_date: Date.current,
+          export_date: effective_date,
         }
 
         next if receiver.present? && attributes[:aco_mco_name] != receiver
