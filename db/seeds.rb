@@ -9,7 +9,7 @@ def setup_fake_user
 
     # Add a user.  This should not be added in production
     unless Rails.env =~ /production|staging/
-      agency = Agency.where('Sample Agency').first_or_create
+      agency = Agency.where(name: 'Sample Agency').first_or_create
       initial_password = Faker::Internet.password(min_length: 16)
       user = User.new
       user.email = 'noreply@example.com'
