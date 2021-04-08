@@ -180,15 +180,15 @@ module GrdaWarehouse::Hud
     delegate :last_date_served, to: :processed_service_history, allow_nil: true
 
     # User access control, override in extensions
-    scope :destination_visible_to, ->(_user) do
+    scope :destination_visible_to, ->(_user, source_client_ids: nil) do
       none
     end
 
-    scope :source_visible_to, ->(_user) do
+    scope :source_visible_to, ->(_user, client_ids: nil) do
       none
     end
 
-    scope :searchable_to, ->(_user) do
+    scope :searchable_to, ->(_user, client_ids: nil) do
       none
     end
     # End User access control

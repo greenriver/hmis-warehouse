@@ -13,8 +13,8 @@ module GrdaWarehouse::ClientNotes
     end
 
     # anyone who can see this client
-    scope :visible_by, ->(user, _client) do
-      joins(:client).merge(GrdaWarehouse::Hud::Client.destination_visible_to(user))
+    scope :visible_by, ->(user, client) do
+      joins(:client).merge(GrdaWarehouse::Hud::Client.destination_visible_to(user, source_client_ids: client.source_client_ids))
     end
 
     def notify_users

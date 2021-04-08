@@ -10,13 +10,13 @@ module ClientAccessControl::GrdaWarehouse::Hud
     include ArelHelper
 
     included do
-      scope :destination_visible_to, ->(user) do
-        limited_scope = arbiter(user).clients_destination_visible_to(user)
+      scope :destination_visible_to, ->(user, source_client_ids: nil) do
+        limited_scope = arbiter(user).clients_destination_visible_to(user, source_client_ids: source_client_ids)
         merge(limited_scope)
       end
 
-      scope :source_visible_to, ->(user) do
-        limited_scope = arbiter(user).clients_source_visible_to(user)
+      scope :source_visible_to, ->(user, client_ids: nil) do
+        limited_scope = arbiter(user).clients_source_visible_to(user, client_ids: client_ids)
         merge(limited_scope)
       end
 

@@ -12,19 +12,21 @@ module ClientAccessControl
     # 2. ROI
     # 3. data source visible in window
     # 4. authoritative data source directly assigned to user
-    def clients_destination_visible_to(user)
+    # NOTE: All of these methods can be hinted with a set of source client ids.  Providing these, even a super set of
+    # what you expect to return, can significantly improve performance
+    def clients_destination_visible_to(user, source_client_ids: nil)
       return ::GrdaWarehouse::Hud::Client.none unless user
 
       unscoped_clients.joins(:warehouse_client_destination).
-        where(warehouse_clients: { source_id: clients_source_visible_to(user).select(:id) })
+        where(warehouse_clients: { source_id: clients_source_visible_to(user, client_ids: source_client_ids).select(:id) })
     end
 
-    def clients_source_visible_to(user)
+    def clients_source_visible_to(user, client_ids: nil)
       return ::GrdaWarehouse::Hud::Client.none unless user.can_access_some_version_of_clients?
 
       data_source_ids = authoritative_viewable_ds_ids(user)
       data_source_ids += window_data_source_ids unless ::GrdaWarehouse::Config.get(:window_access_requires_release)
-      visible_client_scope(user, data_source_ids)
+      visible_client_scope(user, data_source_ids, client_ids: client_ids)
     end
 
     def clients_source_searchable_to(user, client_ids: nil)
@@ -54,10 +56,12 @@ module ClientAccessControl
       )
     end
 
-    def enrollments_visible_to(user)
+    def enrollments_visible_to(user, client_ids: nil)
       coc_codes = user.coc_codes
+      enrollments = enrollment_sub_query(user)
+      enrollments = enrollments.joins(:client).merge(unscoped_clients.where(id: client_ids)) if client_ids.present?
       ::GrdaWarehouse::Hud::Enrollment.where(
-        e_t[:id].in(Arel.sql(enrollment_sub_query(user).select(:id).to_sql)). # 1
+        e_t[:id].in(Arel.sql(enrollments.select(:id).to_sql)). # 1
         or(e_t[:id].in(Arel.sql(consent_sub_query(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))), # 2
       )
     end
