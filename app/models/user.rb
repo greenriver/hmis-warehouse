@@ -69,7 +69,7 @@ class User < ApplicationRecord
   belongs_to :agency, optional: true
 
   scope :diet, -> do
-    select(*(column_names - ['provider_raw_info']))
+    select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes']))
   end
 
   scope :receives_file_notifications, -> do
