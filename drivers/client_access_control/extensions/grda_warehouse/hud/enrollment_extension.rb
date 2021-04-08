@@ -9,8 +9,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      scope :visible_to, ->(user) do
-        GrdaWarehouse::Config.arbiter_class.new.enrollments_visible_to(user)
+      scope :visible_to, ->(user, client_ids: nil) do
+        GrdaWarehouse::Config.arbiter_class.new.enrollments_visible_to(user, client_ids: client_ids)
       end
     end
   end

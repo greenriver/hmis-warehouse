@@ -95,7 +95,7 @@ module ClientShowPages
     end
 
     def source_clients
-      @source_clients ||= @client.source_clients.source_visible_to(current_user).preload(:data_source, :organizations)
+      @source_clients ||= @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids).preload(:data_source, :organizations)
     end
     helper_method :source_clients
 

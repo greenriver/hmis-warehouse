@@ -213,7 +213,9 @@ class ClientsController < ApplicationController
   end
 
   private def client_scope(id: nil)
-    client_source.destination_visible_to(current_user).where(id: id)
+    source_client_ids = nil
+    source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: id).pluck(:source_id) if id
+    client_source.destination_visible_to(current_user, source_client_ids: source_client_ids).where(id: id)
   end
 
   # Should always return any clients, source or destination that match
