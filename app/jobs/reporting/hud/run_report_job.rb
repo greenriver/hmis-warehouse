@@ -14,7 +14,9 @@ module Reporting::Hud
 
       @generator = class_name.constantize.new(report)
       @generator.class.questions.each do |q, klass|
-        klass.new(@generator, report).run! if report.build_for_questions.include?(q)
+        next unless report.build_for_questions.include?(q)
+
+        klass.new(@generator, report).run!
       end
 
       report.complete_report
