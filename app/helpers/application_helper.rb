@@ -201,7 +201,11 @@ module ApplicationHelper
       sn = name[:ds]
       id = name[:ds_id]
       full_name = name[:name]
-      content_tag(:em, sn, class: "ds-color-#{id}") + " #{full_name}"
+      if GrdaWarehouse::Config.get(:multi_coc_installation)
+        content_tag(:div, full_name, class: 'mb-4')
+      else
+        content_tag(:em, sn, class: "ds-color-#{id}") + " #{full_name}"
+      end
     end.uniq
   end
 

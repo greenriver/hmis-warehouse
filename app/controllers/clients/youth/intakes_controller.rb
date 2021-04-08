@@ -74,7 +74,7 @@ module Clients::Youth
     end
 
     def remove_all_youth_data
-      @client = searchable_client_scope.find(params[:client_id].to_i)
+      @client = destination_searchable_client_scope.find(params[:client_id].to_i)
       if @client.present?
         @client.youth_intakes.destroy_all
         @client.case_managements.destroy_all
@@ -118,7 +118,7 @@ module Clients::Youth
     end
 
     def set_client
-      @client = searchable_client_scope.find(params[:client_id].to_i)
+      @client = destination_searchable_client_scope.find(params[:client_id].to_i)
     end
 
     private def intake_source

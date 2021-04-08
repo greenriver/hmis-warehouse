@@ -12,6 +12,8 @@ class GrdaWarehouse::GenerateServiceHistoryLog < GrdaWarehouseBase
 
   def import_time
     completed_at = generate_service_history_batch_logs.maximum(:updated_at)
+    return nil unless completed_at && started_at
+
     seconds = ((completed_at - started_at)/1.minute).round * 60
     distance_of_time_in_words(seconds)
   end

@@ -1,0 +1,33 @@
+.client__main-details
+  - if @client.image
+    .client__image{ style: "background-image: url(#{ image_client_path })" }
+  %section.o-section-card.mb-0
+    .c-card.c-card--block.c-card--padded.c-card--flush.mb-4
+      = render 'clients/service_summary'
+
+    .d-flex.align-items-start.flex-wrap
+      .client-consent-status.d-none--empty.mb-3.mr-8<
+        = render 'clients/consent_form_flags'
+      .mr-8.mb-3.d-none--empty<
+        = render 'clients/chronic_flags', client: @client
+        - if can_view_clients? || @client.consent_form_valid?
+          = render 'clients/cas_housed'
+
+      .d-none--empty.mr-8.mb-6<
+        = render 'clients/vispdat'
+
+      .d-none--empty.mr-8.mb-6<
+        = render 'clients/pathways'
+
+      .d-none--empty.mb-6<
+        = render 'clients/rollup/cohorts'
+        - if can_view_clients?
+          = render 'clients/cas_matches'
+
+      .d-none--empty.mb-6.w-100<
+        = render 'clients/required_documents'
+
+      - if RailsDrivers.loaded.include?(:service_scanning)
+        .d-none--empty.mb-6.w-100<
+          - if can_view_clients?
+            = render 'service_scanning/scanner_ids/clients/register'

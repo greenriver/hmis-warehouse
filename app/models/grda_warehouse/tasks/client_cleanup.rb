@@ -561,7 +561,7 @@ module GrdaWarehouse::Tasks
 
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
-            log "Invalidating service history for #{dest.id}"
+            logger.debug "Invalidating service history for #{dest.id}"
             dest.invalidate_service_history unless @dry_run
           end
           # We can speed this up if we want later.  If there's only one source client and the
@@ -574,7 +574,7 @@ module GrdaWarehouse::Tasks
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0
         end
         processed += batch_size
-        log "Updated demographics for #{processed} destination clients"
+        logger.debug "Updated demographics for #{processed} destination clients"
       end
       if @debug
         logger.debug '=========== Changed Counts ============'

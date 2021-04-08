@@ -8,9 +8,9 @@
     - @clients.each do |client|
       %tr
         %td
-          %nobr= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
+          %nobr= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
         %td
-          %nobr= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
+          %nobr= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
         %td
           - disabilities = client.source_disabilities.map {|disability| "#{disability.disability_type_text}: #{disability.response}"}.uniq
           = disabilities.join('<br />').html_safe

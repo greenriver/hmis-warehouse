@@ -7,7 +7,7 @@
 module WarehouseReports
   class YouthFollowUpsController < ApplicationController
     include WarehouseReportAuthorization
-    include WindowClientPathGenerator
+    include ClientPathGenerator
     def index
       @end_date = report_params.dig(:filter, :end)&.to_date || Date.current
       @report = GrdaWarehouse::WarehouseReports::Youth::FollowUpsReport.new(@end_date, user: current_user)

@@ -3,7 +3,7 @@
   :ruby
     services = @client.source_enrollment_services.
       joins(:client).
-      merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
+      merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user)).
       bed_night.
       uniqueness_constraint.
       descending.
