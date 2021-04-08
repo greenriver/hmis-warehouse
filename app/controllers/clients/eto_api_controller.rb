@@ -9,7 +9,7 @@ module Clients
     include ClientPathGenerator
     include ClientDependentControllers
 
-    before_action :require_can_view_client_window!
+    before_action :require_can_view_clients!
     before_action :set_client
     after_action :log_client
 
@@ -24,7 +24,7 @@ module Clients
     end
 
     def set_client
-      @client = searchable_client_scope.find(params[:client_id].to_i)
+      @client = destination_searchable_client_scope.find(params[:client_id].to_i)
     end
   end
 end

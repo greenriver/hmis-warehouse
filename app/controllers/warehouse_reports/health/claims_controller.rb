@@ -7,7 +7,7 @@
 module WarehouseReports::Health
   class ClaimsController < ApplicationController
     include ArelHelper
-    include WindowClientPathGenerator
+    include ClientPathGenerator
     include WarehouseReportAuthorization
     include AjaxModalRails::Controller
     before_action :require_can_administer_health!

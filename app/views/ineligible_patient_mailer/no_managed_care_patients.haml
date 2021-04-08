@@ -4,4 +4,4 @@ In a recent #{@sender.receiver_name} eligibility check, the following patients w
 
 %ul
   - @patients.each do |patient|
-    %li= link_to nil, window_client_health_patient_index_url(patient)
+    %li= link_to nil, client_health_patient_index_url(patient)

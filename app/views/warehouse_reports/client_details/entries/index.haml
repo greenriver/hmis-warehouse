@@ -53,7 +53,7 @@
             - odd_class = if i % 2 == 0 then 'odd' else 'even' end
             %tr{class: odd_class}
               %td{rowspan: enrollments.count + 1}
-                = link_to_if can_view_clients_or_window?, "#{meta[:first_name]} #{meta[:last_name]}", appropriate_client_path(client_id)
+                = link_to_if can_view_clients?, "#{meta[:first_name]} #{meta[:last_name]}", appropriate_client_path(client_id)
             - enrollments.each_with_index do |enrollment, index|
               - highlight = ''
               - highlight = 'warehouse-reports__enrollment-highlighted' if index == 0

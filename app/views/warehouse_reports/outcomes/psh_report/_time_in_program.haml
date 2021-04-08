@@ -5,7 +5,8 @@
     - content_for :panel_collapse_content, flush: true do
       .row
         .col-sm-9.rrh__time.chunk
-          .jTimeInPrePlacementExitToStabilizationChart
+          .jTimeInPrePlacementExitToStabilizationChart.mb-2
+          .jTimeInPrePlacementExitToStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
         .col-sm-3.metric.text-center.rrh__time.chunk
           %h4.title Average Time in #{_('Search')} for the Reporting Period
           %i.icon-calendar.metric
@@ -16,7 +17,8 @@
     - content_for :panel_collapse_content, flush: true do
       .row
         .col-sm-9.rrh__time.chunk
-          .jTimeInPrePlacementExitNoStabilizationChart
+          .jTimeInPrePlacementExitNoStabilizationChart.mb-2
+          .jTimeInPrePlacementExitNoStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
         .col-sm-3.metric.text-center.rrh__time.chunk
           %h4.title Average Time in #{_('Search')} for the Reporting Period
           %i.icon-calendar.metric
@@ -27,7 +29,8 @@
     - content_for :panel_collapse_content, flush: true do
       .row
         .col-sm-9.rrh__time.chunk
-          .jTimeInPrePlacementChart
+          .jTimeInPrePlacementChart.mb-2
+          .jTimeInPrePlacementChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
         .col-sm-3.metric.text-center.rrh__time.chunk
           %h4.title Average Time in #{_('Search')} for the Reporting Period
           %i.icon-calendar.metric
@@ -39,7 +42,8 @@
     - content_for :panel_collapse_content, flush: true do
       .row
         .col-sm-9.rrh__time.chunk
-          .jTimeInStabilizationChart
+          .jTimeInStabilizationChart.mb-2
+          .jTimeInStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
         .col-sm-3.metric.text-center.rrh__time.chunk
           %h4.title
             Average Time in #{_('Housing')} for the Reporting Period

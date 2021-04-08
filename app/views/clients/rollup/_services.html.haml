@@ -1,4 +1,4 @@
-= cache(['clients', 'services', @client, can_view_confidential_enrollment_details?, controller_path], expires_in: 4.hours) do
+= cache(['clients', 'services', @client, can_view_confidential_enrollment_details?, controller_path, current_user], expires_in: 4.hours) do
   - dots = { min: Float::INFINITY, max: -1, points: [] }
 
   %table.table
@@ -12,7 +12,7 @@
         %th Bed Starts
         %th
     %tbody
-      - services = @client.source_services
+      - services = @client.source_enrollment_services.merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user))
       - st = services.arel_table
       - services.bed_night.uniqueness_constraint.group(dp( services, 'year', st[:DateProvided] ).to_sql).count.sort_by(&:first).reverse.each do |year, count|
         %tr

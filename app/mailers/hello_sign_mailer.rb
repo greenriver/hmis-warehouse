@@ -49,7 +49,7 @@ class HelloSignMailer < DatabaseMailer
     @email = email
     @name = name
     @hash = @doc.signer_hash(email)
-    @url = edit_window_client_health_careplan_aco_signature_request_url(client_id: client_id, careplan_id: careplan_id, id: @request.id, email: @email, hash: @hash)
+    @url = edit_client_health_careplan_aco_signature_request_url(client_id: client_id, careplan_id: careplan_id, id: @request.id, email: @email, hash: @hash)
 
     mail(
       from: ENV.fetch('HEALTH_FROM'),

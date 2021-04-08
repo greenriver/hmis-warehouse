@@ -3,7 +3,8 @@
     %h3 Program Makeup
   .rrh__exiting_pre-placement.chunk.pr-4.mr-4
     - content_for :panel_collapse_content, flush: true do
-      .percentExitingStabilizationChart
+      .percentExitingStabilizationChart.mb-2
+      .percentExitingStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
       %p.mb-4.text-center.description
         Percentage of clients exiting to a permanent destination.
     = render 'common/panel_collapse', id: 'percentExitingStabilizationChart', title: "Percentage Exiting to Permanent Destinations", default_open: 'yes'

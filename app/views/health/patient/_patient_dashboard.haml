@@ -6,7 +6,7 @@
   .row
     .col-sm-12
       - if @patient.ed_ip_visits.exists?
-        %section#ed_ip_visits.jEdIpVists{data: {path: window_client_health_ed_ip_visits_path(@client.to_param, format: :json)}}
+        %section#ed_ip_visits.jEdIpVists{data: {path: client_health_ed_ip_visits_path(@client.to_param, format: :json)}}
           %h2 ED & IP Visits
           .jEdIpVisitChart.opaque-area-chart
   .row
