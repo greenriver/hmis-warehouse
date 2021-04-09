@@ -14,23 +14,14 @@ module WarehouseReports::HealthEmergency
 
     def index
       @html = true
-      vaccinations = vaccination_scope.vaccinated_within_range(@filter.range).
-        joins(client: [:processed_service_history, :service_history_enrollments])
-
-      if @filter.effective_project_ids_from_projects.present?
-        vaccinations = vaccinations.merge(
+      vaccinations = vaccination_scope.
+        joins(client: [:processed_service_history, :service_history_enrollments]).
+        merge(
           GrdaWarehouse::ServiceHistoryEnrollment.
             joins(:project).
             service_within_date_range(start_date: @filter.start, end_date: Date.current).
             merge(GrdaWarehouse::Hud::Project.where(id: project_ids)),
         )
-      else
-        vaccinations = vaccinations.merge(
-          GrdaWarehouse::ServiceHistoryEnrollment.
-            joins(:project).
-            merge(GrdaWarehouse::Hud::Project.where(id: project_ids)),
-        )
-      end
 
       @clients = GrdaWarehouse::Hud::Client.
         distinct.
