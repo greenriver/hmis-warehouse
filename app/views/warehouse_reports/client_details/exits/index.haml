@@ -40,10 +40,6 @@
       - @buckets.each do |destination_id, count|
         %tr
           %td
-            = link_to_if can_view_clients?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(id: client[:client_id])
-          %td
-            = client[:date]
-          %td
             = HUD.destination(destination_id)
 
           %td
@@ -72,7 +68,7 @@
         - @clients.each do |client|
           %tr
             %td
-              = link_to_if can_view_clients_or_window?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(id: client[:client_id])
+              = link_to_if can_view_clients?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(id: client[:client_id])
             %td
               = client[:date]
             %td
