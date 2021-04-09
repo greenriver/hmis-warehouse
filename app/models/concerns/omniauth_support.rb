@@ -60,8 +60,9 @@ module OmniauthSupport
   end
 
   # Does this user use an external identity provider. #provider says which one.
+  # All other methods should return safe values if this is false.
   def external_idp?
-    provider.present?
+    provider.present? && ENV['OKTA_DOMAIN'].present?
   end
 
   # Remove the IDP present, reseting the password and
@@ -69,9 +70,9 @@ module OmniauthSupport
   #
   # @returns true if the external_idp? was previously true
   def unlink_idp(reset_password: true, reactivate: true)
-    raise 'user must be saved first' if new_record?
-
     return false unless external_idp? # nothing to do
+
+    raise 'user must be saved first' if new_record?
 
     assign_attributes(
       provider: nil,
@@ -94,7 +95,7 @@ module OmniauthSupport
   end
 
   def idp_signout_url(post_logout_redirect_uri: nil, state: 'provider-was-okta')
-    return post_logout_redirect_uri unless provider == 'okta'
+    return post_logout_redirect_uri unless external_idp? && provider == 'okta'
 
     # https://developer.okta.com/docs/reference/api/oidc/#logout
     #
