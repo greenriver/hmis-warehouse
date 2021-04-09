@@ -14,19 +14,18 @@ module WarehouseReports::HealthEmergency
 
     def index
       @html = true
-      vaccinations = vaccination_scope.
-        joins(client: [:processed_service_history, :service_history_enrollments]).
-        merge(
-          GrdaWarehouse::ServiceHistoryEnrollment.
-            joins(:project).
-            service_within_date_range(start_date: @filter.start, end_date: Date.current).
-            merge(GrdaWarehouse::Hud::Project.where(id: project_ids)),
-        )
+
+      source_clients = GrdaWarehouse::WarehouseClient.where(destination_id: vaccination_scope.select(:client_id))
+      with_service = GrdaWarehouse::ServiceHistoryEnrollment.
+        joins(:project).
+        service_within_date_range(start_date: @filter.start, end_date: Date.current).
+        where(client_id: vaccination_scope.select(:client_id)).
+        merge(GrdaWarehouse::Hud::Project.where(id: project_ids))
 
       @clients = GrdaWarehouse::Hud::Client.
         distinct.
-        destination_visible_to(current_user).
-        where(id: vaccinations.select(:client_id)).
+        destination_visible_to(current_user, source_client_ids: source_clients.pluck(:source_id)).
+        where(id: with_service.distinct.select(:client_id)).
         order(sort_order).
         preload(:processed_service_history, :service_history_enrollments, :health_emergency_vaccinations)
       respond_to do |format|
@@ -38,6 +37,14 @@ module WarehouseReports::HealthEmergency
         format.xlsx do
         end
       end
+    end
+
+    private def default_start_date
+      3.weeks.ago.to_date
+    end
+
+    private def project_ids
+      @filter.effective_project_ids_from_projects.presence || GrdaWarehouse::Hud::Project.residential.pluck(:id)
     end
 
     private def sort_options
