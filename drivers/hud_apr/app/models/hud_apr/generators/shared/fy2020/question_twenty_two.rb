@@ -121,6 +121,7 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      relevant_members = universe.members.where(a_t[:project_type].in([3, 13]))
       q22c_populations.values.each_with_index do |population_clause, col_index|
         q22c_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
@@ -129,7 +130,7 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
 
           # Universe: All active clients where the head of household had a move-in date in the report date range plus leavers who exited in the date range and never had a move-in date.
-          members = universe.members.where(population_clause).
+          members = relevant_members.where(population_clause).
             where(
               a_t[:move_in_date].between(@report.start_date..@report.end_date).
               or(leavers_clause.and(a_t[:move_in_date].eq(nil))),
@@ -197,6 +198,7 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      relevant_members = universe.members.where(a_t[:project_type].in([1, 2, 3, 8, 9, 13]))
       q22e_populations.values.each_with_index do |population_clause, col_index|
         q22e_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
@@ -204,7 +206,7 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(population_clause).where(length_clause)
+          members = relevant_members.where(population_clause).where(length_clause)
 
           answer.add_members(members)
           answer.update(summary: members.count)
