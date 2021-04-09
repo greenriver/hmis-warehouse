@@ -16,6 +16,9 @@ BostonHmis::Application.routes.draw do
       resources :homeless_count_comparison do
         get :raw, on: :member
       end
+      resources :homeless_populations do
+        get :raw, on: :member
+      end
       resources :public_configs, only: [:index, :create]
     end
   end
