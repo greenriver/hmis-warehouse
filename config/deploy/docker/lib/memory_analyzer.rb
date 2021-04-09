@@ -16,9 +16,6 @@ class MemoryAnalyzer
   attr_accessor :current_soft_limit_mb
   attr_accessor :current_hard_limit_mb
 
-  attr_accessor :recommended_soft_limit_mb
-  attr_accessor :recommended_hard_limit_mb
-
   TWO_WEEKS = 14*24*60*60
   TWO_WEEKS_AGO = (Time.now - TWO_WEEKS).to_date
 
@@ -39,6 +36,9 @@ class MemoryAnalyzer
   # come in every 5 minutes, then this number represents
   # (MIN_SAMPLES * 5 / 60 / 24) days of data
   MIN_SAMPLES = 2_000
+
+  MIN_RAM_MB = 100
+  MAX_RAM_MB = 16_000
 
   def run!
     if current_values.locked == 'true'
@@ -80,7 +80,33 @@ class MemoryAnalyzer
     update_values!(locked: 'true')
   end
 
+  def recommended_soft_limit_mb= val
+    @recommended_soft_limit_mb = _constrain(val)
+  end
+
+  def recommended_soft_limit_mb
+    @recommended_soft_limit_mb
+  end
+
+  def recommended_hard_limit_mb= val
+    @recommended_hard_limit_mb = _constrain(val)
+  end
+
+  def recommended_hard_limit_mb
+    @recommended_hard_limit_mb
+  end
+
   private
+
+  def _constrain val
+    if val > MAX_RAM_MB
+      MAX_RAM_MB
+    elsif val < MIN_RAM_MB
+      MIN_RAM_MB
+    else
+      val
+    end
+  end
 
   class TaskDefinition
     def initialize(name)
