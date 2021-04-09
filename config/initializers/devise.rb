@@ -402,7 +402,12 @@ Devise.setup do |config|
   config.expire_after = expire_after.days
 
   if ENV['OKTA_DOMAIN'].present?
-    require_dependency 'omni_auth/strategies/custom_okta'
+    require 'omni_auth/strategies/custom_okta'
+
+
+    # Uncomment to allow sign in via OKTA with a simple GET request. See CVE-2015-9284
+    # on reasons why you dont want that
+    # OmniAuth.config.allowed_request_methods = [:post, :get]
 
     domain = ENV.fetch('OKTA_DOMAIN')
     auth_server = ENV.fetch('OKTA_AUTH_SERVER') { 'default' }
