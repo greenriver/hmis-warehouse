@@ -1,7 +1,7 @@
 - title = "#{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} Testing Results"
 - content_for :title, title
 %h1= title
-%p Find clients with a vaccination within the date range who was seen most recently at the chosen projects.
+%p Determine who was vaccinated and present during the chosen date range.
 = render '/warehouse_reports/breadcrumbs', tab: 'health-emergency'
 
 = render 'warehouse_reports/health_emergency/filter'
