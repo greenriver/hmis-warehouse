@@ -3,6 +3,7 @@
   .row
     .col-8
       %p= page_entries_info @text_messages, entry_name: _('Messages')
+      %p= paginate @text_messages
   .card
     %table.table.table-striped.mb-0
       %thead

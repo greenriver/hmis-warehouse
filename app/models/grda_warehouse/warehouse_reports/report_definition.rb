@@ -722,6 +722,13 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
           {
+            url: 'warehouse_reports/health_emergency/vaccinations',
+            name: 'Vaccinations',
+            description: 'Review vaccinations.',
+            limitable: false,
+            health: false,
+          },
+          {
             url: 'warehouse_reports/health_emergency/medical_restrictions',
             name: 'Active Medical Restrictions',
             description: 'List active medical restrictions.',
