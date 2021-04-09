@@ -401,9 +401,12 @@ class RollOut
     ma = MemoryAnalyzer.new
     ma.cluster_name         = self.cluster
     ma.task_definition_name = name
-    ma.scheduled_hard_limit = hard_mem_limit_mb
-    ma.scheduled_soft_limit = soft_mem_limit_mb
+    ma.scheduled_hard_limit_mb = hard_mem_limit_mb
+    ma.scheduled_soft_limit_mb = soft_mem_limit_mb
     ma.run!
+
+    # only doing this on staging for now to test the waters.
+    use_memory_analyzer = name.match?(/staging/)
 
     container_definition = {
       name: name,
@@ -411,10 +414,10 @@ class RollOut
       cpu: cpu_shares,
 
       # Hard limit
-      memory: hard_mem_limit_mb,
+      memory: (use_memory_analyzer ? ma.recommended_hard_limit_mb : hard_mem_limit_mb),
 
       # Soft limit
-      memory_reservation: soft_mem_limit_mb,
+      memory_reservation: (use_memory_analyzer ? ma.recommended_soft_limit_mb : soft_mem_limit_mb),
 
       port_mappings: ports,
       essential: true,
@@ -435,6 +438,11 @@ class RollOut
         },
       },
     }
+
+    if use_memory_analyzer
+      puts "[INFO] hard RAM limit: #{container_definition[:memory]}"
+      puts "[INFO] soft RAM limit: #{container_definition[:memory_reservation]}"
+    end
 
     if !command.nil?
       container_definition[:command] = command

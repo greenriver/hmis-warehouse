@@ -89,7 +89,7 @@ class ScheduledTask
       ],
     }
 
-    puts "[INFO] Attempting to make rule for #{schedule_expression}: #{description}"
+    print "[INFO] Attempting to make rule for #{schedule_expression}: #{description}"
 
     cloudwatchevents.put_rule(payload)
 
@@ -129,7 +129,7 @@ class ScheduledTask
 
     cloudwatchevents.put_targets(payload)
 
-    puts "[INFO] Added target to #{name}: #{description}"
+    puts "... Added target to #{name}"
   end
 
   def cluster_arn
