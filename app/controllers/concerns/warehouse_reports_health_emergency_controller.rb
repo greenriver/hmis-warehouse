@@ -28,8 +28,12 @@ module WarehouseReportsHealthEmergencyController
       @filter = if filter_params&.dig(:start).present?
         ::Filters::DateRangeAndSources.new(filter_params)
       else
-        ::Filters::DateRangeAndSources.new(clean_params.merge(start: '2020-03-18'.to_date, end: Date.current))
+        ::Filters::DateRangeAndSources.new(clean_params.merge(start: default_start_date, end: Date.current))
       end
+    end
+
+    private def default_start_date
+      '2020-03-18'.to_date
     end
 
     private def filter_params
