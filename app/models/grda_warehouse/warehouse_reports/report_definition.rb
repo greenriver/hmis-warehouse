@@ -746,8 +746,8 @@ module GrdaWarehouse::WarehouseReports
         'Exports' => [
           {
             url: 'warehouse_reports/hmis_exports',
-            name: 'HUD HMIS Exports',
-            description: 'Export data in the HUD standard format.',
+            name: 'HUD HMIS CSV Exports',
+            description: 'Export data in the HUD standard CSV format.',
             limitable: true,
             health: false,
           },

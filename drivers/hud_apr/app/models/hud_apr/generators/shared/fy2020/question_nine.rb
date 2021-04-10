@@ -27,7 +27,8 @@ module HudApr::Generators::Shared::Fy2020
     private def q9a_contacted
       table_name = 'Q9a'
 
-      adults_and_hohs = universe.members.where(adult_or_hoh_clause)
+      adults_and_hohs = universe.members.where(adult_or_hoh_clause).
+        where(a_t[:project_type].in([1, 4]))
       contacted_ids = adults_and_hohs.joins(apr_client: :hud_report_apr_living_situations).
         where(
           ls_t[:information_date].between(@report.start_date..@report.end_date).
@@ -43,7 +44,8 @@ module HudApr::Generators::Shared::Fy2020
     private def q9b_engaged(contact_counts)
       table_name = 'Q9b'
 
-      adults_and_hohs = universe.members.where(adult_or_hoh_clause)
+      adults_and_hohs = universe.members.where(adult_or_hoh_clause).
+        where(a_t[:project_type].in([1, 4]))
       engaged_ids = adults_and_hohs.where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)).pluck(a_t[:id])
 
       engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids, summary_row: 'Rate of Engagement')

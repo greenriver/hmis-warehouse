@@ -5,7 +5,7 @@ if ENV['OKTA_DOMAIN'].present?
     describe 'GET /users/auth/:provider protects against CVE-2015-9284' do
       it do
         get '/users/auth/okta'
-        expect(response).not_to have_http_status(:redirect)
+        expect(response).to redirect_to(root_path)
       end
     end
 
