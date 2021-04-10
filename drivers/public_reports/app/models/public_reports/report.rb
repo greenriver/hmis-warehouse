@@ -10,6 +10,7 @@ module PublicReports
     include Rails.application.routes.url_helpers
     include S3Toolset
     include Filter::FilterScopes
+    include ArelHelper
     belongs_to :user
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?

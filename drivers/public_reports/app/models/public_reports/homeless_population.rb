@@ -87,6 +87,7 @@ module PublicReports
       {
         pit_chart: pit_chart(population),
         location_chart: location_chart(population),
+        gender_chart: gender_chart(population),
       }
     end
 
@@ -167,24 +168,24 @@ module PublicReports
           when :housed
             charts[date] = {
               data: {
-                rapid_rehousing: with_service_in_quarter(scope_for(population, date, report_scope), date).in_project_type(13).select(:client_id).distinct.count,
-                permanent_housing: with_service_in_quarter(scope_for(population, date, report_scope), date).in_project_type([3, 9, 10]).select(:client_id).distinct.count,
+                rapid_rehousing: with_service_in_quarter(report_scope, date, population).in_project_type(13).select(:client_id).distinct.count,
+                permanent_housing: with_service_in_quarter(report_scope, date, population).in_project_type([3, 9, 10]).select(:client_id).distinct.count,
               },
               title: _('Type of Housing'),
             }
           when :homeless
             charts[date] = {
               data: {
-                sheltered: with_service_in_quarter(scope_for(population, date, report_scope), date).homeless_sheltered.select(:client_id).distinct.count,
-                unsheltered: with_service_in_quarter(scope_for(population, date, report_scope), date).homeless_unsheltered.select(:client_id).distinct.count,
+                sheltered: with_service_in_quarter(report_scope, date, population).homeless_sheltered.select(:client_id).distinct.count,
+                unsheltered: with_service_in_quarter(report_scope, date, population).homeless_unsheltered.select(:client_id).distinct.count,
               },
               title: _('Where People are Staying'),
             }
           else
             charts[date] = {
               data: {
-                homeless: with_service_in_quarter(scope_for(population, date, report_scope), date).homeless.select(:client_id).distinct.count,
-                housed: with_service_in_quarter(scope_for(population, date, report_scope), date).residential_non_homeless.select(:client_id).distinct.count,
+                homeless: with_service_in_quarter(report_scope, date, population).homeless.select(:client_id).distinct.count,
+                housed: with_service_in_quarter(report_scope, date, population).residential_non_homeless.select(:client_id).distinct.count,
               },
               title: _('Homeless vs Housed'),
             }
@@ -193,8 +194,8 @@ module PublicReports
       end
     end
 
-    private def with_service_in_quarter(scope, date)
-      scope.with_service_between(start_date: date, end_date: date.end_of_quarter)
+    private def with_service_in_quarter(scope, date, population)
+      scope_for(population, date, scope).with_service_between(start_date: date, end_date: date.end_of_quarter)
     end
 
     # NOTE: this count is equivalent to OutflowReport.exits_to_ph
@@ -202,6 +203,59 @@ module PublicReports
       outflow_filter_object = ::Filters::OutflowReport.new.set_from_params(filter['filters'].merge(enforce_one_year_range: false, sub_population: :clients).with_indifferent_access)
       outflow = GrdaWarehouse::WarehouseReports::OutflowReport.new(outflow_filter_object, user)
       outflow.exits_to_ph.count
+    end
+
+    private def gender_chart(population)
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          charts[date] = {
+            data: with_service_in_quarter(report_scope, date, population).
+              joins(:client).
+              group(c_t[:Gender]).
+              count.
+              map do |gender_id, count|
+                [
+                  ::HUD.gender(gender_id) || 'Unknown',
+                  count,
+                ]
+              end,
+            title: _('Gender'),
+          }
+        end
+      end
+    end
+
+    private def age_chart(population)
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          client_ids = Set.new
+          ages = {
+            0 => Set.new,
+            18 => Set.new,
+            65 => Set.new,
+            unknown: Set.new,
+          }
+          with_service_in_quarter(report_scope, date, population).
+            joins(:client).
+            pluck(she_t[:client_id], shs_t[:age]).
+            sort_by(&:last).
+            each do |client_id, age|
+              ages[bucket_age(age)] << client_id unless client_ids.include?(client_id)
+            end
+          charts[date] = {
+            data: ages.map { |age, ids| [age, ids.count] },
+            title: _('Age'),
+          }
+        end
+      end
+    end
+
+    private def bucket_age(age)
+      return :unknown if age.blank?
+      return 0 if age < 18
+      return 18 if age < 65
+
+      65
     end
   end
 end
