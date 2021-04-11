@@ -6,7 +6,6 @@
 
 module GrdaWarehouse
   class EnrollmentChangeHistory < GrdaWarehouseBase
-    include TsqlImport
     belongs_to :client
     validates_presence_of :on, :client_id
 
@@ -15,19 +14,18 @@ module GrdaWarehouse
       GrdaWarehouse::Hud::Client.destination.distinct.
         joins(:source_enrollments).
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
-        pluck_in_batches(:id, batch_size: 25) do |batch|
+        pluck_in_batches(:id, batch_size: 20) do |batch|
           ::Confidence::AddEnrollmentChangeHistoryJob.perform_later(client_ids: batch, date: date.to_s)
-      end
+        end
     end
 
     def self.create_for_clients_on_date! client_ids:, date:
       clients = GrdaWarehouse::Hud::Client.destination.where(id: client_ids)
       rows = clients.map do |client|
-        attributes_for_client_on_date(client: client, date: date) rescue nil
+        attributes_for_client_on_date(client: client, date: date) rescue nil # rubocop:disable Style/RescueModifier
       end.compact
-      if rows.present?
-        self.new.insert_batch(self, rows.first.keys, rows.map(&:values), transaction: false)
-      end
+
+      import(rows.first.keys, rows.map(&:values)) if rows.present?
     end
 
     def self.attributes_for_client_on_date client:, date:
@@ -38,9 +36,9 @@ module GrdaWarehouse
         updated_at: Time.now,
         version: 1,
       }
-      attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments, user: User.setup_system_user).to_json rescue '[]'
-      attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments, user: User.setup_system_user).to_json rescue '[]'
-      attributes_for_client[:days_homeless] = client.days_homeless rescue 0
+      attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments, user: User.setup_system_user).to_json rescue '[]' # rubocop:disable Style/RescueModifier
+      attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments, user: User.setup_system_user).to_json rescue '[]' # rubocop:disable Style/RescueModifier
+      attributes_for_client[:days_homeless] = client.days_homeless rescue 0 # rubocop:disable Style/RescueModifier
       return attributes_for_client
     end
   end
