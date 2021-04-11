@@ -88,6 +88,9 @@ module PublicReports
         pit_chart: pit_chart(population),
         location_chart: location_chart(population),
         gender_chart: gender_chart(population),
+        age_chart: age_chart(population),
+        time_homeless: time_homeless(population),
+        time_housed: time_housed(population),
       }
     end
 
@@ -214,6 +217,8 @@ module PublicReports
               group(c_t[:Gender]).
               count.
               map do |gender_id, count|
+                # Force any unknown genders to Unknown
+                gender_id = nil unless gender_id.in?([0, 1, 2, 3, 4])
                 [
                   ::HUD.gender(gender_id) || 'Unknown',
                   count,
@@ -236,11 +241,12 @@ module PublicReports
             unknown: Set.new,
           }
           with_service_in_quarter(report_scope, date, population).
-            joins(:client).
+            joins(:client, :service_history_services).
+            order(date: :desc). # Use the greatest age per person for the quarter
             pluck(she_t[:client_id], shs_t[:age]).
-            sort_by(&:last).
             each do |client_id, age|
               ages[bucket_age(age)] << client_id unless client_ids.include?(client_id)
+              client_ids << client_id
             end
           charts[date] = {
             data: ages.map { |age, ids| [age, ids.count] },
@@ -256,6 +262,34 @@ module PublicReports
       return 18 if age < 65
 
       65
+    end
+
+    private def time_homeless(population)
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          charts[date] = {}
+          counted_clients = Set.new
+          with_service_in_quarter(report_scope, date, population).
+            joins(client: :processed_service_history).find_each do |enrollment|
+              client = enrollment.client
+              charts[date][bucket_days(client.days_homeless(on_date: date))] ||= 0
+              charts[date][bucket_days(client.days_homeless(on_date: date))] += 1 unless counted_clients.include?(client.id)
+              counted_clients << client.id
+            end
+        end
+      end
+    end
+
+    private def bucket_days(days)
+      return 'less than a month' if days <= 30
+      return 'One to six months' if days < 180
+      return 'Six to twelve months' if days < 365
+
+      'More than one year'
+    end
+
+    private def time_housed(population)
+      # TODO: time in housing (after move-in-date?)
     end
   end
 end
