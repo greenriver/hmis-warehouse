@@ -91,6 +91,7 @@ module PublicReports
         age_chart: age_chart(population),
         time_homeless: time_homeless(population),
         time_housed: time_housed(population),
+        race_chart: race_chart(population),
       }
     end
 
@@ -116,20 +117,33 @@ module PublicReports
     private def pit_chart_data(population, title)
       x = ['x']
       y = [title]
-      pit_counts(population).each do |date, count|
+      z = ['change']
+      pit_counts(population).each do |date, counts|
         x << date
-        y << count
+        y << counts[:count]
+        z << counts[:change]
       end
-      [x, y].to_json
+      [x, y, z].to_json
     end
 
     private def pit_counts(population)
-      quarter_dates.map do |date|
+      data = quarter_dates.map do |date|
         [
           date,
-          client_count_for_date(date, population),
+          {
+            count: client_count_for_date(date, population),
+          },
         ]
+      end.to_h
+      data.each_with_index do |(date, counts), i|
+        change = 0
+        if i.positive?
+          prior_count = data[quarter_dates[i - 1]][:count]
+          change = counts[:count] - prior_count # FIXME: convert to percent
+        end
+        data[date][:change] = change
       end
+      data
     end
 
     private def client_count_for_date(date, population)
@@ -171,6 +185,7 @@ module PublicReports
           when :housed
             charts[date] = {
               data: {
+                # FIXME? does this need to look at move-in-date
                 rapid_rehousing: with_service_in_quarter(report_scope, date, population).in_project_type(13).select(:client_id).distinct.count,
                 permanent_housing: with_service_in_quarter(report_scope, date, population).in_project_type([3, 9, 10]).select(:client_id).distinct.count,
               },
@@ -198,7 +213,12 @@ module PublicReports
     end
 
     private def with_service_in_quarter(scope, date, population)
-      scope_for(population, date, scope).with_service_between(start_date: date, end_date: date.end_of_quarter)
+      service_scope = if population == :housed
+        GrdaWarehouse::ServiceHistoryService.where(shs_t[:date].gt(she_t[:move_in_date]))
+      else
+        :current_scope
+      end
+      scope_for(population, date, scope).with_service_between(start_date: date, end_date: date.end_of_quarter, service_scope: service_scope)
     end
 
     # NOTE: this count is equivalent to OutflowReport.exits_to_ph
@@ -234,7 +254,7 @@ module PublicReports
       {}.tap do |charts|
         quarter_dates.each do |date|
           client_ids = Set.new
-          ages = {
+          data = {
             0 => Set.new,
             18 => Set.new,
             65 => Set.new,
@@ -245,11 +265,11 @@ module PublicReports
             order(date: :desc). # Use the greatest age per person for the quarter
             pluck(she_t[:client_id], shs_t[:age]).
             each do |client_id, age|
-              ages[bucket_age(age)] << client_id unless client_ids.include?(client_id)
+              data[bucket_age(age)] << client_id unless client_ids.include?(client_id)
               client_ids << client_id
             end
           charts[date] = {
-            data: ages.map { |age, ids| [age, ids.count] },
+            data: data.map { |age, ids| [age, ids.count] },
             title: _('Age'),
           }
         end
@@ -264,18 +284,47 @@ module PublicReports
       65
     end
 
+    private def race_chart(population)
+      client_cache = GrdaWarehouse::Hud::Client.new
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          client_ids = Set.new
+          data = {}
+          all_destination_ids = with_service_in_quarter(report_scope, date, population).distinct.pluck(:client_id)
+          with_service_in_quarter(report_scope, date, population).
+            joins(:client).
+            order(first_date_in_program: :desc). # Use the newest start
+            find_each do |enrollment|
+              client = enrollment.client
+              race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
+              data[::HUD.race(race, multi_racial: true)] ||= Set.new
+              data[::HUD.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
+              client_ids << client.id
+            end
+          charts[date] = {
+            data: data.map { |race, ids| [race, ids.count] },
+            title: _('Racial Composition'),
+          }
+        end
+      end
+    end
+
     private def time_homeless(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
-          charts[date] = {}
+          data = {}
           counted_clients = Set.new
           with_service_in_quarter(report_scope, date, population).
             joins(client: :processed_service_history).find_each do |enrollment|
               client = enrollment.client
-              charts[date][bucket_days(client.days_homeless(on_date: date))] ||= 0
-              charts[date][bucket_days(client.days_homeless(on_date: date))] += 1 unless counted_clients.include?(client.id)
+              data[bucket_days(client.days_homeless(on_date: date))] ||= 0
+              data[bucket_days(client.days_homeless(on_date: date))] += 1 unless counted_clients.include?(client.id)
               counted_clients << client.id
             end
+          charts[date] = {
+            data: data,
+            title: _('Time Homeless'),
+          }
         end
       end
     end
@@ -289,7 +338,30 @@ module PublicReports
     end
 
     private def time_housed(population)
-      # TODO: time in housing (after move-in-date?)
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          data = {}
+          counted_clients = Set.new
+          with_service_in_quarter(report_scope, date, population).
+            order(first_date_in_program: :desc). # Use most-recently started
+            joins(client: :processed_service_history).find_each do |enrollment|
+              start_date = if population == :housed
+                enrollment.move_in_date
+              else
+                enrollment.first_date_in_program
+              end
+              end_date = [enrollment.last_date_in_program, date.end_of_quarter].compact.min
+              days = (end_date - start_date).to_i
+              data[bucket_days(days)] ||= 0
+              data[bucket_days(days)] += 1 unless counted_clients.include?(enrollment.client_id)
+              counted_clients << enrollment.client_id
+            end
+          charts[date] = {
+            data: data,
+            title: _('Time in Project'),
+          }
+        end
+      end
     end
   end
 end
