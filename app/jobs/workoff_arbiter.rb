@@ -29,7 +29,9 @@ class WorkoffArbiter
   AGE_SCALE = 300.0
 
   # How many workoff workers can we have in total
-  MAX_WORKOFF_WORKERS = 10
+  # Once the memory analyzer is fully in production, we could track this in
+  # dynamodb and make it different for each installation.
+  MAX_WORKOFF_WORKERS = 8
 
   # This is the abstraction that provides EC2 instances as needed to run the
   # workoff job
