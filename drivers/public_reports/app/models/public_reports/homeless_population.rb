@@ -117,7 +117,7 @@ module PublicReports
     private def pit_chart_data(population, title)
       x = ['x']
       y = [title]
-      z = ['change']
+      z = ['percent change']
       pit_counts(population).each do |date, counts|
         x << date
         y << counts[:count]
@@ -137,9 +137,9 @@ module PublicReports
       end.to_h
       data.each_with_index do |(date, counts), i|
         change = 0
-        if i.positive?
+        if i.positive? && counts[:count].positive?
           prior_count = data[quarter_dates[i - 1]][:count]
-          change = counts[:count] - prior_count # FIXME: convert to percent
+          change = (counts[:count] - prior_count)
         end
         data[date][:change] = change
       end
