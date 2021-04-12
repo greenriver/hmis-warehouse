@@ -31,7 +31,7 @@ class WorkoffArbiter
   # How many workoff workers can we have in total
   # Once the memory analyzer is fully in production, we could track this in
   # dynamodb and make it different for each installation.
-  MAX_WORKOFF_WORKERS = 8
+  MAX_WORKOFF_WORKERS = 6
 
   # This is the abstraction that provides EC2 instances as needed to run the
   # workoff job
