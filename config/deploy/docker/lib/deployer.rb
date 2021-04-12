@@ -2,6 +2,7 @@ require 'date'
 require 'byebug'
 require 'English'
 require_relative 'roll_out'
+require "active_support/core_ext/object/blank"
 
 # gem install aws_sdk --version=3.1.5
 require 'aws-sdk-elasticloadbalancingv2'
@@ -73,6 +74,7 @@ class Deployer
   end
 
   def run!
+
     _initial_steps
 
     roll_out.run!
@@ -109,9 +111,12 @@ class Deployer
   private
 
   def _initial_steps
+    puts prepare_deploy_notice
+
     # _ensure_clean_repo!
     _set_revision!
     _check_that_you_pushed_to_remote!
+\
     _docker_login!
     _build_and_push_all!
     _check_secrets!
@@ -137,6 +142,36 @@ class Deployer
       puts "Aborting since git is not clean"
       exit 1
     end
+  end
+
+  def prepare_deploy_notice
+    status_api_url = URI("https://#{fqdn}/system_status/details")
+    prior_revision = JSON.parse(Net::HTTP.get(status_api_url)).dig('revision')
+
+    msg = "#{deployer_name} <#{deployer_email}> has started deploying #{branch} to https://#{fqdn} #{Time.now.strftime('%c')}"
+    if prior_revision.present? && next_revision.present?
+      changelog = `git shortlog -n #{prior_revision}..#{next_revision}`
+      msg += "\n\n## CHANGE #{prior_revision}..#{next_revision}\n#{changelog}"
+    end
+    msg
+  rescue Errno::ECONNREFUSED, SocketError, Net::HTTPError, JSON::ParserError => err
+    "Unable to determine current deployment status: #{err.message}"
+  end
+
+  def next_revision
+    `git rev-parse HEAD`.chomp
+  end
+
+  def branch
+    `git rev-parse --abbrev-ref HEAD`.chomp
+  end
+
+  def deployer_email
+    `git config user.email`.chomp
+  end
+
+  def deployer_name
+    `git config user.name`.chomp
   end
 
   def _set_revision!
