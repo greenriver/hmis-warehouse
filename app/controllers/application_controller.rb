@@ -27,7 +27,13 @@ class ApplicationController < ActionController::Base
   before_action :set_notification
   before_action :set_hostname
 
+  def cache_grda_warehouse_base_queries
+    GrdaWarehouseBase.cache do
+      yield
+    end
+  end
   around_action :cache_grda_warehouse_base_queries
+
   before_action :compose_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
   after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
@@ -36,17 +42,12 @@ class ApplicationController < ActionController::Base
   before_action :possibly_reset_fast_gettext_cache
   before_action :enforce_2fa!
   before_action :require_training!
-  before_action :health_emergency?
+  before_action :health_emergency
 
   before_action :prepare_exception_notifier
 
   prepend_before_action :skip_timeout
 
-  def cache_grda_warehouse_base_queries
-    GrdaWarehouseBase.cache do
-      yield
-    end
-  end
 
   # Send any exceptions on production to slack
   def set_notification
