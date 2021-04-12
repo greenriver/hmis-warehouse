@@ -61,8 +61,11 @@ class MemoryAnalyzer
       # recommend 5% above maximum utilization in recent past
       self.recommended_hard_limit_mb = (current_soft_limit_mb * ((_overall_stats.maximum+5.0) / 100.0)).ceil
 
-      # one standard deviation from the mean
-      self.recommended_soft_limit_mb = (current_soft_limit_mb * ((_overall_stats.average + _overall_stats.stddev)/100.0)).ceil
+      # nsd standard deviations from the mean.
+      # 7 out of 63 task definitions had RAM problems when deployed to all
+      # staging installations with 1 stddev. All were delayed jobs.
+      nds = task_definition_name.match?(/dj-(all|long)/) ? 1.25 : 1.0
+      self.recommended_soft_limit_mb = (current_soft_limit_mb * ((_overall_stats.average + nsd * _overall_stats.stddev)/100.0)).ceil
 
       puts "[INFO][MEMORY_ANALYZER] Soft limit_mb is #{scheduled_soft_limit_mb} but could be #{recommended_soft_limit_mb}"
       puts "[INFO][MEMORY_ANALYZER] Hard limit_mb is #{scheduled_hard_limit_mb} but could be #{recommended_hard_limit_mb}"
