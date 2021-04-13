@@ -11,18 +11,26 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
     included do
       scope :destination_visible_to, ->(user, source_client_ids: nil) do
-        limited_scope = arbiter(user).clients_destination_visible_to(user, source_client_ids: source_client_ids)
+        limited_scope = if user.system_user?
+          current_scope || all
+        else
+          arbiter(user).clients_destination_visible_to(user, source_client_ids: source_client_ids)
+        end
         merge(limited_scope)
       end
 
       scope :source_visible_to, ->(user, client_ids: nil) do
-        limited_scope = arbiter(user).clients_source_visible_to(user, client_ids: client_ids)
+        limited_scope = if user.system_user?
+          current_scope || all
+        else
+          arbiter(user).clients_source_visible_to(user, client_ids: client_ids)
+        end
         merge(limited_scope)
       end
 
       # can search even if no ROI
       scope :searchable_to, ->(user, client_ids: nil) do
-        limited_scope = if user.can_search_all_clients?
+        limited_scope = if user.can_search_all_clients? || user.system_user?
           current_scope || all
         else
           arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)

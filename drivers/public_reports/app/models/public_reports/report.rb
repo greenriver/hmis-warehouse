@@ -59,7 +59,7 @@ module PublicReports
     end
 
     def filter_object
-      @filter_object ||= ::Filters::FilterBase.new.set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
+      @filter_object ||= ::Filters::FilterBase.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
     end
 
     def published?

@@ -282,6 +282,10 @@ class User < ApplicationRecord
     user
   end
 
+  def system_user?
+    email == 'noreply@greenriver.com'
+  end
+
   def data_sources
     viewable GrdaWarehouse::DataSource
   end

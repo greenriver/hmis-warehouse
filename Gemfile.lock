@@ -837,6 +837,7 @@ DEPENDENCIES
   auto-session-timeout
   autoprefixer-rails
   aws-sdk-cloudwatchevents (~> 1)
+  aws-sdk-dynamodb
   aws-sdk-ec2 (~> 1)
   aws-sdk-ecs (~> 1)
   aws-sdk-glacier (~> 1)

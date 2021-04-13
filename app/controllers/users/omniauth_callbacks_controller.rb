@@ -30,6 +30,13 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     end
   end
 
+  def passthru
+    # Just send them to the home page for now instead
+    # of showing the ugly text messsage
+
+    redirect_to root_path
+  end
+
   def failure
     logger.error "OmniauthCallbacksController#failure #{request.env['omniauth.auth']}"
     super
