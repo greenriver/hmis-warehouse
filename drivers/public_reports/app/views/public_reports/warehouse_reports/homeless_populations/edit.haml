@@ -13,5 +13,8 @@
     = simple_form_for(@report, url: public_reports_warehouse_reports_homeless_population_path, as: :public_report) do |f|
       = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
       = f.submit 'Publish', data: { confirm: @report.publish_warning }
-.well
-  %iframe{src: raw_public_reports_warehouse_reports_homeless_population_path(@report), width: '100%', height: 400, frameBorder: 0}
+
+- @report.populations.each_key do |population|
+  .well
+    - src = polymorphic_path([population, :public_reports, :warehouse_reports, :homeless_population], pp: :disabled)
+    %iframe{src: src, width: '100%', height: 400, frameBorder: 0}

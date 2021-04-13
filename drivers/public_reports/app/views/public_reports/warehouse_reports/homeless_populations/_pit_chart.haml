@@ -1,27 +1,32 @@
-.pit-chart
+- chart_class = "pit-chart-#{population}"
+.chart.pt-2{ class: chart_class }
 
-- if false
-  :javascript
-    var chart = bb.generate({
-      data: {
-        x: 'x',
-        columns: #{@report.precalculated_data&.html_safe},
-        type: 'line'
-      },
-      bind_to: '.pit-chart',
-      axis: {
-        x: {
-          type: 'timeseries',
-          tick: {
-            format: '%b. %Y'
-          },
-          padding: {
-            right: 1000*60*60*24*60, // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
-            left: 1000*60*60*24*60 // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
-          }
+:javascript
+  var chart = bb.generate({
+    data: {
+      x: 'x',
+      columns: #{data['data'].to_s.html_safe},
+      type: 'line'
+    },
+    bind_to: ".#{chart_class}",
+    axis: {
+      x: {
+        type: 'timeseries',
+        tick: {
+          format: '%b. %Y'
+        },
+        padding: {
+          right: 1000*60*60*24*60, // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
+          left: 1000*60*60*24*60 // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
         }
       },
-      color: {
-        pattern: #{@report.chart_color_pattern}
+      y: {
+        padding: {
+          top: 20
+        }
       }
-    });
+    },
+    color: {
+      pattern: #{@report.chart_color_pattern}
+    }
+  });

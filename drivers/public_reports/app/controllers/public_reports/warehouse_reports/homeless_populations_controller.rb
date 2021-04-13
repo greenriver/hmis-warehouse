@@ -10,6 +10,31 @@ module PublicReports::WarehouseReports
     include ArelHelper
     include PublicReports::WarehouseReports::PublicReportsControllerConcern
 
+    def overall
+      params[:pp] = 'disabled' # disable rack-mini-profiler
+      render(layout: 'raw_public_report')
+    end
+
+    def housed
+      params[:pp] = 'disabled' # disable rack-mini-profiler
+      render(layout: 'raw_public_report')
+    end
+
+    def individuals
+      params[:pp] = 'disabled' # disable rack-mini-profiler
+      render(layout: 'raw_public_report')
+    end
+
+    def adults_with_children
+      params[:pp] = 'disabled' # disable rack-mini-profiler
+      render(layout: 'raw_public_report')
+    end
+
+    def veterans
+      params[:pp] = 'disabled' # disable rack-mini-profiler
+      render(layout: 'raw_public_report')
+    end
+
     private def path_to_report_index
       public_reports_warehouse_reports_homeless_populations_path
     end

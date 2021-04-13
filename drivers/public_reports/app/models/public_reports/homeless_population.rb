@@ -127,7 +127,7 @@ module PublicReports
     private def pit_counts(population)
       data = quarter_dates.map do |date|
         [
-          date,
+          date.iso8601,
           {
             count: client_count_for_date(date, population),
           },
@@ -136,7 +136,7 @@ module PublicReports
       data.each_with_index do |(date, counts), i|
         change = 0
         if i.positive? && counts[:count].positive?
-          prior_count = data[quarter_dates[i - 1]][:count]
+          prior_count = data[quarter_dates[i - 1].iso8601][:count]
           change = (counts[:count] - prior_count)
         end
         data[date][:change] = change
@@ -181,28 +181,27 @@ module PublicReports
         quarter_dates.each do |date|
           case population
           when :housed
-            charts[date] = {
-              data: {
-                # FIXME? does this need to look at move-in-date
-                rapid_rehousing: with_service_in_quarter(report_scope, date, population).in_project_type(13).select(:client_id).distinct.count,
-                permanent_housing: with_service_in_quarter(report_scope, date, population).in_project_type([3, 9, 10]).select(:client_id).distinct.count,
-              },
+            charts[date.iso8601] = {
+              data: [
+                ['Rapid-Rehousing', with_service_in_quarter(report_scope, date, population).in_project_type(13).select(:client_id).distinct.count],
+                ['Permanent Housing', with_service_in_quarter(report_scope, date, population).in_project_type([3, 9, 10]).select(:client_id).distinct.count],
+              ],
               title: _('Type of Housing'),
             }
           when :homeless
-            charts[date] = {
-              data: {
-                sheltered: with_service_in_quarter(report_scope, date, population).homeless_sheltered.select(:client_id).distinct.count,
-                unsheltered: with_service_in_quarter(report_scope, date, population).homeless_unsheltered.select(:client_id).distinct.count,
-              },
+            charts[date.iso8601] = {
+              data: [
+                ['Sheltered', with_service_in_quarter(report_scope, date, population).homeless_sheltered.select(:client_id).distinct.count],
+                ['Unsheltered', with_service_in_quarter(report_scope, date, population).homeless_unsheltered.select(:client_id).distinct.count],
+              ],
               title: _('Where People are Staying'),
             }
           else
-            charts[date] = {
-              data: {
-                homeless: with_service_in_quarter(report_scope, date, population).homeless.select(:client_id).distinct.count,
-                housed: with_service_in_quarter(report_scope, date, population).residential_non_homeless.select(:client_id).distinct.count,
-              },
+            charts[date.iso8601] = {
+              data: [
+                ['Homeless', with_service_in_quarter(report_scope, date, population).homeless.select(:client_id).distinct.count],
+                ['Housed', with_service_in_quarter(report_scope, date, population).residential_non_homeless.select(:client_id).distinct.count],
+              ],
               title: _('Homeless vs Housed'),
             }
           end
@@ -229,7 +228,7 @@ module PublicReports
     private def gender_chart(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
-          charts[date] = {
+          charts[date.iso8601] = {
             data: with_service_in_quarter(report_scope, date, population).
               joins(:client).
               group(c_t[:Gender]).
@@ -266,7 +265,7 @@ module PublicReports
               data[bucket_age(age)] << client_id unless client_ids.include?(client_id)
               client_ids << client_id
             end
-          charts[date] = {
+          charts[date.iso8601] = {
             data: data.map { |age, ids| [age, ids.count] },
             title: _('Age'),
           }
@@ -299,7 +298,7 @@ module PublicReports
               data[::HUD.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
-          charts[date] = {
+          charts[date.iso8601] = {
             data: data.map { |race, ids| [race, ids.count] },
             title: _('Racial Composition'),
           }
@@ -319,7 +318,7 @@ module PublicReports
               data[bucket_days(client.days_homeless(on_date: date))] += 1 unless counted_clients.include?(client.id)
               counted_clients << client.id
             end
-          charts[date] = {
+          charts[date.iso8601] = {
             data: data,
             title: _('Time Homeless'),
           }
@@ -354,7 +353,7 @@ module PublicReports
               data[bucket_days(days)] += 1 unless counted_clients.include?(enrollment.client_id)
               counted_clients << enrollment.client_id
             end
-          charts[date] = {
+          charts[date.iso8601] = {
             data: data,
             title: _('Time in Project'),
           }

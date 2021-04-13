@@ -7,7 +7,7 @@
 module PublicReports::WarehouseReports::PublicReportsControllerConcern
   extend ActiveSupport::Concern
   included do
-    before_action :set_report, only: [:show, :destroy, :update, :edit, :raw]
+    before_action :set_report, except: [:index, :new, :create]
 
     def index
       @report = report_source.new
