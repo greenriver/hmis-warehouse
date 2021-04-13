@@ -8,6 +8,8 @@ class CensusesController < ApplicationController
   include WarehouseReportAuthorization
 
   before_action :require_can_view_clients!, only: [:details]
+  # skip_before_action :report_visible?, only: [:date_range]
+  # skip_before_action :require_can_view_any_reports!, only: [:date_range]
   include ArelHelper
   # default view grouped by project
   def index

@@ -157,8 +157,8 @@
         %tr
           %th PIT Count
           %td= @project.PITCount
-
-= render 'census'
+- if @show_census
+  = render 'census'
 = render 'funders', funders: @project.funders
 = render 'inventories', inventories: @project.inventories
 = render 'project_cocs', project_cocs: @project.project_cocs
