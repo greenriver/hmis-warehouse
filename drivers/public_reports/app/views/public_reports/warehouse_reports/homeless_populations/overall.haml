@@ -4,5 +4,6 @@
 - title = @report.populations[population]
 %h2.population-title= title
 = render 'pit_chart', population: population, data: population_data['pit_chart']
+= render 'slider', population: population, data: population_data['location_chart'].keys
 = render 'location_chart', population: population, data: population_data['location_chart']
 = debug population_data

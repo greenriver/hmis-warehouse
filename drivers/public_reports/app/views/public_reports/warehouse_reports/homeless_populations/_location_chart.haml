@@ -17,4 +17,9 @@
     }
   });
   // initialize the first data set
-  chart.load({ columns: dates[active_date]['data']});
+  $('.jQuarters').on('change', function(e) {
+    var index = $(this).val();
+    var selected_date = $(this).data('dates')[index]
+    chart.load({ columns: dates[selected_date]['data']});
+  });
+  $('.jQuarters').trigger('change');

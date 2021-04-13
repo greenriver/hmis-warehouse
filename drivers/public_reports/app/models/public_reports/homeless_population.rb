@@ -106,22 +106,16 @@ module PublicReports
     end
 
     private def pit_chart(population)
-      {
-        data: pit_chart_data(population, title),
-        title: populations[population],
-      }
-    end
-
-    private def pit_chart_data(population, title)
+      title = populations[population]
       x = ['x']
       y = [title]
-      z = ['percent change']
+      z = ['Percent change from prior quarter']
       pit_counts(population).each do |date, counts|
         x << date
         y << counts[:count]
         z << counts[:change]
       end
-      [x, y, z].to_json
+      { data: [x, y], change: z, title: title }.to_json
     end
 
     private def pit_counts(population)
@@ -137,7 +131,7 @@ module PublicReports
         change = 0
         if i.positive? && counts[:count].positive?
           prior_count = data[quarter_dates[i - 1].iso8601][:count]
-          change = (counts[:count] - prior_count)
+          change = (((counts[:count] - prior_count) / counts[:count]) * 100.to_f).round
         end
         data[date][:change] = change
       end
