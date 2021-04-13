@@ -41,6 +41,16 @@ module PublicReports
       complete_report
     end
 
+    def populations
+      {
+        overall: _('People Experiencing Homelessness'),
+        housed: _('People Housed'),
+        individuals: _('Individuals'),
+        adults_with_children: _('Families'),
+        veterans: _('Veterans'),
+      }
+    end
+
     private def chart_data
       {
         # count: percent_change_in_count,
@@ -96,21 +106,9 @@ module PublicReports
     end
 
     private def pit_chart(population)
-      title = case population
-      when :overall
-        _('People Experiencing Homelessness')
-      when :housed
-        _('People Housed')
-      when :individuals
-        _('Individuals')
-      when :adults_with_children
-        _('Families')
-      when :veterans
-        _('Veterans')
-      end
       {
         data: pit_chart_data(population, title),
-        title: title,
+        title: populations[population],
       }
     end
 

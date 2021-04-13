@@ -1,4 +1,16 @@
-- data = JSON.parse(@report.precalculated_data)
+- data = OpenStruct.new(JSON.parse(@report.precalculated_data))
+%ul.nav.nav-tabs.mt-2
+  - @report.populations.each_with_index do |(population, title), i|
+    - active_class = if i.zero? then 'active' else '' end
+    %li.nav-item{ role: :presentation }
+      %a.nav-link{ id: "#{population}-tab", class: active_class, href: "##{population}", data: { toggle: :tab }, role: :tab, aria: { controls: population, selected: true }}= title
+.tab-content
+  - @report.populations.each_with_index do |(population, title), i|
+    - active_class = if i.zero? then 'show active' else '' end
+    .tab-pane.p-4.fade{ id: population, class: active_class, role: :tabpanel, aria: { labeledby: "#{population}-tab" }}
+      = title
+      = render 'pit_chart', data: data
+
 = debug data
 -# .housed-total-count{class: data['change_direction']}= number_to_percentage(data['count'], precision: 0)
 -# .housed-total-count-date-range= data['date_range']
