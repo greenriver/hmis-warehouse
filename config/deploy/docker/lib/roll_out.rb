@@ -406,7 +406,7 @@ class RollOut
     ma.run!
 
     # only doing this on staging for now to test the waters.
-    use_memory_analyzer = name.match?(/staging/)
+    use_memory_analyzer = name.match?(/staging|vi/)
 
     container_definition = {
       name: name,
