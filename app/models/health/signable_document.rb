@@ -44,12 +44,12 @@ module Health
     delegate :signed?, to: :signature_request, allow_nil: true
 
     scope :signed, -> do
-      where.not(signed_by: '[]').
-      joins(:signature_request).merge(Health::SignatureRequest.complete)
+      where.not("signed_by != '[]'").
+      joins(signature_request: :careplan).merge(Health::SignatureRequest.complete)
     end
 
     scope :unsigned, -> do
-      where(signed_by: '[]')
+      where("signed_by = '[]'")
     end
 
     scope :with_document, -> do
@@ -168,8 +168,9 @@ module Health
       user = User.setup_system_user
       Health::CareplanSaver.new(careplan: careplan, user: user, create_qa: true).update
 
+      # TODO: this should probably be moved to a periodic cron task
       UpdateHealthFileFromHelloSignJob.
-        set(wait: 30.seconds). # Wait for PDF to be ready
+        set(wait: 5.minutes). # Wait for PDF to be ready
         perform_later(self.id)
     end
 
