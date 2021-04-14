@@ -34,7 +34,7 @@ module HealthCareplan
         encoding: 'UTF-8',
         page_size: 'Letter',
       )
-      CombinePDF.parse(coversheet)
+      CombinePDF.parse(coversheet, allow_optional_content: true)
     end
 
     # The logic for creating the CarePlan PDF is fairly complicated and needs to be used in both the careplan controllers and the signable document controllers
@@ -45,7 +45,7 @@ module HealthCareplan
       # If we already have a document with a signature, use that to try and avoid massive duplication
       if (health_file_id = @careplan.most_appropriate_pdf_id)
         if (health_file = Health::HealthFile.find(health_file_id))
-          return CombinePDF.parse(health_file.content)
+          return CombinePDF.parse(health_file.content, allow_optional_content: true)
         end
       end
       # If we haven't sent this for signatures, build out the PDF
@@ -69,7 +69,7 @@ module HealthCareplan
       end
       @cha = @patient.comprehensive_health_assessments.recent.first
 
-      pdf = CombinePDF.new
+      pdf = CombinePDF.new(allow_optional_content: true)
 
       pdf << careplan_pdf_coversheet
 
@@ -99,11 +99,11 @@ module HealthCareplan
         # toc: {}
       )
 
-      pdf << CombinePDF.parse(pctp)
+      pdf << CombinePDF.parse(pctp, allow_optional_content: true)
 
-      pdf << CombinePDF.parse(@careplan.health_file.content) if @careplan.health_file.present?
-      pdf << CombinePDF.parse(@cha.health_file.content) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
-      pdf << CombinePDF.parse(@form.health_file.content) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
+      pdf << CombinePDF.parse(@careplan.health_file.content, allow_optional_content: true) if @careplan.health_file.present?
+      pdf << CombinePDF.parse(@cha.health_file.content, allow_optional_content: true) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
+      pdf << CombinePDF.parse(@form.health_file.content, allow_optional_content: true) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
       pdf
     end
   end
