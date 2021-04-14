@@ -131,7 +131,7 @@ module PublicReports
         change = 0
         if i.positive? && counts[:count].positive?
           prior_count = data[quarter_dates[i - 1].iso8601][:count]
-          change = (((counts[:count] - prior_count) / counts[:count]) * 100.to_f).round
+          change = (((counts[:count] - prior_count.to_f) / counts[:count].to_f) * 100).round
         end
         data[date][:change] = change
       end

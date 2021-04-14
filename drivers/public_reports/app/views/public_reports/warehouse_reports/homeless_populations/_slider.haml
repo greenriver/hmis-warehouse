@@ -3,20 +3,28 @@
     %input.jQuarters{ type: :range, min: 0, max: data.count - 1, value: 0, step: 1, data: { dates: data, selected: data.first }, list: :quarters}
     .data-list-markers.d-flex
       - data.each_with_index do |date, index|
-        .data-list-marker= date
-  %datalist#quarters.jQuarters
-    - data.each_with_index do |date, index|
-      %option.jQuarters= index
-  .mt-5
-  %input{ type: :range, min: 0, max: data.count - 1, value: 0, step: 1, data: { dates: data, selected: data.first }, list: :quarters2}
-  %datalist#quarters2
-    - data.each_with_index do |date, index|
-      %option= index
+        - marker_class = if index.zero? then 'first' elsif index == data.count - 1 then 'last' else '' end
+        .data-list-marker-wrapper
+          .data-list-marker
+            .data-list-marker-mark-wrapper
+              .data-list-marker-mark{class: marker_class}
+            .text-center.w-100
+            = date
 :javascript
   $('.jQuarters').on('change', function(e) {
     var index = $(this).val();
     var selected_date = $(this).data('dates')[index]
     $(this).data('selected', $(this).data('dates')[index]);
+    var charts = $('body').data('publicCharts');
+    if(charts == undefined) {
+      return;
+    }
+
+    $.each(charts, function(i){
+      var chart = charts[i].chart;
+      var dates = charts[i].dates;
+      chart.load({ columns: dates[selected_date]['data']});
+    });
   });
   $('.jQuarters').trigger('change');
 
@@ -112,7 +120,22 @@
   .data-list-markers {
     justify-content: space-between;
   }
-  .data-list-marker {
+  .data-list-marker-wrapper {
     display: flex;
     align-items: end;
+  }
+  .data-list-marker-mark-wrapper {
+    width: 100%;
+  }
+  .data-list-marker-mark {
+    width: 2px;
+    height: 10px;
+    background-color: #CCC;
+    margin: 0 auto;
+  }
+  .data-list-marker-mark.first {
+    margin-left: 12%;
+  }
+  .data-list-marker-mark.last {
+    margin-right: 12%;
   }
