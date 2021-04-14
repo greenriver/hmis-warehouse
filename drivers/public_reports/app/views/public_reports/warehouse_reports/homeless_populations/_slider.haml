@@ -1,5 +1,17 @@
 .m-4
-  %input.jQuarters{ type: :range, min: 0, max: data.count - 1, value: 0, step: 1, data: { dates: data, selected: data.first }}
+  .data-list-wrapper
+    %input.jQuarters{ type: :range, min: 0, max: data.count - 1, value: 0, step: 1, data: { dates: data, selected: data.first }, list: :quarters}
+    .data-list-markers.d-flex
+      - data.each_with_index do |date, index|
+        .data-list-marker= date
+  %datalist#quarters.jQuarters
+    - data.each_with_index do |date, index|
+      %option.jQuarters= index
+  .mt-5
+  %input{ type: :range, min: 0, max: data.count - 1, value: 0, step: 1, data: { dates: data, selected: data.first }, list: :quarters2}
+  %datalist#quarters2
+    - data.each_with_index do |date, index|
+      %option= index
 :javascript
   $('.jQuarters').on('change', function(e) {
     var index = $(this).val();
@@ -14,6 +26,7 @@
     margin: 2px 0;
     background-color: transparent;
     -webkit-appearance: none;
+    border-radius: 50px;
   }
   input[type=range].jQuarters:focus {
     outline: none;
@@ -23,6 +36,7 @@
     border: 1px solid #cccccc;
     width: 100%;
     height: 16px;
+    border-radius: 50px;
     cursor: pointer;
   }
   input[type=range].jQuarters::-webkit-slider-thumb {
@@ -94,4 +108,11 @@
       margin: 0;
       /*Edge starts the margin from the thumb, not the track as other browsers do*/
     }
+  }
+  .data-list-markers {
+    justify-content: space-between;
+  }
+  .data-list-marker {
+    display: flex;
+    align-items: end;
   }
