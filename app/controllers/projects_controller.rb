@@ -39,6 +39,8 @@ class ProjectsController < ApplicationController
       preload(:client).
       order(she_t[:first_date_in_program].desc, she_t[:last_date_in_program].desc).
       page(params[:page]).per(25)
+    url = 'censuses'
+    @show_census = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).viewable_by(current_user).exists?
   end
 
   def edit

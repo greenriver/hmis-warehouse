@@ -59,7 +59,7 @@ module PublicReports
     end
 
     def filter_object
-      @filter_object ||= ::Filters::OutflowReport.new.set_from_params(filter['filters'].merge(enforce_one_year_range: false, sub_population: :clients).with_indifferent_access)
+      @filter_object ||= ::Filters::OutflowReport.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false, sub_population: :clients).with_indifferent_access)
     end
   end
 end
