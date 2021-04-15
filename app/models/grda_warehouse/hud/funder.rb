@@ -87,7 +87,21 @@ module GrdaWarehouse::Hud
         csv << headers
 
         scope.each do |i|
-          csv << attributes.map{ |attr| i.send(attr) }
+          csv << attributes.map do |attr|
+            v = if attr == 'GrantID' && i.GrantID.blank?
+              'Unknown'
+            elsif attr == 'OtherFunder' && i.OtherFunder.present?
+              i.OtherFunder[0...50]
+            else
+              i.send(attr)
+            end
+            if v.is_a? Date
+              v = v.strftime("%Y-%m-%d")
+            elsif v.is_a? Time
+              v = v.to_formatted_s(:db)
+            end
+            v
+          end
         end
       end
     end
