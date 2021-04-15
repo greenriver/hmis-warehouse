@@ -69,7 +69,7 @@ module HealthCareplan
       end
       @cha = @patient.comprehensive_health_assessments.recent.first
 
-      pdf = CombinePDF.new(allow_optional_content: true)
+      pdf = CombinePDF.new
 
       pdf << careplan_pdf_coversheet
 
