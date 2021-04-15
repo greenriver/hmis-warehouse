@@ -499,18 +499,18 @@ module GrdaWarehouse::Hud
 
     # make a scope for every project type and a type? method for instances
     RESIDENTIAL_PROJECT_TYPES.each do |k,v|
-      scope k, -> { where(self.project_type_column => v) }
+      scope k, -> { where(project_type_column => v) }
       define_method "#{k}?" do
         v.include? project_type_to_use
       end
     end
 
-    scope :rrh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:rrh]) }
+    scope :rrh, -> { where(project_type_column => PERFORMANCE_REPORTING[:rrh]) }
     def rrh?
       project_type_to_use.in?(PERFORMANCE_REPORTING[:rrh])
     end
 
-    scope :psh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:psh]) }
+    scope :psh, -> { where(project_type_column => PERFORMANCE_REPORTING[:psh]) }
     def psh?
       project_type_to_use.in?(PERFORMANCE_REPORTING[:psh])
     end
@@ -532,7 +532,7 @@ module GrdaWarehouse::Hud
     def project_type_overridden_as_ph?
       @psh_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
       ! @psh_types.include?(self.ProjectType) &&
-        @psh_types.include?(self.compute_project_type)
+        @psh_types.include?(compute_project_type)
     end
 
     alias_attribute :name, :ProjectName
@@ -563,12 +563,13 @@ module GrdaWarehouse::Hud
     end
 
     def confidential_name?
-      self.confidential? || /healthcare/i.match(self.ProjectName).present?
+      confidential? || /healthcare/i.match(self.ProjectName).present?
     end
 
     def organization_and_name(include_confidential_names: false)
       project_name = name(include_confidential_names: include_confidential_names, include_project_type: true)
       return "#{organization&.OrganizationName} / #{project_name}" if include_confidential_names
+
       "#{organization&.OrganizationName} / #{project_name}" unless confidential_name?
 
       project_name
@@ -589,11 +590,12 @@ module GrdaWarehouse::Hud
     # Some Street outreach are counted like bed-night shelters, others aren't yet
     def street_outreach_and_acts_as_bednight?
       return false unless so?
-      @answer ||= GrdaWarehouse::Hud::Project.where(id: id)
-        .joins(:services)
-        .select(:ProjectID, :data_source_id)
-        .where(Services: {RecordType: 12})
-        .exists?
+
+      @answer ||= GrdaWarehouse::Hud::Project.where(id: id).
+        joins(:services).
+        select(:ProjectID, :data_source_id).
+        where(Services: {RecordType: 12}).
+        exists?
       @answer
     end
 
@@ -601,18 +603,18 @@ module GrdaWarehouse::Hud
     # there may be multiple lines per project
     def self.export_providers(coc_codes)
       spec = {
-        hud_org_id:          o_t[:OrganizationID],
-        _hud_org_name:       o_t[:OrganizationName],
-        provider:            p_t[:ProjectName],
-        _provider:           p_t[:ProjectID],
-        hud_prog_type:       p_t[project_type_column],
-        fed_funding_source:  f_t[:FunderID],
+        hud_org_id: o_t[:OrganizationID],
+        _hud_org_name: o_t[:OrganizationName],
+        provider: p_t[:ProjectName],
+        _provider: p_t[:ProjectID],
+        hud_prog_type: p_t[project_type_column],
+        fed_funding_source: f_t[:FunderID],
         fed_partner_program: f_t[:FunderID],
-        grant_id:            f_t[:GrantID],
-        grant_start_date:    f_t[:StartDate],
-        grant_end_date:      f_t[:EndDate],
-        coc_code:            pc_t[:CoCCode],
-        hud_geocode:         g_t[:Geocode],
+        grant_id: f_t[:GrantID],
+        grant_start_date: f_t[:StartDate],
+        grant_end_date: f_t[:EndDate],
+        coc_code: pc_t[:CoCCode],
+        hud_geocode: g_t[:Geocode],
         current_continuum_project: p_t[:ContinuumProject],
       }
       projects = joins( :funders, :organization, :project_cocs, :geographies ).
@@ -669,7 +671,7 @@ module GrdaWarehouse::Hud
           csv << attributes.map do |attr|
             attr = attr.to_s
             # we need to grab the appropriate id from the related organization
-            if attr.include?('.')
+            v = if attr.include?('.')
               obj, meth = attr.split('.')
               i.send(obj).send(meth)
             else
@@ -678,11 +680,33 @@ module GrdaWarehouse::Hud
               elsif attr == 'ResidentialAffiliation'
                 i.send(attr).presence || 99
               elsif attr == 'TrackingMethod'
-                i.send(attr).presence || 0
+                if i.tracking_method_override.present?
+                  i.tracking_method_override
+                else
+                  i.send(attr).presence || 0
+                end
+              elsif attr == 'ProjectCommonName' && i.ProjectCommonName.blank?
+                i.ProjectName
+              elsif attr == 'ContinuumProject' && i.hud_continuum_funded
+                1
+              elsif attr == 'OperatingStartDate' && i.operating_start_date_override.present?
+                i.operating_start_date_override
+              elsif attr == 'OperatingEndDate' && i.operating_end_date_override.present?
+                i.operating_end_date_override
+              elsif attr == 'HMISParticipatingProject' && i.hmis_participating_project_override.present?
+                i.hmis_participating_project_override
+              elsif attr == 'TargetPopulation' && i.target_population_override.present?
+                i.target_population_override
               else
                 i.send(attr)
               end
             end
+            if v.is_a? Date
+              v = v.strftime("%Y-%m-%d")
+            elsif v.is_a? Time
+              v = v.to_formatted_s(:db)
+            end
+            v
           end
         end
       end
