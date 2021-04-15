@@ -7,13 +7,8 @@
 module Reports
   class Hic::ProjectsController < Hic::BaseController
     def show
-      @projects = GrdaWarehouse::Hud::Project.joins(:organization).
-        viewable_by(current_user).
-        with_hud_project_type(PROJECT_TYPES).
+      @projects = project_scope.joins(:organization).
         distinct
-
-      date = params[:date]&.to_date
-      @projects = @projects.merge(GrdaWarehouse::Hud::Project.active_on(date)) if date.present?
 
       respond_to do |format|
         format.html
