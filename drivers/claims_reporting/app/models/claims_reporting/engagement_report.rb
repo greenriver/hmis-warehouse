@@ -15,21 +15,22 @@ module ClaimsReporting
     # The maximum possible date range
     # where we have claims data
     def self.max_date_range
-      ClaimsReporting::MedicalClaim.minimum(:service_start_date) .. ClaimsReporting::MedicalClaim.maximum(:service_start_date)
+      min_date = ClaimsReporting::MedicalClaim.minimum(:service_start_date)
+      return (1.years.ago.to_date.. 1.months.ago.to_date) unless min_date
+
+      min_date .. ClaimsReporting::MedicalClaim.maximum(:service_start_date)
     end
 
-    def initialize(
-      enrollment_roster: nil,
-      member_roster: nil,
-      claim_date_range: nil
-    )
-      if enrollment_roster.present?
+    def initialize(cohort:, filter:)
+      if cohort[:scope].present?
         raise ArgumentError, 'member_roster or enrollment_roster not both' if member_roster
 
-        @enrollment_roster = ClaimsReporting::MemberEnrollmentRoster.where(id: enrollment_roster.select(:id))
-        @member_roster = ClaimsReporting::MemberRoster.where(member_id: enrollment_roster.select(:member_id))
+        @filter = filter
+        @cohort = cohort
+        @enrollment_roster = ClaimsReporting::MemberEnrollmentRoster.where(id: cohort[:scope].select(:id))
+        @member_roster = ClaimsReporting::MemberRoster.where(member_id: cohort[:scope].select(:member_id))
         @medical_claims = ClaimsReporting::MedicalClaim.where(
-          id: enrollment_roster.select(ClaimsReporting::MedicalClaim.arel_table[:id]),
+          id: cohort[:scope].select(ClaimsReporting::MedicalClaim.arel_table[:id]),
         )
         @claim_date_range = @medical_claims.minimum(:service_start_date) .. @medical_claims.maximum(:service_start_date)
       else
