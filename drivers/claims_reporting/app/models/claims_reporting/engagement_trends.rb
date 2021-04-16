@@ -84,6 +84,7 @@ module ClaimsReporting
 
     HIGHLIGHT_COS_CATEGORIES = [
       'I-06', # Outpatient ER
+      'I-01 MED', # Inpatient Medical
       'I-01 BH', # BH Inpatient Behavioral Health
       'P-01', # Office/Home Services
       'P-23', # Case Management
@@ -174,14 +175,16 @@ module ClaimsReporting
 
       # apply filters via warehouse clients... This
       # is the only place linking this to warehouse_db
-      hmis_scope = ::GrdaWarehouse::DataSource.destination.joins(:clients)
-      hmis_scope = filter_for_age_ranges(hmis_scope) if filter.age_ranges.present?
-      hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
-      hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
-      hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
-      client_ids = hmis_scope.pluck(c_t[:id])
-      scope = scope.joins(:patient).merge(Health::Patient.where(client_id: client_ids)) if client_ids.any?
-      scope = scope.joins(patient: :patient_referral).merge(Health::PatientReferral.at_acos(filter.acos)) if filter.acos.present?
+      unless Rails.env.development?
+        hmis_scope = ::GrdaWarehouse::DataSource.destination.joins(:clients)
+        hmis_scope = filter_for_age_ranges(hmis_scope) if filter.age_ranges.present?
+        hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
+        hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
+        hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
+        client_ids = hmis_scope.pluck(c_t[:id])
+        scope = scope.joins(:patient).merge(::Health::Patient.where(client_id: client_ids)) if client_ids.any?
+        scope = scope.joins(patient: :patient_referral).merge(::Health::PatientReferral.at_acos(filter.acos)) if filter.acos.present?
+      end
 
       scope
     end

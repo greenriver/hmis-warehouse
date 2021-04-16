@@ -3,6 +3,7 @@ module ClaimsReporting
     include ArelHelper
 
     phi_patient :member_id
+    belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
 
     has_one :diagnosis_classification,
             primary_key: 'member_id',
@@ -13,8 +14,6 @@ module ClaimsReporting
              primary_key: 'member_id',
              foreign_key: 'member_id',
              class_name: 'ClaimsReporting::MemberEnrollmentRoster'
-
-    belongs_to :patient, primary_key: 'member_id', foreign_key: 'medicaid_id', class_name: 'Health::Patient', optional: true
 
     include ClaimsReporting::CsvHelpers
 

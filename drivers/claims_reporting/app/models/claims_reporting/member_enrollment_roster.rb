@@ -1,6 +1,7 @@
 module ClaimsReporting
   class MemberEnrollmentRoster < HealthBase
     phi_patient :member_id
+    belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
 
     belongs_to :member_roster,
                primary_key: 'member_id',
