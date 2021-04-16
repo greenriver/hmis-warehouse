@@ -8,13 +8,8 @@ module Reports
   class Hic::OrganizationsController < Hic::BaseController
     def show
       @organizations = organization_scope.joins(:projects).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
-        merge(GrdaWarehouse::Hud::Project.with_hud_project_type(PROJECT_TYPES)).
+        merge(project_scope).
         distinct
-
-      date = params[:date]&.to_date
-      @organizations = @organizations.merge(GrdaWarehouse::Hud::Project.active_on(date)) if date.present?
-
       respond_to do |format|
         format.html
         format.csv { send_data GrdaWarehouse::Hud::Organization.to_csv(scope: @organizations), filename: "organization-#{Time.current.to_s(:number)}.csv" }
@@ -22,7 +17,7 @@ module Reports
     end
 
     def organization_scope
-      GrdaWarehouse::Hud::Organization.viewable_by current_user
+      GrdaWarehouse::Hud::Organization
     end
   end
 end
