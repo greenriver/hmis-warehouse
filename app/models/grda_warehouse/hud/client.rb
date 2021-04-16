@@ -2913,9 +2913,10 @@ module GrdaWarehouse::Hud
       end
     end
 
-    private def adjusted_dates dates:, stop_date:
+    private def adjusted_dates(dates:, stop_date:)
       return dates if stop_date.nil?
-      dates.select{|date| date <= stop_date}
+
+      dates.select { |date| date <= stop_date }
     end
 
     private def residential_dates enrollments:
