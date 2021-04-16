@@ -15,7 +15,7 @@ module ClaimsReporting::WarehouseReports
       @report = report_class.new
       # TODO: this should probably be a different filter eventually, but isn't in use currently other than
       # as a placeholder for the form
-      @filter = ::Filters::FilterBase.new
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id)
     end
 
     def create
