@@ -1,6 +1,6 @@
 %ul
-  %li= link_to 'Organization File', reports_hic_organization_path(date: date, format: :csv)
-  %li= link_to 'Project File', reports_hic_project_path(date: date, format: :csv)
-  %li= link_to 'Inventory File', reports_hic_inventory_path(date: date, format: :csv)
-  %li= link_to 'ProjectCoC File', reports_hic_project_coc_path(date: date, format: :csv)
-  %li= link_to 'Funder File', reports_hic_funder_path(date: date, format: :csv)
+  %li= link_to 'Organization File', reports_hic_organization_path(@filter.for_params.merge(format: :csv))
+  %li= link_to 'Project File', reports_hic_project_path(@filter.for_params.merge(format: :csv))
+  %li= link_to 'Inventory File', reports_hic_inventory_path(@filter.for_params.merge(format: :csv))
+  %li= link_to 'ProjectCoC File', reports_hic_project_coc_path(@filter.for_params.merge(format: :csv))
+  %li= link_to 'Funder File', reports_hic_funder_path(@filter.for_params.merge(format: :csv))

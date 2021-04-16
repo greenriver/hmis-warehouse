@@ -7,13 +7,10 @@
 module Reports
   class Hic::GeographiesController < Hic::BaseController
     def show
+      # NOTE No longer included post 2020
       @geographies = GrdaWarehouse::Hud::Geography.joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
-        merge(GrdaWarehouse::Hud::Project.with_hud_project_type(PROJECT_TYPES)).
+        merge(project_scope).
         distinct
-
-      date = params[:date]&.to_date
-      @geographies = @geographies.merge(GrdaWarehouse::Hud::Project.active_on(date)) if date.present?
 
       respond_to do |format|
         format.html
