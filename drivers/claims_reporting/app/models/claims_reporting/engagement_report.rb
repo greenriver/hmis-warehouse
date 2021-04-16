@@ -15,27 +15,24 @@ module ClaimsReporting
     # The maximum possible date range
     # where we have claims data
     def self.max_date_range
-      ClaimsReporting::MedicalClaim.minimum(:service_start_date) .. ClaimsReporting::MedicalClaim.maximum(:service_start_date)
+      start_date = ClaimsReporting::MedicalClaim.minimum(:service_start_date)
+
+      # roughly when CoCs became a thing
+      return Date.iso8601('2012-01-01')..Date.current unless start_date.present?
+
+      start_date .. ClaimsReporting::MedicalClaim.maximum(:service_start_date)
     end
 
-    def initialize(
-      enrollment_roster: nil,
-      member_roster: nil,
-      claim_date_range: nil
-    )
-      if enrollment_roster.present?
-        raise ArgumentError, 'member_roster or enrollment_roster not both' if member_roster
+    def initialize(enrollment_roster: nil)
+      enrollment_roster ||= ClaimsReporting::MemberEnrollmentRoster.all
 
-        @enrollment_roster = ClaimsReporting::MemberEnrollmentRoster.where(id: enrollment_roster.select(:id))
-        @member_roster = ClaimsReporting::MemberRoster.where(member_id: enrollment_roster.select(:member_id))
-        @medical_claims = ClaimsReporting::MedicalClaim.where(
-          id: enrollment_roster.select(ClaimsReporting::MedicalClaim.arel_table[:id]),
-        )
-        @claim_date_range = @medical_claims.minimum(:service_start_date) .. @medical_claims.maximum(:service_start_date)
-      else
-        @claim_date_range = claim_date_range
-        raise 'FIXME'
-      end
+      @enrollment_roster = ClaimsReporting::MemberEnrollmentRoster.where(id: enrollment_roster.select(:id))
+      @member_roster = ClaimsReporting::MemberRoster.where(member_id: enrollment_roster.select(:member_id))
+      @medical_claims = ClaimsReporting::MedicalClaim.where(
+        id: enrollment_roster.select(ClaimsReporting::MedicalClaim.arel_table[:id]),
+      )
+      @claim_date_range = (@medical_claims.minimum(:service_start_date) || self.class.max_date_range.min) .. (
+           @medical_claims.minimum(:service_start_date) || self.class.max_date_range.max)
       @rx_claims = ClaimsReporting::RxClaim.none # TBD
     end
 
