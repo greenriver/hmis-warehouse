@@ -1,4 +1,5 @@
 ###
+###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
@@ -70,22 +71,13 @@ module ClaimsReporting
     end
 
     def claim_date_range
-      min = summary(:total_population)[:min_claim_date]
-      max = summary(:total_population)[:max_claim_date]
-      if min && max
-        min.to_date .. max.to_date
-      else
-        source_report.claim_date_range
-      end
+      min = results.values.map { |c| c[:min_claim_date]&.to_date }.min || self.class.max_date_range.min
+      max = results.values.map { |c| c[:max_claim_date]&.to_date }.max || completed_at.to_date
+      min .. max
     end
 
     def latest_payment_date
-      date = summary(:total_population)[:latest_paid_date]
-      if date
-        date.to_date
-      else
-        source_report.latest_payment_date
-      end
+      results.values.map { |c| c[:latest_paid_date]&.to_date }.max || completed_at.to_date
     end
 
     def roster_as_of
@@ -153,13 +145,13 @@ module ClaimsReporting
       {
         'selected_members' => ['Selected Members', :format_i],
         'average_age' => ['Average Age', :format_d],
-        'n_claims' => ['Medical Claims', :format_i],
-        'span_mem_days' => ['Enrolled Member Days', :format_i],
-        'pre_engagement_days' => ['Pre-engaged Member Days', :format_i],
-        'engaged_days' => ['Engaged Member Days', :format_i],
-        # 'paid_amount_sum' => ['Total Paid', :format_c],
-        'pmpm' => ['Paid <abbr title="Per member per month">PMPM</abbr>', :format_c],
-        'average_raw_dxcg_score' => ['Average DXCG Score', :format_d],
+        # 'n_claims' => ['Medical Claims', :format_i],
+        # 'span_mem_days' => ['Enrolled Member Days', :format_i],
+        # 'pre_engagement_days' => ['Pre-engaged Member Days', :format_i],
+        # 'engaged_days' => ['Engaged Member Days', :format_i],
+        # # 'paid_amount_sum' => ['Total Paid', :format_c],
+        # 'pmpm' => ['Paid <abbr title="Per member per month">PMPM</abbr>', :format_c],
+        'average_raw_dxcg_score' => ['Average Raw DXCG Score', :format_d],
       }
     end
 
