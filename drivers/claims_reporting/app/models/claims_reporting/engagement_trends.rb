@@ -151,7 +151,7 @@ module ClaimsReporting
         # 'engaged_days' => ['Engaged Member Days', :format_i],
         # # 'paid_amount_sum' => ['Total Paid', :format_c],
         # 'pmpm' => ['Paid <abbr title="Per member per month">PMPM</abbr>', :format_c],
-        'average_raw_dxcg_score' => ['Average Raw DXCG Score', :format_d],
+        'average_raw_dxcg_score' => ['Average MassHealth Risk Score', :format_d],
       }
     end
 
