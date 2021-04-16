@@ -8,7 +8,7 @@ module ClaimsReporting
   class EngagementReport
     include ActiveModel::Model
     extend Memoist
-    attr_reader :member_roster, :rx_claims, :medical_claims, :claim_date_range
+    attr_reader :member_roster, :enrollment_roster, :medical_claims, :rx_claims, :claim_date_range
 
     DAYS_PER_YEAR = 365.2422
 
@@ -17,41 +17,31 @@ module ClaimsReporting
     def self.max_date_range
       start_date = ClaimsReporting::MedicalClaim.minimum(:service_start_date)
 
-      # roughly when CoCs became a thing
-      return Date.iso8601('2012-01-01')..Date.current unless start_date.present?
+      # 2012 is roughly when CoCs became a funded
+      return Date.iso8601('2012-10-01')..Date.current unless start_date.present?
 
       start_date .. ClaimsReporting::MedicalClaim.maximum(:service_start_date)
     end
 
-    def initialize(enrollment_roster: nil)
-      enrollment_roster ||= ClaimsReporting::MemberEnrollmentRoster.all
+    def initialize(cohort: nil, filter: nil)
+      cohort ||= { scope: ClaimsReporting::MemberEnrollmentRoster.all }
+      filter ||= ::Filters::ClaimsFilter.new
 
-      @enrollment_roster = ClaimsReporting::MemberEnrollmentRoster.where(id: enrollment_roster.select(:id))
-      @member_roster = ClaimsReporting::MemberRoster.where(member_id: enrollment_roster.select(:member_id))
-      @medical_claims = ClaimsReporting::MedicalClaim.where(
-        id: enrollment_roster.select(ClaimsReporting::MedicalClaim.arel_table[:id]),
-      )
+      raise ArgumentError, 'cohort[:scope] must contain a ClaimsReporting::MemberEnrollmentRoster scope' unless cohort[:scope].model.name == 'ClaimsReporting::MemberEnrollmentRoster'
+      raise ArgumentError, 'filter must be a ::Filters::ClaimsFilter' unless filter.is_a? ::Filters::ClaimsFilter
+
+      @filter = filter
+
+      @enrollment_roster = cohort[:scope]
+
+      @member_roster = ClaimsReporting::MemberRoster.where(member_id: @enrollment_roster.select(:member_id))
+
+      @medical_claims = ClaimsReporting::MedicalClaim.joins(:member_roster).merge(@member_roster)
+
       @claim_date_range = (@medical_claims.minimum(:service_start_date) || self.class.max_date_range.min) .. (
-           @medical_claims.minimum(:service_start_date) || self.class.max_date_range.max)
+           @medical_claims.maximum(:service_start_date) || self.class.max_date_range.max)
+
       @rx_claims = ClaimsReporting::RxClaim.none # TBD
-    end
-
-    # Member classification bits from Milliman
-    def available_filters
-      filter_inputs.keys
-    end
-
-    # a Hash of filter attributes
-    # mapping to
-    # https://www.rubydoc.info/github/plataformatec/simple_form/SimpleForm%2FFormBuilder:input options for them
-    def filter_inputs
-      {
-      }.freeze
-    end
-
-    def filter_options(filter)
-      msg = "#{filter}_options"
-      respond_to?(msg) ? send(msg) : nil
     end
 
     def roster_as_of
@@ -190,7 +180,7 @@ module ClaimsReporting
         ['Average Age', formatter.format_d(average_age)],
         ['% Female', formatter.format_pct(pct_female)],
         ['Member Months', formatter.format_d(member_months)],
-        ['Average Raw DxCG Score', formatter.format_d(average_raw_dxcg_score)],
+        ['Average MassHealth Risk Score', formatter.format_d(average_raw_dxcg_score)],
         ['Average $PMPM', formatter.number_to_currency(average_per_member_per_month_spend)],
       ]
     end
@@ -355,7 +345,7 @@ module ClaimsReporting
     end
 
     private def selected_medical_claims
-      scope = medical_claims.joins(:member_roster).merge(selected_member_roster)
+      scope = medical_claims
       # handle any claim based filters here
       scope
     end
