@@ -16,7 +16,7 @@ module Reports
         ::Filters::FilterBase.new(user_id: current_user.id).set_from_params(export_params)
       else
         current_year = Date.current.year
-        last_wednesday_of_january = if Date.current > Date.new(current_year, 2, 1)
+        last_wednesday_of_january = if Date.current >= Date.new(current_year, 2, 1)
           Date.new(current_year, 2, 1).prev_occurring(:wednesday)
         else
           Date.new(current_year - 1, 2, 1).prev_occurring(:wednesday)
