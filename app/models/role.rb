@@ -124,7 +124,7 @@ class Role < ApplicationRecord
         ],
       },
       can_view_census_details: {
-        description: 'Ability to "drill down" on census reports and see who was where on a given day',
+        description: '[DEPRECATED] Ability to "drill down" on census reports and see who was where on a given day',
         administrative: true,
         categories: [
           'Reporting',
