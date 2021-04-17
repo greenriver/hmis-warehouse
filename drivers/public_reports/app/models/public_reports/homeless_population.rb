@@ -292,8 +292,9 @@ module PublicReports
               data[::HUD.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
+          total_count = data.map { |_, ids| ids.count }.sum
           charts[date.iso8601] = {
-            data: data.map { |race, ids| [race, ids.count] },
+            data: data.map { |race, ids| [race, ((ids.count / total_count.to_f) * 100).round] },
             title: _('Racial Composition'),
           }
         end

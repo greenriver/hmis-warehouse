@@ -1,0 +1,136 @@
+:css
+  /* CHARTS */
+  .chart {
+    min-height: 200px;
+  }
+  .race-chart-overall_legend {
+    display: flex;
+  }
+  .chart-legend-item-prs1 {
+    display: flex;
+    width: 200px;
+    margin-right: 20px;
+  }
+  .chart-legend-item-prs1 .chart-legend-item-swatch-prs1 {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+  }
+  /* END CHARTS */
+
+  /* SLIDER */
+  input[type=range].jQuarters {
+    width: 100%;
+    margin: 2px 0;
+    background-color: transparent;
+    -webkit-appearance: none;
+    border-radius: 50px;
+  }
+  input[type=range].jQuarters:focus {
+    outline: none;
+  }
+  input[type=range].jQuarters::-webkit-slider-runnable-track {
+    background: #e7eef4;
+    border: 1px solid #cccccc;
+    width: 100%;
+    height: 16px;
+    border-radius: 50px;
+    cursor: pointer;
+  }
+  input[type=range].jQuarters::-webkit-slider-thumb {
+    margin-top: -3px;
+    width: 20px;
+    height: 20px;
+    background: #11427d;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  input[type=range].jQuarters:focus::-webkit-slider-runnable-track {
+    background: #ffffff;
+  }
+  input[type=range].jQuarters::-moz-range-track {
+    background: #e7eef4;
+    border: 1px solid #cccccc;
+    width: 100%;
+    height: 16px;
+    cursor: pointer;
+  }
+  input[type=range].jQuarters::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #11427d;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+  }
+  input[type=range].jQuarters::-ms-track {
+    background: transparent;
+    border-color: transparent;
+    border-width: 2px 0;
+    color: transparent;
+    width: 100%;
+    height: 16px;
+    cursor: pointer;
+  }
+  input[type=range].jQuarters::-ms-fill-lower {
+    background: #c1d3e2;
+    border: 1px solid #cccccc;
+  }
+  input[type=range].jQuarters::-ms-fill-upper {
+    background: #e7eef4;
+    border: 1px solid #cccccc;
+  }
+  input[type=range].jQuarters::-ms-thumb {
+    width: 20px;
+    height: 20px;
+    background: #11427d;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 0px;
+    /*Needed to keep the Edge thumb centred*/
+  }
+  input[type=range].jQuarters:focus::-ms-fill-lower {
+    background: #e7eef4;
+  }
+  input[type=range].jQuarters:focus::-ms-fill-upper {
+    background: #ffffff;
+  }
+  /*TODO: Use one of the selectors from https://stackoverflow.com/a/20541859/7077589 and figure out
+  how to remove the virtical space around the range input in IE*/
+  @supports (-ms-ime-align:auto) {
+    /* Pre-Chromium Edge only styles, selector taken from hhttps://stackoverflow.com/a/32202953/7077589 */
+    input[type=range].jQuarters {
+      margin: 0;
+      /*Edge starts the margin from the thumb, not the track as other browsers do*/
+    }
+  }
+  .data-list-markers {
+    justify-content: space-between;
+  }
+  .data-list-marker-wrapper {
+    display: flex;
+    align-items: end;
+  }
+  .data-list-marker-mark-wrapper {
+    width: 100%;
+  }
+  .data-list-marker-mark {
+    width: 2px;
+    height: 10px;
+    background-color: #CCC;
+    margin: 0 auto;
+  }
+  .data-list-marker-mark.first {
+    margin-left: 12%;
+  }
+  .data-list-marker-mark.last {
+    margin-right: 12%;
+  }
+  /* END SLIDER */
+  .w-30 {
+    width: 30%;
+    margin-right: 3%;
+  }

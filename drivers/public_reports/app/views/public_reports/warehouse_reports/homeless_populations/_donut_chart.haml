@@ -1,6 +1,7 @@
 - active_date = data.keys.first
 %h2= data[active_date]['title']
-.chart.pt-2{ class: [chart_class, "active_date_#{data.keys.first}"], data: { active_date: data.keys.first }}
+.jQuarterChosenDate
+.chart.pt-2{ data: { active_date: data.keys.first }, class: [chart_class, "active_date_#{data.keys.first}"]}
 
 :javascript
   var controller;
@@ -11,9 +12,23 @@
       columns: [],
       type: 'donut'
     },
-    bind_to: ".#{chart_class}",
+    donut: {
+      label: {
+        format: d => d
+      }
+    },
+    bindto: {
+      element: ".#{chart_class}"
+    },
     color: {
       pattern: #{@report.chart_color_pattern}
+    },
+    labels: {
+      format: function(v, id, i, j) {
+        if (v > 8) {
+          return v + '%';
+        }
+      }
     }
   });
   // Make the page aware of the new chart

@@ -9,7 +9,9 @@
       columns: data['data'],
       type: 'line'
     },
-    bind_to: ".#{chart_class}",
+    bindto: {
+      element: ".#{chart_class}"
+    },
     axis: {
       x: {
         type: 'timeseries',
