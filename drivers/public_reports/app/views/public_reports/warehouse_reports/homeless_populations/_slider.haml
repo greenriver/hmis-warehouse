@@ -9,18 +9,25 @@
             .data-list-marker-mark-wrapper
               .data-list-marker-mark{class: marker_class}
             .text-center.w-100
-            = date
+            Q#{quarter(Date.parse(date))} #{Date.parse(date).year}
 :javascript
+  function quarter_of_the_year(date) {
+    var month = (date.getMonth() + 2) % 12;
+    return (Math.ceil(month / 3));
+  }
   $('.jQuarters').on('change', function(e) {
     var index = $(this).val();
-    var selected_date = $(this).data('dates')[index]
+    var selected_date = $(this).data('dates')[index];
+    var date_object = new Date(Date.parse(selected_date));
+    var selected_quarter = quarter_of_the_year(date_object);
     $(this).data('selected', $(this).data('dates')[index]);
     var charts = $('body').data('publicCharts');
     if(charts == undefined) {
       return;
     }
     // update date display
-    $('.jQuarterChosenDate').text(selected_date);
+    var quarter_string = `Q${selected_quarter} ${date_object.getFullYear()}`;
+    $('.jQuarterChosenDate').text(quarter_string);
     // update all charts
     $.each(charts, function(i){
       var chart = charts[i].chart;

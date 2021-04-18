@@ -2,7 +2,7 @@
 %h2= data[active_date]['title']
 .jQuarterChosenDate
 .chart.pt-2{ data: { active_date: data.keys.first }, class: [chart_class, "active_date_#{data.keys.first}"]}
-
+%div{ class: ["#{chart_class}_legend"] }
 :javascript
   var controller;
   var dates = #{data.to_json.to_s.html_safe};
@@ -29,6 +29,15 @@
           return v + '%';
         }
       }
+    },
+    legend: {
+      contents: {
+        bindto: ".#{chart_class}_legend",
+        template: (title, color) => {
+          const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+          return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
+        },
+      },
     }
   });
   // Make the page aware of the new chart
