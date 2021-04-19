@@ -3,19 +3,28 @@
   .chart {
     min-height: 200px;
   }
+  .bb-axis-y path, .bb-axis-x path {
+    stroke: #cccccc;
+  }
   .race-chart-overall_legend {
     display: flex;
+    flex-wrap: wrap;
   }
   .chart-legend-item-prs1 {
     display: flex;
-    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
     margin-right: 2rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
   .chart-legend-item-prs1 .chart-legend-item-swatch-prs1 {
     width: 20px;
     height: 20px;
     margin-right: 0.8rem;
+  }
+  .household-size-chart {
+    font-size: 3em;
+    text-align: center;
   }
   /* END CHARTS */
 
@@ -134,4 +143,8 @@
   .w-30 {
     width: 30%;
     margin-right: 3%;
+  }
+  .w-50 {
+    width: 45%;
+    margin-right: 5%;
   }

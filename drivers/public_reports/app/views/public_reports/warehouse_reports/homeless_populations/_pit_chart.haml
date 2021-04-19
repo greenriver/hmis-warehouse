@@ -16,7 +16,7 @@
       x: {
         type: 'timeseries',
         tick: {
-          format: '%b. %Y'
+          format: 'Q%q %Y'
         },
         padding: {
           right: 1000*60*60*24*60, // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
@@ -26,7 +26,19 @@
       y: {
         padding: {
           top: 20
+        },
+        tick: {
+          culling: true,
+          show: false
         }
+      }
+    },
+    grid: {
+      x: {
+        show: false
+      },
+      y: {
+        show: false
       }
     },
     color: {

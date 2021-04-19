@@ -1,1 +1,22 @@
-= debug params[:action]
+= render 'chart_css'
+- population = @report.populations.keys.detect { |k| k.to_s == params[:action] } || @report.populations.keys.first
+- data = JSON.parse(@report.precalculated_data)
+- population_data = data[population.to_s]
+- title = @report.populations[population]
+%h2.population-title= title
+= render 'pit_chart', population: population, data: population_data['pit_chart']
+= render 'slider', population: population, data: population_data['location_chart'].keys
+.d-flex
+  .w-50
+    = render 'location_chart', population: population, data: population_data['location_chart']
+  .w-50
+    = render 'household_composition_chart', population: population, data: population_data['household_chart']
+.d-flex
+  .w-50
+    = render 'gender_chart', population: population, data: population_data['gender_chart']
+  .w-50
+    = render 'age_chart', population: population, data: population_data['age_chart']
+.d-flex
+  .w-50
+    = render 'time_homeless', population: population, data: population_data['time_homeless']
+= render 'race_chart', population: population, data: population_data['race_chart']

@@ -2,7 +2,7 @@
 %h2= data[active_date]['title']
 .jQuarterChosenDate
 .chart.pt-2{ data: { active_date: data.keys.first }, class: [chart_class, "active_date_#{data.keys.first}"]}
-%div{ class: ["#{chart_class}_legend"] }
+%div.d-flex{ class: ["#{chart_class}_legend"] }
 :javascript
   var controller;
   var dates = #{data.to_json.to_s.html_safe};

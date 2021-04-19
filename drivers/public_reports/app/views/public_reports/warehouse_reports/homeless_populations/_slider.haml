@@ -18,7 +18,8 @@
   $('.jQuarters').on('change', function(e) {
     var index = $(this).val();
     var selected_date = $(this).data('dates')[index];
-    var date_object = new Date(Date.parse(selected_date));
+
+    var date_object = new Date(Date.parse(selected_date) + 7*3600*1000); // JS has a hard time with the timezones, we just need to be roughly in the US
     var selected_quarter = quarter_of_the_year(date_object);
     $(this).data('selected', $(this).data('dates')[index]);
     var charts = $('body').data('publicCharts');
@@ -33,6 +34,12 @@
       var chart = charts[i].chart;
       var dates = charts[i].dates;
       chart.load({ columns: dates[selected_date]['data']});
+      // only valid for donut charts
+      chart.$.main.select(".bb-chart-arcs-title").text(dates[selected_date]['total']);
+    });
+    // update any dependent text
+    $('.jSliderDependentText').each(function(i){
+      $(this).text($(this).data('numbers')[selected_date].data);
     });
   });
   $('.jQuarters').trigger('change');

@@ -6,6 +6,8 @@
 
 module PublicReports
   class HomelessPopulation < ::PublicReports::Report
+    include ActionView::Helpers::TextHelper
+    include ActionView::Helpers::NumberHelper
     acts_as_paranoid
 
     def title
@@ -102,6 +104,8 @@ module PublicReports
         time_homeless: time_homeless(population),
         time_housed: time_housed(population),
         race_chart: race_chart(population),
+        household_chart: household_chart(population),
+        average_household_size: average_household_size(population),
       }
     end
 
@@ -170,6 +174,32 @@ module PublicReports
         select(:household_id)
     end
 
+    private def child_only_household_ids(date)
+      report_scope.service_on_date(date).where.not(household_id: nil).
+        group(:household_id).
+        having(nf('count', [shs_t[:age].gteq(18)]).eq(0).and(nf('count', [shs_t[:age].lt(18)]).gt(1))).
+        select(:household_id)
+    end
+
+    private def total_for(scope, population)
+      count = if population == :adults_with_children
+        scope.select(:household_id).distinct.count
+      else
+        scope.select(:client_id).distinct.count
+      end
+
+      word = case population
+      when :veterans
+        'Veterans'
+      when :adults_with_children
+        'Households'
+      else
+        'People'
+      end
+
+      pluralize(number_with_delimiter(count), word)
+    end
+
     private def location_chart(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -181,6 +211,7 @@ module PublicReports
                 ['Permanent Housing', with_service_in_quarter(report_scope, date, population).in_project_type([3, 9, 10]).select(:client_id).distinct.count],
               ],
               title: _('Type of Housing'),
+              total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           when :homeless
             charts[date.iso8601] = {
@@ -189,6 +220,7 @@ module PublicReports
                 ['Unsheltered', with_service_in_quarter(report_scope, date, population).homeless_unsheltered.select(:client_id).distinct.count],
               ],
               title: _('Where People are Staying'),
+              total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           else
             charts[date.iso8601] = {
@@ -197,6 +229,7 @@ module PublicReports
                 ['Housed', with_service_in_quarter(report_scope, date, population).residential_non_homeless.select(:client_id).distinct.count],
               ],
               title: _('Homeless vs Housed'),
+              total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           end
         end
@@ -236,6 +269,7 @@ module PublicReports
                 ]
               end,
             title: _('Gender'),
+            total: total_for(with_service_in_quarter(report_scope, date, population), population),
           }
         end
       end
@@ -260,8 +294,9 @@ module PublicReports
               client_ids << client_id
             end
           charts[date.iso8601] = {
-            data: data.map { |age, ids| [age, ids.count] },
+            data: data.map { |age, ids| [age_name(age), ids.count] },
             title: _('Age'),
+            total: total_for(with_service_in_quarter(report_scope, date, population), population),
           }
         end
       end
@@ -273,6 +308,16 @@ module PublicReports
       return 18 if age < 65
 
       65
+    end
+
+    private def age_name(age)
+      ages = {
+        0 => 'Under 18',
+        18 => '18 to 64',
+        65 => 'Over 65',
+        unknown: 'Unknown',
+      }.freeze
+      ages[age]
     end
 
     private def race_chart(population)
@@ -296,6 +341,72 @@ module PublicReports
           charts[date.iso8601] = {
             data: data.map { |race, ids| [race, ((ids.count / total_count.to_f) * 100).round] },
             title: _('Racial Composition'),
+            total: total_for(with_service_in_quarter(report_scope, date, population), population),
+          }
+        end
+      end
+    end
+
+    private def household_chart(population)
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          data = {}
+          counted_clients = Set.new
+          with_service_in_quarter(report_scope, date, population).
+            joins(client: :processed_service_history).find_each do |enrollment|
+              client = enrollment.client
+              data[client_population(enrollment, date)] ||= 0
+              data[client_population(enrollment, date)] += 1 unless counted_clients.include?(client.id)
+              counted_clients << client.id
+            end
+          charts[date.iso8601] = {
+            data: data.to_a,
+            title: _('Household Composition'),
+            total: total_for(with_service_in_quarter(report_scope, date, population), population),
+          }
+        end
+      end
+    end
+
+    private def client_population(enrollment, date)
+      # NOTE: We may eventually want child-only households
+      return 'Adult and Child' if adult_and_child_household_ids_by_date(date).include?(enrollment.household_id)
+      return 'Child Only' if child_only_household_ids_by_date(date).include?(enrollment.household_id)
+
+      'Adult Only'
+    end
+
+    private def adult_and_child_household_ids_by_date(date)
+      @adult_and_child_household_ids_by_date ||= {}
+      @adult_and_child_household_ids_by_date[date] ||= adult_and_child_household_ids(date).pluck(:household_id)
+
+      @adult_and_child_household_ids_by_date[date]
+    end
+
+    private def child_only_household_ids_by_date(date)
+      @child_only_household_ids_by_date ||= {}
+      @child_only_household_ids_by_date[date] ||= child_only_household_ids(date).pluck(:household_id)
+
+      @child_only_household_ids_by_date[date]
+    end
+
+    private def average_household_size(population)
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          data = []
+          with_service_in_quarter(report_scope, date, population).
+            where.not(household_id: nil).
+            joins(client: :processed_service_history).
+            group(:household_id).
+            select(:client_id).distinct.count.
+            each do |_, count|
+              data << count
+            end
+          data = [0] if data.empty?
+          charts[date.iso8601] = {
+            data: (data.sum.to_f / data.count).round,
+            title: _('Average Household Size'),
+            total: total_for(with_service_in_quarter(report_scope, date, population), population),
           }
         end
       end
@@ -314,8 +425,9 @@ module PublicReports
               counted_clients << client.id
             end
           charts[date.iso8601] = {
-            data: data,
+            data: data.to_a,
             title: _('Time Homeless'),
+            total: total_for(with_service_in_quarter(report_scope, date, population), population),
           }
         end
       end
@@ -349,8 +461,9 @@ module PublicReports
               counted_clients << enrollment.client_id
             end
           charts[date.iso8601] = {
-            data: data,
+            data: data.to_a,
             title: _('Time in Project'),
+            total: total_for(with_service_in_quarter(report_scope, date, population), population),
           }
         end
       end
