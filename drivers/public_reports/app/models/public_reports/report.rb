@@ -90,12 +90,29 @@ module PublicReports
       push_to_s3
     end
 
+    def view_template
+      :raw
+    end
+
+    def html_section_start(section)
+      "<!-- SECTION START #{section} -->"
+    end
+
+    def html_section_end(section)
+      "<!-- SECTION END #{section} -->"
+    end
+
+    # return only the "page" for a given section
+    def html_section(section)
+      html[/#{html_section_start(section)}(.*?)#{html_section_end(section)}/m, 1]
+    end
+
     private def generate_embed_code
       "<iframe width='500' height='400' src='#{generate_publish_url}' frameborder='0' sandbox><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
     end
 
     private def unpublish_similar
-      self.class.update_all(type: type, published_url: nil, embed_code: nil, state: 'pre-calculated')
+      self.class.update_all(type: type, published_url: nil, embed_code: nil, html: nil, state: 'pre-calculated')
     end
 
     def font_path
