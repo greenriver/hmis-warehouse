@@ -11,7 +11,7 @@
     The report is publicly available.
 
 - @report.populations.each_key do |population|
-  %p The following is available at the url: #{@report.generate_publish_url_for(population)} and can be embedded using the following code.
+  %p The following is available at the url: #{link_to(@report.generate_publish_url_for(population), @report.generate_publish_url_for(population), target: :_blank)} and can be embedded using the following code.
   %code= @report.generate_embed_code_for(population)
 
   .well

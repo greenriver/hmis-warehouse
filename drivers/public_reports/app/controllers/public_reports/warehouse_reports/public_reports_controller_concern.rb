@@ -61,7 +61,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
     end
 
     def edit
-      redirect_to action: :show if @report.published?
+      # redirect_to action: :show if @report.published?
     end
 
     def destroy

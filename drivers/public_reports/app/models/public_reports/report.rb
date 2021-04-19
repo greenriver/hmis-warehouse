@@ -104,7 +104,7 @@ module PublicReports
 
     # return only the "page" for a given section
     def html_section(section)
-      html[/#{html_section_start(section)}(.*?)#{html_section_end(section)}/m, 1]
+      html[/(#{html_section_start(section)}.*?#{html_section_end(section)})/m, 1]
     end
 
     private def generate_embed_code
