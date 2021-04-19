@@ -228,6 +228,13 @@ class Role < ApplicationRecord
           'Data Sources & Inventory',
         ],
       },
+      can_import_project_groups: {
+        description: 'Import groupings of projects, this process is un-aware of user project-group associations',
+        administrative: true,
+        categories: [
+          'Data Sources & Inventory',
+        ],
+      },
       can_edit_project_groups: {
         description: 'Setup groupings of projects, mostly for reporting',
         administrative: true,

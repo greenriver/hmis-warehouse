@@ -7,9 +7,13 @@
   .col-sm-8
     = render 'search_form'
   .col-sm-4.text-right
-    = link_to new_project_group_path, class: 'btn btn-primary' do
+    = link_to new_project_group_path, class: 'btn btn-primary mb-2' do
       %span.icon-plus
       Add Project Group
+    - if can_import_project_groups?
+      = link_to maintenance_project_groups_path, class: 'btn btn-secondary' do
+        %span.icon-plus
+        Import Project Groups
 .alert.alert-info
   %ul
     %li Project Groups are used in some reporting contexts to run project-based reports against multiple related projects.
