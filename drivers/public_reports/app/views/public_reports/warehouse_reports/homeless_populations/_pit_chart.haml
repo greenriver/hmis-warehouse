@@ -24,12 +24,15 @@
         }
       },
       y: {
+        min: 0,
         padding: {
+          bottom: 0,
           top: 20
         },
         tick: {
           culling: true,
-          show: false
+          show: false,
+          format: d3.format("~s")
         }
       }
     },
