@@ -64,6 +64,8 @@ module CoreDemographicsReport::WarehouseReports
         render partial: @section, layout: false if request.xhr?
       else
         render status: :accepted, plain: 'Loading'
+        # FIXME: prevent this from spawning another fork if the first is still
+        # running
         # Force the calculation to occur asynchronously
         fork do
           render_to_string(partial: @section, layout: false)
