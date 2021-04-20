@@ -32,6 +32,11 @@ module CombinedClientPathsGenerator
     end
     helper_method :careplans_path_generator
 
+    def qas_path_generator
+      health_path_generator + [:qualifying_activities]
+    end
+    helper_method :qas_path_generator
+
     def careplan_path_generator
       health_path_generator + [:careplan]
     end
