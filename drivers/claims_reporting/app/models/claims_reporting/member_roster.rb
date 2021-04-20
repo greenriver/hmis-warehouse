@@ -15,6 +15,11 @@ module ClaimsReporting
              foreign_key: 'member_id',
              class_name: 'ClaimsReporting::MemberEnrollmentRoster'
 
+    has_many :medical_claims,
+             primary_key: 'member_id',
+             foreign_key: 'member_id',
+             class_name: 'ClaimsReporting::MedicalClaim'
+
     include ClaimsReporting::CsvHelpers
 
     # Members with a ::Health::PatientReferral who
