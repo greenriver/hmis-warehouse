@@ -63,8 +63,11 @@ module CoreDemographicsReport::WarehouseReports
         @section = @report.section_subpath + @section
         render partial: @section, layout: false if request.xhr?
       else
-        render_to_string(partial: @section, layout: false)
         render status: :accepted, plain: 'Loading'
+        # Force the calculation to occur asynchronously
+        fork do
+          render_to_string(partial: @section, layout: false)
+        end
       end
     end
 
