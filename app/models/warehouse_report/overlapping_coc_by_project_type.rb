@@ -59,7 +59,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   def coc_shape_by_cocnum
     GrdaWarehouse::Shape::CoC.where(cocnum: coc_codes).index_by(&:cocnum)
   end
-  # memoize :coc_shape_by_cocnum
+  memoize :coc_shape_by_cocnum
 
   def coc1
     coc_shape_by_cocnum[@coc_code_1]
@@ -74,7 +74,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       id: overlapping_client_ids.map(&:to_i),
     ).select(*['id', 'DOB', 'Gender', 'Ethnicity'] + GrdaWarehouse::Hud::Client.race_fields)
   end
-  # memoize :shared_clients
+  memoize :shared_clients
 
   def coc_client_ids(coc_code)
     scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -91,7 +91,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
 
     scope.distinct.pluck(:client_id, :computed_project_type)
   end
-  # memoize :coc_client_ids
+  memoize :coc_client_ids
 
   # returns [[client_id, project_type]]
   def client_project_type_pairs
@@ -106,7 +106,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
-  # memoize :overlap_by_project_type
+  memoize :overlap_by_project_type
 
   def service_histories(project_type: nil)
     scope = GrdaWarehouse::ServiceHistoryService.joins(
@@ -144,7 +144,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
-  # memoize :dates_by_p_type
+  memoize :dates_by_p_type
 
   def overlapping_client_ids
     (coc_client_ids(@coc_code_1).map(&:first) & coc_client_ids(@coc_code_2).map(&:first))
@@ -308,7 +308,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
-  # memoize :concurrent_by_type
+  memoize :concurrent_by_type
 
   def async_by_type
     {}.tap do |async|
@@ -317,5 +317,5 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
-  # memoize :async_by_type
+  memoize :async_by_type
 end
