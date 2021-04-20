@@ -59,7 +59,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   def coc_shape_by_cocnum
     GrdaWarehouse::Shape::CoC.where(cocnum: coc_codes).index_by(&:cocnum)
   end
-  memoize :coc_shape_by_cocnum
+  # memoize :coc_shape_by_cocnum
 
   def coc1
     coc_shape_by_cocnum[@coc_code_1]
@@ -74,7 +74,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       id: overlapping_client_ids.map(&:to_i),
     ).select(*['id', 'DOB', 'Gender', 'Ethnicity'] + GrdaWarehouse::Hud::Client.race_fields)
   end
-  memoize :shared_clients
+  # memoize :shared_clients
 
   def coc_client_ids(coc_code)
     scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -91,7 +91,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
 
     scope.distinct.pluck(:client_id, :computed_project_type)
   end
-  memoize :coc_client_ids
+  # memoize :coc_client_ids
 
   # returns [[client_id, project_type]]
   def client_project_type_pairs
@@ -106,7 +106,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
-  memoize :overlap_by_project_type
+  # memoize :overlap_by_project_type
 
   def service_histories(project_type: nil)
     scope = GrdaWarehouse::ServiceHistoryService.joins(
@@ -144,7 +144,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
-  memoize :dates_by_p_type
+  # memoize :dates_by_p_type
 
   def overlapping_client_ids
     (coc_client_ids(@coc_code_1).map(&:first) & coc_client_ids(@coc_code_2).map(&:first))
@@ -177,24 +177,55 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     client_num = 0
     clients_by_id = shared_clients.index_by(&:id)
     relevant_client_ids = @non_overlapping ? non_overlapping_client_ids : overlapping_client_ids
-    service_histories.where(
-      client_id: relevant_client_ids,
-    ).preload(
-      service_history_enrollment: {
-        project: :project_cocs,
-      },
-    ).group_by(&:client_id).map do |client_id, services|
-      client = clients_by_id[client_id]
-      {
-        label: "Client ##{client_num += 1}",
-        gender: client.gender,
-        age_group: age_group(client),
-        race: client.race_description,
-        ethnicity: ::HUD.ethnicity(client.Ethnicity),
-        enrollments: enrollment_details(services),
-        client_id: client.to_param,
-      }
-    end
+    service_histories.where(client_id: relevant_client_ids).
+      group_by(&:client_id).map do |client_id, _|
+        client = clients_by_id[client_id]
+        {
+          label: "Client ##{client_num += 1}",
+          gender: client.gender,
+          age_group: age_group(client),
+          race: client.race_description,
+          ethnicity: ::HUD.ethnicity(client.Ethnicity),
+          client_id: client.to_param,
+        }
+      end
+  end
+
+  def limited_details_hash
+    {
+      start_date: start_date.iso8601,
+      end_date: end_date.iso8601,
+      cocs: [coc1, coc2].map do |coc|
+        { code: coc.cocnum, name: coc.cocname }
+      end,
+      clients: limited_details_clients,
+    }
+  end
+
+  def limited_details_clients
+    client_num = 0
+    clients_by_id = shared_clients.index_by(&:id)
+    relevant_client_ids = @non_overlapping ? non_overlapping_client_ids : overlapping_client_ids
+    # force this to only return data for the first 50, beyond that is unnecessary
+    relevant_client_ids = relevant_client_ids[0..50]
+    service_histories.where(client_id: relevant_client_ids).
+      preload(
+        service_history_enrollment: {
+          project: :project_cocs,
+        },
+      ).
+      group_by(&:client_id).map do |client_id, services|
+        client = clients_by_id[client_id]
+        {
+          label: "Client ##{client_num += 1}",
+          gender: client.gender,
+          age_group: age_group(client),
+          race: client.race_description,
+          ethnicity: ::HUD.ethnicity(client.Ethnicity),
+          enrollments: enrollment_details(services),
+          client_id: client.to_param,
+        }
+      end
   end
 
   # FIXME: stolen from GrdaWarehouse::ServiceHistoryEnrollment.available_age_ranges
@@ -277,7 +308,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
-  memoize :concurrent_by_type
+  # memoize :concurrent_by_type
 
   def async_by_type
     {}.tap do |async|
@@ -286,5 +317,5 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
-  memoize :async_by_type
+  # memoize :async_by_type
 end
