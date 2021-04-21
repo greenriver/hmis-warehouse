@@ -8,8 +8,9 @@
         %strong
           - compacted = value.compact.delete_if(&:blank?)
           - compacted[0..4].each do |project_id|
-            - project = GrdaWarehouse::Hud::Project.find(project_id)
-            = link_to_if can_view_projects?, project.name, project_path(project_id)
+            - project = GrdaWarehouse::Hud::Project.find_by(id: project_id)
+            - if project
+              = link_to_if can_view_projects?, project.name, project_path(project_id)
             %br
           - if compacted.size > 5
             - tooltip = compacted.map { |project_id| GrdaWarehouse::Hud::Project.find(project_id).name }.join('<br />').html_safe
