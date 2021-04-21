@@ -1,6 +1,7 @@
 module ClaimsReporting
   class MemberEnrollmentRoster < HealthBase
     phi_patient :member_id
+    belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
 
     belongs_to :member_roster,
                primary_key: 'member_id',
@@ -106,11 +107,21 @@ module ClaimsReporting
     # calculate the number of days engaged for the enrollment
     # note the span end when the calculation was done
 
-    def maintain_engagement!
-      self.class.unprocessed_engagement.find_in_batches do |enrollment_batch|
+    def self.maintain_engagement!
+      engagement_claims_by_member_id = {}.tap do |claim_dates|
+        ClaimsReporting::MedicalClaim.engaging.
+          distinct.
+          pluck(:member_id, :service_start_date).
+          each do |member_id, service_start_date|
+            claim_dates[member_id] ||= []
+            claim_dates[member_id] << service_start_date
+          end
+      end
+
+      unprocessed_engagement.find_in_batches do |enrollment_batch|
         update_batch = []
         enrollment_batch.each do |enrollment|
-          claim_dates = engagement_claims_for(enrollment.member_id)
+          claim_dates = engagement_claims_by_member_id[enrollment.member_id]
           next unless claim_dates
 
           # Find the most-recent claim date before the end of the enrollment
@@ -127,31 +138,19 @@ module ClaimsReporting
           )
           update_batch << enrollment
         end
-        self.class.import(update_batch, on_duplicate_key_update: [:engagement_date, :engaged_days, :enrollment_end_at_engagement_calculation])
+        import(update_batch, on_duplicate_key_update: [:engagement_date, :engaged_days, :enrollment_end_at_engagement_calculation])
       end
       # Add zeros for later calculations
-      self.class.where(engagement_date: nil).update_all(engaged_days: 0)
+      where(engagement_date: nil).update_all(engaged_days: 0)
     end
 
-    private def engagement_claims_for(medicaid_id)
-      @engagement_claims_for ||= {}.tap do |claim_dates|
-        ClaimsReporting::MedicalClaim.engaging.
-          distinct.
-          pluck(:member_id, :service_start_date).
-          each do |member_id, service_start_date|
-            claim_dates[member_id] ||= []
-            claim_dates[member_id] << service_start_date
-          end
-      end
-      @engagement_claims_for[medicaid_id]
-    end
-
-    def maintain_first_claim_date!
+    def self.maintain_first_claim_date!
+      min_claim_date_for = ClaimsReporting::MedicalClaim.group(:member_id).minimum(:service_start_date)
       batch = []
       # On the first enrollment per member, note the number of days since the first claim
-      self.class.distinct_on(:member_id).
+      distinct_on(:member_id).
         order(member_id: :asc, span_start_date: :asc).each do |enrollment|
-          date = min_claim_date_for(enrollment.member_id)
+          date = min_claim_date_for[enrollment.member_id]
           next unless date
 
           enrollment.first_claim_date = date
@@ -159,25 +158,20 @@ module ClaimsReporting
           enrollment.pre_engagement_days = ([enrollment.engagement_date, enrollment.span_start_date, Date.current].compact.min - [date, enrollment.span_start_date].min).to_i
           batch << enrollment
         end
-      self.class.transaction do
-        self.class.update_all(first_claim_date: nil, pre_engagement_days: 0)
-        self.class.import(batch, on_duplicate_key_update: [:first_claim_date, :pre_engagement_days])
+      transaction do
+        update_all(first_claim_date: nil, pre_engagement_days: 0)
+        import(batch, on_duplicate_key_update: [:first_claim_date, :pre_engagement_days])
       end
       # On all enrollments that still have 0 days pre-engaged, note time not engaged
       # This will include any enrollment where there are actually 0 days pre-engagement, and those that aren't the first enrollment
       batch = []
-      self.class.where(pre_engagement_days: 0).each do |enrollment|
+      where(pre_engagement_days: 0).each do |enrollment|
         enrollment.pre_engagement_days = enrollment.span_mem_days - enrollment.engaged_days
         batch << enrollment
       end
-      self.class.transaction do
-        self.class.import(batch, on_duplicate_key_update: [:pre_engagement_days])
+      transaction do
+        import(batch, on_duplicate_key_update: [:pre_engagement_days])
       end
-    end
-
-    private def min_claim_date_for(medicaid_id)
-      @min_claim_date_for ||= ClaimsReporting::MedicalClaim.group(:member_id).minimum(:service_start_date)
-      @min_claim_date_for[medicaid_id]
     end
   end
 end

@@ -423,7 +423,7 @@ module ClaimsReporting
         ['Average Age', formatter.format_d(average_age)],
         ['Member Months', formatter.format_d(member_months)],
         ['Average $PMPM', formatter.number_to_currency(average_per_member_per_month_spend)],
-        ['Average Raw DxCG Score', formatter.format_d(average_raw_dxcg_score)],
+        ['Average MassHealth Risk Score', formatter.format_d(average_raw_dxcg_score)],
         ['Normalized DxCG Score', formatter.format_d(normalized_dxcg_score)],
         ['% Female', formatter.format_pct(pct_female)],
         #        ['% with Psychoses/Bipolar/Schizophrenia', formatter.format_pct(pct_with_pbd)],
