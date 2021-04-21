@@ -375,10 +375,10 @@ module ClaimsReporting
         },
         'Housing Status' => {
           'Housed at start' => 'Housed at start',
-          'Homeless at start' => 'Housed at start',
-          'Housed at end' => 'Housed at start',
-          'Homeless at end' => 'Housed at start',
-          'Ever homeless' => 'Housed at start',
+          'Homeless at start' => 'Homeless at start',
+          'Housed at end' => 'Housed at end',
+          'Homeless at end' => 'Homeless at end',
+          'Ever homeless' => 'Ever homeless',
         },
         'SSM (average initial scores)' => ::Health::SelfSufficiencyMatrixForm::SSM_QUESTION_TITLE,
       }
