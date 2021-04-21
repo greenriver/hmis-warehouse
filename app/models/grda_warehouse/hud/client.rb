@@ -643,6 +643,25 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def demographic_calculation_logic_description(attribute)
+      case attribute
+      when :veteran_status
+        'Veteran status will be yes if any source clients provided a yes response.  This can be overridden by setting the verified veteran status under CAS readiness.'
+      when :ethnicity
+        'Ethnicity reflects the most-recent response where the client answered the question.'
+      when :race
+        'Race reflects the most-recent response where the client answered the question.'
+      when :gender
+        'Gender reflects the most-recent response where the client answered the question.'
+      when :ssn
+        'SSN reflects the earliest response where SSN Data Quality was full or partial.'
+      when :dob
+        'DOB reflects the earliest response where DOB Data Quality was full or partial.'
+      when :name
+        'Name reflects the earliest response where the Name Data Quality was full or partial.'
+      end
+    end
+
     def notify_users
       NotifyUser.client_added( id ).deliver_later if send_notifications
     end
