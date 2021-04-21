@@ -3,13 +3,13 @@
   - content_for :filters_col_full do
     .row
       .col
-        = f.input :age_ranges, collection: @filter.available_age_ranges, required: false, as: :select_two, input_html: { multiple: true }
         = f.input :races, collection: HUD.races(multi_racial: true).invert, required: false,  as: :select_two, input_html: { multiple: true}, label: 'Race'
         = f.input :ethnicities, collection: HUD.ethnicities.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Ethnicity'
+        -# = f.input :food_insecurity, as: :select_two, collection: @filter.available_food_insecurities, hint: 'Limit to patients with SSM food insecurity scores below the chosen value'
       .col
-        = f.input :food_insecurity, as: :select_two, collection: @filter.available_food_insecurities, hint: 'Limit to patients with SSM food insecurity scores below the chosen value'
-        = f.input :cohort_type, as: :select_two, collection: @filter.available_cohort_types, hint: 'FIXME'
+        = f.input :age_ranges, collection: @filter.available_age_ranges, required: false, as: :select_two, input_html: { multiple: true }
         = f.input :acos, as: :select_two, collection: @filter.available_acos, input_html: { multiple: true }, label: 'ACO'
+        -# = f.input :cohort_type, as: :select_two, collection: @filter.available_cohort_types, hint: 'FIXME'
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary']
 

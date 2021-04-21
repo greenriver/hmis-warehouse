@@ -168,14 +168,19 @@ module ClaimsReporting
 
     private def cohort_scope(engaged_for_days)
       scope = ClaimsReporting::MemberEnrollmentRoster.engaged_for(engaged_for_days)
+
+      # Apply filters via warehouse clients... This is the only place linking this to warehouse_db
       # NOTE: these all expect scope to be something that can be joined to client so we'll
       # use data_source, since everyone has to have one of those
       # They also expect @filter to be set
       @filter = filter
-
-      # apply filters via warehouse clients... This
-      # is the only place linking this to warehouse_db
-      unless Rails.env.development?
+      filtered_by_client = (
+        filter.age_ranges.present? ||
+        filter.genders.present? ||
+        filter.races.present? ||
+        filter.ethnicities.present?
+      )
+      if filtered_by_client
         hmis_scope = ::GrdaWarehouse::DataSource.destination.joins(:clients)
         hmis_scope = filter_for_age_ranges(hmis_scope) if filter.age_ranges.present?
         hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
@@ -183,8 +188,10 @@ module ClaimsReporting
         hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
         client_ids = hmis_scope.pluck(c_t[:id])
         scope = scope.joins(:patient).merge(::Health::Patient.where(client_id: client_ids)) if client_ids.any?
-        scope = scope.joins(patient: :patient_referral).merge(::Health::PatientReferral.at_acos(filter.acos)) if filter.acos.present?
       end
+
+      # and via patient referral data
+      scope = scope.joins(patient: :patient_referral).merge(::Health::PatientReferral.at_acos(filter.acos)) if filter.acos.present?
 
       scope
     end
