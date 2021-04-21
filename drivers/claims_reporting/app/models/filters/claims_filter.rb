@@ -24,7 +24,7 @@ module Filters
     def available_cohort_types
       {
         'Engaged History' => :engaged_history,
-        #        'Selected Period' => :selected_period,
+        'Selected Period' => :selected_period,
       }
     end
 

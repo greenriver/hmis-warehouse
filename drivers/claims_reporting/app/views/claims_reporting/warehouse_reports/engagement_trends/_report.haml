@@ -19,6 +19,33 @@
           - report.cohorts.each do |corhort_id, cohort|
             %td.text-right= f.send(formatter, report.summary(corhort_id)[key.to_s])
 
+%h3 SDoH Metrics
+.card.mb-4
+  %table.table.table-sm.table-striped.table-bordered.mb-0
+    %thead
+      %tr
+        %th SDoH Categories
+        - report.cohorts.each do |_, cohort|
+          %th.text-center= cohort[:title]
+    %tbody
+      - report.results[report.cohorts.keys.first.to_s]['sdoh'].each do |section|
+        - title = section.first
+        - sub_categories = report.class.sdoh_categories[title].values
+        %tr
+          %th= title
+          - report.cohorts.keys.each do |_|
+            %td
+
+        - report.cohorts.keys.each.with_index do |key, i|
+
+          - sub_categories.each do |cat|
+            - if i.zero?
+              %tr
+                %td.pl-4= cat
+                - report.cohorts.keys.each do |cohort_key|
+                  - sdoh = report.results[cohort_key.to_s]['sdoh']
+                  %td= sdoh[title][cat]
+
 %h3 Claims
 .card.mb-4
   %table.table.table-sm.table-striped.table-bordered.mb-0

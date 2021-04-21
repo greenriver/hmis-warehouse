@@ -7,6 +7,7 @@ require 'memoist'
 module ClaimsReporting
   class EngagementReport
     include ActiveModel::Model
+    include ArelHelper
     extend Memoist
     attr_reader :member_roster, :enrollment_roster, :medical_claims, :rx_claims, :claim_date_range
 
@@ -34,9 +35,20 @@ module ClaimsReporting
 
       @enrollment_roster = cohort[:scope]
 
-      @member_roster = ClaimsReporting::MemberRoster.where(member_id: @enrollment_roster.select(:member_id))
-
-      @medical_claims = ClaimsReporting::MedicalClaim.joins(:member_roster).merge(@member_roster)
+      if filter.cohort_type == :engaged_history
+        @medical_claims = ClaimsReporting::MedicalClaim.joins(:member_roster).
+          where(member_id: @enrollment_roster.select(:member_id))
+        @member_roster = ClaimsReporting::MemberRoster.
+          where(member_id: @medical_claims.select(:member_id))
+      elsif filter.cohort_type == :selected_period
+        @medical_claims = ClaimsReporting::MedicalClaim.joins(:member_roster).
+          where(
+            member_id: @enrollment_roster.select(:member_id),
+            engaged_days: cohort[:day_range],
+          )
+        @member_roster = ClaimsReporting::MemberRoster.
+          where(member_id: @medical_claims.select(:member_id))
+      end
 
       @claim_date_range = (@medical_claims.minimum(:service_start_date) || self.class.max_date_range.min) .. (
            @medical_claims.maximum(:service_start_date) || self.class.max_date_range.max)
@@ -246,6 +258,107 @@ module ClaimsReporting
       return [] unless selected_members&.positive? && report_years.positive?
 
       connection.select_all claims_query
+    end
+
+    def sdoh_rows
+      {
+        'Race' => race_rows,
+        'Ethnicity' => ethnicity_rows,
+        'Primary Language' => primary_language_rows,
+        'Gender' => gender_rows,
+        'Housing Status' => housing_status_rows,
+        'SSM (average initial scores)' => ssm_rows,
+      }
+    end
+
+    def client_ids
+      @client_ids ||= member_roster.joins(:patient).distinct.pluck(:client_id)
+    end
+
+    def patient_ids
+      @patient_ids ||= member_roster.joins(:patient).select(hp_t[:id])
+    end
+
+    def race_rows
+      ClaimsReporting::EngagementTrends.sdoh_categories['Race'].map do |race_scope, name|
+        [
+          name,
+          GrdaWarehouse::Hud::Client.where(id: client_ids).send(race_scope).count,
+        ]
+      end.to_h
+    end
+
+    def ethnicity_rows
+      ClaimsReporting::EngagementTrends.sdoh_categories['Ethnicity'].map do |ethnicity_scope, name|
+        [
+          name,
+          GrdaWarehouse::Hud::Client.where(id: client_ids).send(ethnicity_scope).count,
+        ]
+      end.to_h
+    end
+
+    def primary_language_rows
+      languages = ClaimsReporting::EngagementTrends.sdoh_categories['Primary Language'].keys.map do |k|
+        [
+          k,
+          0,
+        ]
+      end.to_h
+      patients = Set.new
+      ::Health::ComprehensiveHealthAssessment.latest_completed.where(patient_id: patient_ids).find_each do |cha|
+        language = cha.answer(:b_q3)
+        next if language.blank?
+
+        languages[language] ||= 0
+        languages[language] += 1 unless patients.include?(cha.patient_id)
+        patients << cha.patient_id
+      end
+      languages
+    end
+
+    def housing_status_rows
+      housing_situations = ClaimsReporting::EngagementTrends.sdoh_categories['Housing Status'].keys.map do |k|
+        [
+          k,
+          0,
+        ]
+      end.to_h
+      GrdaWarehouse::Hud::Client.where(id: client_ids).find_each do |client|
+        stati = client.health_housing_stati
+        next unless stati.present?
+
+        housing_situations['Housed at start'] += 1 if stati.first[:score] >= 4
+        housing_situations['Homeless at start'] += 1 if stati.first[:score] < 4
+        housing_situations['Housed at end'] += 1 if stati.last[:score] >= 4
+        housing_situations['Homeless at end'] += 1 if stati.last[:score] < 4
+        housing_situations['Ever homeless'] += 1 if stati.map { |s| s[:score] }.any? { |s| s < 4 }
+      end
+      housing_situations
+    end
+
+    def gender_rows
+      ClaimsReporting::EngagementTrends.sdoh_categories['Gender'].map do |gender_scope, name|
+        [
+          name,
+          GrdaWarehouse::Hud::Client.where(id: client_ids).send(gender_scope).count,
+        ]
+      end.to_h
+    end
+
+    def ssm_rows
+      ssm_class = ::Health::SelfSufficiencyMatrixForm
+      total_ssms = ssm_class.first_completed.where(patient_id: patient_ids).count
+      {}.tap do |rows|
+        ClaimsReporting::EngagementTrends.sdoh_categories['SSM (average initial scores)'].each do |score_attr, label|
+          average = if total_ssms.positive?
+            ssm_class.first_completed.where(patient_id: patient_ids).sum(score_attr) / total_ssms
+          else
+            0
+          end
+
+          rows[label] = average
+        end
+      end
     end
 
     COS_ROLLUPS = {

@@ -924,6 +924,26 @@ module Health
         )
     end
 
+    # first completed CHA form for each patient
+    scope :first_completed, -> do
+      where(
+        id: order(
+          :patient_id,
+          completed_at: :asc
+        ).group(:patient_id, :id).distinct_on(:patient_id).select(:id)
+      )
+    end
+
+    # most recent completed CHA form for each patient
+    scope :latest_completed, -> do
+      where(
+        id: order(
+          :patient_id,
+          completed_at: :desc
+        ).group(:patient_id, :id).distinct_on(:patient_id).select(:id)
+      )
+    end
+
     attr_accessor :reviewed_by_supervisor, :completed, :file
 
     attr_accessor *QUESTION_ANSWER_OPTIONS.keys
