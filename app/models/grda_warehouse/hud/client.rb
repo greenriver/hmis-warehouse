@@ -474,6 +474,18 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :multi_racial, -> do
+      columns = [
+        c_t[:AmIndAKNative],
+        c_t[:Asian],
+        c_t[:BlackAfAmerican],
+        c_t[:NativeHIOtherPacific],
+        c_t[:White],
+      ]
+      # anyone with no unknowns and at least two yeses
+      where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
+    end
+
     scope :ethnicity_non_hispanic_non_latino, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
@@ -512,6 +524,26 @@ module GrdaWarehouse::Hud
           where(c_t[:Ethnicity].eq(99)).
           select(:destination_id)
       )
+    end
+
+    scope :gender_female, -> do
+      where(Gender: 0)
+    end
+
+    scope :gender_male, -> do
+      where(Gender: 1)
+    end
+
+    scope :gender_mtf, -> do
+      where(Gender: 2)
+    end
+
+    scope :gender_tfm, -> do
+      where(Gender: 3)
+    end
+
+    scope :gender_non_conforming, -> do
+      where(Gender: 4)
     end
 
     ####################
@@ -628,6 +660,25 @@ module GrdaWarehouse::Hud
         return "#{destination_string} (#{last_exit.ExitDate})"
       else
         return "None"
+      end
+    end
+
+    def demographic_calculation_logic_description(attribute)
+      case attribute
+      when :veteran_status
+        'Veteran status will be yes if any source clients provided a yes response.  This can be overridden by setting the verified veteran status under CAS readiness.'
+      when :ethnicity
+        'Ethnicity reflects the most-recent response where the client answered the question.'
+      when :race
+        'Race reflects the most-recent response where the client answered the question.'
+      when :gender
+        'Gender reflects the most-recent response where the client answered the question.'
+      when :ssn
+        'SSN reflects the earliest response where SSN Data Quality was full or partial.'
+      when :dob
+        'DOB reflects the earliest response where DOB Data Quality was full or partial.'
+      when :name
+        'Name reflects the earliest response where the Name Data Quality was full or partial.'
       end
     end
 

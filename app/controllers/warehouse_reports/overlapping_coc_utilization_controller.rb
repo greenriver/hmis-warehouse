@@ -84,6 +84,24 @@ module WarehouseReports
       bad_request(e.message)
     end
 
+    def clients
+      @report = load_overlapping_coc_by_project_type_report(project_type: params.dig(:project_type))
+      @details = Rails.cache.fetch(
+        @report.cache_key.merge(user_id: current_user.id, view: :limited_details_hash, rev: CACHE_VERSION),
+        expires_in: CACHE_LIFETIME,
+      ) do
+        @report.limited_details_hash
+      end
+      layout = if request.xhr?
+        'content_only'
+      else
+        'application'
+      end
+      render clients_warehouse_reports_overlapping_coc_utilization_index_path, layout: layout
+    rescue WarehouseReport::OverlappingCocByProjectType::Error => e
+      bad_request(e.message)
+    end
+
     private def load_overlapping_coc_by_project_type_report(project_type: nil)
       WarehouseReport::OverlappingCocByProjectType.new(
         coc_code_1: filters.coc1&.cocnum,

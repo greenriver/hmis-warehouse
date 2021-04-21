@@ -1,5 +1,6 @@
 :ruby
   f = ClaimsReporting::Formatter.new
+  highlights_only = !(params[:details].to_s =~ /\A1|t|y/i)
 %p
   Data shown reflects claims for services starting between #{report.claim_date_range.first} and #{report.claim_date_range.last} and paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
 %h3 Patients
@@ -18,6 +19,33 @@
           - report.cohorts.each do |corhort_id, cohort|
             %td.text-right= f.send(formatter, report.summary(corhort_id)[key.to_s])
 
+%h3 SDoH Metrics
+.card.mb-4
+  %table.table.table-sm.table-striped.table-bordered.mb-0
+    %thead
+      %tr
+        %th SDoH Categories
+        - report.cohorts.each do |_, cohort|
+          %th.text-center= cohort[:title]
+    %tbody
+      - report.results[report.cohorts.keys.first.to_s]['sdoh'].each do |section|
+        - title = section.first
+        - sub_categories = report.class.sdoh_categories[title].values
+        %tr
+          %th= title
+          - report.cohorts.keys.each do |_|
+            %td
+
+        - report.cohorts.keys.each.with_index do |key, i|
+
+          - sub_categories.each do |cat|
+            - if i.zero?
+              %tr
+                %td.pl-4= cat
+                - report.cohorts.keys.each do |cohort_key|
+                  - sdoh = report.results[cohort_key.to_s]['sdoh']
+                  %td= sdoh[title][cat]
+
 %h3 Claims
 .card.mb-4
   %table.table.table-sm.table-striped.table-bordered.mb-0
@@ -34,17 +62,19 @@
       - report.detail_row_headers.group_by(&:first).each do |cos_rollup, rollup_rows|
         - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'AAAA'}.each_with_index do |row, idx|
           :ruby
-            rollup_label = report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
             category_code = row['cde_cos_category']
+            next if highlights_only && !category_code.in?(report.highlighted_categories)
+
+            rollup_label = report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
             category_label = report.cos_description(category_code).presence || ''
             sentence_label = (category_label.presence || rollup_label).downcase.gsub(/all claims/,'total claims')
-          %tr{class: ('table-primary' if category_code.in? report.highlighted_categories)}
+          %tr{class: ('table-primary' if !highlights_only && category_code.in?(report.highlighted_categories))}
             - if category_label.blank?
               %th{axis: :row}= rollup_label
             - else
-              %td.pl-4{axis: :row}
+              %td{axis: :row, class: ('pl-4' if !highlights_only)}
                 = category_label
-                = category_code
+                %nobr= category_code
             - report.cohorts.keys.each_with_index do |cohort_id, idx|
               :ruby
                 cohort = report.cohorts[cohort_id]

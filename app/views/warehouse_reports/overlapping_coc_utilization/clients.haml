@@ -1,0 +1,9 @@
+:scss
+  [data-toggle="tooltip"] {
+    cursor: pointer
+  }
+
+%h2.mb-5 Client Details Over Time
+.mb-5= render 'coc_legend'
+- @details[:clients].each.with_index do |data, idx|
+  = render 'client_card', data: data, id: idx

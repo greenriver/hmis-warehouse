@@ -177,24 +177,55 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     client_num = 0
     clients_by_id = shared_clients.index_by(&:id)
     relevant_client_ids = @non_overlapping ? non_overlapping_client_ids : overlapping_client_ids
-    service_histories.where(
-      client_id: relevant_client_ids,
-    ).preload(
-      service_history_enrollment: {
-        project: :project_cocs,
-      },
-    ).group_by(&:client_id).map do |client_id, services|
-      client = clients_by_id[client_id]
-      {
-        label: "Client ##{client_num += 1}",
-        gender: client.gender,
-        age_group: age_group(client),
-        race: client.race_description,
-        ethnicity: ::HUD.ethnicity(client.Ethnicity),
-        enrollments: enrollment_details(services),
-        client_id: client.to_param,
-      }
-    end
+    service_histories.where(client_id: relevant_client_ids).
+      group_by(&:client_id).map do |client_id, _|
+        client = clients_by_id[client_id]
+        {
+          label: "Client ##{client_num += 1}",
+          gender: client.gender,
+          age_group: age_group(client),
+          race: client.race_description,
+          ethnicity: ::HUD.ethnicity(client.Ethnicity),
+          client_id: client.to_param,
+        }
+      end
+  end
+
+  def limited_details_hash
+    {
+      start_date: start_date.iso8601,
+      end_date: end_date.iso8601,
+      cocs: [coc1, coc2].map do |coc|
+        { code: coc.cocnum, name: coc.cocname }
+      end,
+      clients: limited_details_clients,
+    }
+  end
+
+  def limited_details_clients
+    client_num = 0
+    clients_by_id = shared_clients.index_by(&:id)
+    relevant_client_ids = @non_overlapping ? non_overlapping_client_ids : overlapping_client_ids
+    # force this to only return data for the first 50, beyond that is unnecessary
+    relevant_client_ids = relevant_client_ids[0..50]
+    service_histories.where(client_id: relevant_client_ids).
+      preload(
+        service_history_enrollment: {
+          project: :project_cocs,
+        },
+      ).
+      group_by(&:client_id).map do |client_id, services|
+        client = clients_by_id[client_id]
+        {
+          label: "Client ##{client_num += 1}",
+          gender: client.gender,
+          age_group: age_group(client),
+          race: client.race_description,
+          ethnicity: ::HUD.ethnicity(client.Ethnicity),
+          enrollments: enrollment_details(services),
+          client_id: client.to_param,
+        }
+      end
   end
 
   # FIXME: stolen from GrdaWarehouse::ServiceHistoryEnrollment.available_age_ranges

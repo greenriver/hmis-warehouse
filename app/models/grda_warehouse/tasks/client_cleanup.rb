@@ -453,7 +453,7 @@ module GrdaWarehouse::Tasks
       known_values = [0, 1, 2, 3, 4]
       known_value_gender_clients = source_clients.select{|sc| known_values.include?(sc[:Gender])}
       if !known_values.include?(dest_attr[:Gender]) || known_value_gender_clients.any?
-        known_value_gender_clients = source_clients if known_value_gender_clients.none? #if none have known values we consider them all in the sort test
+        known_value_gender_clients = source_clients if known_value_gender_clients.none? # if none have known values we consider them all in the sort test
         dest_attr[:Gender] = known_value_gender_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:Gender]
       end
       dest_attr

@@ -64,6 +64,26 @@ module Health
     has_one :health_file, class_name: 'Health::SsmFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 
+    # first completed SSM form for each patient
+    scope :first_completed, -> do
+      where(
+        id: order(
+          :patient_id,
+          completed_at: :asc
+        ).group(:patient_id, :id).distinct_on(:patient_id).select(:id)
+      )
+    end
+
+    # most recent completed SSM form for each patient
+    scope :latest_completed, -> do
+      where(
+        id: order(
+          :patient_id,
+          completed_at: :desc
+        ).group(:patient_id, :id).distinct_on(:patient_id).select(:id)
+      )
+    end
+
     scope :in_progress, -> { where(completed_at: nil) }
     scope :completed, -> { where.not completed_at: nil }
     scope :incomplete, -> { where(completed_at: nil)}
