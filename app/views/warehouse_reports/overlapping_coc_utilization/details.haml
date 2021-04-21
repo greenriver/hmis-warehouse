@@ -24,7 +24,9 @@
   %h2 Client Demographic Breakdown
   = render 'demographics_rollups'
 
-%h2.mb-5 Client Details Over Time
-.mb-5= render 'coc_legend'
-- @details[:clients].each.with_index do |data, idx|
-  = render 'client_card', data: data, id: idx
+.rollup{data: {partial: :clients}}
+  %p.well.text-center.jRemoveWhenComplete Loading...
+= content_for :page_js do
+  :javascript
+    var section_path = "#{warehouse_reports_overlapping_coc_utilization_index_path}/";
+    var sections = new App.Sections.Loader($('.rollup'), section_path, #{link_params.to_json.html_safe});
