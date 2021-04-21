@@ -69,7 +69,7 @@ module ClaimsReporting
       # the mock showed multiple age ranges
       # and its unclear if we mean to allow that
       # or at what date we measure a persons age
-      raise 'FIXME'
+      raise 'FIXME: filter_for_age is not yet supported'
 
       scope # rubocop:disable Lint/UnreachableCode
     end
