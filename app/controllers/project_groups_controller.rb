@@ -6,6 +6,7 @@
 
 class ProjectGroupsController < ApplicationController
   before_action :require_can_edit_project_groups!
+  before_action :require_can_import_project_groups!, only: [:maintenance, :import]
   before_action :set_project_group, only: [:edit, :update]
   before_action :set_access, only: [:edit, :update]
 
@@ -54,6 +55,21 @@ class ProjectGroupsController < ApplicationController
   end
 
   def destroy
+  end
+
+  def maintenance
+  end
+
+  def import
+    file = maintenance_params[:file]
+    errors = project_group_source.import_csv(file)
+    flash[:error] = errors.join('. ') if errors.any?
+
+    redirect_to action: :maintenance
+  end
+
+  private def maintenance_params
+    params.require(:import).permit(:file)
   end
 
   def group_params
