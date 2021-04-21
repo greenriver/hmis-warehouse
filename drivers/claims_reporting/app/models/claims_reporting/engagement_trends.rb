@@ -214,7 +214,7 @@ module ClaimsReporting
         scope = scope.joins(:patient).merge(
           ::Health::Patient.where(
             id: ::Health::SelfSufficiencyMatrixForm.first_completed.where(
-              food_score: (..filter.food_insecurity.to_i),
+              food_score: (0..filter.food_insecurity.to_i),
             ),
           ),
         )
