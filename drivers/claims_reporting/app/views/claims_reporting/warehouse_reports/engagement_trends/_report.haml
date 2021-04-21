@@ -1,6 +1,6 @@
 :ruby
   f = ClaimsReporting::Formatter.new
-  highlights_only = true
+  highlights_only = !(params[:details].to_s =~ /\A1|t|y/i)
 %p
   Data shown reflects claims for services starting between #{report.claim_date_range.first} and #{report.claim_date_range.last} and paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
 %h3 Patients
@@ -45,7 +45,7 @@
             - if category_label.blank?
               %th{axis: :row}= rollup_label
             - else
-              %td.pl-4{axis: :row}
+              %td{axis: :row, class: ('pl-4' if !highlights_only)}
                 = category_label
                 %nobr= category_code
             - report.cohorts.keys.each_with_index do |cohort_id, idx|
