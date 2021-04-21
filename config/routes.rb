@@ -623,6 +623,8 @@ Rails.application.routes.draw do
   resources :project_cocs, only: [:edit, :update]
 
   resources :project_groups, except: [:destroy, :show] do
+    get :maintenance, on: :collection
+    post :import, on: :collection
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
     resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group' do
       get :support, on: :member
