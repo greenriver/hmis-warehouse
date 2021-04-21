@@ -6,19 +6,26 @@
 
 module ClaimsReporting
   class MedicalClaim < HealthBase
+    # Calculates and updates the cumulative enrolled and engaged days as of each claims service_start_date.
+    #
+    # These can go down if there are large gaps in enrollment. Temporary gaps ust stop counting days as enrolled.
+    #
+    # We loop over distinct members_id and update each members claims atomically. This could be done
+    # in parallel if needed.
     def self.maintain_engaged_days!
+      members = 0
+      updates = 0
       log_timing 'maintain_engaged_days!' do
-        members = 0
-        updates = 0
-        enrollment_gap_limit = 365.days # a gap of longer that period will reset our counters
+        enrollment_gap_limit = 365.days # a gap longer than this will reset our counters
         last_claim_date = MedicalClaim.maximum(:service_start_date) || Date.current
-        distinct.pluck(:member_id).each do |member_id|
-          puts "Processing member_id=#{member_id}"
+        member_ids = distinct.pluck(:member_id)
+        member_ids.each_with_index do |member_id, idx|
+          logger.info { "MedicalClaim.maintain_engaged_days!: Processing member #{idx + 1}/#{member_ids.length}." }
           enrollments = MemberEnrollmentRoster.where(member_id: member_id).select(
             :span_start_date, :span_end_date
           ).sort_by(&:span_start_date)
 
-          puts "Found #{enrollments.length} enrollment spans"
+          logger.debug { "MedicalClaim.maintain_engaged_days!: Found #{enrollments.length} enrollment spans" }
 
           # enrolled_day is the number of days of enrollment to date.
           #
@@ -60,51 +67,46 @@ module ClaimsReporting
           tuples = []
           conn = connection
           engagement_date = nil
-          transaction do
-            where(member_id: member_id).select(
-              :id,
-              :service_start_date,
-              :claim_status,
-              :procedure_code,
-              :procedure_modifier_1,
-              :procedure_modifier_2,
-              :procedure_modifier_3,
-              :procedure_modifier_4,
-            ).order(service_start_date: :asc).each do |claim|
-              enrolled_days = enrolled_dates[claim.service_start_date.iso8601] || 0
 
-              # Locate a valid QA for Care Plan completion
-              engagement_date ||= claim.service_start_date if claim.engaged?
+          where(member_id: member_id).select(
+            :id,
+            :service_start_date,
+            :claim_status,
+            :procedure_code,
+            :procedure_modifier_1,
+          ).order(service_start_date: :asc).each do |claim|
+            enrolled_days = enrolled_dates[claim.service_start_date.iso8601] || 0
 
-              # engaged_days is the sum of enrolled_days after that point
-              engaged_days = if engagement_date
-                raise 'claim data out of order' if claim.service_start_date < engagement_date
+            # Locate a valid QA for Care Plan completion
+            engagement_date ||= claim.service_start_date if claim.engaged?
 
-                previous_day = (engagement_date - 1.day)
-                pre_engaged_enrolled_days = enrolled_dates[previous_day.iso8601] || 0
+            # engaged_days is the sum of enrolled_days after that point
+            engaged_days = if engagement_date
+              raise 'claim data out of order' if claim.service_start_date < engagement_date
 
-                # clamp to 0.. if a user becomes engaged on the first day
-                # of a enrollment gap (which should be impossible). In that
-                # case pre_engaged_enrolled_days would be 365 and
-                # enrolled_days would be 0
-                (enrolled_days - pre_engaged_enrolled_days).clamp(0, enrolled_days)
-              else
-                0
-              end
-              tuples << "(#{conn.quote claim.id},#{conn.quote enrolled_days},#{conn.quote engaged_days})"
+              previous_day = (engagement_date - 1.day)
+              pre_engaged_enrolled_days = enrolled_dates[previous_day.iso8601] || 0
+
+              # clamp to 0.. if a user becomes engaged on the first day
+              # of a enrollment gap (which should be impossible). In that
+              # case pre_engaged_enrolled_days would be 365 and
+              # enrolled_days would be 0
+              (enrolled_days - pre_engaged_enrolled_days).clamp(0, enrolled_days)
+            else
+              0
             end
-            puts "Updating #{tuples.size} claim records"
-
-            updates += tuples.size
-            if tuples.any?
-              sql = <<~SQL
-                UPDATE #{quoted_table_name}
-                SET enrolled_days=t.enrolled_days, engaged_days=t.engaged_days
-                FROM (VALUES #{tuples.join(',')}) AS t (id, enrolled_days, engaged_days)
-                WHERE #{quoted_table_name}.id = t.id
-              SQL
-              connection.execute(sql)
-            end
+            tuples << "(#{conn.quote claim.id},#{conn.quote enrolled_days},#{conn.quote engaged_days})"
+          end
+          logger.debug { "MedicalClaim.maintain_engaged_days!: Updating #{tuples.size} claim records" }
+          updates += tuples.size
+          if tuples.any?
+            sql = <<~SQL
+              UPDATE #{quoted_table_name}
+              SET enrolled_days=t.enrolled_days, engaged_days=t.engaged_days
+              FROM (VALUES #{tuples.join(',')}) AS t (id, enrolled_days, engaged_days)
+              WHERE #{quoted_table_name}.id = t.id
+            SQL
+            connection.execute(sql)
           end
           members += 1
         end

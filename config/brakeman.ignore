@@ -1036,6 +1036,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "a4ec69686de1c853e3eb152f37d182e286429299af798bae27761e3514ba6718",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/claims_reporting/app/models/claims_reporting/medical_claim.rb",
+      "line": 109,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"UPDATE #{quoted_table_name}\\nSET enrolled_days=t.enrolled_days, engaged_days=t.engaged_days\\nFROM (VALUES #{[\"(#{connection.quote(claim.id)},#{connection.quote((((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n [date.iso8601, nil]\n end.to_h or {})[claim.service_start_date.iso8601] or 0))},#{connection.quote((if (nil or claim.service_start_date) then\n  if (claim.service_start_date < (nil or claim.service_start_date)) then\n    raise(\"claim data out of order\")\n  end\n  previous_day = ((nil or claim.service_start_date) - 1.day)\n  pre_engaged_enrolled_days = (((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n   [date.iso8601, nil]\n   end.to_h or {})[((nil or claim.service_start_date) - 1.day).iso8601] or 0)\n  ((((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n   [date.iso8601, nil]\n   end.to_h or {})[claim.service_start_date.iso8601] or 0) - (((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n   [date.iso8601, nil]\n   end.to_h or {})[((nil or claim.service_start_date) - 1.day).iso8601] or 0)).clamp(0, (((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n   [date.iso8601, nil]\n   end.to_h or {})[claim.service_start_date.iso8601] or 0))\nelse\n  0\nend))})\"].join(\",\")}) AS t (id, enrolled_days, engaged_days)\\nWHERE #{quoted_table_name}.id = t.id\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClaimsReporting::MedicalClaim",
+        "method": "ClaimsReporting::MedicalClaim.maintain_engaged_days!"
+      },
+      "user_input": "[\"(#{connection.quote(claim.id)},#{connection.quote((((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n [date.iso8601, nil]\n end.to_h or {})[claim.service_start_date.iso8601] or 0))},#{connection.quote((if (nil or claim.service_start_date) then\n  if (claim.service_start_date < (nil or claim.service_start_date)) then\n    raise(\"claim data out of order\")\n  end\n  previous_day = ((nil or claim.service_start_date) - 1.day)\n  pre_engaged_enrolled_days = (((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n   [date.iso8601, nil]\n   end.to_h or {})[((nil or claim.service_start_date) - 1.day).iso8601] or 0)\n  ((((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n   [date.iso8601, nil]\n   end.to_h or {})[claim.service_start_date.iso8601] or 0) - (((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n   [date.iso8601, nil]\n   end.to_h or {})[((nil or claim.service_start_date) - 1.day).iso8601] or 0)).clamp(0, (((MemberEnrollmentRoster.where(:member_id => member_id).select(:span_start_date, :span_end_date).sort_by(&:span_start_date).first.span_start_date..(MedicalClaim.maximum(:service_start_date) or Date.current)).to_a.map do\n   [date.iso8601, nil]\n   end.to_h or {})[claim.service_start_date.iso8601] or 0))\nelse\n  0\nend))})\"].join(\",\")",
+      "confidence": "Medium",
+      "note": "quoted and quote are called on all inputs to this string"
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "a5ae0e19f1c215e30af6286dee8a557c5215860d59a3a4c4ca3a914e2aadb58e",
@@ -1362,7 +1382,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 60,
+      "line": 80,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -1382,7 +1402,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 638,
+      "line": 639,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -1635,6 +1655,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-04-07 07:39:21 -0400",
+  "updated": "2021-04-21 15:57:36 -0400",
   "brakeman_version": "5.0.0"
 }
