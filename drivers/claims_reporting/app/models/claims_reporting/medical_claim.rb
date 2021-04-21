@@ -36,9 +36,13 @@ module ClaimsReporting
           # We stop counting during gaps and start over at zero enrolled days
           # if the gap gets too long.
           enrolled_dates = {}
-          enrollments.each do |e|
+          enrollments.each_with_index do |e, e_idx|
             range_start = e.span_start_date
-            range_end = e == enrollments.last ? last_claim_date : e.span_start_date
+            range_end = if e == enrollments.last
+              last_claim_date
+            else
+              enrollments[e_idx + 1].span_start_date
+            end
             (range_start .. range_end).each do |date|
               previous_day = (date - 1.day)
               previous_days_count = (enrolled_dates[previous_day] || 0)
