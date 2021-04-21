@@ -277,31 +277,31 @@ module ClaimsReporting
           scope: cohort_scope(1..Float::INFINITY),
           day_range: (1..182),
           title: 'First 6 Months of Engagement',
-          tooltip: 'Patients who have fully engaged, and have six or fewer months of time being engaged.',
+          tooltip: 'Claims occurring during the first six months of engagement.',
         },
         engaged_12_months: {
           scope: cohort_scope(183..Float::INFINITY),
           day_range: (183..365),
           title: '7-12 Months of Engagement',
-          tooltip: 'Patients who have fully engaged, and have between seven to twelve months of time being engaged.',
+          tooltip: 'Claims occurring during six to twelve months of engagement.',
         },
         engaged_18_months: {
           scope: cohort_scope(366..Float::INFINITY),
           day_range: (366..547),
           title: '13-18 Months of Engagement',
-          tooltip: 'Patients who have fully engaged, and have between thirteen to eighteen months of time being engaged.',
+          tooltip: 'Claims occurring during thirteen to eighteen months of engagement.',
         },
         engaged_24_months: {
           scope: cohort_scope(548..Float::INFINITY),
           day_range: (548..730),
           title: '19-24 Months of Engagement',
-          tooltip: 'Patients who have fully engaged, and have between nineteen to twenty four months of time being engaged.',
+          tooltip: 'Claims occurring during nineteen months to two years of engagement.',
         },
         engaged_24_months_or_more: {
           scope: cohort_scope(731..Float::INFINITY),
           day_range: (731..Float::INFINITY),
           title: '2+ years of Engagement',
-          tooltip: 'Patients who have fully engaged, and have two years or more of time being engaged.',
+          tooltip: 'Claims occurring after two years of engagement.',
         },
       }.freeze
     end
