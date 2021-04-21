@@ -11,7 +11,7 @@ module ClaimsReporting
       updates = 0
       log_timing 'maintain_engaged_days' do
         MemberRoster.select(:id, :member_id).find_each do |member|
-          puts "Processing #{member.id}"
+          puts "Processing member id=#{member.id}"
           enrollments = member.enrollment_rosters.select(
             :span_start_date, :span_end_date
           ).order(span_start_date: :asc)
@@ -28,60 +28,63 @@ module ClaimsReporting
           engagement_date = nil
           engaged_days = 0
 
-          member.medical_claims.select(
-            :id,
-            :service_start_date,
-            :claim_status,
-            :procedure_code,
-            :procedure_modifier_1,
-            :procedure_modifier_2,
-            :procedure_modifier_3,
-            :procedure_modifier_4,
-          ).order(service_start_date: :asc).each do |claim|
-            # 2. Locate a valid QA for Care Plan completion
-            engagement_date = claim.service_start_date if claim.engaged?
-            # 3. For each medical claims up until that claim the engaged_days is 0
-            # 4. After that, the engaged_days is the sum of days
-            #   *during periods of enrollment* that have elapsed since the engagement claim.
-            # 5. If we find too large of gap we reset to 0 days engaged
-            if Rails.env.development?
-              engaged_days = rand(0..1000)
-            elsif engagement_date
-              raise 'claim data out of order' if claim.service_start_date < engagement_date
+          transaction do
+            member.medical_claims.select(
+              :id,
+              :service_start_date,
+              :claim_status,
+              :procedure_code,
+              :procedure_modifier_1,
+              :procedure_modifier_2,
+              :procedure_modifier_3,
+              :procedure_modifier_4,
+            ).order(service_start_date: :asc).each do |claim|
+              # 2. Locate a valid QA for Care Plan completion
+              engagement_date = claim.service_start_date if claim.engaged?
+              # 3. For each medical claims up until that claim the engaged_days is 0
+              # 4. After that, the engaged_days is the sum of days
+              #   *during periods of enrollment* that have elapsed since the engagement claim.
+              # 5. If we find too large of gap we reset to 0 days engaged
+              if Rails.env.development?
+                engaged_days = rand(0..1000)
+              elsif engagement_date
+                raise 'claim data out of order' if claim.service_start_date < engagement_date
 
-              enrollments.each_with_index do |e, idx|
-                # span is too early to count any portion of it
-                next if e.span_end_date < engagement_date
+                enrollments.each_with_index do |e, idx|
+                  # span is too early to count any portion of it
+                  next if e.span_end_date < engagement_date
 
-                # span is too late to count any portion of it
-                break if e.span_start_date > claim.service_start_date
+                  # span is too late to count any portion of it
+                  break if e.span_start_date > claim.service_start_date
 
-                # if we find a gap two large our counter resets
-                # to zero day at the start of the span
-                enrollment_gap_to_break_engagement = 365.days
-                if idx.positive?
-                  previous = enrollments[idx - 1]
-                  engaged_days = 0 if (e.span_start_date - previous.span_end_date) > enrollment_gap_to_break_engagement
+                  # if we find a gap two large our counter resets
+                  # to zero day at the start of the span
+                  enrollment_gap_to_break_engagement = 365.days
+                  if idx.positive?
+                    previous = enrollments[idx - 1]
+                    engaged_days = 0 if (e.span_start_date - previous.span_end_date) > enrollment_gap_to_break_engagement
+                  end
+
+                  span_start_or_engagement_date = [e.span_start_date, engagement_date].max
+                  span_end_or_claim_date = [e.span_end_date, claim.service_start_date].min
+
+                  engaged_days += (span_end_or_claim_date - span_start_or_engagement_date)
                 end
-
-                span_start_or_engagement_date = [e.span_start_date, engagement_date].max
-                span_end_or_claim_date = [e.span_end_date, claim.service_start_date].min
-
-                engaged_days += (span_end_or_claim_date - span_start_or_engagement_date)
               end
+              tuples << "(#{conn.quote claim.id},#{conn.quote engaged_days.to_i})"
             end
-            tuples << "(#{conn.quote claim.id},#{conn.quote engaged_days.to_i})"
-          end
+            puts "Updating #{tuples.size} claim records"
 
-          updates += tuples.size
-          if tuples.any?
-            sql = <<~SQL
-              UPDATE #{quoted_table_name}
-              SET engaged_days=t.engaged_days
-              FROM (VALUES #{tuples.join(',')}) AS t (id, engaged_days)
-              WHERE #{quoted_table_name}.id = t.id
-            SQL
-            connection.execute(sql)
+            updates += tuples.size
+            if tuples.any?
+              sql = <<~SQL
+                UPDATE #{quoted_table_name}
+                SET engaged_days=t.engaged_days
+                FROM (VALUES #{tuples.join(',')}) AS t (id, engaged_days)
+                WHERE #{quoted_table_name}.id = t.id
+              SQL
+              connection.execute(sql)
+            end
           end
           members += 1
         end
