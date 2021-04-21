@@ -181,6 +181,7 @@ Rails.application.routes.draw do
       collection do
         get :overlap
         get :details
+        get :clients
       end
     end
     resources :ce_assessments, only: [:index]
