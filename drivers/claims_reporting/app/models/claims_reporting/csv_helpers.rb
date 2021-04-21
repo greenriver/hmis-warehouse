@@ -183,6 +183,9 @@ module ClaimsReporting::CsvHelpers
       end
     ensure
       msg = "#{self}: #{str} finished in #{bm.to_s.strip}"
+
+      msg += " #{(res.to_f / bm.real).round}/sec" if res.is_a?(Numeric)
+
       logger.info { msg }
       res
     end
