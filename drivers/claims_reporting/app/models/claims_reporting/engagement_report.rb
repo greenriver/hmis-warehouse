@@ -35,9 +35,16 @@ module ClaimsReporting
 
       @enrollment_roster = cohort[:scope]
 
-      @member_roster = ClaimsReporting::MemberRoster.where(member_id: @enrollment_roster.select(:member_id))
-
-      @medical_claims = ClaimsReporting::MedicalClaim.joins(:member_roster).merge(@member_roster)
+      if filter.cohort_type == :engaged_history
+        @medical_claims = ClaimsReporting::MedicalClaim.where(member_id: @enrollment_roster.select(:member_id))
+        @member_roster = ClaimsReporting::MemberRoster.where(member_id: @medical_claims.select(:member_id))
+      elsif filter.cohort_type == :selected_period
+        @medical_claims = ClaimsReporting::MedicalClaim.where(
+          member_id: @enrollment_roster.select(:member_id),
+          engaged_days: cohort[:day_range],
+        )
+        @member_roster = ClaimsReporting::MemberRoster.where(member_id: @medical_claims.select(:member_id))
+      end
 
       @claim_date_range = (@medical_claims.minimum(:service_start_date) || self.class.max_date_range.min) .. (
            @medical_claims.maximum(:service_start_date) || self.class.max_date_range.max)
