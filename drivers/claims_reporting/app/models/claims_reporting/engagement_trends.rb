@@ -56,6 +56,7 @@ module ClaimsReporting
         results[population] = {
           summary: report.selection_summary,
           detail: report.engagement_rows,
+          sdoh: report.sdoh_rows,
         }
       end
     end

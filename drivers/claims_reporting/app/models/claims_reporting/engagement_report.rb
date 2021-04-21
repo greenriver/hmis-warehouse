@@ -7,6 +7,7 @@ require 'memoist'
 module ClaimsReporting
   class EngagementReport
     include ActiveModel::Model
+    include ArelHelper
     extend Memoist
     attr_reader :member_roster, :enrollment_roster, :medical_claims, :rx_claims, :claim_date_range
 
@@ -246,6 +247,124 @@ module ClaimsReporting
       return [] unless selected_members&.positive? && report_years.positive?
 
       connection.select_all claims_query
+    end
+
+    def sdoh_rows
+      {
+        'Race' => race_rows,
+        'Ethnicity' => ethnicity_rows,
+        'Primary Language' => primary_language_rows,
+        'Gender' => gender_rows,
+        'Housing Status' => housing_status_rows,
+        'SSM (initial)' => ssm_rows,
+      }
+    end
+
+    def client_ids
+      @client_ids ||= member_roster.joins(:patient).distinct.pluck(:client_id)
+    end
+
+    def patient_ids
+      @patient_ids ||= member_roster.joins(:patient).select(hp_t[:id])
+    end
+
+    def race_rows
+      {
+        race_am_ind_ak_native: 'American Indian or Alaska Native',
+        race_asian: 'Asian',
+        race_black_af_american: 'Black or African American',
+        race_native_hi_other_pacific: 'Native Hawaiian or Other Pacific Islander',
+        race_white: 'White',
+        multi_racial: 'Multi-Racial',
+      }.map do |race_scope, name|
+        [
+          name,
+          GrdaWarehouse::Hud::Client.where(id: client_ids).send(race_scope).count,
+        ]
+      end.to_h
+    end
+
+    def ethnicity_rows
+      {
+        ethnicity_non_hispanic_non_latino: 'Non-Hispanic/Non-Latino',
+        ethnicity_hispanic_latino: 'Hispanic/Latino',
+      }.map do |ethnicity_scope, name|
+        [
+          name,
+          GrdaWarehouse::Hud::Client.where(id: client_ids).send(ethnicity_scope).count,
+        ]
+      end.to_h
+    end
+
+    def primary_language_rows
+      languages = {
+        '1. English' => 0,
+        '2. Spanish' => 0,
+        '3. French' => 0,
+        '4. Other' => 0,
+      }
+      patients = Set.new
+      ::Health::ComprehensiveHealthAssessment.latest_completed.where(patient_id: patient_ids).find_each do |cha|
+        language = cha.answer(:b_q3)
+        next if language.blank?
+
+        languages[language] ||= 0
+        languages[language] += 1 unless patients.include?(cha.patient_id)
+        patients << cha.patient_id
+      end
+      languages
+    end
+
+    def housing_status_rows
+      housing_situations = {
+        'Housed at start' => 0,
+        'Homeless at start' => 0,
+        'Housed at end' => 0,
+        'Homeless at end' => 0,
+        'Ever homeless' => 0,
+      }
+      GrdaWarehouse::Hud::Client.where(id: client_ids).find_each do |client|
+        stati = client.health_housing_stati
+        next unless stati.present?
+
+        housing_situations['Housed at start'] += 1 if stati.first[:score] >= 4
+        housing_situations['Homeless at start'] += 1 if stati.first[:score] < 4
+        housing_situations['Housed at end'] += 1 if stati.last[:score] >= 4
+        housing_situations['Homeless at end'] += 1 if stati.last[:score] < 4
+        housing_situations['Ever homeless'] += 1 if stati.map { |s| s[:score] }.any? { |s| s < 4 }
+      end
+      housing_situations
+    end
+
+    def gender_rows
+      {
+        gender_female: 'Female',
+        gender_male: 'Male',
+        gender_mtf: 'Trans Female (MTF or Male to Female)',
+        gender_tfm: 'Trans Male (FTM or Female to Male)',
+        gender_non_conforming: 'Gender non-conforming (i.e. not exclusively male or female)',
+      }.map do |gender_scope, name|
+        [
+          name,
+          GrdaWarehouse::Hud::Client.where(id: client_ids).send(gender_scope).count,
+        ]
+      end.to_h
+    end
+
+    def ssm_rows
+      ssm_class = ::Health::SelfSufficiencyMatrixForm
+      total_ssms = ssm_class.first_completed.where(patient_id: patient_ids).count
+      {}.tap do |rows|
+        ssm_class::SSM_QUESTION_TITLE.each do |score_attr, label|
+          average = if total_ssms.positive?
+            ssm_class.first_completed.where(patient_id: patient_ids).sum(score_attr) / total_ssms
+          else
+            0
+          end
+
+          rows[label] = average
+        end
+      end
     end
 
     COS_ROLLUPS = {

@@ -526,6 +526,26 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :gender_female, -> do
+      where(Gender: 0)
+    end
+
+    scope :gender_male, -> do
+      where(Gender: 1)
+    end
+
+    scope :gender_mtf, -> do
+      where(Gender: 2)
+    end
+
+    scope :gender_tfm, -> do
+      where(Gender: 3)
+    end
+
+    scope :gender_non_conforming, -> do
+      where(Gender: 4)
+    end
+
     ####################
     # Callbacks
     ####################
