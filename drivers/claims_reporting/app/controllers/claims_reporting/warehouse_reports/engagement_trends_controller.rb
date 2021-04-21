@@ -62,6 +62,7 @@ module ClaimsReporting::WarehouseReports
         age_ranges: [],
         races: [],
         ethnicities: [],
+        genders: [],
         acos: [],
       )
     end

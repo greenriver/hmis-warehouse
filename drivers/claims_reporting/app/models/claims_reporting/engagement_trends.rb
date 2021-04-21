@@ -60,6 +60,15 @@ module ClaimsReporting
       end
     end
 
+    private def filter_for_age(scope)
+      # the mock showed multiple age ranges
+      # and its unclear if we mean to allow that
+      # or at what date we measure a persons age
+      raise 'FIXME'
+
+      scope # rubocop:disable Lint/UnreachableCode
+    end
+
     def cos_rollup(code)
       ClaimsReporting::EngagementReport::COS_ROLLUPS.fetch(code, code)
     end
@@ -182,7 +191,7 @@ module ClaimsReporting
       )
       if filtered_by_client
         hmis_scope = ::GrdaWarehouse::DataSource.destination.joins(:clients)
-        hmis_scope = filter_for_age_ranges(hmis_scope) if filter.age_ranges.present?
+        hmis_scope = filter_for_age(hmis_scope) if filter.age_ranges.present?
         hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
         hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
         hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
@@ -191,7 +200,21 @@ module ClaimsReporting
       end
 
       # and via patient referral data
-      scope = scope.joins(patient: :patient_referral).merge(::Health::PatientReferral.at_acos(filter.acos)) if filter.acos.present?
+      if filter.acos.present?
+        scope = scope.joins(patient: :patient_referral).merge(
+          ::Health::PatientReferral.at_acos(filter.acos),
+        )
+      end
+
+      if filter.food_insecurity.present?
+        scope = scope.joins(:patient).merge(
+          ::Health::Patient.where(
+            id: ::Health::SelfSufficiencyMatrixForm.first_completed.where(
+              food_score: (..filter.food_insecurity.to_i),
+            ),
+          ),
+        )
+      end
 
       scope
     end
