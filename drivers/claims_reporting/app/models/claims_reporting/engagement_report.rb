@@ -36,14 +36,18 @@ module ClaimsReporting
       @enrollment_roster = cohort[:scope]
 
       if filter.cohort_type == :engaged_history
-        @medical_claims = ClaimsReporting::MedicalClaim.where(member_id: @enrollment_roster.select(:member_id))
-        @member_roster = ClaimsReporting::MemberRoster.where(member_id: @medical_claims.select(:member_id))
+        @medical_claims = ClaimsReporting::MedicalClaim.joins(:member_roster).
+          where(member_id: @enrollment_roster.select(:member_id))
+        @member_roster = ClaimsReporting::MemberRoster.
+          where(member_id: @medical_claims.select(:member_id))
       elsif filter.cohort_type == :selected_period
-        @medical_claims = ClaimsReporting::MedicalClaim.where(
-          member_id: @enrollment_roster.select(:member_id),
-          engaged_days: cohort[:day_range],
-        )
-        @member_roster = ClaimsReporting::MemberRoster.where(member_id: @medical_claims.select(:member_id))
+        @medical_claims = ClaimsReporting::MedicalClaim.joins(:member_roster).
+          where(
+            member_id: @enrollment_roster.select(:member_id),
+            engaged_days: cohort[:day_range],
+          )
+        @member_roster = ClaimsReporting::MemberRoster.
+          where(member_id: @medical_claims.select(:member_id))
       end
 
       @claim_date_range = (@medical_claims.minimum(:service_start_date) || self.class.max_date_range.min) .. (
@@ -276,14 +280,7 @@ module ClaimsReporting
     end
 
     def race_rows
-      {
-        race_am_ind_ak_native: 'American Indian or Alaska Native',
-        race_asian: 'Asian',
-        race_black_af_american: 'Black or African American',
-        race_native_hi_other_pacific: 'Native Hawaiian or Other Pacific Islander',
-        race_white: 'White',
-        multi_racial: 'Multi-Racial',
-      }.map do |race_scope, name|
+      ClaimsReporting::EngagementTrends.sdoh_categories['Race'].map do |race_scope, name|
         [
           name,
           GrdaWarehouse::Hud::Client.where(id: client_ids).send(race_scope).count,
@@ -292,10 +289,7 @@ module ClaimsReporting
     end
 
     def ethnicity_rows
-      {
-        ethnicity_non_hispanic_non_latino: 'Non-Hispanic/Non-Latino',
-        ethnicity_hispanic_latino: 'Hispanic/Latino',
-      }.map do |ethnicity_scope, name|
+      ClaimsReporting::EngagementTrends.sdoh_categories['Ethnicity'].map do |ethnicity_scope, name|
         [
           name,
           GrdaWarehouse::Hud::Client.where(id: client_ids).send(ethnicity_scope).count,
@@ -304,12 +298,12 @@ module ClaimsReporting
     end
 
     def primary_language_rows
-      languages = {
-        '1. English' => 0,
-        '2. Spanish' => 0,
-        '3. French' => 0,
-        '4. Other' => 0,
-      }
+      languages = ClaimsReporting::EngagementTrends.sdoh_categories['Primary Language'].keys.map do |k|
+        [
+          k,
+          0,
+        ]
+      end.to_h
       patients = Set.new
       ::Health::ComprehensiveHealthAssessment.latest_completed.where(patient_id: patient_ids).find_each do |cha|
         language = cha.answer(:b_q3)
@@ -323,13 +317,12 @@ module ClaimsReporting
     end
 
     def housing_status_rows
-      housing_situations = {
-        'Housed at start' => 0,
-        'Homeless at start' => 0,
-        'Housed at end' => 0,
-        'Homeless at end' => 0,
-        'Ever homeless' => 0,
-      }
+      housing_situations = ClaimsReporting::EngagementTrends.sdoh_categories['Housing Status'].keys.map do |k|
+        [
+          k,
+          0,
+        ]
+      end.to_h
       GrdaWarehouse::Hud::Client.where(id: client_ids).find_each do |client|
         stati = client.health_housing_stati
         next unless stati.present?
@@ -344,13 +337,7 @@ module ClaimsReporting
     end
 
     def gender_rows
-      {
-        gender_female: 'Female',
-        gender_male: 'Male',
-        gender_mtf: 'Trans Female (MTF or Male to Female)',
-        gender_tfm: 'Trans Male (FTM or Female to Male)',
-        gender_non_conforming: 'Gender non-conforming (i.e. not exclusively male or female)',
-      }.map do |gender_scope, name|
+      ClaimsReporting::EngagementTrends.sdoh_categories['Gender'].map do |gender_scope, name|
         [
           name,
           GrdaWarehouse::Hud::Client.where(id: client_ids).send(gender_scope).count,
@@ -362,7 +349,7 @@ module ClaimsReporting
       ssm_class = ::Health::SelfSufficiencyMatrixForm
       total_ssms = ssm_class.first_completed.where(patient_id: patient_ids).count
       {}.tap do |rows|
-        ssm_class::SSM_QUESTION_TITLE.each do |score_attr, label|
+        ClaimsReporting::EngagementTrends.sdoh_categories['SSM (average initial scores)'].each do |score_attr, label|
           average = if total_ssms.positive?
             ssm_class.first_completed.where(patient_id: patient_ids).sum(score_attr) / total_ssms
           else

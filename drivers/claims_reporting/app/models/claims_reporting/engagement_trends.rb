@@ -345,5 +345,43 @@ module ClaimsReporting
         :engagement_trends,
       ]
     end
+
+    def self.sdoh_categories
+      {
+        'Race' => {
+          race_am_ind_ak_native: 'American Indian or Alaska Native',
+          race_asian: 'Asian',
+          race_black_af_american: 'Black or African American',
+          race_native_hi_other_pacific: 'Native Hawaiian or Other Pacific Islander',
+          race_white: 'White',
+          multi_racial: 'Multi-Racial',
+        },
+        'Ethnicity' => {
+          ethnicity_non_hispanic_non_latino: 'Non-Hispanic/Non-Latino',
+          ethnicity_hispanic_latino: 'Hispanic/Latino',
+        },
+        'Primary Language' => {
+          '1. English' => '1. English',
+          '2. Spanish' => '2. Spanish',
+          '3. French' => '3. French',
+          '4. Other' => '4. Other',
+        },
+        'Gender' => {
+          gender_female: 'Female',
+          gender_male: 'Male',
+          gender_mtf: 'Trans Female (MTF or Male to Female)',
+          gender_tfm: 'Trans Male (FTM or Female to Male)',
+          gender_non_conforming: 'Gender non-conforming (i.e. not exclusively male or female)',
+        },
+        'Housing Status' => {
+          'Housed at start' => 'Housed at start',
+          'Homeless at start' => 'Housed at start',
+          'Housed at end' => 'Housed at start',
+          'Homeless at end' => 'Housed at start',
+          'Ever homeless' => 'Housed at start',
+        },
+        'SSM (average initial scores)' => ::Health::SelfSufficiencyMatrixForm::SSM_QUESTION_TITLE,
+      }
+    end
   end
 end
