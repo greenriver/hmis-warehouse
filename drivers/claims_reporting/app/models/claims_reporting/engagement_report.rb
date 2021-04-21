@@ -256,7 +256,7 @@ module ClaimsReporting
         'Primary Language' => primary_language_rows,
         'Gender' => gender_rows,
         'Housing Status' => housing_status_rows,
-        'SSM (initial)' => ssm_rows,
+        'SSM (average initial scores)' => ssm_rows,
       }
     end
 
