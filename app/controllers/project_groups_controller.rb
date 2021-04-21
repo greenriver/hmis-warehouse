@@ -63,9 +63,13 @@ class ProjectGroupsController < ApplicationController
   def import
     file = maintenance_params[:file]
     errors = project_group_source.import_csv(file)
-    flash[:error] = errors.join('. ') if errors.any?
-
-    redirect_to action: :maintenance
+    if errors.any?
+      flash[:error] = errors.join('. ')
+      redirect_to action: :maintenance
+    else
+      flash[:notice] = 'Project groups imported'
+      redirect_to action: :index
+    end
   end
 
   private def maintenance_params
