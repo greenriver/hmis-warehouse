@@ -474,6 +474,18 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :multi_racial, -> do
+      columns = [
+        c_t[:AmIndAKNative],
+        c_t[:Asian],
+        c_t[:BlackAfAmerican],
+        c_t[:NativeHIOtherPacific],
+        c_t[:White],
+      ]
+      # anyone with no unknowns and at least two yeses
+      where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
+    end
+
     scope :ethnicity_non_hispanic_non_latino, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).

@@ -60,6 +60,10 @@ module ClaimsReporting
       end
     end
 
+    def report_scope_source
+      ::Health::Patient
+    end
+
     private def filter_for_age(scope)
       # the mock showed multiple age ranges
       # and its unclear if we mean to allow that
