@@ -35,11 +35,11 @@
       var dates = charts[i].dates;
       chart.load({ columns: dates[selected_date]['data']});
       // only valid for donut charts
-      chart.$.main.select(".bb-chart-arcs-title").text(dates[selected_date]['total']);
+      chart.$.main.select(".bb-chart-arcs-title").text(dates[selected_date]['total'].split(' ').join(' \n'));
     });
     // update any dependent text
     $('.jSliderDependentText').each(function(i){
       $(this).text($(this).data('numbers')[selected_date].data);
     });
   });
-  $('.jQuarters').trigger('change');
+  //$('.jQuarters').trigger('change');
