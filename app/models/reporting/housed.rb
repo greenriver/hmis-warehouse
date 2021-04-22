@@ -240,9 +240,9 @@ module Reporting
     end
 
     def populate!
-      cache_client = GrdaWarehouse::Hud::Client.new
       remove_no_longer_used
       client_ids.each_slice(1_000) do |client_id_batch|
+        cache_client = GrdaWarehouse::Hud::Client.new
         client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_id_batch)
 
         current_client_details = client_details(client_id_batch)

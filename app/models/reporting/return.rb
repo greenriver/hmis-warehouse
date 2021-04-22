@@ -39,11 +39,11 @@ module Reporting
     def stays
       @stays ||= begin
         stays = []
-        cache_client = GrdaWarehouse::Hud::Client.new
         # The end result isn't huge, but we need to process this
         # in batches because the number of service records is.
         # It is safe to batch by client because this only cares about the client level detail
         client_ids.each_slice(5_000) do |ids|
+          cache_client = GrdaWarehouse::Hud::Client.new
           client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
           data = source_data(ids)
           last_day = data.first
