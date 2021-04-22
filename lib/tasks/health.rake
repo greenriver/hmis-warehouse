@@ -13,6 +13,10 @@ namespace :health do
     Health::StatusDate.new.maintain
   end
 
+  task hourly: [:environment, "log:info_to_stdout"] do
+    Health::SignableDocument.process_unfetched_signed_documents
+  end
+
   desc "Enrollments and Eligibility"
   task enrollments_and_eligibility: [:environment, "log:info_to_stdout"] do
     begin
