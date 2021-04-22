@@ -48,7 +48,7 @@ module Filters
     end
 
     def chosen_acos
-      Health::AccountableCareOrganization.active.where(id: acos)
+      Health::AccountableCareOrganization.active.where(id: acos).pluck(:short_name).sort
     end
 
     def chosen_food_insecurity

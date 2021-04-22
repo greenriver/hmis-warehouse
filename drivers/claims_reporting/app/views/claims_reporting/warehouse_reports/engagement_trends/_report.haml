@@ -32,7 +32,8 @@
         - title = section.first
         - sub_categories = report.class.sdoh_categories[title].values
         %tr
-          %th= title
+          %th{data: {toggle: :tooltip, title: section.last['tooltip']}}
+            = title
           - report.cohorts.keys.each do |_|
             %td
 
@@ -44,7 +45,7 @@
                 %td.pl-4= cat
                 - report.cohorts.keys.each do |cohort_key|
                   - sdoh = report.results[cohort_key.to_s]['sdoh']
-                  %td= sdoh[title][cat]
+                  %td= sdoh[title]['data'][cat]
 
 %h3 Claims
 .card.mb-4
@@ -91,7 +92,7 @@
                 min_value = 20 # utilization per mille
 
                 # call out changes when we have a decent amount of number
-                utilization_change = if idx > 0 && utilization > min_value
+                utilization_change = if idx.present? && utilization.present? && min_value.present? && idx > 0 && utilization > min_value
                   baseline_cohort_id = report.cohorts.keys[idx-1]
                   b = report.result_for(baseline_cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
 
@@ -99,7 +100,7 @@
 
                   base_utilization = b['utilization']
 
-                  (100*((utilization/base_utilization) - 1)).round if base_utilization > min_value
+                  (100*((utilization/base_utilization) - 1)).round if base_utilization.present? && base_utilization > min_value
                 end
 
                 if utilization_change

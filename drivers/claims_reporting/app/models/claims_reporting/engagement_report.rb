@@ -262,12 +262,30 @@ module ClaimsReporting
 
     def sdoh_rows
       {
-        'Race' => race_rows,
-        'Ethnicity' => ethnicity_rows,
-        'Primary Language' => primary_language_rows,
-        'Gender' => gender_rows,
-        'Housing Status' => housing_status_rows,
-        'SSM (average initial scores)' => ssm_rows,
+        'Race' => {
+          data: race_rows,
+          tooltip: 'Please note, patients may be counted in multiple race categories in addition to Multi-Racial as the data is pulled from all available HMIS data.',
+        },
+        'Ethnicity' => {
+          data: ethnicity_rows,
+          tooltip: 'Please note, patients may be counted in multiple ethnicity categories as the data is pulled from all available HMIS data.',
+        },
+        'Primary Language' => {
+          data: primary_language_rows,
+          tooltip: 'As collected on the Comprehensive Health Assessment.',
+        },
+        'Gender' => {
+          data: gender_rows,
+          tooltip: 'Gender is shown from HMIS data.',
+        },
+        'Housing Status' => {
+          data: housing_status_rows,
+          tooltip: 'Housing status is collected from HMIS, ETO, and EPIC.',
+        },
+        'SSM (average initial scores)' => {
+          data: ssm_rows,
+          tooltip: 'Only initial scores are used.',
+        },
       }
     end
 
@@ -279,20 +297,46 @@ module ClaimsReporting
       @patient_ids ||= member_roster.joins(:patient).select(hp_t[:id])
     end
 
+    def total_member_count
+      @total_member_count ||= member_roster.count
+    end
+
     def race_rows
-      ClaimsReporting::EngagementTrends.sdoh_categories['Race'].map do |race_scope, name|
+      empty_set = ClaimsReporting::EngagementTrends.sdoh_categories['Race'].map do |_, name|
         [
           name,
-          GrdaWarehouse::Hud::Client.where(id: client_ids).send(race_scope).count,
+          '0',
+        ]
+      end.to_h
+      return empty_set unless total_member_count.positive?
+
+      ClaimsReporting::EngagementTrends.sdoh_categories['Race'].map do |race_scope, name|
+        count = GrdaWarehouse::Hud::Client.where(id: client_ids).send(race_scope).count
+        percent = ((count.to_f / total_member_count) * 100).round(2)
+        data = "#{count} (#{percent}%)"
+        [
+          name,
+          data,
         ]
       end.to_h
     end
 
     def ethnicity_rows
-      ClaimsReporting::EngagementTrends.sdoh_categories['Ethnicity'].map do |ethnicity_scope, name|
+      empty_set = ClaimsReporting::EngagementTrends.sdoh_categories['Ethnicity'].map do |_, name|
         [
           name,
-          GrdaWarehouse::Hud::Client.where(id: client_ids).send(ethnicity_scope).count,
+          '0',
+        ]
+      end.to_h
+      return empty_set unless total_member_count.positive?
+
+      ClaimsReporting::EngagementTrends.sdoh_categories['Ethnicity'].map do |ethnicity_scope, name|
+        count = GrdaWarehouse::Hud::Client.where(id: client_ids).send(ethnicity_scope).count
+        percent = ((count.to_f / total_member_count) * 100).round(2)
+        data = "#{count} (#{percent}%)"
+        [
+          name,
+          data,
         ]
       end.to_h
     end
@@ -313,7 +357,13 @@ module ClaimsReporting
         languages[language] += 1 unless patients.include?(cha.patient_id)
         patients << cha.patient_id
       end
-      languages
+      languages.map do |k, count|
+        percent = ((count.to_f / total_member_count) * 100).round(2)
+        [
+          k,
+          "#{count} (#{percent}%)",
+        ]
+      end.to_h
     end
 
     def housing_status_rows
@@ -333,14 +383,31 @@ module ClaimsReporting
         housing_situations['Homeless at end'] += 1 if stati.last[:score] < 4
         housing_situations['Ever homeless'] += 1 if stati.map { |s| s[:score] }.any? { |s| s < 4 }
       end
-      housing_situations
+      housing_situations.map do |k, count|
+        percent = ((count.to_f / total_member_count) * 100).round(2)
+        [
+          k,
+          "#{count} (#{percent}%)",
+        ]
+      end.to_h
     end
 
     def gender_rows
-      ClaimsReporting::EngagementTrends.sdoh_categories['Gender'].map do |gender_scope, name|
+      empty_set = ClaimsReporting::EngagementTrends.sdoh_categories['Gender'].map do |_, name|
         [
           name,
-          GrdaWarehouse::Hud::Client.where(id: client_ids).send(gender_scope).count,
+          '0',
+        ]
+      end.to_h
+      return empty_set unless total_member_count.positive?
+
+      ClaimsReporting::EngagementTrends.sdoh_categories['Gender'].map do |gender_scope, name|
+        count = GrdaWarehouse::Hud::Client.where(id: client_ids).send(gender_scope).count
+        percent = ((count.to_f / total_member_count) * 100).round(2)
+        data = "#{count} (#{percent}%)"
+        [
+          name,
+          data,
         ]
       end.to_h
     end
