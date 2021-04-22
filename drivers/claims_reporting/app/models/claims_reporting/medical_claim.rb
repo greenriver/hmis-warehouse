@@ -8,7 +8,7 @@ module ClaimsReporting
   class MedicalClaim < HealthBase
     # Calculates and updates the cumulative enrolled and engaged days as of each claims service_start_date.
     #
-    # These can go down if there are large gaps in enrollment. Temporary gaps ust stop counting days as enrolled.
+    # These can go down if there are large gaps in enrollment. Temporary gaps just stop counting days as enrolled.
     #
     # We loop over distinct members_id and update each members claims atomically. This could be done
     # in parallel if needed.

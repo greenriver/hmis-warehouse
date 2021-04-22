@@ -47,7 +47,10 @@
                   - sdoh = report.results[cohort_key.to_s]['sdoh']
                   %td= sdoh[title]['data'][cat]
 
-%h3 Claims
+%h3#claims Claims
+.nav.nav-pills.mb-2{role: :tablist}
+  .nav-item= link_to 'Select Categories', url_for(**request.query_parameters.except(:details), anchor: 'claims'), class: ['nav-link p-2', ('active' if highlights_only)]
+  .nav-item= link_to 'All Categories', url_for(**request.query_parameters.merge(details: 1), anchor: 'claims'), class: ['nav-link p-2', ('active' unless highlights_only)]
 .card.mb-4
   %table.table.table-sm.table-striped.table-bordered.mb-0
     %thead

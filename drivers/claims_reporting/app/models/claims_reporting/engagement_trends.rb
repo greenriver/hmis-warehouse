@@ -89,12 +89,9 @@ module ClaimsReporting
       'I-01 BH', # BH Inpatient Behavioral Health
       'P-01', # Office/Home Services
       'P-23', # Case Management
-      'P-23', # Case Management
       'P-08', # Behavioral Health
-      'I-11', # Nursing - Inpatient
-      'P-10', # Nursing - Office
-      'P-35', # Other Services'
       'I-08', # Hospital Outpatient Clinic
+      'P-28', # ESP
     ].to_set
 
     def highlighted_categories
