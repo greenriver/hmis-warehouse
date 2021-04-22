@@ -1,19 +1,40 @@
 :css
   /* CHARTS */
-  .chart {
-    min-height: 200px;
+  .chart-pit {
+    min-height: 240px;
+    max-height: 240px;
+  }
+  .chart-donut.chart {
+    width: 240px;
+    min-height: 240px;
+    max-height: 240px;
+  }
+  .chart-bar.chart {
+
   }
   .bb-axis-y path, .bb-axis-x path {
     stroke: #cccccc;
   }
-  .race-chart-overall_legend {
+  .legend-wrapper {
     display: flex;
     flex-wrap: wrap;
   }
-  .chart-legend-item-prs1 {
+  .legend-wrapper-vertical {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    align-content: center;
+  }
+  .legend-wrapper-vertical .chart-legend-item-prs1 {
     display: flex;
-    min-width: 200px;
-    max-width: 200px;
+    width: 100%;
+    margin-right: 2rem;
+    margin-bottom: 0.5rem;
+    align-content: flex-end;
+  }
+  .legend-wrapper-horizontal .chart-legend-item-prs1 {
+    display: flex;
+    width: 40%;
     margin-right: 2rem;
     margin-bottom: 0.5rem;
   }

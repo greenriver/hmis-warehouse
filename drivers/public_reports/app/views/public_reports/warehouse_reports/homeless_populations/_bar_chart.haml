@@ -1,8 +1,9 @@
 - active_date = data.keys.first
-%h2= data[active_date]['title']
+%h3= data[active_date]['title']
+
 .jQuarterChosenDate
-.chart.pt-2{ data: { active_date: data.keys.first }, class: [chart_class, "active_date_#{data.keys.first}"]}
-%div.d-flex{ class: ["#{chart_class}_legend"] }
+.chart-bar.chart.pt-2{ data: { active_date: data.keys.first }, class: [chart_class, "active_date_#{data.keys.first}"]}
+%div.d-flex.legend-wrapper-horizontal.legend-wrapper{ class: ["#{chart_class}_legend"] }
 :javascript
   var controller;
   var dates = #{data.to_json.to_s.html_safe};
@@ -54,6 +55,11 @@
           return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
         },
       },
+    },
+    tooltip: {
+      format: {
+        title: function(x) { return ''; },
+      }
     }
   });
   // Make the page aware of the new chart

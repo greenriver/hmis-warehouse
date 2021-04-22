@@ -281,7 +281,7 @@ module PublicReports
                 ['Homeless', with_service_in_quarter(report_scope, date, population).homeless.select(:client_id).distinct.count],
                 ['Housed', with_service_in_quarter(report_scope, date, population).residential_non_homeless.select(:client_id).distinct.count],
               ],
-              title: _('Homeless vs Housed'),
+              title: _('Homeless or Housed'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           end
@@ -392,6 +392,10 @@ module PublicReports
             end
           total_count = data.map { |_, ids| ids.count }.sum
           charts[date.iso8601] = {
+            # FIXME: this needs to integrate the census data so that the end result of data is
+            # [["Black or African American",38, 53],["White",53, 76],["Native Hawaiian or Other Pacific Islander",1, 12],["Multi-Racial",4, 10],["Asian",1, 5],["American Indian or Alaska Native",1, 1],["None",1, 1]]
+            # then the title for the tooltip needs to be adjusted for 0, 1 where 0 is homeless population, 1 is whole population
+            # data for census population is stored in GrdaWarehouse::FederalCensusBreakdowns:Coc
             data: data.map { |race, ids| [race, ((ids.count / total_count.to_f) * 100).round] },
             title: _('Racial Composition'),
             total: total_for(with_service_in_quarter(report_scope, date, population), population),

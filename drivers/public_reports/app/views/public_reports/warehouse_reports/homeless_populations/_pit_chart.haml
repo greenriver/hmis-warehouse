@@ -1,12 +1,12 @@
 - chart_class = "pit-chart-#{population}"
-.chart.pt-2{ class: chart_class }
+.chart.chart-pit.pt-2{ class: chart_class }
 
 :javascript
   var data = #{data.to_s.html_safe};
   var chart = bb.generate({
     data: {
       x: 'x',
-      columns: data['data'],
+      columns: data.data,
       type: 'line'
     },
     bindto: {
