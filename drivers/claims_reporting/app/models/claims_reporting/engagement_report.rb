@@ -280,7 +280,7 @@ module ClaimsReporting
         },
         'Housing Status' => {
           data: housing_status_rows,
-          tooltip: 'Housing status is collected from HMIS, ETO, and EPIC.',
+          tooltip: 'Housing status is collected from HMIS, ETO, and EPIC. Percentage is out of patients who have responded at least once.',
         },
         'SSM (average initial scores)' => {
           data: ssm_rows,
@@ -373,10 +373,12 @@ module ClaimsReporting
           0,
         ]
       end.to_h
+      total = 0
       GrdaWarehouse::Hud::Client.where(id: client_ids).find_each do |client|
         stati = client.health_housing_stati
         next unless stati.present?
 
+        total += 1
         housing_situations['Housed at start'] += 1 if stati.first[:score] >= 4
         housing_situations['Homeless at start'] += 1 if stati.first[:score] < 4
         housing_situations['Housed at end'] += 1 if stati.last[:score] >= 4
@@ -384,10 +386,10 @@ module ClaimsReporting
         housing_situations['Ever homeless'] += 1 if stati.map { |s| s[:score] }.any? { |s| s < 4 }
       end
       housing_situations.map do |k, count|
-        percent = ((count.to_f / total_member_count) * 100).round(2)
+        percent = ((count.to_f / total) * 100).round(2)
         [
           k,
-          "#{count} (#{percent}%)",
+          "#{count} of #{total} (#{percent}%)",
         ]
       end.to_h
     end

@@ -23,8 +23,8 @@ module Filters
 
     def available_cohort_types
       {
-        'Engaged History' => :engaged_history,
-        'Selected Period' => :selected_period,
+        'Patients engaged for time period, all claims post engagement' => :engaged_history,
+        'Longitudinal, claims falling within engaged time period' => :selected_period,
       }
     end
 
