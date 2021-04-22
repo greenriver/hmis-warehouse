@@ -27,6 +27,7 @@ module ProjectScorecard
 
       def cost_per_participant
         return nil unless [budget_plus_match, participants_in_psh].all?
+        return nil unless participants_in_psh.positive?
 
         (budget_plus_match / participants_in_psh).round
       end
