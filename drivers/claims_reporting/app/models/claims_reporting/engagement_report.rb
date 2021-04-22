@@ -312,11 +312,9 @@ module ClaimsReporting
 
       ClaimsReporting::EngagementTrends.sdoh_categories['Race'].map do |race_scope, name|
         count = GrdaWarehouse::Hud::Client.where(id: client_ids).send(race_scope).count
-        percent = ((count.to_f / total_member_count) * 100).round(2)
-        data = "#{count} (#{percent}%)"
         [
           name,
-          data,
+          count_and_precent(count, total_member_count),
         ]
       end.to_h
     end
@@ -332,11 +330,9 @@ module ClaimsReporting
 
       ClaimsReporting::EngagementTrends.sdoh_categories['Ethnicity'].map do |ethnicity_scope, name|
         count = GrdaWarehouse::Hud::Client.where(id: client_ids).send(ethnicity_scope).count
-        percent = ((count.to_f / total_member_count) * 100).round(2)
-        data = "#{count} (#{percent}%)"
         [
           name,
-          data,
+          count_and_precent(count, total_member_count),
         ]
       end.to_h
     end
@@ -358,10 +354,9 @@ module ClaimsReporting
         patients << cha.patient_id
       end
       languages.map do |k, count|
-        percent = ((count.to_f / total_member_count) * 100).round(2)
         [
           k,
-          "#{count} (#{percent}%)",
+          count_and_precent(count, total_member_count),
         ]
       end.to_h
     end
@@ -386,10 +381,9 @@ module ClaimsReporting
         housing_situations['Ever homeless'] += 1 if stati.map { |s| s[:score] }.any? { |s| s < 4 }
       end
       housing_situations.map do |k, count|
-        percent = ((count.to_f / total) * 100).round(2)
         [
           k,
-          "#{count} of #{total} (#{percent}%)",
+          count_and_precent(count, total),
         ]
       end.to_h
     end
@@ -405,13 +399,19 @@ module ClaimsReporting
 
       ClaimsReporting::EngagementTrends.sdoh_categories['Gender'].map do |gender_scope, name|
         count = GrdaWarehouse::Hud::Client.where(id: client_ids).send(gender_scope).count
-        percent = ((count.to_f / total_member_count) * 100).round(2)
-        data = "#{count} (#{percent}%)"
         [
           name,
-          data,
+          count_and_precent(count, total_member_count),
         ]
       end.to_h
+    end
+
+    private def count_and_precent(count, total)
+      return 0 unless total.positive?
+
+      percent = ((count.to_f / total) * 100).round(2)
+
+      "#{count} (#{percent}%)"
     end
 
     def ssm_rows
