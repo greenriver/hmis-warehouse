@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_04_19_174757) do
+ActiveRecord::Schema.define(version: 2021_04_22_161421) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1444,6 +1444,22 @@ ActiveRecord::Schema.define(version: 2021_04_19_174757) do
     t.string "timeframe_9"
     t.index ["patient_id"], name: "index_health_goals_on_patient_id"
     t.index ["user_id"], name: "index_health_goals_on_user_id"
+  end
+
+  create_table "hl7_value_set_codes", force: :cascade do |t|
+    t.string "value_set_name", null: false
+    t.string "value_set_oid", null: false
+    t.string "value_set_version"
+    t.string "code_system", null: false
+    t.string "code_system_oid", null: false
+    t.string "code_system_version"
+    t.string "code", null: false
+    t.string "definition"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code", "code_system"], name: "hl_value_set_code"
+    t.index ["value_set_name", "code_system", "code"], name: "hl_value_set_code_uniq_by_name", unique: true
+    t.index ["value_set_oid", "code_system_oid", "code"], name: "hl_value_set_code_uniq_by_oid", unique: true
   end
 
   create_table "medications", id: :serial, force: :cascade do |t|
