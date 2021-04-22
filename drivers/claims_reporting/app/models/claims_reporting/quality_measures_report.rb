@@ -1,9 +1,13 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 require 'memoist'
+require 'ruby-progressbar'
+
 module ClaimsReporting
   class QualityMeasuresReport
     include ActiveModel::Model
@@ -131,12 +135,29 @@ module ClaimsReporting
       )
     end
 
+    def serializable_hash
+      measure_info = AVAILABLE_MEASURES.values.map do |m|
+        [m.id, {
+          id: m.id,
+          title: m.title,
+          value: measure_value(m.id, report_nils_as: nil),
+        }]
+      end.to_h
+
+      {
+        title: title,
+        date_range: date_range,
+        measures: measure_info,
+      }
+    end
+
     def measure_value(measure, report_nils_as: '-')
       return report_nils_as unless measure.to_s.in?(AVAILABLE_MEASURES.keys.map(&:to_s)) && respond_to?(measure)
 
       send(measure) || report_nils_as
-    rescue StandardError
-      nil
+      # rescue StandardError => e
+      #   logger.error e.inspect
+      #   nil
     end
 
     # BH CP assigned enrollees 18 to 64 years of age as of December 31st of the measurement year.
@@ -161,18 +182,19 @@ module ClaimsReporting
     def dec_31_of_measurement_yaer
       date_range.min.end_of_year
     end
-    memoize :dec_31_of_measurement_yaer
 
     # BH CP enrollees 18 years of age or older as of September 2nd of the year prior to
     # the measurement year and 64 years of age as of December 31st of the measurement year.
     def dob_range_1
       (dec_31_of_measurement_yaer - 64.years) .. (date_range.min - 18.years)
     end
+    memoize :dob_range_1
 
     # BH CP enrollees 18 to 64 years of age as of December 31st of the measurement year.
     def dob_range_2
       (dec_31_of_measurement_yaer - 64.years) .. (dec_31_of_measurement_yaer - 18.years)
     end
+    memoize :dob_range_2
 
     def medical_claims_scope
       ClaimsReporting::MedicalClaim.joins(
@@ -190,105 +212,205 @@ module ClaimsReporting
         :date_of_birth,
       ).index_by(&:member_id)
 
+      puts "#{members_by_member_id.size} members"
+
       enrollments_by_member_id = assigned_enrollements_scope.select(
         :member_id,
         :cp_enroll_dt,
+        :cp_stop_rsn,
       ).group_by(&:member_id)
 
-      [].tap do |rows|
-        medical_claims_scope.select(
-          :member_id,
-          :cp_pidsl,
-          :service_start_date,
-          :member_dob,
-          :discharge_date,
-          :procedure_code,
-          :procedure_modifier_1,
-          :procedure_modifier_2,
-          :procedure_modifier_3,
-          :procedure_modifier_4,
-        ).group_by(&:member_id).each do |member_id, claims|
-          date_of_birth = members_by_member_id[member_id].date_of_birth
-          enrollments = enrollments_by_member_id[member_id]
-          earliest_enrollment = enrollments.min_by(&:cp_enroll_dt)
-          assignment_date = earliest_enrollment.cp_enroll_dt
-          completed_treatment_plans = claims.select { |c| c.procedure_code == 'T2024' && 'U4'.in?(c.modifiers) }
+      puts "#{assigned_enrollements_scope.count} enrollment spans"
 
-          rows << MeasureRow.new(
-            row_type: 'enrollee', # spec also says "patients"/member
-            row_id: member_id,
-            assigned_enrollees: true,
-          ).tap do |row|
-            row.medical_claims = claims.count
+      rows = []
 
-            # BH CP #1 The percentage of Behavioral Health Community Partner (BH CP)
-            # assigned enrollees 18 to 64 years of age with documentation of engagement
-            # within 122 days of the date of assignment to a BH CP.
-            if date_of_birth.in?(dob_range_1)
-              cut_off_date = assignment_date + 122.days
-              row.bh_cp_1 = completed_treatment_plans.any? { |c| c.service_start_date <= cut_off_date }
-            end
+      medical_claims_by_member_id = medical_claims_scope.select(
+        :id,
+        :member_id,
+        #:cp_pidsl,
+        :servicing_provider_type,
+        :billing_provider_type,
+        :service_start_date,
+        :member_dob,
+        :claim_type,
+        :claim_status,
+        :admit_date,
+        :discharge_date,
+        :procedure_code,
+        :procedure_modifier_1,
+        :procedure_modifier_2,
+        :procedure_modifier_3,
+        :procedure_modifier_4,
+        :enrolled_days,
+      ).group_by(&:member_id)
 
-            # BH CP #2: The percentage of Behavioral Health Community Partner (BH CP) enrollees
-            # 18 to 64 years of age with documentation of a completed Treatment Plan during the
-            # measurement year.
-            # anchor_date = dob_range_2.max
+      puts "#{medical_claims_scope.count} medical_claims"
 
-            # Members must be continuously enrolled in MassHealth during the measurement year.
-            continuous_in_masshealth = true # TODO "a gap of no more than 45 calendar days"
-            # Members must be continuously enrolled in the BH CP for at least 122 calendar days.
-            continuous_in_bh_cp = true # TODO  "no gap is allowed in CP enrollment"
-            if continuous_in_bh_cp && continuous_in_masshealth && date_of_birth.in?(dob_range_2)
-              # Qualifying numerator activity does not need to occur during the 122-day continuous enrollment
-              # period, and it can take place any time during the measurement year.
-              # TODO? The entity who submitted the documentation must be the same CP as the one that a member
-              # is enrolled with on the anchor date and during the 122-day continuous enrollment period.
-              row.bh_cp_2 = completed_treatment_plans.any? { |c| c.service_start_date.in? date_range }
-            end
+      pb = ProgressBar.create(total: medical_claims_by_member_id.size, format: '%c/%C (%P%%) %R/s%e [%B]')
+      medical_claims_by_member_id.each do |member_id, claims|
+        member = members_by_member_id[member_id]
+        date_of_birth = member.date_of_birth
+        enrollments = enrollments_by_member_id[member_id]
+        assignment_date = enrollments.min_by(&:cp_enroll_dt).cp_enroll_dt
+        completed_treatment_plans = claims.select(&:completed_treatment_plan?)
+
+        # Members must be continuously enrolled in MassHealth during the measurement year.
+        continuous_in_masshealth = continuously_enrolled_cp?(enrollments, date_range, max_gap: 45)
+
+        # Members must be continuously enrolled in the BH CP for at least 122 calendar days.
+        continuous_in_bh_cp = continuously_enrolled_cp?(enrollments, date_range, min_days: 122, max_gap: 0)
+
+        # TODO? BH CP #2: The entity who submitted the documentation must be the same CP as the one that a member
+        # is enrolled with on the anchor date and during the 122-day continuous enrollment period.
+
+        rows << MeasureRow.new(
+          row_type: 'enrollee', # spec also says "patients"/member
+          row_id: member_id,
+        ).tap do |row|
+          row.medical_claims = claims.count
+
+          # BH CP #1 The percentage of Behavioral Health Community Partner (BH CP)
+          # assigned enrollees 18 to 64 years of age with documentation of engagement
+          # within 122 days of the date of assignment to a BH CP.
+          if date_of_birth.in?(dob_range_1)
+            cut_off_date = assignment_date + 122.days
+            row.bh_cp_1 = completed_treatment_plans.any? { |c| c.service_start_date <= cut_off_date }
           end
 
-          # claims.each do |c|
-          # next unless c.servicing_provider_type.in? %w/70 71 73 74 09 26 28/
-          # next unless c.servicing_provider_type.in? %w/35/  && c.claim_type == 'inpatient'
-
-          #   anchor_date = c.discharge_date
-          #   # BH CP enrollees 18 to 64 years of age as of date of discharge.
-          #   next unless c.member_dob.in?(anchor_date - 64.years .. anchor_date - 18.years)
-
-          #   followup_range = anchor_date .. 3.business_days.after(anchor_date)
-          #   # TODO: Continuously enrolled with BH CP from date of discharge through 3 business days after discharge.
-          #   overlapping_enrollments = enrollments.select{|e|}
-
-          #   # TODO: No allowable gap in BH CP enrollment during the continuous enrollment period.
-
-          #   # TODO: table/column for MassHealth Provider Type && MCO or ACO Provider Type
-
-          #   # Qualifying Activity: Follow up after Discharge submitted by the BH CP to the Medicaid Management
-          #   # Information System (MMIS) and identified via code G9007 with a U5 modifier. In addition to the
-          #   # U5 modifier, (TODO: the following modifiers may be included: U1 or U2). This follow- up must be comprised
-          #   # of a face-to-face visit with the enrollee.
-          #   # TODO: The follow- up must be with the same BH CP that a member is enrolled with on the event date (discharge date).
-          #   eligable_followup = claims.any? do |c|
-          #     c.procedure_code == 'G9007' && c.modifiers.include?('U5') && c.service_start_date.in?(followup_range)
-          #   end
-          #   rows << MeasureRow.new(
-          #     row_type: 'discharge',
-          #     row_id: c.id,
-          #     bh_cp_3: eligable_followup,
-          #   )
-          # end
+          # BH CP #2: The percentage of Behavioral Health Community Partner (BH CP) enrollees
+          # 18 to 64 years of age with documentation of a completed Treatment Plan during the
+          # measurement year.
+          # anchor_date = dob_range_2.max
+          if continuous_in_bh_cp && continuous_in_masshealth && date_of_birth.in?(dob_range_2)
+            # Qualifying numerator activity does not need to occur during the 122-day continuous enrollment
+            # period, and it can take place any time during the measurement year.
+            row.bh_cp_2 = completed_treatment_plans.any? { |c| c.service_start_date.in? date_range }
+          end
         end
+
+        # a member might have multiple discharges
+        rows.concat calculate_bh_cp_3(member, claims, enrollments)
+        pb.increment
       end
+
+      rows
     end
     memoize :medical_claim_based_rows
 
-    def assigned_enrollees
-      formatter.format_i medical_claim_based_rows.size
+    private def continuously_enrolled_cp?(_enrollments, _date_range, max_gap: 0, min_days: nil) # rubocop:disable  Lint/UnusedMethodArgument
+      # TODO: figure out of a group of enrollment spans indicate a continuous
+      # enrollment. Optionally of a durations of at least min_days
+      true
     end
 
-    def medical_claims
-      formatter.format_i medical_claim_based_rows.sum(&:medical_claims)
+    private def continuously_enrolled_mh?(_enrollments, _date_range, max_gap: 0, min_days: nil) # rubocop:disable  Lint/UnusedMethodArgument
+      # TODO: figure out of a group of enrollment spans indicate a continuous
+      # enrollment. Optionally of a durations of at least min_days
+      true
     end
+
+    private def in_age_range?(dob, range, as_of:)
+      dob.in?(as_of - range.max .. as_of - range.min)
+    end
+
+    private def acute_inpatient_hospital?(_claim)
+      # TODO: We need get a lookup of "Acute Inpatient Hospital IDs"
+      # from somewhere
+      false
+    end
+
+    private def calculate_bh_cp_3(_member, claims, enrollments)
+      # Business days are defined as Monday through Friday, even
+      # if one or more of those days is a state or federal holiday.
+      raise 'invalid BusinessTime::Config.holidays' unless BusinessTime::Config.work_week == ['mon', 'tue', 'wed', 'thu', 'fri']
+      raise 'invalid BusinessTime::Config.holidays' unless BusinessTime::Config.holidays.empty?
+
+      # Exclude: Members who decline to engage with the BH CP. The reason for dis-enrollment from the
+      # BH CP will be identified as Stop Reason “Declined” in the Medicaid Management Information System (MMIS).
+      return [] if enrollments.any? { |e| e.cp_stop_rsn == 'Declined' } # Note: This is not populated as of Apr 2021
+
+      servicing_provider_types = ['70', '71', '73', '74', '09', '26', '28']
+      billing_provider_type = ['6', '3', '246', '248', '20', '21', '30', '31', '22', '332']
+
+      billing_provider_type2 = ['1', '40', '301', '25']
+      servicing_provider_types2 = ['35']
+
+      discharge_date_range = date_range.min .. 3.business_days.before(date_range.max)
+
+      rows = []
+
+      # avoid O(n^2) by finding the small set of dates
+      # containing the claims we are looking for near each discharge
+
+      # Exclude discharges followed by readmission or direct transfer to a
+      # facility setting within the 3- business-day follow-up period. To
+      # identify readmissions and direct transfers to a facility setting:
+
+      # 1. Identify all inpatient stays.
+      # 2. Identify the admission date for the stay.
+
+      # These discharges are excluded from the measure because a readmission
+      # or direct transfer may prevent a follow-up from taking place.
+      admit_dates = claims.select(&:admit_date).map(&:admit_date)
+
+      # Qualifying Activity: Follow up after Discharge submitted by the BH CP to the Medicaid Management
+      # Information System (MMIS) and identified via code G9007 with a U5 modifier. In addition to the
+      # U5 modifier...
+      # TODO: the following modifiers may be included: U1 or U2). This follow- up must be comprised
+      # of a face-to-face visit with the enrollee.
+      eligable_followups = claims.select do |c|
+        c.procedure_code == 'G9007' && c.modifiers.include?('U5')
+        # TODO: The follow- up must be with the same BH CP that a member is enrolled with on the event date (discharge date).
+      end.map(&:service_start_date)
+
+      claims.each do |c|
+        # on or between January 1 and more than 3 business days before the end of the measurement year.
+        next unless c.discharge_date && c.discharge_date.in?(discharge_date_range)
+
+        # BH CP enrollees 18 to 64 years of age as of date of discharge.
+        next unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: c.discharge_date)
+
+        # A discharge from any facility setting listed below
+        next unless (
+          c.servicing_provider_type.in?(servicing_provider_types) ||
+          c.billing_provider_type.in?(billing_provider_type) ||
+          (acute_inpatient_hospital?(c) && c.billing_provider_type.in?(billing_provider_type2))
+        ) || (
+          c.claim_type == 'inpatient' && c.servicing_provider_type.in?(servicing_provider_types2)
+        )
+
+        # Continuously enrolled with BH CP from date of discharge through 3 business days after discharge.
+        # No allowable gap in BH CP enrollment during the continuous enrollment period.
+        followup_period = (c.discharge_date .. 3.business_days.after(c.discharge_date)).to_a
+        next unless continuously_enrolled_cp?(enrollments, followup_period, max_gap: 0)
+
+        # exclude readmitted
+        next if (admit_dates & followup_period).any?
+
+        # count in the numerator if we had a eligable_followups in the period
+        eligable_followup = (eligable_followups & followup_period).any?
+
+        row = MeasureRow.new(
+          row_type: 'discharge',
+          row_id: c.id,
+          bh_cp_3: eligable_followup,
+        )
+        # puts "Found #{row.inspect}"
+
+        rows << row
+      end
+      rows
+    end
+
+    def assigned_enrollees
+      formatter.format_i assigned_enrollements_scope.count
+    end
+    memoize :assigned_enrollees
+
+    def medical_claims
+      formatter.format_i medical_claims_scope.count
+    end
+    memoize :medical_claims
 
     private def percentage(enumerable, flag)
       denominator = 0
@@ -301,7 +423,11 @@ module ClaimsReporting
         numerator += 1 if value
       end
 
-      formatter.format_pct(numerator * 100.0 / denominator).presence
+      return nil if denominator.zero?
+
+      # formatter.format_pct(numerator * 100.0 / denominator).presence
+      [numerator, denominator]
+      # formatter.format_pct(numerator * 100.0 / denominator).presence
     end
 
     def bh_cp_1
@@ -313,7 +439,7 @@ module ClaimsReporting
     end
 
     def bh_cp_3
-      # percentage medical_claim_based_rows, :bh_cp_3
+      percentage medical_claim_based_rows, :bh_cp_3
     end
 
     def bh_cp_4
@@ -344,59 +470,86 @@ module ClaimsReporting
       # percentage medical_claim_based_rows, :bh_cp_13
     end
 
-    # private def values_sets
-    #   [
-    #     'Acute Inpatient POS Value Set'.
-    #     'Acute Inpatient Value Set'.
-    #     'Alcohol Abuse and Dependence Value Set'.
-    #     'Ambulatory Surgical Center POS Value Set'.
-    #     'AOD Abuse and Dependence Value Set'.
-    #     'AOD Medication Treatment Value Set'.
-    #     'BH Outpatient Value Set'.
-    #     'BH Stand Alone Acute Inpatient Value Set'.
-    #     'BH Stand Alone Nonacute Inpatient Value Set'.
-    #     'Bipolar Disorder Value Set'.
-    #     'Community Mental Health Center POS Value Set'.
-    #     'Detoxification Value Set'.
-    #     'Diabetes Value Set'.
-    #     'ED POS Value Set'.
-    #     'ED Value Set'.
-    #     'Electroconvulsive Therapy Value Set'.
-    #     'Glucose Tests Value Set'.
-    #     'HbA1c Tests Value Set'.
-    #     'Hospice Value Set'.
-    #     'IET POS Group 1 Value Set'.
-    #     'IET POS Group 2 Value Set'.
-    #     'IET Stand Alone Visits Value Set'.
-    #     'IET Visits Group 1 Value Set'.
-    #     'IET Visits Group 2 Value Set'.
-    #     'Inpatient Stay Value Set'.
-    #     'Intentional Self-Harm Value Set'.
-    #     'Long-Acting Injections Value Set'.
-    #     'Mental Health Diagnosis Value Set'.
-    #     'Mental Illness Value Set'.
-    #     'Nonacute Inpatient POS Value Set'.
-    #     'Nonacute Inpatient Stay Value Set'.
-    #     'Nonacute Inpatient Value Set'.
-    #     'Observation Value Set'.
-    #     'Online Assessments Value Set'.
-    #     'Opioid Abuse and Dependence Value Set'.
-    #     'Other Bipolar Disorder Value Set'.
-    #     'Other Drug Abuse and Dependence Value Set              '.
-    #     'Outpatient POS Value Set'.
-    #     'Outpatient Value Set'.
-    #     'Partial Hospitalization POS Value Set'.
-    #     'Partial Hospitalization/Intensive Outpatient Value Set'.
-    #     'Schizophrenia Value Set'.
-    #     'Serious Mental Illness, Value Set - Principal ICD-10 CM Diagnosis'.
-    #     'Telehealth Modifier Value Set'.
-    #     'Telehealth POS Value Set'.
-    #     'Telephone Visits Value Set'.
-    #     'Transitional Care Management Services Value Set'.
-    #     'Visit Setting Unspecified Value Set'.
-    #     'Well-Care Value Set'.
-    #   ]
-    # end
+    VALUE_SETS = {
+      'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013',
+      'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
+      'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1017',
+      'Alcohol Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1424',
+      'Ambulatory Surgical Center POS' => '2.16.840.1.113883.3.464.1004.1480',
+      'BH Outpatient' => '2.16.840.1.113883.3.464.1004.1481',
+      'Community Mental Health Center POS' => '2.16.840.1.113883.3.464.1004.1484',
+      'Detoxification' => '2.16.840.1.113883.3.464.1004.1076',
+      'Diabetes' => '2.16.840.1.113883.3.464.1004.1077',
+      'ED' => '2.16.840.1.113883.3.464.1004.1086',
+      'ED POS' => '2.16.840.1.113883.3.464.1004.1087',
+      'Electroconvulsive Therapy' => '2.16.840.1.113883.3.464.1004.1294',
+      'HbA1c Tests' => '2.16.840.1.113883.3.464.1004.1116',
+      'Hospice' => '2.16.840.1.113883.3.464.1004.1418',
+      'IET POS Group 1' => '2.16.840.1.113883.3.464.1004.1129',
+      'IET POS Group 2' => '2.16.840.1.113883.3.464.1004.1130',
+      'IET Stand Alone Visits' => '2.16.840.1.113883.3.464.1004.1131',
+      'IET Visits Group 1' => '2.16.840.1.113883.3.464.1004.1132',
+      'IET Visits Group 2' => '2.16.840.1.113883.3.464.1004.1133',
+      'Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1395',
+      'Intentional Self-Harm' => '2.16.840.1.113883.3.464.1004.1468',
+      'Mental Health Diagnosis' => '2.16.840.1.113883.3.464.1004.1178',
+      'Mental Illness' => '2.16.840.1.113883.3.464.1004.1179',
+      'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
+      'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
+      'Observation' => '2.16.840.1.113883.3.464.1004.1191',
+      'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
+      'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
+      'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
+      'Outpatient POS' => '2.16.840.1.113883.3.464.1004.1443',
+      'Partial Hospitalization POS' => '2.16.840.1.113883.3.464.1004.1491',
+      'Partial Hospitalization/Intensive Outpatient' => '2.16.840.1.113883.3.464.1004.1492',
+      'Telehealth Modifier' => '2.16.840.1.113883.3.464.1004.1445',
+      'Telehealth POS' => '2.16.840.1.113883.3.464.1004.1460',
+      'Telephone Visits' => '2.16.840.1.113883.3.464.1004.1246',
+      'Transitional Care Management Services' => '2.16.840.1.113883.3.464.1004.1462',
+      'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
+      'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
+    }.freeze
+
+    # TODO
+    # ["AOD Abuse and Dependence",
+    # "AOD Medication Treatment",
+    # "Acute Inpatient",
+    # "Alcohol Abuse and Dependence",
+    # "Ambulatory Surgical Center POS",
+    # "BH Outpatient",
+    # "Community Mental Health Center POS",
+    # "Detoxification",
+    # "Diabetes",
+    # "ED",
+    # "ED POS",
+    # "Electroconvulsive Therapy",
+    # "HbA1c Tests",
+    # "Hospice",
+    # "IET POS Group 1",
+    # "IET POS Group 2",
+    # "IET Stand Alone Visits",
+    # "IET Visits Group 1",
+    # "IET Visits Group 2",
+    # "Inpatient Stay",
+    # "Intentional Self-Harm",
+    # "Mental Health Diagnosis",
+    # "Mental Illness",
+    # "Nonacute Inpatient",
+    # "Nonacute Inpatient Stay",
+    # "Observation",
+    # "Online Assessments",
+    # "Opioid Abuse and Dependence",
+    # "Outpatient",
+    # "Outpatient POS",
+    # "Partial Hospitalization POS",
+    # "Partial Hospitalization/Intensive Outpatient",
+    # "Telehealth Modifier",
+    # "Telehealth POS",
+    # "Telephone Visits",
+    # "Transitional Care Management Services",
+    # "Visit Setting Unspecified",
+    # "Well-Care"
 
     private def connection
       HealthBase.connection
