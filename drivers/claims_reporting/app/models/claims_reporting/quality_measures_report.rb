@@ -24,6 +24,10 @@ module ClaimsReporting
 
     Measure = Struct.new(:id, :title, :desc, :numerator, :denominator, keyword_init: true)
 
+    PROCEDURE_CODE_SYSTEMS = ['CPT', 'HCPCS'].freeze
+    REVENUE_CODE_SYSTEMS = ['UBREV'].freeze
+    APC_EXTRA_PROC_CODES = ['99386', '99387', '99396', '99397', 'T1015'].freeze
+
     AVAILABLE_MEASURES = [
       Measure.new(
         id: :bh_cp_1,
@@ -249,7 +253,6 @@ module ClaimsReporting
       puts "#{medical_claims_scope.count} medical_claims"
 
       pb = ProgressBar.create(total: medical_claims_by_member_id.size, format: '%c/%C (%P%%) %R/s%e [%B]')
-
       rows = Parallel.flat_map(
         medical_claims_by_member_id,
         finish: ->(_item, _i, _result) { pb.increment },
@@ -300,6 +303,9 @@ module ClaimsReporting
 
         # a member can have multiple ed visits
         rows.concat calculate_bh_cp_4(member, claims, enrollments)
+
+        # a member can have multiple ed visits
+        rows.concat calculate_bh_cp_5(member, claims, enrollments)
       end
 
       rows
@@ -443,11 +449,11 @@ module ClaimsReporting
     memoize :value_set_codes
 
     private def ed_visit?(claim)
-      value_set_codes('ED', 'CPT').include? claim.procedure_code
+      value_set_codes('ED', PROCEDURE_CODE_SYSTEMS).include? claim.procedure_code
     end
 
     private def inpatient_stay?(claim)
-      value_set_codes('Inpatient Stay', 'UBREV').include? claim.revenue_code
+      value_set_codes('Inpatient Stay', REVENUE_CODE_SYSTEMS).include? claim.revenue_code
     end
 
     private def assert(explaination, condition)
@@ -471,7 +477,7 @@ module ClaimsReporting
 
         # "BH CP enrollees 18 to 64 years of age as of date of ED visit."
         unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: visit_date)
-          puts "Exclude #{c.id}: Dob: #{c.member_dob} outside age range as of #{visit_date}"
+          puts "BH_CP_4: Exclude claim #{c.id}: Dob: #{c.member_dob} outside age range as of #{visit_date}"
           next
         end
 
@@ -481,7 +487,7 @@ module ClaimsReporting
         assert "followup_period must be 8 days, was #{followup_period.size} days.", followup_period.size == 8
 
         unless continuously_enrolled_cp?(enrollments, followup_period, max_gap: 0)
-          puts "Exclude #{c.id}: not continuously_enrolled_in_cp during #{followup_period}"
+          puts "BH_CP_4: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period}"
           next
         end
 
@@ -516,8 +522,8 @@ module ClaimsReporting
 
         eligable_followups << c.service_start_date if cp_followup?(c)
       end
-      puts inpatient_stay_dates if inpatient_stay_dates.any?
-      puts eligable_followups if eligable_followups.any?
+      # puts inpatient_stay_dates if inpatient_stay_dates.any?
+      # puts eligable_followups if eligable_followups.any?
 
       rows = []
       ed_visits.each do |c|
@@ -529,7 +535,7 @@ module ClaimsReporting
         # calendar days after the ED visit (8 total days), regardless of
         # principal diagnosis for the admission.
         if (admits = (inpatient_stay_dates & followup_period)).any?
-          puts "Exclude #{c.id}: inpatient admitted too soon #{admits}"
+          puts "BH_CP_4: Exclude claim #{c.id}: inpatient admitted too soon #{admits.to_a}"
           next
         end
 
@@ -541,11 +547,134 @@ module ClaimsReporting
           row_id: c.id,
           bh_cp_4: eligable_followup,
         )
-        puts "Found #{row.inspect}" if row.bh_cp_4
+        # puts "Found #{row.inspect}" if row.bh_cp_4
 
         rows << row
       end
       rows
+    end
+
+    private def pcp_practitioner?(_claim)
+      # TODO
+      false
+    end
+
+    private def ob_gyn_practitioner?(_claim)
+      # TODO
+      false
+    end
+
+    private def hospice?(claim)
+      (
+        claim.procedure_code.in?(value_set_codes('Hospice', PROCEDURE_CODE_SYSTEMS)) ||
+        claim.revenue_code.in?(value_set_codes('Hospice', REVENUE_CODE_SYSTEMS))
+      )
+    end
+
+    private def in_set?(value_set, claim)
+      # TODO
+    end
+
+    private def aod_dx?(claim)
+      in_set?('AOD Abuse and Dependence', claim) || in_set?('AOD Medication', claim)
+    end
+
+    private def aod_rx?(rx_claim)
+      (
+        in_set?('Medication Treatment for Alcohol Abuse or Dependence Medications List', rx_claim) ||
+        in_set?('Medication Treatment for Opioid Abuse or Dependence Medications List', rx_claim)
+      )
+    end
+
+    private def aod_abuse_or_dependence?(claim)
+      # New episode of AOD abuse or dependence
+      # FIXME this may need to be evaluated on
+      # all the claims in the same 'stay' TODO
+      # this is used to find a IESD
+
+      c = claim
+      aod_abuse = (
+        in_set?('Alcohol Abuse and Dependence', c) ||
+        in_set?('Opioid Abuse and Dependence', c) ||
+        in_set?('Other Drug Abuse and Dependence', c)
+      ) # && value_set_codes('Telehealth Modifier Value', PROCEDURE_CODE_SYSTEMS)
+
+      (
+        in_set?('IET Stand Alone', c) && aod_abuse
+      ) || (
+        in_set?('IET Visits Group 1', c) && in_set?('IET POS Group 1', c) && aod_abuse
+      ) || (
+        in_set?('IET Visits Group 2', c) && in_set?('IET POS Group 2', c) && aod_abuse
+      ) || (
+        in_set?('IET Detoxification', c) && aod_abuse
+      ) || (
+        in_set?('ED', c) && aod_abuse
+      ) || (
+        in_set?('Observation', c) && aod_abuse
+      ) || (
+        inpatient_stay?(c) && aod_abuse
+      ) || (
+        in_set?('Telephone Visits', c) && aod_abuse
+      ) || (
+        in_set?('Online Assessments', c) && aod_abuse
+      )
+    end
+
+    private def annual_primary_care_visit?(claim)
+      # ... comprehensive physical examination (Well-Care Value
+      # Set, or any of the following procedure codes: 99386, 99387, 99396,
+      # 99397 [CPT]; T1015 [HCPCS]) with a PCP or an OB/GYN practitioner
+      # (Provider Type Definition Workbook). The practitioner does not have to
+      # be the practitioner assigned to the member. The comprehensive
+      # well-care visit can happen any time during the measurement year; it
+      # does not need to occur during a CP enrollment period.
+      (
+        claim.procedure_code.in?(value_set_codes('Well-Care', PROCEDURE_CODE_SYSTEMS)) ||
+        (claim.procedure_code.in?(APC_EXTRA_PROC_CODES) && (pcp_practitioner?(claim) || ob_gyn_practitioner?(claim)))
+      )
+    end
+
+    # Annual Primary Care Visit
+    private def calculate_bh_cp_5(member, claims, _enrollments)
+      rows = []
+      # BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.
+      return [] unless in_age_range?(member.date_of_birth, 18.years .. 64.years, as_of: dec_31_of_measurement_yaer)
+
+      # Exclusions: Enrollees in Hospice (Hospice Value Set)
+      if claims.any? { |c| hospice?(c) && c.service_start_date.in?(measurement_year) }
+        puts "BH_CP_5: Exclude enrollee #{m.id} is in hospice"
+        return []
+      end
+
+      pcp_visit_dates = []
+      claims.each do |c|
+        pcp_visit_dates << c.service_start_date if annual_primary_care_visit?(c) && c.service_start_date.in?(measurement_year)
+      end
+      puts "Found annual_primary_care_visits #{pcp_visit_dates}" if pcp_visit_dates.any?
+
+      # For members continuously enrolled with the CP for at least 122 days,
+      # and with no CP disenrollment during the measurement year (note that
+      # this scenario logically implies an enrollment anchor on the last day
+      # of the measurement period), the following must occur during the
+      # measurement year:
+
+      # - At least one pcp_visit_dates
+      # annual_primary_care_visit?(c)
+
+      # For members with one or more disenrollments during the measurement
+      # year, identify each enrollment segment with the CP provider of 122
+      # days or longer that ends in a disenrollment. Identify the
+      # disenrollment date for each of these segments. (Note: each
+      # disenrollment date is a separate event to be evaluated, establishing
+      # an anchor date for claims lookback. This is true regardless of whether
+      # the multiple enrollment segments are with the same, or different, CP
+      # providers). The following must occur during the year prior to each
+      # disenrollment date:
+
+      # - At least one pcp_visit_dates
+
+      # TOOD: way more filters here before MeasureRow.new('enrollee')
+      return rows
     end
 
     def assigned_enrollees
