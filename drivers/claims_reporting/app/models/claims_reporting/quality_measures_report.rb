@@ -247,7 +247,12 @@ module ClaimsReporting
       puts "#{medical_claims_scope.count} medical_claims"
 
       pb = ProgressBar.create(total: medical_claims_by_member_id.size, format: '%c/%C (%P%%) %R/s%e [%B]')
-      medical_claims_by_member_id.each do |member_id, claims|
+
+      rows = Parallel.flat_map(
+        medical_claims_by_member_id,
+        finish: ->(_item, _i, _result) { pb.increment },
+      ) do |member_id, claims|
+        rows = []
         member = members_by_member_id[member_id]
         date_of_birth = member.date_of_birth
         enrollments = enrollments_by_member_id[member_id]
@@ -290,7 +295,6 @@ module ClaimsReporting
 
         # a member might have multiple discharges
         rows.concat calculate_bh_cp_3(member, claims, enrollments)
-        pb.increment
       end
 
       rows
@@ -335,12 +339,13 @@ module ClaimsReporting
       billing_provider_type2 = ['1', '40', '301', '25']
       servicing_provider_types2 = ['35']
 
+      # on or between January 1 and more than 3 business days before the end of the measurement year.
       discharge_date_range = date_range.min .. 3.business_days.before(date_range.max)
 
       rows = []
 
       # avoid O(n^2) by finding the small set of dates
-      # containing the claims we are looking for near each discharge
+      # containing the claims we will need to look for near each discharge
 
       # Exclude discharges followed by readmission or direct transfer to a
       # facility setting within the 3- business-day follow-up period. To
@@ -364,7 +369,6 @@ module ClaimsReporting
       end.map(&:service_start_date)
 
       claims.each do |c|
-        # on or between January 1 and more than 3 business days before the end of the measurement year.
         next unless c.discharge_date && c.discharge_date.in?(discharge_date_range)
 
         # BH CP enrollees 18 to 64 years of age as of date of discharge.
