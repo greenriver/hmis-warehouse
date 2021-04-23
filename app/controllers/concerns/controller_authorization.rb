@@ -22,7 +22,7 @@ module ControllerAuthorization
 
   def require_can_see_this_client_demographics!
     begin
-      set_client
+      return false unless set_client # return if set client generates a redirect
       return true if @client&.show_demographics_to?(current_user)
     rescue ActiveRecord::RecordNotFound
       # ignore records we can't see
