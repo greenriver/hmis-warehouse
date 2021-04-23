@@ -227,6 +227,7 @@ module ClaimsReporting
       medical_claims_by_member_id = medical_claims_scope.select(
         :id,
         :member_id,
+        :claim_number,
         #:cp_pidsl,
         :servicing_provider_type,
         :billing_provider_type,
@@ -236,6 +237,7 @@ module ClaimsReporting
         :claim_status,
         :admit_date,
         :discharge_date,
+        :revenue_code,
         :procedure_code,
         :procedure_modifier_1,
         :procedure_modifier_2,
@@ -293,8 +295,11 @@ module ClaimsReporting
           end
         end
 
-        # a member might have multiple discharges
+        # a member can have multiple discharges
         rows.concat calculate_bh_cp_3(member, claims, enrollments)
+
+        # a member can have multiple ed visits
+        rows.concat calculate_bh_cp_4(member, claims, enrollments)
       end
 
       rows
@@ -303,17 +308,18 @@ module ClaimsReporting
 
     private def continuously_enrolled_cp?(_enrollments, _date_range, max_gap: 0, min_days: nil) # rubocop:disable  Lint/UnusedMethodArgument
       # TODO: figure out of a group of enrollment spans indicate a continuous
-      # enrollment. Optionally of a durations of at least min_days
+      # enrollment. Optionally of a total durations of at least min_days allowing for gaps of up to max_gap days
       true
     end
 
     private def continuously_enrolled_mh?(_enrollments, _date_range, max_gap: 0, min_days: nil) # rubocop:disable  Lint/UnusedMethodArgument
-      # TODO: figure out of a group of enrollment spans indicate a continuous
-      # enrollment. Optionally of a durations of at least min_days
+      # TODO: see continuously_enrolled_cp? except use MassHealth
       true
     end
 
     private def in_age_range?(dob, range, as_of:)
+      return nil unless dob && as_of
+
       dob.in?(as_of - range.max .. as_of - range.min)
     end
 
@@ -323,15 +329,39 @@ module ClaimsReporting
       false
     end
 
-    private def calculate_bh_cp_3(_member, claims, enrollments)
+    private def cp_followup?(claim)
+      # > Qualifying Activity: Follow up after Discharge submitted by the BH CP to the Medicaid Management
+      # > Information System (MMIS) and identified via code G9007 with a U5 modifier. In addition to the
+      # > U5 modifier [TODO: the following modifiers may be included: U1 or U2. This follow-up must be
+      # > comprised of a face-to-face visit with the enrollee.)
+      claim.procedure_code == 'G9007' && claim.modifiers.include?('U5')
+    end
+
+    private def declined_to_engage?(enrollments)
+      # The reason for dis-enrollment from the BH CP will be identified as
+      # Stop Reason “Declined” in the Medicaid Management Information System (MMIS).
+      #
+      # Note: This is never populated in data we've seen as of Apr 2021
+      enrollments.any? { |e| e.cp_stop_rsn == 'Declined' }
+    end
+
+    private def measurement_year
+      date_range.min.beginning_of_year .. date_range.min.end_of_year
+    end
+
+    private def assert_business_time
       # Business days are defined as Monday through Friday, even
       # if one or more of those days is a state or federal holiday.
-      raise 'invalid BusinessTime::Config.holidays' unless BusinessTime::Config.work_week == ['mon', 'tue', 'wed', 'thu', 'fri']
-      raise 'invalid BusinessTime::Config.holidays' unless BusinessTime::Config.holidays.empty?
+      assert 'invalid BusinessTime::Config.work_week', BusinessTime::Config.work_week == ['mon', 'tue', 'wed', 'thu', 'fri']
+      assert 'invalid BusinessTime::Config.holidays', BusinessTime::Config.holidays.empty?
+    end
 
-      # Exclude: Members who decline to engage with the BH CP. The reason for dis-enrollment from the
-      # BH CP will be identified as Stop Reason “Declined” in the Medicaid Management Information System (MMIS).
-      return [] if enrollments.any? { |e| e.cp_stop_rsn == 'Declined' } # Note: This is not populated as of Apr 2021
+    # BH CP Quality Measurement Program BH CP #3: Follow-up with BH CP after acute or post- acute stay (3 business days)
+    private def calculate_bh_cp_3(_member, claims, enrollments)
+      assert_business_time
+
+      # > Exclude: Members who decline to engage with the BH CP.
+      return [] if declined_to_engage?(enrollments)
 
       servicing_provider_types = ['70', '71', '73', '74', '09', '26', '28']
       billing_provider_type = ['6', '3', '246', '248', '20', '21', '30', '31', '22', '332']
@@ -339,42 +369,35 @@ module ClaimsReporting
       billing_provider_type2 = ['1', '40', '301', '25']
       servicing_provider_types2 = ['35']
 
-      # on or between January 1 and more than 3 business days before the end of the measurement year.
-      discharge_date_range = date_range.min .. 3.business_days.before(date_range.max)
+      # "on or between January 1 and more than 3 business days before the end of the measurement year."
+      discharge_date_range = measurement_year.min .. 3.business_days.before(measurement_year.max)
 
       rows = []
 
-      # avoid O(n^2) by finding the small set of dates
-      # containing the claims we will need to look for near each discharge
-
-      # Exclude discharges followed by readmission or direct transfer to a
-      # facility setting within the 3- business-day follow-up period. To
-      # identify readmissions and direct transfers to a facility setting:
-
-      # 1. Identify all inpatient stays.
-      # 2. Identify the admission date for the stay.
-
-      # These discharges are excluded from the measure because a readmission
-      # or direct transfer may prevent a follow-up from taking place.
-      admit_dates = claims.select(&:admit_date).map(&:admit_date)
-
-      # Qualifying Activity: Follow up after Discharge submitted by the BH CP to the Medicaid Management
-      # Information System (MMIS) and identified via code G9007 with a U5 modifier. In addition to the
-      # U5 modifier...
-      # TODO: the following modifiers may be included: U1 or U2). This follow- up must be comprised
-      # of a face-to-face visit with the enrollee.
-      eligable_followups = claims.select do |c|
-        c.procedure_code == 'G9007' && c.modifiers.include?('U5')
-        # TODO: The follow- up must be with the same BH CP that a member is enrolled with on the event date (discharge date).
-      end.map(&:service_start_date)
+      # Avoid O(n^2) by finding the small set of dates containing the claims
+      # we will need to look for near each discharge
+      admit_dates = Set.new
+      eligable_followups = Set.new
+      claims.each do |c|
+        # > Exclude discharges followed by readmission or direct transfer to a
+        # > facility setting within the 3- business-day follow-up period. To
+        # > identify readmissions and direct transfers to a facility setting:
+        # > 1. Identify all inpatient stays.
+        # Note the spec does not reference the Inpatient Stay Value Set like it does for bh_cp_4
+        # > 2. Identify the admission date for the stay.
+        # > These discharges are excluded from the measure because a readmission
+        # > or direct transfer may prevent a follow-up from taking place.
+        admit_dates << c.admit_date if c.admit_date
+        eligable_followups << c.service_start_date if c.service_start_date && cp_followup?(c)
+      end
 
       claims.each do |c|
         next unless c.discharge_date && c.discharge_date.in?(discharge_date_range)
 
-        # BH CP enrollees 18 to 64 years of age as of date of discharge.
+        # Age: "BH CP enrollees 18 to 64 years of age as of date of discharge.""
         next unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: c.discharge_date)
 
-        # A discharge from any facility setting listed below
+        # Event/Diagnosis: A discharge from any facility setting listed below"
         next unless (
           c.servicing_provider_type.in?(servicing_provider_types) ||
           c.billing_provider_type.in?(billing_provider_type) ||
@@ -383,8 +406,9 @@ module ClaimsReporting
           c.claim_type == 'inpatient' && c.servicing_provider_type.in?(servicing_provider_types2)
         )
 
+        # Continuous Enrollment/Allowable Gap/Anchor Date/Exclusions:
         # Continuously enrolled with BH CP from date of discharge through 3 business days after discharge.
-        # No allowable gap in BH CP enrollment during the continuous enrollment period.
+        # No allowable gap in BH CP enrollment during the continuous enrollment period."
         followup_period = (c.discharge_date .. 3.business_days.after(c.discharge_date)).to_a
         next unless continuously_enrolled_cp?(enrollments, followup_period, max_gap: 0)
 
@@ -406,8 +430,126 @@ module ClaimsReporting
       rows
     end
 
+    private def value_set_codes(name, code_system)
+      codes = Hl7::ValueSetCode.where(
+        value_set_oid: VALUE_SETS.fetch(name),
+        code_system: code_system,
+      ).pluck(:code).to_set
+
+      assert "#{name} Value Set must contain some codes for #{code_system}", codes.present?
+
+      codes
+    end
+    memoize :value_set_codes
+
+    private def ed_visit?(claim)
+      value_set_codes('ED', 'CPT').include? claim.procedure_code
+    end
+
+    private def inpatient_stay?(claim)
+      value_set_codes('Inpatient Stay', 'UBREV').include? claim.revenue_code
+    end
+
+    private def assert(explaination, condition)
+      raise explaination unless condition
+    end
+
+    # Follow-up with BH CP after Emergency Department visit
+    private def calculate_bh_cp_4(_member, claims, enrollments)
+      # "on or between January 1 and December 1 of the measurement year."
+      visit_date_range = measurement_year
+
+      # > Also Exclude: Members who decline to engage with the BH CP.
+      return [] if declined_to_engage?(enrollments)
+
+      ed_visits = []
+      claims.select do |c|
+        next unless c.discharge_date && ed_visit?(c) && c.service_start_date.in?(visit_date_range)
+
+        visit_date = c.discharge_date
+        assert 'ED visit must have a discharge_date', c.discharge_date.present?
+
+        # "BH CP enrollees 18 to 64 years of age as of date of ED visit."
+        unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: visit_date)
+          puts "Exclude #{c.id}: Dob: #{c.member_dob} outside age range as of #{visit_date}"
+          next
+        end
+
+        # "Continuously enrolled with BH CP from date of ED visit through 7 calendar
+        # days after ED visit (8 total days). There is no requirement for MassHealth enrollment."
+        followup_period = (visit_date .. 7.days.after(visit_date)).to_a
+        assert "followup_period must be 8 days, was #{followup_period.size} days.", followup_period.size == 8
+
+        unless continuously_enrolled_cp?(enrollments, followup_period, max_gap: 0)
+          puts "Exclude #{c.id}: not continuously_enrolled_in_cp during #{followup_period}"
+          next
+        end
+
+        # "An ED visit (ED Value Set) on or between January 1 and December 1 of the measurement year."
+        ed_visits << c
+      end
+
+      # TODO: If a member has more than one ED visit in an 8-day period, include
+      # only the first ED visit. For example, if a member has an ED visit on
+      # January 1 then include the January 1 visit and do not include ED
+      # visits that occur on or between January 2 and January 8; then, if
+      # applicable, include the next ED visit that occurs on or after January
+      # 9. Identify visits chronologically including only one per 8-day
+      # period.
+
+      # Avoid O(n^2) by finding the small set of dates containing the claims
+      # we will need to look for near each discharge
+      inpatient_stay_dates = Set.new
+      eligable_followups = Set.new
+      claims.select do |c|
+        # To identify admissions to an acute or nonacute inpatient care setting:
+        # 1. Identify all acute and nonacute inpatient stays (Inpatient Stay
+        # Value Set).
+        # 2. Identify the admission date for the stay.
+        # An ED visit billed on the same claim as an inpatient stay is
+        # considered a visit that resulted in an inpatient stay.
+        inpatient_stay_dates << c.admit_date if c.admit_date && inpatient_stay?(c) && ed_visits.none? { |v| v.claim_number == c.claim_number }
+
+        # These events are excluded from the measure because admission to an
+        # acute or nonacute inpatient setting may prevent an outpatient
+        # follow-up visit from taking place.
+
+        eligable_followups << c.service_start_date if cp_followup?(c)
+      end
+      puts inpatient_stay_dates if inpatient_stay_dates.any?
+      puts eligable_followups if eligable_followups.any?
+
+      rows = []
+      ed_visits.each do |c|
+        visit_date = c.discharge_date
+        followup_period = (visit_date .. 7.days.after(visit_date)).to_a
+
+        # Exclude ED visits followed by admission to an acute or nonacute
+        # inpatient care setting on the date of the ED visit or within 7
+        # calendar days after the ED visit (8 total days), regardless of
+        # principal diagnosis for the admission.
+        if (admits = (inpatient_stay_dates & followup_period)).any?
+          puts "Exclude #{c.id}: inpatient admitted too soon #{admits}"
+          next
+        end
+
+        # Discharges for enrollees with the following supports within 7 calendar days of discharge from an ED; include supports that occur on the date of discharge.
+        eligable_followup = (eligable_followups & followup_period).any?
+
+        row = MeasureRow.new(
+          row_type: 'visit',
+          row_id: c.id,
+          bh_cp_4: eligable_followup,
+        )
+        puts "Found #{row.inspect}" if row.bh_cp_4
+
+        rows << row
+      end
+      rows
+    end
+
     def assigned_enrollees
-      formatter.format_i assigned_enrollements_scope.count
+      formatter.format_i assigned_enrollements_scope.distinct.count(:member_id)
     end
     memoize :assigned_enrollees
 
@@ -447,33 +589,40 @@ module ClaimsReporting
     end
 
     def bh_cp_4
-      # percentage medical_claim_based_rows, :bh_cp_4
+      percentage medical_claim_based_rows, :bh_cp_4
     end
 
     def bh_cp_5
-      # percentage medical_claim_based_rows, :bh_cp_5
+      percentage medical_claim_based_rows, :bh_cp_5
     end
 
     def bh_cp_6
+      percentage medical_claim_based_rows, :bh_cp_6
     end
 
     def bh_cp_7_and_8
+      percentage medical_claim_based_rows, :bh_cp_7_and_8
     end
 
     def bh_cp_9
-      # percentage medical_claim_based_rows, :bh_cp_9
+      percentage medical_claim_based_rows, :bh_cp_9
     end
 
     def bh_cp_10
+      percentage medical_claim_based_rows, :bh_cp_10
     end
 
     def bh_cp_11
+      percentage medical_claim_based_rows, :bh_cp_11
     end
 
     def bh_cp_13
-      # percentage medical_claim_based_rows, :bh_cp_13
+      percentage medical_claim_based_rows, :bh_cp_13
     end
 
+    # Map the names used in HEDIS QRS and the Quality Metrics spec
+    # to the OIDs. Not needed now but names will not be unique in
+    # Hl7::ValueSetCode as we flesh that out
     VALUE_SETS = {
       'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013',
       'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
