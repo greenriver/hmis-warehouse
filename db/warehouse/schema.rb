@@ -2085,11 +2085,14 @@ ActiveRecord::Schema.define(version: 2021_04_22_191627) do
   end
 
   create_table "federal_census_breakdowns", force: :cascade do |t|
-    t.date "accurate_on"
+    t.date "accurate_on", comment: "Most recent census date"
     t.string "type"
-    t.string "identifier"
-    t.string "measure"
-    t.integer "value"
+    t.string "geography_level", comment: "State, zip, CoC (or maybe 010, 040, 050)"
+    t.string "geography", comment: "MA, 02101, MA-500"
+    t.string "group", comment: "All, age range, gender, this represents the sub-poplation you want to pull"
+    t.string "measure", comment: "Detail of race, age, etc. (Asian, 50-59...)"
+    t.integer "value", comment: "count of population"
+    t.index ["accurate_on", "geography", "geography_level", "measure"], name: "idx_fed_census_acc_on_geo_measure"
   end
 
   create_table "files", id: :serial, force: :cascade do |t|

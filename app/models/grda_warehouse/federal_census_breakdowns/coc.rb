@@ -6,6 +6,30 @@
 
 module GrdaWarehouse::FederalCensusBreakdowns
   class Coc < Base
+    scope :for_date, ->(date) do
+      # distinct on
+      distinct_on(:coc_level, :geography, :group, :measure).
+        where(arel_table[:accurate_on].lteq(date))
+    end
 
+    scope :coc_level, -> do
+      where(geography_level: 'CoC')
+    end
+
+    scope :with_geography, ->(geography) do
+      where(geography: geography)
+    end
+
+    scope :full_set, -> do
+      where(group: :all)
+    end
+
+    scope :with_group, ->(group) do
+      where(group: group)
+    end
+
+    scope :with_measure, ->(measure) do
+      where(measure: measure)
+    end
   end
 end

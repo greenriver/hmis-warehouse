@@ -379,6 +379,12 @@ module PublicReports
         quarter_dates.each do |date|
           client_ids = Set.new
           data = {}
+          census_data = {}
+          # Add census info
+          ::HUD.races(multi_racial: true).each do |key, label|
+            census_data[label] = 0
+            census_data[label] = ((GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).with_measure(key).sum(:value) / full_census_count.to_f) * 100).round if full_census_count&.positive?
+          end
           all_destination_ids = with_service_in_quarter(report_scope, date, population).distinct.pluck(:client_id)
           with_service_in_quarter(report_scope, date, population).
             joins(:client).
@@ -391,17 +397,40 @@ module PublicReports
               client_ids << client.id
             end
           total_count = data.map { |_, ids| ids.count }.sum
+          # Format:
+          # [["Black or African American",38, 53],["White",53, 76],["Native Hawaiian or Other Pacific Islander",1, 12],["Multi-Racial",4, 10],["Asian",1, 5],["American Indian or Alaska Native",1, 1]]
+          combined_data = data.map do |race, ids|
+            [
+              race,
+              ((ids.count / total_count.to_f) * 100).round, # Homeless Data
+              census_data[race], # Federal Census Data
+            ]
+          end
           charts[date.iso8601] = {
-            # FIXME: this needs to integrate the census data so that the end result of data is
-            # [["Black or African American",38, 53],["White",53, 76],["Native Hawaiian or Other Pacific Islander",1, 12],["Multi-Racial",4, 10],["Asian",1, 5],["American Indian or Alaska Native",1, 1],["None",1, 1]]
             # then the title for the tooltip needs to be adjusted for 0, 1 where 0 is homeless population, 1 is whole population
             # data for census population is stored in GrdaWarehouse::FederalCensusBreakdowns:Coc
-            data: data.map { |race, ids| [race, ((ids.count / total_count.to_f) * 100).round] },
+            # get distinct on max date prior to date in question with identifier and measure
+            # use distinct ProjectCoC.CoCCodes to determine the scope for census data
+            # sum value after getting appropriate set of rows
+            # add index on [accurate_on, identifier, type, measure]
+            data: combined_data,
             title: _('Racial Composition'),
             total: total_for(with_service_in_quarter(report_scope, date, population), population),
+            categories: ['Homeless Population', 'Overall Population'],
           }
         end
       end
+    end
+
+    private def full_census_count
+      @full_census_count ||= GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).full_set.sum(:value)
+    end
+
+    private def coc_codes
+      @coc_codes ||= report_scope.joins(project: :project_cocs).distinct.
+        pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
+          override.presence || original
+        end
     end
 
     private def household_chart(population)

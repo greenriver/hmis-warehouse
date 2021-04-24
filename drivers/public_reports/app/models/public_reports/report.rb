@@ -11,6 +11,7 @@ module PublicReports
     include S3Toolset
     include Filter::FilterScopes
     include ArelHelper
+    include Reporting::Status
     belongs_to :user
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?
@@ -39,24 +40,6 @@ module PublicReports
 
     def chart_color_pattern
       settings.color_pattern.to_json.html_safe
-    end
-
-    def status
-      if started_at.blank?
-        "Queued at #{created_at}"
-      elsif started_at.present? && completed_at.blank?
-        if started_at < 24.hours.ago
-          'Failed'
-        else
-          "Running since #{started_at}"
-        end
-      elsif completed?
-        'Complete'
-      end
-    end
-
-    def completed?
-      completed_at.present?
     end
 
     def filter_object

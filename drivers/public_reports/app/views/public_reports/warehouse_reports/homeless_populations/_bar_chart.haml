@@ -1,6 +1,5 @@
 - active_date = data.keys.first
 %h3= data[active_date]['title']
-
 .jQuarterChosenDate
 .chart-bar.chart.pt-2{ data: { active_date: data.keys.first }, class: [chart_class, "active_date_#{data.keys.first}"]}
 %div.d-flex.legend-wrapper-horizontal.legend-wrapper{ class: ["#{chart_class}_legend"] }
@@ -8,6 +7,7 @@
   var controller;
   var dates = #{data.to_json.to_s.html_safe};
   var active_date = $(".#{chart_class}").data('activeDate');
+  var categories = #{data[active_date]['categories'].to_json.to_s.html_safe};
   var chart = bb.generate({
     data: {
       columns: [],
@@ -58,8 +58,11 @@
     },
     tooltip: {
       format: {
-        title: function(x) { return ''; },
-      }
+        title: function(x) {
+          return categories[x];
+        },
+      },
+      order: '',
     }
   });
   // Make the page aware of the new chart
