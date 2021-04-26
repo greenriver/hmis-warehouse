@@ -20,6 +20,29 @@ module Health
     belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry'
     belongs_to :user
 
+    def summary_headers
+      [
+        'Medicaid ID',
+        'Eligible',
+        'Managed Care',
+        'ACO',
+        'Rejection Code',
+      ]
+    end
+
+    def summary_rows
+      subscribers.map do |subscriber|
+        benefit_names = EBNM1(subscriber)
+        [
+          TRN(subscriber),
+          eligible(subscriber),
+          managed_care(subscriber),
+          benefit_names['MC'] || benefit_names['L'],
+          AAA(subscriber),
+        ]
+      end
+    end
+
     def subscriber_ids_with_errors
       @error_ids ||= subscribers.select{|s| AAA(s)}.map{|s| TRN(s)}
     end

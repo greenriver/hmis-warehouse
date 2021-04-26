@@ -14,6 +14,7 @@
   %p After uploading the file to #{@sender.receiver_name}, return here and upload the resulting Eligibility Benefit Response file (271).
   = simple_form_for :result, url: warehouse_reports_health_eligibility_path(@report), method: :put do |f|
     = f.input :content, as: :file, label: false
+    = f.input :test, as: :boolean, label: "Test Upload"
     .mt-2
       = f.button :submit, "Upload Eligibility Benefit Response (271) from #{@sender.receiver_name}", disabled: true, id: 'upload_button', class: 'btn btn-secondary btn-sm ml-2'
 

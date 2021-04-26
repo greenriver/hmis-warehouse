@@ -49,18 +49,23 @@ module WarehouseReports::Health
     end
 
     def update
-      begin
-        @report = filtered_inquiry_scope.find(params[:id].to_i)
-        Health::EligibilityResponse.create(
-          eligibility_inquiry: @report,
-          response: update_params[:content].read,
-          user: current_user,
-          original_filename: update_params[:content].original_filename,
-        )
+      @report = filtered_inquiry_scope.find(params[:id].to_i)
+      @response = Health::EligibilityResponse.create(
+        eligibility_inquiry: @report,
+        response: update_params[:content].read,
+        user: current_user,
+        original_filename: update_params[:content].original_filename,
+      )
+      if update_params[:test] == '1'
+        date = @report.service_date
+        response.headers['Content-Disposition'] = "attachment; filename=\"INQUIRY_#{date.strftime('%Y%m%d')}.xlsx\""
+        render 'summary.xlsx', layout: false
+      else
         Health::FlagIneligiblePatientsJob.perform_later(@report.id)
-      rescue Exception => e
-        flash[:error] = "Error processing uploaded file #{e}"
+        redirect_to action: :index
       end
+    rescue Exception => e
+      flash[:error] = "Error processing uploaded file #{e}"
       redirect_to action: :index
     end
 
@@ -79,6 +84,7 @@ module WarehouseReports::Health
     def update_params
       params.require(:result).permit(
         :content,
+        :test,
       )
     end
 
