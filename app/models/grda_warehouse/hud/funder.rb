@@ -82,6 +82,7 @@ module GrdaWarehouse::Hud
       attributes = self.hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:FunderID)] = :id
+      attributes[attributes.index(:ProjectID)] = 'project.id'
 
       CSV.generate(headers: true) do |csv|
         csv << headers
