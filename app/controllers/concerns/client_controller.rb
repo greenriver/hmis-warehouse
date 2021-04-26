@@ -147,6 +147,7 @@ module ClientController
         )
     end
 
+    # @return [Boolean] false if the id is obsolete and a redirect was required
     protected def set_client
       # Do we have this client?
       # If we don't, attempt to redirect to the most recent version
@@ -155,12 +156,12 @@ module ClientController
       # Sometimes we have a client_id (when dealing with sub-pages) so check for that first
       id = params[:client_id].presence || params[:id].to_i
       @client = client_scope(id: id).find_by(id: id)
-      return if @client.present?
+      return true if @client.present?
 
       client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination(id)
       if client_id
         redirect_to controller: controller_name, action: action_name, id: client_id
-        return
+        return false
       end
 
       # Throw a 404 by looking for a non-existent client
