@@ -8,12 +8,8 @@ module Reports
   class Hic::FundersController < Hic::BaseController
     def show
       @funders = funder_scope.joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
-        merge(GrdaWarehouse::Hud::Project.with_hud_project_type(PROJECT_TYPES)).
+        merge(project_scope).
         distinct
-
-      date = params[:date]&.to_date
-      @funders = @funders.merge(GrdaWarehouse::Hud::Project.active_on(date)) if date.present?
 
       respond_to do |format|
         format.html

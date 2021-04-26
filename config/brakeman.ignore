@@ -554,6 +554,26 @@
       "note": "This is all internal code."
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "6c494e98b87c08b7dd22f8718f9fe58a980cffd1cb7c492ae79486f8f534914f",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/claims_reporting/app/models/claims_reporting/medical_claim.rb",
+      "line": 106,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"UPDATE #{quoted_table_name}\\nSET enrolled_days=t.enrolled_days, engaged_days=t.engaged_days\\nFROM (VALUES #{[\"(#{connection.quote(claim.id)},#{connection.quote((enrolled_dates[claim.service_start_date] or 0))},#{connection.quote((if (nil or claim.service_start_date) then\n  if (claim.service_start_date < (nil or claim.service_start_date)) then\n    raise(\"claim data out of order\")\n  end\n  previous_day = ((nil or claim.service_start_date) - 1.day)\n  pre_engaged_enrolled_days = (enrolled_dates[((nil or claim.service_start_date) - 1.day)] or 0)\n  ((enrolled_dates[claim.service_start_date] or 0) - (enrolled_dates[((nil or claim.service_start_date) - 1.day)] or 0)).clamp(0, (enrolled_dates[claim.service_start_date] or 0))\nelse\n  0\nend))})\"].join(\",\")}) AS t (id, enrolled_days, engaged_days)\\nWHERE #{quoted_table_name}.id = t.id\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClaimsReporting::MedicalClaim",
+        "method": "ClaimsReporting::MedicalClaim.maintain_engaged_days!"
+      },
+      "user_input": "[\"(#{connection.quote(claim.id)},#{connection.quote((enrolled_dates[claim.service_start_date] or 0))},#{connection.quote((if (nil or claim.service_start_date) then\n  if (claim.service_start_date < (nil or claim.service_start_date)) then\n    raise(\"claim data out of order\")\n  end\n  previous_day = ((nil or claim.service_start_date) - 1.day)\n  pre_engaged_enrolled_days = (enrolled_dates[((nil or claim.service_start_date) - 1.day)] or 0)\n  ((enrolled_dates[claim.service_start_date] or 0) - (enrolled_dates[((nil or claim.service_start_date) - 1.day)] or 0)).clamp(0, (enrolled_dates[claim.service_start_date] or 0))\nelse\n  0\nend))})\"].join(\",\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "6cfd47b3522f879e176ed00c1639c8431e26cf5798564e7ba8e89633bdda9f61",
@@ -1362,7 +1382,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 60,
+      "line": 80,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -1382,7 +1402,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 638,
+      "line": 639,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -1635,6 +1655,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-04-07 07:39:21 -0400",
+  "updated": "2021-04-21 21:55:22 +0000",
   "brakeman_version": "5.0.0"
 }
