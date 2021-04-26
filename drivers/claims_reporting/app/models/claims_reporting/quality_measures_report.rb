@@ -223,6 +223,7 @@ module ClaimsReporting
       members_by_member_id = ::ClaimsReporting::MemberRoster.where(
         member_id: assigned_enrollements_scope.select(:member_id),
       ).select(
+        :id,
         :member_id,
         :date_of_birth,
       ).index_by(&:member_id)
@@ -230,8 +231,13 @@ module ClaimsReporting
       puts "#{members_by_member_id.size} members"
 
       enrollments_by_member_id = assigned_enrollements_scope.select(
+        :id,
         :member_id,
+        :span_start_date,
+        :span_end_date,
+        :span_mem_days,
         :cp_enroll_dt,
+        :cp_disenroll_dt,
         :cp_stop_rsn,
       ).group_by(&:member_id)
 
@@ -276,13 +282,15 @@ module ClaimsReporting
         completed_treatment_plans = claims.select(&:completed_treatment_plan?)
 
         # Members must be continuously enrolled in MassHealth during the measurement year.
-        continuous_in_masshealth = continuously_enrolled_cp?(enrollments, date_range, max_gap: 45)
+        continuous_in_masshealth = continuously_enrolled_mh?(enrollments, measurement_year, max_gap: 45)
 
         # Members must be continuously enrolled in the BH CP for at least 122 calendar days.
-        continuous_in_bh_cp = continuously_enrolled_cp?(enrollments, date_range, min_days: 122, max_gap: 0)
+        continuous_in_bh_cp = continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
 
-        # TODO? BH CP #2: The entity who submitted the documentation must be the same CP as the one that a member
-        # is enrolled with on the anchor date and during the 122-day continuous enrollment period.
+        # TODO: > The entity who submitted the documentation must be the same CP as the one that a member
+        # > is enrolled with on the anchor date and during the 122-day continuous enrollment period.
+        # check completed_treatment_plans against the enrollments containing the ancher_date for
+        # matching CP entities. If none reject this member
 
         rows << MeasureRow.new(
           row_type: 'enrollee', # spec also says "patients"/member
@@ -323,14 +331,26 @@ module ClaimsReporting
     end
     memoize :medical_claim_based_rows
 
-    private def continuously_enrolled_cp?(_enrollments, _date_range, max_gap: 0, min_days: nil) # rubocop:disable  Lint/UnusedMethodArgument
-      # TODO: figure out of a group of enrollment spans indicate a continuous
-      # enrollment. Optionally of a total durations of at least min_days allowing for gaps of up to max_gap days
-      true
+    # Do the enrollments indicate continuous enrollment in a Community Partner
+    private def continuously_enrolled_cp?(enrollments, date_range, min_days: nil)
+      # find a enrollment with a Community Partner enrollment covering the end of the date_range
+      latest_enrollment = enrollments.reverse.detect { |e| e.cp_enrolled_date_range&.cover?(date_range.max) }
+
+      # none? -- then they arent continuous
+      return false unless latest_enrollment
+
+      # if it must be a minimum number of days than just look for that
+      if min_days
+        latest_enrollment && latest_enrollment.cp_enrolled_days >= min_days
+      # otherwise check to see if they also had a Community Partner enrollment at the start
+      else
+        earliest_enrollment = enrollments.detect { |e| e.cp_enrolled_date_range&.cover?(date_range.min) }
+        earliest_enrollment && latest_enrollment
+      end
     end
 
     private def continuously_enrolled_mh?(_enrollments, _date_range, max_gap: 0, min_days: nil) # rubocop:disable  Lint/UnusedMethodArgument
-      # TODO: see continuously_enrolled_cp? except use MassHealth
+      # TODO:
       true
     end
 
@@ -427,7 +447,7 @@ module ClaimsReporting
         # Continuously enrolled with BH CP from date of discharge through 3 business days after discharge.
         # No allowable gap in BH CP enrollment during the continuous enrollment period."
         followup_period = (c.discharge_date .. 3.business_days.after(c.discharge_date)).to_a
-        next unless continuously_enrolled_cp?(enrollments, followup_period, max_gap: 0)
+        next unless continuously_enrolled_cp?(enrollments, followup_period)
 
         # exclude readmitted
         next if (admit_dates & followup_period).any?
@@ -497,7 +517,7 @@ module ClaimsReporting
         followup_period = (visit_date .. 7.days.after(visit_date)).to_a
         assert "followup_period must be 8 days, was #{followup_period.size} days.", followup_period.size == 8
 
-        unless continuously_enrolled_cp?(enrollments, followup_period, max_gap: 0)
+        unless continuously_enrolled_cp?(enrollments, followup_period)
           puts "BH_CP_4: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period}"
           next
         end
@@ -646,46 +666,61 @@ module ClaimsReporting
     end
 
     # Annual Primary Care Visit
-    private def calculate_bh_cp_5(member, claims, _enrollments)
-      rows = []
-      # BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.
+    private def calculate_bh_cp_5(member, claims, enrollments)
+      # > BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.
       return [] unless in_age_range?(member.date_of_birth, 18.years .. 64.years, as_of: dec_31_of_measurement_yaer)
 
-      # Exclusions: Enrollees in Hospice (Hospice Value Set)
+      # > Exclusions: Enrollees in Hospice (Hospice Value Set)
       if claims.any? { |c| hospice?(c) && c.service_start_date.in?(measurement_year) }
-        puts "BH_CP_5: Exclude enrollee #{m.id} is in hospice"
+        puts "BH_CP_5: Exclude MemberRoster#id=#{member.id} is in hospice"
         return []
       end
 
-      pcp_visit_dates = []
-      claims.each do |c|
-        pcp_visit_dates << c.service_start_date if annual_primary_care_visit?(c) && c.service_start_date.in?(measurement_year)
+      claim_date_ranges = if continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
+        # > For members continuously enrolled with the CP for at least 122 days,
+        # > and with no CP disenrollment during the measurement year (note that
+        # > this scenario logically implies an enrollment anchor on the last day
+        # > of the measurement period), [a primary care visit] must occur during the
+        [measurement_year]
+        # measurement year:
+      else
+        # > For members with one or more disenrollments during the measurement
+        # > year, identify each enrollment segment with the CP provider of 122
+        # > days or longer that ends in a disenrollment. Identify the
+        # > disenrollment date for each of these segments. (Note: each
+        # > disenrollment date is a separate event to be evaluated, establishing
+        # > an anchor date for claims lookback. This is true regardless of whether
+        # > the multiple enrollment segments are with the same, or different, CP
+        # > providers). [a primary care visit] during the year prior to each
+        # > disenrollment date:
+        # TODO
+        []
       end
-      puts "Found annual_primary_care_visits #{pcp_visit_dates}" if pcp_visit_dates.any?
 
-      # For members continuously enrolled with the CP for at least 122 days,
-      # and with no CP disenrollment during the measurement year (note that
-      # this scenario logically implies an enrollment anchor on the last day
-      # of the measurement period), the following must occur during the
-      # measurement year:
+      # TOOD: more exceptions to look into ???
 
-      # - At least one pcp_visit_dates
-      # annual_primary_care_visit?(c)
+      rows = []
+      pcp_visit_dates = Set.new
+      claims.each do |c|
+        pcp_visit_dates << c.service_start_date if annual_primary_care_visit?(c)
+      end
+      puts "Found annual_primary_care_visits #{pcp_visit_dates.to_a}" if pcp_visit_dates.any?
 
-      # For members with one or more disenrollments during the measurement
-      # year, identify each enrollment segment with the CP provider of 122
-      # days or longer that ends in a disenrollment. Identify the
-      # disenrollment date for each of these segments. (Note: each
-      # disenrollment date is a separate event to be evaluated, establishing
-      # an anchor date for claims lookback. This is true regardless of whether
-      # the multiple enrollment segments are with the same, or different, CP
-      # providers). The following must occur during the year prior to each
-      # disenrollment date:
+      meets_requirements = claim_date_ranges.all? do |date_range|
+        # At least one pcp_visit_dates
+        pcp_visit_dates.any? { |visit| visit.in?(date_range) }
+      end
 
-      # - At least one pcp_visit_dates
+      # FIXME: its unclear to me ATM if we count members here or enrollment spans...
+      # if spans in need to work above to identify each enrollment span containing an anchor
+      # date above
+      rows << MeasureRow.new(
+        row_type: 'enrollee', # spec also says "patients"/member
+        row_id: member.id,
+        bh_cp_5: meets_requirements,
+      )
 
-      # TOOD: way more filters here before MeasureRow.new('enrollee')
-      return rows
+      rows
     end
 
     def assigned_enrollees
@@ -740,8 +775,12 @@ module ClaimsReporting
       percentage medical_claim_based_rows, :bh_cp_6
     end
 
-    def bh_cp_7_and_8
-      percentage medical_claim_based_rows, :bh_cp_7_and_8
+    def bh_cp_7
+      percentage medical_claim_based_rows, :bh_cp_7
+    end
+
+    def bh_cp_8
+      percentage medical_claim_based_rows, :bh_cp_8
     end
 
     def bh_cp_9
@@ -943,60 +982,5 @@ module ClaimsReporting
       medical_claims.distinct.pluck(:aco_name).compact.sort.freeze
     end
     memoize :aco_options
-
-    # Mental Health Diagnosis Category –
-    # The mental health diagnosis category represents a group of conditions
-    # classified by mental health and substance abuse categories included
-    # in the Clinical Classification Software (CCS) available at
-    # https://www.hcup-us.ahrq.gov/toolssoftware/ccs/ccsfactsheet.jsp.
-    #
-    attr_accessor :mental_health_diagnosis_category
-
-    def mental_health_diagnosis_category_options
-      {
-        sch: 'Schizophrenia',
-        pbd: 'Psychoses/Bipolar Disorders',
-        das: 'Depression/Anxiety/Stress Reactions',
-        pid: 'Personality/Impulse Disorder',
-        sia: 'Suicidal Ideation/Attempt',
-        sud: 'Substance Abuse Disorder',
-        other_bh: 'Other',
-      }.invert.to_a
-    end
-
-    # Medical Diagnosis Category – The medical diagnosis category represents a group of conditions
-    # classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS).
-    # Every member is categorized as having a medical diagnosis based on the claims they
-    # incurred - a member can be assigned to more than one category.
-    attr_accessor :medical_diagnosis_category
-
-    def medical_diagnosis_category_options
-      {
-        ast: 'Asthma',
-        cpd: 'COPD',
-        cir: 'Cardiac Disease',
-        dia: 'Diabetes',
-        spn: 'Degenerative Spinal Disease/Chronic Pain',
-        gbt: 'GI and Biliary Tract Disease',
-        obs: 'Obesity',
-        hyp: 'Hypertension',
-        hep: 'Hepatitis',
-      }.invert.to_a
-    end
-
-    # High Utilizing Member – ‘High Utilizing’ represents high utilizers (3+ inpatient stays or 5+ emergency room visits throughout their claims experience).
-    attr_accessor :high_util
-
-    # Cohorts of Interest– The user may select members based on their psychiatric inpatient and emergency room utilization history. The user can select the following utilization categories:
-    attr_accessor :coi
-
-    def coi_options
-      {
-        coi: 'All COIs',
-        psychoses: '1+ Psychoses Admission: patients that have had at least 1 inpatient admission for psychoses.',
-        other_ip_psych: '1+ IP Psych Admission: patients that have had at least 1 non-psychoses psychiatric inpatient admission',
-        high_er: '5+ ER Visits with No IP Psych Admission: patients that had at least 5 emergency room visits and no inpatient psychiatric admissions',
-      }.invert.to_a
-    end
   end
 end

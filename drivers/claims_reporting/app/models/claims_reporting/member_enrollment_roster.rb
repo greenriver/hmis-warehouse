@@ -1,6 +1,7 @@
 module ClaimsReporting
   class MemberEnrollmentRoster < HealthBase
     phi_patient :member_id
+
     belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
 
     belongs_to :member_roster,
@@ -59,6 +60,59 @@ module ClaimsReporting
     def self.conflict_target
       ['member_id', 'span_start_date']
     end
+
+    phi_attr :member_id, Phi::HealthPlan
+
+    phi_attr :span_start_date, Phi::Date
+    phi_attr :span_end_date, Phi::Date
+    phi_attr :span_mem_days, Phi::SmallPopulation
+    phi_attr :cp_enroll_dt, Phi::Date
+    phi_attr :cp_disenroll_dt, Phi::Date
+
+    phi_attr :service_area, Phi::SmallPopulation
+    phi_attr :aco_pidsl, Phi::SmallPopulation
+    phi_attr :aco_name, Phi::SmallPopulation
+    phi_attr :pcc_pidsl, Phi::SmallPopulation
+    phi_attr :pcc_name, Phi::SmallPopulation
+    phi_attr :pcc_npi, Phi::SmallPopulation
+    phi_attr :pcc_taxid, Phi::SmallPopulation
+    phi_attr :mco_pidsl, Phi::SmallPopulation
+    phi_attr :mco_name, Phi::SmallPopulation
+    phi_attr :enroll_type, Phi::SmallPopulation # unpopulated?
+    phi_attr :enroll_stop_reason, Phi::SmallPopulation # unpopulated?
+    phi_attr :rating_category_char_cd, Phi::SmallPopulation
+    phi_attr :ind_dds, Phi::SmallPopulation
+    phi_attr :ind_dmh, Phi::SmallPopulation
+    phi_attr :ind_dta, Phi::SmallPopulation
+    phi_attr :ind_dss, Phi::SmallPopulation
+    phi_attr :cde_hcb_waiver, Phi::SmallPopulation
+    phi_attr :cde_waiver_category, Phi::SmallPopulation
+    phi_attr :cp_prov_type, Phi::SmallPopulation
+    phi_attr :cp_plan_type, Phi::SmallPopulation
+    phi_attr :cp_pidsl, Phi::SmallPopulation
+    phi_attr :cp_prov_name, Phi::SmallPopulation
+    phi_attr :cp_stop_rsn, Phi::SmallPopulation # mostly unpopulated
+    phi_attr :cp_start_rsn, Phi::SmallPopulation # mostly unpopulated
+    phi_attr :cp_stop_rsn, Phi::SmallPopulation # mostly unpopulated
+    phi_attr :ind_medicare_a, Phi::SmallPopulation
+    phi_attr :ind_medicare_b, Phi::SmallPopulation
+    phi_attr :tpl_coverage_cat, Phi::SmallPopulation
+
+    # pidsl: Provider ID and Service location
+    # aco: accountable care organization
+    # mco: managed care organization
+    # pcc: Primary Care Clinician (PCC)
+    # cp: Community Partners (CP) Program OR Care Plan (check context)
+    # ltss: Long-Term Services and Supports
+    # bh: Behavioural Health
+    # bh cp: Behavioural Health *Community Partner*
+    # ltss cp: Long-Term Services and Supports *Community Partner*
+    # dds:  Department of Development Services
+    # dms:  Department of Mental Health
+    # dta:  Department of Transitional Assistance
+    # dss:  Department of Children and Families (formerly Department of Social Services)
+    # tpl: Third Party Liability
+    # mmis: Medicaid Management Information System
 
     def self.schema_def
       <<~CSV.freeze
@@ -172,6 +226,38 @@ module ClaimsReporting
       transaction do
         import(batch, on_duplicate_key_update: [:pre_engagement_days])
       end
+    end
+
+    def span_date_range
+      span_start_date .. span_end_date
+    end
+
+    # The *most recent* (as of this MemberEnrollmentRoster) Community Provider
+    # enrollment period. If a member was dis-enrolled the range will end on their
+    # cp_disenroll_dt. Otherwise it ends on as_of which defaults to Date.current.
+    #
+    # While MemberEnrollmentRoster spans never cross a performance_year the
+    # cp_enroll_dt is the latest date of community partner enrollment
+    # even if that was in a prior measurement year
+    def cp_enrolled_date_range(as_of: Date.current)
+      return unless cp_enroll_dt
+
+      end_dt = if cp_disenroll_dt && cp_disenroll_dt < as_of
+        cp_enroll_dt
+      else
+        as_of
+      end
+      cp_enroll_dt .. end_dt
+    end
+
+    # Number of days of Community Provider in the *most recent* enrollment period.
+    # As of the as_of date provided. See cp_enrolled_date_range for important notes.
+    def cp_enrolled_days(as_of: Date.current)
+      span = cp_enrolled_date_range(as_of: as_of)
+      return 0 unless span
+
+      # This is ~3x faster than Range#count
+      1 + (span.max - span.min)
     end
   end
 end
