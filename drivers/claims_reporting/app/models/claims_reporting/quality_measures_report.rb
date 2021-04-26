@@ -72,7 +72,7 @@ module ClaimsReporting
         denominator: 'The sum of eligible days of members that are enrolled in a BH CP during the measurement year.',
       ),
       Measure.new(
-        id: :bh_cp_7_and_8,
+        id: :bh_cp_7,
         title: 'BH CP #7/#8: Initiation and Engagement of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
         desc: <<~TXT,
           The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with a new episode of alcohol, opioid,
@@ -81,6 +81,17 @@ module ClaimsReporting
           - Initiation of AOD Treatment. The percentage of enrollees who initiate treatment through an inpatient AOD admission,
             outpatient visit, intensive outpatient encounter or partial hospitalization, telehealth or medication assisted treatment
             (medication treatment) within 14 days of the diagnosis.
+        TXT
+        numerator: 'BH CP enrollees 18 to 64 years of age who initiate/engage with AOD treatment.',
+        denominator: 'BH CP enrollees 18 to 64 years of age with a new episode of AOD during the intake period.',
+      ),
+      Measure.new(
+        id: :bh_cp_8,
+        title: 'BH CP #7/#8: Initiation and Engagement of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
+        desc: <<~TXT,
+          The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with a new episode of alcohol, opioid,
+          or other drug (AOD) abuse or dependence who received the following.
+
           - Engagement of AOD Treatment. The percentage of enrollees who initiated treatment and who had two or more additional
             AOD services or medication treatment within 34 days of the initiation visit.
         TXT
