@@ -1,7 +1,11 @@
 - active_date = data.keys.first
 %h3= data[active_date]['title']
 .jQuarterChosenDate
-.chart-bar.chart.pt-2{ data: { active_date: data.keys.first }, class: [chart_class, "active_date_#{data.keys.first}"]}
+.race-chart-category-first
+  = data[active_date]['categories'].first
+.chart-bar.chart.pt-0{ data: { active_date: data.keys.first }, class: [chart_class, "active_date_#{data.keys.first}"]}
+.race-chart-category-last
+  = data[active_date]['categories'].last
 %div.d-flex.legend-wrapper-horizontal.legend-wrapper{ class: ["#{chart_class}_legend"] }
 :javascript
   var controller;
@@ -15,18 +19,18 @@
       groups: [#{::HUD.races(multi_racial: true).values.to_json.html_safe}],
       labels: {
         format: function(v, id, i, j) {
-          if (v > 8) {
             return v + '%';
-          }
         },
-        position: {
-          x: -40
-        },
+        centered: true,
         colors: 'white',
-        centered: false
       },
       stack: {
         normalize: true
+      }
+    },
+    bar: {
+      label: {
+        threshold: 0.05
       }
     },
     bindto: {
@@ -38,14 +42,14 @@
     axis: {
       rotated: true,
       x: {
-        show: false
+        show: false,
       },
       y: {
         show: false,
       }
     },
     size: {
-      height: 100
+      height: 120
     },
     legend: {
       contents: {

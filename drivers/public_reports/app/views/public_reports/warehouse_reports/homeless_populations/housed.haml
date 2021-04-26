@@ -9,8 +9,7 @@
 .d-flex
   .w-50
     = render 'location_chart', population: population, data: population_data['location_chart']
-  .w-50
-    = render 'household_composition_chart', population: population, data: population_data['household_chart']
+%h2 Who is Served?
 .d-flex
   .w-50
     = render 'gender_chart', population: population, data: population_data['gender_chart']
@@ -18,5 +17,9 @@
     = render 'age_chart', population: population, data: population_data['age_chart']
 .d-flex
   .w-50
+    = render 'household_composition_chart', population: population, data: population_data['household_chart']
+.d-flex
+  .w-50
+    = render 'race_chart', population: population, data: population_data['race_chart']
+  .w-50
     = render 'time_housed', population: population, data: population_data['time_housed']
-= render 'race_chart', population: population, data: population_data['race_chart']

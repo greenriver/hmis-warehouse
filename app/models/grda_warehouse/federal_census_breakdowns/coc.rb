@@ -21,11 +21,7 @@ module GrdaWarehouse::FederalCensusBreakdowns
     end
 
     scope :full_set, -> do
-      where(group: :all)
-    end
-
-    scope :with_group, ->(group) do
-      where(group: group)
+      where(race: :all, gender: :all, age_min: 0, age_max: 105)
     end
 
     scope :with_measure, ->(measure) do

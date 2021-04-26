@@ -101,7 +101,7 @@ module PublicReports
         overall: _('People Experiencing Homelessness'),
         housed: _('People Housed'),
         individuals: _('Individuals'),
-        adults_with_children: _('Families'),
+        adults_with_children: _('People in Families'),
         veterans: _('Veterans'),
       }
     end
@@ -151,6 +151,7 @@ module PublicReports
     private def calculate_data(population)
       {
         pit_chart: pit_chart(population),
+        pit_family_hoh_chart: pit_family_hoh_chart(population),
         location_chart: location_chart(population),
         gender_chart: gender_chart(population),
         age_chart: age_chart(population),
@@ -168,6 +169,21 @@ module PublicReports
       y = [title]
       z = ['Percent change from prior quarter']
       pit_counts(population).each do |date, counts|
+        x << date
+        y << counts[:count]
+        z << counts[:change]
+      end
+      { data: [x, y], change: z, title: title }.to_json
+    end
+
+    private def pit_family_hoh_chart(population)
+      return {}.to_json unless population == :adults_with_children
+
+      title = 'Families'
+      x = ['x']
+      y = [title]
+      z = ['Percent change from prior quarter']
+      pit_counts(:hoh_from_adults_with_children).each do |date, counts|
         x << date
         y << counts[:count]
         z << counts[:change]
@@ -196,7 +212,7 @@ module PublicReports
     end
 
     private def client_count_for_date(date, population)
-      scope = report_scope.service_on_date(date).
+      scope = with_service_in_quarter(report_scope, date, population).
         select(:client_id).
         distinct
       # NOTE age calculations need to be done for the day in question
@@ -214,6 +230,8 @@ module PublicReports
         scope = scope.where(she_t[:household_id].not_in(adult_and_child_household_ids(date)))
       when :adults_with_children
         scope = scope.where(household_id: adult_and_child_household_ids(date))
+      when :hoh_from_adults_with_children
+        scope = scope.where(household_id: adult_and_child_household_ids(date)).heads_of_households
       when :veterans
         scope = scope.veterans
       end
@@ -244,7 +262,7 @@ module PublicReports
       word = case population
       when :veterans
         'Veterans'
-      when :adults_with_children
+      when :adults_with_children, :hoh_from_adults_with_children
         'Households'
       else
         'People'
