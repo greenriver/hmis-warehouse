@@ -89,7 +89,11 @@ module GrdaWarehouse::Hud
 
         scope.each do |i|
           csv << attributes.map do |attr|
-            v = if attr == 'GrantID' && i.GrantID.blank?
+            attr = attr.to_s
+            v = if attr.include?('.')
+              obj, meth = attr.split('.')
+              i.send(obj).send(meth)
+            elsif attr == 'GrantID' && i.GrantID.blank?
               'Unknown'
             elsif attr == 'OtherFunder' && i.OtherFunder.present?
               i.OtherFunder[0...50]
