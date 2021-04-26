@@ -143,8 +143,107 @@
   input[type=range].jQuarters:focus::-ms-fill-upper {
     background: #ffffff;
   }
+
+  input.jQuarters {
+    -webkit-appearance: none;
+    bottom: -10px;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 50px;
+  }
+  input.jQuarters:focus {
+    outline: 0;
+  }
+  input.jQuarters::-moz-focus-outer {
+    border: 0;
+  }
+  input.jQuarters::-webkit-slider-thumb {
+    border: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -7.5px;
+  }
+
+  input.jQuarters::-moz-range-thumb {
+    border: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+  }
+  input.jQuarters::-ms-thumb {
+    border: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    height: 5px;
+  }
+  input.jQuarters::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 5px;
+    cursor: pointer;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0), 0px 0px 1px rgba(13, 13, 13, 0);
+    background: indigo;
+    border-radius: 20px;
+    border: 0;
+  }
+
+  input.jQuarters::-moz-range-track {
+    width: 100%;
+    height: 5px;
+    cursor: pointer;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0), 0px 0px 1px rgba(13, 13, 13, 0);
+    border-radius: 20px;
+    border: 0;
+  }
+
+  input.jQuarters::-ms-track {
+    width: 100%;
+    height: 5px;
+    cursor: pointer;
+    background: transparent;
+    border-color: transparent;
+    color: transparent;
+  }
+  input.jQuarters::-ms-fill-lower,
+  input.jQuarters::-ms-fill-upper {
+    border: 0;
+    border-radius: 40px;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0), 0px 0px 1px rgba(13, 13, 13, 0);
+  }
+  .range__tick {
+    fill: #a0a0a0;
+  }
+  .range__tick:first-child {
+    -webkit-transform: translateX(2px);
+    -moz-transform: translateX(2px);
+    -ms-transform: translateX(2px);
+    -o-transform: translateX(2px);
+    transform: translateX(2px);
+  }
+  .range__tick:last-child {
+    -webkit-transform: translateX(-3px);
+    -moz-transform: translateX(-3px);
+    -ms-transform: translateX(-3px);
+    -o-transform: translateX(-3px);
+    transform: translateX(-3px);
+  }
+  .range__field {
+    border: 0;
+  }
   /*TODO: Use one of the selectors from https://stackoverflow.com/a/20541859/7077589 and figure out
-  how to remove the virtical space around the range input in IE*/
+  how to remove the vertical space around the range input in IE*/
   @supports (-ms-ime-align:auto) {
     /* Pre-Chromium Edge only styles, selector taken from hhttps://stackoverflow.com/a/32202953/7077589 */
     input[type=range].jQuarters {
@@ -152,6 +251,24 @@
       /*Edge starts the margin from the thumb, not the track as other browsers do*/
     }
   }
+  .range__tick.first {
+    transform: translate(10px, 0);
+  }
+  .range__tick.last {
+    transform: translate(-10px, 0);
+  }
+  .range__point.last {
+    margin-left: -100%;
+  }
+
+  /*
+  .data-list-marker-wrapper.first {
+    left: 5%;
+  }
+  .data-list-marker-wrapper.last {
+    right: 5%;
+  }
+  /*
   .data-list-markers {
     justify-content: space-between;
   }
@@ -174,6 +291,7 @@
   .data-list-marker-mark.last {
     margin-right: 12%;
   }
+  */
   /* END SLIDER */
   .w-30 {
     width: 30%;
