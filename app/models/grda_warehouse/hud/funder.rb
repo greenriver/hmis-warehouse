@@ -82,13 +82,18 @@ module GrdaWarehouse::Hud
       attributes = self.hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:FunderID)] = :id
+      attributes[attributes.index(:ProjectID)] = 'project.id'
 
       CSV.generate(headers: true) do |csv|
         csv << headers
 
         scope.each do |i|
           csv << attributes.map do |attr|
-            v = if attr == 'GrantID' && i.GrantID.blank?
+            attr = attr.to_s
+            v = if attr.include?('.')
+              obj, meth = attr.split('.')
+              i.send(obj).send(meth)
+            elsif attr == 'GrantID' && i.GrantID.blank?
               'Unknown'
             elsif attr == 'OtherFunder' && i.OtherFunder.present?
               i.OtherFunder[0...50]
