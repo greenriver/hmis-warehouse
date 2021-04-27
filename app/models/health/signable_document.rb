@@ -167,11 +167,6 @@ module Health
 
       user = User.setup_system_user
       Health::CareplanSaver.new(careplan: careplan, user: user, create_qa: true).update
-
-      # TODO: this should probably be moved to a periodic cron task
-      UpdateHealthFileFromHelloSignJob.
-        set(wait: 5.minutes). # Wait for PDF to be ready
-        perform_later(self.id)
     end
 
     def signature_request_url(email)
@@ -306,5 +301,13 @@ module Health
       json&.dig('data') || json
     end
 
+    def self.process_unfetched_signed_documents
+      un_fetched_document.signed.find_each do |doc|
+        # Make sure everything we need exists -- signable is polymorphic, so we can't join on it
+        next unless doc.signable&.patient&.client&.present?
+
+        UpdateHealthFileFromHelloSignJob.perform_later(doc.id)
+      end
+    end
   end
 end

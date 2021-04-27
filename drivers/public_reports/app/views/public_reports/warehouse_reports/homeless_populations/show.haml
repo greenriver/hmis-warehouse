@@ -1,0 +1,19 @@
+- title = @report.instance_title
+- content_for :title, title
+= render 'breadcrumbs'
+%h1.mb-5= title
+
+
+.well.warehouse-reports__completed
+  %p This report was published on #{@report.published_at.to_date} with the following limits.
+  .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
+  %p
+    The report is publicly available.
+
+- @report.populations.each_key do |population|
+  %p The following is available at the url: #{link_to(@report.generate_publish_url_for(population), @report.generate_publish_url_for(population), target: :_blank)} and can be embedded using the following code.
+  %code= @report.generate_embed_code_for(population)
+
+  .well
+    - src = polymorphic_path([population, :public_reports, :warehouse_reports, :homeless_population], pp: :disabled)
+    %iframe{src: src, width: '100%', height: 400, frameBorder: 0}

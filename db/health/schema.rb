@@ -442,9 +442,9 @@ ActiveRecord::Schema.define(version: 2021_04_19_174757) do
     t.index "daterange(service_start_date, service_end_date, '[]'::text)", name: "claims_reporting_medical_claims_service_daterange", using: :gist
     t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
     t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
-    t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
     t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_medical_claim", unique: true
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
+    t.index ["service_start_date"], name: "index_claims_reporting_medical_claims_on_service_start_date"
   end
 
   create_table "claims_reporting_member_diagnosis_classifications", force: :cascade do |t|
@@ -1025,7 +1025,6 @@ ActiveRecord::Schema.define(version: 2021_04_19_174757) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -1069,7 +1068,6 @@ ActiveRecord::Schema.define(version: 2021_04_19_174757) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|

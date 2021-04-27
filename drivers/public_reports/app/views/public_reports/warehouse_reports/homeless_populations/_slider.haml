@@ -1,0 +1,49 @@
+.m-4
+  - quarter_count = data.count - 1
+  %fieldset.range__field
+    %input.range.jQuarters#jQuarters{ type: :range, min: 0, max: data.count - 1, value: 0, step: 1, data: { dates: data, selected: data.first }, list: :quarters}
+    %svg{role: :presentation, width: '100%', height: '20', xmlns: 'http://www.w3.org/2000/svg'}
+      - data.each.with_index do |date, index|
+        - horizontal_shift = ((index)/quarter_count.to_f * 100)
+        - marker_class = if index.zero? then 'first' elsif index == data.count - 1 then 'last' else '' end
+        %rect.range__tick{class: marker_class, x: "#{horizontal_shift}%", y: '3', width: '2', height: '20'}
+    %svg{role: :presentation, width: '100%', height: '20', xmlns: 'http://www.w3.org/2000/svg'}
+      - data.each.with_index do |date, index|
+        - horizontal_shift = ((index)/quarter_count.to_f * 100)
+        - marker_class = if index.zero? then 'first' elsif index == data.count - 1 then 'last' else '' end
+        - anchor = if index.zero? then 'start' elsif index == data.count - 1 then 'end' else 'middle' end
+        %text.range__point{class: marker_class, x: "#{horizontal_shift}%", y: '14', text: { anchor: anchor}}
+          Q#{quarter(Date.parse(date))} #{Date.parse(date).year}
+:javascript
+  function quarter_of_the_year(date) {
+    var month = (date.getMonth() + 2) % 12;
+    return (Math.ceil(month / 3));
+  }
+  $('.jQuarters').on('change', function(e) {
+    var index = $(this).val();
+    var selected_date = $(this).data('dates')[index];
+
+    var date_object = new Date(Date.parse(selected_date) + 7*3600*1000); // JS has a hard time with the timezones, we just need to be roughly in the US
+    var selected_quarter = quarter_of_the_year(date_object);
+    $(this).data('selected', $(this).data('dates')[index]);
+    var charts = $('body').data('publicCharts');
+    if(charts == undefined) {
+      return;
+    }
+    // update date display
+    var quarter_string = `Q${selected_quarter} ${date_object.getFullYear()}`;
+    $('.jQuarterChosenDate').text(quarter_string);
+    // update all charts
+    $.each(charts, function(i){
+      var chart = charts[i].chart;
+      var dates = charts[i].dates;
+      chart.load({ columns: dates[selected_date]['data']});
+      // only valid for donut charts
+      chart.$.main.select(".bb-chart-arcs-title").text(dates[selected_date]['total'].split(' ').join(' \n'));
+    });
+    // update any dependent text
+    $('.jSliderDependentText').each(function(i){
+      $(this).text($(this).data('numbers')[selected_date].data);
+    });
+  });
+  //$('.jQuarters').trigger('change');
