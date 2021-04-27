@@ -56,7 +56,7 @@ module ClaimsReporting
       ),
       Measure.new(
         id: :bh_cp_4,
-        title: 'BH CP #4: Follow-up with BH CP after Emergency Department visit',
+        title: 'BH CP #4: Follow-up with BH CP after Emergency Department visit - % visits',
         desc: 'The percentage of emergency department (ED) visits for Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age that had a follow-up visit within 7 calendar days of the ED visit.',
         numerator: 'Discharges from the ED for BH CP enrollees 18 to 64 years of age that were succeeded by a follow-up with the BH CP within 7 calendar days after discharge.',
         denominator: 'Discharges from the ED for BH CP enrollees 18 to 64 years of age during the measurement year.',
@@ -70,14 +70,14 @@ module ClaimsReporting
       ),
       Measure.new(
         id: :bh_cp_6,
-        title: 'BH CP #6: Community Tenure',
+        title: 'BH CP #6: Community Tenure - % eligible days',
         desc: 'The percentage of eligible days that BH CP assigned members 21 to 64 years of age reside in their home or in a community setting without utilizing acute, chronic, or post- acute institutional health care services during the measurement year.',
         numerator: 'The sum of eligible days that BH CP assigned members 21 to 64 years of age reside in their home or in a community without utilizing acute, chronic, or post-acute institutional health care services during the measurement year.',
         denominator: 'The sum of eligible days of members that are enrolled in a BH CP during the measurement year.',
       ),
       Measure.new(
         id: :bh_cp_7,
-        title: 'BH CP #7/#8: Initiation and Engagement of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
+        title: 'BH CP #7: Initiation of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
         desc: <<~TXT,
           The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with a new episode of alcohol, opioid,
           or other drug (AOD) abuse or dependence who received the following.
@@ -91,7 +91,7 @@ module ClaimsReporting
       ),
       Measure.new(
         id: :bh_cp_8,
-        title: 'BH CP #7/#8: Initiation and Engagement of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
+        title: 'BH CP #8: Engagement of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
         desc: <<~TXT,
           The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with a new episode of alcohol, opioid,
           or other drug (AOD) abuse or dependence who received the following.
@@ -237,6 +237,7 @@ module ClaimsReporting
         :span_start_date,
         :span_end_date,
         :span_mem_days,
+        :cp_pidsl,
         :cp_enroll_dt,
         :cp_disenroll_dt,
         :cp_stop_rsn,
@@ -249,12 +250,15 @@ module ClaimsReporting
       medical_claims_by_member_id = medical_claims_scope.select(
         :id,
         :member_id,
-        :claim_number,
-        #:cp_pidsl,
-        :servicing_provider_type,
-        :billing_provider_type,
-        :service_start_date,
         :member_dob,
+        :claim_number, # "billed on the same claim"
+        :cp_pidsl, # "same CP"
+        :servicing_provider_type,
+        :service_provider_npi, # only "used" by bh_cp_6
+        :billing_provider_type,
+        :billing_npi, # only "used" by bh_cp_6
+        :service_start_date,
+        :service_end_date,
         :claim_type,
         :claim_status,
         :admit_date,
@@ -313,14 +317,10 @@ module ClaimsReporting
           end
         end
 
-        # a member can have multiple discharges
         rows.concat calculate_bh_cp_3(member, claims, enrollments)
-
-        # a member can have multiple ed visits
         rows.concat calculate_bh_cp_4(member, claims, enrollments)
-
-        # a member can have multiple ed visits
         rows.concat calculate_bh_cp_5(member, claims, enrollments)
+        rows.concat calculate_bh_cp_6(member, claims, enrollments)
       end
 
       rows
@@ -337,6 +337,9 @@ module ClaimsReporting
       # > Note: the initial benchmark performance period is 7/1/2018 – 6/30/2019.
       # > CP enrollees with no disenrollment, i.e., anchored on 6/30/2019,
       # > must have continuous MassHealth enrollment going back to 7/1/2018.)
+
+      # TODO: no measure allows for gaps in CP enrollment
+      # if we find any than this is not a "continuous enrollment"
 
       # find a enrollment with a Community Partner enrollment covering the end of the date_range
       latest_enrollment = enrollments.reverse.detect { |e| e.cp_enrolled_date_range&.cover?(date_range.max) }
@@ -515,7 +518,7 @@ module ClaimsReporting
     end
 
     private def trace_exclusion(&block)
-      # logger.debug &block
+      # hook to log exclusions logger.debug &block
     end
 
     # Follow-up with BH CP after Emergency Department visit
@@ -535,9 +538,7 @@ module ClaimsReporting
 
         # "BH CP enrollees 18 to 64 years of age as of date of ED visit."
         unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: visit_date)
-          trace_exclusion do
-            "BH_CP_4: Exclude claim #{c.id}: DOB: #{c.member_dob} outside age range as of #{visit_date}"
-          end
+          trace_exclusion { "BH_CP_4: Exclude claim #{c.id}: DOB: #{c.member_dob} outside age range as of #{visit_date}" }
           next
         end
 
@@ -547,9 +548,7 @@ module ClaimsReporting
         assert "followup_period must be 8 days, was #{followup_period.size} days.", followup_period.size == 8
 
         unless continuously_enrolled_cp?(enrollments, followup_period)
-          trace_exclusion do
-            "BH_CP_4: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period.min .. followup_period.max}"
-          end
+          # trace_exclusion { "BH_CP_4: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period.min .. followup_period.max}" }
           next
         end
 
@@ -754,6 +753,162 @@ module ClaimsReporting
       rows
     end
 
+    # Community Tenure
+    private def calculate_bh_cp_6(member, claims, enrollments)
+      # > Age: Members who receive care from a Behavioral Health (BH) Community Partner (CP),
+      # > 21 to 64 years of age as of December 31 of the measurement year.
+      unless in_age_range?(member.date_of_birth, 21.years .. 64.years, as_of: dec_31_of_measurement_year)
+        trace_exclusion { 'BH_CP_6: 21.years .. 64.years' }
+        return []
+      end
+
+      # > Continuous Enrollment: Members must be continuously enrolled with a BH CP for at least 122 calendar days.
+      unless continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
+        # trace_exclusion { "BH_CP_6: must be continuously enrolled with a BH CP for at least 122 calendar days" }
+        return []
+      end
+
+      # > Exclusions: Enrollees in Hospice (Hospice Value Set)
+      if claims.any? { |c| measurement_year.cover?(c.service_start_date) && hospice?(c) }
+        trace_exclusion { "BH_CP_6: Exclude MemberRoster#id=#{member.id} is in hospice" }
+        return []
+      end
+
+      # Denominator: The sum of eligible days of members that are enrolled in a BH CP during the measurement year.
+      # FIXME: this should be the number of cp_enrolled_days (after they 122nd) that are during the measurement year
+      # cp_enrolled_days is wrong, its the enrolled days to date during the most recent enrollment
+      cp_enrolled_days = enrollments.select { |e| measurement_year.cover?(e.span_start_date) }.sum(&:cp_enrolled_days).to_i
+
+      return [] unless cp_enrolled_days.positive?
+
+      # > Numerator:
+      # > Sum of eligible days in the community:
+      # > Sum of eligible days within measurement period that a member is
+      # > residing in the community without utilizing acute, chronic or
+      # > post-acute (non-outpatient) institutional health care services from
+      # > the date of BH CP assignment.
+
+      # > Numerator = (Sum of eligible days from denominator specification
+      # > above) – (sum of days in acute, chronic or post-acute institutional
+      # > settings listed below).
+
+      # > The table below contains both the MassHealth Provider Types and the
+      # > corresponding Provider Types for ACO Models A and C that constitute an
+      # > acute, chronic or post-acute (non-outpatient) institutional setting
+      # > for this measure.
+      # ....
+      servicing_provider_types = ['70', '71', '73', '74', '76', '28', '35', '53', '09']
+
+      billing_provider_types = ['1', '8', '40', '301', '3', '25', '246', '248', '20', '21', '35', '317', '22', '332', '34', '30', '31']
+
+      # This is a mystery:
+      # This one NPI is in the spec (in many places) by not in any data we have seen and
+      # https://npiregistry.cms.hhs.gov/ responds with an error:
+      #
+      # > Error: Number - CMS deactivated NPI 1346326881. The provider can no longer use this NPI.
+      # > Our public registry does not display provider information about NPIs that are not in service.
+      #
+      # Some random Excel document found online indicates it was deactivated on 11/22/2016 (pre the start of the CP program)
+      # and the name of the entity found in the spec can only be found in very old data
+      # harvesting sites like yellowpages.com
+      special_npi = '1346326881'
+
+      relavent_claims = claims.select do |c|
+        (
+          measurement_year.cover?(c.service_start_date) &&
+          (
+            c.servicing_provider_type.in?(servicing_provider_types) ||
+            c.billing_provider_type.in?(billing_provider_types) ||
+            (c.claim_type == 'inpatient' && (c.service_provider_npi == special_npi || c.pac.billing_npi == special_npi))
+          )
+        )
+      end
+
+      days_using_services = Set.new
+
+      relavent_claims.each do |c|
+        days_using_services += (c.service_start_date .. (c.service_end_date || c.service_start_date)).to_a
+      end
+
+      community_days = cp_enrolled_days - days_using_services.size
+
+      # logger.debug "BH_CP_6: Found #{community_days}/#{cp_enrolled_days} days"
+      [
+        MeasureRow.new(
+          row_type: 'enrolled days',
+          row_id: member.id,
+          bh_cp_6: [community_days, cp_enrolled_days],
+        ),
+      ]
+    end
+
+    # https://www.mass.gov/doc/change-of-address-provider-requirements-by-provider-type-3/download
+    # Individual Provider Types:
+    # PT-01 PHYSICIAN
+    # PT-02 OPTOMETRIST
+    # PT-03 OPTICIAN
+    # PT-04 OCULARIST
+    # PT-05 PSYCHOLOGIST
+    # PT-06 PODIATRIST
+    # PT-08 NURSE MIDWIFE
+    # PT-16 CHIROPRACTOR
+    # PT-17 NURSE PRACTITIONER
+    # PT-39 PHYSICIAN ASSISTANT
+    # PT-44 HEARING INSTRUMENT SPECIALIST
+    # PT-50 AUDIOLOGIST
+    # PT-51 CERTIFIED REGISTERED NURSE ANESTHETISTS
+    # PT-57 CLINICAL NURSE SPECIALIST (CNS)
+    # PT-78 PSYCHIATRIC CLINICAL NURSE SPECIALISTS (PCNS)
+    # PT-86 QMB ONLY PROVIDERS (individuals)
+    # PT-90 PHARMACIST
+    # PT-92 CLINICAL SOCIAL WORKER
+    # Entity Provider Types:
+    # PT-36 DPH TRANSPORTATION (& DPH WAIVER)
+    # PT-49 TRANSPORTATION
+    # PT-95 COMPLEX CARE MANAGEMENT
+    # PT-99 RELATIONSHIP ENTITY
+    # PT-A5 CP CSA
+    # PT-A6 CP LTSS
+    # PT-A7 CP BH
+    # PT-A8 ELTSS CP
+    # PT-89 SCHOOL-BASED MEDICAID
+    # PT-97 GROUP PRACTICE ORGANIZATION
+    # PT-20 COMMUNITY HEALTH CENTER (CHC)
+    # PT-21 FAMILY PLANNING AGENCY
+    # PT-22 ABORTION/STERILIZATION CLINIC
+    # PT-25 RENAL DIALYSIS CLINIC
+    # PT-26 MENTAL HEALTH CENTER
+    # PT-28 SUBSTANCE ABUSE PROGRAM
+    # PT-29 EARLY INTERVENTION
+    # PT-31 VOLUME PURCHASER
+    # PT-33 CASE MANAGEMENT
+    # PT-35 STATE AGENCY SERVICES
+    # PT-40 PHARMACY
+    # PT-45 INDEPENDENT DIAGNOSTIC TESTING FACILITY (IDTF)
+    # PT-46 CERTIFIED INDEPENDENT LABORATORY
+    # PT-53 ICF-MR STATE SCHOOL
+    # PT-55 REST HOME
+    # PT-65 PSYCHIATRIC DAY TREATMENT
+    # PT-70 ACUTE INPATIENT HOSPITAL
+    # PT-73 PSYCHIATRIC INPATIENT HOSPITAL (ALL AGES)
+    # PT-74 SUBSTANCE ADDICTION DISORDER INPATIENT HOSPITAL
+    # PT-75 SUBSTANCE ADDICTION DISORDER OUTPATIENT HOSPITAL
+    # PT-76 INTENSIVE RESIDENTIAL TREATMENT PROGRAM (IRTP)
+    # PT-80 ACUTE OUTPATIENT HOSPITAL
+    # PT-81 HOSPITAL LICENSED HEALTH CENTER (HLHC)
+    # PT-83 PSYCHIATRIC OUTPATIENT HOSPITAL
+    # PT-84 AMBULATORY SURGERY CENTER
+    # PT-86 QMB ONLY PROVIDERS (entities, organizations)
+    # PT-87 RADIATION ONCOLOGY TREATMENT CENTERS
+    # PT-91 INDIAN HEALTH SERVICES
+    # PT-97 GROUP PRACTICE ORGANIZATION (group of therapists and dentists)
+    # PT-96 LIMITED SERVICES CLINICS
+    # PT-98 SPECIAL PROGRAMS: Flu Vaccine - LPHP Vaccine
+    # PT-98 SPECIAL PROGRAMS: Certified Mastectomy Fitters (CMF)
+    # PT-98 SPECIAL PROGRAMS: WIGS
+    # PT-68 HOME CARE CORPORATION No
+    # PT-98 SPECIAL PROGRAMS: ABI/MFP Waivers
+
     def assigned_enrollees
       formatter.format_i assigned_enrollements_scope.distinct.count(:member_id)
     end
@@ -771,8 +926,13 @@ module ClaimsReporting
         value = r.send(flag)
         next if value.nil? # not part of this measure
 
-        denominator += 1
-        numerator += 1 if value
+        if value.is_a?(Array)
+          numerator += value.first
+          denominator += value.second
+        else
+          numerator += 1 if value
+          denominator += 1
+        end
       end
 
       return nil if denominator.zero?

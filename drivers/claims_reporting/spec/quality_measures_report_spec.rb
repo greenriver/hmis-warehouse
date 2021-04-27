@@ -11,8 +11,8 @@ RSpec.describe 'ClaimsReporting::QualityMeasuresReport', type: :model do
     report = ClaimsReporting::QualityMeasuresReport.for_plan_year('2019')
 
     expect(report.title).to eq('PY2019')
-    expect(report.date_range.first).to eq(Date.iso8601('2018-09-02'))
-    expect(report.date_range.last).to eq(Date.iso8601('2019-09-01'))
+    expect(report.date_range.first).to eq(Date.iso8601('2019-01-01'))
+    expect(report.date_range.last).to eq(Date.iso8601('2019-12-31'))
 
     data = report.serializable_hash
 

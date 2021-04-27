@@ -270,7 +270,7 @@ module ClaimsReporting
       span = cp_enrolled_date_range(as_of: as_of)
       return 0 unless span
 
-      # This is ~3x faster than Range#count
+      # This is much faster than Range#count
       1 + (span.max - span.min)
     end
   end
