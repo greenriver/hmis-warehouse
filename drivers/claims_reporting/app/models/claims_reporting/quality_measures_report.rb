@@ -22,6 +22,10 @@ module ClaimsReporting
       @date_range = date_range
     end
 
+    private def logger
+      Rails.logger
+    end
+
     Measure = Struct.new(:id, :title, :desc, :numerator, :denominator, keyword_init: true)
 
     PROCEDURE_CODE_SYSTEMS = ['CPT', 'HCPCS'].freeze
@@ -228,7 +232,7 @@ module ClaimsReporting
         :date_of_birth,
       ).index_by(&:member_id)
 
-      puts "#{members_by_member_id.size} members"
+      logger.debug { "#{members_by_member_id.size} members" }
 
       enrollments_by_member_id = assigned_enrollements_scope.select(
         :id,
@@ -241,7 +245,7 @@ module ClaimsReporting
         :cp_stop_rsn,
       ).group_by(&:member_id)
 
-      puts "#{assigned_enrollements_scope.count} enrollment spans"
+      logger.debug { "#{assigned_enrollements_scope.count} enrollment spans" }
 
       rows = []
 
@@ -267,7 +271,7 @@ module ClaimsReporting
         :enrolled_days,
       ).group_by(&:member_id)
 
-      puts "#{medical_claims_scope.count} medical_claims"
+      logger.debug { "#{medical_claims_scope.count} medical_claims" }
 
       pb = ProgressBar.create(total: medical_claims_by_member_id.size, format: '%c/%C (%P%%) %R/s%e [%B]')
       rows = Parallel.flat_map(
@@ -349,8 +353,15 @@ module ClaimsReporting
       end
     end
 
-    private def continuously_enrolled_mh?(_enrollments, _date_range, max_gap: 0, min_days: nil) # rubocop:disable  Lint/UnusedMethodArgument
-      # TODO:
+    private def continuously_enrolled_mh?(enrollments, date_range, max_gap: 0)
+      enrollments = enrollments.select { |e| e.span_date_range.overlaps?(date_range) }.sort
+
+      enrollments.each_cons(2) do |e_prev, e|
+        if (e.span_start_date - e_prev.span_end_date) > max_gap
+          logger.debug { "Found enrollment gap > #{max_gap} #{e_prev.span_end_date.inspect}..#{e.span_start_date.inspect}" }
+          return false
+        end
+      end
       true
     end
 
@@ -491,6 +502,10 @@ module ClaimsReporting
       raise explaination unless condition
     end
 
+    private def trace_exclusion(&block)
+      # logger.debug &block
+    end
+
     # Follow-up with BH CP after Emergency Department visit
     private def calculate_bh_cp_4(_member, claims, enrollments)
       # "on or between January 1 and December 1 of the measurement year."
@@ -508,7 +523,9 @@ module ClaimsReporting
 
         # "BH CP enrollees 18 to 64 years of age as of date of ED visit."
         unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: visit_date)
-          puts "BH_CP_4: Exclude claim #{c.id}: Dob: #{c.member_dob} outside age range as of #{visit_date}"
+          trace_exclusion do
+            "BH_CP_4: Exclude claim #{c.id}: DOB: #{c.member_dob} outside age range as of #{visit_date}"
+          end
           next
         end
 
@@ -518,7 +535,9 @@ module ClaimsReporting
         assert "followup_period must be 8 days, was #{followup_period.size} days.", followup_period.size == 8
 
         unless continuously_enrolled_cp?(enrollments, followup_period)
-          puts "BH_CP_4: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period}"
+          trace_exclusion do
+            "BH_CP_4: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period.min .. followup_period.max}"
+          end
           next
         end
 
@@ -566,7 +585,9 @@ module ClaimsReporting
         # calendar days after the ED visit (8 total days), regardless of
         # principal diagnosis for the admission.
         if (admits = (inpatient_stay_dates & followup_period)).any?
-          puts "BH_CP_4: Exclude claim #{c.id}: inpatient admitted too soon #{admits.to_a}"
+          trace_exclusion do
+            "BH_CP_4: Exclude claim #{c.id}: inpatient admitted too soon #{admits.to_a}"
+          end
           next
         end
 
@@ -672,7 +693,9 @@ module ClaimsReporting
 
       # > Exclusions: Enrollees in Hospice (Hospice Value Set)
       if claims.any? { |c| hospice?(c) && c.service_start_date.in?(measurement_year) }
-        puts "BH_CP_5: Exclude MemberRoster#id=#{member.id} is in hospice"
+        trace_exclusion do
+          "BH_CP_5: Exclude MemberRoster#id=#{member.id} is in hospice"
+        end
         return []
       end
 
@@ -704,7 +727,7 @@ module ClaimsReporting
       claims.each do |c|
         pcp_visit_dates << c.service_start_date if annual_primary_care_visit?(c)
       end
-      puts "Found annual_primary_care_visits #{pcp_visit_dates.to_a}" if pcp_visit_dates.any?
+      # logger.debug { "Found annual_primary_care_visits #{pcp_visit_dates.to_a}" } if pcp_visit_dates.any?
 
       meets_requirements = claim_date_ranges.all? do |date_range|
         # At least one pcp_visit_dates
@@ -842,46 +865,6 @@ module ClaimsReporting
       'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
       'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
     }.freeze
-
-    # TODO
-    # ["AOD Abuse and Dependence",
-    # "AOD Medication Treatment",
-    # "Acute Inpatient",
-    # "Alcohol Abuse and Dependence",
-    # "Ambulatory Surgical Center POS",
-    # "BH Outpatient",
-    # "Community Mental Health Center POS",
-    # "Detoxification",
-    # "Diabetes",
-    # "ED",
-    # "ED POS",
-    # "Electroconvulsive Therapy",
-    # "HbA1c Tests",
-    # "Hospice",
-    # "IET POS Group 1",
-    # "IET POS Group 2",
-    # "IET Stand Alone Visits",
-    # "IET Visits Group 1",
-    # "IET Visits Group 2",
-    # "Inpatient Stay",
-    # "Intentional Self-Harm",
-    # "Mental Health Diagnosis",
-    # "Mental Illness",
-    # "Nonacute Inpatient",
-    # "Nonacute Inpatient Stay",
-    # "Observation",
-    # "Online Assessments",
-    # "Opioid Abuse and Dependence",
-    # "Outpatient",
-    # "Outpatient POS",
-    # "Partial Hospitalization POS",
-    # "Partial Hospitalization/Intensive Outpatient",
-    # "Telehealth Modifier",
-    # "Telehealth POS",
-    # "Telephone Visits",
-    # "Transitional Care Management Services",
-    # "Visit Setting Unspecified",
-    # "Well-Care"
 
     private def connection
       HealthBase.connection

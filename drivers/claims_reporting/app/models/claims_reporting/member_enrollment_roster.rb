@@ -232,6 +232,20 @@ module ClaimsReporting
       span_start_date .. span_end_date
     end
 
+    # natural sort: by member id ASC, span_start_date ASC, span_end_date DESC
+    # This is so that gaps are minimized should ranges overlap, since
+    # we frequently are looking for minimal gaps
+    include Comparable
+    def <=>(other)
+      raise ArgumentError, "#{inspect} cannot be sorted with #{other.inspect}" unless other.is_a?(self.class)
+
+      diff = member_id <=> other.member_id
+      diff = span_start_date <=> other.span_start_date if diff.zero?
+      diff = other.span_end_date <=> span_end_date if diff.zero?
+
+      diff
+    end
+
     # The *most recent* (as of this MemberEnrollmentRoster) Community Provider
     # enrollment period. If a member was dis-enrolled the range will end on their
     # cp_disenroll_dt. Otherwise it ends on as_of which defaults to Date.current.
