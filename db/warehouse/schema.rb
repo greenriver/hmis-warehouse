@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_30_124825) do
+ActiveRecord::Schema.define(version: 2021_04_26_165914) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1941,6 +1941,23 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "client_ids"
+  end
+
+  create_table "federal_census_breakdowns", force: :cascade do |t|
+    t.date "accurate_on", comment: "Most recent census date"
+    t.string "type"
+    t.string "geography_level", comment: "State, zip, CoC (or maybe 010, 040, 050)"
+    t.string "geography", comment: "MA, 02101, MA-500"
+    t.string "measure", comment: "Detail of race, age, etc. (Asian, 50-59...)"
+    t.integer "value", comment: "count of population"
+    t.string "geo_id"
+    t.string "race"
+    t.string "gender"
+    t.integer "age_min"
+    t.integer "age_max"
+    t.string "source", comment: "Source of data"
+    t.string "census_variable_name", comment: "For debugging, variable name used in source"
+    t.index ["accurate_on", "geography", "geography_level", "measure"], name: "idx_fed_census_acc_on_geo_measure"
   end
 
   create_table "files", id: :serial, force: :cascade do |t|

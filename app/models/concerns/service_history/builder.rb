@@ -96,6 +96,7 @@ module ServiceHistory::Builder
         # you must manually process these in the test environment since there are no workers
         Delayed::Worker.new.work_off(2)
       else
+        started = Time.current
         while clients_still_processing?(client_ids: client_ids)
           break if (Time.current - started) > max_wait_seconds
 

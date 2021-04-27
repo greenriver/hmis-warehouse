@@ -40,7 +40,7 @@ module ClaimsReporting
 
     # Calculates and updates the cumulative enrolled and engaged days as of each claims service_start_date.
     #
-    # These can go down if there are large gaps in enrollment. Temporary gaps ust stop counting days as enrolled.
+    # These can go down if there are large gaps in enrollment. Temporary gaps just stop counting days as enrolled.
     #
     # We loop over distinct members_id and update each members claims atomically. This could be done
     # in parallel if needed.
@@ -67,20 +67,18 @@ module ClaimsReporting
           # them the most credited days is used.
           # We stop counting during gaps and start over at zero enrolled days
           # if the gap gets too long.
-          enrolled_dates = if enrollments.length.positive?
-            (enrollments.first.span_start_date .. last_claim_date).to_a.map do |date|
-              [date.iso8601, nil]
-            end.to_h
-          else
-            {}
-          end
-          enrollments.each do |e|
+          enrolled_dates = {}
+          enrollments.each_with_index do |e, e_idx|
             range_start = e.span_start_date
-            range_end = e == enrollments.last ? last_claim_date : e.span_start_date
-            (range_start .. range_end).to_a.each do |date|
-              previous_day = (date - 1.day).iso8601
+            range_end = if e == enrollments.last
+              last_claim_date
+            else
+              enrollments[e_idx + 1].span_start_date
+            end
+            (range_start .. range_end).each do |date|
+              previous_day = (date - 1.day)
               previous_days_count = (enrolled_dates[previous_day] || 0)
-              enrolled_dates[date.iso8601] ||= if date < e.span_end_date
+              enrolled_dates[date] ||= if date < e.span_end_date
                 previous_days_count + 1
               elsif (date - e.span_end_date) > enrollment_gap_limit
                 0
@@ -89,7 +87,6 @@ module ClaimsReporting
               end
             end
           end
-          # pp enrolled_dates
 
           # Use that as lookup iterate over all claims for the
           # member from oldest to newest and update the
@@ -107,7 +104,7 @@ module ClaimsReporting
             :procedure_code,
             :procedure_modifier_1,
           ).order(service_start_date: :asc).each do |claim|
-            enrolled_days = enrolled_dates[claim.service_start_date.iso8601] || 0
+            enrolled_days = enrolled_dates[claim.service_start_date] || 0
 
             # Locate a valid QA for Care Plan completion
             engagement_date ||= claim.service_start_date if claim.engaged?
@@ -117,7 +114,7 @@ module ClaimsReporting
               raise 'claim data out of order' if claim.service_start_date < engagement_date
 
               previous_day = (engagement_date - 1.day)
-              pre_engaged_enrolled_days = enrolled_dates[previous_day.iso8601] || 0
+              pre_engaged_enrolled_days = enrolled_dates[previous_day] || 0
 
               # clamp to 0.. if a user becomes engaged on the first day
               # of a enrollment gap (which should be impossible). In that

@@ -61,19 +61,6 @@ module ClaimsReporting
       end
     end
 
-    def report_scope_source
-      ::Health::Patient
-    end
-
-    private def filter_for_age(scope)
-      # the mock showed multiple age ranges
-      # and its unclear if we mean to allow that
-      # or at what date we measure a persons age
-      raise 'FIXME'
-
-      scope # rubocop:disable Lint/UnreachableCode
-    end
-
     def cos_rollup(code)
       ClaimsReporting::EngagementReport::COS_ROLLUPS.fetch(code, code)
     end
@@ -102,12 +89,9 @@ module ClaimsReporting
       'I-01 BH', # BH Inpatient Behavioral Health
       'P-01', # Office/Home Services
       'P-23', # Case Management
-      'P-23', # Case Management
       'P-08', # Behavioral Health
-      'I-11', # Nursing - Inpatient
-      'P-10', # Nursing - Office
-      'P-35', # Other Services'
       'I-08', # Hospital Outpatient Clinic
+      'P-28', # ESP
     ].to_set
 
     def highlighted_categories
@@ -189,14 +173,12 @@ module ClaimsReporting
       # They also expect @filter to be set
       @filter = filter
       filtered_by_client = (
-        filter.age_ranges.present? ||
         filter.genders.present? ||
         filter.races.present? ||
         filter.ethnicities.present?
       )
       if filtered_by_client
-        hmis_scope = ::GrdaWarehouse::DataSource.destination.joins(:clients)
-        hmis_scope = filter_for_age(hmis_scope) if filter.age_ranges.present?
+        hmis_scope = ::GrdaWarehouse::DataSource.joins(:clients)
         hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
         hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
         hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
@@ -211,6 +193,8 @@ module ClaimsReporting
         )
       end
 
+      scope = filter_for_age(scope) if filter.age_ranges.present?
+
       if filter.food_insecurity.present?
         scope = scope.joins(:patient).merge(
           ::Health::Patient.where(
@@ -222,6 +206,75 @@ module ClaimsReporting
       end
 
       scope
+    end
+
+    # to make the HMIS filters work
+    def report_scope_source
+      ::GrdaWarehouse::DataSource
+    end
+
+    # to make the HMIS filters work
+    private def multi_racial_clients
+      # Looking at all races with responses of 1, where we have a sum > 1
+      columns = [
+        c_t[:AmIndAKNative],
+        c_t[:Asian],
+        c_t[:BlackAfAmerican],
+        c_t[:NativeHIOtherPacific],
+        c_t[:White],
+      ]
+      report_scope_source.joins(:clients).
+        where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
+    end
+
+    # to make the HMIS filters work
+    private def race_alternative(key)
+      report_scope_source.joins(:clients).where(c_t[key].eq(1))
+    end
+
+    # to make the HMIS filters work
+    private def filter_for_ethnicity(scope)
+      return scope unless @filter.ethnicities.present?
+
+      scope.joins(:clients).where(c_t[:Ethnicity].in(@filter.ethnicities))
+    end
+
+    # to make the HMIS filters work
+    private def filter_for_gender(scope)
+      return scope unless @filter.genders.present?
+
+      scope.joins(:clients).where(c_t[:Gender].in(@filter.genders))
+    end
+
+    private def age_calculation
+      a_t = ClaimsReporting::MemberRoster.arel_table
+      nf(
+        'AGE',
+        [
+          Date.current,
+          a_t[:date_of_birth],
+        ],
+      )
+    end
+
+    private def filter_for_age(scope)
+      return scope unless filter.age_ranges.present? && (filter.available_age_ranges.values & filter.age_ranges).present?
+
+      # Or'ing ages is very slow, instead we'll build up an acceptable
+      # array of ages
+      ages = []
+      ages += (0..17).to_a if filter.age_ranges.include?(:under_eighteen)
+      ages += (18..24).to_a if filter.age_ranges.include?(:eighteen_to_twenty_four)
+      ages += (25..29).to_a if filter.age_ranges.include?(:twenty_five_to_twenty_nine)
+      ages += (30..39).to_a if filter.age_ranges.include?(:thirty_to_thirty_nine)
+      ages += (40..49).to_a if filter.age_ranges.include?(:forty_to_forty_nine)
+      ages += (50..59).to_a if filter.age_ranges.include?(:fifty_to_fifty_nine)
+      ages += (60..61).to_a if filter.age_ranges.include?(:sixty_to_sixty_one)
+      ages += (62..110).to_a if filter.age_ranges.include?(:over_sixty_one)
+
+      scope.joins(:member_roster).where(
+        Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in(ages),
+      )
     end
 
     def engaged_history_cohorts
@@ -277,31 +330,31 @@ module ClaimsReporting
           scope: cohort_scope(1..Float::INFINITY),
           day_range: (1..182),
           title: 'First 6 Months of Engagement',
-          tooltip: 'Patients who have fully engaged, and have six or fewer months of time being engaged.',
+          tooltip: 'Claims occurring during the first six months of engagement.',
         },
         engaged_12_months: {
           scope: cohort_scope(183..Float::INFINITY),
           day_range: (183..365),
           title: '7-12 Months of Engagement',
-          tooltip: 'Patients who have fully engaged, and have between seven to twelve months of time being engaged.',
+          tooltip: 'Claims occurring during six to twelve months of engagement.',
         },
         engaged_18_months: {
           scope: cohort_scope(366..Float::INFINITY),
           day_range: (366..547),
           title: '13-18 Months of Engagement',
-          tooltip: 'Patients who have fully engaged, and have between thirteen to eighteen months of time being engaged.',
+          tooltip: 'Claims occurring during thirteen to eighteen months of engagement.',
         },
         engaged_24_months: {
           scope: cohort_scope(548..Float::INFINITY),
           day_range: (548..730),
           title: '19-24 Months of Engagement',
-          tooltip: 'Patients who have fully engaged, and have between nineteen to twenty four months of time being engaged.',
+          tooltip: 'Claims occurring during nineteen months to two years of engagement.',
         },
         engaged_24_months_or_more: {
           scope: cohort_scope(731..Float::INFINITY),
           day_range: (731..Float::INFINITY),
           title: '2+ years of Engagement',
-          tooltip: 'Patients who have fully engaged, and have two years or more of time being engaged.',
+          tooltip: 'Claims occurring after two years of engagement.',
         },
       }.freeze
     end
@@ -375,10 +428,10 @@ module ClaimsReporting
         },
         'Housing Status' => {
           'Housed at start' => 'Housed at start',
-          'Homeless at start' => 'Housed at start',
-          'Housed at end' => 'Housed at start',
-          'Homeless at end' => 'Housed at start',
-          'Ever homeless' => 'Housed at start',
+          'Homeless at start' => 'Homeless at start',
+          'Housed at end' => 'Housed at end',
+          'Homeless at end' => 'Homeless at end',
+          'Ever homeless' => 'Ever homeless',
         },
         'SSM (average initial scores)' => ::Health::SelfSufficiencyMatrixForm::SSM_QUESTION_TITLE,
       }
