@@ -90,9 +90,9 @@ module PublicReports::S3Toolset
       body: html,
     )
     if resp.etag
-      Rails.logger.info 'Successfully uploaded maintenance file to s3'
+      Rails.logger.info 'Successfully uploaded report file to s3'
     else
-      Rails.logger.info 'Unable to upload maintenance file'
+      Rails.logger.info 'Unable to upload report file'
     end
   end
 end

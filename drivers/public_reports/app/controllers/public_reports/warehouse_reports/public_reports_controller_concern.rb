@@ -7,7 +7,8 @@
 module PublicReports::WarehouseReports::PublicReportsControllerConcern
   extend ActiveSupport::Concern
   included do
-    before_action :set_report, only: [:show, :destroy, :update, :edit, :raw]
+    before_action :set_report, except: [:index, :new, :create]
+    before_action :ignore_mini_profiler, only: [:raw, :overall, :housed, :individuals, :adults_with_children, :veterans]
 
     def index
       @report = report_source.new
@@ -35,7 +36,16 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
 
     def update
       if params.dig(:public_report, :published_url).present?
-        @report.publish!(render_to_string(:raw, layout: 'raw_public_report'))
+        html = if @report.view_template.is_a?(Array)
+          @report.view_template.map do |template|
+            string = @report.html_section_start(template)
+            string << render_to_string(template, layout: 'raw_public_report')
+            string << @report.html_section_end(template)
+          end.join
+        else
+          render_to_string(@report.view_template, layout: 'raw_public_report')
+        end
+        @report.publish!(html)
         respond_with(@report, location: path_to_report)
       else
         redirect_to(action: :edit)
@@ -43,7 +53,6 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
     end
 
     def raw
-      params[:pp] = 'disabled' # disable rack-mini-profiler
       render(layout: 'raw_public_report')
     end
 
@@ -99,6 +108,10 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
 
     private def report_scope
       report_source.viewable_by(current_user)
+    end
+
+    private def ignore_mini_profiler
+      params[:pp] = 'disabled' # disable rack-mini-profiler
     end
   end
 end

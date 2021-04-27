@@ -1,0 +1,20 @@
+= render 'chart_css'
+- population = :veterans
+- data = JSON.parse(@report.precalculated_data)
+- population_data = data[population.to_s]
+- title = @report.populations[population]
+%h2.population-title= title
+= render 'pit_chart', population: population, data: population_data['pit_chart']
+= render 'slider', population: population, data: population_data['location_chart'].keys
+.d-flex
+  .w-50
+    = render 'location_chart', population: population, data: population_data['location_chart']
+%h2 Who is Served?
+.d-flex
+  .w-50
+    = render 'gender_chart', population: population, data: population_data['gender_chart']
+  .w-50
+    = render 'age_chart', population: population, data: population_data['age_chart']
+.d-flex
+  .w-50
+    = render 'race_chart', population: population, data: population_data['race_chart']
