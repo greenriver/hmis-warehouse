@@ -34,6 +34,8 @@ module Reporting::Status
     end
 
     def failed?
+      return false if completed_at.present?
+      return true if started_at.present? && started_at > 24.hours.ago
       return false unless respond_to?(:failed_at)
 
       failed_at.present?
