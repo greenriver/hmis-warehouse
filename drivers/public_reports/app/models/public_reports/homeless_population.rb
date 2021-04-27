@@ -261,11 +261,11 @@ module PublicReports
 
       word = case population
       when :veterans
-        'Veterans'
+        'Veteran'
       when :adults_with_children, :hoh_from_adults_with_children
-        'Households'
+        'Household'
       else
-        'People'
+        'Person'
       end
 
       pluralize(number_with_delimiter(count), word)
@@ -473,7 +473,6 @@ module PublicReports
     end
 
     private def client_population(enrollment, date)
-      # NOTE: We may eventually want child-only households
       return 'Adult and Child' if adult_and_child_household_ids_by_date(date).include?(enrollment.household_id)
       return 'Child Only' if child_only_household_ids_by_date(date).include?(enrollment.household_id)
 

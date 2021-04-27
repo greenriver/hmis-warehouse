@@ -8,6 +8,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
   extend ActiveSupport::Concern
   included do
     before_action :set_report, except: [:index, :new, :create]
+    before_action :ignore_mini_profiler, only: [:raw, :overall, :housed, :individuals, :adults_with_children, :veterans]
 
     def index
       @report = report_source.new
@@ -52,7 +53,6 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
     end
 
     def raw
-      params[:pp] = 'disabled' # disable rack-mini-profiler
       render(layout: 'raw_public_report')
     end
 
@@ -108,6 +108,10 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
 
     private def report_scope
       report_source.viewable_by(current_user)
+    end
+
+    private def ignore_mini_profiler
+      params[:pp] = 'disabled' # disable rack-mini-profiler
     end
   end
 end
