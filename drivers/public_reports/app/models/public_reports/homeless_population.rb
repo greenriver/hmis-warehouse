@@ -11,7 +11,7 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Homeless Population Generator')
+      _('Homeless Population Report Generator')
     end
 
     def instance_title

@@ -978,9 +978,9 @@ module GrdaWarehouse::WarehouseReports
             limitable: false,
             health: false,
           }
-           r_list['Public'] << {
+          r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_populations',
-            name: 'Public Homeless Populations Generator',
+            name: 'Public Homeless Populations Report Generator',
             description: 'Use this to review and publish the homeless population report for public consumption.',
             limitable: false,
             health: false,
