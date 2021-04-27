@@ -150,7 +150,7 @@ module ClaimsReporting
       year = year.to_i
       new(
         title: "PY#{year}",
-        date_range: Date.iso8601("#{year - 1}-09-02") .. Date.iso8601("#{year}-09-01"),
+        date_range: Date.iso8601("#{year}-01-01") .. Date.iso8601("#{year}-12-31"),
       )
     end
 
@@ -180,8 +180,8 @@ module ClaimsReporting
     end
 
     # BH CP assigned enrollees 18 to 64 years of age as of December 31st of the measurement year.
-
     def assigned_enrollements_scope
+      # TODO: handle "September"
       # Members assigned to a BH CP on or between September 2nd of the year prior to the
       # measurement year and September 1st of the measurement year.
       scope = ::ClaimsReporting::MemberEnrollmentRoster
@@ -198,20 +198,17 @@ module ClaimsReporting
       )
     end
 
-    def dec_31_of_measurement_yaer
-      date_range.min.end_of_year
-    end
-
+    # TODO: handle "September"
     # BH CP enrollees 18 years of age or older as of September 2nd of the year prior to
     # the measurement year and 64 years of age as of December 31st of the measurement year.
     def dob_range_1
-      (dec_31_of_measurement_yaer - 64.years) .. (date_range.min - 18.years)
+      (dec_31_of_measurement_year - 64.years) .. (date_range.min - 18.years)
     end
     memoize :dob_range_1
 
     # BH CP enrollees 18 to 64 years of age as of December 31st of the measurement year.
     def dob_range_2
-      (dec_31_of_measurement_yaer - 64.years) .. (dec_31_of_measurement_yaer - 18.years)
+      (dec_31_of_measurement_year - 64.years) .. (dec_31_of_measurement_year - 18.years)
     end
     memoize :dob_range_2
 
@@ -291,13 +288,8 @@ module ClaimsReporting
         # Members must be continuously enrolled in the BH CP for at least 122 calendar days.
         continuous_in_bh_cp = continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
 
-        # TODO: > The entity who submitted the documentation must be the same CP as the one that a member
-        # > is enrolled with on the anchor date and during the 122-day continuous enrollment period.
-        # check completed_treatment_plans against the enrollments containing the ancher_date for
-        # matching CP entities. If none reject this member
-
         rows << MeasureRow.new(
-          row_type: 'enrollee', # spec also says "patients"/member
+          row_type: 'member', # spec also says "patients"/"enrollee"
           row_id: member_id,
         ).tap do |row|
           row.medical_claims = claims.count
@@ -305,7 +297,7 @@ module ClaimsReporting
           # BH CP #1 The percentage of Behavioral Health Community Partner (BH CP)
           # assigned enrollees 18 to 64 years of age with documentation of engagement
           # within 122 days of the date of assignment to a BH CP.
-          if date_of_birth.in?(dob_range_1)
+          if dob_range_1.cover?(date_of_birth)
             cut_off_date = assignment_date + 122.days
             row.bh_cp_1 = completed_treatment_plans.any? { |c| c.service_start_date <= cut_off_date }
           end
@@ -314,10 +306,10 @@ module ClaimsReporting
           # 18 to 64 years of age with documentation of a completed Treatment Plan during the
           # measurement year.
           # anchor_date = dob_range_2.max
-          if continuous_in_bh_cp && continuous_in_masshealth && date_of_birth.in?(dob_range_2)
+          if continuous_in_bh_cp && continuous_in_masshealth && dob_range_2.cover?(date_of_birth)
             # Qualifying numerator activity does not need to occur during the 122-day continuous enrollment
             # period, and it can take place any time during the measurement year.
-            row.bh_cp_2 = completed_treatment_plans.any? { |c| c.service_start_date.in? date_range }
+            row.bh_cp_2 = completed_treatment_plans.any? { |c| measurement_year.cover?(c.service_start_date) }
           end
         end
 
@@ -337,6 +329,15 @@ module ClaimsReporting
 
     # Do the enrollments indicate continuous enrollment in a Community Partner
     private def continuously_enrolled_cp?(enrollments, date_range, min_days: nil)
+      # TODO: handle note from BH_CP_1
+      # > The entity who submitted the documentation must be the same CP as the one that a member
+      # > is enrolled with on the anchor date and during the 122-day continuous enrollment period.
+
+      # TODO: handle the note from BH_CP_5
+      # > Note: the initial benchmark performance period is 7/1/2018 – 6/30/2019.
+      # > CP enrollees with no disenrollment, i.e., anchored on 6/30/2019,
+      # > must have continuous MassHealth enrollment going back to 7/1/2018.)
+
       # find a enrollment with a Community Partner enrollment covering the end of the date_range
       latest_enrollment = enrollments.reverse.detect { |e| e.cp_enrolled_date_range&.cover?(date_range.max) }
 
@@ -366,9 +367,9 @@ module ClaimsReporting
     end
 
     private def in_age_range?(dob, range, as_of:)
-      return nil unless dob && as_of
+      return nil unless dob && as_of # dob and as_of can both be nil in all callers, range should always be present
 
-      dob.in?(as_of - range.max .. as_of - range.min)
+      dob.between?(as_of - range.max, as_of - range.min)
     end
 
     private def acute_inpatient_hospital?(_claim)
@@ -380,7 +381,9 @@ module ClaimsReporting
     private def cp_followup?(claim)
       # > Qualifying Activity: Follow up after Discharge submitted by the BH CP to the Medicaid Management
       # > Information System (MMIS) and identified via code G9007 with a U5 modifier. In addition to the
-      # > U5 modifier [TODO: the following modifiers may be included: U1 or U2. This follow-up must be
+      # > U5 modifier...
+      # FIXME?: Note sure if we need to check for U1/U2 or not, nor how to check for "comprised of a face-to-face visit"
+      # > ...the following modifiers may be included: U1 or U2. This follow-up must be
       # > comprised of a face-to-face visit with the enrollee.)
       claim.procedure_code == 'G9007' && claim.modifiers.include?('U5')
     end
@@ -394,7 +397,16 @@ module ClaimsReporting
     end
 
     private def measurement_year
-      date_range.min.beginning_of_year .. date_range.min.end_of_year
+      # FIXME: this is an abstraction, in an attempt to support
+      # arbitrary date ranges. It is probably not reasonable to try.
+      # Several places mention "September" or "December" of the [prior] measurement_year
+      # so we need to deal with that offset. also the there is a lookup table for 2018,2019 years
+      # that uses different offsets, half years etc
+      date_range.max.beginning_of_year .. date_range.max.end_of_year
+    end
+
+    def dec_31_of_measurement_year
+      measurement_year.max
     end
 
     private def assert_business_time
@@ -440,7 +452,7 @@ module ClaimsReporting
       end
 
       claims.each do |c|
-        next unless c.discharge_date && c.discharge_date.in?(discharge_date_range)
+        next unless c.discharge_date && discharge_date_range.cover?(c.discharge_date)
 
         # Age: "BH CP enrollees 18 to 64 years of age as of date of discharge.""
         next unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: c.discharge_date)
@@ -467,7 +479,7 @@ module ClaimsReporting
         eligable_followup = (eligable_followups & followup_period).any?
 
         row = MeasureRow.new(
-          row_type: 'discharge',
+          row_type: 'stay',
           row_id: c.id,
           bh_cp_3: eligable_followup,
         )
@@ -516,7 +528,7 @@ module ClaimsReporting
 
       ed_visits = []
       claims.select do |c|
-        next unless c.discharge_date && ed_visit?(c) && c.service_start_date.in?(visit_date_range)
+        next unless c.discharge_date && ed_visit?(c) && visit_date_range.cover?(c.service_start_date)
 
         visit_date = c.discharge_date
         assert 'ED visit must have a discharge_date', c.discharge_date.present?
@@ -689,60 +701,56 @@ module ClaimsReporting
     # Annual Primary Care Visit
     private def calculate_bh_cp_5(member, claims, enrollments)
       # > BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.
-      return [] unless in_age_range?(member.date_of_birth, 18.years .. 64.years, as_of: dec_31_of_measurement_yaer)
+      return [] unless in_age_range?(member.date_of_birth, 18.years .. 64.years, as_of: dec_31_of_measurement_year)
 
       # > Exclusions: Enrollees in Hospice (Hospice Value Set)
-      if claims.any? { |c| hospice?(c) && c.service_start_date.in?(measurement_year) }
+      if claims.any? { |c| measurement_year.cover?(c.service_start_date) && hospice?(c) }
         trace_exclusion do
           "BH_CP_5: Exclude MemberRoster#id=#{member.id} is in hospice"
         end
         return []
       end
 
-      claim_date_ranges = if continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
-        # > For members continuously enrolled with the CP for at least 122 days,
-        # > and with no CP disenrollment during the measurement year (note that
-        # > this scenario logically implies an enrollment anchor on the last day
-        # > of the measurement period), [a primary care visit] must occur during the
+      # > For members continuously enrolled with the CP for at least 122 days,
+      # > and with no CP disenrollment during the measurement year (note that
+      # > this scenario logically implies an enrollment anchor on the last day
+      # > of the measurement period),
+      # ....
+      # > For members with one or more disenrollments during the measurement
+      # > year, identify each enrollment segment with the CP provider of 122
+      # > days or longer that ends in a disenrollment. Identify the
+      # > disenrollment date for each of these segments. (Note: each
+      # > disenrollment date is a separate event to be evaluated, establishing
+      # > an anchor date for claims lookback. This is true regardless of whether
+      # > the multiple enrollment segments are with the same, or different, CP
+
+      # Both handled by....
+      disenrollments = enrollments.select do |e|
+        e.cp_enroll_dt.present? && measurement_year.cover?(e.cp_enroll_dt)
+      end
+      claim_date_ranges = if disenrollments.any?
+        disenrollments.map do |e|
+          (e.cp_enroll_dt - 1.year) .. e.cp_enroll_dt
+        end
+      elsif continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
         [measurement_year]
-        # measurement year:
       else
-        # > For members with one or more disenrollments during the measurement
-        # > year, identify each enrollment segment with the CP provider of 122
-        # > days or longer that ends in a disenrollment. Identify the
-        # > disenrollment date for each of these segments. (Note: each
-        # > disenrollment date is a separate event to be evaluated, establishing
-        # > an anchor date for claims lookback. This is true regardless of whether
-        # > the multiple enrollment segments are with the same, or different, CP
-        # > providers). [a primary care visit] during the year prior to each
-        # > disenrollment date:
-        # TODO
         []
       end
 
-      # TOOD: more exceptions to look into ???
-
+      # > [a primary care visit] must occur during the date range[s] above
       rows = []
-      pcp_visit_dates = Set.new
-      claims.each do |c|
-        pcp_visit_dates << c.service_start_date if annual_primary_care_visit?(c)
+      claim_date_ranges.each do |date_range|
+        pcp_visit = claims.detect do |c|
+          date_range.cover?(c.service_start_date) && annual_primary_care_visit?(c)
+        end
+
+        rows << MeasureRow.new(
+          row_type: 'enrollee',
+          row_id: "#{member.id}/#{date_range}/#{pcp_visit&.service_start_date}",
+          bh_cp_5: pcp_visit.present?,
+        )
       end
-      # logger.debug { "Found annual_primary_care_visits #{pcp_visit_dates.to_a}" } if pcp_visit_dates.any?
-
-      meets_requirements = claim_date_ranges.all? do |date_range|
-        # At least one pcp_visit_dates
-        pcp_visit_dates.any? { |visit| visit.in?(date_range) }
-      end
-
-      # FIXME: its unclear to me ATM if we count members here or enrollment spans...
-      # if spans in need to work above to identify each enrollment span containing an anchor
-      # date above
-      rows << MeasureRow.new(
-        row_type: 'enrollee', # spec also says "patients"/member
-        row_id: member.id,
-        bh_cp_5: meets_requirements,
-      )
-
       rows
     end
 
