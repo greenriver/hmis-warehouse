@@ -29,6 +29,7 @@ module Health
         'Rejection Code',
         'Copay',
         'Copay Total',
+        'Copay Msg',
       ]
     end
 
@@ -36,6 +37,7 @@ module Health
       subscribers.map do |subscriber|
         benefit_names = EBNM1(subscriber)
         copays = copays(subscriber)
+        messages = MSG(subscriber)
         [
           TRN(subscriber),
           eligible(subscriber),
@@ -44,6 +46,7 @@ module Health
           AAA(subscriber),
           copays['B'],
           copays['J'],
+          messages['366'] || messages['246'],
         ]
       end
     end
@@ -185,6 +188,22 @@ module Health
         amounts << eb.detect{|h| h.keys.include? :E782}[:E782][:value][:raw]
       end
       return codes.zip(amounts).to_h
+    end
+
+    def MSG(subscriber)
+      msgs = {}
+      subscriber["2000C SUBSCRIBER LEVEL"].
+        detect{|h| h.keys.include? "2100C SUBSCRIBER NAME"}["2100C SUBSCRIBER NAME"].
+        select{|h| h.keys.include? "2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"}.
+        each do |info|
+        info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
+          select{|h| h.keys.include? :MSG}.
+          each do |msg|
+          words = msg[:MSG].detect{|h| h.keys.include? :E933}[:E933][:value][:raw].split(' ', 2)
+          msgs[words[0]] = words[1]
+        end
+      end
+      msgs
     end
 
     def EBNM1(subscriber)
