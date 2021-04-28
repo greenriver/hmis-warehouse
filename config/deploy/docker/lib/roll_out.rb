@@ -629,6 +629,7 @@ class RollOut
         service: name,
         desired_count: desired_count,
         task_definition: task_definition,
+        force_new_deployment: true, # Just needed in the interim until we're fully onto capacity providers
         capacity_provider_strategy: [
           {
             capacity_provider: capacity_provider,
