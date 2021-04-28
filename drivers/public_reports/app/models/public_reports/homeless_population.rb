@@ -411,7 +411,8 @@ module PublicReports
           with_service_in_quarter(report_scope, date, population).
             joins(:client, :service_history_services).
             order(date: :desc). # Use the greatest age per person for the quarter
-            pluck(she_t[:client_id], shs_t[:age]).
+            where(shs_t[:date].between(date..date.end_of_quarter)). # hint for performance
+            pluck(shs_t[:client_id], shs_t[:age]).
             each do |client_id, age|
               data[bucket_age(age)] << client_id unless client_ids.include?(client_id)
               client_ids << client_id
@@ -453,7 +454,7 @@ module PublicReports
           # Add census info
           ::HUD.races(multi_racial: true).each do |key, label|
             census_data[label] = 0
-            census_data[label] = ((GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).with_measure(key).sum(:value) / full_census_count.to_f) * 100).round if full_census_count&.positive?
+            census_data[label] = GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).with_measure(key).sum(:value) / full_census_count.to_f if full_census_count&.positive?
           end
           all_destination_ids = with_service_in_quarter(report_scope, date, population).distinct.pluck(:client_id)
           with_service_in_quarter(report_scope, date, population).
@@ -473,7 +474,7 @@ module PublicReports
           combined_data = data.map do |race, ids|
             [
               race,
-              ((ids.count / total_count.to_f) * 100).round, # Homeless Data
+              ids.count / total_count.to_f, # Homeless Data
               census_data[race], # Federal Census Data
             ]
           end
@@ -494,7 +495,7 @@ module PublicReports
     end
 
     private def full_census_count
-      @full_census_count ||= GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).full_set.sum(:value)
+      @full_census_count ||= GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).full_set.with_measure(:all).sum(:value)
     end
 
     private def coc_codes
