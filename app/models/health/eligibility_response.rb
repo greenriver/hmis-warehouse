@@ -20,6 +20,37 @@ module Health
     belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry'
     belongs_to :user
 
+    def summary_headers
+      [
+        'Medicaid ID',
+        'Eligible',
+        'Managed Care',
+        'ACO',
+        'Rejection Code',
+        'Copay',
+        'Copay Total',
+        'Copay Msg',
+      ]
+    end
+
+    def summary_rows
+      subscribers.map do |subscriber|
+        benefit_names = EBNM1(subscriber)
+        copays = copays(subscriber)
+        messages = MSG(subscriber)
+        [
+          TRN(subscriber),
+          eligible(subscriber),
+          managed_care(subscriber),
+          benefit_names['MC'] || benefit_names['L'],
+          AAA(subscriber),
+          copays['B'],
+          copays['J'],
+          messages['366'] || messages['246'],
+        ]
+      end
+    end
+
     def subscriber_ids_with_errors
       @error_ids ||= subscribers.select{|s| AAA(s)}.map{|s| TRN(s)}
     end
@@ -139,6 +170,40 @@ module Health
           text << eb.detect{|h| h.keys.include? :E1204}[:E1204][:value][:raw]
         end
       return codes.zip(text)
+    end
+
+    def copays(subscriber)
+      codes = []
+      amounts = []
+      subscriber["2000C SUBSCRIBER LEVEL"].
+        detect{|h| h.keys.include? "2100C SUBSCRIBER NAME"}["2100C SUBSCRIBER NAME"].
+        select{|h| h.keys.include? "2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"}.
+        each do |info|
+        eb = info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
+          detect{|h| h.keys.include? :EB}[:EB]
+        code = eb.detect{|h| h.keys.include? :E1390}[:E1390][:value][:raw]
+        next unless code == 'B' || code == 'J'
+
+        codes << code
+        amounts << eb.detect{|h| h.keys.include? :E782}[:E782][:value][:raw]
+      end
+      return codes.zip(amounts).to_h
+    end
+
+    def MSG(subscriber)
+      msgs = {}
+      subscriber["2000C SUBSCRIBER LEVEL"].
+        detect{|h| h.keys.include? "2100C SUBSCRIBER NAME"}["2100C SUBSCRIBER NAME"].
+        select{|h| h.keys.include? "2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"}.
+        each do |info|
+        info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
+          select{|h| h.keys.include? :MSG}.
+          each do |msg|
+          words = msg[:MSG].detect{|h| h.keys.include? :E933}[:E933][:value][:raw].split(' ', 2)
+          msgs[words[0]] = words[1]
+        end
+      end
+      msgs
     end
 
     def EBNM1(subscriber)
