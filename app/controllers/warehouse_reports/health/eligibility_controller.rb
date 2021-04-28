@@ -50,7 +50,7 @@ module WarehouseReports::Health
 
     def update
       @report = filtered_inquiry_scope.find(params[:id].to_i)
-      @response = Health::EligibilityResponse.create(
+      @response = Health::EligibilityResponse.new(
         eligibility_inquiry: @report,
         response: update_params[:content].read,
         user: current_user,
@@ -58,9 +58,10 @@ module WarehouseReports::Health
       )
       if update_params[:test] == '1'
         date = @report.service_date
-        response.headers['Content-Disposition'] = "attachment; filename=\"INQUIRY_#{date.strftime('%Y%m%d')}.xlsx\""
+        response.headers['Content-Disposition'] = "attachment; filename=\"INQUIRY_RESPONSE_#{date.strftime('%Y%m%d')}.xlsx\""
         render 'summary.xlsx', layout: false
       else
+        @response.save!
         Health::FlagIneligiblePatientsJob.perform_later(@report.id)
         redirect_to action: :index
       end

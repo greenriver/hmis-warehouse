@@ -16,7 +16,7 @@
     = f.input :content, as: :file, label: false
     = f.input :test, as: :boolean, label: "Test Upload"
     .mt-2
-      = f.button :submit, "Upload Eligibility Benefit Response (271) from #{@sender.receiver_name}", disabled: true, id: 'upload_button', class: 'btn btn-secondary btn-sm ml-2'
+      = f.button :submit, "Upload Eligibility Benefit Response (271) from #{@sender.receiver_name}", disabled: true, id: 'upload_button', class: 'btn btn-secondary btn-sm ml-2', data: { disable_with: false }
 
 = render 'reports'
 
