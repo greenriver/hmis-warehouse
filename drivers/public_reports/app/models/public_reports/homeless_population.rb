@@ -445,10 +445,10 @@ module PublicReports
     end
 
     private def race_chart(population)
-      client_cache = GrdaWarehouse::Hud::Client.new
       {}.tap do |charts|
         quarter_dates.each do |date|
           client_ids = Set.new
+          client_cache = GrdaWarehouse::Hud::Client.new
           data = {}
           census_data = {}
           # Add census info
@@ -472,8 +472,13 @@ module PublicReports
           # Format:
           # [["Black or African American",38, 53],["White",53, 76],["Native Hawaiian or Other Pacific Islander",1, 12],["Multi-Racial",4, 10],["Asian",1, 5],["American Indian or Alaska Native",1, 1]]
           combined_data = data.map do |race, ids|
+            label = if race == 'None'
+              'Unknown'
+            else
+              race
+            end
             [
-              race,
+              label,
               ids.count / total_count.to_f, # Homeless Data
               census_data[race], # Federal Census Data
             ]
