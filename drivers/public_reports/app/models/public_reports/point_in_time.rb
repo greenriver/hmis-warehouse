@@ -78,8 +78,7 @@ module PublicReports
     end
 
     private def client_count_for_date(date)
-      report_scope.joins(:service_history_services).
-        where(shs_t[:date].eq(date)).
+      report_scope.service_on_date(date).
         select(:client_id).
         distinct.count
     end

@@ -16,7 +16,7 @@ module ProjectScorecard::WarehouseReports
     def index
       start_date = Date.current.prev_month.beginning_of_month
       end_date = Date.current.prev_month.end_of_month
-      @range = ::Filters::FilterBase.new(start: start_date, end: end_date)
+      @range = ::Filters::FilterBase.new(start: start_date, end: end_date, user_id: current_user.id)
     end
 
     def for_project
@@ -41,7 +41,7 @@ module ProjectScorecard::WarehouseReports
     end
 
     def create
-      @range = ::Filters::FilterBase.new
+      @range = ::Filters::FilterBase.new(user_id: current_user.id)
       @range.set_from_params(filter_params)
       errors = @range.errors.messages.map { |k, v| "#{k}: #{v.join(', ')}".humanize }
 

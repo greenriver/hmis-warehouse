@@ -124,7 +124,7 @@ class Role < ApplicationRecord
         ],
       },
       can_view_census_details: {
-        description: 'Ability to "drill down" on census reports and see who was where on a given day',
+        description: '[DEPRECATED] Ability to "drill down" on census reports and see who was where on a given day',
         administrative: true,
         categories: [
           'Reporting',
@@ -223,6 +223,13 @@ class Role < ApplicationRecord
       },
       can_edit_projects: {
         description: 'Edit level access for projects and project overrides',
+        administrative: true,
+        categories: [
+          'Data Sources & Inventory',
+        ],
+      },
+      can_import_project_groups: {
+        description: 'Import groupings of projects, this process is un-aware of user project-group associations',
         administrative: true,
         categories: [
           'Data Sources & Inventory',

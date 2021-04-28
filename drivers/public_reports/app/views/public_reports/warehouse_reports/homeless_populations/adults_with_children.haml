@@ -1,0 +1,22 @@
+= render 'chart_css'
+- population = :adults_with_children
+- data = JSON.parse(@report.precalculated_data)
+- population_data = data[population.to_s]
+- title = @report.populations[population]
+
+%h2 Families
+= render 'pit_family_hoh_chart', population: population, data: population_data['pit_family_hoh_chart']
+%h2.population-title People in Families
+= render 'pit_chart', population: population, data: population_data['pit_chart']
+
+
+= render 'slider', population: population, data: population_data['location_chart'].keys
+.d-flex
+  .w-50
+    = render 'average_household_size', population: population, data: population_data['average_household_size']
+  .w-50
+    = render 'location_chart', population: population, data: population_data['location_chart']
+
+.d-flex
+  .w-50
+    = render 'race_chart', population: population, data: population_data['race_chart']

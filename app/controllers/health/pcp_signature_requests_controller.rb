@@ -53,7 +53,10 @@ module Health
 
       if @signature_request.valid?
         @signature_request.save!
-        @careplan.update(provider_signature_requested_at: Time.current)
+        @careplan.update(
+          provider_id: @team_member.id, # Set the careplan provider to the signer
+          provider_signature_requested_at: Time.current,
+        )
         create_signable_document
         queue_pcp_email
         # TODO: view button to delete request
