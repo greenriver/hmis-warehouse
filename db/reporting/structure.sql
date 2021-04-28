@@ -477,7 +477,8 @@ CREATE TABLE public.warehouse_partitioned_monthly_reports_adult_only_households 
     prior_exit_destination_id integer,
     calculated_at timestamp without time zone NOT NULL,
     enrollment_id integer,
-    mid_month date
+    mid_month date,
+    CONSTRAINT warehouse_partitioned_monthly_reports_adult_only_hou_type_check CHECK (((type)::text = 'AdultOnlyHouseholdsSubPop::Reporting::MonthlyReports::AdultOnlyHouseholds'::text))
 );
 
 
@@ -510,7 +511,8 @@ CREATE TABLE public.warehouse_partitioned_monthly_reports_adults_with_children (
     prior_exit_destination_id integer,
     calculated_at timestamp without time zone NOT NULL,
     enrollment_id integer,
-    mid_month date
+    mid_month date,
+    CONSTRAINT warehouse_partitioned_monthly_reports_adults_with_ch_type_check CHECK (((type)::text = 'AdultsWithChildrenSubPop::Reporting::MonthlyReports::AdultsWithChildren'::text))
 );
 
 
@@ -543,7 +545,8 @@ CREATE TABLE public.warehouse_partitioned_monthly_reports_child_only_households 
     prior_exit_destination_id integer,
     calculated_at timestamp without time zone NOT NULL,
     enrollment_id integer,
-    mid_month date
+    mid_month date,
+    CONSTRAINT warehouse_partitioned_monthly_reports_child_only_hou_type_check CHECK (((type)::text = 'ChildOnlyHouseholdsSubPop::Reporting::MonthlyReports::ChildOnlyHouseholds'::text))
 );
 
 
@@ -576,7 +579,8 @@ CREATE TABLE public.warehouse_partitioned_monthly_reports_clients (
     prior_exit_destination_id integer,
     calculated_at timestamp without time zone NOT NULL,
     enrollment_id integer,
-    mid_month date
+    mid_month date,
+    CONSTRAINT warehouse_partitioned_monthly_reports_clients_type_check CHECK (((type)::text = 'ClientsSubPop::Reporting::MonthlyReports::Clients'::text))
 );
 
 
@@ -609,7 +613,8 @@ CREATE TABLE public.warehouse_partitioned_monthly_reports_non_veterans (
     prior_exit_destination_id integer,
     calculated_at timestamp without time zone NOT NULL,
     enrollment_id integer,
-    mid_month date
+    mid_month date,
+    CONSTRAINT warehouse_partitioned_monthly_reports_non_veterans_type_check CHECK (((type)::text = 'NonVeteransSubPop::Reporting::MonthlyReports::NonVeterans'::text))
 );
 
 
@@ -642,7 +647,8 @@ CREATE TABLE public.warehouse_partitioned_monthly_reports_unknown (
     prior_exit_destination_id integer,
     calculated_at timestamp without time zone NOT NULL,
     enrollment_id integer,
-    mid_month date
+    mid_month date,
+    CONSTRAINT warehouse_partitioned_monthly_reports_unknown_type_check CHECK (((type)::text <> ALL (ARRAY[('adult_only_households'::character varying)::text, ('adults_with_children'::character varying)::text, ('child_only_households'::character varying)::text, ('clients'::character varying)::text, ('non_veterans'::character varying)::text, ('veterans'::character varying)::text])))
 );
 
 
@@ -675,7 +681,8 @@ CREATE TABLE public.warehouse_partitioned_monthly_reports_veterans (
     prior_exit_destination_id integer,
     calculated_at timestamp without time zone NOT NULL,
     enrollment_id integer,
-    mid_month date
+    mid_month date,
+    CONSTRAINT warehouse_partitioned_monthly_reports_veterans_type_check CHECK (((type)::text = 'VeteransSubPop::Reporting::MonthlyReports::Veterans'::text))
 );
 
 
@@ -784,14 +791,6 @@ ALTER TABLE ONLY public.warehouse_returns ALTER COLUMN id SET DEFAULT nextval('p
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -1324,6 +1323,13 @@ CREATE INDEX pdq_rep_act_ent_head_enr ON public.warehouse_data_quality_report_en
 --
 
 CREATE INDEX pdq_rep_act_ext_head_enr ON public.warehouse_data_quality_report_enrollments USING btree (report_id, active, exited, head_of_household, enrolled);
+
+
+--
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --

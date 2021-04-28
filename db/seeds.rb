@@ -272,10 +272,13 @@ def maintain_lookups
 end
 
 def install_shapes
-  if GrdaWarehouse::Shape::ZipCode.none? || GrdaWarehouse::Shape::CoC.none?
+  if GrdaWarehouse::Shape::Installer.any_needed?
     begin
       Rake::Task['grda_warehouse:get_shapes'].invoke
-    rescue Exception
+    rescue Exception => e
+      Rails.logger.tagged('shapes') do
+        Rails.logger.fatal "Could not run shape importer: #{e.message}"
+      end
     end
   end
 end

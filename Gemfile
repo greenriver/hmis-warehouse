@@ -26,6 +26,8 @@ gem 'active_record_extended', '~> 1.4.0'
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
 
+gem 'census_api', github: 'greenriver/census_api'
+
 # spatial manipulations
 gem 'activerecord-postgis-adapter'
 gem 'ffi-geos'
