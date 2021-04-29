@@ -12,6 +12,8 @@ module ProjectScorecard
         return nil unless [amount_awarded, months_since_start, funds_expended].all?
 
         projected_amount = amount_awarded * (months_since_start / 12.0)
+        return nil if projected_amount.zero?
+
         (((projected_amount - funds_expended) / projected_amount) * 100).round
       end
 
@@ -48,6 +50,7 @@ module ProjectScorecard
 
       def percentage_recaptured
         return nil unless [prior_unspent_amount].all?
+        return nil if prior_amount_awarded.zero?
 
         ((prior_unspent_amount / prior_amount_awarded.to_f) * 100).round
       end
@@ -63,6 +66,7 @@ module ProjectScorecard
 
       def percentage_meetings_attended
         return nil unless [coc_meetings_attended, coc_meetings].all?
+        return nil if coc_meetings.zero?
 
         ((coc_meetings_attended / coc_meetings.to_f) * 100).round
       end

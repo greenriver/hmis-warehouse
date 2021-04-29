@@ -17,6 +17,7 @@ module ProjectScorecard
 
       def utilization_percentage
         return nil unless [adjusted_utilization, utilization_proposed].all?
+        return nil if utilization_proposed.zero?
 
         ((adjusted_utilization / utilization_proposed.to_f) * 100).round
       end
