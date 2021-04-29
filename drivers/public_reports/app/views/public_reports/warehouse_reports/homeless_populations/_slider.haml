@@ -49,7 +49,7 @@
       var new_title = dates[selected_date]['total'].split(' ').join(' \n');
       chart.config('donut.title', new_title);
       $(chart.internal.config.bindto.element + ' .bb-chart-arcs-title').remove();
-      chart.internal.initArc();
+      chart.internal.setArcTitle();
     });
     // update any dependent text
     $('.jSliderDependentText').each(function(i){
