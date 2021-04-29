@@ -7,17 +7,20 @@
         - horizontal_shift = ((index)/quarter_count.to_f * 100)
         - marker_class = if index.zero? then 'first' elsif index == data.count - 1 then 'last' else '' end
         %rect.range__tick{class: marker_class, x: "#{horizontal_shift}%", y: '3', width: '2', height: '20'}
-    %svg{role: :presentation, width: '100%', height: '20', xmlns: 'http://www.w3.org/2000/svg'}
+    %svg{role: :presentation, width: '100%', height: '34', xmlns: 'http://www.w3.org/2000/svg'}
       - data.each.with_index do |date, index|
         - year = Date.parse(date).year
-        - previous_year = Date.parse(data[index - 0]).year if index.positive?
+        - previous_year = Date.parse(data[index - 1]).year if index.positive?
         - horizontal_shift = ((index)/quarter_count.to_f * 100)
         - marker_class = if index.zero? then 'first' elsif index == data.count - 1 then 'last' else '' end
         - anchor = if index.zero? then 'start' elsif index == data.count - 1 then 'end' else 'middle' end
-        %text.range__point{class: marker_class, x: "#{horizontal_shift}%", y: '14', text: { anchor: anchor}}
-          - if year != previous_year
-            Q#{quarter(Date.parse(date))} #{year}
-          - else
+        - if year != previous_year
+          %text.range__point{class: marker_class, x: "#{horizontal_shift}%", y: '14', text: { anchor: anchor}}
+            Q#{quarter(Date.parse(date))}
+          %text.range__point{class: marker_class, x: "#{horizontal_shift}%", y: '32', text: { anchor: anchor}}
+            #{year}
+        - else
+          %text.range__point{class: marker_class, x: "#{horizontal_shift}%", y: '14', text: { anchor: anchor}}
             Q#{quarter(Date.parse(date))}
 :javascript
   function quarter_of_the_year(date) {
