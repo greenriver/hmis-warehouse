@@ -17,7 +17,7 @@
       data: {
         columns: [],
         type: 'bar',
-        groups: [#{::HUD.races(multi_racial: true).values.to_json.html_safe}],
+        groups: [#{groups.to_json.html_safe}],
         labels: {
           format: d3.format(".0%"),
           centered: true,
@@ -48,7 +48,7 @@
         }
       },
       size: {
-        height: 120
+        height: 120,
       },
       legend: {
         contents: {
