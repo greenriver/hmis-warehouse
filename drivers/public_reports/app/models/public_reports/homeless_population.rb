@@ -292,11 +292,7 @@ module PublicReports
     end
 
     private def total_for(scope, population)
-      count = if population == :adults_with_children
-        scope.select(:household_id).distinct.count
-      else
-        scope.select(:client_id).distinct.count
-      end
+      count = scope.select(:client_id).distinct.count
 
       word = case population
       when :veterans
@@ -333,6 +329,9 @@ module PublicReports
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           else
+            # We want to count households not all clients for families
+            population = :hoh_from_adults_with_children if population == :adults_with_children
+
             charts[date.iso8601] = {
               data: [
                 ['Homeless', with_service_in_quarter(report_scope, date, population).homeless.select(:client_id).distinct.count],
