@@ -48,7 +48,6 @@
       // chart.$.main.select(".bb-chart-arcs-title").text(dates[selected_date]['total'].split(' ').join(' \n'));
       var new_title = dates[selected_date]['total'].split(' ').join(' \n');
       chart.config('donut.title', new_title);
-      console.log(chart.internal.config.bindto.element);
       $(chart.internal.config.bindto.element + ' .bb-chart-arcs-title').remove();
       chart.internal.initArc();
     });
