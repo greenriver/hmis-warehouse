@@ -60,6 +60,7 @@ module GrdaWarehouse
 
     def self.import_csv(file)
       parsed = csv(file)
+      original = parsed.dup
       errors = []
       unless check_header!(parsed)
         errors << 'Incorrect headers'
@@ -82,7 +83,10 @@ module GrdaWarehouse
 
       parsed.reject! { |row| row.values.map(&:blank?).any? }
       parsed.select! { |row| all_project_keys.include?([row['ProjectID'].to_s, row['data_source_id']]) }
-      errors << "Excluded #{ActionController::Base.helpers.pluralize(input_count - parsed.count, 'project')}" if (input_count - parsed.count).positive?
+      (original - parsed).each do |row|
+        errors << row
+      end
+      # errors << "Excluded #{ActionController::Base.helpers.pluralize(input_count - parsed.count, 'project')}" if (input_count - parsed.count).positive?
       return errors if parsed.empty?
 
       parsed.group_by{|row| row['ProjectGroupName']}.each do |group_name, rows|
