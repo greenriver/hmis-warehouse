@@ -9,7 +9,11 @@ class ProjectScorecard::ScorecardMailer < ::DatabaseMailer
     @report = report
     @contact = contact
 
-    @project_name = @report.project.ProjectName
+    @project_name = if @report.project.present?
+      @report.project.ProjectName
+    else
+      @report.project_group.name
+    end
 
     mail(to: @contact.email, subject: "Scorecard For #{@project_name}")
   end
@@ -18,7 +22,11 @@ class ProjectScorecard::ScorecardMailer < ::DatabaseMailer
     @report = report
     @contact = contact
 
-    @project_name = @report.project.ProjectName
+    @project_name = if @report.project.present?
+      @report.project.ProjectName
+    else
+      @report.project_group.name
+    end
 
     mail(to: @contact.email, subject: "Scorecard For #{@project_name}")
   end
@@ -27,7 +35,11 @@ class ProjectScorecard::ScorecardMailer < ::DatabaseMailer
     @report = report
     @contact = report.user
 
-    @project_name = @report.project.ProjectName
+    @project_name = if @report.project.present?
+      @report.project.ProjectName
+    else
+      @report.project_group.name
+    end
 
     mail(to: @contact.email, subject: "Scorecard For #{@project_name} Completed")
   end
