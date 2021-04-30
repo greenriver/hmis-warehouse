@@ -2,11 +2,13 @@ wb = xlsx_package.workbook
 f = ClaimsReporting::Formatter.new
 s = wb.styles
 comma = s.add_style(num_fmt: 3)
+
 def alphabet
   @alphabet ||= {}.tap do |alphabet|
     ('A'..'ZZZ').each_with_index { |l, i| alphabet[i] = l }
   end
 end
+
 def col_header_style(sheet)
   sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
 end
@@ -16,7 +18,6 @@ def row_header_style(sheet)
 end
 
 def add_header_row(sheet, first_title, comment_row = '1')
-
   row = [first_title]
   comments = []
   @report.cohorts.each do |_, cohort|
