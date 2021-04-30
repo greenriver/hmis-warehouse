@@ -229,7 +229,11 @@ module ProjectScorecard::WarehouseReports
       @projects = @project_scope.
         group_by { |p| [p.data_source.short_name, p.organization] }
 
-      @project_groups = project_group_scope
+      @project_groups = if @filter.project_group_ids.present?
+        project_group_scope.where(id: @filter.project_group_ids)
+      else
+        project_group_scope.none
+      end
     end
 
     private def set_report

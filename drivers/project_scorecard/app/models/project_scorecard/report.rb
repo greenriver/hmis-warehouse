@@ -161,8 +161,8 @@ module ProjectScorecard
     def key_project
       return project if project.present?
 
-      candidate = project_group.projects.detect(&:rrh)
-      candidate = project_group.projects.detect(&:psh) if candidate.blank?
+      candidate = project_group.projects.detect(&:rrh?)
+      candidate = project_group.projects.detect(&:psh?) if candidate.blank?
       candidate = project_group.projects.first if candidate.blank?
       candidate
     end
