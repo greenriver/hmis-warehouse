@@ -28,6 +28,34 @@
         text-align: right;
         margin-right: 2em;
       }
+      .legend-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .legend-wrapper-vertical {
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        align-content: center;
+      }
+      .legend-wrapper-vertical .chart-legend-item-prs1 {
+        display: flex;
+        width: 100%;
+        margin-right: 2rem;
+        margin-bottom: 0.5rem;
+        align-content: flex-end;
+      }
+      .legend-wrapper-horizontal .chart-legend-item-prs1 {
+        display: flex;
+        width: 40%;
+        margin-right: 2rem;
+        margin-bottom: 0.5rem;
+      }
+      .chart-legend-item-prs1 .chart-legend-item-swatch-prs1 {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.8rem;
+      }
   %body
     = yield
 

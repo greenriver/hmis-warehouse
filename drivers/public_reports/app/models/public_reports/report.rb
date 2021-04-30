@@ -38,8 +38,8 @@ module PublicReports
       @settings ||= PublicReports::Setting.first_or_create
     end
 
-    def chart_color_pattern
-      settings.color_pattern.to_json.html_safe
+    def chart_color_pattern(category = nil)
+      settings.color_pattern(category).to_json.html_safe
     end
 
     def filter_object
