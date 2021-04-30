@@ -152,8 +152,23 @@ module ProjectScorecard
       ].freeze
     end
 
+    def project_name
+      return project.name if project.present?
+
+      project_group.name
+    end
+
+    def key_project
+      return project if project.present?
+
+      candidate = project_group.projects.detect(&:ph?)
+      candidate = project_group.projects.detect(&:rrh?) if candidate.blank?
+      candidate = project_group.projects.first if candidate.blank?
+      candidate
+    end
+
     def title
-      "#{project.name} Project Scorecard"
+      "#{project_name} Project Scorecard"
     end
 
     def url

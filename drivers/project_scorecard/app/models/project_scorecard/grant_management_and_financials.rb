@@ -33,9 +33,9 @@ module ProjectScorecard
       end
 
       def cost_efficiency_score
-        if project.psh?
+        if key_project.psh?
           score(cost_per_participant, 0..8_999, 9_000..11_000)
-        elsif project.rrh?
+        elsif key_project.rrh?
           score(cost_per_participant, 0..2_499, 2_500..5_400)
         end
       end
