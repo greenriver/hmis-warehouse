@@ -1,0 +1,99 @@
+wb = xlsx_package.workbook
+f = ClaimsReporting::Formatter.new
+s = wb.styles
+comma = s.add_style(num_fmt: 3)
+def alphabet
+  @alphabet ||= {}.tap do |alphabet|
+    ('A'..'ZZZ').each_with_index { |l, i| alphabet[i] = l }
+  end
+end
+def col_header_style(sheet)
+  sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+end
+
+def row_header_style(sheet)
+  sheet.styles.add_style(sz: 12, b: true)
+end
+
+def add_header_row(sheet, first_title, comment_row = '1')
+
+  row = [first_title]
+  comments = []
+  @report.cohorts.each do |_, cohort|
+    row << cohort[:title]
+    comments << cohort[:tooltip]
+  end
+  sheet.add_row(row, style: col_header_style(sheet))
+  comments.each.with_index do |comment, index|
+    ref = "#{alphabet[index+1]}#{comment_row}"
+    sheet.add_comment(ref: ref, author: 'System', text: comment, visible: false)
+  end
+end
+
+wb.add_worksheet(name: 'Patients') do |sheet|
+  add_header_row(sheet, '')
+  @report.summary_headers.each do |key, (html_label, formatter)|
+    row = [html_label]
+    @report.cohorts.each do |corhort_id, cohort|
+      row << f.send(formatter, @report.summary(corhort_id)[key.to_s])
+    end
+    sheet.add_row(row)
+  end
+end
+wb.add_worksheet(name: 'SDoH Metrics') do |sheet|
+  add_header_row(sheet, 'SDoH Categories')
+  index = 2 # note where to put the comments
+  @report.results[@report.cohorts.keys.first.to_s]['sdoh'].each.with_index do |section|
+    title = section.first
+    sub_categories = @report.class.sdoh_categories[title].values
+    row = [title]
+    @report.cohorts.keys.each do |_|
+      row << ''
+    end
+    sheet.add_row(row, style: row_header_style(sheet))
+    ref = "A#{index}"
+    sheet.add_comment(ref: ref, author: 'System', text: section.last['tooltip'], visible: false)
+    index += 1
+    @report.cohorts.keys.each.with_index do |key, i|
+      sub_categories.each do |cat|
+        next unless  i.zero?
+
+        row = []
+        row << cat
+        @report.cohorts.keys.each do |cohort_key|
+          sdoh = @report.results[cohort_key.to_s]['sdoh']
+          row << sdoh[title]['data'][cat]
+        end
+        index += 1
+        sheet.add_row(row)
+      end
+    end
+  end
+end
+wb.add_worksheet(name: 'Claims') do |sheet|
+  sheet.add_row(['Utilization - events per 1000 members per year'], style: col_header_style(sheet))
+  sheet.merge_cells('A1:F1')
+  add_header_row(sheet, 'Claim Categories', '2')
+  @report.detail_row_headers.group_by(&:first).each do |cos_rollup, rollup_rows|
+    rollup_rows.sort_by { |claim_row| @report.cos_description(claim_row['cde_cos_category']) || 'AAAA' }.each_with_index do |claim_row, idx|
+      category_code = claim_row['cde_cos_category']
+      next unless category_code.in?(@report.highlighted_categories)
+
+      rollup_label = @report.cos_rollup(claim_row['cde_cos_rollup']).presence || 'All Claims'
+      category_label = @report.cos_description(category_code).presence || ''
+
+      row = []
+      row << if category_label.blank?
+        rollup_label
+      else
+        "#{category_label} #{category_code}"
+      end
+      @report.cohorts.keys.each_with_index do |cohort_id, idx|
+        cohort = @report.cohorts[cohort_id]
+        d = @report.result_for(cohort_id, claim_row['cde_cos_rollup'], claim_row['cde_cos_category'])
+        row << d['utilization']
+      end
+      sheet.add_row(row, style: [nil] + [comma] * @report.cohorts.keys.count,types: [:string] + [:integer] * @report.cohorts.keys.count)
+    end
+  end
+end
