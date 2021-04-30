@@ -4,8 +4,7 @@
     %table.table.table-striped.mb-0
       %thead
         %tr
-          %th Organization / Project
-          %th Data Source
+          %th Report Name
           %th Date Range
           %th Run On
           %th Completed On
@@ -13,8 +12,10 @@
       %tbody
         - @reports.each do |report|
           %tr
-            %td= report.project.organization_and_name
-            %td= report.project.data_source.name
+            - if report.project.present?
+              %td= "#{report.project.organization_and_name} (#{report.project.data_source.name})"
+            - else
+              %td= report.project_group.name
             %td
               - if report.completed?
                 = link_to report.status, project_scorecard_warehouse_reports_scorecard_path(report)
