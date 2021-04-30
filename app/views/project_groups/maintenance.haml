@@ -5,20 +5,21 @@
 = content_for(:title, title)
 %h1= content_for :title
 - if @errors.present?
-  .alert.alert-danger
-    %h3 The following projects were not found and failed to import:
-
-  %table.table.table-striped
-    %thead
-      %th ProjectGroupName
-      %th ProjectName
-      %th ProjectID
-      %th data_source_id
-    %tbody
-      - @errors.each do |row|
-        %tr
-          - row.each_value do |cell|
-            %td=cell
+  .c-card.p-0.mb-2
+    .alert.alert-danger.mb-0
+      %h3 The following projects were not found and failed to import:
+    .c-card__content.p-0
+      %table.table.table-striped.p-0.mb-0
+        %thead
+          %th ProjectGroupName
+          %th ProjectName
+          %th ProjectID
+          %th data_source_id
+        %tbody
+          - @errors.each do |row|
+            %tr
+              - row.each_value do |cell|
+                %td= cell
 %p You can use this page to maintain project groups by uploading an Excel file.  Any project groups in the file that do not exist will be created, and all project groups included in the file will be updated to only contain the projects included in the file.  The file should be an xlsx file and the format is as follows:
 .card.mb-2
   %table.table.table-striped.mb-0
