@@ -82,7 +82,7 @@
           %br
           RRH >=$4,501
       %td.text-center
-        - if @report.project.psh? || @report.project.rrh?
+        - if @report.key_project.psh? || @report.key_project.rrh?
           = @report.cost_efficiency_score
         - else
           N/A (Only RRH & PSH)

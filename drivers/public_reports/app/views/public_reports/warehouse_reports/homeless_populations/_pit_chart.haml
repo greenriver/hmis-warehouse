@@ -1,4 +1,4 @@
 - chart_class = "pit-chart-#{population}"
 .chart.chart-pit.pt-2{ class: chart_class }
 %div.d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
-= render 'line_chart', chart_class: chart_class, data: data
+= render 'line_chart', chart_class: chart_class, data: data, category: :population
