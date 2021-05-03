@@ -85,6 +85,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   def setup(file_path)
     @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
     GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
+
     import(file_path, @data_source)
   end
 
@@ -102,6 +103,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     FileUtils.cp_r(source_file_path, import_path)
     @delete_later << import_path
 
+    GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
     importer = Importers::HmisTwentyTwenty::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
 
     raise 'Somethings is not right' unless importer.import.import_errors.none?
