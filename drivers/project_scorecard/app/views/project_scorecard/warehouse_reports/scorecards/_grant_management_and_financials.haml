@@ -82,10 +82,13 @@
           %br
           RRH >=$4,501
       %td.text-center
-        - if @report.key_project.psh? || @report.key_project.rrh?
+        - if (@report.key_project.psh? || @report.key_project.sh? || @report.key_project.rrh?) && ! @report.expansion_year
           = @report.cost_efficiency_score
         - else
-          N/A (Only RRH & PSH)
+          - if @report.expansion_year
+            N/A (Expansion year)
+          - else
+            N/A (Only RRH & PSH)
     %tr
       %th
         = ('Percentage of total grant funds that were recaptured in the most recent grant closeout')
