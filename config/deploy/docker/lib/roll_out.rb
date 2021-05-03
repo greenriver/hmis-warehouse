@@ -27,6 +27,7 @@ class RollOut
   attr_accessor :task_definition
   attr_accessor :task_role
   attr_accessor :web_options
+  attr_accessor :only_check_ram
 
   # FIXME: cpu shares as parameter
   # FIXME: log level as parameter
@@ -54,6 +55,7 @@ class RollOut
     self.dj_options          = dj_options
     self.web_options         = web_options
     self.status_uri          = URI("https://#{fqdn}/system_status/details")
+    self.only_check_ram      = false
 
     if task_role.nil? || task_role.match(/^\s*$/)
       puts "\n[WARN] task role was not set. The containers will use the role of the entire instance\n\n"
@@ -118,6 +120,16 @@ class RollOut
     register_cron_job_worker!
 
     run_deploy_tasks!
+
+    deploy_web!
+
+    dj_options.each do |dj_options|
+      deploy_dj!(dj_options)
+    end
+  end
+
+  def check_ram!
+    self.only_check_ram = true
 
     deploy_web!
 
@@ -205,6 +217,8 @@ class RollOut
       name: name,
     )
 
+    return if self.only_check_ram
+
     lb = [{
       target_group_arn: target_group_arn,
       container_name: name,
@@ -242,6 +256,8 @@ class RollOut
       name: name,
       environment: environment
     )
+
+    return if self.only_check_ram
 
     minimum, maximum = _get_min_max_from_desired(dj_options['container_count'])
 
@@ -311,12 +327,11 @@ class RollOut
     ma = MemoryAnalyzer.new
     ma.cluster_name         = self.cluster
     ma.task_definition_name = name
-    ma.scheduled_hard_limit_mb = hard_mem_limit_mb
-    ma.scheduled_soft_limit_mb = soft_mem_limit_mb
+    ma.bootstrapped_hard_limit_mb = hard_mem_limit_mb
+    ma.bootstrapped_soft_limit_mb = soft_mem_limit_mb
     ma.run!
 
-    # only doing this on staging for now to test the waters.
-    use_memory_analyzer = name.match?(/staging|vi/)
+    return if self.only_check_ram
 
     container_definition = {
       name: name,
@@ -324,10 +339,10 @@ class RollOut
       cpu: cpu_shares,
 
       # Hard limit
-      memory: (use_memory_analyzer ? ma.recommended_hard_limit_mb : hard_mem_limit_mb),
+      memory: (ma.use_memory_analyzer? ? ma.recommended_hard_limit_mb : hard_mem_limit_mb),
 
       # Soft limit
-      memory_reservation: (use_memory_analyzer ? ma.recommended_soft_limit_mb : soft_mem_limit_mb),
+      memory_reservation: (ma.use_memory_analyzer? ? ma.recommended_soft_limit_mb : soft_mem_limit_mb),
 
       port_mappings: ports,
       essential: true,
