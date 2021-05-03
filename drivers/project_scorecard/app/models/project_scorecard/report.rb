@@ -165,6 +165,7 @@ module ProjectScorecard
 
       candidate = project_group.projects.detect(&:rrh?)
       candidate = project_group.projects.detect(&:psh?) if candidate.blank?
+      candidate = project_group.projects.detect(&:sh?) if candidate.blank?
       candidate = project_group.projects.first if candidate.blank?
       candidate
     end
