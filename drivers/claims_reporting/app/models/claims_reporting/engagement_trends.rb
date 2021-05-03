@@ -5,12 +5,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'memoist'
 module ClaimsReporting
   class EngagementTrends < HealthBase
     include Reporting::Status
     include Rails.application.routes.url_helpers
     include ArelHelper
     include ::Filter::FilterScopes
+    extend Memoist
     acts_as_paranoid
 
     belongs_to :user
@@ -207,6 +209,7 @@ module ClaimsReporting
 
       scope
     end
+    memoize :cohort_scope
 
     # to make the HMIS filters work
     def report_scope_source
@@ -317,6 +320,7 @@ module ClaimsReporting
         },
       }.freeze
     end
+    memoize :engaged_history_cohorts
 
     def selected_period_cohorts
       {
@@ -358,6 +362,7 @@ module ClaimsReporting
         },
       }.freeze
     end
+    memoize :selected_period_cohorts
 
     # def filter=(filter_object)
     #   self.options = filter_object.for_params

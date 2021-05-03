@@ -37,7 +37,7 @@ class MemoryAnalyzer
   # (MIN_SAMPLES * 5 / 60 / 24) days of data
   MIN_SAMPLES = 2_000
 
-  MIN_RAM_MB = 100
+  MIN_RAM_MB = 800
   MAX_RAM_MB = 16_000
 
   def run!

@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# require 'get_process_mem'
 module PublicReports
   class HomelessPopulation < ::PublicReports::Report
     include ActionView::Helpers::TextHelper
@@ -149,6 +150,9 @@ module PublicReports
     end
 
     private def calculate_data(population)
+      # mem = GetProcessMem.new
+      # puts "STARTING: calculate_data for #{population}"
+      # puts mem.mb
       {
         pit_chart: pit_chart(population),
         pit_family_hoh_chart: pit_family_hoh_chart(population),
@@ -165,30 +169,55 @@ module PublicReports
 
     private def pit_chart(population)
       title = populations[population]
+      housed_title = if population == :housed
+        title
+      else
+        "#{title} Housed"
+      end
       x = ['x']
-      y = [title]
-      z = ['Percent change from prior quarter']
+      homeless = [title]
+      housed = [housed_title]
+      data = []
+      changes = {}
+      changes[title] = ['Percent change from prior quarter'] unless population == :housed
+      changes[housed_title] = ['Percent change from prior quarter']
       pit_counts(population).each do |date, counts|
         x << date
-        y << counts[:count]
-        z << counts[:change]
+        homeless << counts[:homeless_count] unless population == :housed
+        housed << counts[:housed_count]
+        changes[title] << counts[:homeless_change] unless population == :housed
+        changes[housed_title] << counts[:housed_change]
       end
-      { data: [x, y], change: z, title: title }.to_json
+      data << x
+      data << homeless unless population == :housed
+      data << housed
+      { data: data, change: changes, title: title }.to_json
     end
 
     private def pit_family_hoh_chart(population)
       return {}.to_json unless population == :adults_with_children
 
       title = 'Families'
+      housed_title = "#{title} Housed"
       x = ['x']
-      y = [title]
-      z = ['Percent change from prior quarter']
+      homeless = [title]
+      housed = [housed_title]
+      changes = {
+        title => ['Percent change from prior quarter'],
+        housed_title => ['Percent change from prior quarter'],
+      }
+      data = []
       pit_counts(:hoh_from_adults_with_children).each do |date, counts|
         x << date
-        y << counts[:count]
-        z << counts[:change]
+        homeless << counts[:homeless_count]
+        housed << counts[:housed_count]
+        changes[title] << counts[:homeless_change]
+        changes[housed_title] << counts[:housed_change]
       end
-      { data: [x, y], change: z, title: title }.to_json
+      data << x
+      data << homeless
+      data << housed
+      { data: data, change: changes, title: title }.to_json
     end
 
     private def pit_counts(population)
@@ -196,28 +225,38 @@ module PublicReports
         [
           date.iso8601,
           {
-            count: client_count_for_date(date, population),
+            homeless_count: client_count_for_date(date, population, :homeless),
+            housed_count: client_count_for_date(date, population, :residential_non_homeless),
           },
         ]
       end.to_h
       data.each_with_index do |(date, counts), i|
-        change = 0
-        if i.positive? && counts[:count].positive?
-          prior_count = data[quarter_dates[i - 1].iso8601][:count]
-          change = (((counts[:count] - prior_count.to_f) / counts[:count].to_f) * 100).round
+        homeless_change = 0
+        housed_change = 0
+        if i.positive?
+          if counts[:homeless_count].positive?
+            prior_homeless_count = data[quarter_dates[i - 1].iso8601][:homeless_count]
+            homeless_change = (((counts[:homeless_count] - prior_homeless_count.to_f) / counts[:homeless_count].to_f) * 100).round
+          end
+          if counts[:housed_count].positive?
+            prior_housed_count = data[quarter_dates[i - 1].iso8601][:housed_count]
+            housed_change = (((counts[:housed_count] - prior_housed_count.to_f) / counts[:housed_count].to_f) * 100).round
+          end
         end
-        data[date][:change] = change
+        data[date][:homeless_change] = homeless_change
+        data[date][:housed_change] = housed_change
       end
       data
     end
 
-    private def client_count_for_date(date, population)
+    private def client_count_for_date(date, population, she_scope)
       scope = with_service_in_quarter(report_scope, date, population).
         select(:client_id).
         distinct
       # NOTE age calculations need to be done for the day in question
 
-      scope_for(population, date, scope).count
+      # limit final count to the appropriate housing type
+      scope.send(she_scope).count
     end
 
     private def scope_for(population, date, scope)
@@ -227,7 +266,7 @@ module PublicReports
       when :housed
         scope = scope.permanent_housing
       when :individuals
-        scope = scope.where(she_t[:household_id].not_in(adult_and_child_household_ids(date)))
+        scope = scope.where.not(household_id: adult_and_child_household_ids(date))
       when :adults_with_children
         scope = scope.where(household_id: adult_and_child_household_ids(date))
       when :hoh_from_adults_with_children
@@ -253,11 +292,7 @@ module PublicReports
     end
 
     private def total_for(scope, population)
-      count = if population == :adults_with_children
-        scope.select(:household_id).distinct.count
-      else
-        scope.select(:client_id).distinct.count
-      end
+      count = scope.select(:client_id).distinct.count
 
       word = case population
       when :veterans
@@ -294,6 +329,9 @@ module PublicReports
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           else
+            # We want to count households not all clients for families
+            population = :hoh_from_adults_with_children if population == :adults_with_children
+
             charts[date.iso8601] = {
               data: [
                 ['Homeless', with_service_in_quarter(report_scope, date, population).homeless.select(:client_id).distinct.count],
@@ -313,7 +351,20 @@ module PublicReports
       else
         :current_scope
       end
-      scope_for(population, date, scope).with_service_between(start_date: date, end_date: date.end_of_quarter, service_scope: service_scope)
+      scope = scope_for(population, date, scope).
+        with_service_between(
+          start_date: date,
+          end_date: date.end_of_quarter,
+          service_scope: service_scope,
+        )
+      # NOTE: all scopes should only include people who were homeless in the quarter in question, except the housed scope
+      return scope if population == :housed
+
+      # enforce that the clients have some homeless history within the
+      # quarter in-question, but allow all of their appropriate history
+      # to be included
+      homeless_scope = scope.where(client_id: scope.homeless.select(:client_id))
+      scope.where(id: homeless_scope)
     end
 
     # NOTE: this count is equivalent to OutflowReport.exits_to_ph
@@ -359,7 +410,8 @@ module PublicReports
           with_service_in_quarter(report_scope, date, population).
             joins(:client, :service_history_services).
             order(date: :desc). # Use the greatest age per person for the quarter
-            pluck(she_t[:client_id], shs_t[:age]).
+            where(shs_t[:date].between(date..date.end_of_quarter)). # hint for performance
+            pluck(shs_t[:client_id], shs_t[:age]).
             each do |client_id, age|
               data[bucket_age(age)] << client_id unless client_ids.include?(client_id)
               client_ids << client_id
@@ -392,20 +444,21 @@ module PublicReports
     end
 
     private def race_chart(population)
-      client_cache = GrdaWarehouse::Hud::Client.new
       {}.tap do |charts|
         quarter_dates.each do |date|
           client_ids = Set.new
+          client_cache = GrdaWarehouse::Hud::Client.new
           data = {}
           census_data = {}
           # Add census info
           ::HUD.races(multi_racial: true).each do |key, label|
             census_data[label] = 0
-            census_data[label] = ((GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).with_measure(key).sum(:value) / full_census_count.to_f) * 100).round if full_census_count&.positive?
+            census_data[label] = GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).with_measure(key).sum(:value) / full_census_count.to_f if full_census_count&.positive?
           end
           all_destination_ids = with_service_in_quarter(report_scope, date, population).distinct.pluck(:client_id)
           with_service_in_quarter(report_scope, date, population).
             joins(:client).
+            preload(:client).
             order(first_date_in_program: :desc). # Use the newest start
             find_each do |enrollment|
               client = enrollment.client
@@ -418,9 +471,14 @@ module PublicReports
           # Format:
           # [["Black or African American",38, 53],["White",53, 76],["Native Hawaiian or Other Pacific Islander",1, 12],["Multi-Racial",4, 10],["Asian",1, 5],["American Indian or Alaska Native",1, 1]]
           combined_data = data.map do |race, ids|
+            label = if race == 'None'
+              'Unknown'
+            else
+              race
+            end
             [
-              race,
-              ((ids.count / total_count.to_f) * 100).round, # Homeless Data
+              label,
+              ids.count / total_count.to_f, # Homeless Data
               census_data[race], # Federal Census Data
             ]
           end
@@ -441,7 +499,7 @@ module PublicReports
     end
 
     private def full_census_count
-      @full_census_count ||= GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).full_set.sum(:value)
+      @full_census_count ||= GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).full_set.with_measure(:all).sum(:value)
     end
 
     private def coc_codes
@@ -457,7 +515,9 @@ module PublicReports
           data = {}
           counted_clients = Set.new
           with_service_in_quarter(report_scope, date, population).
-            joins(client: :processed_service_history).find_each do |enrollment|
+            joins(client: :processed_service_history).
+            preload(client: :processed_service_history).
+            find_each do |enrollment|
               client = enrollment.client
               data[client_population(enrollment, date)] ||= 0
               data[client_population(enrollment, date)] += 1 unless counted_clients.include?(client.id)
@@ -521,7 +581,9 @@ module PublicReports
           data = {}
           counted_clients = Set.new
           with_service_in_quarter(report_scope, date, population).
-            joins(client: :processed_service_history).find_each do |enrollment|
+            joins(client: :processed_service_history).
+            preload(client: :processed_service_history).
+            find_each do |enrollment|
               client = enrollment.client
               data[bucket_days(client.days_homeless(on_date: date))] ||= 0
               data[bucket_days(client.days_homeless(on_date: date))] += 1 unless counted_clients.include?(client.id)
@@ -551,7 +613,9 @@ module PublicReports
           counted_clients = Set.new
           with_service_in_quarter(report_scope, date, population).
             order(first_date_in_program: :desc). # Use most-recently started
-            joins(client: :processed_service_history).find_each do |enrollment|
+            joins(client: :processed_service_history).
+            preload(client: :processed_service_history).
+            find_each do |enrollment|
               start_date = if population == :housed
                 enrollment.move_in_date
               else

@@ -11,5 +11,10 @@
         %strong Run on:
         #{@report.completed_at.to_date} by #{@report.user&.name}
       = @report.filter.describe_filter_as_html
+    .ml-auto
+      = link_to({ format: :xlsx }, { class: 'btn btn-secondary' }) do
+        %div.mr-2(style='min-width: 32px; height: 28px')
+          %i.icon-file-excel.icon-lg
+        %span Download Excel
 
 = render 'report', report: @report

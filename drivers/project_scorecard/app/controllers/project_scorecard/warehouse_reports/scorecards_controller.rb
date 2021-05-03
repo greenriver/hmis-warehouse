@@ -10,7 +10,7 @@ module ProjectScorecard::WarehouseReports
     include ArelHelper
     # TODO: what are the access rules?
     before_action :set_filter, only: [:index, :create]
-    before_action :set_projects, :set_current_reports, only: [:index]
+    before_action :set_projects_and_groups, :set_current_reports, only: [:index]
     before_action :set_report, only: [:show, :edit, :rewind, :complete, :update]
 
     def index
@@ -26,11 +26,18 @@ module ProjectScorecard::WarehouseReports
         page(params[:page]).per(50)
     end
 
+    def for_project_group
+      project_group = project_group_scope.find(params[:project_group_id].to_i)
+      @name = project_group.name
+      @reports = reports_scope.where(project_group_id: project_group.id).
+        page(params[:page]).per(50)
+    end
+
     def history
       @reports = reports_scope.
         order(id: :desc).
-        joins(project: [:organization, :data_source]).
-        merge(project_scope).
+        where(project_id: project_scope.select(:id)).
+        or(reports_scope.order(id: :desc).where(project_group_id: project_group_scope.select(:id))).
         preload(project: [:organization, :data_source]).
         page(params[:page]).per(50)
     end
@@ -46,15 +53,18 @@ module ProjectScorecard::WarehouseReports
       errors = @range.errors.messages.map { |k, v| "#{k}: #{v.join(', ')}".humanize }
 
       @project_ids = params[:project]&.keys&.map(&:to_i) || []
+      @project_group_ids = params[:project_group]&.keys&.map(&:to_i) || []
       @project_ids = project_scope.where(id: @project_ids).pluck(:id) # viewability allowlist
+      @project_group_ids = project_group_scope.where(id: @project_group_ids).pluck(:id) # viewability allowlist
 
-      errors << 'At least one project must be selected' if @project_ids.empty?
+      errors << 'At least one project or group must be selected' if @project_ids.empty? && @project_group_ids.empty?
 
       if errors.any?
         flash[:error] = errors.join('<br />'.html_safe)
         render action: :index
       else
-        generate_for_projects(@project_ids, @range, current_user)
+        generate_for_projects(@project_ids, @range, current_user) if @project_ids
+        generate_for_groups(@project_group_ids, @range, current_user) if @project_group_ids
         flash[:notice] = 'Reports queued for processing'
         redirect_to(project_scorecard_warehouse_reports_scorecards_path(filters: initial_filter_params))
       end
@@ -143,6 +153,17 @@ module ProjectScorecard::WarehouseReports
       end
     end
 
+    private def generate_for_groups(ids, range, user)
+      ids.each do |id|
+        report = reports_scope.create(project_group_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
+        ::WarehouseReports::GenericReportJob.perform_later(
+          user_id: user.id,
+          report_class: report.class.name,
+          report_id: report.id,
+        )
+      end
+    end
+
     private def filter_params
       params.require(:scorecard).
         permit(
@@ -182,6 +203,10 @@ module ProjectScorecard::WarehouseReports
       GrdaWarehouse::Hud::Project.viewable_by(current_user)
     end
 
+    def project_group_scope
+      GrdaWarehouse::ProjectGroup.viewable_by(current_user)
+    end
+
     private def reports_scope
       ProjectScorecard::Report
     end
@@ -190,7 +215,7 @@ module ProjectScorecard::WarehouseReports
       @filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id, project_type_codes: []))
     end
 
-    private def set_projects
+    private def set_projects_and_groups
       project_ids = @filter.anded_effective_project_ids
       @projects = if project_ids&.any?
         project_scope.where(id: project_ids).
@@ -203,6 +228,12 @@ module ProjectScorecard::WarehouseReports
       @project_scope = @projects.page(params[:page]).per(50)
       @projects = @project_scope.
         group_by { |p| [p.data_source.short_name, p.organization] }
+
+      @project_groups = if @filter.project_group_ids.present?
+        project_group_scope.where(id: @filter.project_group_ids)
+      else
+        project_group_scope.none
+      end
     end
 
     private def set_report
@@ -214,6 +245,11 @@ module ProjectScorecard::WarehouseReports
         where.not(project_id: nil).
         order(id: :asc).
         index_by(&:project_id)
+
+      @current_project_group_reports = reports_scope.
+        where.not(project_group_id: nil).
+        order(id: :asc).
+        index_by(&:project_group_id)
     end
   end
 end
