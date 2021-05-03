@@ -36,6 +36,12 @@ module ClaimsReporting::WarehouseReports
     end
 
     def show
+      respond_to do |format|
+        format.html
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=Patient Engagement Trends #{Time.current.to_s(:db)}.xlsx"
+        end
+      end
     end
 
     private def set_report

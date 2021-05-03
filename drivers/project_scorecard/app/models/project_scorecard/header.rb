@@ -9,11 +9,11 @@ module ProjectScorecard
     extend ActiveSupport::Concern
     included do
       def project_names
-        project.name
+        project_name
       end
 
       def project_types
-        HUD.project_type(project.computed_project_type)
+        HUD.project_type(key_project.computed_project_type)
       end
     end
   end

@@ -83,7 +83,7 @@
           %br
           PSH: <= 64%
       %td.text-center
-        - if @report.project.psh?
+        - if @report.key_project.psh?
           = @report.chronic_service_score
         - else
           N/A (PSH only)
@@ -139,7 +139,7 @@
         %br
         = link_to_apr('APR Q22b', 'Question 22')
       %th
-        - unless @report.project.rrh?
+        - unless @report.key_project.rrh?
           N/A (RRH Only)
       %td.text-center= f.input :average_los_leavers, label: false, as: :read_only
       %th.text-nowrap
@@ -156,7 +156,7 @@
           %br
           RRH: >=25 / <=2 months
       %td.text-center
-        - if @report.project.rrh?
+        - if @report.key_project.rrh?
           = @report.leavers_los_score
         - else
           N/A (RRH Only)
@@ -190,7 +190,7 @@
           %br
           RRH: <= 49%
       %td.text-center
-        - if @report.project.psh? || @report.project.rrh?
+        - if @report.key_project.psh? || @report.key_project.rrh?
           = @report.increased_employment_income_score
         - else
           N/A (Only RRH & PSH)
@@ -224,7 +224,7 @@
           %br
           RRH: <= 14%
       %td.text-center
-        - if @report.project.psh? || @report.project.rrh?
+        - if @report.key_project.psh? || @report.key_project.rrh?
           = @report.increased_other_cash_income_score
         - else
           N/A (Only RRH & PSH)
