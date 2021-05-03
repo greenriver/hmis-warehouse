@@ -244,7 +244,7 @@ module ReportGenerators::Pit::Fy2018
         family_households = filter_households_by_makeup(project_type: k, household_type: :family, households: households)
         clients_in_families = family_households.values.flatten.map{|m| m[:client_id]}
         chronic_in_project_type = chronic_client_ids & client_ids_in_project_type(project_type: k)
-        chronic_clients_in_families = chronic_in_project_type & clients_in_families
+        chronic_clients_in_families = chronic_in_project_type & clients_in_families # FIXME: should get all clients from families where chronic_in_project_type contains the HoH
 
         # All
         chronic_individuals = chronic_in_project_type - chronic_clients_in_families

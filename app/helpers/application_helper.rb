@@ -129,6 +129,11 @@ module ApplicationHelper
     # this catches empty
   end
 
+  def quarter(date)
+    month = date.month + 2
+    (month.ceil / 3)
+  end
+
   # returns the class associated with the current sort order of a column
   def current_sort_order(columns)
     columns[sort_column] = sort_direction
@@ -201,7 +206,11 @@ module ApplicationHelper
       sn = name[:ds]
       id = name[:ds_id]
       full_name = name[:name]
-      content_tag(:em, sn, class: "ds-color-#{id}") + " #{full_name}"
+      if GrdaWarehouse::Config.get(:multi_coc_installation)
+        content_tag(:div, full_name, class: 'mb-4')
+      else
+        content_tag(:em, sn, class: "ds-color-#{id}") + " #{full_name}"
+      end
     end.uniq
   end
 

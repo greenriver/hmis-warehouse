@@ -199,7 +199,15 @@ module GrdaWarehouse::Hud
         csv << headers
 
         scope.each do |i|
-          csv << attributes.map{ |attr| i.send(attr) }
+          csv << attributes.map do |attr|
+            v = i.send(attr)
+            if v.is_a? Date
+              v = v.strftime("%Y-%m-%d")
+            elsif v.is_a? Time
+              v = v.to_formatted_s(:db)
+            end
+            v
+          end
         end
       end
     end

@@ -6,6 +6,8 @@ columns = [
   'Medicaid ID',
   'Last Name',
   'First Name',
+  'Enrollment Date',
+  'Disenrollment Date',
 ]
 
 wb.add_worksheet(name: 'Transactions') do |sheet|
@@ -22,7 +24,9 @@ wb.add_worksheet(name: 'Transactions') do |sheet|
       subscriber_id,
       Health::Enrollment.last_name(transaction),
       Health::Enrollment.first_name(transaction),
+      Health::Enrollment.enrollment_date(transaction),
+      Health::Enrollment.disenrollment_date(transaction),
     ]
-    sheet.add_row(row, types: [nil, nil, :string, nil, nil]) # Force subscriber id to string to avoid formatting problems
+    sheet.add_row(row, types: [nil, nil, :string, nil, nil, nil, nil]) # Force subscriber id to string to avoid formatting problems
   end
 end

@@ -8,6 +8,7 @@ class App.WarehouseReports.Rrh.Time
     @_build_chart()
 
   _build_chart: () =>
+    console.log("#{@chart_selector}Legend")
     @chart = bb.generate({
       data:
         x: 'x'
@@ -39,6 +40,9 @@ class App.WarehouseReports.Rrh.Time
       legend:
         show: true
         position: 'bottom'
+        contents:
+          bindto: "#{@chart_selector}Legend"
+          template: "<div style='display: inline-block;'><div class='d-flex mr-4'><div class='mt-2 mr-2' style='min-width: 10px; height: 10px; background-color:{=COLOR};' />&nbsp;</div><div stlye=''>{=TITLE}</div></div></div>"
       size:
         height: 250
       bindto: @chart_selector

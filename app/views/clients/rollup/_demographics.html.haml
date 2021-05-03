@@ -1,16 +1,24 @@
-= cache(['clients', 'demographics', @client, can_view_full_ssn?, controller_path], expires_in: 4.hours) do
+= cache(['clients', 'demographics', @client, can_view_full_ssn?, controller_path, current_user], expires_in: 4.hours) do
   - authoritative_data_source_ids = GrdaWarehouse::DataSource.authoritative.pluck(:id)
+  - source_clients = @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids)
   %table.table
     %thead
       %tr
         %th ID
-        %th{style: 'width: 15em;'} Name
-        %th{style: 'width: 10em;'} SSN
-        %th{style: 'width: 11em;'} Age
-        %th Gender
-        %th Race
-        %th Ethnicity
-        %th Veteran Status
+        %th{style: 'width: 15em;'}
+          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:name)}} Name
+        %th{style: 'width: 10em;'}
+          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:ssn)}} SSN
+        %th{style: 'width: 11em;'}
+          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:dob)}} Age
+        %th
+          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:gender)}} Gender
+        %th
+          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:race)}} Race
+        %th
+          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:ethnicity)}} Ethnicity
+        %th
+          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:veteran_status)}} Veteran Status
         %th
         %th
         %th
@@ -32,11 +40,6 @@
         %td= HUD::ethnicity @client.Ethnicity
         %td= HUD::no_yes_reasons_for_missing_data @client.VeteranStatus
         %td{colspan: 3}
-
-      - if current_user.can_view_clients?
-        - source_clients = @client.source_clients
-      - else
-        - source_clients = @client.source_clients.visible_in_window_to(current_user)
 
       - source_clients.joins(:data_source).each do |client|
         = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids

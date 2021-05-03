@@ -453,7 +453,7 @@ module GrdaWarehouse::Tasks
       known_values = [0, 1, 2, 3, 4]
       known_value_gender_clients = source_clients.select{|sc| known_values.include?(sc[:Gender])}
       if !known_values.include?(dest_attr[:Gender]) || known_value_gender_clients.any?
-        known_value_gender_clients = source_clients if known_value_gender_clients.none? #if none have known values we consider them all in the sort test
+        known_value_gender_clients = source_clients if known_value_gender_clients.none? # if none have known values we consider them all in the sort test
         dest_attr[:Gender] = known_value_gender_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:Gender]
       end
       dest_attr
@@ -561,7 +561,7 @@ module GrdaWarehouse::Tasks
 
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
-            log "Invalidating service history for #{dest.id}"
+            logger.debug "Invalidating service history for #{dest.id}"
             dest.invalidate_service_history unless @dry_run
           end
           # We can speed this up if we want later.  If there's only one source client and the
@@ -574,7 +574,7 @@ module GrdaWarehouse::Tasks
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0
         end
         processed += batch_size
-        log "Updated demographics for #{processed} destination clients"
+        logger.debug "Updated demographics for #{processed} destination clients"
       end
       if @debug
         logger.debug '=========== Changed Counts ============'

@@ -33,9 +33,9 @@ module GrdaWarehouse::Youth
         where(arel_table[:required_on].between(Date.yesterday..1.weeks.from_now.to_date))
     end
 
-    scope :due, -> do
+    scope :due, ->(date = Date.current) do
       where(contacted_on: nil).
-        where(arel_table[:required_on].lteq(Date.current))
+        where(arel_table[:required_on].lteq(date))
     end
 
     scope :initial_action_at_risk, -> do
@@ -67,6 +67,48 @@ module GrdaWarehouse::Youth
       else
         none
       end
+    end
+
+    # Recreate the follow ups for clients within an optional range
+    #
+    # @param client_ids if present, only recreate the follow ups for the specified clients
+    # @param start_date if present, don't replace follow ups before the specified date
+    # @param end_date if present, don't replace follow ups after the specified date, defaults to the current date
+    def self.recreate_follow_ups(client_ids: nil, start_date: Date.current - 90.days, end_date: Date.current)
+      clients = GrdaWarehouse::Hud::Client.
+        joins(:youth_intakes)
+      clients = clients.where(id: client_ids) if client_ids.present?
+      return unless clients.exists?
+
+      clients.preload(:youth_intakes, :case_managements).each do |client|
+        # Order the client's intakes and CM notes by date
+        events = (client.youth_intakes.open_between(start_date: start_date, end_date: end_date) +
+          client.case_managements.between(start_date: start_date, end_date: end_date)).sort_by do |item|
+          [
+            event_date(item),
+            (item.is_a?(GrdaWarehouse::YouthIntake::Base) ? 1 : 2), # If there is more than entry on the same date, process intakes first
+          ]
+        end
+        next if events.blank?
+
+        transaction do
+          # Remove the old follow ups in the range
+          client.youth_follow_ups.between(start_date: start_date, end_date: end_date).destroy_all
+
+          # Create new follow ups by processing events in ascending order
+          events.each do |event|
+            event.create_required_follow_up!
+
+            next if event.is_a?(GrdaWarehouse::YouthIntake::Base)
+
+            event.complete_required_follow_up!
+          end
+        end
+      end
+    end
+
+    def self.event_date(event)
+      (event.is_a?(GrdaWarehouse::YouthIntake::Base) && event.engagement_date) || event.engaged_on
     end
 
     def self.follow_up_date(action_date)

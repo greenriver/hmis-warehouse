@@ -12,14 +12,16 @@ header =     [
 
 wb.add_worksheet(name: 'ENROLLMENT') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  text = sheet.styles.add_style(format_code: '@')
 
   sheet.add_row(header, style: title)
-  sheet.add_row(@report.enrollment_summary, types: [:string] * header.length)
+  sheet.add_row(@report.enrollment_summary, types: [:string] * header.length, style: text)
 end
 
 wb.add_worksheet(name: 'DISENROLLMENT') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  text = sheet.styles.add_style(format_code: '@')
 
   sheet.add_row(header, style: title)
-  sheet.add_row(@report.disenrollment_summary, types: [:string] * header.length)
+  sheet.add_row(@report.disenrollment_summary, types: [:string] * header.length, style: text)
 end

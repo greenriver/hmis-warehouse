@@ -22,6 +22,7 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      relevant_clients = universe.members.where(a_t[:project_type].in([1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14]))
       q26_populations.values.each_with_index do |population_clause, col_index|
         households = Set.new
         ch_categories.values.each_with_index do |ch_clause, row_index|
@@ -30,7 +31,7 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          household_ids = universe.members.where(population_clause).
+          household_ids = relevant_clients.where(population_clause).
             where(ch_clause).
             distinct.pluck(a_t[:household_id])
           # ignore previously counted households

@@ -722,6 +722,13 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
           {
+            url: 'warehouse_reports/health_emergency/vaccinations',
+            name: 'Vaccinations',
+            description: 'Review vaccinations.',
+            limitable: false,
+            health: false,
+          },
+          {
             url: 'warehouse_reports/health_emergency/medical_restrictions',
             name: 'Active Medical Restrictions',
             description: 'List active medical restrictions.',
@@ -739,8 +746,8 @@ module GrdaWarehouse::WarehouseReports
         'Exports' => [
           {
             url: 'warehouse_reports/hmis_exports',
-            name: 'HUD HMIS Exports',
-            description: 'Export data in the HUD standard format.',
+            name: 'HUD HMIS CSV Exports',
+            description: 'Export data in the HUD standard CSV format.',
             limitable: true,
             health: false,
           },
@@ -971,6 +978,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: false,
             health: false,
           }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/homeless_populations',
+            name: 'Public Homeless Populations Report Generator',
+            description: 'Use this to review and publish the homeless population report for public consumption.',
+            limitable: false,
+            health: false,
+          }
         end
       end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
@@ -1068,6 +1082,7 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'public_reports/warehouse_reports/number_housed'
         cleanup << 'public_reports/warehouse_reports/homeless_count'
         cleanup << 'public_reports/warehouse_reports/homeless_count_comparison'
+        cleanup << 'public_reports/warehouse_reports/homeless_populations'
       end
       cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
       cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)

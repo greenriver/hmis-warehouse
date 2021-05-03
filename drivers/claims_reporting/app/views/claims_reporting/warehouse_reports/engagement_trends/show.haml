@@ -10,5 +10,6 @@
       %p
         %strong Run on:
         #{@report.completed_at.to_date} by #{@report.user&.name}
+      = @report.filter.describe_filter_as_html
 
 = render 'report', report: @report

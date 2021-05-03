@@ -9,8 +9,8 @@ module GrdaWarehouse::Youth
     include ArelHelper
     include YouthExport
 
-    after_save :create_required_follow_up!
-    after_save :complete_required_follow_up!
+    # after_save :create_required_follow_up!
+    # after_save :complete_required_follow_up!
 
     has_paper_trail
     acts_as_paranoid
@@ -115,7 +115,7 @@ module GrdaWarehouse::Youth
     end
 
     def complete_required_follow_up!
-      due_follow_up = youth_follow_ups.due.first
+      due_follow_up = youth_follow_ups.due(engaged_on).first
       return unless due_follow_up
 
       due_follow_up.update(

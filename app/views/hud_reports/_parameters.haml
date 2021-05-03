@@ -12,16 +12,17 @@
               id: project_ids
             ).order(name: :asc)
             missing_ids = project_ids - projects.map(&:id)
+            summary = "#{project_ids.size - 5} more..."
           - projects[0..4].each do |project|
             %div= link_to_if can_view_projects?, project.name, project_path(project)
-          - if projects.size > 5 || missing_ids.any?
-            %details
-              %summary= "#{project_ids.size - 5} more..."
-              - projects[5..].each do |project|
+          - details = capture_haml do
+            - projects[5..].each do |project|
                 %div=  project.name
               - missing_ids.each do |id|
                 %div=  "##{id} (deleted)"
-
+          - if projects.size > 5 || missing_ids.any?
+            %span.action{data: {toggle: :tooltip, html: 'true', title: details}}
+              = "#{project_ids.size - 5} more..."
     - else
       %label.label.label-default.parameter-label
         = param.to_s.humanize
@@ -30,3 +31,8 @@
           - value = value.compact.delete_if(&:blank?).join(', ') if value.is_a?(Array)
           = value
       &nbsp;
+  - if report.options['project_group_ids'].present?
+    - project_group_ids = report.options['project_group_ids']
+    - project_group_names = GrdaWarehouse::ProjectGroup.find(project_group_ids).pluck(:name)
+    %label.label.label-default.parameter-label Project Groups
+    %label.label.label-primary.parameter-value= project_group_names.join(', ')

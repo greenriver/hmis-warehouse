@@ -70,8 +70,8 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 
-gem 'omniauth-oauth2', require: false
-gem 'omniauth-rails_csrf_protection', require: false
+gem 'omniauth-oauth2'
+gem 'omniauth-rails_csrf_protection'
 
 gem 'pretender'
 gem 'rqrcode-rails3'
@@ -214,6 +214,7 @@ group :development do
   gem 'capistrano-rails', require: false
   gem 'rails-erd', require: false
   gem 'web-console'
+  gem 'aws-sdk-dynamodb', require: false
   # gem 'quiet_assets'
 
   gem 'list_matcher', require: false # for the forms:desmush rake task

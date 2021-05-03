@@ -47,7 +47,9 @@ App.Form.Select2Input = class Select2Input {
       if (field.hasAttribute('multiple')) {
         options.closeOnSelect = false
         this.$select.select2(options)
-        this.initToggleSelectAll()
+        if (! this.$select.data('disableSelectAll')) {
+          this.initToggleSelectAll()
+        }
       }
       else {
         // Init!

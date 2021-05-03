@@ -32,7 +32,7 @@ module HudApr
         Date.current.year - 1
       end
       # Some sane defaults, using the previous report if available
-      @filter = filter_class.new(user_id: current_user.id)
+      @filter = filter_class.new(user_id: current_user.id, enforce_one_year_range: false)
       if filter_params.blank?
         prior_report = generator.find_report(current_user)
         options = prior_report&.options

@@ -469,11 +469,9 @@ module Filters
         cocs = GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
 
         # If a user has coc code limits assigned, enforce them
-        if user&.coc_codes.present?
-          cocs & user.coc_codes
-        else
-          cocs
-        end
+        cocs &= user&.coc_codes if user&.coc_codes.present?
+
+        cocs
       end
     end
 

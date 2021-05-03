@@ -12,7 +12,7 @@ module Health
     before_action :set_patients
     before_action :set_dates, only: [:index]
 
-    include WindowClientPathGenerator
+    include ClientPathGenerator
     include AjaxModalRails::Controller
 
     def index

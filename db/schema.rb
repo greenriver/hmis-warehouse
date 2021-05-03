@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_17_190501) do
+ActiveRecord::Schema.define(version: 2021_04_19_203457) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -476,6 +476,7 @@ ActiveRecord::Schema.define(version: 2021_03_17_190501) do
     t.boolean "can_view_limited_client_dashboard", default: false
     t.boolean "can_view_cached_client_enrollments", default: false
     t.boolean "can_search_all_clients", default: false
+    t.boolean "can_import_project_groups", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
@@ -665,9 +666,6 @@ ActiveRecord::Schema.define(version: 2021_03_17_190501) do
     t.json "provider_raw_info"
     t.string "uuid"
     t.boolean "receive_account_request_notifications", default: false
-    t.string "uid"
-    t.string "provider"
-    t.json "provider_raw_info"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true

@@ -46,7 +46,7 @@ module Clients
         # send notifications
         if note_params[:send_notification].present? && note_params[:recipients].present?
           sent = []
-          token = Token.tokenize(window_client_notes_path(client_id: @client.id))
+          token = Token.tokenize(client_notes_path(client_id: @client.id))
           note_params[:recipients].reject(&:blank?).map(&:to_i).each do |id|
             user = User.find(id)
             if user.present?
@@ -97,7 +97,7 @@ module Clients
     end
 
     private def set_client
-      @client = searchable_client_scope.find(params[:client_id].to_i)
+      @client = destination_searchable_client_scope.find(params[:client_id].to_i)
     end
 
     # Only allow a trusted parameter "white list" through.
