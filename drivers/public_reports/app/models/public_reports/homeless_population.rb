@@ -27,17 +27,6 @@ module PublicReports
       public_reports_warehouse_reports_homeless_populations_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
-    def generate_publish_url
-      # TODO: This is the standard S3 public access, it will need to be updated
-      # when moved to CloudFront
-      if ENV['S3_PUBLIC_URL'].present?
-        "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
-      else
-        # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
-        "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}/"
-      end
-    end
-
     def publish!(content)
       # This should:
       # 1. Take the contents of html and push it up to S3

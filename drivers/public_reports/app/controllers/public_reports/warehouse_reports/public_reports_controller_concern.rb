@@ -25,6 +25,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
         user_id: current_user.id,
         state: :queued,
       }
+      options[:version_slug] = params.dig(:filter, :version_slug)
       @report = report_source.create(options)
       ::WarehouseReports::GenericReportJob.perform_later(
         user_id: current_user.id,

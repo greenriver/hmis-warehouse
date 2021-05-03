@@ -34,6 +34,18 @@ module PublicReports
       "Publishing this version of the #{instance_title} will remove any previously published version regardless of who published it.  The currently published version is from #{self.class.published.completed_at.to_date}.  Are you sure you want to un-publish the previous version and publish this version?"
     end
 
+    # Override as necessary
+    def generate_publish_url
+      publish_url = if ENV['S3_PUBLIC_URL'].present?
+        "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
+      else
+        # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
+        "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}"
+      end
+      publish_url = "#{publish_url}/#{version_slug}" if version_slug.present?
+      publish_url
+    end
+
     def settings
       @settings ||= PublicReports::Setting.first_or_create
     end
