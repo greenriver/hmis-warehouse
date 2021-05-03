@@ -12,7 +12,7 @@ namespace :db do
   namespace :schema do
     desc "Conditionally load the database schema"
     task :conditional_load, [] => [:environment] do |t, args|
-      if ApplicationRecord.connection.tables.length == 0
+      if ApplicationRecord.connection.table_exists?(:schema_migrations)
         Rake::Task['db:schema:load'].invoke
       else
         puts "Refusing to load the database schema since there are tables present. This is not an error."
@@ -23,7 +23,7 @@ namespace :db do
   namespace :structure do
     desc "Conditionally load the database structure"
     task :conditional_load, [] => [:environment] do |t, args|
-      if ApplicationRecord.connection.tables.length == 0
+      if ApplicationRecord.connection.table_exists?(:schema_migrations)
         ApplicationRecord.connection.execute(File.read('db/structure.sql'))
       else
         puts "Refusing to load the database structure since there are tables present. This is not an error."
