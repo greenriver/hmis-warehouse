@@ -267,69 +267,15 @@ module PublicReports
       when :housed
         scope = scope.permanent_housing
       when :individuals
-        scope = scope.where.not(household_id: adult_and_child_household_ids(date))
+        scope = scope.where.not(household_id: adult_and_child_household_ids_by_date(date))
       when :adults_with_children
-        scope = scope.where(household_id: adult_and_child_household_ids(date))
+        scope = scope.where(household_id: adult_and_child_household_ids_by_date(date))
       when :hoh_from_adults_with_children
-        scope = scope.where(household_id: adult_and_child_household_ids(date)).heads_of_households
+        scope = scope.where(household_id: adult_and_child_household_ids_by_date(date)).heads_of_households
       when :veterans
         scope = scope.veterans
       end
       scope
-    end
-
-    private def adult_and_child_household_ids(date)
-      households = {}
-      adult_and_child_households = []
-      counted_ids = Set.new
-      shs_scope = GrdaWarehouse::ServiceHistoryService.where(date: date..date.end_of_quarter)
-      report_scope.with_service_between(start_date: date, end_date: date.end_of_quarter, service_scope: shs_scope).
-        joins(:service_history_services).
-        merge(shs_scope).
-        where.not(household_id: nil).
-        order(shs_t[:date].asc).
-        pluck(she_t[:household_id], shs_t[:age], shs_t[:client_id]).
-        each do |hh_id, age, client_id|
-          next if age.blank? || age.negative?
-
-          key = [hh_id, client_id]
-          households[hh_id] ||= []
-          households[hh_id] << age unless counted_ids.include?(key)
-          counted_ids << key
-        end
-      households.each do |hh_id, household|
-        child_present = household.any? { |age| age < 18 }
-        adult_present = household.any? { |age| age >= 18 }
-        adult_and_child_households << hh_id if child_present && adult_present
-      end
-      adult_and_child_households
-    end
-
-    private def child_only_household_ids(date)
-      households = {}
-      child_only_households = []
-      counted_ids = Set.new
-      shs_scope = GrdaWarehouse::ServiceHistoryService.where(date: date..date.end_of_quarter)
-      report_scope.with_service_between(start_date: date, end_date: date.end_of_quarter, service_scope: shs_scope).
-        joins(:service_history_services).
-        merge(shs_scope).
-        where.not(household_id: nil).
-        order(shs_t[:date].asc).
-        pluck(she_t[:household_id], shs_t[:age], shs_t[:client_id]).
-        each do |hh_id, age, client_id|
-          next if age.blank? || age.negative?
-
-          key = [hh_id, client_id]
-          households[hh_id] ||= []
-          households[hh_id] << age unless counted_ids.include?(key)
-          counted_ids << key
-        end
-      households.each do |hh_id, household|
-        child_present = household.any? { |age| age < 18 }
-        adult_present = household.any? { |age| age >= 18 }
-        child_only_households << hh_id if child_present && ! adult_present
-      end
-      child_only_households
     end
 
     private def total_for(scope, population)
@@ -596,6 +542,60 @@ module PublicReports
       @child_only_household_ids_by_date[date] ||= child_only_household_ids(date)
 
       @child_only_household_ids_by_date[date]
+    end
+
+    private def adult_and_child_household_ids(date)
+      households = {}
+      adult_and_child_households = []
+      counted_ids = Set.new
+      shs_scope = GrdaWarehouse::ServiceHistoryService.where(date: date..date.end_of_quarter)
+      report_scope.with_service_between(start_date: date, end_date: date.end_of_quarter, service_scope: shs_scope).
+        joins(:service_history_services).
+        merge(shs_scope).
+        where.not(household_id: nil).
+        order(shs_t[:date].asc).
+        pluck(she_t[:household_id], shs_t[:age], shs_t[:client_id]).
+        each do |hh_id, age, client_id|
+          next if age.blank? || age.negative?
+
+          key = [hh_id, client_id]
+          households[hh_id] ||= []
+          households[hh_id] << age unless counted_ids.include?(key)
+          counted_ids << key
+        end
+      households.each do |hh_id, household|
+        child_present = household.any? { |age| age < 18 }
+        adult_present = household.any? { |age| age >= 18 }
+        adult_and_child_households << hh_id if child_present && adult_present
+      end
+      adult_and_child_households
+    end
+
+    private def child_only_household_ids(date)
+      households = {}
+      child_only_households = []
+      counted_ids = Set.new
+      shs_scope = GrdaWarehouse::ServiceHistoryService.where(date: date..date.end_of_quarter)
+      report_scope.with_service_between(start_date: date, end_date: date.end_of_quarter, service_scope: shs_scope).
+        joins(:service_history_services).
+        merge(shs_scope).
+        where.not(household_id: nil).
+        order(shs_t[:date].asc).
+        pluck(she_t[:household_id], shs_t[:age], shs_t[:client_id]).
+        each do |hh_id, age, client_id|
+          next if age.blank? || age.negative?
+
+          key = [hh_id, client_id]
+          households[hh_id] ||= []
+          households[hh_id] << age unless counted_ids.include?(key)
+          counted_ids << key
+        end
+      households.each do |hh_id, household|
+        child_present = household.any? { |age| age < 18 }
+        adult_present = household.any? { |age| age >= 18 }
+        child_only_households << hh_id if child_present && ! adult_present
+      end
+      child_only_households
     end
 
     private def average_household_size(population)
