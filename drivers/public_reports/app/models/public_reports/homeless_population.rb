@@ -39,18 +39,20 @@ module PublicReports
     end
 
     def publish!(content)
-      # This should:
-      # 1. Take the contents of html and push it up to S3
-      # 2. Populate the published_url field
-      # 3. Populate the embed_code field
-      self.class.transaction do
-        unpublish_similar
-        update(
-          html: content,
-          published_url: generate_publish_url, # NOTE this isn't used in this report
-          embed_code: generate_embed_code, # NOTE this isn't used in this report
-          state: :published,
-        )
+      unless published?
+        # This should:
+        # 1. Take the contents of html and push it up to S3
+        # 2. Populate the published_url field
+        # 3. Populate the embed_code field
+        self.class.transaction do
+          unpublish_similar
+          update(
+            html: content,
+            published_url: generate_publish_url, # NOTE this isn't used in this report
+            embed_code: generate_embed_code, # NOTE this isn't used in this report
+            state: :published,
+          )
+        end
       end
       push_to_s3
     end

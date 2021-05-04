@@ -4,11 +4,16 @@
 %h1.mb-5= title
 
 
-.well.warehouse-reports__completed
-  %p This report was published on #{@report.published_at.to_date} with the following limits.
-  .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
-  %p
-    The report is publicly available.
+.well.warehouse-reports__completed.d-flex
+  .mr-2
+    %p This report was published on #{@report.published_at.to_date} with the following limits.
+    .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
+    %p
+      The report is publicly available.
+  .ml-auto
+    = simple_form_for(@report, url: public_reports_warehouse_reports_homeless_population_path, as: :public_report) do |f|
+      = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
+      = f.submit 'Re-Publish', data: { confirm: @report.publish_warning }
 
 - @report.populations.each_key do |population|
   %p The following is available at the url: #{link_to(@report.generate_publish_url_for(population), @report.generate_publish_url_for(population), target: :_blank)} and can be embedded using the following code.
