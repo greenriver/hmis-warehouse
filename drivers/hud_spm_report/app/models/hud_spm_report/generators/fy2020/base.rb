@@ -1490,6 +1490,27 @@ module HudSpmReport::Generators::Fy2020
       hoh_client_ids(project_types)[[client_id, household_id]]
     end
 
+    private def hoh_client_ids(project_types)
+      @hoh_to_client_id ||= {}
+      @hoh_to_client_id[project_types] ||= begin
+        GrdaWarehouse::ServiceHistoryEnrollment.exit.
+          hud_project_type(project_types).
+          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+          with_service_between(start_date: @report.start_date - 1.day, end_date: @report_end).
+          joins(:client).
+          where(she_t[:head_of_household].eq(true)).
+          distinct.
+          pluck(
+            :head_of_household_id,
+            :client_id,
+            :enrollment_group_id,
+            :household_id
+          ).map do |(hoh_id, client_id, enrollment_id, household_id)|
+            [[hoh_id, household_id], { client_id: client_id, enrollment_id: enrollment_id }]
+          end.to_h
+      end
+    end
+
     private def hoh_for_children_without_living_situation(project_types, client_id, enrollment_id)
       children_without_living_situation(project_types)[[client_id, enrollment_id]]
     end

@@ -66,20 +66,20 @@ namespace :reports do
     if Date.current > '2020-10-01'.to_date || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
       removed += spm_2018
     end
-    # SPM 2019 should be removed after 10/1/2021 to allow for comparisons
-    # If we've never run it, go ahead and remove it.
-    spm_2019 = [
-      'Reports::SystemPerformance::Fy2019::MeasureOne',
-      'Reports::SystemPerformance::Fy2019::MeasureTwo',
-      'Reports::SystemPerformance::Fy2019::MeasureThree',
-      'Reports::SystemPerformance::Fy2019::MeasureFour',
-      'Reports::SystemPerformance::Fy2019::MeasureFive',
-      'Reports::SystemPerformance::Fy2019::MeasureSix',
-      'Reports::SystemPerformance::Fy2019::MeasureSeven',
-    ]
-    if Date.current > '2021-10-01'.to_date || Rails.env.development? || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
-      removed += spm_2019
-    end
+    # # SPM 2019 should be removed after 10/1/2021 to allow for comparisons
+    # # If we've never run it, go ahead and remove it.
+    # spm_2019 = [
+    #   'Reports::SystemPerformance::Fy2019::MeasureOne',
+    #   'Reports::SystemPerformance::Fy2019::MeasureTwo',
+    #   'Reports::SystemPerformance::Fy2019::MeasureThree',
+    #   'Reports::SystemPerformance::Fy2019::MeasureFour',
+    #   'Reports::SystemPerformance::Fy2019::MeasureFive',
+    #   'Reports::SystemPerformance::Fy2019::MeasureSix',
+    #   'Reports::SystemPerformance::Fy2019::MeasureSeven',
+    # ]
+    # if Date.current > '2021-10-01'.to_date || Rails.env.development? || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
+    #   removed += spm_2019
+    # end
     Report.where(type: removed).update_all(enabled: false)
 
     # Summary
@@ -155,23 +155,23 @@ namespace :reports do
     # r = Reports::SystemPerformance::Fy2018::MeasureSeven.where(name: 'HUD System Performance FY 2018 - Measure 7').first_or_create
     # r.update(weight: 7, report_results_summary: rs, enabled: true)
 
-    # rs = ReportResultsSummaries::SystemPerformance::Fy2019.where(name: 'HUD System Performance FY 2019').first_or_create
-    # rs.update(weight: 0)
+    rs = ReportResultsSummaries::SystemPerformance::Fy2019.where(name: 'HUD System Performance FY 2019').first_or_create
+    rs.update(weight: 0)
 
-    # r = Reports::SystemPerformance::Fy2019::MeasureOne.where(name: 'HUD System Performance FY 2019 - Measure 1').first_or_create
-    # r.update(weight: 1, report_results_summary: rs, enabled: true)
-    # r = Reports::SystemPerformance::Fy2019::MeasureTwo.where(name: 'HUD System Performance FY 2019 - Measure 2').first_or_create
-    # r.update(weight: 2, report_results_summary: rs, enabled: true)
-    # r = Reports::SystemPerformance::Fy2019::MeasureThree.where(name: 'HUD System Performance FY 2019 - Measure 3').first_or_create
-    # r.update(weight: 3, report_results_summary: rs, enabled: true)
-    # r = Reports::SystemPerformance::Fy2019::MeasureFour.where(name: 'HUD System Performance FY 2019 - Measure 4').first_or_create
-    # r.update(weight: 4, report_results_summary: rs, enabled: true)
-    # r = Reports::SystemPerformance::Fy2019::MeasureFive.where(name: 'HUD System Performance FY 2019 - Measure 5').first_or_create
-    # r.update(weight: 5, report_results_summary: rs, enabled: true)
-    # r = Reports::SystemPerformance::Fy2019::MeasureSix.where(name: 'HUD System Performance FY 2019 - Measure 6').first_or_create
-    # r.update(weight: 6, report_results_summary: rs, enabled: true)
-    # r = Reports::SystemPerformance::Fy2019::MeasureSeven.where(name: 'HUD System Performance FY 2019 - Measure 7').first_or_create
-    # r.update(weight: 7, report_results_summary: rs, enabled: true)
+    r = Reports::SystemPerformance::Fy2019::MeasureOne.where(name: 'HUD System Performance FY 2019 - Measure 1').first_or_create
+    r.update(weight: 1, report_results_summary: rs, enabled: true)
+    r = Reports::SystemPerformance::Fy2019::MeasureTwo.where(name: 'HUD System Performance FY 2019 - Measure 2').first_or_create
+    r.update(weight: 2, report_results_summary: rs, enabled: true)
+    r = Reports::SystemPerformance::Fy2019::MeasureThree.where(name: 'HUD System Performance FY 2019 - Measure 3').first_or_create
+    r.update(weight: 3, report_results_summary: rs, enabled: true)
+    r = Reports::SystemPerformance::Fy2019::MeasureFour.where(name: 'HUD System Performance FY 2019 - Measure 4').first_or_create
+    r.update(weight: 4, report_results_summary: rs, enabled: true)
+    r = Reports::SystemPerformance::Fy2019::MeasureFive.where(name: 'HUD System Performance FY 2019 - Measure 5').first_or_create
+    r.update(weight: 5, report_results_summary: rs, enabled: true)
+    r = Reports::SystemPerformance::Fy2019::MeasureSix.where(name: 'HUD System Performance FY 2019 - Measure 6').first_or_create
+    r.update(weight: 6, report_results_summary: rs, enabled: true)
+    r = Reports::SystemPerformance::Fy2019::MeasureSeven.where(name: 'HUD System Performance FY 2019 - Measure 7').first_or_create
+    r.update(weight: 7, report_results_summary: rs, enabled: true)
 
     # rs = ReportResultsSummaries::Ahar::Fy2016.where(name: 'Annual Homeless Assessment Report - FY 2016').first_or_create
     # rs.update(weight: 0)

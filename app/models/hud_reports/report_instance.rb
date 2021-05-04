@@ -147,14 +147,16 @@ module HudReports
       question_names.each do |question|
         io << "## #{question}\n"
         metadata = existing_universe(question)&.metadata
-        Array(metadata['tables']).compact.each do |table|
-          io.puts "### #{table}\n"
+        if metadata
+          Array(metadata['tables']).compact.each do |table|
+            io.puts "### #{table}\n"
 
-          exporter = HudReports::CsvExporter.new(self, table)
-          columns = exporter.display_column_names.to_a
-          rows = exporter.as_array.map{|row| row.map(&:to_s)}
+            exporter = HudReports::CsvExporter.new(self, table)
+            columns = exporter.display_column_names.to_a
+            rows = exporter.as_array.map{|row| row.map(&:to_s)}
 
-          io.puts "#{ANSI::Table.new [columns]+rows}\n"
+            io.puts "#{ANSI::Table.new [columns]+rows}\n"
+          end
         end
       end
 
