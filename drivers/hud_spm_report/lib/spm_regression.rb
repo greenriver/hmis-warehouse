@@ -1,9 +1,19 @@
+measure_lookup = {
+  'Measure 1' => 'MeasureOne',
+  'Measure 2' => 'MeasureTwo',
+  'Measure 3' => 'MeasureThree',
+  'Measure 4' => 'MeasureFour',
+  'Measure 5' => 'MeasureFive',
+  'Measure 6' => 'MeasureSix',
+  'Measure 7' => 'MeasureSeven',
+}.freeze
+
 diffs = []
-questions = ['Measure 1']
+questions = measure_lookup.keys
 
 selection = {
-  report_start: Date.iso8601('2020-10-01'),
-  report_end:  Date.iso8601('2021-09-30'),
+  report_start: Date.iso8601('2017-10-01'),
+  report_end:  Date.iso8601('2018-09-30'),
   data_source_ids:  GrdaWarehouse::DataSource.where(short_name: "SAMPLE").ids,
   coc_codes:  ['XX-500']
 }
@@ -14,7 +24,7 @@ puts "Running comparison of #{questions} between FY2020 and FY2019 code using #{
 s2020 = selection.dup
 s2020[:start] = s2020.delete(:report_start)
 s2020[:end] = s2020.delete(:report_end)
-s2020[:user_id] = 1
+s2020[:user_id] = User.first.id
 
 puts "FY2020 building"
 klass = HudSpmReport::Generators::Fy2020::Generator
@@ -30,7 +40,7 @@ generator.run!
 fy2020 = generator.report
 fy2020.reload
 
-puts "FY2020 done #{fy2020.inspect}"
+puts "FY2020 done #{fy2020.inspect}\n\n#{fy2020.as_markdown}"
 
 # Translate measure names to class names in FY2019 code base
 measure_lookup = {
@@ -79,7 +89,7 @@ questions.each do |question_name|
     report: report_type,
     user: fy2020.user,
     percent_complete: 0,
-    options: selection.merge(project_group_ids: []) # project_group_ids used to be required
+    options: {project_group_ids: [], project_id: []}.merge(selection) # defaults for formerly required params
   )
 
   generator_class = "ReportGenerators::SystemPerformance::Fy2019::#{code_name}".constantize
@@ -107,7 +117,7 @@ questions.each do |question_name|
         cell_info[:diff] = cell_info[:new_value].to_f - cell_info[:old_value].to_f
         if cell_info[:diff].abs.positive?
           old_ids = (info.dig('support','counts') || []).map(&:first).uniq
-          debugger if old_ids.size != cell_info[:new_value]
+          #debugger if old_ids.size != cell_info[:new_value]
           new_ids = (fy2020.answer(question: table, cell: cell).members || []).map(&:client_id).uniq
           # GrdaWarehouse::Hud::Client.find
           cell_info[:hud_client_ids_removed] = old_ids - new_ids
@@ -116,7 +126,6 @@ questions.each do |question_name|
           puts cell_info.to_json
           diffs << cell_info
         end
-        puts cell_info.to_json
       end
     end
   end
@@ -124,5 +133,4 @@ questions.each do |question_name|
   #fy2019.destroy
 end
 
-
-puts diffs.inspect
+puts "Success!!" if diffs.none?

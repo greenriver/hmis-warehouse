@@ -145,17 +145,17 @@ module HudReports
     def as_markdown
       io = StringIO.new
       question_names.each do |question|
-        io << "## #{question}\n"
         metadata = existing_universe(question)&.metadata
         if metadata
+          io << "## #{question}\n"
           Array(metadata['tables']).compact.each do |table|
-            io.puts "### #{table}\n"
+            io.puts "### Table: #{table}\n"
 
             exporter = HudReports::CsvExporter.new(self, table)
             columns = exporter.display_column_names.to_a
-            rows = exporter.as_array.map{|row| row.map(&:to_s)}
+            rows = exporter.as_array.map{|row| row.map{|c| c.to_s.gsub(/\n/,'') } }
 
-            io.puts "#{ANSI::Table.new [columns]+rows}\n"
+            io.puts "#{ANSI::Table.new [columns]+rows[1..]}\n"
           end
         end
       end
