@@ -26,6 +26,8 @@ module ProjectScorecard
 
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
+    has_many :project_group_project_contacts, through: :project_group, source: :contacts
+    has_many :project_group_organization_contacts, through: :project_group, source: :organization_contacts
 
     def completed?
       status == 'completed'
@@ -163,6 +165,7 @@ module ProjectScorecard
 
       candidate = project_group.projects.detect(&:rrh?)
       candidate = project_group.projects.detect(&:psh?) if candidate.blank?
+      candidate = project_group.projects.detect(&:sh?) if candidate.blank?
       candidate = project_group.projects.first if candidate.blank?
       candidate
     end
@@ -299,7 +302,7 @@ module ProjectScorecard
     end
 
     def contacts
-      @contacts ||= project_contacts + organization_contacts
+      @contacts ||= (project_contacts + organization_contacts + project_group_project_contacts + project_group_organization_contacts).uniq
     end
 
     def send_email_to_owner
