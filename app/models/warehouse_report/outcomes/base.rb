@@ -343,7 +343,7 @@ class WarehouseReport::Outcomes::Base
         distinct.
         pluck(:client_id)
       returner_demographics = Reporting::Return.where(client_id: returner_ids).distinct.
-        pluck(:client_id, :race, :ethnicity, :gender).index_by(&:first)
+        pluck(:client_id, :race, :ethnicity, :gender).index_by(&:first) # NOTE: order of pluck is used later for positional access
       returns = {}
       returner_ids.each do |id|
         # find the first start date after the exit to PH
