@@ -60,8 +60,12 @@ module ProjectScorecard
         end
       end
 
+      def los_months
+        average_los_leavers / 30
+      end
+
       def leavers_los_score
-        score(average_los_leavers, 3..18, 19..24) if key_project.rrh?
+        score(los_months, 3..18, 19..24) if key_project.rrh?
       end
 
       def increased_employment_income_score
