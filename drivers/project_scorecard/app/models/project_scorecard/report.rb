@@ -241,7 +241,7 @@ module ProjectScorecard
 
             average_los_leavers: answer(apr, 'Q22b', 'B2'),
 
-            percent_pii_errors: answer(apr, 'Q6a', 'F8'),
+            percent_pii_errors: answer(apr, 'Q6a', 'F8').to_f * 100,
 
             days_to_lease_up: answer(apr, 'Q22c', 'B11'),
           },
@@ -258,13 +258,14 @@ module ProjectScorecard
         percent_increased_other_cash_income_at_exit = percentage(increased_other_income / leavers_or_annual_expected_with_other_income.to_f)
 
         # Data quality calculations
-        total_persons_served = answer(apr, 'Q5a', 'B1')
+        total_hoh_served = answer(apr, 'Q5a', 'B14')
 
-        total_ude_errors = (2..6).map { |row| answer(apr, 'Q6b', 'B' + row.to_s) }.sum
-        percent_ude_errors = percentage(total_ude_errors / total_persons_served.to_f)
+        # need unique count of client_ids not, sum of counts since someone might appear more than once
+        total_ude_errors = (2..6).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
+        percent_ude_errors = percentage(total_ude_errors / total_hoh_served.to_f)
 
-        total_income_and_housing_errors = (2..5).map { |row| answer(apr, 'Q6c', 'B' + row.to_s) }.sum
-        percent_income_and_housing_errors = percentage(total_income_and_housing_errors / total_persons_served.to_f)
+        total_income_and_housing_errors = (2..5).map { |row| answer_client_ids(apr, 'Q6c', 'B' + row.to_s) }.flatten.uniq.count
+        percent_income_and_housing_errors = percentage(total_income_and_housing_errors / total_hoh_served.to_f)
 
         assessment_answers.merge!(
           {
@@ -359,6 +360,10 @@ module ProjectScorecard
 
     private def answer(report, table, cell)
       report.answer(question: table, cell: cell).summary
+    end
+
+    private def answer_client_ids(report, table, cell)
+      report.answer(question: table, cell: cell).universe_members.pluck(:client_id)
     end
 
     private def percentage(value)
