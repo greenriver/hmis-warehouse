@@ -598,13 +598,11 @@ module PublicReports
       child_only_households
     end
 
-    # NOTE: Only valid for adult and child households
     private def average_household_size(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
           data = []
           with_service_in_quarter(report_scope, date, population).
-            where(household_id: adult_and_child_household_ids(date)).
             group(:household_id).
             select(:client_id).distinct.count.
             each do |_, count|
