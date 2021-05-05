@@ -278,6 +278,11 @@ class WarehouseReport::Outcomes::Base
         :destination,
         :housed_date,
         :housing_exit,
+        :project_id,
+        :hmis_project_id,
+        :race,
+        :ethnicity,
+        :gender,
       ]
       housed_scope.
         exiting_stabilization(start_date: start_date, end_date: end_date).
@@ -334,8 +339,11 @@ class WarehouseReport::Outcomes::Base
       leavers_with_date = leaver_scope.pluck(:client_id, :housing_exit).to_h
       return {} unless leavers_with_date.present?
 
-      returner_ids = Reporting::Return.where(client_id: leavers_with_date.keys).distinct.pluck(:client_id)
-
+      returner_ids = Reporting::Return.where(client_id: leavers_with_date.keys).
+        distinct.
+        pluck(:client_id)
+      returner_demographics = Reporting::Return.where(client_id: returner_ids).distinct.
+        pluck(:client_id, :race, :ethnicity, :gender).index_by(&:first)
       returns = {}
       returner_ids.each do |id|
         # find the first start date after the exit to PH
@@ -350,6 +358,9 @@ class WarehouseReport::Outcomes::Base
           days_to_return: days_to_return,
           bucket: bucket(days_to_return),
           client_id: id,
+          race: returner_demographics[id][1],
+          ethnicity: returner_demographics[id][2]&.to_i,
+          gender: returner_demographics[id][3],
         }
       end
       returns
@@ -510,7 +521,18 @@ class WarehouseReport::Outcomes::Base
 
   # Denominator: count exiting pre-placement
   def percent_exiting_pre_placement_to_stabilization_by_month
-    columns = [:search_start, :search_end, :service_project, :housed_date, :client_id]
+    columns = [
+      :search_start,
+      :search_end,
+      :service_project,
+      :housed_date,
+      :client_id,
+      :project_id,
+      :hmis_project_id,
+      :race,
+      :ethnicity,
+      :gender,
+    ]
 
     denominators = {}
     exiting_pre_placement.group_by { |m| m[:service_project] }.map do |project_name, rows|
@@ -576,7 +598,18 @@ class WarehouseReport::Outcomes::Base
 
   # Denominator: count exiting stabilization
   def percent_exiting_stabilization_to_housing_by_month
-    columns = [:housed_date, :housing_exit, :residential_project, :destination, :client_id]
+    columns = [
+      :housed_date,
+      :housing_exit,
+      :residential_project,
+      :destination,
+      :client_id,
+      :project_id,
+      :hmis_project_id,
+      :race,
+      :ethnicity,
+      :gender,
+    ]
 
     denominators = {}
     in_stabilization.group_by { |m| m[:residential_project] }.map do |project_name, rows|
@@ -642,7 +675,20 @@ class WarehouseReport::Outcomes::Base
 
   # Denominator: count enrolled in either pre-placement or stabilization
   def percent_in_stabilization_by_month
-    columns = [:search_start, :search_end, :service_project, :housed_date, :housing_exit, :residential_project, :client_id]
+    columns = [
+      :search_start,
+      :search_end,
+      :service_project,
+      :housed_date,
+      :housing_exit,
+      :residential_project,
+      :project_id,
+      :hmis_project_id,
+      :client_id,
+      :race,
+      :ethnicity,
+      :gender,
+    ]
 
     denominators = {}
     enrolled_clients.group_by { |m| m[:residential_project] }.map do |project_name, rows|
@@ -923,6 +969,9 @@ class WarehouseReport::Outcomes::Base
           row[:exit_date],
           row[:entry_date], # actually return date
           row[:days_to_return],
+          row[:race],
+          row[:ethnicity],
+          row[:gender],
         ]
       end
     when :return_after_exit_to_any
@@ -938,6 +987,9 @@ class WarehouseReport::Outcomes::Base
           row[:exit_date],
           row[:entry_date], # actually return date
           row[:days_to_return],
+          row[:race],
+          row[:ethnicity],
+          row[:gender],
         ]
       end
     when :percent_exiting_pre_placement
@@ -956,6 +1008,9 @@ class WarehouseReport::Outcomes::Base
           row[:search_start],
           row[:search_end],
           row[:housed_date],
+          row[:race],
+          row[:ethnicity],
+          row[:gender],
         ]
       end
     when :percent_in_stabilization
@@ -976,6 +1031,11 @@ class WarehouseReport::Outcomes::Base
           row[:residential_project],
           row[:housed_date],
           row[:housing_exit],
+          row[:project_id],
+          row[:hmis_project_id],
+          row[:race],
+          row[:ethnicity],
+          row[:gender],
         ]
       end
     when :percent_exiting_stabilization
@@ -994,6 +1054,11 @@ class WarehouseReport::Outcomes::Base
           HUD.destination(row[:destination]),
           row[:housed_date],
           row[:housing_exit],
+          row[:project_id],
+          row[:hmis_project_id],
+          row[:race],
+          row[:ethnicity],
+          row[:gender],
         ]
       end
     when :destination
@@ -1006,6 +1071,11 @@ class WarehouseReport::Outcomes::Base
           HUD.destination(row[:destination]),
           row[:housed_date],
           row[:housing_exit],
+          row[:project_id],
+          row[:hmis_project_id],
+          row[:race],
+          row[:ethnicity],
+          row[:gender],
         ]
       end
     end
