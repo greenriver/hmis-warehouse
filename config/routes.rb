@@ -826,6 +826,7 @@ Rails.application.routes.draw do
     resource :style_guide, only: :none do
       get :index
       get :form
+      get :select2_modal
       get :careplan
       get :health_team
       get :icon_font

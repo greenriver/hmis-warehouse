@@ -35,6 +35,10 @@ class StyleGuidesController < ApplicationController
     @form = OpenStruct.new
   end
 
+  def select2_modal
+    @form = OpenStruct.new
+  end
+
   def health_team
     @member = Health::Team::Member.new
     @patient = Health::Patient.pilot.first
