@@ -13,10 +13,13 @@
           %tr
             %td
               - if report.published?
-                = link_to report.status, public_reports_warehouse_reports_homeless_population_path(report)
+                = link_to report.status, path_to_report(report)
               - else
-                = link_to_if report.completed?, report.status, edit_public_reports_warehouse_reports_homeless_population_path(report)
-            %td.text-center= yes_no(report.published?)
+                = link_to_if report.completed?, report.status, path_to_edit(report)
+            %td.text-center
+              = yes_no(report.published?)
+              - if report.version_slug.present?
+                (#{report.version_slug})
             %td.report-parameters.parameter-label= report.filter_object.describe_filter_as_html
             %td
               .nobr
@@ -24,6 +27,7 @@
               - if report.completed?
                 .mt-2
                   %em= report.completed_at.to_date
+
 - else
   %p
     No reports on file

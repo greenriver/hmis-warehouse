@@ -10,6 +10,9 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
     before_action :set_report, except: [:index, :new, :create]
     before_action :ignore_mini_profiler, only: [:raw, :overall, :housed, :individuals, :adults_with_children, :veterans]
 
+    helper_method :path_to_report
+    helper_method :path_to_edit
+
     def index
       @report = report_source.new
       @filter = filter_class.new(user_id: current_user.id).set_from_params(filter_params[:filters])
@@ -25,7 +28,6 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
         user_id: current_user.id,
         state: :queued,
       }
-      options[:version_slug] = params.dig(:filter, :version_slug)
       @report = report_source.create(options)
       ::WarehouseReports::GenericReportJob.perform_later(
         user_id: current_user.id,
@@ -36,7 +38,11 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
     end
 
     def update
-      if params.dig(:public_report, :published_url).present?
+      version_slug = params.dig(:public_report, :version_slug)
+      if version_slug.present?
+        @report.update(version_slug: version_slug)
+        respond_with(@report, location: path_to_report)
+      elsif params.dig(:public_report, :published_url).present?
         html = if @report.view_template.is_a?(Array)
           @report.view_template.map do |template|
             string = @report.html_section_start(template)
