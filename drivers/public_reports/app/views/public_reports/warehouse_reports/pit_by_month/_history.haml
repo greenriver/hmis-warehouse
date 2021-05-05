@@ -18,7 +18,12 @@
                 = link_to_if report.completed?, report.status, edit_public_reports_warehouse_reports_pit_by_month_path(report)
             %td.text-center= yes_no(report.published?)
             %td.report-parameters.parameter-label= report.filter_object.describe_filter_as_html
-            %td= report&.user&.name
+            %td
+              .nobr
+                = report&.user&.name
+              - if report.completed?
+                .mt-2
+                  %em= report.completed_at.to_date
 - else
   %p
     No reports on file
