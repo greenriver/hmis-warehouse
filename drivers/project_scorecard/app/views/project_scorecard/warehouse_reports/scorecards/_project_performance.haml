@@ -141,7 +141,8 @@
       %th
         - unless @report.key_project.rrh?
           N/A (RRH Only)
-      %td.text-center= f.input :average_los_leavers, label: false, as: :read_only
+      %td.text-center
+        = pluralize(@report.los_months, 'month')
       %th.text-nowrap
         .mb-4
           Points: 10
