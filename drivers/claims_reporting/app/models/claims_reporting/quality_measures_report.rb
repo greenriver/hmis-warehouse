@@ -12,26 +12,15 @@ module ClaimsReporting
   class QualityMeasuresReport
     include ActiveModel::Model
     extend Memoist
-    attr_reader :title, :date_range
 
-    def initialize(
-      title:,
-      date_range:
-    )
-      @title = title
-      @date_range = date_range
-    end
-
-    private def logger
-      Rails.logger
-    end
+    # Title for this report
+    attr_reader :title
+    # Base Range<Date> for this report. Some measures define derived ranges
+    attr_reader :date_range
+    # The Measure#id s we want to calculate. Defaults to all AVAILABLE_MEASURES.keys
+    attr_reader :measures
 
     Measure = Struct.new(:id, :title, :desc, :numerator, :denominator, keyword_init: true)
-
-    PROCEDURE_CODE_SYSTEMS = ['CPT', 'HCPCS'].freeze
-    REVENUE_CODE_SYSTEMS = ['UBREV'].freeze
-    APC_EXTRA_PROC_CODES = ['99386', '99387', '99396', '99397', 'T1015'].freeze
-
     AVAILABLE_MEASURES = [
       Measure.new(
         id: :bh_cp_1,
@@ -140,17 +129,44 @@ module ClaimsReporting
       ),
     ].index_by(&:id).freeze
 
+    def initialize(
+      title:,
+      date_range:,
+      measures: nil
+    )
+      @title = title
+      @date_range = date_range
+
+      # which measures will we calculate
+      @measures = if measures
+        AVAILABLE_MEASURES.keys & measures
+      else
+        AVAILABLE_MEASURES.keys
+      end
+
+      raise ArgumentError, 'No valid measures provided' if @measures.none?
+    end
+
+    private def logger
+      Rails.logger
+    end
+
+    PROCEDURE_CODE_SYSTEMS = ['HCPCS', 'CPT', 'CPT-CAT-II'].freeze
+    REVENUE_CODE_SYSTEMS = ['UBREV'].freeze
+    APC_EXTRA_PROC_CODES = ['99386', '99387', '99396', '99397', 'T1015'].freeze
+
     # we are keeping rows of each enrollee, etc and flags for each measure
     # with three possible values: nil (not in the univierse for the measure), false part of the denominator only, true part of the numerator
     MeasureRow = Struct.new(:row_type, :row_id, *AVAILABLE_MEASURES.keys, keyword_init: true)
 
     # The percentage of Behavioral Health Community Partner (BH CP) assigned enrollees 18 to 64 years of age with documentation of engagement within 122 days of the date of assignment to a BH CP.
 
-    def self.for_plan_year(year)
+    def self.for_plan_year(year, **options)
       year = year.to_i
       new(
         title: "PY#{year}",
         date_range: Date.iso8601("#{year}-01-01") .. Date.iso8601("#{year}-12-31"),
+        **options,
       )
     end
 
@@ -269,7 +285,17 @@ module ClaimsReporting
         :procedure_modifier_2,
         :procedure_modifier_3,
         :procedure_modifier_4,
-        :enrolled_days,
+        :place_of_service_code,
+        :type_of_bill,
+        :icd_version,
+        :dx_1, :dx_2, :dx_3, :dx_4, :dx_5, :dx_6, :dx_7, :dx_8, :dx_9, :dx_10,
+        :dx_11, :dx_12, :dx_13, :dx_14, :dx_15, :dx_16, :dx_17, :dx_18, :dx_19, :dx_20,
+        :surgical_procedure_code_1,
+        :surgical_procedure_code_2,
+        :surgical_procedure_code_3,
+        :surgical_procedure_code_4,
+        :surgical_procedure_code_5,
+        :enrolled_days
       ).group_by(&:member_id)
 
       logger.debug { "#{medical_claims_scope.count} medical_claims" }
@@ -292,38 +318,44 @@ module ClaimsReporting
         # Members must be continuously enrolled in the BH CP for at least 122 calendar days.
         continuous_in_bh_cp = continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
 
-        rows << MeasureRow.new(
-          row_type: 'member', # spec also says "patients"/"enrollee"
-          row_id: member_id,
-        ).tap do |row|
-          row.medical_claims = claims.count
+        if measures.include?(:bh_cp_1) || measures.include?(:bh_cp_2)
+          rows << MeasureRow.new(
+            row_type: 'member', # spec also says "patients"/"enrollee"
+            row_id: member_id,
+          ).tap do |row|
+            row.medical_claims = claims.count
 
-          # BH CP #1 The percentage of Behavioral Health Community Partner (BH CP)
-          # assigned enrollees 18 to 64 years of age with documentation of engagement
-          # within 122 days of the date of assignment to a BH CP.
-          if dob_range_1.cover?(date_of_birth)
-            cut_off_date = assignment_date + 122.days
-            row.bh_cp_1 = completed_treatment_plans.any? { |c| c.service_start_date <= cut_off_date }
-          end
+            # BH CP #1 The percentage of Behavioral Health Community Partner (BH CP)
+            # assigned enrollees 18 to 64 years of age with documentation of engagement
+            # within 122 days of the date of assignment to a BH CP.
+            if dob_range_1.cover?(date_of_birth)
+              cut_off_date = assignment_date + 122.days
+              row.bh_cp_1 = completed_treatment_plans.any? { |c| c.service_start_date <= cut_off_date }
+            end
 
-          # BH CP #2: The percentage of Behavioral Health Community Partner (BH CP) enrollees
-          # 18 to 64 years of age with documentation of a completed Treatment Plan during the
-          # measurement year.
-          # anchor_date = dob_range_2.max
-          if continuous_in_bh_cp && continuous_in_masshealth && dob_range_2.cover?(date_of_birth)
-            # Qualifying numerator activity does not need to occur during the 122-day continuous enrollment
-            # period, and it can take place any time during the measurement year.
-            row.bh_cp_2 = completed_treatment_plans.any? { |c| measurement_year.cover?(c.service_start_date) }
+            # BH CP #2: The percentage of Behavioral Health Community Partner (BH CP) enrollees
+            # 18 to 64 years of age with documentation of a completed Treatment Plan during the
+            # measurement year.
+            # anchor_date = dob_range_2.max
+            if continuous_in_bh_cp && continuous_in_masshealth && dob_range_2.cover?(date_of_birth)
+              # Qualifying numerator activity does not need to occur during the 122-day continuous enrollment
+              # period, and it can take place any time during the measurement year.
+              row.bh_cp_2 = completed_treatment_plans.any? { |c| measurement_year.cover?(c.service_start_date) }
+            end
           end
         end
 
-        rows.concat calculate_bh_cp_3(member, claims, enrollments)
-        rows.concat calculate_bh_cp_4(member, claims, enrollments)
-        rows.concat calculate_bh_cp_5(member, claims, enrollments)
-        rows.concat calculate_bh_cp_6(member, claims, enrollments)
-      end
+        rows.concat calculate_bh_cp_3(member, claims, enrollments) if measures.include?(:bh_cp_3)
+        rows.concat calculate_bh_cp_4(member, claims, enrollments) if measures.include?(:bh_cp_4)
+        rows.concat calculate_bh_cp_5(member, claims, enrollments) if measures.include?(:bh_cp_5)
+        rows.concat calculate_bh_cp_6(member, claims, enrollments) if measures.include?(:bh_cp_6)
 
-      rows
+        # We dont have data to support this yet
+        # rows.concat calculate_bh_cp_7(member, claims, enrollments) if measures.include?(:bh_cp_7)
+        # rows.concat calculate_bh_cp_8(member, claims, enrollments) if measures.include?(:bh_cp_8)
+
+        rows
+      end
     end
     memoize :medical_claim_based_rows
 
@@ -493,15 +525,34 @@ module ClaimsReporting
       rows
     end
 
-    private def value_set_codes(name, code_system)
-      codes = Hl7::ValueSetCode.where(
-        value_set_oid: VALUE_SETS.fetch(name),
-        code_system: code_system,
-      ).pluck(:code).to_set
+    # efficently loads, caches, returns
+    # a 2-level lookup table: value_set_name -> code_system_name -> Set<codes>
+    def value_set_lookups
+      lookup_table = VALUE_SETS.keys.map do |vs_name|
+        [vs_name, {}]
+      end.to_h
 
-      assert "#{name} Value Set must contain some codes for #{code_system}", codes.present?
+      oid_to_name = VALUE_SETS.invert
+      rows = Hl7::ValueSetCode.where(
+        value_set_oid: VALUE_SETS.values,
+      ).pluck(:value_set_oid, :code_system, :code)
 
-      codes
+      rows.each do |value_set_oid, code_system, code|
+        vs_name = oid_to_name.fetch(value_set_oid)
+        lookup_table[vs_name][code_system] ||= []
+
+        # our claim data doesnt use the decimal notation
+        code.gsub!('.', '') if code_system == 'ICD10CM'
+        lookup_table[vs_name][code_system] << code
+      end
+      lookup_table.transform_values(&:freeze)
+
+      lookup_table.freeze
+    end
+    memoize :value_set_lookups
+
+    private def value_set_codes(name, code_systems)
+      value_set_lookups.fetch(name.to_s).values_at(*Array(code_systems)).flatten.compact
     end
     memoize :value_set_codes
 
@@ -634,8 +685,57 @@ module ClaimsReporting
       )
     end
 
-    private def in_set?(value_set, claim)
-      # TODO
+    private def in_set?(vs_name, claim)
+      codes_by_system = value_set_lookups.fetch(vs_name)
+
+      # TODO?: Can we use LOINC (labs) or CVX (vaccine) codes
+      # What about "Modifier"
+
+      # Check first because its very likely to match
+      procedure_codes = []
+      PROCEDURE_CODE_SYSTEMS.each do |code_system|
+        procedure_codes.concat codes_by_system[code_system] if codes_by_system[code_system]
+      end
+      return trace_set_match!(vs_name, claim, PROCEDURE_CODE_SYSTEMS) if procedure_codes.include?(claim.procedure_code)
+
+      # Check easy ones next
+      if (revenue_codes = codes_by_system['UBREV']).present?
+        return trace_set_match!(vs_name, claim, :UBREV) if revenue_codes.include?(claim.revenue_code)
+      end
+
+      # https://www.findacode.com/articles/type-of-bill-table-34325.html
+      if (bill_types = codes_by_system['UBTOB']).present?
+        return trace_set_match!(vs_name, claim, :UBTOB) if bill_types.include?(claim.type_of_bill)
+      end
+
+      if (place_of_service_codes = codes_by_system['POS'])
+        return trace_set_match!(vs_name, claim, :POS) if place_of_service_codes.include?(claim.place_of_service_code)
+      end
+
+      # Slower set intersection ones, current ICD version
+      if claim.icd_version == '10'
+        if (dx_codes = codes_by_system['ICD10CM'])
+          return trace_set_match!(vs_name, claim, :ICD10CM) if (dx_codes & claim.dx_codes).any?
+        end
+        if (surg_procedures = codes_by_system['ICD10PCS'])
+          return trace_set_match!(vs_name, claim, :ICD10PCS) if (surg_procedures & claim.surgical_procedure_codes).any?
+        end
+      end
+
+      # Slow and rare
+      if claim.icd_version == '9' # rubocop:disable Style/GuardClause
+        if (dx_codes = codes_by_system['ICD9CM'])
+          return trace_set_match!(vs_name, claim, :ICD9CM) if (dx_codes & claim.dx_codes).any?
+        end
+        if (surg_procedures = codes_by_system['ICD9PCS'])
+          return trace_set_match!(vs_name, claim, :ICD9PCS) if (surg_procedures & claim.surgical_procedure_codes).any?
+        end
+      end
+    end
+
+    private def trace_set_match!(vs_name, claim, code_type)
+      puts "in_set? #{vs_name} matched #{code_type} for Claim#id=#{claim.id}"
+      true
     end
 
     private def aod_dx?(claim)
@@ -662,14 +762,19 @@ module ClaimsReporting
         in_set?('Other Drug Abuse and Dependence', c)
       ) # && value_set_codes('Telehealth Modifier Value', PROCEDURE_CODE_SYSTEMS)
 
+      return false unless aod_abuse # we can bail no other condition can match
+
+      raise 'FIXME: We have not had AOD data to date so the logic below has no real world testing' if aod_abuse
+
+      # direct translation of the English spec
       (
-        in_set?('IET Stand Alone', c) && aod_abuse
+        in_set?('IET Stand Alone Visits', c) && aod_abuse
       ) || (
         in_set?('IET Visits Group 1', c) && in_set?('IET POS Group 1', c) && aod_abuse
       ) || (
         in_set?('IET Visits Group 2', c) && in_set?('IET POS Group 2', c) && aod_abuse
       ) || (
-        in_set?('IET Detoxification', c) && aod_abuse
+        in_set?('Detoxification', c) && aod_abuse
       ) || (
         in_set?('ED', c) && aod_abuse
       ) || (
@@ -774,12 +879,18 @@ module ClaimsReporting
         return []
       end
 
-      # Denominator: The sum of eligible days of members that are enrolled in a BH CP during the measurement year.
-      # FIXME: this should be the number of cp_enrolled_days (after they 122nd) that are during the measurement year
-      # cp_enrolled_days is wrong, its the enrolled days to date during the most recent enrollment
-      cp_enrolled_days = enrollments.select { |e| measurement_year.cover?(e.span_start_date) }.sum(&:cp_enrolled_days).to_i
+      # > Denominator: The sum of eligible days of members that are enrolled in a BH CP during the measurement year.
+      # It is not clear from the spec but I believe this is the number of distinct cp_enrolled_dates (after they 122nd)
+      # that are during the measurement year, and the measure is supposed to describe the fraction of those
+      # that are spent in the 'community'. Gaps are not currently allowed so there
+      # might be a faster way to do this rather than #to_a and the Array intersection operations below
+      # but doing it this way allows for future gaps and is easier for check
+      cp_enrolled_dates = enrollments.flat_map do |e|
+        e.cp_enrolled_date_range.to_a.select { |d| measurement_year.cover?(d) }
+      end.uniq.sort
 
-      return [] unless cp_enrolled_days.positive?
+      cp_enrolled_dates = cp_enrolled_dates[122..]
+      return [] unless cp_enrolled_dates
 
       # > Numerator:
       # > Sum of eligible days in the community:
@@ -802,7 +913,7 @@ module ClaimsReporting
       billing_provider_types = ['1', '8', '40', '301', '3', '25', '246', '248', '20', '21', '35', '317', '22', '332', '34', '30', '31']
 
       # This is a mystery:
-      # This one NPI is in the spec (in many places) by not in any data we have seen and
+      # This one NPI is in the spec (in many places) by not in any data we have seen. Looking it up at
       # https://npiregistry.cms.hhs.gov/ responds with an error:
       #
       # > Error: Number - CMS deactivated NPI 1346326881. The provider can no longer use this NPI.
@@ -825,12 +936,12 @@ module ClaimsReporting
       end
 
       days_using_services = Set.new
-
       relavent_claims.each do |c|
         days_using_services += (c.service_start_date .. (c.service_end_date || c.service_start_date)).to_a
       end
 
-      community_days = cp_enrolled_days - days_using_services.size
+      cp_enrolled_days = cp_enrolled_dates.size
+      community_days = (cp_enrolled_dates - days_using_services.to_a).size
 
       # logger.debug "BH_CP_6: Found #{community_days}/#{cp_enrolled_days} days"
       [
@@ -840,6 +951,44 @@ module ClaimsReporting
           bh_cp_6: [community_days, cp_enrolled_days],
         ),
       ]
+    end
+
+    private def calculate_bh_cp_7(member, claims, _enrollments)
+      raise 'Not yet implemented'
+      # # > TODO Age: Members who receive care from a Behavioral Health (BH) Community Partner (CP),
+      # # > 21 to 64 years of age as of December 31 of the measurement year.
+      # unless in_age_range?(member.date_of_birth, 21.years .. 64.years, as_of: dec_31_of_measurement_year)
+      #   trace_exclusion { 'BH_CP_6: 21.years .. 64.years' }
+      #   return []
+      # end
+
+      # # > TODO Continuous Enrollment: Members must be continuously enrolled with a BH CP for at least 122 calendar days.
+      # unless continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
+      #   # trace_exclusion { "BH_CP_6: must be continuously enrolled with a BH CP for at least 122 calendar days" }
+      #   return []
+      # end
+
+      # # > TODO Exclusions: Enrollees in Hospice (Hospice Value Set)
+      # if claims.any? { |c| measurement_year.cover?(c.service_start_date) && hospice?(c) }
+      #   trace_exclusion { "BH_CP_6: Exclude MemberRoster#id=#{member.id} is in hospice" }
+      #   return []
+      # end
+
+      rows = [] # rubocop:disable Lint/UnreachableCode
+
+      # puts "BH_CP_7:  MemberRoster#id=#{member.id}"
+      claims.each do |claim|
+        next unless aod_abuse_or_dependence?(claim)
+
+        puts "AOD case found #{claim}"
+        rows = MeasureRow.new(
+          row_type: 'enrolled days',
+          row_id: member.id,
+          bh_cp_7: true,
+        )
+      end
+
+      rows
     end
 
     # https://www.mass.gov/doc/change-of-address-provider-requirements-by-provider-type-3/download
@@ -1021,6 +1170,7 @@ module ClaimsReporting
       'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
       'Observation' => '2.16.840.1.113883.3.464.1004.1191',
       'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
+      'Other Drug Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1426',
       'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
       'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
       'Outpatient POS' => '2.16.840.1.113883.3.464.1004.1443',

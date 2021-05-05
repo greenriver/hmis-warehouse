@@ -6,6 +6,8 @@
 
 module ClaimsReporting
   class MedicalClaim < HealthBase
+    extend Memoist
+
     phi_patient :member_id
     belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
 
@@ -161,11 +163,46 @@ module ClaimsReporting
         procedure_modifier_4,
       ].select(&:present?)
     end
+    memoize :modifiers
+
+    def dx_codes
+      [
+        dx_1, dx_2, dx_3, dx_4, dx_5, dx_6, dx_7, dx_8, dx_9, dx_10,
+        dx_11, dx_12, dx_13, dx_14, dx_15, dx_16, dx_17, dx_18, dx_19, dx_20
+      ].select(&:present?)
+    end
+    memoize :dx_codes
+
+    # def dx_codes2
+    #   values = []
+    #   [
+    #     :dx_1, :dx_2, :dx_3, :dx_4, :dx_5, :dx_6, :dx_7, :dx_8, :dx_9,
+    #     :dx_10, :dx_11, :dx_12, :dx_13, :dx_14, :dx_15, :dx_16, :dx_17, :dx_18, :dx_19, :dx_20
+    #   ].each do |name|
+    #     v = read_attribute_before_type_cast(name)
+    #     values << v if v.present?
+    #   end
+
+    #   values
+    # end
+    # memoize :dx_codes2
+
+    def surgical_procedure_codes
+      [
+        surgical_procedure_code_1,
+        surgical_procedure_code_2,
+        surgical_procedure_code_3,
+        surgical_procedure_code_4,
+        surgical_procedure_code_5,
+      ].select(&:present?)
+    end
+    memoize :surgical_procedure_codes
 
     def procedure_with_modifiers
       # sort is here since this is used as a key to match against other data
       ([procedure_code] + modifiers.sort).join('>').to_s
     end
+    memoize :procedure_with_modifiers
 
     include ClaimsReporting::CsvHelpers
     def self.conflict_target
