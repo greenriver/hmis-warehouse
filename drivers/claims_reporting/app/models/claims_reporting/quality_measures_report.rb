@@ -354,6 +354,8 @@ module ClaimsReporting
         # rows.concat calculate_bh_cp_7(member, claims, enrollments) if measures.include?(:bh_cp_7)
         # rows.concat calculate_bh_cp_8(member, claims, enrollments) if measures.include?(:bh_cp_8)
 
+        rows.concat calculate_bh_cp_9(member, claims, enrollments) if measures.include?(:bh_cp_9)
+
         rows
       end
     end
@@ -526,9 +528,9 @@ module ClaimsReporting
     end
 
     # efficently loads, caches, returns
-    # a 2-level lookup table: value_set_name -> code_system_name -> Set<codes>
+    # a 2-level lookup table: value_set_name -> code_system_name -> Set<codes> | RegExp
     def value_set_lookups
-      lookup_table = VALUE_SETS.keys.map do |vs_name|
+      sets = VALUE_SETS.keys.map do |vs_name|
         [vs_name, {}]
       end.to_h
 
@@ -539,14 +541,25 @@ module ClaimsReporting
 
       rows.each do |value_set_oid, code_system, code|
         vs_name = oid_to_name.fetch(value_set_oid)
-        lookup_table[vs_name][code_system] ||= []
-
-        # our claim data doesnt use the decimal notation
-        code.gsub!('.', '') if code_system == 'ICD10CM'
-        lookup_table[vs_name][code_system] << code
+        sets[vs_name][code_system] ||= []
+        sets[vs_name][code_system] << code
       end
-      lookup_table.transform_values(&:freeze)
 
+      lookup_table = {}
+
+      sets.each do |vs_name, code_system_data|
+        lookup_table[vs_name] = {}
+        code_system_data.each do |code_system, codes|
+          if code_system.in? ['ICD10CM', 'ICD10PCS', 'ICD9CM', 'ICD10PCS']
+            codes = codes.map { |code| code.gsub('.', '') } # we dont generally have decimals in data
+            lookup_table[vs_name][code_system] = Regexp.new "^(#{codes.join('|')})"
+          else
+            lookup_table[vs_name][code_system] = Set.new codes
+          end
+        end
+      end
+
+      lookup_table.transform_values(&:freeze)
       lookup_table.freeze
     end
     memoize :value_set_lookups
@@ -561,7 +574,7 @@ module ClaimsReporting
     end
 
     private def inpatient_stay?(claim)
-      value_set_codes('Inpatient Stay', REVENUE_CODE_SYSTEMS).include? claim.revenue_code
+      in_set?('Inpatient Stay', claim)
     end
 
     private def assert(explaination, condition)
@@ -569,7 +582,8 @@ module ClaimsReporting
     end
 
     private def trace_exclusion(&block)
-      # hook to log exclusions logger.debug &block
+      # hook to log exclusions
+      logger.debug(&block)
     end
 
     # Follow-up with BH CP after Emergency Department visit
@@ -653,6 +667,132 @@ module ClaimsReporting
           next
         end
 
+        # Discharges for enrollees with the following supports within 7 calendar days of
+        # discharge from an ED; include supports that occur on the date of discharge.
+        eligable_followup = (eligable_followups & followup_period).any?
+
+        row = MeasureRow.new(
+          row_type: 'visit',
+          row_id: c.id,
+          bh_cp_4: eligable_followup,
+        )
+        # puts "Found #{row.inspect}" if row.bh_cp_4
+
+        rows << row
+      end
+      rows
+    end
+
+    private def mental_health_hospitalization?(claim)
+      (
+        in_set?('Mental Illness', claim) || in_set?('Intentional Self-Harm', claim)
+      ) && (
+        inpatient_stay?(claim) && !in_set?('Nonacute Inpatient Stay', claim)
+      )
+    end
+
+    #  Follow-Up After Hospitalization for Mental Illness (7 days)
+    private def calculate_bh_cp_9(member, claims, enrollments)
+      # > Exclusions: Enrollees in Hospice (Hospice Value Set)
+      if claims.any? { |c| measurement_year.cover?(c.service_start_date) && hospice?(c) }
+        trace_exclusion do
+          "BH_CP_9: Exclude MemberRoster#id=#{member.id} is in hospice"
+        end
+        return []
+      end
+
+      # > Also Exclude: Members who decline to engage with the BH CP.
+      return [] if declined_to_engage?(enrollments)
+
+      discharges = []
+      claims.select do |c|
+        # > The denominator for this measure is based on discharges, not on enrollees.
+        # > If enrollees have more than one discharge, include all discharges on or
+        # > between January 1 and December 1 of the measurement year.
+        next unless c.discharge_date && measurement_year.cover?(c.service_start_date) && mental_health_hospitalization?(c)
+
+        puts "BH_CP_9: MemberRoster#id=#{member.id}. Found mental_health_hospitalization..."
+
+        visit_date = c.discharge_date
+        assert 'Mental health hospitalization visit must have a discharge_date', c.discharge_date.present?
+
+        # > BH CP enrollees 18 to 64 years of age as of the date of discharge."
+        unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: visit_date)
+          trace_exclusion { "BH_CP_9: Exclude claim #{c.id}: DOB: #{c.member_dob} outside age range as of #{visit_date}" }
+          next
+        end
+
+        # > Continuously enrolled with BH CP from date of discharge through 7
+        # > calendar days after discharge. There is no requirement for MassHealth enrollment."
+        followup_period = (visit_date .. 7.days.after(visit_date)).to_a
+        assert "followup_period must be 8 days, was #{followup_period.size} days.", followup_period.size == 8
+
+        # > No allowable gap in BH CP enrollment during the continuous enrollment period.
+        unless continuously_enrolled_cp?(enrollments, followup_period)
+          trace_exclusion { "BH_CP_9: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period.min .. followup_period.max}" }
+          next
+        end
+
+        discharges << c
+      end
+
+      # TODO: handle readmissions and direct transfers to an acute inpatient
+      # > Identify readmissions and direct transfers to an acute inpatient
+      # > care setting during the 7-day follow-up period:
+      # >  1. Identify all acute and nonacute inpatient stays (Inpatient Stay Value Set).
+      # >   2. Exclude nonacute inpatient stays (Nonacute Inpatient Stay Value Set).
+      # >   3. Identify the admission date for the stay.
+      # > Exclude both the initial discharge and the readmission/direct transfer discharge
+      # > if the last discharge occurs after December 1 of the measurement year.
+      # >
+      # > If the readmission/direct transfer to the acute inpatient care setting was for a
+      # > principal diagnosis of mental health disorder or intentional self-harm
+      # > (Mental Health Diagnosis Value count only the last discharge.
+      # > If the readmission/direct transfer to the acute inpatient care setting was for
+      # > any other principal diagnosis exclude both the original and the readmission/direct transfer discharge.
+      # >
+      # > Exclude discharges followed by readmission or direct transfer to a nonacute
+      # > inpatient care setting within the 7-day follow-up period, regardless of
+      # > principal diagnosis for the readmission. To identify readmissions and direct
+      # > transfers to a nonacute inpatient care setting:
+      # >   1. Identify all acute and nonacute inpatient stays (Inpatient Stay Value Set).
+      # >   2. Confirm the stay was for nonacute care based on the presence of a nonacute code (Nonacute Inpatient Stay Value Set) on the claim.
+      # >   3. Identify the admission date for the stay.
+      # > These discharges are excluded from the measure because rehospitalization or
+      # > direct transfer may prevent an outpatient follow-up visit from taking place.
+
+      # Avoid O(n^2) by finding the small set of dates containing the claims
+      # we will need to look for near each discharge
+      inpatient_stay_dates = Set.new
+      eligable_followups = Set.new
+      claims.select do |c|
+        # > A follow-up visit with a mental health practitioner within 7 days after
+        # > discharge. Do not include visits that occur on the date of discharge.
+        # > Any of the following meet criteria for a follow-up visit.
+
+        inpatient_stay_dates << c.admit_date if c.admit_date && inpatient_stay?(c) && discharges.none? { |v| v.claim_number == c.claim_number }
+
+        eligable_followups << c.service_start_date if cp_followup?(c)
+      end
+      # puts inpatient_stay_dates if inpatient_stay_dates.any?
+      # puts eligable_followups if eligable_followups.any?
+
+      rows = []
+      discharges.each do |c|
+        visit_date = c.discharge_date
+        followup_period = (visit_date .. 7.days.after(visit_date)).to_a
+
+        # Exclude ED visits followed by admission to an acute or nonacute
+        # inpatient care setting on the date of the ED visit or within 7
+        # calendar days after the ED visit (8 total days), regardless of
+        # principal diagnosis for the admission.
+        if (admits = (inpatient_stay_dates & followup_period)).any?
+          trace_exclusion do
+            "BH_CP_4: Exclude claim #{c.id}: inpatient admitted too soon #{admits.to_a}"
+          end
+          next
+        end
+
         # Discharges for enrollees with the following supports within 7 calendar days of discharge from an ED; include supports that occur on the date of discharge.
         eligable_followup = (eligable_followups & followup_period).any?
 
@@ -714,21 +854,21 @@ module ClaimsReporting
 
       # Slower set intersection ones, current ICD version
       if claim.icd_version == '10'
-        if (dx_codes = codes_by_system['ICD10CM'])
-          return trace_set_match!(vs_name, claim, :ICD10CM) if (dx_codes & claim.dx_codes).any?
+        if (code_pattern = codes_by_system['ICD10CM'])
+          return trace_set_match!(vs_name, claim, :ICD10CM) if claim.dx_codes.any? { |code| code_pattern.match?(code) }
         end
-        if (surg_procedures = codes_by_system['ICD10PCS'])
-          return trace_set_match!(vs_name, claim, :ICD10PCS) if (surg_procedures & claim.surgical_procedure_codes).any?
+        if (code_pattern = codes_by_system['ICD10PCS'])
+          return trace_set_match!(vs_name, claim, :ICD10PCS) if claim.surg_procedures.any? { |code| code_pattern.match?(code) }
         end
       end
 
       # Slow and rare
       if claim.icd_version == '9' # rubocop:disable Style/GuardClause
-        if (dx_codes = codes_by_system['ICD9CM'])
-          return trace_set_match!(vs_name, claim, :ICD9CM) if (dx_codes & claim.dx_codes).any?
+        if (code_pattern = codes_by_system['ICD9CM'])
+          return trace_set_match!(vs_name, claim, :ICD9CM) if claim.dx_codes.any? { |code| code_pattern.match?(code) }
         end
-        if (surg_procedures = codes_by_system['ICD9PCS'])
-          return trace_set_match!(vs_name, claim, :ICD9PCS) if (surg_procedures & claim.surgical_procedure_codes).any?
+        if (code_pattern = codes_by_system['ICD9PCS'])
+          return trace_set_match!(vs_name, claim, :ICD9PCS) if claim.surg_procedures.any? { |code| code_pattern.match?(code) }
         end
       end
     end
