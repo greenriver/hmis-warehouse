@@ -598,13 +598,13 @@ module PublicReports
       child_only_households
     end
 
+    # NOTE: Only valid for adult and child households
     private def average_household_size(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
           data = []
           with_service_in_quarter(report_scope, date, population).
-            where.not(household_id: nil).
-            joins(client: :processed_service_history).
+            where(household_id: adult_and_child_household_ids(date)).
             group(:household_id).
             select(:client_id).distinct.count.
             each do |_, count|
@@ -612,7 +612,7 @@ module PublicReports
             end
           data = [0] if data.empty?
           charts[date.iso8601] = {
-            data: (data.sum.to_f / data.count).round,
+            data: (data.sum.to_f / data.count).round(1),
             title: _('Average Household Size'),
             total: total_for(with_service_in_quarter(report_scope, date, population), population),
           }
