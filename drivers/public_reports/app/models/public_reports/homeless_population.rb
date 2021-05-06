@@ -118,7 +118,7 @@ module PublicReports
       @filter = filter_object
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
-      scope = filter_for_range(scope)
+      # scope = filter_for_range(scope) # all future queries limit this by date further, adding it here just makes it slower
       scope = filter_for_cocs(scope)
       scope = filter_for_project_type(scope)
       scope = filter_for_data_sources(scope)
@@ -339,8 +339,11 @@ module PublicReports
       # enforce that the clients have some homeless history within the
       # quarter in-question, but allow all of their appropriate history
       # to be included
-      homeless_scope = scope.where(client_id: scope.homeless.select(:client_id))
-      scope.where(id: homeless_scope)
+
+      # The next two lines seem duplicitous - testing
+      # homeless_scope = scope.where(client_id: scope.homeless.select(:client_id))
+      # scope.where(id: homeless_scope)
+      scope.where(client_id: scope.homeless.select(:client_id))
     end
 
     # NOTE: this count is equivalent to OutflowReport.exits_to_ph
@@ -483,7 +486,8 @@ module PublicReports
     end
 
     private def coc_codes
-      @coc_codes ||= report_scope.joins(project: :project_cocs).distinct.
+      scope = filter_for_range(report_scope)
+      @coc_codes ||= scope.joins(project: :project_cocs).distinct.
         pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
           override.presence || original
         end
@@ -587,21 +591,15 @@ module PublicReports
       child_only_households
     end
 
-    # NOTE: Only valid for adult and child households
+    # count of clients vs counts of heads of household (spec says one per household)
     private def average_household_size(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
-          data = []
-          with_service_in_quarter(report_scope, date, population).
-            where(household_id: adult_and_child_household_ids(date)).
-            group(:household_id).
-            select(:client_id).distinct.count.
-            each do |_, count|
-              data << count
-            end
-          data = [0] if data.empty?
+          clients = client_count_for_date(date, population, :homeless)
+          hohs = client_count_for_date(date, :hoh_from_adults_with_children, :homeless)
+
           charts[date.iso8601] = {
-            data: (data.sum.to_f / data.count).round(1),
+            data: (clients.to_f / hohs).round(1),
             title: _('Average Household Size'),
             total: total_for(with_service_in_quarter(report_scope, date, population), population),
           }
