@@ -364,10 +364,8 @@ class RollOut
       },
     }
 
-    if use_memory_analyzer
-      puts "[INFO] hard RAM limit: #{container_definition[:memory]}"
-      puts "[INFO] soft RAM limit: #{container_definition[:memory_reservation]}"
-    end
+    puts "[INFO] hard RAM limit: #{container_definition[:memory]}"
+    puts "[INFO] soft RAM limit: #{container_definition[:memory_reservation]}"
 
     if !command.nil?
       container_definition[:command] = command
