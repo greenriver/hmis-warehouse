@@ -1,0 +1,10 @@
+.well.warehouse-reports__completed.d-flex
+  .mr-2
+    %p This report was published on #{@report.published_at.to_date} with the following limits.
+    .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
+    %p
+      The report is publicly available.
+  .ml-auto
+    = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
+      = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
+      = f.submit 'Re-Publish', data: { confirm: @report.publish_warning }
