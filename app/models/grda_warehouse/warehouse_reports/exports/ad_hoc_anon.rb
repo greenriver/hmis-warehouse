@@ -37,7 +37,7 @@ module GrdaWarehouse::WarehouseReports::Exports
               client.gender,
               report_calculator.pregnancy_status_for(client),
               HUD.veteran_status(client.VeteranStatus),
-              yes_no(report_calculator.disabled_and_imparing?(client)),
+              yes_no(report_calculator.disabled_and_impairing?(client)),
               report_calculator.episode_length_for(client),
               report_calculator.average_episode_length_for(client),
               report_calculator.days_homeless(client),

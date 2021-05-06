@@ -1,4 +1,7 @@
-.m-4
+%hr
+.mt-4.mb-4
+  %h3 Choose Time Period
+  %p Select a quarter with the slider; this selection affects all charts below.
   - quarter_count = data.count - 1
   %fieldset.range__field
     %input.range.jQuarters#jQuarters{ type: :range, min: 0, max: data.count - 1, value: 0, step: 1, data: { dates: data, selected: data.first }, list: :quarters}

@@ -14,8 +14,13 @@ module PublicReports::WarehouseReports
       public_reports_warehouse_reports_pit_by_month_index_path
     end
 
-    private def path_to_report
-      public_reports_warehouse_reports_pit_by_month_path(@report)
+    private def path_to_report(report = nil)
+      report ||= @report
+      public_reports_warehouse_reports_pit_by_month_path(report)
+    end
+
+    private def path_to_edit(report)
+      edit_public_reports_warehouse_reports_pit_by_month_path(report)
     end
 
     private def report_source

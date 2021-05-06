@@ -7,7 +7,6 @@
 # NOTES about calculations
 # Where there may be more than one answer for a client, the most-recent enrollment or exit that falls
 # within the chosen date range
-
 module GrdaWarehouse::WarehouseReports::Exports
   class AdHoc < GrdaWarehouseBase
     self.table_name = :exports_ad_hocs
@@ -72,7 +71,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     def rows_for_export
       @rows_for_export ||= begin
         rows = []
-        client_scope.distinct.in_batches do |batch|
+        client_scope.distinct.in_batches(of: 100) do |batch|
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
           batch.find_each do |client|
             rows << [
@@ -85,7 +84,7 @@ module GrdaWarehouse::WarehouseReports::Exports
               client.gender,
               report_calculator.pregnancy_status_for(client),
               HUD.veteran_status(client.VeteranStatus),
-              yes_no(report_calculator.disabled_and_imparing?(client)),
+              yes_no(report_calculator.disabled_and_impairing?(client)),
               report_calculator.episode_length_for(client),
               report_calculator.average_episode_length_for(client),
               report_calculator.days_homeless(client),
