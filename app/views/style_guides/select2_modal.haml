@@ -52,10 +52,13 @@
             -# = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
 
             %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
-            = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, multiple: true}, label: 'Projects'
+            = f.input :huge_collection_options_multi_none, collection: [['Numbers', ['One', 'Two', 'Three']], ['Letters', ['A', 'B', 'C']]], as: :select_two, input_html: {multiple: true}, label: 'Projects'
 
-            -# %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
-            -# = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
+            -# %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
+            -# = f.input :test, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, multiple: true}, label: 'Projects'
+
+            %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
+            = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
           -# %h4 Password
           -# = f.input :password, as: :password, required: true, **validate_html
 
