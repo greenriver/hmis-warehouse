@@ -38,44 +38,44 @@
             %h3 Select 2 Inputs
             %hr
 
-            %h4= "Debug: #{:select_two.inspect}"
-            = f.input :debug, as: :select_two, label: 'Select Two', input_html: {id: 'yolo'}
+            -# %h4= "Debug: #{:select_two.inspect}"
+            -# = f.input :debug, as: :select_two, label: 'Select Two', input_html: {id: 'yolo', multiple: true}
 
-            %h4 Select 2 - Ajax load of Projects (select2)
-            = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}, label: 'Projects'
+            -# %h4 Select 2 - Ajax load of Projects (select2)
+            -# = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}, label: 'Projects'
 
-            %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
-            = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
+            -# %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
+            -# = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
 
-            - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).viewable_by(current_user).last.id
-            %h4 Select 2 - Ajax load of Options for Projects #{selected} pre-selected (warehouse)
-            = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
+            -# - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).viewable_by(current_user).last.id
+            -# %h4 Select 2 - Ajax load of Options for Projects #{selected} pre-selected (warehouse)
+            -# = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
 
             %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
             = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, multiple: true}, label: 'Projects'
 
-            %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
-            = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
-          %h4 Password
-          = f.input :password, as: :password, required: true, **validate_html
+            -# %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
+            -# = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
+          -# %h4 Password
+          -# = f.input :password, as: :password, required: true, **validate_html
 
-          %h4 Textarea Input
-          = f.input :textarea, as: :text, required: true, **validate_html
+          -# %h4 Textarea Input
+          -# = f.input :textarea, as: :text, required: true, **validate_html
 
-          %h4 Date picker Input
-          = f.input :date, as: :date_picker, value: '2010-04-25'
+          -# %h4 Date picker Input
+          -# = f.input :date, as: :date_picker, value: '2010-04-25'
 
-      .row
-        .col-12
-          %section
-            %h4 Submit
-            = f.submit value: 'Create', class: 'btn btn-primary'
-            = f.submit value: 'Cancel', class: 'btn btn-secondary'
-            = link_to root_path, class: 'btn btn-warning ml-1' do
-              %i.icon-warning
-              Breaking Change
-            = link_to root_path, class: 'btn btn-danger ml-1' do
-              %i.icon-cross
-              Delete (Destructive)
+      -# .row
+        -# .col-12
+          -# %section
+            -# %h4 Submit
+            -# = f.submit value: 'Create', class: 'btn btn-primary'
+            -# = f.submit value: 'Cancel', class: 'btn btn-secondary'
+            -# = link_to root_path, class: 'btn btn-warning ml-1' do
+            -#   %i.icon-warning
+            -#   Breaking Change
+            -# = link_to root_path, class: 'btn btn-danger ml-1' do
+            -#   %i.icon-cross
+            -#   Delete (Destructive)
 
           %section
