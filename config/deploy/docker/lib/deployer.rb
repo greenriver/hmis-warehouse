@@ -72,6 +72,11 @@ class Deployer
     roll_out.only_web!
   end
 
+  def check_ram!
+    _initial_steps
+    roll_out.check_ram!
+  end
+
   def run!
     _initial_steps
 

@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require_relative 'lib/command_args'
+require_relative 'lib/deployer'
+
+args = CommandArgs.new
+
+args.deployments.each do |deployment|
+  puts "Checking RAM for services in #{deployment[:target_group_name]}..."
+  Deployer.new(**deployment).check_ram!
+end
