@@ -1,34 +1,36 @@
-:scss
-  section,
-  h1 {
-    margin-bottom: 15px;
-  }
-  .intro {
-    border: 1px solid #CCC;
-    padding: 15px;
-    background: #f9f9f9;
-    margin-bottom: 30px;
-  }
-  h2 {
-    margin-bottom: 30px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #CCC;
-  }
-  h3 {
-    margin-bottom: 15px;
-    ~ pre {
-      margin-top: -10px;
-    }
-  }
-  section section {
-    margin-bottom: 100px;
-  }
+-# :scss
+-#   section,
+-#   h1 {
+-#     margin-bottom: 15px;
+-#   }
+-#   .intro {
+-#     border: 1px solid #CCC;
+-#     padding: 15px;
+-#     background: #f9f9f9;
+-#     margin-bottom: 30px;
+-#   }
+-#   h2 {
+-#     margin-bottom: 30px;
+-#     padding-bottom: 10px;
+-#     border-bottom: 1px solid #CCC;
+-#   }
+-#   h3 {
+-#     margin-bottom: 15px;
+-#     ~ pre {
+-#       margin-top: -10px;
+-#     }
+-#   }
+-#   section section {
+-#     margin-bottom: 100px;
+-#   }
 
 - validate_html = { input_html: {class: 'validate'}}
 - form_defaults = { required: false }
 - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
 - huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
-.container.py-4
+- stimulus_controller = 'multi-select'
+
+.container.py-4i{data: {controller: stimulus_controller}}
   %h1 Form
   = link_to('Select 2', select2_modal_style_guide_path, data: { loads_in_ajax_modal: true })
   %section
