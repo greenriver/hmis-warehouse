@@ -65,14 +65,14 @@ module Reporting::MonthlyReports
     end
 
     def self.available_months
-      Rails.cache.fetch([self.name, 'month-range'], expires_in: 24.hours) do
+      # Rails.cache.fetch([self.name, 'month-range'], expires_in: 24.hours) do
         distinct.
         order(year: :desc, month: :desc).
         pluck(:year, :month).map do |year, month|
           date = Date.new(year, month, 1)
-          [[year, month], date.strftime('%B %Y')]
+          [[year, month], date]
         end.to_h
-      end
+      # end
     end
 
     # NOTE: we can't truncate or clear all because we load the table in batches

@@ -1,7 +1,7 @@
 .ho-container
   %p
-    - if @organization_ids.any?
-      - GrdaWarehouse::Hud::Organization.where(id: @organization_ids).pluck(:OrganizationName).join(", ")
+    - if @filter.organization_ids.any?
+      - GrdaWarehouse::Hud::Organization.where(id: @filter.organization_ids).pluck(:OrganizationName).join(", ")
     - else
       All Organizations
   %p

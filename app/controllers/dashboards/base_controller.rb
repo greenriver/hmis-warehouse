@@ -19,13 +19,13 @@ module Dashboards
     before_action :set_project_and_organization_ids
     before_action :set_start_date
     before_action :set_end_date
-    before_action :set_limit_to_vispdat
     before_action :set_limit_to_heads_of_household
     before_action :set_age_ranges
     before_action :set_cocs
     before_action :set_gender
     before_action :set_ethnicity
     before_action :set_race
+    before_action :set_filter
 
     def index
       @report = active_report_class.new(
@@ -160,20 +160,20 @@ module Dashboards
     helper_method :can_see_client_details?
 
     def report_params
-      return {} if params[:choose_report].blank?
+      return {} if params[:filters].blank?
 
-      params.require(:choose_report).
+      params.require(:filters).
         permit(
-          :start_month,
-          :end_month,
+          :start,
+          :end,
           :limit_to_vispdat,
-          :heads_of_household,
+          :hoh_only,
           :race,
           :ethnicity,
           :gender,
           organization_ids: [],
           project_ids: [],
-          project_types: [],
+          project_type_codes: [],
           age_ranges: [],
           coc_codes: [],
         )
@@ -242,32 +242,12 @@ module Dashboards
 
     def set_project_types
       @project_type_codes = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys
-      return if params.try(:[], :choose_report).try(:[], :project_types).blank?
+      return if params.try(:[], :filters).try(:[], :project_type_codess).blank?
 
-      @project_type_codes = params.try(:[], :choose_report).try(:[], :project_types).
+      @project_type_codes = params.try(:[], :filters).try(:[], :project_type_codess).
         select(&:present?).
         map(&:to_sym).
         select { |m| m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys) }
-    end
-
-    def vispdat_limits
-      {
-        'All clients' => :all_clients,
-        'Only clients with VI-SPDATs' => :with_vispdat,
-        'Only clients without VI-SPDATs' => :without_vispdat,
-      }
-    end
-    helper_method :vispdat_limits
-
-    def set_limit_to_vispdat
-      # Whitelist values
-      @limit_to_vispdat = begin
-        vispdat_limits.values.detect do |v|
-          v == report_params[:limit_to_vispdat].to_sym
-        end
-      rescue StandardError
-        :all_clients
-      end
     end
 
     def set_limit_to_heads_of_household
@@ -292,6 +272,11 @@ module Dashboards
 
     def set_race
       @race = report_params[:race] if report_params[:race].present?
+    end
+
+    def set_filter
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id)
+      @filter.set_from_params(report_params) if report_params.present?
     end
 
     def support_filter
