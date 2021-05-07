@@ -1,8 +1,9 @@
 window.App.Form = window.App.Form || {}
 
 App.Form.SelectTwo = class SelectTwo {
-  constructor(props) {
-    console.log(props)
+  constructor(element, options) {
+    console.log(element)
+    console.log(options)
     console.log('App.Form.SelectTwo.constructor')
   }
   init() {

@@ -25,16 +25,16 @@
 -#   }
 
 - validate_html = { input_html: {class: 'validate'}}
-- form_defaults = { required: false }
 - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
 - huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
 - stimulus_controller = 'select-two'
+- form_defaults = { required: false }
 
 .container.py-4i
   %h1 Form
   = link_to('Select 2', select2_modal_style_guide_path, data: { loads_in_ajax_modal: true })
   %section
-    = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
+    = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults, data: {controller: stimulus_controller} do |f|
       .row
         .col-12
           %section.my-6.mb-8
@@ -45,7 +45,7 @@
             = f.input :huge_collection_options_multi_none, |
               collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), |
               as: :grouped_select, |
-              input_html: {multiple: true, data: {controller: stimulus_controller}}, |
+              input_html: {multiple: true}, |
               label: 'Projects', |
               group_method: :last
 
