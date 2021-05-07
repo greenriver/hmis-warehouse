@@ -73,7 +73,8 @@ class Deployer
   end
 
   def check_ram!
-    _initial_steps
+    _set_revision!
+    _set_image_tag!
     roll_out.check_ram!
   end
 
