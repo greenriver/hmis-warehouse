@@ -28,37 +28,26 @@
 - form_defaults = { required: false }
 - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
 - huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
-- stimulus_controller = 'multi-select'
+- stimulus_controller = 'select-two'
 
-.container.py-4i{data: {controller: stimulus_controller}}
+.container.py-4i
   %h1 Form
   = link_to('Select 2', select2_modal_style_guide_path, data: { loads_in_ajax_modal: true })
   %section
     = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
       .row
-        .col-6
+        .col-12
           %section.my-6.mb-8
             %h3 Select 2 Inputs
             %hr
 
-            -# %h4= "Debug: #{:select_two.inspect}"
-            -# = f.input :debug, as: :select_two, label: 'Select Two', input_html: {id: 'yolo', multiple: true}
-
-            -# %h4 Select 2 - Ajax load of Projects (select2)
-            -# = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}, label: 'Projects'
-
-            -# %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
-            -# = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
-
-            -# - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).viewable_by(current_user).last.id
-            -# %h4 Select 2 - Ajax load of Options for Projects #{selected} pre-selected (warehouse)
-            -# = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
-
-            -# %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
-            -# = f.input :huge_collection_options_multi_none, collection: [['Numbers', ['One', 'Two', 'Three']], ['Letters', ['A', 'B', 'C']]], as: :grouped_select, input_html: {multiple: true}, label: 'Projects', group_method: :first
-
             %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
-            = f.input :huge_collection_options_multi_none, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, input_html: {multiple: true}, label: 'Projects', group_method: :last
+            = f.input :huge_collection_options_multi_none, |
+              collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), |
+              as: :grouped_select, |
+              input_html: {multiple: true, data: {controller: stimulus_controller}}, |
+              label: 'Projects', |
+              group_method: :last
 
             = debug GrdaWarehouse::Hud::Project.options_for_select(user: current_user)
 

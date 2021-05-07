@@ -1,5 +1,14 @@
 window.App.Form = window.App.Form || {}
 
+App.Form.SelectTwo = class SelectTwo {
+  constructor(props) {
+    console.log(props)
+  }
+  init() {
+    console.log('Init')
+  }
+}
+
 App.Form.Select2Input = class Select2Input {
   constructor(element, options={}) {
     let field = null
