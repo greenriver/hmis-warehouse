@@ -15,33 +15,13 @@ module Dashboards
     before_action :available_months
     before_action :set_chosen_months
     before_action :set_report_months
-    before_action :set_project_types
-    before_action :set_project_and_organization_ids
-    before_action :set_start_date
-    before_action :set_end_date
-    before_action :set_limit_to_heads_of_household
-    before_action :set_age_ranges
-    before_action :set_cocs
-    before_action :set_gender
-    before_action :set_ethnicity
-    before_action :set_race
     before_action :set_filter
 
     def index
       @report = active_report_class.new(
         user: current_user,
         months: @report_months,
-        organization_ids: @organization_ids,
-        project_ids: @project_ids,
-        project_types: @project_type_codes,
-        filter: {
-          vispdat: @limit_to_vispdat,
-          heads_of_household: @heads_of_household,
-          age_ranges: @age_ranges,
-          gender: @gender,
-          ethnicity: @ethnicity,
-          race: @race,
-        },
+        filter: @filter,
       )
 
       respond_to do |format|
@@ -72,18 +52,7 @@ module Dashboards
       @report = active_report_class.new(
         user: current_user,
         months: @report_months,
-        organization_ids: @organization_ids,
-        project_ids: @project_ids,
-        project_types: @project_type_codes,
-        filter: {
-          vispdat: @limit_to_vispdat,
-          heads_of_household: @heads_of_household,
-          age_ranges: @age_ranges,
-          coc_codes: @coc_codes,
-          gender: @gender,
-          ethnicity: @ethnicity,
-          race: @race,
-        },
+        filter: @filter,
       )
       section = allowed_sections.detect do |m|
         m == params.require(:partial).underscore
@@ -168,9 +137,9 @@ module Dashboards
           :end,
           :limit_to_vispdat,
           :hoh_only,
-          :race,
-          :ethnicity,
-          :gender,
+          races: [],
+          ethnicities: [],
+          genders: [],
           organization_ids: [],
           project_ids: [],
           project_type_codes: [],
@@ -227,74 +196,13 @@ module Dashboards
                   end
     end
 
-    def set_project_and_organization_ids
-      @organization_ids = begin
-        report_params[:organization_ids].map(&:presence).compact.map(&:to_i)
-      rescue StandardError
-        []
-      end
-      @project_ids = begin
-        report_params[:project_ids].map(&:presence).compact.map(&:to_i)
-      rescue StandardError
-        []
-      end
-    end
-
-    def set_project_types
-      @project_type_codes = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys
-      return if params.try(:[], :filters).try(:[], :project_type_codess).blank?
-
-      @project_type_codes = params.try(:[], :filters).try(:[], :project_type_codess).
-        select(&:present?).
-        map(&:to_sym).
-        select { |m| m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys) }
-    end
-
-    def set_limit_to_heads_of_household
-      @heads_of_household = report_params[:heads_of_household].to_s == '1'
-    end
-
-    def set_age_ranges
-      @age_ranges = report_params[:age_ranges]&.reject(&:blank?)&.map(&:to_sym)
-    end
-
-    def set_cocs
-      @coc_codes = report_params[:coc_codes]&.reject(&:blank?)
-    end
-
-    def set_gender
-      @gender = report_params[:gender]&.to_i if report_params[:gender].present?
-    end
-
-    def set_ethnicity
-      @ethnicity = report_params[:ethnicity]&.to_i if report_params[:ethnicity].present?
-    end
-
-    def set_race
-      @race = report_params[:race] if report_params[:race].present?
-    end
-
     def set_filter
       @filter = ::Filters::FilterBase.new(user_id: current_user.id)
       @filter.set_from_params(report_params) if report_params.present?
     end
 
     def support_filter
-      {
-        sub_population: @report.sub_population,
-        start: @start_date,
-        end: @end_date,
-        project_type: @report.project_types,
-        project_ids: @project_ids,
-        organization_ids: @organization_ids,
-        project_type_codes: @project_type_codes,
-        age_ranges: @age_ranges,
-        heads_of_household: @heads_of_household,
-        coc_codes: @coc_codes,
-        gender: @gender,
-        race: @race,
-        ethnicity: @ethnicity,
-      }
+      @filter.for_params[:filters]
     end
     helper_method :support_filter
   end

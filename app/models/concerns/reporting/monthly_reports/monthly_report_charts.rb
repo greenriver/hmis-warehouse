@@ -7,7 +7,7 @@
 module Reporting::MonthlyReports::MonthlyReportCharts
   extend ActiveSupport::Concern
   included do
-    attr_accessor :organization_ids, :project_ids, :months, :project_types, :filter, :age_ranges, :gender, :race, :ethnicity, :user
+    attr_accessor :organization_ids, :project_ids, :months, :project_types, :filter, :age_ranges, :genders, :races, :ethnicities, :user
 
     # accepts an array of months in the format:
     # [[year, month], [year, month]]
@@ -73,7 +73,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
       project_type_codes = []
       project_types.each do |type|
-        project_type_codes += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.try(:[], type)
+        project_type_codes += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.try(:[], type.to_sym)
       end
       where(project_type: project_type_codes)
     end
@@ -88,18 +88,18 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       client_ids = warehouse_vispdat_client_ids
       client_ids += hmis_vispdat_client_ids
       client_scope = current_scope
-      if filter[:vispdat].presence == :without_vispdat
+      if filter.limit_to_vispdat.presence == :without_vispdat
         client_scope = client_scope.where.not(client_id: client_ids)
-      elsif filter[:vispdat].presence == :with_vispdat
+      elsif filter.limit_to_vispdat.presence == :with_vispdat
         client_scope = where(client_id: client_ids)
       end
 
-      client_scope = client_scope.heads_of_household if filter[:heads_of_household]
-      client_scope = client_scope.filter_for_age(filter[:age_ranges])
-      client_scope = client_scope.filter_for_coc_codes(filter[:coc_codes])
-      client_scope = client_scope.filter_for_race(filter[:race])
-      client_scope = client_scope.filter_for_ethnicity(filter[:ethnicity])
-      client_scope = client_scope.filter_for_gender(filter[:gender])
+      client_scope = client_scope.heads_of_household if filter.hoh_only
+      client_scope = client_scope.filter_for_age(filter.age_ranges)
+      client_scope = client_scope.filter_for_coc_codes(filter.coc_codes)
+      client_scope = client_scope.filter_for_race(filter.races)
+      client_scope = client_scope.filter_for_ethnicity(filter.ethnicities)
+      client_scope = client_scope.filter_for_gender(filter.genders)
 
       client_scope
     end
@@ -108,40 +108,75 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       return current_scope unless age_ranges&.compact.present?
 
       age_exists = r_monthly_t[:age_at_entry].not_eq(nil)
-      age_ors = []
-      age_ors << r_monthly_t[:age_at_entry].lt(18) if age_ranges.include?(:under_eighteen)
-      age_ors << r_monthly_t[:age_at_entry].gteq(18).and(r_monthly_t[:age_at_entry].lteq(24)) if age_ranges.include?(:eighteen_to_twenty_four)
-      age_ors << r_monthly_t[:age_at_entry].gteq(25).and(r_monthly_t[:age_at_entry].lteq(61)) if age_ranges.include?(:twenty_five_to_sixty_one)
-      age_ors << r_monthly_t[:age_at_entry].gt(61) if age_ranges.include?(:over_sixty_one)
 
-      accumulative = nil
-      age_ors.each do |age|
-        accumulative = if accumulative.present?
-          accumulative.or(age)
-        else
-          age
-        end
+      ages = []
+      ages += (0..17).to_a if age_ranges.include?(:under_eighteen)
+      ages += (18..24).to_a if age_ranges.include?(:eighteen_to_twenty_four)
+      ages += (25..29).to_a if age_ranges.include?(:twenty_five_to_twenty_nine)
+      ages += (30..39).to_a if age_ranges.include?(:thirty_to_thirty_nine)
+      ages += (40..49).to_a if age_ranges.include?(:forty_to_forty_nine)
+      ages += (50..59).to_a if age_ranges.include?(:fifty_to_fifty_nine)
+      ages += (60..61).to_a if age_ranges.include?(:sixty_to_sixty_one)
+      ages += (62..110).to_a if age_ranges.include?(:over_sixty_one)
+
+      current_scope.where(age_exists.and(r_monthly_t[:age_at_entry].in(ages)))
+    end
+
+    def self.filter_for_race(races)
+      return current_scope unless races&.present?
+
+      keys = races
+      race_scope = nil
+      race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if keys.include?('AmIndAKNative')
+      race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
+      race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
+      race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
+      race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
+      race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
+
+      # Include anyone who has more than one race listed, anded with any previous alternatives
+      race_scope ||= current_scope
+      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if keys.include?('MultiRacial')
+
+      current_scope.where(client_id: race_scope.pluck(:id))
+    end
+
+    def self.multi_racial_clients
+      # Looking at all races with responses of 1, where we have a sum > 1
+      columns = [
+        c_t[:AmIndAKNative],
+        c_t[:Asian],
+        c_t[:BlackAfAmerican],
+        c_t[:NativeHIOtherPacific],
+        c_t[:White],
+      ]
+      GrdaWarehouse::Hud::Client.
+        destination.
+        where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
+    end
+
+    def self.add_alternative(scope, alternative)
+      if scope.present?
+        scope.or(alternative)
+      else
+        alternative
       end
-
-      current_scope.where(age_exists.and(accumulative))
     end
 
-    def self.filter_for_race(race)
-      return current_scope unless race&.present? && HUD.races.keys.include?(race)
-
-      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(race => 1).pluck(:id))
+    def self.race_alternative(key)
+      GrdaWarehouse::Hud::Client.destination.where(key => 1)
     end
 
-    def self.filter_for_ethnicity(ethnicity)
-      return current_scope unless ethnicity&.present? && HUD.ethnicities.keys.include?(ethnicity)
+    def self.filter_for_ethnicity(ethnicities)
+      return current_scope unless ethnicities&.present?
 
-      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Ethnicity: ethnicity).pluck(:id))
+      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Ethnicity: ethnicities).pluck(:id))
     end
 
-    def self.filter_for_gender(gender)
-      return current_scope unless gender&.present? && HUD.genders.keys.include?(gender)
+    def self.filter_for_gender(genders)
+      return current_scope unless genders&.present?
 
-      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Gender: gender).pluck(:id))
+      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Gender: genders).pluck(:id))
     end
 
     # This needs to check project_id in the warehouse since we don't store this in the reporting DB
@@ -168,10 +203,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     private def cache_key_for_report
       [
         self.class.name,
-        organization_ids,
-        project_ids,
         months,
-        project_types,
         filter,
       ]
     end
@@ -184,9 +216,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       @clients_for_report ||= self.class.
         where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).
         in_months(months).
-        for_organizations(organization_ids).
-        for_projects(project_ids).
-        for_project_types(project_types).
+        for_organizations(filter.organization_ids).
+        for_projects(filter.project_ids).
+        for_project_types(filter.project_type_codes).
         filtered(filter)
     end
 
