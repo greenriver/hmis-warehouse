@@ -527,6 +527,51 @@ module ClaimsReporting
       rows
     end
 
+    private def in_set?(vs_name, claim)
+      codes_by_system = value_set_lookups.fetch(vs_name)
+
+      # TODO?: Can we use LOINC (labs) or CVX (vaccine) codes
+      # What about "Modifier"
+
+      # Check first because its very likely to match
+      procedure_codes = []
+      PROCEDURE_CODE_SYSTEMS.each do |code_system|
+        procedure_codes.concat codes_by_system[code_system] if codes_by_system[code_system]
+      end
+      return trace_set_match!(vs_name, claim, PROCEDURE_CODE_SYSTEMS) if procedure_codes.include?(claim.procedure_code)
+
+      # Check easy ones next
+      if (revenue_codes = codes_by_system['UBREV']).present?
+        return trace_set_match!(vs_name, claim, :UBREV) if revenue_codes.include?(claim.revenue_code)
+      end
+
+      # https://www.findacode.com/articles/type-of-bill-table-34325.html
+      if (bill_types = codes_by_system['UBTOB']).present?
+        return trace_set_match!(vs_name, claim, :UBTOB) if bill_types.include?(claim.type_of_bill)
+      end
+
+      if (place_of_service_codes = codes_by_system['POS'])
+        return trace_set_match!(vs_name, claim, :POS) if place_of_service_codes.include?(claim.place_of_service_code)
+      end
+
+      # Slower set intersection ones, current ICD version
+      if (code_pattern = codes_by_system['ICD10CM'])
+        return trace_set_match!(vs_name, claim, :ICD10CM) if claim.matches_icd10cm? code_pattern
+      end
+      if (code_pattern = codes_by_system['ICD10PCS'])
+        return trace_set_match!(vs_name, claim, :ICD10PCS) if claim.matches_icd10pcs? code_pattern
+      end
+
+      # Slow and rare
+      if (code_pattern = codes_by_system['ICD9CM'])
+        return trace_set_match!(vs_name, claim, :ICD9CM) if claim.matches_icd9cm? code_pattern
+      end
+
+      if (code_pattern = codes_by_system['ICD9PCS']) # rubocop:disable Style/GuardClause
+        return trace_set_match!(vs_name, claim, :ICD9PCS) if claim.matches_icd9pcs? code_pattern
+      end
+    end
+
     # efficiently loads, caches, returns
     # a 2-level lookup table: value_set_name -> code_system_name -> Set<codes> | RegExp
     def value_set_lookups
@@ -551,8 +596,13 @@ module ClaimsReporting
         lookup_table[vs_name] = {}
         code_system_data.each do |code_system, codes|
           if code_system.in? ['ICD10CM', 'ICD10PCS', 'ICD9CM', 'ICD10PCS']
-            codes = codes.map { |code| code.gsub('.', '') } # we dont generally have decimals in data
+            # we dont generally have decimals in data
+            codes = codes.map { |code| code.gsub('.', '') }
             lookup_table[vs_name][code_system] = Regexp.new "^(#{codes.join('|')})"
+          elsif code_system.in? ['UBTOB', 'UBREV']
+            # our claims data doesn't have leading zeros, it might in the future
+            codes = codes.flat_map { |code| [code, code.gsub('^0', '')] }
+            lookup_table[vs_name][code_system] = Set.new codes
           else
             lookup_table[vs_name][code_system] = Set.new codes
           end
@@ -823,54 +873,6 @@ module ClaimsReporting
         claim.procedure_code.in?(value_set_codes('Hospice', PROCEDURE_CODE_SYSTEMS)) ||
         claim.revenue_code.in?(value_set_codes('Hospice', REVENUE_CODE_SYSTEMS))
       )
-    end
-
-    private def in_set?(vs_name, claim)
-      codes_by_system = value_set_lookups.fetch(vs_name)
-
-      # TODO?: Can we use LOINC (labs) or CVX (vaccine) codes
-      # What about "Modifier"
-
-      # Check first because its very likely to match
-      procedure_codes = []
-      PROCEDURE_CODE_SYSTEMS.each do |code_system|
-        procedure_codes.concat codes_by_system[code_system] if codes_by_system[code_system]
-      end
-      return trace_set_match!(vs_name, claim, PROCEDURE_CODE_SYSTEMS) if procedure_codes.include?(claim.procedure_code)
-
-      # Check easy ones next
-      if (revenue_codes = codes_by_system['UBREV']).present?
-        return trace_set_match!(vs_name, claim, :UBREV) if revenue_codes.include?(claim.revenue_code)
-      end
-
-      # https://www.findacode.com/articles/type-of-bill-table-34325.html
-      if (bill_types = codes_by_system['UBTOB']).present?
-        return trace_set_match!(vs_name, claim, :UBTOB) if bill_types.include?(claim.type_of_bill)
-      end
-
-      if (place_of_service_codes = codes_by_system['POS'])
-        return trace_set_match!(vs_name, claim, :POS) if place_of_service_codes.include?(claim.place_of_service_code)
-      end
-
-      # Slower set intersection ones, current ICD version
-      if claim.icd_version == '10'
-        if (code_pattern = codes_by_system['ICD10CM'])
-          return trace_set_match!(vs_name, claim, :ICD10CM) if claim.dx_codes.any? { |code| code_pattern.match?(code) }
-        end
-        if (code_pattern = codes_by_system['ICD10PCS'])
-          return trace_set_match!(vs_name, claim, :ICD10PCS) if claim.surg_procedures.any? { |code| code_pattern.match?(code) }
-        end
-      end
-
-      # Slow and rare
-      if claim.icd_version == '9' # rubocop:disable Style/GuardClause
-        if (code_pattern = codes_by_system['ICD9CM'])
-          return trace_set_match!(vs_name, claim, :ICD9CM) if claim.dx_codes.any? { |code| code_pattern.match?(code) }
-        end
-        if (code_pattern = codes_by_system['ICD9PCS'])
-          return trace_set_match!(vs_name, claim, :ICD9PCS) if claim.surg_procedures.any? { |code| code_pattern.match?(code) }
-        end
-      end
     end
 
     private def trace_set_match!(vs_name, claim, code_type)

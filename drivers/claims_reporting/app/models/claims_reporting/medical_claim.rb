@@ -44,7 +44,7 @@ module ClaimsReporting
       # Tip: pg_trgm gist or gin index can make ~ operators fast
       # this will otherwise be slow!
       where <<~SQL.squish, pattern: pg_regexp_str
-        icd_version = '10' AND (
+        COALESCE(icd_version. '10') AND (
           dx_1 ~ :pattern
           OR dx_2 ~ :pattern
           OR dx_3 ~ :pattern
@@ -73,7 +73,7 @@ module ClaimsReporting
       # Tip: pg_trgm gist or gin index can make ~ operators fast
       # this will otherwise be slow!
       where <<~SQL.squish, pattern: pg_regexp_str
-        icd_version = '10' AND (
+        COALESCE(icd_version. '10') = '10' AND (
           surgical_procedure_code_1 ~ :pattern
           OR surgical_procedure_code_2 ~ :pattern
           OR surgical_procedure_code_3 ~ :pattern
@@ -81,6 +81,22 @@ module ClaimsReporting
           OR surgical_procedure_code_5 ~ :pattern
         )
       SQL
+    end
+
+    def matches_icd10cm?(regexp)
+      (icd_version || '10') == '10' && dx_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def matches_icd9cm?(regexp)
+      icd_version == '9' && dx_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def matches_icd10pcs?(regexp)
+      (icd_version || '10') == '10' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def matches_icd9pcs?(regexp)
+      icd_version == '9' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
     end
 
     # Calculates and updates the cumulative enrolled and engaged days as of each claims service_start_date.
@@ -216,6 +232,7 @@ module ClaimsReporting
     end
     memoize :dx_codes
 
+    # FIXME? Faster to avoid the casts which we don't happen to need?
     # def dx_codes2
     #   values = []
     #   [
