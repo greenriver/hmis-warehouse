@@ -106,7 +106,7 @@ module ClaimsReporting
         denominator: '',
       ),
       Measure.new(
-        id: :bh_cp_11,
+        id: :bh_cp_12,
         title: 'BH CP #12: Emergency Department Visits for Adults with Mental Illness, Addiction, or Co-occurring Conditions',
         desc: '',
         numerator: '',
@@ -527,7 +527,7 @@ module ClaimsReporting
       rows
     end
 
-    # efficently loads, caches, returns
+    # efficiently loads, caches, returns
     # a 2-level lookup table: value_set_name -> code_system_name -> Set<codes> | RegExp
     def value_set_lookups
       sets = VALUE_SETS.keys.map do |vs_name|

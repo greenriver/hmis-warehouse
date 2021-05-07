@@ -40,6 +40,49 @@ module ClaimsReporting
       where(claim_status: 'P')
     end
 
+    scope :matching_icd10cm, ->(pg_regexp_str) do
+      # Tip: pg_trgm gist or gin index can make ~ operators fast
+      # this will otherwise be slow!
+      where <<~SQL.squish, pattern: pg_regexp_str
+        icd_version = '10' AND (
+          dx_1 ~ :pattern
+          OR dx_2 ~ :pattern
+          OR dx_3 ~ :pattern
+          OR dx_4 ~ :pattern
+          OR dx_5 ~ :pattern
+          OR dx_6 ~ :pattern
+          OR dx_7 ~ :pattern
+          OR dx_8 ~ :pattern
+          OR dx_9 ~ :pattern
+          OR dx_10 ~ :pattern
+          OR dx_11 ~ :pattern
+          OR dx_12 ~ :pattern
+          OR dx_13 ~ :pattern
+          OR dx_14 ~ :pattern
+          OR dx_15 ~ :pattern
+          OR dx_16 ~ :pattern
+          OR dx_17 ~ :pattern
+          OR dx_18 ~ :pattern
+          OR dx_19 ~ :pattern
+          OR dx_20 ~ :pattern
+        )
+      SQL
+    end
+
+    scope :matching_icd10pcs, ->(pg_regexp_str) do
+      # Tip: pg_trgm gist or gin index can make ~ operators fast
+      # this will otherwise be slow!
+      where <<~SQL.squish, pattern: pg_regexp_str
+        icd_version = '10' AND (
+          surgical_procedure_code_1 ~ :pattern
+          OR surgical_procedure_code_2 ~ :pattern
+          OR surgical_procedure_code_3 ~ :pattern
+          OR surgical_procedure_code_4 ~ :pattern
+          OR surgical_procedure_code_5 ~ :pattern
+        )
+      SQL
+    end
+
     # Calculates and updates the cumulative enrolled and engaged days as of each claims service_start_date.
     #
     # These can go down if there are large gaps in enrollment. Temporary gaps just stop counting days as enrolled.
