@@ -12,4 +12,5 @@ App.select2.init = (root) =>
   #     options.placeholder = placeholder
 
   #   new App.Form.Select2Input this, options
+  options = {}
   new App.Form.SelectTwo this, options
