@@ -50,9 +50,9 @@ module OmniauthSupport
 
       # Notify existing users the first time OKTA is used
       # to sign into their account
-      if !user.new_record? && user.provder_set_at.blank?
+      if !user.new_record? && user.provider_set_at.blank?
         logger.info { "User#from_omniauth linking to pre-existing user. provider:#{user.provider} uid:#{user.uid} existing_user_id:#{user.id}" }
-        user.provder_set_at = Time.current
+        user.provider_set_at = Time.current
         ::ApplicationMailer.with(user: user).provider_linked.deliver_later
       end
       user.save(validate: false)
@@ -78,7 +78,7 @@ module OmniauthSupport
     assign_attributes(
       provider: nil,
       uid: nil,
-      provder_set_at: nil,
+      provider_set_at: nil,
     )
 
     if reactivate
