@@ -17,11 +17,6 @@ App.init = ->
     id = $(this).attr('id')
     checked = $(this).prop('checked')
     $('input.' + id).prop('checked', checked)
-  return true
-
-# TODO may also need to do on pjax_modal change
-$ ->
-  App.init()
   $('.datepicker.enable-on-load, .date_picker.enable-on-load')
     .prop('disabled', false)
     .datepicker()
@@ -44,3 +39,8 @@ $ ->
   # setup click copies
   $('body').on 'click', '.jClickToCopy', ->
     App.util.copyToClipboard $('div.tooltip:visible .pid')
+  return true
+
+# TODO may also need to do on pjax_modal change
+$ ->
+  App.init()
