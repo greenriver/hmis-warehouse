@@ -233,14 +233,17 @@ class MemoryAnalyzer
         })
       end
 
-      resp = get.call(60*60)
+      puts "[INFO][MEMORY_ANALYZER] Getting metrics"
+      resp = get.call(60*5)
 
       if resp.datapoints.length == 0
         puts "[INFO][MEMORY_ANALYZER] No cloudwatch data. We only have it for services anyway."
         return OpenStruct.new(sample_count: 0)
+      else
+        puts "[INFO][MEMORY_ANALYZER] Got #{resp.datapoints.length} datapoints"
       end
 
-      # This is an estimate, because we can only get a limit_mbed set of data
+      # This is an estimate, because we can only get a limited set of data
       vals = resp.datapoints.map(&:average)
       len = vals.length
       mean = vals.sum.to_f / len
