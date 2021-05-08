@@ -12,16 +12,11 @@ module Dashboards
 
     CACHE_EXPIRY = Rails.env.production? ? 8.hours : 20.seconds
 
-    before_action :available_months
-    before_action :set_chosen_months
-    before_action :set_report_months
-    before_action :set_filter
-
     def index
       @report = active_report_class.new(
         user: current_user,
         months: @report_months,
-        filter: @filter,
+        filter: filter,
       )
 
       respond_to do |format|
@@ -52,7 +47,7 @@ module Dashboards
       @report = active_report_class.new(
         user: current_user,
         months: @report_months,
-        filter: @filter,
+        filter: filter,
       )
       section = allowed_sections.detect do |m|
         m == params.require(:partial).underscore
@@ -129,7 +124,13 @@ module Dashboards
     helper_method :can_see_client_details?
 
     def report_params
-      return {} if params[:filters].blank?
+      if params[:filters].blank?
+        return {
+          start: default_start_date,
+          end: default_end_date,
+          project_type_codes: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES,
+        }
+      end
 
       params.require(:filters).
         permit(
@@ -153,56 +154,30 @@ module Dashboards
       @available_months ||= active_report_class.available_months
     end
 
-    # to_i.to_s to ensure end result is an integer
-    def set_chosen_months
-      @start_month = begin
-                       JSON.parse(report_params[:start_month]).map(&:to_i).to_s
-                     rescue StandardError
-                       [6.months.ago.year, 6.months.ago.month].to_s
-                     end
-      @end_month = begin
-                     JSON.parse(report_params[:end_month]).map(&:to_i).to_s
-                   rescue StandardError
-                     [1.months.ago.year, 1.months.ago.month].to_s
-                   end
+    def report_months
+      @report_months ||= available_months.select { |k| k.between?(filter.start, filter.end) }
     end
 
-    def set_report_months
-      all_months_array = @available_months.keys
-      start_index = all_months_array.index(JSON.parse(@start_month))
-      end_index = all_months_array.index(JSON.parse(@end_month)) || 0
-      @report_months = begin
-                         all_months_array[end_index..start_index]
-                       rescue StandardError
-                         []
-                       end
+    def default_end_date
+      # Last day of the previous month
+      available_months.first.prev_day
     end
 
-    def set_start_date
-      (year, month) = @report_months.last
-      @start_date = begin
-                      Date.new(year, month, 1)
-                    rescue StandardError
-                      Date.current
-                    end
+    def default_start_date
+      available_months.select { |k| k < default_end_date && k > default_end_date - 6.months }.min || default_end_date.beginning_of_month
     end
 
-    def set_end_date
-      (year, month) = @report_months.first
-      @end_date = begin
-                    Date.new(year, month, -1)
-                  rescue StandardError
-                    Date.current
-                  end
+    def filter
+      @filter ||= begin
+        f = ::Filters::FilterBase.new(user_id: current_user.id)
+        f.set_from_params(report_params)
+        f
+      end
     end
-
-    def set_filter
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id)
-      @filter.set_from_params(report_params) if report_params.present?
-    end
+    helper_method :filter
 
     def support_filter
-      @filter.for_params[:filters]
+      filter.for_params[:filters]
     end
     helper_method :support_filter
   end

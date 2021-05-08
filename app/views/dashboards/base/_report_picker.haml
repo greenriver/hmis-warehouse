@@ -1,30 +1,30 @@
 .ho-container
   .ho-container__header
     %h3.mt-0 Options
-  = simple_form_for @filter, as: :filters, url: request.env['PATH_INFO'], method: :get do |f|
+  = simple_form_for filter, as: :filters, url: request.env['PATH_INFO'], method: :get do |f|
     .row
       .col-4
         = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, as: :select_two, input_html: { multiple: true, class: 'jProjectTypes' }
       .col-4
-        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, class: 'jOrganizations'}, label: 'Organizations', required: false
+        = f.input :organization_ids, collection: filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, class: 'jOrganizations'}, label: 'Organizations', required: false
       .col-4
-        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, class: 'jProjects' }, label: 'Projects', required: false
+        = f.input :project_ids, collection: filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, class: 'jProjects' }, label: 'Projects', required: false
     .row
       - if GrdaWarehouse::Config.get(:show_vispdats_on_dashboards)
         .col-4
-          = f.input :limit_to_vispdat, collection: @filter.available_vispdat_limits, label: 'Limit Clients', as: :select_two, required: false
+          = f.input :limit_to_vispdat, collection: filter.available_vispdat_limits, label: 'Limit Clients', as: :select_two, required: false
       .col-4
-        = f.input :start, collection: @available_months.sort.reverse.map{ | k, v | [v.beginning_of_month, v.beginning_of_month]}, as: :select_two, required: false, label: 'Start date'
+        = f.input :start, collection: @available_months.sort.reverse.map(&:beginning_of_month), as: :select_two, required: false, label: 'Start date'
       .col-4
-        = f.input :end, collection: @available_months.sort.reverse.map{ | k, v | [v.end_of_month, v.end_of_month]}, as: :select_two, required: false, label: 'End date'
+        = f.input :end, collection: @available_months.sort.reverse.map(&:end_of_month), as: :select_two, required: false, label: 'End date'
     .row
       - if GrdaWarehouse::Config.get(:multi_coc_installation)
         .col-4
-          = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: { multiple: true, class: ['select2-id-when-selected'] }, label: 'CoC Limit', required: false
+          = f.input :coc_codes, collection: filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: { multiple: true, class: ['select2-id-when-selected'] }, label: 'CoC Limit', required: false
       .col-4
         = f.input :hoh_only, as: :boolean, label: 'Limit to heads of household'
       .col-4
-        = f.input :age_ranges, collection: @filter.available_age_ranges, as: :select_two, input_html: { multiple: true }, required: false
+        = f.input :age_ranges, collection: filter.available_age_ranges, as: :select_two, input_html: { multiple: true }, required: false
     .row
       .col-4
         = f.input :races, collection: HUD.races.invert, as: :select_two, required: false, include_blank: 'All Races', input_html: { multiple: true }

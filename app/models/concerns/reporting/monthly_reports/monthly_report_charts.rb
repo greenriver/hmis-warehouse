@@ -9,6 +9,8 @@ module Reporting::MonthlyReports::MonthlyReportCharts
   included do
     attr_accessor :organization_ids, :project_ids, :months, :project_types, :filter, :age_ranges, :genders, :races, :ethnicities, :user
 
+    EXPIRY = if Rails.env.development? then 30.seconds else 4.hours end
+
     # accepts an array of months in the format:
     # [[year, month], [year, month]]
     scope :in_months, ->(months) do
@@ -227,7 +229,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def enrolled_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         enrolled_clients.select(:client_id).distinct.count
       end
     end
@@ -238,7 +240,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     # Potentially this introduces errors since someone may actually be
     # The head of household in more than one household
     def enrolled_household_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         self.class.enrolled.in_months(months).
           where(household_id: enrolled_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
@@ -250,13 +252,13 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def active_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         active_clients.select(:client_id).distinct.count
       end
     end
 
     def active_household_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         self.class.enrolled.in_months(months).
           where(household_id: active_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
@@ -268,13 +270,13 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def entered_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         entered_clients.select(:client_id).distinct.count
       end
     end
 
     def entered_household_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         self.class.enrolled.in_months(months).
           where(household_id: entered_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
@@ -286,13 +288,13 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def exited_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         exited_clients.select(:client_id).distinct.count
       end
     end
 
     def exited_household_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         self.class.enrolled.in_months(months).
           where(household_id: exited_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
@@ -304,7 +306,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def first_time_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         first_time_clients.select(:client_id).distinct.count
       end
     end
@@ -314,7 +316,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def re_entry_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         re_entry_clients.select(:client_id).distinct.count
       end
     end
@@ -328,7 +330,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def census_by_project_type
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = Hash[homeless_project_type_ids.zip]
         counts = active_clients.group(:year, :month, :project_type).
           order(year: :asc, month: :asc).
@@ -344,7 +346,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def census_by_month
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = {}
         totals = active_clients.group(:year, :month).
           order(year: :asc, month: :asc).
@@ -368,7 +370,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def entry_re_entry_data
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = { new: [:New], returning: [:Returning] }
         new_entries = first_time_clients.group(:year, :month).
           order(year: :asc, month: :asc).
@@ -409,7 +411,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     # end
 
     def first_time_entry_locations
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = Hash[homeless_project_type_ids.zip]
         total_counts = first_time_clients.group(:year, :month).select(:client_id).distinct.count
         counts = first_time_clients.group(:year, :month, :project_type).
@@ -427,7 +429,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def re_entry_locations
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = Hash[homeless_project_type_ids.zip]
         total_counts = re_entry_clients.group(:year, :month).select(:client_id).distinct.count
         counts = re_entry_clients.group(:year, :month, :project_type).
@@ -448,7 +450,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def all_housed_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         all_housed_clients.select(:client_id).distinct.count
       end
     end
@@ -458,7 +460,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def housed_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         housed_clients.select(:client_id).distinct.count
       end
     end
@@ -474,7 +476,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def housed_by_month
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = { housed: [:Housed] }
         housed = housed_clients.group(:year, :month).
           order(year: :asc, month: :asc).
