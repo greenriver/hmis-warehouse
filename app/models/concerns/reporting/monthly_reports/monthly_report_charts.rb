@@ -7,20 +7,14 @@
 module Reporting::MonthlyReports::MonthlyReportCharts
   extend ActiveSupport::Concern
   included do
-    attr_accessor :organization_ids, :project_ids, :months, :project_types, :filter, :age_ranges, :genders, :races, :ethnicities, :user
+    attr_accessor :filter, :user
 
     EXPIRY = if Rails.env.development? then 30.seconds else 4.hours end
 
-    # accepts an array of months in the format:
-    # [[year, month], [year, month]]
-    scope :in_months, ->(months) do
-      return none unless months.present?
+    scope :in_months, ->(range) do
+      return none unless range.present?
 
-      months.sort_by! { |y, m| Date.new(y, m, 15) }
-      start_date = Date.new(months.first[0], months.first[1], 1)
-      end_date = Date.new(months.last[0], months.last[1], -1)
-
-      where(mid_month: start_date..end_date)
+      where(mid_month: range)
       # ors = months.map do |year, month|
       #   arel_table[:year].eq(year).and(arel_table[:month].eq(month)).to_sql
       # end
@@ -205,19 +199,14 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     private def cache_key_for_report
       [
         self.class.name,
-        months,
         filter,
       ]
-    end
-
-    def months_in_dates
-      @months_in_dates ||= months.map { |year, month| Date.new(year, month, 1) }
     end
 
     def clients_for_report
       @clients_for_report ||= self.class.
         where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).
-        in_months(months).
+        in_months(filter.range).
         for_organizations(filter.organization_ids).
         for_projects(filter.project_ids).
         for_project_types(filter.project_type_codes).
@@ -241,7 +230,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     # The head of household in more than one household
     def enrolled_household_count
       Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
-        self.class.enrolled.in_months(months).
+        self.class.enrolled.in_months(filter.range).
           where(household_id: enrolled_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
       end
@@ -259,7 +248,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def active_household_count
       Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
-        self.class.enrolled.in_months(months).
+        self.class.enrolled.in_months(filter.range).
           where(household_id: active_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
       end
@@ -277,7 +266,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def entered_household_count
       Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
-        self.class.enrolled.in_months(months).
+        self.class.enrolled.in_months(filter.range).
           where(household_id: entered_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
       end
@@ -295,7 +284,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def exited_household_count
       Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
-        self.class.enrolled.in_months(months).
+        self.class.enrolled.in_months(filter.range).
           where(household_id: exited_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
       end
@@ -362,7 +351,24 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def months_strings
-      months_in_dates.map { |m| m.strftime('%b %Y') }
+      @months_strings ||= [].tap do |months|
+        date = filter.start_date
+        while date < filter.end_date
+          months << date.strftime('%b %Y')
+          date += 1.months
+        end
+      end
+    end
+
+    # for backwards compatability provide months in format [[year, month]]
+    def months
+      @months ||= [].tap do |months|
+        date = filter.start_date
+        while date < filter.end_date
+          months << [date.year, date.month]
+          date += 1.months
+        end
+      end
     end
 
     def month_x_axis_labels

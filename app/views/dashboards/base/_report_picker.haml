@@ -14,9 +14,9 @@
         .col-4
           = f.input :limit_to_vispdat, collection: filter.available_vispdat_limits, label: 'Limit Clients', as: :select_two, required: false
       .col-4
-        = f.input :start, collection: @available_months.sort.reverse.map(&:beginning_of_month), as: :select_two, required: false, label: 'Start date'
+        = f.input :start, collection: @report.class.available_months.sort.reverse.map(&:beginning_of_month), as: :select_two, required: false, label: 'Start date'
       .col-4
-        = f.input :end, collection: @available_months.sort.reverse.map(&:end_of_month), as: :select_two, required: false, label: 'End date'
+        = f.input :end, collection: @report.class.available_months.sort.reverse.map(&:end_of_month), as: :select_two, required: false, label: 'End date'
     .row
       - if GrdaWarehouse::Config.get(:multi_coc_installation)
         .col-4

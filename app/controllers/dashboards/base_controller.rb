@@ -15,7 +15,6 @@ module Dashboards
     def index
       @report = active_report_class.new(
         user: current_user,
-        months: @report_months,
         filter: filter,
       )
 
@@ -46,7 +45,6 @@ module Dashboards
     def section
       @report = active_report_class.new(
         user: current_user,
-        months: @report_months,
         filter: filter,
       )
       section = allowed_sections.detect do |m|
@@ -154,22 +152,18 @@ module Dashboards
       @available_months ||= active_report_class.available_months
     end
 
-    def report_months
-      @report_months ||= available_months.select { |k| k.between?(filter.start, filter.end) }
-    end
-
     def default_end_date
       # Last day of the previous month
       available_months.first.prev_day
     end
 
     def default_start_date
-      available_months.select { |k| k < default_end_date && k > default_end_date - 6.months }.min || default_end_date.beginning_of_month
+      available_months.select { |k| k < default_end_date && k > default_end_date - 7.months }.min || default_end_date.beginning_of_month
     end
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new(user_id: current_user.id)
+        f = ::Filters::FilterBase.new(user_id: current_user.id, enforce_one_year_range: false)
         f.set_from_params(report_params)
         f
       end
