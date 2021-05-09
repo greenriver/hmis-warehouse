@@ -71,6 +71,33 @@
     p {
       font-size: .175in;
     }
+    .warehouse-reports__completed .parameter-label,
+    .warehouse-reports__chronic .parameter-label,
+    .warehouse-reports__disabled .parameter-label,
+    .warehouse-reports__active-veterans .parameter-label,
+    .warehouse-reports__parameters .parameter-label,
+    .reports .parameter-label
+    {
+      border-radius: 5px 0px 0px 5px;
+    }
+    .warehouse-reports__completed .parameter-value,
+    .warehouse-reports__chronic .parameter-value,
+    .warehouse-reports__disabled .parameter-value,
+    .warehouse-reports__active-veterans .parameter-value,
+    .warehouse-reports__parameters .parameter-value,
+    .reports .parameter-value
+    {
+      border-radius: 0px 5px 5px 0px;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+    .label-default {
+      background: $gray-030;
+    }
+
+    .label-primary {
+      background: $brand-primary-l;
+    }
   }
 
   .metric {
@@ -190,4 +217,3 @@
   }
 
 }
-

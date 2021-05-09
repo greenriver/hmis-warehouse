@@ -199,7 +199,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     private def cache_key_for_report
       [
         self.class.name,
-        filter,
+        filter.for_params,
       ]
     end
 

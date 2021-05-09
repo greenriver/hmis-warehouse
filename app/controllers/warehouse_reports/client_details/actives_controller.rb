@@ -27,26 +27,6 @@ module WarehouseReports::ClientDetails
       end
     end
 
-    private def filter_params
-      return {} unless params[:filter].present?
-
-      params.require(:filter).permit(
-        :start,
-        :end,
-        :sub_population,
-        :hoh_only,
-        :ph,
-        genders: [],
-        races: [],
-        ethnicities: [],
-        age_ranges: [],
-        organization_ids: [],
-        project_ids: [],
-        project_type_codes: [],
-        coc_codes: [],
-      )
-    end
-
     def service_history_columns
       {
         client_id: she_t[:client_id],
@@ -83,17 +63,17 @@ module WarehouseReports::ClientDetails
 
     def residential_service_history_source
       @project_types = @filter.project_type_ids
-      res_scope = history_scope(service_history_source.residential, @filter.sub_population)
-      res_scope = filter_for_project_type(res_scope)
-      res_scope = filter_for_organizations(res_scope)
-      res_scope = filter_for_projects(res_scope)
-      res_scope = filter_for_age(res_scope)
-      res_scope = filter_for_head_of_household(res_scope)
-      res_scope = filter_for_cocs(res_scope)
-      res_scope = filter_for_gender(res_scope)
-      res_scope = filter_for_race(res_scope)
-      res_scope = filter_for_ethnicity(res_scope)
-      res_scope
+      scope = history_scope(service_history_source.residential, @filter.sub_population)
+      scope = filter_for_project_type(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_projects(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_cocs(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
+      scope
     end
   end
 end
