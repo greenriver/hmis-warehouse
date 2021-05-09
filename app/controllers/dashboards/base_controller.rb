@@ -171,7 +171,7 @@ module Dashboards
     helper_method :filter
 
     def support_filter
-      filter.for_params[:filters]
+      filter.for_params[:filters].merge(sub_population: @report.sub_population)
     end
     helper_method :support_filter
   end

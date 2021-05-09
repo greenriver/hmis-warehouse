@@ -10,6 +10,7 @@ module WarehouseReports::ClientDetails
     include WarehouseReportAuthorization
     include SubpopulationHistoryScope
     include ClientDetailReports
+    include Filter::FilterScopes
 
     before_action :set_limited, only: [:index]
     before_action :set_filter
@@ -33,11 +34,11 @@ module WarehouseReports::ClientDetails
         :start,
         :end,
         :sub_population,
-        :heads_of_household,
+        :hoh_only,
         :ph,
-        :gender,
-        :race,
-        :ethnicity,
+        genders: [],
+        races: [],
+        ethnicities: [],
         age_ranges: [],
         organization_ids: [],
         project_ids: [],
@@ -81,13 +82,14 @@ module WarehouseReports::ClientDetails
     end
 
     def residential_service_history_source
+      @project_types = @filter.project_type_ids
       res_scope = history_scope(service_history_source.residential, @filter.sub_population)
-      res_scope = filter_for_project_types(res_scope)
+      res_scope = filter_for_project_type(res_scope)
       res_scope = filter_for_organizations(res_scope)
       res_scope = filter_for_projects(res_scope)
-      res_scope = filter_for_age_ranges(res_scope)
-      res_scope = filter_for_hoh(res_scope)
-      res_scope = filter_for_coc_codes(res_scope)
+      res_scope = filter_for_age(res_scope)
+      res_scope = filter_for_head_of_household(res_scope)
+      res_scope = filter_for_cocs(res_scope)
       res_scope = filter_for_gender(res_scope)
       res_scope = filter_for_race(res_scope)
       res_scope = filter_for_ethnicity(res_scope)
