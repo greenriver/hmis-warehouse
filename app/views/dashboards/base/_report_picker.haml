@@ -6,9 +6,9 @@
       .col-4
         = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, as: :select_two, input_html: { multiple: true, class: 'jProjectTypes' }
       .col-4
-        = f.input :organization_ids, collection: filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, class: 'jOrganizations'}, label: 'Organizations', required: false
+        = f.input :organization_ids, collection: filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, class: 'jOrganizations'}, label: 'Organizations', required: false, placeholder: 'Any Organization'
       .col-4
-        = f.input :project_ids, collection: filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, class: 'jProjects' }, label: 'Projects', required: false
+        = f.input :project_ids, collection: filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, class: 'jProjects' }, label: 'Projects', required: false, placeholder: 'Any Project'
     .row
       - if GrdaWarehouse::Config.get(:show_vispdats_on_dashboards)
         .col-4
@@ -27,11 +27,11 @@
         = f.input :age_ranges, collection: filter.available_age_ranges, as: :select_two, input_html: { multiple: true }, required: false
     .row
       .col-4
-        = f.input :races, collection: HUD.races.invert, as: :select_two, required: false, include_blank: 'All Races', input_html: { multiple: true }
+        = f.input :races, collection: HUD.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
       .col-4
-        = f.input :ethnicities, collection: HUD.ethnicities.invert, as: :select_two, required: false, include_blank: 'All Ethnicities', input_html: { multiple: true }
+        = f.input :ethnicities, collection: HUD.ethnicities.invert, as: :select_two, required: false, placeholder: 'All Ethnicities', input_html: { multiple: true }
       .col-4
-        = f.input :genders, collection: HUD.genders.invert, as: :select_two, required: false, include_blank: 'All Genders', input_html: { multiple: true }
+        = f.input :genders, collection: HUD.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }
     .w-20
       = f.button :submit, 'Update View'
 

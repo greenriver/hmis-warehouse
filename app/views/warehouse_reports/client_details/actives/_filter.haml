@@ -10,9 +10,9 @@
       .col-md-4
         = f.input :project_type_codes, collection: @filter.available_residential_project_types, placeholder: 'Any Project Type', as: :select_two, input_html: { multiple: true, class: 'jProjectTypes' }
       .col-md-4
-        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, class: 'jOrganizations'}, label: 'Organizations', required: false
+        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, class: 'jOrganizations'}, label: 'Organizations', required: false, placeholder: 'Any Organization'
       .col-md-4
-        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
+        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false, placeholder: 'Any Project'
     .row
       .col-md-4
         = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, as: :select_two
@@ -22,11 +22,11 @@
         = f.input :hoh_only, as: :boolean, label: 'Limit to Heads of Household?'
     .row
       .col-4
-        = f.input :races, collection: HUD.races.invert, as: :select_two, required: false, include_blank: 'All Races', input_html: { multiple: true}
+        = f.input :races, collection: HUD.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
       .col-4
-        = f.input :ethnicities, collection: HUD.ethnicities.invert, as: :select_two, required: false, include_blank: 'All Ethnicities', input_html: { multiple: true}
+        = f.input :ethnicities, collection: HUD.ethnicities.invert, as: :select_two, required: false, placeholder: 'All Ethnicities', input_html: { multiple: true }
       .col-4
-        = f.input :genders, collection: HUD.genders.invert, as: :select_two, required: false, include_blank: 'All Genders', input_html: { multiple: true}
+        = f.input :genders, collection: HUD.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }
 
   - content_for :form_js do
     = render 'warehouse_reports/new_range_js'
