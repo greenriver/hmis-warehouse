@@ -73,7 +73,7 @@ jobs:
            python \
            unzip \
            wkhtmltopdf \
-           pg_dump
+           postgresql-client
 
          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
          chmod 600 ~/.pgpass
