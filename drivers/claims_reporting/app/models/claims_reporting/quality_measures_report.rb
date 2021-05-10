@@ -172,10 +172,18 @@ module ClaimsReporting
 
     def serializable_hash
       measure_info = AVAILABLE_MEASURES.values.map do |m|
+        numerator, denominator = *send(m.id)
+        value = if denominator.present?
+          (numerator.to_f / denominator) unless denominator.zero?
+        else
+          numerator
+        end
         [m.id, {
           id: m.id,
           title: m.title,
-          value: measure_value(m.id, report_nils_as: nil),
+          numerator: numerator,
+          denominator: denominator,
+          value: value,
         }]
       end.to_h
 
@@ -185,14 +193,10 @@ module ClaimsReporting
         measures: measure_info,
       }
     end
+    memoize :serializable_hash
 
-    def measure_value(measure, report_nils_as: '-')
-      return report_nils_as unless measure.to_s.in?(AVAILABLE_MEASURES.keys.map(&:to_s)) && respond_to?(measure)
-
-      send(measure) || report_nils_as
-      # rescue StandardError => e
-      #   logger.error e.inspect
-      #   nil
+    def measure_value(measure)
+      serializable_hash[:measures][measure.to_sym]
     end
 
     # BH CP assigned enrollees 18 to 64 years of age as of December 31st of the measurement year.
@@ -596,7 +600,7 @@ module ClaimsReporting
         lookup_table[vs_name] = {}
         code_system_data.each do |code_system, codes|
           if code_system.in? ['ICD10CM', 'ICD10PCS', 'ICD9CM', 'ICD10PCS']
-            # we dont generally have decimals in data
+            # we don't generally have decimals in data
             codes = codes.map { |code| code.gsub('.', '') }
             lookup_table[vs_name][code_system] = Regexp.new "^(#{codes.join('|')})"
           elsif code_system.in? ['UBTOB', 'UBREV']
@@ -875,8 +879,8 @@ module ClaimsReporting
       )
     end
 
-    private def trace_set_match!(vs_name, claim, code_type)
-      puts "in_set? #{vs_name} matched #{code_type} for Claim#id=#{claim.id}"
+    private def trace_set_match!(_vs_name, _claim, _code_type)
+      # puts "in_set? #{vs_name} matched #{code_type} for Claim#id=#{claim.id}"
       true
     end
 
@@ -1273,8 +1277,8 @@ module ClaimsReporting
       percentage medical_claim_based_rows, :bh_cp_10
     end
 
-    def bh_cp_11
-      percentage medical_claim_based_rows, :bh_cp_11
+    def bh_cp_12
+      percentage medical_claim_based_rows, :bh_cp_12
     end
 
     def bh_cp_13

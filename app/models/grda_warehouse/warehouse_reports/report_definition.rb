@@ -855,16 +855,23 @@ module GrdaWarehouse::WarehouseReports
           health: true,
         }
         r_list['Health: BH CP Claims/Payments'] << {
-          url: 'claims_reporting/warehouse_reports/performance',
-          name: 'BH CP Performance',
-          description: 'Performance metrics based on paid MassHealth claims.',
+          url: 'claims_reporting/warehouse_reports/engagement_trends',
+          name: 'Patient Engagement Trends',
+          description: 'Engagement metrics by length of engagement',
           limitable: false,
           health: true,
         }
         r_list['Health: BH CP Claims/Payments'] << {
-          url: 'claims_reporting/warehouse_reports/engagement_trends',
-          name: 'Patient Engagement Trends',
-          description: 'Engagement metrics by length of engagement',
+          url: 'claims_reporting/warehouse_reports/quality_measures',
+          name: 'BH CP Quality Measures',
+          description: 'Community Partners (CP) Program Quality Measures',
+          limitable: false,
+          health: true,
+        }
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'claims_reporting/warehouse_reports/performance',
+          name: 'BH CP Performance',
+          description: 'Performance metrics based on paid MassHealth claims.',
           limitable: false,
           health: true,
         }
