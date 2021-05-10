@@ -33,8 +33,8 @@
 .container.py-4i
   %h1 Form
   = link_to('Select 2', select2_modal_style_guide_path, data: { loads_in_ajax_modal: true })
-  %section
-    = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults, data: {controller: stimulus_controller} do |f|
+  %section{data: {controller: stimulus_controller}}
+    = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
       .row
         .col-12
           %section.my-6.mb-8
@@ -45,7 +45,7 @@
             = f.input :huge_collection_options_multi_none, |
               collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), |
               as: :grouped_select, |
-              input_html: {multiple: true}, |
+              input_html: {multiple: true, data: {"#{stimulus_controller}-target" => 'yolo'}}, |
               label: 'Projects', |
               group_method: :last
 
