@@ -5001,6 +5001,96 @@ ALTER SEQUENCE public.fake_data_id_seq OWNED BY public.fake_data.id;
 
 
 --
+-- Name: federal_census_breakdowns; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.federal_census_breakdowns (
+    id bigint NOT NULL,
+    accurate_on date,
+    type character varying,
+    geography_level character varying,
+    geography character varying,
+    measure character varying,
+    value integer,
+    geo_id character varying,
+    race character varying,
+    gender character varying,
+    age_min integer,
+    age_max integer,
+    source character varying,
+    census_variable_name character varying
+);
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.accurate_on; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.accurate_on IS 'Most recent census date';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.geography_level; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.geography_level IS 'State, zip, CoC (or maybe 010, 040, 050)';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.geography; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.geography IS 'MA, 02101, MA-500';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.measure; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.measure IS 'Detail of race, age, etc. (Asian, 50-59...)';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.value; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.value IS 'count of population';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.source; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.source IS 'Source of data';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.census_variable_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.census_variable_name IS 'For debugging, variable name used in source';
+
+
+--
+-- Name: federal_census_breakdowns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.federal_census_breakdowns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: federal_census_breakdowns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.federal_census_breakdowns_id_seq OWNED BY public.federal_census_breakdowns.id;
+
+
+--
 -- Name: files; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -10632,7 +10722,8 @@ CREATE TABLE public.public_report_reports (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    precalculated_data text
+    precalculated_data text,
+    version_slug character varying
 );
 
 
@@ -10699,7 +10790,70 @@ CREATE TABLE public.public_report_settings (
     font_weight_0 character varying,
     font_weight_1 character varying,
     font_weight_2 character varying,
-    font_weight_3 character varying
+    font_weight_3 character varying,
+    gender_color_0 character varying,
+    gender_color_1 character varying,
+    gender_color_2 character varying,
+    gender_color_3 character varying,
+    gender_color_4 character varying,
+    gender_color_5 character varying,
+    gender_color_6 character varying,
+    gender_color_7 character varying,
+    gender_color_8 character varying,
+    age_color_0 character varying,
+    age_color_1 character varying,
+    age_color_2 character varying,
+    age_color_3 character varying,
+    age_color_4 character varying,
+    age_color_5 character varying,
+    age_color_6 character varying,
+    age_color_7 character varying,
+    age_color_8 character varying,
+    household_composition_color_0 character varying,
+    household_composition_color_1 character varying,
+    household_composition_color_2 character varying,
+    household_composition_color_3 character varying,
+    household_composition_color_4 character varying,
+    household_composition_color_5 character varying,
+    household_composition_color_6 character varying,
+    household_composition_color_7 character varying,
+    household_composition_color_8 character varying,
+    race_color_0 character varying,
+    race_color_1 character varying,
+    race_color_2 character varying,
+    race_color_3 character varying,
+    race_color_4 character varying,
+    race_color_5 character varying,
+    race_color_6 character varying,
+    race_color_7 character varying,
+    race_color_8 character varying,
+    time_color_0 character varying,
+    time_color_1 character varying,
+    time_color_2 character varying,
+    time_color_3 character varying,
+    time_color_4 character varying,
+    time_color_5 character varying,
+    time_color_6 character varying,
+    time_color_7 character varying,
+    time_color_8 character varying,
+    housing_type_color_0 character varying,
+    housing_type_color_1 character varying,
+    housing_type_color_2 character varying,
+    housing_type_color_3 character varying,
+    housing_type_color_4 character varying,
+    housing_type_color_5 character varying,
+    housing_type_color_6 character varying,
+    housing_type_color_7 character varying,
+    housing_type_color_8 character varying,
+    population_color_0 character varying,
+    population_color_1 character varying,
+    population_color_2 character varying,
+    population_color_3 character varying,
+    population_color_4 character varying,
+    population_color_5 character varying,
+    population_color_6 character varying,
+    population_color_7 character varying,
+    population_color_8 character varying
 );
 
 
@@ -14468,6 +14622,13 @@ ALTER TABLE ONLY public.fake_data ALTER COLUMN id SET DEFAULT nextval('public.fa
 
 
 --
+-- Name: federal_census_breakdowns id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.federal_census_breakdowns ALTER COLUMN id SET DEFAULT nextval('public.federal_census_breakdowns_id_seq'::regclass);
+
+
+--
 -- Name: files id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16079,6 +16240,14 @@ ALTER TABLE ONLY public.exports
 
 ALTER TABLE ONLY public.fake_data
     ADD CONSTRAINT fake_data_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: federal_census_breakdowns federal_census_breakdowns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.federal_census_breakdowns
+    ADD CONSTRAINT federal_census_breakdowns_pkey PRIMARY KEY (id);
 
 
 --
@@ -19894,6 +20063,13 @@ CREATE INDEX idx_earned_stage ON public."IncomeBenefits" USING btree ("Earned", 
 --
 
 CREATE INDEX idx_enrollment_ds_id_hh_id_p_id ON public."Enrollment" USING btree (data_source_id, "HouseholdID", "ProjectID");
+
+
+--
+-- Name: idx_fed_census_acc_on_geo_measure; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_fed_census_acc_on_geo_measure ON public.federal_census_breakdowns USING btree (accurate_on, geography, geography_level, measure);
 
 
 --
@@ -27705,6 +27881,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210305204708'),
 ('20210312200044'),
 ('20210325202706'),
-('20210330124825');
+('20210330124825'),
+('20210422191627'),
+('20210426165914'),
+('20210427184522'),
+('20210503165055');
 
 
