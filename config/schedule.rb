@@ -102,6 +102,9 @@ if ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' &
   every 1.day, at: '6:01 am' do
     rake "health:enrollments_and_eligibility"
   end
+  every 1.hour do
+    rake "health:hourly"
+  end
 end
 
 if ENV['GLACIER_NEEDS_BACKUP']=='true'

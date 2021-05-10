@@ -21,13 +21,11 @@ class Users::InvitationsController < Devise::InvitationsController
 
   # POST /resource/invitation
   def create
-    if creating_admin?
-      unless current_user.valid_password?(confirmation_params[:confirmation_password])
-        flash[:error] = 'User not updated. Incorrect password'
-        @user = User.new
-        render :confirm
-        return
-      end
+    if creating_admin? && current_user.confirm_password_for_admin_actions? && !current_user.valid_password?(confirmation_params[:confirmation_password])
+      flash[:error] = 'User not updated. Incorrect password'
+      @user = User.new
+      render :confirm
+      return
     end
 
     @user = User.with_deleted.find_by_email(invite_params[:email]).restore if User.with_deleted.find_by_email(invite_params[:email]).present?

@@ -12,7 +12,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def url
-      warehouse_reports_confidential_touch_point_exports_url(host: ENV.fetch('FQDN'))
+      warehouse_reports_confidential_touch_point_exports_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     # Convert the complex data structure to an array of arrays

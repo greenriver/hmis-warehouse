@@ -10,6 +10,11 @@ namespace :health do
     Importing::RunHealthImportJob.new.perform
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
     Health::Tasks::CalculateValidUnpayableQas.new.run!
+    Health::StatusDate.new.maintain
+  end
+
+  task hourly: [:environment, "log:info_to_stdout"] do
+    Health::SignableDocument.process_unfetched_signed_documents
   end
 
   desc "Enrollments and Eligibility"

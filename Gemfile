@@ -33,7 +33,7 @@ gem 'rgeo'
 gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 
-# gem 'active_record_distinct_on'
+gem 'active_record_distinct_on'
 gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
@@ -69,6 +69,10 @@ gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
+
+gem 'omniauth-oauth2'
+gem 'omniauth-rails_csrf_protection'
+
 gem 'pretender'
 gem 'rqrcode-rails3'
 gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
@@ -210,6 +214,7 @@ group :development do
   gem 'capistrano-rails', require: false
   gem 'rails-erd', require: false
   gem 'web-console'
+  gem 'aws-sdk-dynamodb', require: false
   # gem 'quiet_assets'
 
   gem 'list_matcher', require: false # for the forms:desmush rake task
@@ -254,3 +259,5 @@ end
 group :production, :development, :staging do
   gem 'tiny_tds'
 end
+
+gem "business_time", "~> 0.10.0"

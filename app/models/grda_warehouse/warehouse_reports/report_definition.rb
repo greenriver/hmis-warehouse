@@ -722,6 +722,13 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
           {
+            url: 'warehouse_reports/health_emergency/vaccinations',
+            name: 'Vaccinations',
+            description: 'Review vaccinations.',
+            limitable: false,
+            health: false,
+          },
+          {
             url: 'warehouse_reports/health_emergency/medical_restrictions',
             name: 'Active Medical Restrictions',
             description: 'List active medical restrictions.',
@@ -739,8 +746,8 @@ module GrdaWarehouse::WarehouseReports
         'Exports' => [
           {
             url: 'warehouse_reports/hmis_exports',
-            name: 'HUD HMIS Exports',
-            description: 'Export data in the HUD standard format.',
+            name: 'HUD HMIS CSV Exports',
+            description: 'Export data in the HUD standard CSV format.',
             limitable: true,
             health: false,
           },
@@ -854,6 +861,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: true,
         }
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'claims_reporting/warehouse_reports/engagement_trends',
+          name: 'Patient Engagement Trends',
+          description: 'Engagement metrics by length of engagement',
+          limitable: false,
+          health: true,
+        }
       end
       if RailsDrivers.loaded.include?(:project_pass_fail)
         r_list['Data Quality'] << {
@@ -964,6 +978,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: false,
             health: false,
           }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/homeless_populations',
+            name: 'Public Homeless Populations Report Generator',
+            description: 'Use this to review and publish the homeless population report for public consumption.',
+            limitable: false,
+            health: false,
+          }
         end
       end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
@@ -1045,6 +1066,7 @@ module GrdaWarehouse::WarehouseReports
       unless RailsDrivers.loaded.include?(:claims_reporting)
         cleanup << 'claims_reporting/warehouse_reports/reconciliation'
         cleanup << 'claims_reporting/warehouse_reports/performance'
+        cleanup << 'claims_reporting/warehouse_reports/engagement_trends'
       end
       cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
       cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
@@ -1060,6 +1082,7 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'public_reports/warehouse_reports/number_housed'
         cleanup << 'public_reports/warehouse_reports/homeless_count'
         cleanup << 'public_reports/warehouse_reports/homeless_count_comparison'
+        cleanup << 'public_reports/warehouse_reports/homeless_populations'
       end
       cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
       cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)

@@ -29,19 +29,19 @@ module GrdaWarehouse::Tasks
       remove_unused_warehouse_clients_processed
       GrdaWarehouseBase.transaction do
         @clients = find_unused_destination_clients
-        debug_log "Found #{@clients.size} unused destination clients"
+        log "Found #{@clients.size} unused destination clients"
         remove_unused_service_history
         invalidate_incorrect_family_enrollments
         if @clients.any?
-          debug_log 'Deleting service history'
+          log 'Deleting service history'
           clean_service_history
-          debug_log 'Deleting warehouse clients processed'
+          log 'Deleting warehouse clients processed'
           clean_warehouse_clients_processed
-          debug_log 'Deleting warehouse clients'
+          log 'Deleting warehouse clients'
           clean_warehouse_clients
-          debug_log 'Deleting hmis clients'
+          log 'Deleting hmis clients'
           clean_hmis_clients
-          debug_log 'Soft-deleting destination clients'
+          log 'Soft-deleting destination clients'
           clean_destination_clients
         end
       end
@@ -84,7 +84,7 @@ module GrdaWarehouse::Tasks
           row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:project_id]}_#{row[:enrollment_id]}")
         end
       end
-      @notifier.ping "Found #{incorrect_households.count} Heads of Household with at least two duplicate HouseholdIDs"
+      log "Found #{incorrect_households.count} Heads of Household with at least two duplicate HouseholdIDs"
       to_update = 0
 
       # Fix all individual enrollments
@@ -109,9 +109,9 @@ module GrdaWarehouse::Tasks
         end
       end
       if @dry_run
-        @notifier.ping "Not updating #{to_update} enrollments (dry-run)"
+        log "Not updating #{to_update} enrollments (dry-run)"
       else
-        @notifier.ping "Updated #{to_update} enrollments with incorrect HouseholdIDs"
+        log "Updated #{to_update} enrollments with incorrect HouseholdIDs"
       end
     end
 
@@ -191,7 +191,7 @@ module GrdaWarehouse::Tasks
       return if @dry_run
 
       adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new
-      debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
+      log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
       adder.run!
       adder.class.wait_for_processing
     end
@@ -217,7 +217,7 @@ module GrdaWarehouse::Tasks
         select(:id)
       without_enrollments = all_clients.pluck(:id) - with_enrollments.pluck(:id)
       deleted_at = DateTime.current
-      debug_log "Setting DateDeleted for #{without_enrollments.count} clients"
+      log "Setting DateDeleted for #{without_enrollments.count} clients"
       return if @dry_run
 
       without_enrollments.each_slice(500) do |batch|
@@ -232,7 +232,7 @@ module GrdaWarehouse::Tasks
     end
 
     def invalidate_incorrect_family_enrollments
-      debug_log "Checking for enrollments flagged as individual where they should be family"
+      log "Checking for enrollments flagged as individual where they should be family"
       if GrdaWarehouse::Config.get(:infer_family_from_household_id)
         invalidate_incorrect_family_when_infer_from_household_id
       else
@@ -241,7 +241,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def invalidate_incorrect_family_when_infer_from_project
-      debug_log "Checking for enrollments flagged as individual where they should be family"
+      log "Checking for enrollments flagged as individual where they should be family"
       query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
         merge(
           GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -250,13 +250,13 @@ module GrdaWarehouse::Tasks
             ).where(presented_as_individual: true)
         )
       count = query.count
-      debug_log "Found #{count}"
+      log "Found #{count}"
 
       if count.positive?
-        @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if @send_notifications
+        log "Invalidating #{count} enrollments marked as individual where they should be family"
         query.invalidate_processing! unless @dry_run
       end
-      debug_log "Checking for enrollments flagged as family where they should be individual"
+      log "Checking for enrollments flagged as family where they should be individual"
       query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
         merge(
           GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -265,10 +265,10 @@ module GrdaWarehouse::Tasks
             ).where(presented_as_individual: false)
         )
       count = query.count
-      debug_log "Found #{count}"
+      log "Found #{count}"
       return unless count.positive?
 
-      @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
+      log("Invalidating #{count} enrollments marked as family where they should be individual")
       query.invalidate_processing! unless @dry_run
     end
 
@@ -281,9 +281,9 @@ module GrdaWarehouse::Tasks
       incorrectly_non_individuals = hmis_non_individuals - service_history_non_individuals
 
       count = missing_non_individuals.count
-      @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if count.positive? && @send_notifications
+      log("Invalidating #{count} enrollments marked as individual where they should be family")  if count.positive?
       count = incorrectly_non_individuals.count
-      @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if count.positive? && @send_notifications
+      log("Invalidating #{count} enrollments marked as family where they should be individual")  if count.positive?
       notes = ''
 
       # These are incorrect on the service history side
@@ -325,7 +325,7 @@ module GrdaWarehouse::Tasks
       end
 
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
-      @notifier.ping notes if @dry_run && @send_notifications
+      log(notes) if @dry_run
     end
 
     # NOTE: Deprecated/ removed from nightly process
@@ -340,7 +340,7 @@ module GrdaWarehouse::Tasks
       un_enrolled_clients = all_clients - enrolled_clients
       if un_enrolled_clients.any?
         deleted_at = Time.now
-        debug_log "Removing #{un_enrolled_clients.size} un enrolled source clients and associated records.  Setting DateDeleted: #{deleted_at}"
+        log "Removing #{un_enrolled_clients.size} un enrolled source clients and associated records.  Setting DateDeleted: #{deleted_at}"
         if ! @dry_run
           GrdaWarehouse::WarehouseClient.where(source_id: un_enrolled_clients).update_all(deleted_at: deleted_at)
           hud_classes = [
@@ -453,7 +453,7 @@ module GrdaWarehouse::Tasks
       known_values = [0, 1, 2, 3, 4]
       known_value_gender_clients = source_clients.select{|sc| known_values.include?(sc[:Gender])}
       if !known_values.include?(dest_attr[:Gender]) || known_value_gender_clients.any?
-        known_value_gender_clients = source_clients if known_value_gender_clients.none? #if none have known values we consider them all in the sort test
+        known_value_gender_clients = source_clients if known_value_gender_clients.none? # if none have known values we consider them all in the sort test
         dest_attr[:Gender] = known_value_gender_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:Gender]
       end
       dest_attr
@@ -546,7 +546,7 @@ module GrdaWarehouse::Tasks
       }
       munge_clients = clients_to_munge
       client_source = GrdaWarehouse::Hud::Client
-      logger.info "Munging #{munge_clients.size} clients"
+      log "Munging #{munge_clients.size} clients"
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
         batch.each do |dest_id|
@@ -561,7 +561,7 @@ module GrdaWarehouse::Tasks
 
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
-            logger.info "Invalidating service history for #{dest.id}"
+            logger.debug "Invalidating service history for #{dest.id}"
             dest.invalidate_service_history unless @dry_run
           end
           # We can speed this up if we want later.  If there's only one source client and the
@@ -574,7 +574,7 @@ module GrdaWarehouse::Tasks
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0
         end
         processed += batch_size
-        logger.info "Updated demographics for #{processed} destination clients"
+        logger.debug "Updated demographics for #{processed} destination clients"
       end
       if @debug
         logger.debug '=========== Changed Counts ============'
@@ -609,7 +609,7 @@ module GrdaWarehouse::Tasks
     end
 
     def clients_to_munge
-      debug_log "Check any client who's source has been updated in the past week"
+      log "Check any client who's source has been updated in the past week"
       wc_t = GrdaWarehouse::WarehouseClient.arel_table
       updated_client_ids = GrdaWarehouse::Hud::Client.source.where(c_t[:DateUpdated].gt(@changed_client_date)).select(:id).pluck(:id)
       @to_update = GrdaWarehouse::WarehouseClientsProcessed.service_history.
@@ -617,12 +617,13 @@ module GrdaWarehouse::Tasks
         where(wc_t[:source_id].in(updated_client_ids)).
         distinct.
         pluck(:client_id)
-      logger.info "...found #{@to_update.size}."
+      log "...found #{@to_update.size}."
       @to_update
     end
 
-    def debug_log message
-      logger.info message if @debug
+    def log message
+      Rails.logger.info(message)
+      @notifier.ping(message) if @send_notifications
     end
 
     # Sometimes client merging doesn't do a very good job of cleaning up
@@ -637,7 +638,7 @@ module GrdaWarehouse::Tasks
         #   @notifier.ping "Found #{non_existant_client_ids.size} clients in the service history table with no corresponding destination client. \nRefusing to remove so many service_history records.  The current threshold is *#{@max_allowed}* clients. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{non_existant_client_ids.size}]` after you determine there isn't a bug." if @send_notifications
         #   return
         # end
-        debug_log "Removing service history for #{non_existant_client_ids.count} clients who no longer have client records"
+        log "Removing service history for #{non_existant_client_ids.count} clients who no longer have client records"
         if ! @dry_run
           service_history_source.where(client_id: non_existant_client_ids).delete_all
         end
@@ -652,7 +653,7 @@ module GrdaWarehouse::Tasks
       #   @clients = []
       #   return
       # end
-      logger.info "Deleting Service History for #{@clients.size} clients comprising #{sh_size} records"
+      log "Deleting Service History for #{@clients.size} clients comprising #{sh_size} records"
       if ! @dry_run
         service_history_source.where(client_id: @clients).delete_all
       end
@@ -692,11 +693,11 @@ module GrdaWarehouse::Tasks
       return unless @clients.any?
       return if @dry_run
 
-      GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: @soft_delete_date)
+      GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: @soft_delete_date, source_hash: nil)
     end
 
     def fix_incorrect_ages_in_service_history
-      logger.info "Finding any clients with incorrect ages in the last 3 years of service history and invalidating them."
+      log "Finding any clients with incorrect ages in the last 3 years of service history and invalidating them."
       incorrect_age_clients = Set.new
       less_than_zero = Set.new
       invalidate_clients = Set.new
@@ -717,8 +718,7 @@ module GrdaWarehouse::Tasks
       end
       msg =  "Invalidating #{incorrect_age_clients.size} clients because ages don't match the service history."
       msg +=  " Of the #{incorrect_age_clients.size} clients found, #{less_than_zero.size} have ages in at least one enrollment where they are less than 0." if less_than_zero.size.positive?
-      logger.info msg
-      @notifier.ping msg if @send_notifications
+      log msg
       # Only invalidate clients if the age is wrong, if it's less than zero but hasn't changed, this is just wasted effort
       if ! @dry_run
         GrdaWarehouse::Hud::Client.where(id: invalidate_clients.to_a).
@@ -727,14 +727,14 @@ module GrdaWarehouse::Tasks
     end
 
     def add_missing_ages_to_service_history
-      logger.info "Finding any clients with DOBs with service histories missing ages..."
+      log "Finding any clients with DOBs with service histories missing ages..."
       with_dob = GrdaWarehouse::Hud::Client.destination.where.not(DOB: nil).pluck(:id)
       without_dob = service_history_source.where.not(record_type: 'first').
         where(age: nil).select(:client_id).distinct.pluck(:client_id)
       to_fix = with_dob & without_dob
-      logger.info "... found #{to_fix.size}"
+      log "... found #{to_fix.size}"
       if to_fix.size > 100
-        @notifier.ping "Found #{to_fix.size} clients with dates of birth and service histories missing those dates.  This should not be happening.  \n\nLogical reasons include: a new import brought along a client DOB where we didn't have one before, but also had changes to enrollment, exit or services." if @send_notifications
+        log "Found #{to_fix.size} clients with dates of birth and service histories missing those dates.  This should not be happening.  \n\nLogical reasons include: a new import brought along a client DOB where we didn't have one before, but also had changes to enrollment, exit or services."
       end
       if ! @dry_run
         to_fix.each do |client_id|

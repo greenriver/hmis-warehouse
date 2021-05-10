@@ -18,6 +18,12 @@ class Users::SessionsController < Devise::SessionsController
     end
   end
 
+  def destroy
+    request.env['last_user'] = current_user
+
+    super
+  end
+
   # configure auto_session_timeout
   def active
     respond_to do |format|

@@ -41,7 +41,7 @@
             - columns_to_skip = @cohorts_for_unconfirmed.count
             %tr
               %td.pl-2
-                = link_to_if can_view_clients_or_window?, client.full_name, appropriate_client_path(client)
+                = link_to_if can_view_clients?, client.full_name, appropriate_client_path(client)
               %td.text-center
                 - if current_user.can_confirm_housing_release?
                   - if client.active_in_cas?

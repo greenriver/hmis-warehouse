@@ -48,6 +48,26 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  private def resource_name
+    :user
+  end
+  helper_method :resource_name
+
+  private def resource_class
+    User
+  end
+  helper_method :resource_class
+
+  def resource
+    @user = User.new
+  end
+  helper_method :resource
+
+  def devise_mapping
+    @devise_mapping ||= Devise.mappings[:user]
+  end
+  helper_method :devise_mapping
+
   # Send any exceptions on production to slack
   def set_notification
     request.env['exception_notifier.exception_data'] = { 'server' => request.env['SERVER_NAME'] }
@@ -161,6 +181,15 @@ class ApplicationController < ActionController::Base
       last_url
     else
       current_user.my_root_path
+    end
+  end
+
+  def after_sign_out_path_for(_scope)
+    if (user = request.env['last_user'])
+      url = user.idp_signout_url(post_logout_redirect_uri: root_url)
+      return url if url.present?
+    else
+      root_url
     end
   end
 

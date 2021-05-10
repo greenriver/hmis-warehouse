@@ -242,12 +242,14 @@ module ReportGenerators::Pit::Fy2018
     def add_chronic_answers
       HOMELESS_SUB_BREAKDOWNS.each do |k, _|
         family_households = filter_households_by_makeup(project_type: k, household_type: :family, households: households)
-        clients_in_families = family_households.values.flatten.map{|m| m[:client_id]}
         chronic_in_project_type = chronic_client_ids & client_ids_in_project_type(project_type: k)
-        chronic_clients_in_families = chronic_in_project_type & clients_in_families
+        # all clients in any family where someone is chronic, are considered chronic
+        # https://files.hudexchange.info/resources/documents/PIT-Count-Methodology-Guide.pdf
+        clients_in_chronic_families = family_households.values.select { |family| family.select { |c| c[:client_id].in?(chronic_in_project_type)}.any? }
+        client_ids_in_chronic_families = clients_in_chronic_families.flatten.map { |c| c[:client_id] }
 
         # All
-        chronic_individuals = chronic_in_project_type - chronic_clients_in_families
+        chronic_individuals = chronic_in_project_type - client_ids_in_chronic_families
         chronic_households = family_households.select do |_, members|
           chronic = false
           members.each do |m|
@@ -271,7 +273,7 @@ module ReportGenerators::Pit::Fy2018
         youth_clients = youth_households.values.flatten.map{|m| m[:client_id]}
 
         chronic_youth_individuals = chronic_individuals & youth_clients
-        chronic_youth_in_families = chronic_clients_in_families & youth_clients
+        chronic_youth_in_families = client_ids_in_chronic_families & youth_clients
         chronic_youth_households = youth_households.select do |_, members|
           chronic = false
           members.each do |m|
@@ -282,7 +284,7 @@ module ReportGenerators::Pit::Fy2018
 
         # Vets
         chronic_veteran_individuals = chronic_individuals & veteran_client_ids
-        chronic_veterans_in_families = chronic_clients_in_families & veteran_client_ids
+        chronic_veterans_in_families = client_ids_in_chronic_families & veteran_client_ids
         veteran_chronic_households = chronic_households.select do |_, members|
           veteran = false
           members.each do |m|
@@ -293,10 +295,10 @@ module ReportGenerators::Pit::Fy2018
 
         # Family
         if k.in?(HOMELESS_BREAKDOWNS)
-          @answers[:homeless][:family][:chronically_homeless_persons][k] = chronic_clients_in_families.size
+          @answers[:homeless][:family][:chronically_homeless_persons][k] = client_ids_in_chronic_families.size
           @support[:homeless][:family][:chronically_homeless_persons][k] = {
             headers: ['Client ID'],
-            counts: chronic_clients_in_families.map{|m| [m]}
+            counts: client_ids_in_chronic_families.map{|m| [m]}
           }
           @answers[:homeless][:family][:chronically_homeless_households][k] = chronic_households.size
         end

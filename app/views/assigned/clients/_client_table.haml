@@ -2,7 +2,7 @@
   .clients__list
     - clients.each do |user_client|
       - client = user_client.client
-      - window_link = client.window_link_for?(current_user)
+      - window_link = client.appropriate_path_for?(current_user)
       - show_window_link = window_link.present?
       - if ( akas = client_aliases client ).empty?
         - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)

@@ -22,7 +22,7 @@ module GrdaWarehouse::YouthIntake
     has_many :youth_follow_ups, through: :client
     has_many :case_managements, through: :client
 
-    after_save :create_required_follow_up!
+    # after_save :create_required_follow_up!
     after_save :update_destination_client
 
     scope :visible_by?, ->(user) do

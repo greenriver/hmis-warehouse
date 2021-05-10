@@ -22,18 +22,7 @@ module PublicReports
     end
 
     def url
-      public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'))
-    end
-
-    def generate_publish_url
-      # TODO: This is the standard S3 public access, it will need to be updated
-      # when moved to CloudFront
-      if ENV['S3_PUBLIC_URL'].present?
-        "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
-      else
-        # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
-        "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}/index.html"
-      end
+      public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     def run_and_save!
@@ -78,8 +67,7 @@ module PublicReports
     end
 
     private def client_count_for_date(date)
-      report_scope.joins(:service_history_services).
-        where(shs_t[:date].eq(date)).
+      report_scope.service_on_date(date).
         select(:client_id).
         distinct.count
     end

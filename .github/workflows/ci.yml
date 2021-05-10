@@ -22,7 +22,7 @@ jobs:
    # Service containers to run with job
    services:
      postgres:
-       image: kartoza/postgis:12.1
+       image: postgis/postgis:12-2.5-alpine
        env:
          POSTGRES_PASSWORD: postgres
          POSTGRES_USER: postgres
@@ -101,7 +101,7 @@ jobs:
 
      - name: Run bundle-audit
        run: |
-         bundle exec bundle-audit check --update --ignore CVE-2019-16676 CVE-2017-1002201
+         bundle exec bundle-audit check --update --ignore CVE-2015-9284 CVE-2019-16676 CVE-2017-1002201
 
      - name: Run brakeman
        run: |

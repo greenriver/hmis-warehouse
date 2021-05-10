@@ -18,7 +18,6 @@ module UserPermissions
         :can_see_raw_hmis_data,
         :can_receive_secure_files,
         :can_assign_or_view_users_to_clients,
-        :can_view_clients_or_window,
         :can_view_or_search_clients_or_window,
         :can_view_enrollment_details_tab,
         :can_access_some_client_search,
@@ -44,7 +43,6 @@ module UserPermissions
         :can_manage_an_agency,
         :can_view_hud_reports,
         :can_access_some_cohorts,
-        :can_access_client_search,
         :can_access_window_search,
         :can_delete_projects_or_data_sources,
       ].freeze
@@ -71,20 +69,12 @@ module UserPermissions
       can_assign_users_to_clients? || can_view_client_user_assignments?
     end
 
-    def can_view_clients_or_window
-      can_edit_clients? || can_view_client_window? || can_view_clients? || can_see_clients_in_window_for_assigned_data_sources? || can_view_clients_with_roi_in_own_coc?
-    end
-
     def can_view_or_search_clients_or_window
-      can_view_clients_or_window? || can_search_window?
+      can_view_clients? || can_search_window?
     end
 
     def can_view_enrollment_details_tab
-      can_edit_clients? || ((can_view_client_window? || can_view_clients? || can_see_clients_in_window_for_assigned_data_sources? || can_view_clients_with_roi_in_own_coc?) && can_view_enrollment_details?)
-    end
-
-    def can_access_client_search
-      can_edit_clients? || can_view_clients?
+      can_view_clients? && can_view_enrollment_details?
     end
 
     def can_access_window_search
@@ -172,7 +162,7 @@ module UserPermissions
     end
 
     def can_access_some_version_of_clients
-      can_view_client_window? || can_view_clients? || can_edit_clients?
+      can_view_clients? || can_edit_clients?
     end
 
     def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicateName

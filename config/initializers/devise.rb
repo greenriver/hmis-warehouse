@@ -130,7 +130,7 @@ Devise.setup do |config|
 
   # The key to be used to check existing users when sending an invitation
   # and the regexp used to test it when validate_on_invite is not set.
-  config.invite_key = {:email => nil}
+  config.invite_key = { email: nil }
   # config.invite_key = {:email => /\A[^@]+@[^@]+\z/, :username => nil}
 
   # Flag that force a record to be valid before being actually invited
@@ -359,10 +359,8 @@ Devise.setup do |config|
 
   # How many passwords to keep in archive
   is_password_reuse_an_integer = ENV['PASSWORD_REUSE_LIMIT'].to_i.to_s == ENV['PASSWORD_REUSE_LIMIT']
-  limit_password_reuse =  is_password_reuse_an_integer || ENV['PASSWORD_REUSE_LIMIT'] == 'true'
-  if limit_password_reuse
-    config.password_archiving_count = 50
-  end
+  limit_password_reuse = is_password_reuse_an_integer || ENV['PASSWORD_REUSE_LIMIT'] == 'true'
+  config.password_archiving_count = 50 if limit_password_reuse
 
   # Deny old passwords (true, false, number_of_old_passwords_to_check)
   # Examples:
@@ -402,4 +400,44 @@ Devise.setup do |config|
   # Time period for account expiry from last_activity_at
   expire_after = ENV.fetch('ACCOUNT_EXPIRATION_DAYS') { 180 }.to_i
   config.expire_after = expire_after.days
+
+  if ENV['OKTA_DOMAIN'].present?
+    require 'omni_auth/strategies/custom_okta'
+
+
+    # Uncomment to allow sign in via OKTA with a simple GET request. See CVE-2015-9284
+    # on reasons why you dont want that
+    # OmniAuth.config.allowed_request_methods = [:post, :get]
+
+    domain = ENV.fetch('OKTA_DOMAIN')
+    auth_server = ENV.fetch('OKTA_AUTH_SERVER') { 'default' }
+
+    puts "OKTA: SSO enabled domain=#{domain}"
+
+    connection_build_callback = if Rails.env.development?
+      puts 'OKTA: WARNING: request logging enabled'
+
+      ->(builder) do
+        builder.request :url_encoded
+        builder.response :logger, Rails.logger, { headers: true, bodies: true, log_level: :debug }
+        builder.adapter Faraday.default_adapter
+      end
+    end
+
+    config.omniauth(
+      :okta,
+      ENV.fetch('OKTA_CLIENT_ID'),
+      ENV.fetch('OKTA_CLIENT_SECRET'),
+      strategy_class: OmniAuth::Strategies::CustomOkta,
+      scope: 'openid profile email phone',
+      fields: ['profile', 'email', 'phone'],
+      client_options: {
+        site: "https://#{domain}",
+        authorize_url: "https://#{domain}/oauth2/#{auth_server}/v1/authorize",
+        token_url: "https://#{domain}/oauth2/#{auth_server}/v1/token",
+        user_info_url: "https://#{domain}/oauth2/#{auth_server}/v1/userinfo",
+        connection_build: connection_build_callback,
+      },
+    )
+  end
 end

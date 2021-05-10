@@ -5,7 +5,7 @@
 ###
 
 class WeatherController < ApplicationController
-  before_action :require_can_view_census_details!
+  before_action :require_can_view_clients!
 
   # curl -H "token:WjCpqkWTiuxShTcPopqjOlhINzdBeOfG" https://www.ncdc.noaa.gov/cdo-web/api/v2/locations/ZIP:02108?datasetid=GHCND&startdate=2010-10-01&enddate=2010-10-01
   def index

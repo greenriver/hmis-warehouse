@@ -22,7 +22,7 @@ jobs:
    # Service containers to run with job
    services:
      postgres:
-       image: kartoza/postgis:12.1
+       image: postgis/postgis:12-2.5-alpine
        env:
          POSTGRES_PASSWORD: postgres
          POSTGRES_USER: postgres
@@ -182,4 +182,5 @@ jobs:
          WAREHOUSE_DATABASE_USER: postgres
          WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
        run: |
+         OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
          bundle exec rspec --color --format p -P "{spec,drivers}/**/*_spec.rb"

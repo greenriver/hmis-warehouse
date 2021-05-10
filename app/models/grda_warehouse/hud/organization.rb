@@ -141,6 +141,8 @@ module GrdaWarehouse::Hud
               #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              AND
+              #{data_source_table}.#{qc.(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
             WHERE
               #{organization_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
         )
@@ -197,7 +199,15 @@ module GrdaWarehouse::Hud
         csv << headers
 
         scope.each do |i|
-          csv << attributes.map{ |attr| i.send(attr) }
+          csv << attributes.map do |attr|
+            v = i.send(attr)
+            if v.is_a? Date
+              v = v.strftime("%Y-%m-%d")
+            elsif v.is_a? Time
+              v = v.to_formatted_s(:db)
+            end
+            v
+          end
         end
       end
     end

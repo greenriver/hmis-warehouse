@@ -9,7 +9,7 @@ module ServiceScanning
     include AjaxModalRails::Controller
     include ClientController
     include ClientPathGenerator
-    before_action :require_can_view_client_window!
+    before_action :require_can_view_clients!
     before_action :require_can_use_service_register!
 
     def index
@@ -294,7 +294,7 @@ module ServiceScanning
     # should always return a destination client, but some visibility
     # is governed by the source client, some by the destination
     private def client_scope(id: nil)
-      client_source.client_source.destination_client_viewable_by_user(client_id: id, user: current_user)
+      client_source.destination_visible_to(current_user).where(id: id)
     end
 
     private def client_search_scope

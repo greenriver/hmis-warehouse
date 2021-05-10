@@ -32,7 +32,7 @@ module GrdaWarehouse::HealthEmergency
     end
 
     def url
-      warehouse_reports_health_emergency_uploaded_results_url(host: ENV.fetch('FQDN'))
+      warehouse_reports_health_emergency_uploaded_results_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     scope :newest_first, -> do

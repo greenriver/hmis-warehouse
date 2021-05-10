@@ -99,12 +99,29 @@ module GrdaWarehouse::Hud
           csv << attributes.map do |attr|
             attr = attr.to_s
             # we need to grab the appropriate id from the related project
-            if attr.include?('.')
+            v = if attr.include?('.')
               obj, meth = attr.split('.')
               i.send(obj).send(meth)
             else
-              i.send(attr)
+              if attr == 'CoCCode' && i.hud_coc_code.present?
+                i.hud_coc_code
+              elsif attr == 'GeographyType' && i.geography_type_override.present?
+                i.geography_type_override
+              elsif attr == 'Geocode' && i.geocode_override.present?
+                i.geocode_override
+              elsif attr == 'Zip' && i.zip_override.present?
+                i.zip_override
+              else
+                i.send(attr)
+              end
             end
+
+            if v.is_a? Date
+              v = v.strftime("%Y-%m-%d")
+            elsif v.is_a? Time
+              v = v.to_formatted_s(:db)
+            end
+            v
           end
         end
       end

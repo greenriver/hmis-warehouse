@@ -204,6 +204,7 @@ module ClaimsReporting
         results: results,
         successful: true,
       )
+      run_post_import_hook
       results
     rescue Interrupt
       record_complete(successful: false, status_message: 'Aborted')
@@ -211,6 +212,12 @@ module ClaimsReporting
     rescue StandardError => e
       record_complete(successful: false, status_message: e.message)
       raise
+    end
+
+    private def run_post_import_hook
+      ClaimsReporting::MemberEnrollmentRoster.maintain_engagement!
+      ClaimsReporting::MemberEnrollmentRoster.maintain_first_claim_date!
+      ClaimsReporting::MedicalClaim.maintain_engaged_days!
     end
 
     private def record_start(method_name, method_args, source_url)

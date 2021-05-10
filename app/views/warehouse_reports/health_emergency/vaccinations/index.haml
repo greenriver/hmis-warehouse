@@ -1,0 +1,9 @@
+- title = "#{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} Vaccinations"
+- content_for :title, title
+%h1= title
+%p Determine who was vaccinated and present during the chosen date range.
+= render '/warehouse_reports/breadcrumbs', tab: 'health-emergency'
+
+= render 'warehouse_reports/health_emergency/filter'
+
+= render 'table'

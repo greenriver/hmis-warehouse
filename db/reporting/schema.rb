@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_20_192228) do
+ActiveRecord::Schema.define(version: 2021_04_05_180920) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -214,6 +214,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "age_at_housed_date"
     t.integer "age_at_housing_exit"
     t.boolean "head_of_household", default: false
+    t.string "hmis_project_id"
     t.index ["client_id"], name: "index_warehouse_houseds_on_client_id"
     t.index ["housed_date"], name: "index_warehouse_houseds_on_housed_date"
     t.index ["housing_exit"], name: "index_warehouse_houseds_on_housing_exit"
@@ -520,6 +521,10 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.date "start_date"
     t.date "end_date"
     t.integer "length_of_stay"
+    t.integer "gender"
+    t.string "race"
+    t.string "ethnicity"
+    t.string "hmis_project_id"
     t.index ["client_id"], name: "index_warehouse_returns_on_client_id"
     t.index ["first_date_in_program"], name: "index_warehouse_returns_on_first_date_in_program"
     t.index ["project_type"], name: "index_warehouse_returns_on_project_type"

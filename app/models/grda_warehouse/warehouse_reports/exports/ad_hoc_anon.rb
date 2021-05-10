@@ -13,7 +13,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     self.table_name = :exports_ad_hoc_anons
 
     def url
-      warehouse_reports_ad_hoc_anon_analysis_index_url(host: ENV.fetch('FQDN'))
+      warehouse_reports_ad_hoc_anon_analysis_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     # Don't limit by user visibility, end results are de-identified
@@ -37,7 +37,7 @@ module GrdaWarehouse::WarehouseReports::Exports
               client.gender,
               report_calculator.pregnancy_status_for(client),
               HUD.veteran_status(client.VeteranStatus),
-              yes_no(report_calculator.disabled_and_imparing?(client)),
+              yes_no(report_calculator.disabled_and_impairing?(client)),
               report_calculator.episode_length_for(client),
               report_calculator.average_episode_length_for(client),
               report_calculator.days_homeless(client),

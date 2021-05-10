@@ -41,7 +41,9 @@
             %tr.anomaly-current
               - unless readonly
                 %td{colspan: 3}
-                  = f.input :description, label: 'Updates?', as: :text, input_html: {rows: 8, value: '', placeholder: 'Provide any updates here.'}
+                  - hint = ''
+                  - hint = GrdaWarehouse::Anomaly.reminder_text if GrdaWarehouse::Anomaly.reminder_text_translated?
+                  = f.input :description, label: 'Updates?', as: :text, hint: hint, input_html: {rows: 8, value: '', placeholder: 'Provide any updates here.'}
                 %td
                   = f.input :status, collection: anomaly.class.available_stati.invert, label: 'New status', include_blank: false, as: :select_two, input_html: {id: "anomaly_status_#{f.object.id}"}
                 %td= f.submit class: 'btn btn-secondary mt-no-label', value: 'Update'

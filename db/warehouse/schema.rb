@@ -5418,6 +5418,7 @@ ActiveRecord::Schema.define(version: 2021_05_07_180809) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.text "precalculated_data"
+    t.string "version_slug"
     t.index ["created_at"], name: "index_public_report_reports_on_created_at"
     t.index ["updated_at"], name: "index_public_report_reports_on_updated_at"
     t.index ["user_id"], name: "index_public_report_reports_on_user_id"

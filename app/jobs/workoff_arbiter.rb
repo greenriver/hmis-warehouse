@@ -29,7 +29,9 @@ class WorkoffArbiter
   AGE_SCALE = 300.0
 
   # How many workoff workers can we have in total
-  MAX_WORKOFF_WORKERS = 10
+  # Once the memory analyzer is fully in production, we could track this in
+  # dynamodb and make it different for each installation.
+  MAX_WORKOFF_WORKERS = 6
 
   # This is the abstraction that provides EC2 instances as needed to run the
   # workoff job
@@ -60,11 +62,14 @@ class WorkoffArbiter
     }
 
     ecs.run_task(payload)
-
-    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
+    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.pluck(:id).count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
   end
 
   private
+
+  def _queue_length
+    _dj_scope.except(:select).count
+  end
 
   def _current_worker_count
     payload = {
@@ -120,9 +125,8 @@ class WorkoffArbiter
       where(failed_at: nil, locked_at: nil, locked_by: nil)
   end
 
-
   def _task_family
-    _task_definition.split(%r{/}).last.split(/:/).first
+    _task_definition.split(/\//).last.split(/:/).first
   end
 
   def _task_definition

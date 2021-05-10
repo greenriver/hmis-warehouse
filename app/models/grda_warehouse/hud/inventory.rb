@@ -85,21 +85,27 @@ module GrdaWarehouse::Hud
           csv << attributes.map do |attr|
             attr = attr.to_s
             # we need to grab the appropriate id from the related project
-            if attr.include?('.')
+            v = if attr.include?('.')
               obj, meth = attr.split('.')
               i.send(obj).send(meth)
             # These items are numeric and should not be null, assume 0 if empty
             elsif ['HMISParticipatingBeds', 'BedInventory', 'UnitInventory'].include? attr
               i.send(attr).presence || 0
+            elsif attr == 'CoCCode' && i.coc_code_override.present?
+              i.coc_code_override
+            elsif attr == 'InventoryStartDate' && i.inventory_start_date_override.present?
+              i.inventory_start_date_override
+            elsif attr == 'InventoryEndDate' && i.inventory_end_date_override.present?
+              i.inventory_end_date_override
             else
-              v = i.send(attr)
-              if v.is_a? Date
-                v = v.strftime("%Y-%m-%d")
-              elsif v.is_a? Time
-                v = v.to_formatted_s(:db)
-              end
-              v
+              i.send(attr)
             end
+            if v.is_a? Date
+              v = v.strftime("%Y-%m-%d")
+            elsif v.is_a? Time
+              v = v.to_formatted_s(:db)
+            end
+            v
           end
         end
       end

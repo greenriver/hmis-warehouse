@@ -558,7 +558,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def follow_up_from_homelessness
-      follow_occured_during_range.initial_action_homeless
+      follow_occured_during_range.initial_action_housed
     end
 
     def follow_up_two_a

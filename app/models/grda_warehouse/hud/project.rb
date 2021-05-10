@@ -447,6 +447,8 @@ module GrdaWarehouse::Hud
               #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              AND
+              #{data_source_table}.#{qc.(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
             WHERE
               #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
         )
@@ -471,6 +473,8 @@ module GrdaWarehouse::Hud
               #{project_coc_table}.#{qc[:ProjectID]}      = pt.#{qc[:ProjectID]}
               AND
               #{project_coc_table}.#{qc[:data_source_id]} = pt.#{qc[:data_source_id]}
+              AND
+              #{project_coc_table}.#{qc.(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
             WHERE
               (
                 (
@@ -495,18 +499,18 @@ module GrdaWarehouse::Hud
 
     # make a scope for every project type and a type? method for instances
     RESIDENTIAL_PROJECT_TYPES.each do |k,v|
-      scope k, -> { where(self.project_type_column => v) }
+      scope k, -> { where(project_type_column => v) }
       define_method "#{k}?" do
         v.include? project_type_to_use
       end
     end
 
-    scope :rrh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:rrh]) }
+    scope :rrh, -> { where(project_type_column => PERFORMANCE_REPORTING[:rrh]) }
     def rrh?
       project_type_to_use.in?(PERFORMANCE_REPORTING[:rrh])
     end
 
-    scope :psh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:psh]) }
+    scope :psh, -> { where(project_type_column => PERFORMANCE_REPORTING[:psh]) }
     def psh?
       project_type_to_use.in?(PERFORMANCE_REPORTING[:psh])
     end
@@ -528,7 +532,7 @@ module GrdaWarehouse::Hud
     def project_type_overridden_as_ph?
       @psh_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
       ! @psh_types.include?(self.ProjectType) &&
-        @psh_types.include?(self.compute_project_type)
+        @psh_types.include?(compute_project_type)
     end
 
     alias_attribute :name, :ProjectName
@@ -559,12 +563,13 @@ module GrdaWarehouse::Hud
     end
 
     def confidential_name?
-      self.confidential? || /healthcare/i.match(self.ProjectName).present?
+      confidential? || /healthcare/i.match(self.ProjectName).present?
     end
 
     def organization_and_name(include_confidential_names: false)
       project_name = name(include_confidential_names: include_confidential_names, include_project_type: true)
       return "#{organization&.OrganizationName} / #{project_name}" if include_confidential_names
+
       "#{organization&.OrganizationName} / #{project_name}" unless confidential_name?
 
       project_name
@@ -585,11 +590,12 @@ module GrdaWarehouse::Hud
     # Some Street outreach are counted like bed-night shelters, others aren't yet
     def street_outreach_and_acts_as_bednight?
       return false unless so?
-      @answer ||= GrdaWarehouse::Hud::Project.where(id: id)
-        .joins(:services)
-        .select(:ProjectID, :data_source_id)
-        .where(Services: {RecordType: 12})
-        .exists?
+
+      @answer ||= GrdaWarehouse::Hud::Project.where(id: id).
+        joins(:services).
+        select(:ProjectID, :data_source_id).
+        where(Services: {RecordType: 12}).
+        exists?
       @answer
     end
 
@@ -597,18 +603,18 @@ module GrdaWarehouse::Hud
     # there may be multiple lines per project
     def self.export_providers(coc_codes)
       spec = {
-        hud_org_id:          o_t[:OrganizationID],
-        _hud_org_name:       o_t[:OrganizationName],
-        provider:            p_t[:ProjectName],
-        _provider:           p_t[:ProjectID],
-        hud_prog_type:       p_t[project_type_column],
-        fed_funding_source:  f_t[:FunderID],
+        hud_org_id: o_t[:OrganizationID],
+        _hud_org_name: o_t[:OrganizationName],
+        provider: p_t[:ProjectName],
+        _provider: p_t[:ProjectID],
+        hud_prog_type: p_t[project_type_column],
+        fed_funding_source: f_t[:FunderID],
         fed_partner_program: f_t[:FunderID],
-        grant_id:            f_t[:GrantID],
-        grant_start_date:    f_t[:StartDate],
-        grant_end_date:      f_t[:EndDate],
-        coc_code:            pc_t[:CoCCode],
-        hud_geocode:         g_t[:Geocode],
+        grant_id: f_t[:GrantID],
+        grant_start_date: f_t[:StartDate],
+        grant_end_date: f_t[:EndDate],
+        coc_code: pc_t[:CoCCode],
+        hud_geocode: g_t[:Geocode],
         current_continuum_project: p_t[:ContinuumProject],
       }
       projects = joins( :funders, :organization, :project_cocs, :geographies ).
@@ -665,7 +671,7 @@ module GrdaWarehouse::Hud
           csv << attributes.map do |attr|
             attr = attr.to_s
             # we need to grab the appropriate id from the related organization
-            if attr.include?('.')
+            v = if attr.include?('.')
               obj, meth = attr.split('.')
               i.send(obj).send(meth)
             else
@@ -674,11 +680,33 @@ module GrdaWarehouse::Hud
               elsif attr == 'ResidentialAffiliation'
                 i.send(attr).presence || 99
               elsif attr == 'TrackingMethod'
-                i.send(attr).presence || 0
+                if i.tracking_method_override.present?
+                  i.tracking_method_override
+                else
+                  i.send(attr).presence || 0
+                end
+              elsif attr == 'ProjectCommonName' && i.ProjectCommonName.blank?
+                i.ProjectName
+              elsif attr == 'ContinuumProject' && i.hud_continuum_funded
+                1
+              elsif attr == 'OperatingStartDate' && i.operating_start_date_override.present?
+                i.operating_start_date_override
+              elsif attr == 'OperatingEndDate' && i.operating_end_date_override.present?
+                i.operating_end_date_override
+              elsif attr == 'HMISParticipatingProject' && i.hmis_participating_project_override.present?
+                i.hmis_participating_project_override
+              elsif attr == 'TargetPopulation' && i.target_population_override.present?
+                i.target_population_override
               else
                 i.send(attr)
               end
             end
+            if v.is_a? Date
+              v = v.strftime("%Y-%m-%d")
+            elsif v.is_a? Time
+              v = v.to_formatted_s(:db)
+            end
+            v
           end
         end
       end
@@ -791,22 +819,22 @@ module GrdaWarehouse::Hud
 
       deleted_timestamp = Time.current
       # Inventory related
-      project_cocs.update_all(DateDeleted: deleted_timestamp)
+      project_cocs.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
       geographies.update_all(DateDeleted: deleted_timestamp)
-      inventories.update_all(DateDeleted: deleted_timestamp)
-      funders.update_all(DateDeleted: deleted_timestamp)
-      affiliations.update_all(DateDeleted: deleted_timestamp)
-      residential_affiliations.update_all(DateDeleted: deleted_timestamp)
+      inventories.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      funders.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      affiliations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      residential_affiliations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
 
       # Client enrollment related
-      income_benefits.update_all(DateDeleted: deleted_timestamp)
-      disabilities.update_all(DateDeleted: deleted_timestamp)
-      employment_educations.update_all(DateDeleted: deleted_timestamp)
-      health_and_dvs.update_all(DateDeleted: deleted_timestamp)
-      services.update_all(DateDeleted: deleted_timestamp)
-      exits.update_all(DateDeleted: deleted_timestamp)
-      enrollment_cocs.update_all(DateDeleted: deleted_timestamp)
-      enrollments.update_all(DateDeleted: deleted_timestamp)
+      income_benefits.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      disabilities.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      employment_educations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      health_and_dvs.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      services.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      exits.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      enrollment_cocs.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
+      enrollments.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
 
       # Remove any clients who no longer have any enrollments
       all_clients = []
@@ -819,7 +847,7 @@ module GrdaWarehouse::Hud
           where(data_source_id: data_source_id, PersonalID: ids).pluck(id)
       end
       no_enrollments = all_clients - with_enrollments
-      GrdaWarehouse::Hud::Client.where(id: no_enrollments).update_all(DateDeleted: deleted_timestamp) if no_enrollments.present?
+      GrdaWarehouse::Hud::Client.where(id: no_enrollments).update_all(DateDeleted: deleted_timestamp, source_hash: nil) if no_enrollments.present?
 
       destination_ids = GrdaWarehouse::WarehouseClient.where(source_id: all_clients).pluck(:destination_id)
       # Force reloads of client views
@@ -828,7 +856,6 @@ module GrdaWarehouse::Hud
       destination_ids.each do |id|
         GrdaWarehouse::Hud::Client.clear_view_cache(id)
       end
-
     end
   end
 end
