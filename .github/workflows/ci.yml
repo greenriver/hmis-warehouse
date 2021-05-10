@@ -69,7 +69,7 @@ jobs:
            libpq-dev \
            libproj-dev \
            postgis \
-           postgresql-client-12 \
+           postgresql-client \
            python \
            unzip \
            wkhtmltopdf
