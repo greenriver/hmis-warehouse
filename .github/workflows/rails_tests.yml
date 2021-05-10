@@ -69,11 +69,10 @@ jobs:
            libpq-dev \
            libproj-dev \
            postgis \
-           postgresql-client \
+           postgresql-client-12 \
            python \
            unzip \
-           wkhtmltopdf \
-           postgresql-client
+           wkhtmltopdf
 
          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
          chmod 600 ~/.pgpass
