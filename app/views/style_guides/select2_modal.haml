@@ -45,7 +45,10 @@
             = f.input :huge_collection_options_multi_none, |
               collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), |
               as: :grouped_select_two, |
-              input_html: {multiple: true, data: {"#{stimulus_controller}-target" => 'yolo'}}, |
+              input_html: {multiple: true, data: { |
+                target: "#{stimulus_controller}.selectEl", |
+                action: "click->#{stimulus_controller}#sayHello" |
+              }}, |
               label: 'Projects', |
               group_method: :last
 

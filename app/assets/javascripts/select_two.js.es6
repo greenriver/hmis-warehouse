@@ -1,25 +1,24 @@
 window.App.Form = window.App.Form || {}
 window.App.StimulusApp = window.App.StimulusApp || {}
 
-App.Form.SelectTwo = class SelectTwo {
-  constructor(element, options) {
-    console.log(element)
-    console.log(options)
-    console.log('App.Form.SelectTwo.constructor')
-  }
-  init() {
-    console.log('Init')
-  }
-}
-
-console.log('App:', App)
-console.log('App.StimulusApp:', App.StimulusApp)
-console.log('App.Admin:', App.Admin)
-console.log('App.Form:', App.Form)
+// App.Form.SelectTwo = class SelectTwo {
+//   constructor(element, options) {
+//     console.log(element)
+//     console.log(options)
+//     console.log('App.Form.SelectTwo.constructor')
+//   }
+//   init() {
+//     console.log('Init')
+//   }
+// }
 
 App.StimulusApp.register('select-two', class extends Stimulus.Controller {
   static get targets() {
     return []
+  }
+
+  sayHello() {
+    console.log('sayHello fired')
   }
 
   initialize() {

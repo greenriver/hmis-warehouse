@@ -13,4 +13,4 @@ App.select2.init = (root) =>
 
   #   new App.Form.Select2Input this, options
   options = {}
-  new App.Form.SelectTwo this, options
+  # new App.Form.SelectTwo this, options
