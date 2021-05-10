@@ -1,0 +1,35 @@
+= simple_form_for :role_users, url: admin_role_users_path(@role) do |f|
+  .d-flex
+    .ml-auto.w-50
+      = f.input :user_ids, collection: User.where.not(id: @role.user_ids), as: :select_two, input_html: { multiple: true }, label: 'Users to Add'
+    .ml-4
+      = f.button :submit, class: 'btn btn-secondary mt-no-label' do
+        %i.icon-plus
+        Add Users
+
+- if @users.count.zero?
+  .mt-6
+    %p No users are assigned to this role, it may be deleted.
+    .text-right
+      = link_to admin_role_path(@role),  method: :delete, data: {confirm: "Would you really like to delete #{@role.name}?"}, class: 'btn btn-danger' do
+        %span.icon-cross
+        Delete Role
+- else
+  %p The following users have this role assigned.
+  .users.table-responsive
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th First Name
+          %th Last Name
+          %th Email
+      %tbody
+        - @users.each do |user|
+          %tr
+            %td= user.first_name
+            %td= user.last_name
+            %td= user.email
+            %td.d-flex
+              = link_to admin_role_user_path(@role, user), class: 'btn btn-sm btn-danger ml-auto', method: :delete, data: { confirm: "Are you sure you want to remove #{user.name} from #{@role.name}?" } do
+                %i.icon-cross
+                Remove User
