@@ -44,7 +44,7 @@
             %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
             = f.input :huge_collection_options_multi_none, |
               collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), |
-              as: :grouped_select, |
+              as: :grouped_select_two, |
               input_html: {multiple: true, data: {"#{stimulus_controller}-target" => 'yolo'}}, |
               label: 'Projects', |
               group_method: :last
