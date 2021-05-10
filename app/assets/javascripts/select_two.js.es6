@@ -1,4 +1,5 @@
 window.App.Form = window.App.Form || {}
+window.App.StimulusApp = window.App.StimulusApp || {}
 
 App.Form.SelectTwo = class SelectTwo {
   constructor(element, options) {
@@ -10,6 +11,21 @@ App.Form.SelectTwo = class SelectTwo {
     console.log('Init')
   }
 }
+
+console.log('App:', App)
+console.log('App.StimulusApp:', App.StimulusApp)
+console.log('App.Admin:', App.Admin)
+console.log('App.Form:', App.Form)
+
+App.StimulusApp.register('select-two', class extends Stimulus.Controller {
+  static get targets() {
+    return []
+  }
+
+  initialize() {
+    console.log('Initializing')
+  }
+})
 
 App.Form.Select2Input = class Select2Input {
   constructor(element, options={}) {

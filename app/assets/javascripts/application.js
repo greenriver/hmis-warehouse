@@ -60,7 +60,6 @@
 //= require files
 //= require selectable_list
 //= require viewable_entities
-//= require select_2
 //= require ./init_stimulus
 //= require_directory ./admin/client_matches
 //= require_directory ./census
@@ -89,6 +88,7 @@
 //= require_directory ./data_quality_reports
 //= require affix
 //= require list_search
+//= require select_2
 //= require TableWithToggleRows
 //= require role_table
 //= require documentExport.js
