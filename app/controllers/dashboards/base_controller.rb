@@ -154,7 +154,7 @@ module Dashboards
 
     def default_end_date
       # Last day of the previous month
-      available_months.first.prev_day || 1.months.ago.end_of_month
+      available_months.first&.prev_day || 1.months.ago.end_of_month
     end
 
     def default_start_date
