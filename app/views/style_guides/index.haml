@@ -1,4 +1,4 @@
 %h1 Style Guides
 %ul
-  - @guides.each do |key, value|
+  - guide_routes.each do |key, value|
     %li= link_to(value, "#{key}_style_guide_path")

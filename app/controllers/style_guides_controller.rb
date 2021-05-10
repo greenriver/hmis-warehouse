@@ -9,19 +9,6 @@ class StyleGuidesController < ApplicationController
   include ClientPathGenerator
 
   def index
-    @guides = {
-      form: 'Form Elements',
-      careplan: 'Careplan',
-      health_team: 'Health Team',
-      icon_font: 'Icon Font',
-      add_goal: 'Add Goal',
-      add_team_member: 'Add Team Member',
-      alerts: 'Alerts',
-      tags: 'Tags',
-      client_dashboard: 'Client Dashboard',
-      buttons: 'Buttons',
-      pagination: 'Pagination',
-    }
   end
 
   def alerts
@@ -55,4 +42,21 @@ class StyleGuidesController < ApplicationController
     @team = @patient.teams.build
     @careplan = @patient.careplans.first_or_create
   end
+
+  private def guide_routes
+    @guide_routes ||= {
+      form: 'Form Elements',
+      careplan: 'Careplan',
+      health_team: 'Health Team',
+      icon_font: 'Icon Font',
+      add_goal: 'Add Goal',
+      add_team_member: 'Add Team Member',
+      alerts: 'Alerts',
+      tags: 'Tags',
+      client_dashboard: 'Client Dashboard',
+      buttons: 'Buttons',
+      pagination: 'Pagination',
+    }
+  end
+  helper_method :guide_routes
 end
