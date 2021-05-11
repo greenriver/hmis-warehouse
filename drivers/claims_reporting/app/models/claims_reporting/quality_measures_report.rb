@@ -173,10 +173,12 @@ module ClaimsReporting
     def serializable_hash
       measure_info = AVAILABLE_MEASURES.values.map do |m|
         numerator, denominator = *send(m.id)
-        value = if denominator.present?
-          (numerator.to_f / denominator) unless denominator.zero?
+        # no denominator indicates a count
+        if denominator.present?
+          value = (numerator.to_f / denominator) unless denominator.zero?
         else
-          numerator
+          value = numerator
+          numerator = nil
         end
         [m.id, {
           id: m.id,
@@ -307,6 +309,7 @@ module ClaimsReporting
       pb = ProgressBar.create(total: medical_claims_by_member_id.size, format: '%c/%C (%P%%) %R/s%e [%B]')
       rows = Parallel.flat_map(
         medical_claims_by_member_id,
+        in_processes: 1,
         finish: ->(_item, _i, _result) { pb.increment },
       ) do |member_id, claims|
         rows = []
@@ -358,7 +361,7 @@ module ClaimsReporting
         # rows.concat calculate_bh_cp_7(member, claims, enrollments) if measures.include?(:bh_cp_7)
         # rows.concat calculate_bh_cp_8(member, claims, enrollments) if measures.include?(:bh_cp_8)
 
-        rows.concat calculate_bh_cp_9(member, claims, enrollments) if measures.include?(:bh_cp_9)
+        # rows.concat calculate_bh_cp_9(member, claims, enrollments) if measures.include?(:bh_cp_9)
 
         rows
       end
@@ -1205,12 +1208,12 @@ module ClaimsReporting
     # PT-98 SPECIAL PROGRAMS: ABI/MFP Waivers
 
     def assigned_enrollees
-      formatter.format_i assigned_enrollements_scope.distinct.count(:member_id)
+      assigned_enrollements_scope.distinct.count(:member_id)
     end
     memoize :assigned_enrollees
 
     def medical_claims
-      formatter.format_i medical_claims_scope.count
+      medical_claims_scope.count
     end
     memoize :medical_claims
 
