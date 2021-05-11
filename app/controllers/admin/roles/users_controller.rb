@@ -13,14 +13,14 @@ module Admin::Roles
     def create
       # add to the role any users passed through
       user_ids = clean_params[:user_ids].select(&:present?).map(&:to_i)
-      @role.users = (@role.users + User.where(id: user_ids).to_a).uniq
+      @role.add(User.where(id: user_ids))
       flash[:notice] = "#{pluralize(user_ids.count, 'user')} added"
       redirect_to edit_admin_role_path(@role)
     end
 
     def destroy
       user = User.find(params[:id].to_i)
-      user.roles = (user.roles.to_a - [@role])
+      @role.remove(user)
       flash[:notice] = "#{user.name} removed from #{@role.name}"
       redirect_to edit_admin_role_path(@role)
     end
@@ -34,7 +34,7 @@ module Admin::Roles
     end
 
     private def clean_params
-      params.require(:role_users).
+      params.require(:user_members).
         permit(user_ids: [])
     end
   end

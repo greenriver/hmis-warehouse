@@ -13,11 +13,7 @@ module Admin::Groups
     def create
       # add to the access group any users passed through
       user_ids = clean_params[:user_ids].select(&:present?).map(&:to_i)
-      AccessGroup.transaction do
-        User.where(id: user_ids).find_each do |user|
-          @group.add(user)
-        end
-      end
+      @group.add(User.where(id: user_ids))
       flash[:notice] = "#{pluralize(user_ids.count, 'user')} added"
       redirect_to edit_admin_group_path(@group)
     end
@@ -38,7 +34,7 @@ module Admin::Groups
     end
 
     private def clean_params
-      params.require(:group_users).
+      params.require(:user_members).
         permit(user_ids: [])
     end
   end

@@ -6,4 +6,4 @@
   = render 'new_form'
 
 .mt-4
-  = render 'users'
+  = render 'users/user_members_table', item: @role, path_to_add_users: admin_role_users_path(@role), path_to_delete_item: admin_role_path(@role), delete_user_lambda: lambda {|user| admin_role_user_path(@role, user) } 

@@ -16,5 +16,6 @@
   - unless @group.entities_locked?
     .form_actions.mt-4
       = f.button :submit, value: 'Update Group'
+
 .mt-4
-  = render 'users'
+  = render 'users/user_members_table', item: @group, path_to_add_users: admin_group_users_path(@group), path_to_delete_item: admin_group_path(@group), delete_user_lambda: lambda {|user| admin_group_user_path(@group, user)}
