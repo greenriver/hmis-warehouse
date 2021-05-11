@@ -87,7 +87,6 @@ jobs:
           mkdir app/assets/stylesheets/theme/styles
           touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.travis .rspec
-          bundle exec rake assets:precompile
 
       - name: Prepare test db
         env:
@@ -127,6 +126,8 @@ jobs:
 
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
+
+          bundle exec rake assets:precompile
 
       - name: Run tests
         env:
