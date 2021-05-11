@@ -80,7 +80,7 @@ jobs:
           node-version: '10'
           check-latest: true
 
-      - run: npm install
+        - run: npm install
 
       - name: Install gems
         run: |
