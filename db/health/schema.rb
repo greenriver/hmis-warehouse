@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_04_19_174757) do
+ActiveRecord::Schema.define(version: 2021_05_11_143037) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -877,6 +877,7 @@ ActiveRecord::Schema.define(version: 2021_04_19_174757) do
     t.datetime "deleted_at"
     t.integer "num_errors"
     t.json "patient_aco_changes"
+    t.string "file"
   end
 
   create_table "encounter_records", force: :cascade do |t|
