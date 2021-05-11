@@ -77,16 +77,13 @@ services:
       - mailhog
 
   db:
-    image: hmis-warehouse-db:1.0
-    shm_size: '1gb'
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.postgres
+    image: postgis/postgis:12-2.5-alpine
     container_name: hmis-warehouse-db
     environment:
       POSTGRES_PASSWORD: postgres
-      PSQL_HISTFILE: /root/log/.psql_history
-    command: "postgres -c 'max_connections=500'"
+      POSTGRES_USER: postgres
+      POSTGRES_PASS: postgres
+      POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
     volumes:
       - dbdata:/var/lib/postgresql/data
     ports:
