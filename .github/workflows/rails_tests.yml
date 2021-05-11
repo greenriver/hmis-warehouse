@@ -71,13 +71,10 @@ jobs:
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
+          npm install
           gem install bundler --version=2.2.15
 
-
       - uses: actions/checkout@v2
-
-      - name: NPM install
-        run: npm install
 
       - name: Install gems
         run: |
