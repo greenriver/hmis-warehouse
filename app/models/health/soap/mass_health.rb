@@ -52,6 +52,8 @@ module Health::Soap
     end
 
     def success?(result)
+      return false unless result.first.is_a?(Hash)
+
       result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'ErrorCode') == 'Success' ||
         result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'ErrorCode') == 'Success' ||
         result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchResultsRetrievalResponse', 'ErrorCode') == 'Success'
@@ -68,6 +70,8 @@ module Health::Soap
     end
 
     def error_message(result)
+      return result unless result.first.is_a?(Hash)
+
       result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'ErrorMessage') ||
         result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'ErrorMessage') ||
         result.first.dig('Envelope', 'Body', 'Fault', 'detail', 'Message')
