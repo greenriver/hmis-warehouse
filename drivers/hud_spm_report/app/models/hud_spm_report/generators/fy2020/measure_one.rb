@@ -46,15 +46,15 @@ module HudSpmReport::Generators::Fy2020
       universe_members = universe.members.where(t[:m1a_es_sh_days].gt(0))
       handle_clause_based_cells table_name, [
         ['C2', universe_members, universe_members.count],
-        ['E2', universe_members, universe_members.average(:m1a_es_sh_days).to_f],
-        ['H2', universe_members, median(universe_members, :m1a_es_sh_days).to_f],
+        ['E2', universe_members, universe_members.average(:m1a_es_sh_days).to_f.round(2)],
+        ['H2', universe_members, median(universe_members, :m1a_es_sh_days).to_f.round(2)],
       ]
 
       universe_members = universe.members.where(t[:m1a_es_sh_th_days].gt(0))
       handle_clause_based_cells table_name, [
         ['C3', universe_members, universe_members.count],
-        ['E3', universe_members, universe_members.average(:m1a_es_sh_th_days).to_f],
-        ['H3', universe_members, median(universe_members, :m1a_es_sh_th_days).to_f],
+        ['E3', universe_members, universe_members.average(:m1a_es_sh_th_days).to_f.round(2)],
+        ['H3', universe_members, median(universe_members, :m1a_es_sh_th_days).to_f.round(2)],
       ]
     end
 

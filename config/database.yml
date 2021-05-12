@@ -16,7 +16,7 @@ default: &default
   host: <%= ENV['DATABASE_HOST'] %>
   <% end %>
 
-<%= Rails.env %>:
+<%= ENV['RAILS_ENV'] %>:
   <<: *default
   database: <%= ENV['DATABASE_APP_DB'] %>
   <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
@@ -24,7 +24,7 @@ default: &default
   sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
   <% end %>
 
-<%= Rails.env %>_cas:
+<%= ENV['RAILS_ENV'] %>_cas:
   <<: *default
   database: <%= ENV['DATABASE_CAS_DB'].presence || 'cas_disabled' %>
   <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
