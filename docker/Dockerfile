@@ -20,7 +20,7 @@ ENV RAILS_LOG_TO_STDOUT=true \
 LABEL maintainer="elliot@greenriver.com"
 
 RUN apk add --no-cache \
-  nodejs yarn \
+  nodejs npm yarn \
   tzdata \
   git \
   bash \
