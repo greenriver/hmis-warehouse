@@ -158,9 +158,15 @@ module HudSpmReport::Generators::Fy2020
     # TODO?: move to :HudReports::QuestionBase
     private def age_for_report(dob:, entry_date:, age:)
       # Age should be calculated at report start or enrollment start, whichever is greater
-      return age if dob.blank? || entry_date > @report.start_date
+      return age if dob.blank?
 
-      GrdaWarehouse::Hud::Client.age(dob: dob, date: @report.start_date)
+      date = if entry_date > @report.start_date
+        entry_date
+      else
+        @report.start_date
+      end
+
+      GrdaWarehouse::Hud::Client.age(dob: dob, date: date)
     end
 
     private def build_report_client(client, data = {})
@@ -587,7 +593,7 @@ module HudSpmReport::Generators::Fy2020
           next if last_exit[:destination].in? [6, 29, 24]
 
           {
-            m7a1_destination: last_exit[:destination],
+            m7a1_destination: last_exit[:destination] || 99,
             m7_history: client_enrollments,
           }
         end
@@ -629,7 +635,7 @@ module HudSpmReport::Generators::Fy2020
         next if last_exit[:destination].in?(m7b_excluded_destinations)
 
         {
-          fields[:table_1] => last_exit[:destination],
+          fields[:table_1] => last_exit[:destination] || 99,
           fields[:history] => client_enrollments,
         }
       end
@@ -665,7 +671,7 @@ module HudSpmReport::Generators::Fy2020
         next if last_stay[:destination].in?(m7b_excluded_destinations)
 
         {
-          fields[:table_2] => last_stay[:destination],
+          fields[:table_2] => last_stay[:destination] || 99,
           fields[:history] => client_enrollments,
         }
       end
@@ -685,7 +691,7 @@ module HudSpmReport::Generators::Fy2020
         next if last_exit[:destination].in?(m7b_excluded_destinations)
 
         {
-          fields[:table_2] => last_exit[:destination],
+          fields[:table_2] => last_exit[:destination] || 99,
           fields[:history] => client_enrollments,
         }
       end
@@ -752,7 +758,7 @@ module HudSpmReport::Generators::Fy2020
           # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
           # without regard to the project type associated with the client’s earliest applicable exit (cell B7).
           spm_client[exit_from_project_type_col] = p_exit[:project_type]
-          spm_client[exit_to_destination_col] = p_exit[:destination]
+          spm_client[exit_to_destination_col] = p_exit[:destination] || 99
 
           # 5. Using data from step 2, scan forward in time beginning from each client’s [project exit date]
           # with a permanent housing destination to see if the client has a project start into a project
@@ -1504,7 +1510,7 @@ module HudSpmReport::Generators::Fy2020
             :head_of_household_id,
             :client_id,
             :enrollment_group_id,
-            :household_id
+            :household_id,
           ).map do |(hoh_id, client_id, enrollment_id, household_id)|
             [[hoh_id, household_id], { client_id: client_id, enrollment_id: enrollment_id }]
           end.to_h

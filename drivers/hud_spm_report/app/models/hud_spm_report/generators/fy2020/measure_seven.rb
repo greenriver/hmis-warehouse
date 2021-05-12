@@ -68,6 +68,7 @@ module HudSpmReport::Generators::Fy2020
         4 => '% Successful exits',
       }.freeze, CHANGE_TABLE_COLS
 
+      # 4. Reference the destinations of the project exits against Appendix A (row headers) using the project type from which the exit occurred (column headers). Destinations indicated with an X (values 15, 6, 25, 24) cause leavers with those destinations to be completely excluded from the entire measure (all of column C).
       # 5. Of the remaining leavers, report the distinct number of clients in
       # cell C2.
       c2 = universe.members.where(t[:m7b1_destination].not_eq(0))

@@ -35,28 +35,32 @@ module HudSpmReport::Generators::Fy2020
       4 => 'Percentage of adults who increased earned income',
     }.freeze
 
+    private def spmc_t
+      HudSpmReport::Fy2020::SpmClient.arel_table
+    end
+
     private def run_4_1(table_name)
-      run_4_x table_name, true, 'm4_latest_earned_income > m4_earliest_earned_income'
+      run_4_x table_name, true, spmc_t[:m4_latest_earned_income].gt(spmc_t[:m4_earliest_earned_income])
     end
 
     private def run_4_2(table_name)
-      run_4_x table_name, true, 'm4_latest_non_earned_income > m4_earliest_non_earned_income'
+      run_4_x table_name, true, spmc_t[:m4_latest_non_earned_income].gt(spmc_t[:m4_earliest_non_earned_income])
     end
 
     private def run_4_3(table_name)
-      run_4_x table_name, true, 'm4_latest_income > m4_earliest_income'
+      run_4_x table_name, true, spmc_t[:m4_latest_income].gt(spmc_t[:m4_earliest_income])
     end
 
     private def run_4_4(table_name)
-      run_4_x table_name, false, 'm4_latest_earned_income > m4_earliest_earned_income'
+      run_4_x table_name, false, spmc_t[:m4_latest_earned_income].gt(spmc_t[:m4_earliest_earned_income])
     end
 
     private def run_4_5(table_name)
-      run_4_x table_name, false, 'm4_latest_non_earned_income > m4_earliest_non_earned_income'
+      run_4_x table_name, false, spmc_t[:m4_latest_non_earned_income].gt(spmc_t[:m4_earliest_non_earned_income])
     end
 
     private def run_4_6(table_name)
-      run_4_x table_name, false, 'm4_latest_income > m4_earliest_income'
+      run_4_x table_name, false, spmc_t[:m4_latest_income].gt(spmc_t[:m4_earliest_income])
     end
 
     private def run_4_x(table_name, stayer, income_change_clause)
