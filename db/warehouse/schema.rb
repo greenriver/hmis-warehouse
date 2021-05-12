@@ -4632,50 +4632,6 @@ ActiveRecord::Schema.define(version: 2021_05_03_165055) do
     t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
   end
 
-  create_table "hud_report_spm_clients", force: :cascade do |t|
-    t.integer "client_id", null: false
-    t.integer "data_source_id", null: false
-    t.integer "report_instance_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "deleted_at"
-    t.date "dob"
-    t.string "first_name"
-    t.string "last_name"
-    t.integer "m1a_es_sh_days"
-    t.integer "m1a_es_sh_th_days"
-    t.integer "m1b_es_sh_ph_days"
-    t.integer "m1b_es_sh_th_ph_days"
-    t.jsonb "m1_history"
-    t.integer "m2_exit_from_project_type"
-    t.integer "m2_exit_to_destination"
-    t.integer "m2_reentry_days"
-    t.jsonb "m2_history"
-    t.integer "m3_active_project_types", array: true
-    t.boolean "m4_stayer"
-    t.decimal "m4_latest_income"
-    t.decimal "m4_latest_earned_income"
-    t.decimal "m4_latest_non_earned_income"
-    t.decimal "m4_earliest_income"
-    t.decimal "m4_earliest_earned_income"
-    t.decimal "m4_earliest_non_earned_income"
-    t.jsonb "m4_history"
-    t.integer "m5_active_project_types", array: true
-    t.integer "m5_recent_project_types", array: true
-    t.jsonb "m5_history"
-    t.integer "m6_exit_from_project_type"
-    t.integer "m6_exit_to_destination"
-    t.integer "m6_reentry_days"
-    t.integer "m6c1_destination"
-    t.integer "m6c2_destination"
-    t.jsonb "m6_history"
-    t.integer "m7a1_destination"
-    t.integer "m7b1_destination"
-    t.integer "m7b2_destination"
-    t.jsonb "m7_history"
-    t.index ["report_instance_id", "client_id", "data_source_id"], name: "spm_client_conflict_columns", unique: true
-  end
-
   create_table "hud_report_universe_members", force: :cascade do |t|
     t.bigint "report_cell_id"
     t.string "universe_membership_type"
@@ -5574,7 +5530,6 @@ ActiveRecord::Schema.define(version: 2021_05_03_165055) do
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
-    t.integer "id"
     t.string "EnrollmentID", limit: 50
     t.string "PersonalID"
     t.string "ProjectID", limit: 50
@@ -5660,6 +5615,7 @@ ActiveRecord::Schema.define(version: 2021_05_03_165055) do
     t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id"
+    t.integer "id"
     t.integer "LOSUnderThreshold"
     t.integer "PreviousStreetESSH"
     t.integer "UrgentReferral"
@@ -5692,9 +5648,6 @@ ActiveRecord::Schema.define(version: 2021_05_03_165055) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.string "SexualOrientationOther", limit: 100
-    t.date "history_generated_on"
-    t.string "original_household_id"
-    t.bigint "service_history_processing_job_id"
     t.integer "demographic_id"
     t.integer "client_id"
     t.index ["EntryDate"], name: "entrydate_ret_index"
@@ -9128,6 +9081,26 @@ ActiveRecord::Schema.define(version: 2021_05_03_165055) do
       service_history_enrollments.head_of_household
      FROM service_history_enrollments;
   SQL
+  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.service_history_enrollment_id,
+      service_history_services.record_type,
+      service_history_services.date,
+      service_history_services.age,
+      service_history_services.service_type,
+      service_history_services.client_id,
+      service_history_services.project_type,
+      service_history_services.homeless,
+      service_history_services.literally_homeless
+     FROM service_history_services;
+  SQL
+  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
+
   create_view "todd_stats", sql_definition: <<-SQL
       SELECT pg_stat_all_tables.relname,
       round((
@@ -9151,24 +9124,4 @@ ActiveRecord::Schema.define(version: 2021_05_03_165055) do
      FROM pg_stat_all_tables
     WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
   SQL
-  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
-      SELECT service_history_services.id,
-      service_history_services.service_history_enrollment_id,
-      service_history_services.record_type,
-      service_history_services.date,
-      service_history_services.age,
-      service_history_services.service_type,
-      service_history_services.client_id,
-      service_history_services.project_type,
-      service_history_services.homeless,
-      service_history_services.literally_homeless
-     FROM service_history_services;
-  SQL
-  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
-  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
-  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
-
 end
