@@ -3,6 +3,7 @@ default: &default
   host: <%= ENV['DATABASE_HOST'] %>
   pool: 5
   timeout: 5000
+  connect_timeout: <%= ENV['DB_CONNECT_TIMEOUT'] || 5 %>
   <% if ENV['DATABASE_PORT'] %>
   port: <%= ENV['DATABASE_PORT'] %>
   <% end %>

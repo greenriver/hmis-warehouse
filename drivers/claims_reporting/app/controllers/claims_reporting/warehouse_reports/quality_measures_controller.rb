@@ -17,25 +17,26 @@ module ClaimsReporting::WarehouseReports
     end
 
     def create
-      dates = report_class.max_date_range
-
       @report = report_class.new(
         user_id: current_user.id,
-        options: {
-          start_date: dates.min.iso8601,
-          end_date: dates.max.iso8601,
-        }.merge(report_params),
+        options: {},
       )
       @report.save
       ::WarehouseReports::GenericReportJob.perform_later(
-        user_id: current_user.id,
+        user_id: @report.user_id,
         report_class: @report.class.name,
         report_id: @report.id,
       )
-      respond_with(@report, location: claims_reporting_warehouse_reports_engagement_trends_path)
+      respond_with(@report, location: @report.report_path_array)
     end
 
     def show
+      respond_to do |format|
+        format.html
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=Patient Engagement Trends #{Time.current.to_s(:db)}.xlsx"
+        end
+      end
     end
 
     private def set_report
@@ -44,7 +45,7 @@ module ClaimsReporting::WarehouseReports
 
     def destroy
       @report.destroy
-      respond_with(@report, location: claims_reporting_warehouse_reports_engagement_trends_path)
+      respond_with(@report, location: @report.report_path_array)
     end
 
     private def report_class

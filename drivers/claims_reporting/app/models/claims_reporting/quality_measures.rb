@@ -49,15 +49,28 @@ module ClaimsReporting
       calculate
       assign_attributes(completed_at: Time.current)
       save!
-      # rescue Exception => e
-      #   assign_attributes(failed_at: Time.current, processing_errors: [e.message, e.backtrace].to_json)
-      #   save
-      #   raise e
+    rescue Exception => e
+      assign_attributes(failed_at: Time.current, processing_errors: [e.message, e.backtrace].to_json)
+      save!
+      raise e
     end
 
     include Rails.application.routes.url_helpers
+
     def url
       claims_reporting_warehouse_reports_quality_measure_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
+    end
+
+    def path
+      claims_reporting_warehouse_reports_quality_measure_path(id: to_param)
+    end
+
+    def filter
+      @filter ||= begin
+        f = ::Filters::ClaimsFilter.new(user_id: user_id)
+        f.set_from_params((options || {}).with_indifferent_access)
+        f
+      end
     end
 
     def report_path_array
@@ -72,10 +85,15 @@ module ClaimsReporting
       []
     end
 
-    def self.for_plan_year(year, user:, report_params: {})
-      raise 'TODO' unless report_params == {}
+    def self.available_years
+      # we want the last full year of claims data which is not available until 3 months into the following year
+      (2018 .. (Date.current << 15).year).map(&:to_s)
+    end
 
-      options = report_params.merge('year' => year)
+    def self.latest!(user:, option: {})
+      options = {
+        years: available_years,
+      }.merge(option)
 
       existing_report = where(
         ['options = ?::jsonb', options.to_json],
@@ -85,9 +103,9 @@ module ClaimsReporting
       new_report = create!(
         user_id: user.id,
         options: options,
+        results: {},
       )
-
-      ::WarehouseReports::GenericReportJob.perform_later(
+      ::WarehouseReports::GenericReportJob.perform_now(
         user_id: new_report.user_id,
         report_class: name,
         report_id: new_report.id,
@@ -95,16 +113,22 @@ module ClaimsReporting
       new_report
     end
 
-    def measure_value(measure)
-      info = results.dig('measures', measure.to_s) if results
+    def measure_value(year, measure)
+      (results&.dig(year.to_s, 'measures', measure.to_s) || {}).with_indifferent_access
+    end
 
-      info || {}
+    def years
+      options['years'] || self.class.available_years
     end
 
     def calculate
-      self.results = ClaimsReporting::QualityMeasuresReport.for_plan_year(
-        options['year'],
-      ).serializable_hash
+      self.results ||= {}
+      # run annual report for each selected plan_year, saving as we go if possible
+
+      years.each do |year|
+        self.results[year] = ClaimsReporting::QualityMeasuresReport.for_plan_year(year.to_s).serializable_hash
+        save unless new_record?
+      end
     end
   end
 end

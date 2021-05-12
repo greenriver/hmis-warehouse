@@ -3,7 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-
+require 'memoist'
 module ClaimsReporting
   class MedicalClaim < HealthBase
     extend Memoist
