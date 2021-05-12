@@ -9,26 +9,20 @@ class ProjectScorecard::ScorecardMailer < ::DatabaseMailer
     @report = report
     @contact = contact
 
-    @project_name = @report.project.ProjectName
-
-    mail(to: @contact.email, subject: "Scorecard For #{@project_name}")
+    mail(to: @contact.email, subject: "Scorecard For #{@report.project_name}")
   end
 
   def scorecard_ready(report, contact)
     @report = report
     @contact = contact
 
-    @project_name = @report.project.ProjectName
-
-    mail(to: @contact.email, subject: "Scorecard For #{@project_name}")
+    mail(to: @contact.email, subject: "Scorecard For #{@report.project_name}")
   end
 
   def scorecard_complete(report)
     @report = report
     @contact = report.user
 
-    @project_name = @report.project.ProjectName
-
-    mail(to: @contact.email, subject: "Scorecard For #{@project_name} Completed")
+    mail(to: @contact.email, subject: "Scorecard For #{@report.project_name} Completed")
   end
 end

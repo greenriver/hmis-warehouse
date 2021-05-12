@@ -33,7 +33,7 @@ module GrdaWarehouse::Tasks
           validate(filename, klass, row)
         end
 
-        add_error(filename, klass.hud_key.to_s, 'Duplicate unique keys found') if duplicate_keys?(unique_keys)
+        add_error(filename, klass.hud_key.to_s, "#{unique_keys.length - unique_keys.uniq.length} Duplicate unique keys found") if duplicate_keys?(unique_keys)
         add_error(filename, 'ExportID', 'Incorrect ExportIDs', export_ids.uniq) if incorrect_export_ids?(export_ids)
       end
     end
@@ -140,7 +140,7 @@ module GrdaWarehouse::Tasks
     private def money_check(value)
       return true unless value.present?
 
-      value.to_f.round(2).to_s == value.to_s || value.to_i.to_s == value.to_s
+      sprintf('%.2f', value.to_f) == value.to_s || value.to_i.to_s == value.to_s
     end
 
     private def length_check(value, length)

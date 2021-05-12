@@ -81,8 +81,7 @@ module PublicReports::S3Toolset
     bucket = s3_bucket
     prefix = public_s3_directory
 
-    key = File.join(prefix, 'index.html')
-
+    key = File.join(prefix, version_slug.to_s, 'index.html')
     resp = s3_client.put_object(
       acl: 'public-read',
       bucket: bucket,

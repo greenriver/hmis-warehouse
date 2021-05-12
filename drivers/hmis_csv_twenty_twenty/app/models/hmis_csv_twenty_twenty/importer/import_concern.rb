@@ -251,7 +251,11 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     def self.complex_validations
-      []
+      [
+        {
+          class: HmisCsvValidation::UniqueHudKey,
+        },
+      ]
     end
 
     def self.hmis_2020_keys

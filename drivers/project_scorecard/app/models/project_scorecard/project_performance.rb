@@ -17,6 +17,7 @@ module ProjectScorecard
 
       def utilization_percentage
         return nil unless [adjusted_utilization, utilization_proposed].all?
+        return nil if utilization_proposed.zero?
 
         ((adjusted_utilization / utilization_proposed.to_f) * 100).round
       end
@@ -33,7 +34,7 @@ module ProjectScorecard
       end
 
       def chronic_service_score
-        score(chronic_service_percentage, 75..100, 65..74) if project.psh?
+        score(chronic_service_percentage, 75..100, 65..74) if key_project.psh? || key_project.sh?
       end
 
       def unsuccessful_exits
@@ -50,31 +51,35 @@ module ProjectScorecard
       end
 
       def exit_to_ph_score
-        if project.psh?
+        if key_project.psh? || key_project.sh?
           score(exit_to_ph_percentage, 98..100, 90..97)
-        elsif project.rrh?
+        elsif key_project.rrh?
           score(exit_to_ph_percentage, 95..100, 90..94)
         else
           score(exit_to_ph_percentage, 95..100, 90..94)
         end
       end
 
+      def los_months
+        average_los_leavers / 30
+      end
+
       def leavers_los_score
-        score(average_los_leavers, 3..18, 19..24) if project.rrh?
+        score(los_months, 3..18, 19..24) if key_project.rrh?
       end
 
       def increased_employment_income_score
-        if project.psh?
+        if key_project.psh? || key_project.sh?
           score(percent_increased_employment_income_at_exit, 15..Float::INFINITY, 9..14)
-        elsif project.rrh?
+        elsif key_project.rrh?
           score(percent_increased_employment_income_at_exit, 56..Float::INFINITY, 50..55)
         end
       end
 
       def increased_other_cash_income_score
-        if project.psh?
+        if key_project.psh? || key_project.sh?
           score(percent_increased_other_cash_income_at_exit, 61..Float::INFINITY, 55..60)
-        elsif project.rrh?
+        elsif key_project.rrh?
           score(percent_increased_other_cash_income_at_exit, 21..Float::INFINITY, 15..20)
         end
       end

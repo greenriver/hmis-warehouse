@@ -1,0 +1,4 @@
+%h1 Style Guides
+%ul
+  - guide_routes.each do |key, value|
+    %li= link_to(value, polymorphic_path([key, :style_guide]))

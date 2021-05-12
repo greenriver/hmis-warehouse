@@ -1,26 +1,47 @@
-.pit-chart
-
+- chart_class = 'pit-chart'
+%div{class: chart_class}
+.d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{class: ["#{chart_class}_legend"]}
 :javascript
-  var chart = bb.generate({
-    data: {
-      x: 'x',
-      columns: #{@report.precalculated_data&.html_safe},
-      type: 'line'
-    },
-    bind_to: '.pit-chart',
-    axis: {
-      x: {
-        type: 'timeseries',
-        tick: {
-          format: '%b. %Y'
+  (function() {
+    var chart = bb.generate({
+      data: {
+        x: 'x',
+        columns: #{@report.precalculated_data&.html_safe},
+        type: 'line'
+      },
+      bindto: {
+        element: ".#{chart_class}"
+      },
+      axis: {
+        x: {
+          type: 'timeseries',
+          tick: {
+            format: '%b. %Y'
+          },
+          padding: {
+            right: 1000*60*60*24*60, // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
+            left: 1000*60*60*24*60 // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
+          }
         },
-        padding: {
-          right: 1000*60*60*24*60, // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
-          left: 1000*60*60*24*60 // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
+        y: {
+          tick: {
+            culling: true,
+            show: false,
+            format: d3.format("~s")
+          }
         }
-      }
-    },
-    color: {
-      pattern: #{@report.chart_color_pattern}
-    }
-  });
+      },
+      color: {
+        pattern: #{@report.chart_color_pattern(:population)}
+      },
+      legend: {
+        contents: {
+          bindto: ".#{chart_class}_legend",
+          template: (title, color) => {
+            const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+            return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
+          },
+        },
+      },
+    });
+  })();

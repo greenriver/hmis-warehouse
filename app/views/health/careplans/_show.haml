@@ -76,7 +76,9 @@
 
     %dl.l-print__item
       %dt.inline Provider:
-      %dd.inline= @careplan.provider&.full_name
+      %dd.inline
+        - if @careplan.provider_signed_on.present?
+          = @careplan.provider&.full_name
       %dd.l-print__signature &nbsp;
       %dt.inline Signed On:
       %dd.inline= @careplan.provider_signed_on&.to_date

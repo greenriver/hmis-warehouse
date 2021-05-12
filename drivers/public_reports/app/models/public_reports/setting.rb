@@ -9,10 +9,16 @@ module PublicReports
     attr_encrypted :s3_access_key_id, key: ENV['ENCRYPTION_KEY'][0..31]
     attr_encrypted :s3_secret, key: ENV['ENCRYPTION_KEY'][0..31]
 
-    def color_pattern
-      num_colors.map do |i|
-        color(i)
-      end.compact
+    def color_pattern(category = nil)
+      if category.blank? || ! color_categories.include?(category.to_sym)
+        num_colors.map do |i|
+          color(i)
+        end.compact
+      else
+        num_colors_per_category.map do |i|
+          color(i, category)
+        end.compact
+      end
     end
 
     def default_colors
@@ -30,12 +36,30 @@ module PublicReports
       ]
     end
 
-    def color(number = 0)
-      self["color_#{number}"].presence || default_colors[number % default_colors.count]
+    def color(number = 0, category = nil)
+      return self["color_#{number}"].presence || default_colors[number % default_colors.count] if category.blank? || ! color_categories.include?(category.to_sym)
+
+      self["#{category}_color_#{number}"].presence || default_colors[number % default_colors.count]
     end
 
     def num_colors
       (0..16).to_a
+    end
+
+    def color_categories
+      [
+        :gender,
+        :age,
+        :household_composition,
+        :race,
+        :time,
+        :housing_type,
+        :population,
+      ]
+    end
+
+    def num_colors_per_category
+      (0..8).to_a
     end
 
     def font_path

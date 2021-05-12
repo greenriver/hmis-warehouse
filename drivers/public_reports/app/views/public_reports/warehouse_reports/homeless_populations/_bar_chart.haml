@@ -8,72 +8,74 @@
   = data[active_date]['categories'].last
 %div.d-flex.legend-wrapper-horizontal.legend-wrapper{ class: ["#{chart_class}_legend"] }
 :javascript
-  var controller;
-  var dates = #{data.to_json.to_s.html_safe};
-  var active_date = $(".#{chart_class}").data('activeDate');
-  var categories = #{data[active_date]['categories'].to_json.to_s.html_safe};
-  var chart = bb.generate({
-    data: {
-      columns: [],
-      type: 'bar',
-      groups: [#{::HUD.races(multi_racial: true).values.to_json.html_safe}],
-      labels: {
-        format: function(v, id, i, j) {
-            return v + '%';
+  (function(){
+    var controller;
+    var dates = #{data.to_json.to_s.html_safe};
+    var active_date = $(".#{chart_class}").data('activeDate');
+    var categories = #{data[active_date]['categories'].to_json.to_s.html_safe};
+    var chart = bb.generate({
+      data: {
+        columns: [],
+        type: 'bar',
+        groups: [#{groups.to_json.html_safe}],
+        labels: {
+          format: d3.format(".0%"),
+          centered: true,
+          colors: 'white',
         },
-        centered: true,
-        colors: 'white',
-      },
-      stack: {
-        normalize: true
-      }
-    },
-    bar: {
-      label: {
-        threshold: 0.05
-      }
-    },
-    bindto: {
-      element: ".#{chart_class}"
-    },
-    color: {
-      pattern: #{@report.chart_color_pattern}
-    },
-    axis: {
-      rotated: true,
-      x: {
-        show: false,
-      },
-      y: {
-        show: false,
-      }
-    },
-    size: {
-      height: 120
-    },
-    legend: {
-      contents: {
-        bindto: ".#{chart_class}_legend",
-        template: (title, color) => {
-          const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
-          return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
+        stack: {
+          normalize: true
         },
+        order: null,
       },
-    },
-    tooltip: {
-      format: {
-        title: function(x) {
-          return categories[x];
+      bar: {
+        label: {
+          threshold: 0.001,
+        }
+      },
+      bindto: {
+        element: ".#{chart_class}"
+      },
+      color: {
+        pattern: #{@report.chart_color_pattern(category)}
+      },
+      axis: {
+        rotated: true,
+        x: {
+          show: false,
+        },
+        y: {
+          show: false,
+        }
+      },
+      size: {
+        height: 120,
+      },
+      legend: {
+        contents: {
+          bindto: ".#{chart_class}_legend",
+          template: (title, color) => {
+            const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+            return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
+          },
         },
       },
-      order: '',
+      tooltip: {
+        format: {
+          title: function(x) {
+            return categories[x];
+          },
+          value: d3.format(".0%"),
+        },
+        order: '',
+      }
+    });
+    // Make the page aware of the new chart
+    var charts = $('body').data('publicCharts');
+    if(charts == undefined) {
+      charts = []
     }
-  });
-  // Make the page aware of the new chart
-  var charts = $('body').data('publicCharts');
-  if(charts == undefined) {
-    charts = []
-  }
-  charts.push({ chart: chart, dates: dates })
-  $('body').data('publicCharts', charts);
-  $('.jQuarters').trigger('change');
+    charts.push({ chart: chart, dates: dates })
+    $('body').data('publicCharts', charts);
+    $('.jQuarters').trigger('change');
+  })();

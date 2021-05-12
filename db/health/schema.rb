@@ -10,10 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_05_10_185734) do
+ActiveRecord::Schema.define(version: 2021_05_11_143037) do
 
   # These are extensions that must be enabled in order to support this database
-  enable_extension "pg_trgm"
   enable_extension "plpgsql"
 
   create_table "accountable_care_organizations", id: :serial, force: :cascade do |t|
@@ -443,34 +442,9 @@ ActiveRecord::Schema.define(version: 2021_05_10_185734) do
     t.index "daterange(service_start_date, service_end_date, '[]'::text)", name: "claims_reporting_medical_claims_service_daterange", using: :gist
     t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
     t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
-    t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
-    t.index ["dx_1"], name: "gin_dx_1", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_10"], name: "gin_dx_10", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_11"], name: "gin_dx_11", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_12"], name: "gin_dx_12", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_13"], name: "gin_dx_13", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_14"], name: "gin_dx_14", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_15"], name: "gin_dx_15", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_16"], name: "gin_dx_16", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_17"], name: "gin_dx_17", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_18"], name: "gin_dx_18", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_19"], name: "gin_dx_19", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_2"], name: "gin_dx_2", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_20"], name: "gin_dx_20", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_3"], name: "gin_dx_3", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_4"], name: "gin_dx_4", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_5"], name: "gin_dx_5", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_6"], name: "gin_dx_6", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_7"], name: "gin_dx_7", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_8"], name: "gin_dx_8", opclass: :gin_trgm_ops, using: :gin
-    t.index ["dx_9"], name: "gin_dx_9", opclass: :gin_trgm_ops, using: :gin
     t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_medical_claim", unique: true
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
-    t.index ["surgical_procedure_code_1"], name: "gin_surgical_procedure_code_1", opclass: :gin_trgm_ops, using: :gin
-    t.index ["surgical_procedure_code_2"], name: "gin_surgical_procedure_code_2", opclass: :gin_trgm_ops, using: :gin
-    t.index ["surgical_procedure_code_3"], name: "gin_surgical_procedure_code_3", opclass: :gin_trgm_ops, using: :gin
-    t.index ["surgical_procedure_code_4"], name: "gin_surgical_procedure_code_4", opclass: :gin_trgm_ops, using: :gin
-    t.index ["surgical_procedure_code_5"], name: "gin_surgical_procedure_code_5", opclass: :gin_trgm_ops, using: :gin
+    t.index ["service_start_date"], name: "index_claims_reporting_medical_claims_on_service_start_date"
   end
 
   create_table "claims_reporting_member_diagnosis_classifications", force: :cascade do |t|
@@ -613,20 +587,6 @@ ActiveRecord::Schema.define(version: 2021_05_10_185734) do
     t.index ["member_id"], name: "unk_cr_member_roster", unique: true
     t.index ["race"], name: "index_claims_reporting_member_rosters_on_race"
     t.index ["sex"], name: "index_claims_reporting_member_rosters_on_sex"
-  end
-
-  create_table "claims_reporting_quality_measures", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.jsonb "options"
-    t.jsonb "results"
-    t.string "processing_errors"
-    t.datetime "completed_at"
-    t.datetime "started_at"
-    t.datetime "failed_at"
-    t.datetime "deleted_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_claims_reporting_quality_measures_on_user_id"
   end
 
   create_table "claims_reporting_rx_claims", force: :cascade do |t|
@@ -917,6 +877,7 @@ ActiveRecord::Schema.define(version: 2021_05_10_185734) do
     t.datetime "deleted_at"
     t.integer "num_errors"
     t.json "patient_aco_changes"
+    t.string "file"
   end
 
   create_table "encounter_records", force: :cascade do |t|
@@ -1065,7 +1026,6 @@ ActiveRecord::Schema.define(version: 2021_05_10_185734) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -1109,7 +1069,6 @@ ActiveRecord::Schema.define(version: 2021_05_10_185734) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -1484,22 +1443,6 @@ ActiveRecord::Schema.define(version: 2021_05_10_185734) do
     t.string "timeframe_9"
     t.index ["patient_id"], name: "index_health_goals_on_patient_id"
     t.index ["user_id"], name: "index_health_goals_on_user_id"
-  end
-
-  create_table "hl7_value_set_codes", force: :cascade do |t|
-    t.string "value_set_name", null: false
-    t.string "value_set_oid", null: false
-    t.string "value_set_version"
-    t.string "code_system", null: false
-    t.string "code_system_oid", null: false
-    t.string "code_system_version"
-    t.string "code", null: false
-    t.string "definition"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["code", "code_system"], name: "hl_value_set_code"
-    t.index ["value_set_name", "code_system", "code"], name: "hl_value_set_code_uniq_by_name", unique: true
-    t.index ["value_set_oid", "code_system_oid", "code"], name: "hl_value_set_code_uniq_by_oid", unique: true
   end
 
   create_table "medications", id: :serial, force: :cascade do |t|
