@@ -3,16 +3,7 @@
 = render 'breadcrumbs'
 %h1.mb-5= title
 
-
-.well.warehouse-reports__completed
-  %p This report was generated on #{@report.completed_at.to_date} by #{@report.user&.name} with the following limits.
-  .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
-  %p If the report contents below are correct, you can publish this publicly.  Once published, any prior version will be replaced.
-
-  .text-right
-    = simple_form_for(@report, url: public_reports_warehouse_reports_homeless_population_path, as: :public_report) do |f|
-      = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
-      = f.submit 'Publish', data: { confirm: @report.publish_warning }
+= render 'public_reports/publish'
 
 - @report.populations.each_key do |population|
   %p Once published, the following will be available at the url: #{@report.generate_publish_url_for(population)}
