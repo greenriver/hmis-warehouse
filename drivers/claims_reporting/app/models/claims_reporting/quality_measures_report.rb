@@ -914,12 +914,12 @@ module ClaimsReporting
 
     private def pcp_practitioner?(_claim)
       # TODO
-      false
+      true
     end
 
     private def ob_gyn_practitioner?(_claim)
       # TODO
-      false
+      true
     end
 
     private def hospice?(claim)
@@ -930,7 +930,7 @@ module ClaimsReporting
     end
 
     private def trace_set_match!(_vs_name, _claim, _code_type)
-      # puts "in_set? #{vs_name} matched #{code_type} for Claim#id=#{claim.id}"
+      # puts "in_set? #{_vs_name} matched #{_code_type} for Claim#id=#{_claim.id}"
       true
     end
 
@@ -993,7 +993,7 @@ module ClaimsReporting
       # well-care visit can happen any time during the measurement year; it
       # does not need to occur during a CP enrollment period.
       (
-        claim.procedure_code.in?(value_set_codes('Well-Care', PROCEDURE_CODE_SYSTEMS)) ||
+        in_set?('Well-Care', claim) ||
         (claim.procedure_code.in?(APC_EXTRA_PROC_CODES) && (pcp_practitioner?(claim) || ob_gyn_practitioner?(claim)))
       )
     end
@@ -1001,8 +1001,12 @@ module ClaimsReporting
     # Annual Primary Care Visit
     private def calculate_bh_cp_5(member, claims, enrollments)
       # > BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.
-      return [] unless in_age_range?(member.date_of_birth, 18.years .. 64.years, as_of: dec_31_of_measurement_year)
-
+      unless in_age_range?(member.date_of_birth, 18.years .. 64.years, as_of: dec_31_of_measurement_year)
+        trace_exclusion do
+          "BH_CP_5: Exclude MemberRoster#id=#{member.id} based on age"
+        end
+        return []
+      end
       # > Exclusions: Enrollees in Hospice (Hospice Value Set)
       if claims.any? { |c| measurement_year.cover?(c.service_start_date) && hospice?(c) }
         trace_exclusion do
@@ -1037,6 +1041,7 @@ module ClaimsReporting
       else
         []
       end
+      # puts "BH_CP_5: claim_date_ranges=#{claim_date_ranges}" if claim_date_ranges.any?
 
       # > [a primary care visit] must occur during the date range[s] above
       rows = []
