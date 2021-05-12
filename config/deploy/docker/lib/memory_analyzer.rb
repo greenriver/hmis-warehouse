@@ -3,21 +3,25 @@ require 'aws-sdk-ecs'
 require 'aws-sdk-dynamodb'
 require 'amazing_print'
 
-# Looks at RAM utilization over the past two weeks and makes recommendations if
+# Looks at RAM utilization over the recent past makes recommendations if
 # it can
 
 class MemoryAnalyzer
   attr_accessor :cluster_name
   attr_accessor :task_definition_name
 
-  attr_accessor :scheduled_hard_limit_mb
-  attr_accessor :scheduled_soft_limit_mb
+  attr_accessor :bootstrapped_hard_limit_mb
+  attr_accessor :bootstrapped_soft_limit_mb
 
   attr_accessor :current_soft_limit_mb
   attr_accessor :current_hard_limit_mb
 
-  TWO_WEEKS = 14*24*60*60
-  TWO_WEEKS_AGO = (Time.now - TWO_WEEKS).to_date
+  attr_accessor :last_task_soft_limit_mb
+  attr_accessor :last_task_hard_limit_mb
+
+
+  DAY = 24*60*60
+  TWO_DAYS_AGO = (Time.now - 2*DAY).to_date
 
   DYNAMO_DB_TABLE_NAME = 'deployment-values'
 
@@ -35,9 +39,9 @@ class MemoryAnalyzer
   # Number of metric values needed before we try to estimate RAM. If metrics
   # come in every 5 minutes, then this number represents
   # (MIN_SAMPLES * 5 / 60 / 24) days of data
-  MIN_SAMPLES = 2_000
+  MIN_SAMPLES = 288 # ~24 hours
 
-  MIN_RAM_MB = 800
+  MIN_RAM_MB = 600
   MAX_RAM_MB = 16_000
 
   def run!
@@ -48,34 +52,52 @@ class MemoryAnalyzer
       return
     end
 
-    unless _ram_settings_havent_changed_in_two_weeks?
-      puts "[INFO][MEMORY_ANALYZER] Cannot analyze RAM as it has changed in the past two weeks or there's not enough history"
-      self.recommended_hard_limit_mb = (current_values.current_hard_limit_mb || scheduled_hard_limit_mb).to_i
-      self.recommended_soft_limit_mb = (current_values.current_soft_limit_mb || scheduled_soft_limit_mb).to_i
+    unless _ram_settings_havent_changed_recently?
+      puts "[INFO][MEMORY_ANALYZER] Cannot analyze RAM as it has changed in the past day or there's not enough history"
+      self.recommended_hard_limit_mb = scheduled_hard_limit_mb
+      self.recommended_soft_limit_mb = scheduled_soft_limit_mb
       return
     end
 
     if _overall_stats.sample_count > MIN_SAMPLES
       puts "[INFO][MEMORY_ANALYZER] With #{_overall_stats.sample_count.to_i} samples, we found #{_overall_stats.average.round(1)}% average memory utilization and #{_overall_stats.maximum.round(1)}% maximum memory utilization"
 
-      # recommend 5% above maximum utilization in recent past
-      self.recommended_hard_limit_mb = (current_soft_limit_mb * ((_overall_stats.maximum+5.0) / 100.0)).ceil
+      # recommend some percentage above maximum utilization in recent past
+      self.recommended_hard_limit_mb = (current_soft_limit_mb * ((_overall_stats.maximum * 3) / 100.0)).ceil
 
-      # nsd standard deviations from the mean.
-      # 7 out of 63 task definitions had RAM problems when deployed to all
-      # staging installations with 1 stddev. All were delayed jobs.
-      nsd = task_definition_name.match?(/dj-(all|long)/) ? 1.25 : 1.0
-      self.recommended_soft_limit_mb = (current_soft_limit_mb * ((_overall_stats.average + nsd * _overall_stats.stddev)/100.0)).ceil
+      self.recommended_soft_limit_mb =
+        begin
+          if task_definition_name.match?(/dj-(all|long)/)
+            # Percentage of maximum RAM
+            puts "[INFO][MEMORY_ANALYZER] Soft limit 95% of maximum"
+            ((current_soft_limit_mb * (_overall_stats.maximum / 100.0)) * 0.95).ceil
+          else
+            # 1 stddev above mean
+            puts "[INFO][MEMORY_ANALYZER] Soft limit via 1 stddev"
+            (current_soft_limit_mb * ((_overall_stats.average + 1.0 * _overall_stats.stddev)/100.0)).ceil
+          end
+        end
 
-      puts "[INFO][MEMORY_ANALYZER] Soft limit_mb is #{scheduled_soft_limit_mb} but could be #{recommended_soft_limit_mb}"
-      puts "[INFO][MEMORY_ANALYZER] Hard limit_mb is #{scheduled_hard_limit_mb} but could be #{recommended_hard_limit_mb}"
+      if self.recommended_hard_limit_mb < self.recommended_soft_limit_mb
+        self.recommended_hard_limit_mb = self.recommended_soft_limit_mb
+      end
+
+      puts "[INFO][MEMORY_ANALYZER] %13s %20s %20s %30s" % ["Quota Type", "Value to Use Now", "Recommended Value", "Last Task Definition Value"]
+      puts "[INFO][MEMORY_ANALYZER] %13s %20d %20d %30d" % ["Hard (MB)", use_memory_analyzer? ? self.recommended_hard_limit_mb : self.scheduled_hard_limit_mb, self.recommended_hard_limit_mb, last_task_hard_limit_mb]
+      puts "[INFO][MEMORY_ANALYZER] %13s %20d %20d %30d" % ["Soft (MB)", use_memory_analyzer? ? self.recommended_soft_limit_mb : self.scheduled_soft_limit_mb, self.recommended_soft_limit_mb, last_task_soft_limit_mb]
     else
       puts "[INFO][MEMORY_ANALYZER] Skipping memory metric stats since we don't have enough history yet"
-      self.recommended_hard_limit_mb = (current_values.current_hard_limit_mb || scheduled_hard_limit_mb).to_i
-      self.recommended_soft_limit_mb = (current_values.current_soft_limit_mb || scheduled_soft_limit_mb).to_i
+      self.recommended_hard_limit_mb = scheduled_hard_limit_mb
+      self.recommended_soft_limit_mb = scheduled_soft_limit_mb
     end
 
-    update_values!
+    if use_memory_analyzer?
+      update_values!
+    end
+  end
+
+  def use_memory_analyzer?
+    task_definition_name.match?(/staging|vi/)
   end
 
   # Set the limits on this object and call this method
@@ -97,6 +119,14 @@ class MemoryAnalyzer
 
   def recommended_hard_limit_mb
     @recommended_hard_limit_mb
+  end
+
+  def scheduled_hard_limit_mb
+    (current_values.current_hard_limit_mb || bootstrapped_hard_limit_mb).to_i
+  end
+
+  def scheduled_soft_limit_mb
+    (current_values.current_soft_limit_mb || bootstrapped_soft_limit_mb).to_i
   end
 
   private
@@ -148,18 +178,22 @@ class MemoryAnalyzer
     define_method(:ecs) { Aws::ECS::Client.new }
   end
 
-  def _ram_settings_havent_changed_in_two_weeks?
+  def _ram_settings_havent_changed_recently?
     td = TaskDefinition.new(task_definition_name)
 
     return false unless td.exists?
 
-    softs = Set.new
-    hards = Set.new
+    self.last_task_soft_limit_mb = td.soft_limit_mb
+    self.last_task_hard_limit_mb = td.hard_limit_mb
+
+    softs = Set.new([td.soft_limit_mb])
+    hards = Set.new([td.hard_limit_mb])
 
     self.current_soft_limit_mb = td.soft_limit_mb
     self.current_hard_limit_mb = td.hard_limit_mb
 
-    while td.exists? && td.deployed_at > TWO_WEEKS_AGO
+    while td.exists? && td.deployed_at > TWO_DAYS_AGO
+      #puts({deployed_at: td.deployed_at, soft: td.soft_limit_mb, hard: td.hard_limit_mb}.ai)
       softs << td.soft_limit_mb
       hards << td.hard_limit_mb
       td = TaskDefinition.new(td.next_name)
@@ -167,6 +201,8 @@ class MemoryAnalyzer
 
     if softs.length == 1 && hards.length == 1
       return true
+    else
+      return false
     end
   end
 
@@ -187,7 +223,7 @@ class MemoryAnalyzer
               value: cluster_name,
             },
           ],
-          start_time: (Time.now - TWO_WEEKS),
+          start_time: (Time.now - DAY),
           end_time: Time.now,
           #period: 15*60, # seconds
           #period: 60*60, # TWO_WEEKS,
@@ -197,20 +233,23 @@ class MemoryAnalyzer
         })
       end
 
-      resp = get.call(60*60)
+      puts "[INFO][MEMORY_ANALYZER] Getting metrics"
+      resp = get.call(60*5)
 
       if resp.datapoints.length == 0
         puts "[INFO][MEMORY_ANALYZER] No cloudwatch data. We only have it for services anyway."
         return OpenStruct.new(sample_count: 0)
+      else
+        puts "[INFO][MEMORY_ANALYZER] Got #{resp.datapoints.length} datapoints"
       end
 
-      # This is an estimate, because we can only get a limit_mbed set of data
+      # This is an estimate, because we can only get a limited set of data
       vals = resp.datapoints.map(&:average)
       len = vals.length
       mean = vals.sum.to_f / len
       stddev = Math.sqrt(vals.inject(0.0) { |s,x| s += (x - mean)**2 } / len)
 
-      resp = get.call(TWO_WEEKS)
+      resp = get.call(DAY)
 
       if resp.datapoints.length == 0
         puts "[INFO][MEMORY_ANALYZER] No cloudwatch data. We only have it for services anyway."
@@ -272,7 +311,7 @@ if ENV['LOCK_TASK']
   ma = MemoryAnalyzer.new
   ma.cluster_name         = 'openpath'
   ma.task_definition_name = ENV['LOCK_TASK']
-  ma.scheduled_hard_limit_mb = ENV.fetch('LOCK_HARD').to_i
-  ma.scheduled_soft_limit_mb = ENV.fetch('LOCK_SOFT').to_i
+  ma.bootstrapped_hard_limit_mb = ENV.fetch('LOCK_HARD').to_i
+  ma.bootstrapped_soft_limit_mb = ENV.fetch('LOCK_SOFT').to_i
   ma.lock!
 end

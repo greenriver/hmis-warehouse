@@ -83,7 +83,7 @@
           %br
           PSH: <= 64%
       %td.text-center
-        - if @report.key_project.psh?
+        - if @report.key_project.psh? || @report.key_project.sh?
           = @report.chronic_service_score
         - else
           N/A (PSH only)
@@ -141,7 +141,8 @@
       %th
         - unless @report.key_project.rrh?
           N/A (RRH Only)
-      %td.text-center= f.input :average_los_leavers, label: false, as: :read_only
+      %td.text-center
+        = pluralize(@report.los_months, 'month')
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -190,7 +191,7 @@
           %br
           RRH: <= 49%
       %td.text-center
-        - if @report.key_project.psh? || @report.key_project.rrh?
+        - if @report.key_project.psh? || @report.key_project.sh? || @report.key_project.rrh?
           = @report.increased_employment_income_score
         - else
           N/A (Only RRH & PSH)
@@ -224,7 +225,7 @@
           %br
           RRH: <= 14%
       %td.text-center
-        - if @report.key_project.psh? || @report.key_project.rrh?
+        - if @report.key_project.psh? || @report.key_project.sh? || @report.key_project.rrh?
           = @report.increased_other_cash_income_score
         - else
           N/A (Only RRH & PSH)

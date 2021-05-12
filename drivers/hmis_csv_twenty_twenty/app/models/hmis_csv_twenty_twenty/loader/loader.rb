@@ -199,6 +199,8 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     private def bad_line_endings?(file)
+      return false if file.stat.size < 10
+
       position = file.pos
       file.seek(file.stat.size - 2)
       final_characters = file.read == "\r\n"

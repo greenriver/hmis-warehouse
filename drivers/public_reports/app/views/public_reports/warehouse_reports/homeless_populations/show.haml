@@ -3,12 +3,7 @@
 = render 'breadcrumbs'
 %h1.mb-5= title
 
-
-.well.warehouse-reports__completed
-  %p This report was published on #{@report.published_at.to_date} with the following limits.
-  .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
-  %p
-    The report is publicly available.
+= render 'public_reports/re_publish'
 
 - @report.populations.each_key do |population|
   %p The following is available at the url: #{link_to(@report.generate_publish_url_for(population), @report.generate_publish_url_for(population), target: :_blank)} and can be embedded using the following code.
