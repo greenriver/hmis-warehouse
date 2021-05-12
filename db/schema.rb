@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_04_19_203457) do
+ActiveRecord::Schema.define(version: 2021_05_07_151459) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -666,6 +666,7 @@ ActiveRecord::Schema.define(version: 2021_04_19_203457) do
     t.json "provider_raw_info"
     t.string "uuid"
     t.boolean "receive_account_request_notifications", default: false
+    t.datetime "provider_set_at"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
