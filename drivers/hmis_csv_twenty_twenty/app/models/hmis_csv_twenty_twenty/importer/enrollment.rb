@@ -56,6 +56,9 @@ module HmisCsvTwentyTwenty::Importer
         {
           class: HmisCsvValidation::EntryAfterExit,
         },
+        {
+          class: HmisCsvValidation::UniqueHudKey,
+        },
       ]
     end
 
