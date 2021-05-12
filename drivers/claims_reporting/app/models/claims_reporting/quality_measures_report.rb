@@ -25,35 +25,76 @@ module ClaimsReporting
       Measure.new(
         id: :bh_cp_1,
         title: 'BH CP #1: Community Partner Engagement (122 days) - % patients',
-        desc: 'The percentage of Behavioral Health Community Partner (BH CP) assigned enrollees 18 to 64 years of age with documentation of engagement within 122 days of the date of assignment to a BH CP.',
+        desc: <<~MD,
+          The percentage of Behavioral Health Community Partner (BH CP) assigned enrollees 18 to 64 years of age with documentation of engagement within 122 days of the date of assignment to a BH CP.
+        MD
         numerator: 'BH CP assigned enrollees 18 to 64 years of age who had documentation of engagement within 122 days of the date of assignment.',
         denominator: 'BH CP assigned enrollees 18 to 64 years of age as of December 31st of the measurement year.',
       ),
       Measure.new(
         id: :bh_cp_2,
         title: 'BH CP #2: Annual Treatment Plan Completion - % patients',
-        desc: 'The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with documentation of a completed Treatment Plan during the measurement year.',
+        desc: <<~MD,
+          The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with documentation of a completed Treatment Plan during the measurement year.
+
+          Members must be:
+
+          * Continuously enrolled in the BH CP for at least 122 calendar days.
+          * Continuously enrolled in MassHealth during the measurement year. A gap is allowed of up to 45 days.
+        MD
         numerator: 'BH CP enrollees 18 to 64 years of age who had documentation of a completed Treatment Plan during the measurement year. Treatment plan must be completed by the CP with whom the member met continuous enrollment requirement',
         denominator: 'BH CP enrollees 18 to 64 years of age as of December 31st of the measurement year.',
       ),
       Measure.new(
         id: :bh_cp_3,
         title: 'BH CP #3: Follow-up with BH CP after acute or post-acute stay (3 business days) - % stays',
-        desc: 'The percentage of discharges from acute or post-acute stays for Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age that were succeeded by a follow-up with the BH CP within 3 business days of discharge.',
+        desc: <<~MD,
+          The percentage of discharges from acute or post-acute stays for Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age that were succeeded by a follow-up with the BH CP within 3 business days of discharge.
+
+          Members must be:
+
+          * Continuously enrolled with BH CP from date of discharge through 3 business days after discharge.
+          * There is no requirement for MassHealth enrollment.
+
+          Excludes discharges followed by readmission or direct transfer to a facility setting within the 3- business-day follow-up period.
+        MD
         numerator: 'Discharges for BH CP enrollees 18 to 64 years of age that were succeeded by a follow-up with the BH CP within 3 business days of discharge.',
         denominator: 'Discharges for BH CP enrollees 18 to 64 years of age during the measurement year.',
       ),
       Measure.new(
         id: :bh_cp_4,
         title: 'BH CP #4: Follow-up with BH CP after Emergency Department visit - % visits',
-        desc: 'The percentage of emergency department (ED) visits for Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age that had a follow-up visit within 7 calendar days of the ED visit.',
+        desc: <<~MD,
+          The percentage of emergency department (ED) visits for Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age that had a follow-up visit within 7 calendar days of the ED visit.
+
+          Members must be:
+
+          * Continuously enrolled with BH CP from date of ED visit through 7 calendar days after ED visit (8 total days).
+          * There is no requirement for MassHealth enrollment.
+
+          If a member has more than one ED visit in an 8-day period, include only the first ED visit.
+
+          Excludes ED visits followed by admission to an acute or nonacute inpatient care setting on the date of the ED visit or within 7 calendar days after the ED visit (8 total days),
+          regardless of principal diagnosis for the admission.
+        MD
         numerator: 'Discharges from the ED for BH CP enrollees 18 to 64 years of age that were succeeded by a follow-up with the BH CP within 7 calendar days after discharge.',
         denominator: 'Discharges from the ED for BH CP enrollees 18 to 64 years of age during the measurement year.',
       ),
       Measure.new(
         id: :bh_cp_5,
         title: 'BH CP #5: Annual Primary Care Visit - % patients',
-        desc: 'The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age who had at least one comprehensive well-care visit with a PCP or an OB/GYN practitioner during the measurement year.',
+        desc: <<~MD,
+          The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age who had at least one comprehensive well-care visit with a PCP or an OB/GYN practitioner during the measurement year.
+
+          Members must be:
+
+          * BH CP enrollees without a CP disenrollment during the measurement year must be continuously enrolled in MassHealth during the measurement year.
+          * BH CP enrollees with a CP disenrollment during the measurement year must be continuously enrolled in MassHealth for one year prior to the disenrollment date.
+          * BH CP enrollees must be continuously enrolled in a BH CP for at least 122 calendar days during the measurement year.
+          * A gap of no more than 45 calendar days during periods of continuous MassHealth enrollment.
+
+          Excludes enrollees in Hospice durring the measurement year.
+        MD
         numerator: 'BH CP enrollees 18 to 64 years of age who received a comprehensive well-care visit at least one time during the measurement year.',
         denominator: 'BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.',
       ),
@@ -67,27 +108,31 @@ module ClaimsReporting
       Measure.new(
         id: :bh_cp_7,
         title: 'BH CP #7: Initiation of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
-        desc: <<~TXT,
+        desc: <<~MD,
+          <mark>**Note**: This measure requires AOD claims data which are currently not available.</mark>
+
           The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with a new episode of alcohol, opioid,
           or other drug (AOD) abuse or dependence who received the following.
 
           - Initiation of AOD Treatment. The percentage of enrollees who initiate treatment through an inpatient AOD admission,
             outpatient visit, intensive outpatient encounter or partial hospitalization, telehealth or medication assisted treatment
             (medication treatment) within 14 days of the diagnosis.
-        TXT
+        MD
         numerator: 'BH CP enrollees 18 to 64 years of age who initiate/engage with AOD treatment.',
         denominator: 'BH CP enrollees 18 to 64 years of age with a new episode of AOD during the intake period.',
       ),
       Measure.new(
         id: :bh_cp_8,
         title: 'BH CP #8: Engagement of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
-        desc: <<~TXT,
+        desc: <<~MD,
+          <mark>**Note**: This measure requires AOD claims data which are currently not available.</mark>
+
           The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with a new episode of alcohol, opioid,
           or other drug (AOD) abuse or dependence who received the following.
 
           - Engagement of AOD Treatment. The percentage of enrollees who initiated treatment and who had two or more additional
             AOD services or medication treatment within 34 days of the initiation visit.
-        TXT
+        MD
         numerator: 'BH CP enrollees 18 to 64 years of age who initiate/engage with AOD treatment.',
         denominator: 'BH CP enrollees 18 to 64 years of age with a new episode of AOD during the intake period.',
       ),
@@ -108,7 +153,9 @@ module ClaimsReporting
       Measure.new(
         id: :bh_cp_12,
         title: 'BH CP #12: Emergency Department Visits for Adults with Mental Illness, Addiction, or Co-occurring Conditions',
-        desc: '',
+        desc: <<~MD,
+          <mark>**Note**: This measure requires AOD claims data which are currently not available.</mark>
+        MD
         numerator: '',
         denominator: '',
       ),
@@ -541,9 +588,9 @@ module ClaimsReporting
       # What about "Modifier"
 
       # Check first because its very likely to match
-      procedure_codes = []
+      procedure_codes = Set.new
       PROCEDURE_CODE_SYSTEMS.each do |code_system|
-        procedure_codes.concat codes_by_system[code_system] if codes_by_system[code_system]
+        procedure_codes |= codes_by_system[code_system] if codes_by_system[code_system]
       end
       return trace_set_match!(vs_name, claim, PROCEDURE_CODE_SYSTEMS) if procedure_codes.include?(claim.procedure_code)
 
@@ -627,7 +674,7 @@ module ClaimsReporting
     memoize :value_set_codes
 
     private def ed_visit?(claim)
-      value_set_codes('ED', PROCEDURE_CODE_SYSTEMS).include? claim.procedure_code
+      in_set?('ED', claim)
     end
 
     private def inpatient_stay?(claim)
@@ -644,12 +691,15 @@ module ClaimsReporting
     end
 
     # Follow-up with BH CP after Emergency Department visit
-    private def calculate_bh_cp_4(_member, claims, enrollments)
+    private def calculate_bh_cp_4(member, claims, enrollments)
       # "on or between January 1 and December 1 of the measurement year."
       visit_date_range = measurement_year
 
       # > Also Exclude: Members who decline to engage with the BH CP.
-      return [] if declined_to_engage?(enrollments)
+      if declined_to_engage?(enrollments)
+        trace_exclusion { "BH_CP_4: Exclude member #{member.id}: declined_to_engage" }
+        return []
+      end
 
       ed_visits = []
       claims.select do |c|
@@ -670,21 +720,13 @@ module ClaimsReporting
         assert "followup_period must be 8 days, was #{followup_period.size} days.", followup_period.size == 8
 
         unless continuously_enrolled_cp?(enrollments, followup_period)
-          # trace_exclusion { "BH_CP_4: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period.min .. followup_period.max}" }
+          trace_exclusion { "BH_CP_4: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period.min .. followup_period.max}" }
           next
         end
 
         # "An ED visit (ED Value Set) on or between January 1 and December 1 of the measurement year."
         ed_visits << c
       end
-
-      # TODO: If a member has more than one ED visit in an 8-day period, include
-      # only the first ED visit. For example, if a member has an ED visit on
-      # January 1 then include the January 1 visit and do not include ED
-      # visits that occur on or between January 2 and January 8; then, if
-      # applicable, include the next ED visit that occurs on or after January
-      # 9. Identify visits chronologically including only one per 8-day
-      # period.
 
       # Avoid O(n^2) by finding the small set of dates containing the claims
       # we will need to look for near each discharge
