@@ -8,6 +8,8 @@
 require 'memoist'
 require 'ruby-progressbar'
 
+# Calculator for various Quality Measures in the MassHealth Community Partners (CP) Program
+# https://www.mass.gov/guides/masshealth-community-partners-cp-program-information-for-providers
 module ClaimsReporting
   class QualityMeasuresReport
     include ActiveModel::Model
@@ -203,7 +205,10 @@ module ClaimsReporting
     APC_EXTRA_PROC_CODES = ['99386', '99387', '99396', '99397', 'T1015'].freeze
 
     # we are keeping rows of each enrollee, etc and flags for each measure
-    # with three possible values: nil (not in the univierse for the measure), false part of the denominator only, true part of the numerator
+    # with three possible values:
+    #  - nil (not in the universe for the measure)
+    #  - false part of the denominator only
+    #  - true part of the numerator
     MeasureRow = Struct.new(:row_type, :row_id, *AVAILABLE_MEASURES.keys, keyword_init: true)
 
     # The percentage of Behavioral Health Community Partner (BH CP) assigned enrollees 18 to 64 years of age with documentation of engagement within 122 days of the date of assignment to a BH CP.
@@ -220,7 +225,7 @@ module ClaimsReporting
     def serializable_hash
       measure_info = AVAILABLE_MEASURES.values.map do |m|
         numerator, denominator = *send(m.id)
-        # no denominator indicates a count
+        # only one value indicates a count
         if denominator.present?
           value = (numerator.to_f / denominator) unless denominator.zero?
         else
@@ -1277,9 +1282,7 @@ module ClaimsReporting
 
       return nil if denominator.zero?
 
-      # formatter.format_pct(numerator * 100.0 / denominator).presence
       [numerator, denominator]
-      # formatter.format_pct(numerator * 100.0 / denominator).presence
     end
 
     def bh_cp_1
@@ -1330,7 +1333,7 @@ module ClaimsReporting
       percentage medical_claim_based_rows, :bh_cp_13
     end
 
-    # Map the names used in HEDIS QRS and the Quality Metrics spec
+    # Map the names used in the various CMS Quality Rating System spec
     # to the OIDs. Not needed now but names will not be unique in
     # Hl7::ValueSetCode as we flesh that out
     VALUE_SETS = {
@@ -1378,101 +1381,5 @@ module ClaimsReporting
     private def connection
       HealthBase.connection
     end
-
-    private def formatter
-      ClaimsReporting::Formatter.new
-    end
-    memoize :formatter
-
-    # Member classification bits from Milliman
-    def available_filters
-      filter_inputs.keys
-    end
-
-    # a Hash of filter attributes
-    # mapping to
-    # https://www.rubydoc.info/github/plataformatec/simple_form/SimpleForm%2FFormBuilder:input options for them
-    def filter_inputs
-      {
-        age_bucket: {
-          label: _('Age Bucket'),
-          collection: age_bucket_options, include_blank: '(any)',
-          hint: "Member's reported age as of #{roster_as_of}"
-        },
-        gender: {
-          label: _('Gender'),
-          collection: gender_options, include_blank: '(any)',
-          hint: "Member's reported gender as of #{roster_as_of}"
-        },
-        race: {
-          label: _('Race'),
-          collection: race_options,
-          include_blank: '(any)',
-          hint: "Member's reported race as of #{roster_as_of}",
-        },
-      }.freeze
-    end
-
-    def filter_options(filter)
-      msg = "#{filter}_options"
-      respond_to?(msg) ? send(msg) : nil
-    end
-
-    # Age Bucket – The age of the member as of the report
-    attr_accessor :age_bucket
-
-    def age_bucket_options
-      [
-        '<18', # never used
-        '18-21',
-        '22-29',
-        '30-39',
-        '40-49',
-        '50-59',
-        '60-64',
-        '65+', # never used
-      ].freeze
-    end
-
-    # Gender – The member’s gender
-    attr_accessor :gender
-
-    def gender_options
-      # member_roster.group(:sex).count.keys
-      ['Female', 'Male'].freeze
-    end
-
-    # Race – The member’s race
-    attr_accessor :race
-
-    def race_options
-      # member_roster.group(:race).count.keys
-      # American Indian Or Alaskan American
-      # Asian Or Pacific Islander
-      # Black-Not Of Hispanic Origin
-      # Caucasian
-      # Hispanic
-      # Interracial
-      # Race Unknown
-      [
-        # FIXME: '(blank)',
-        'AMERICAN INDIAN OR ALASKAN AMERICAN',
-        'ASIAN OR PACIFIC ISLANDER',
-        'BLACK-NOT OF HISPANIC ORIGIN',
-        'CAUCASIAN',
-        'HISPANIC',
-        'INTERRACIAL',
-        'RACE UNKNOWN',
-      ].freeze
-    end
-
-    # ACO – The ACO that the member was assigned to at the time the claim is incurred
-    attr_accessor :aco
-
-    def aco_options
-      # FIXME: '(blank)',
-      medical_claims.distinct.pluck(:aco_name).compact.sort.freeze
-    end
-    memoize :aco_options
   end
 end
