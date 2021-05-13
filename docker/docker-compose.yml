@@ -77,12 +77,11 @@ services:
       - mailhog
 
   db:
-    image: postgis/postgis:12-2.5-alpine
+    image: postgis/postgis:12-3.1-alpine
     container_name: hmis-warehouse-db
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
-      POSTGRES_PASS: postgres
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
     volumes:
       - dbdata:/var/lib/postgresql/data
