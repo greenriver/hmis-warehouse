@@ -11,98 +11,81 @@ on:
   #     - '*'
   #     - '**/*'
 jobs:
- # Label of the container job
- rails:
-   # Containers must run in Linux based operating systems
-   runs-on: ubuntu-20.04
+  # Label of the container job
+  rails:
+    # Containers must run in Linux based operating systems
+    runs-on: ubuntu-20.04
 
-   # Docker Hub image that the job executes in
-   container: ruby:2.7.2-slim-buster
+    # Docker Hub image that the job executes in
+    container: ruby:2.7.2-alpine
 
-   # Service containers to run with job
-   services:
-     postgres:
-       image: postgis/postgis:12-2.5-alpine
-       env:
-         POSTGRES_PASSWORD: postgres
-         POSTGRES_USER: postgres
-         POSTGRES_PASS: postgres
-         POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
-       # Set health checks to wait until postgres has started
-       options: >-
-         --health-cmd pg_isready
-         --health-interval 10s
-         --health-timeout 5s
-         --health-retries 5
-       ports:
-         - 5432:5432
+    # Service containers to run with job
+    services:
+      postgres:
+        image: postgis/postgis:12-3.1-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
-     redis:
-       image: redis:alpine
-       ports:
-         - 6379:6379
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
 
-   steps:
-     - name: Set up dependancies
-       env:
-         DATABASE_APP_DB_TEST: boston_hmis_test
-         WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-         HEALTH_DATABASE_DB_TEST: health_test
-         DATABASE_DB_TEST: boston_cas_test
-         REPORTING_DATABASE_DB_TEST: test_boston_reporting
-       run: |
-         apt-get update
+    steps:
+      - name: Set up dependencies
+        env:
+          DATABASE_APP_DB_TEST: boston_hmis_test
+          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+          HEALTH_DATABASE_DB_TEST: health_test
+          DATABASE_DB_TEST: boston_cas_test
+          REPORTING_DATABASE_DB_TEST: test_boston_reporting
+        run: |
+          apk add --no-cache \
+            nodejs yarn npm \
+            tzdata \
+            git \
+            bash \
+            freetds-dev \
+            icu icu-dev \
+            curl libcurl curl-dev \
+            imagemagick \
+            libmagic file-dev file \
+            build-base libxml2-dev libxslt-dev postgresql-dev \
+            wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+            lftp postgresql postgis geos geos-dev \
+            shared-mime-info
 
-         apt-get install -y \
-           build-essential \
-           curl \
-           freetds-bin \
-           freetds-dev \
-           git \
-           icu-devtools \
-           imagemagick \
-           libc6-dev \
-           libcurl4-openssl-dev \
-           libgeos-dev \
-           libicu-dev \
-           libmagic-dev \
-           libpq-dev \
-           libproj-dev \
-           postgis \
-           postgresql-client \
-           python \
-           unzip \
-           wkhtmltopdf
+          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+          chmod 600 ~/.pgpass
 
-         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-         chmod 600 ~/.pgpass
+          gem install bundler --version=2.2.15
 
-         gem install bundler --version=2.2.6
+      - uses: actions/checkout@v2
 
-     #- uses: chrislennon/action-aws-cli@v1.1
+      - name: Install gems
+        run: |
+          bundle config set --local without 'production staging development'
+          bundle install --jobs 4 --retry 3
 
-     - uses: actions/checkout@v2
+      #- name: Run rubocop
+      #  run: |
+      #    bundle exec rubocop
 
-     - name: Use Node.js 10
-       uses: actions/setup-node@v2-beta
-       with:
-         node-version: '10'
-         check-latest: true
+      - name: Run bundle-audit
+        run: |
+          bundle exec bundle-audit check --update --ignore CVE-2015-9284 CVE-2019-16676 CVE-2017-1002201
 
-     - run: npm install
-
-     - name: Install gems
-       run: |
-         bundle install --jobs 4 --retry 3 --without production staging development
-
-     #- name: Run rubocop
-     #  run: |
-     #    bundle exec rubocop
-
-     - name: Run bundle-audit
-       run: |
-         bundle exec bundle-audit check --update --ignore CVE-2015-9284 CVE-2019-16676 CVE-2017-1002201
-
-     - name: Run brakeman
-       run: |
-         bundle exec brakeman -q --ensure-latest --no-pager --except PermitAttributes,Render
+      - name: Run brakeman
+        run: |
+          bundle exec brakeman -q --ensure-latest --no-pager --except PermitAttributes,Render
