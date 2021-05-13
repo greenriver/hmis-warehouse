@@ -21,7 +21,7 @@
             %td
               = link_to_if report.completed?, report.current_status, path_for_report(report)
               .text-muted.description Run by: #{report.user.name}
-              = report.failures
+              = report.failures.presence
             %td= render 'hud_reports/parameters', report: report
             %td
               - report.build_for_questions&.each do |question|
