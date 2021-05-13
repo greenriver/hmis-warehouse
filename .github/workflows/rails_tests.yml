@@ -23,7 +23,7 @@ jobs:
     # Service containers to run with job
     services:
       postgres:
-        image: postgis/postgis:12-2.5-alpine
+        image: postgis/postgis:12-3.1-alpine
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
