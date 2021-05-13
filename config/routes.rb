@@ -733,8 +733,12 @@ Rails.application.routes.draw do
       post :confirm
     end
 
-    resources :roles
-    resources :groups
+    resources :roles do
+      resources :users, only: [:create, :destroy], controller: 'roles/users'
+    end
+    resources :groups do
+      resources :users, only: [:create, :destroy], controller: 'groups/users'
+    end
     resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do

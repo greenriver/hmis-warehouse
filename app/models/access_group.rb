@@ -53,12 +53,12 @@ class AccessGroup < ApplicationRecord
     end
   end
 
-  def add(user)
-    access_group_members.where(user_id: user.id).first_or_create
+  def add(users)
+    self.users = (self.users + Array.wrap(users)).uniq
   end
 
-  def remove(user)
-    access_group_members.where(user_id: user.id).destroy_all
+  def remove(users)
+    self.users = (self.users - Array.wrap(users))
   end
 
   def self.delayed_system_group_maintenance(group: nil)
