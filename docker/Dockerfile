@@ -34,7 +34,7 @@ RUN apk add --no-cache \
   chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
   lftp postgresql tmux postgis geos geos-dev \
   shared-mime-info \
-  vim
+  vim less
 
 RUN mkdir /app
 WORKDIR /app
