@@ -7,18 +7,14 @@
 module Reporting::MonthlyReports::MonthlyReportCharts
   extend ActiveSupport::Concern
   included do
-    attr_accessor :organization_ids, :project_ids, :months, :project_types, :filter, :age_ranges, :gender, :race, :ethnicity, :user
+    attr_accessor :filter, :user
 
-    # accepts an array of months in the format:
-    # [[year, month], [year, month]]
-    scope :in_months, ->(months) do
-      return none unless months.present?
+    EXPIRY = if Rails.env.development? then 30.seconds else 4.hours end
 
-      months.sort_by! { |y, m| Date.new(y, m, 15) }
-      start_date = Date.new(months.first[0], months.first[1], 1)
-      end_date = Date.new(months.last[0], months.last[1], -1)
+    scope :in_months, ->(range) do
+      return none unless range.present?
 
-      where(mid_month: start_date..end_date)
+      where(mid_month: range)
       # ors = months.map do |year, month|
       #   arel_table[:year].eq(year).and(arel_table[:month].eq(month)).to_sql
       # end
@@ -73,7 +69,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
       project_type_codes = []
       project_types.each do |type|
-        project_type_codes += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.try(:[], type)
+        project_type_codes += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.try(:[], type.to_sym)
       end
       where(project_type: project_type_codes)
     end
@@ -88,18 +84,18 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       client_ids = warehouse_vispdat_client_ids
       client_ids += hmis_vispdat_client_ids
       client_scope = current_scope
-      if filter[:vispdat].presence == :without_vispdat
+      if filter.limit_to_vispdat.presence == :without_vispdat
         client_scope = client_scope.where.not(client_id: client_ids)
-      elsif filter[:vispdat].presence == :with_vispdat
+      elsif filter.limit_to_vispdat.presence == :with_vispdat
         client_scope = where(client_id: client_ids)
       end
 
-      client_scope = client_scope.heads_of_household if filter[:heads_of_household]
-      client_scope = client_scope.filter_for_age(filter[:age_ranges])
-      client_scope = client_scope.filter_for_coc_codes(filter[:coc_codes])
-      client_scope = client_scope.filter_for_race(filter[:race])
-      client_scope = client_scope.filter_for_ethnicity(filter[:ethnicity])
-      client_scope = client_scope.filter_for_gender(filter[:gender])
+      client_scope = client_scope.heads_of_household if filter.hoh_only
+      client_scope = client_scope.filter_for_age(filter.age_ranges)
+      client_scope = client_scope.filter_for_coc_codes(filter.coc_codes)
+      client_scope = client_scope.filter_for_race(filter.races)
+      client_scope = client_scope.filter_for_ethnicity(filter.ethnicities)
+      client_scope = client_scope.filter_for_gender(filter.genders)
 
       client_scope
     end
@@ -108,40 +104,75 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       return current_scope unless age_ranges&.compact.present?
 
       age_exists = r_monthly_t[:age_at_entry].not_eq(nil)
-      age_ors = []
-      age_ors << r_monthly_t[:age_at_entry].lt(18) if age_ranges.include?(:under_eighteen)
-      age_ors << r_monthly_t[:age_at_entry].gteq(18).and(r_monthly_t[:age_at_entry].lteq(24)) if age_ranges.include?(:eighteen_to_twenty_four)
-      age_ors << r_monthly_t[:age_at_entry].gteq(25).and(r_monthly_t[:age_at_entry].lteq(61)) if age_ranges.include?(:twenty_five_to_sixty_one)
-      age_ors << r_monthly_t[:age_at_entry].gt(61) if age_ranges.include?(:over_sixty_one)
 
-      accumulative = nil
-      age_ors.each do |age|
-        accumulative = if accumulative.present?
-          accumulative.or(age)
-        else
-          age
-        end
+      ages = []
+      ages += (0..17).to_a if age_ranges.include?(:under_eighteen)
+      ages += (18..24).to_a if age_ranges.include?(:eighteen_to_twenty_four)
+      ages += (25..29).to_a if age_ranges.include?(:twenty_five_to_twenty_nine)
+      ages += (30..39).to_a if age_ranges.include?(:thirty_to_thirty_nine)
+      ages += (40..49).to_a if age_ranges.include?(:forty_to_forty_nine)
+      ages += (50..59).to_a if age_ranges.include?(:fifty_to_fifty_nine)
+      ages += (60..61).to_a if age_ranges.include?(:sixty_to_sixty_one)
+      ages += (62..110).to_a if age_ranges.include?(:over_sixty_one)
+
+      current_scope.where(age_exists.and(r_monthly_t[:age_at_entry].in(ages)))
+    end
+
+    def self.filter_for_race(races)
+      return current_scope unless races&.present?
+
+      keys = races
+      race_scope = nil
+      race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if keys.include?('AmIndAKNative')
+      race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
+      race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
+      race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
+      race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
+      race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
+
+      # Include anyone who has more than one race listed, anded with any previous alternatives
+      race_scope ||= current_scope
+      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if keys.include?('MultiRacial')
+
+      current_scope.where(client_id: race_scope.pluck(:id))
+    end
+
+    def self.multi_racial_clients
+      # Looking at all races with responses of 1, where we have a sum > 1
+      columns = [
+        c_t[:AmIndAKNative],
+        c_t[:Asian],
+        c_t[:BlackAfAmerican],
+        c_t[:NativeHIOtherPacific],
+        c_t[:White],
+      ]
+      GrdaWarehouse::Hud::Client.
+        destination.
+        where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
+    end
+
+    def self.add_alternative(scope, alternative)
+      if scope.present?
+        scope.or(alternative)
+      else
+        alternative
       end
-
-      current_scope.where(age_exists.and(accumulative))
     end
 
-    def self.filter_for_race(race)
-      return current_scope unless race&.present? && HUD.races.keys.include?(race)
-
-      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(race => 1).pluck(:id))
+    def self.race_alternative(key)
+      GrdaWarehouse::Hud::Client.destination.where(key => 1)
     end
 
-    def self.filter_for_ethnicity(ethnicity)
-      return current_scope unless ethnicity&.present? && HUD.ethnicities.keys.include?(ethnicity)
+    def self.filter_for_ethnicity(ethnicities)
+      return current_scope unless ethnicities&.present?
 
-      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Ethnicity: ethnicity).pluck(:id))
+      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Ethnicity: ethnicities).pluck(:id))
     end
 
-    def self.filter_for_gender(gender)
-      return current_scope unless gender&.present? && HUD.genders.keys.include?(gender)
+    def self.filter_for_gender(genders)
+      return current_scope unless genders&.present?
 
-      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Gender: gender).pluck(:id))
+      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Gender: genders).pluck(:id))
     end
 
     # This needs to check project_id in the warehouse since we don't store this in the reporting DB
@@ -168,25 +199,17 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     private def cache_key_for_report
       [
         self.class.name,
-        organization_ids,
-        project_ids,
-        months,
-        project_types,
-        filter,
+        filter.for_params,
       ]
-    end
-
-    def months_in_dates
-      @months_in_dates ||= months.map { |year, month| Date.new(year, month, 1) }
     end
 
     def clients_for_report
       @clients_for_report ||= self.class.
         where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).
-        in_months(months).
-        for_organizations(organization_ids).
-        for_projects(project_ids).
-        for_project_types(project_types).
+        in_months(filter.range).
+        for_organizations(filter.organization_ids).
+        for_projects(filter.project_ids).
+        for_project_types(filter.project_type_codes).
         filtered(filter)
     end
 
@@ -195,7 +218,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def enrolled_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         enrolled_clients.select(:client_id).distinct.count
       end
     end
@@ -206,8 +229,8 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     # Potentially this introduces errors since someone may actually be
     # The head of household in more than one household
     def enrolled_household_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
-        self.class.enrolled.in_months(months).
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
+        self.class.enrolled.in_months(filter.range).
           where(household_id: enrolled_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
       end
@@ -218,14 +241,14 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def active_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         active_clients.select(:client_id).distinct.count
       end
     end
 
     def active_household_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
-        self.class.enrolled.in_months(months).
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
+        self.class.enrolled.in_months(filter.range).
           where(household_id: active_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
       end
@@ -236,14 +259,14 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def entered_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         entered_clients.select(:client_id).distinct.count
       end
     end
 
     def entered_household_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
-        self.class.enrolled.in_months(months).
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
+        self.class.enrolled.in_months(filter.range).
           where(household_id: entered_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
       end
@@ -254,14 +277,14 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def exited_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         exited_clients.select(:client_id).distinct.count
       end
     end
 
     def exited_household_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
-        self.class.enrolled.in_months(months).
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
+        self.class.enrolled.in_months(filter.range).
           where(household_id: exited_clients.select(:household_id)).
           heads_of_household.select(:client_id).distinct.count
       end
@@ -272,7 +295,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def first_time_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         first_time_clients.select(:client_id).distinct.count
       end
     end
@@ -282,7 +305,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def re_entry_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         re_entry_clients.select(:client_id).distinct.count
       end
     end
@@ -296,7 +319,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def census_by_project_type
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = Hash[homeless_project_type_ids.zip]
         counts = active_clients.group(:year, :month, :project_type).
           order(year: :asc, month: :asc).
@@ -312,7 +335,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def census_by_month
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = {}
         totals = active_clients.group(:year, :month).
           order(year: :asc, month: :asc).
@@ -328,7 +351,24 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def months_strings
-      months_in_dates.map { |m| m.strftime('%b %Y') }
+      @months_strings ||= [].tap do |months|
+        date = filter.start_date
+        while date < filter.end_date
+          months << date.strftime('%b %Y')
+          date += 1.months
+        end
+      end
+    end
+
+    # for backwards compatability provide months in format [[year, month]]
+    def months
+      @months ||= [].tap do |months|
+        date = filter.start_date
+        while date < filter.end_date
+          months << [date.year, date.month]
+          date += 1.months
+        end
+      end
     end
 
     def month_x_axis_labels
@@ -336,7 +376,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def entry_re_entry_data
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = { new: [:New], returning: [:Returning] }
         new_entries = first_time_clients.group(:year, :month).
           order(year: :asc, month: :asc).
@@ -377,7 +417,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     # end
 
     def first_time_entry_locations
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = Hash[homeless_project_type_ids.zip]
         total_counts = first_time_clients.group(:year, :month).select(:client_id).distinct.count
         counts = first_time_clients.group(:year, :month, :project_type).
@@ -395,7 +435,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def re_entry_locations
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = Hash[homeless_project_type_ids.zip]
         total_counts = re_entry_clients.group(:year, :month).select(:client_id).distinct.count
         counts = re_entry_clients.group(:year, :month, :project_type).
@@ -416,7 +456,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def all_housed_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         all_housed_clients.select(:client_id).distinct.count
       end
     end
@@ -426,7 +466,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def housed_client_count
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         housed_clients.select(:client_id).distinct.count
       end
     end
@@ -442,7 +482,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def housed_by_month
-      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = { housed: [:Housed] }
         housed = housed_clients.group(:year, :month).
           order(year: :asc, month: :asc).

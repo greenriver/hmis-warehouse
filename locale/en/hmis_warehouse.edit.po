@@ -3446,9 +3446,6 @@ msgstr ""
 msgid "Client does not have a community preference."
 msgstr ""
 
-msgid "Clients"
-msgstr ""
-
 msgid "Cohort is visible in CAS"
 msgstr ""
 
@@ -3536,13 +3533,7 @@ msgstr ""
 msgid "HIV+"
 msgstr ""
 
-msgid "HMIS Blackout"
-msgstr ""
-
 msgid "HMIS Data Sources"
-msgstr ""
-
-msgid "HMIS Data Warehouse"
 msgstr ""
 
 msgid "HMIS Project ID"
@@ -3711,9 +3702,6 @@ msgid "Pre-Placement Project"
 msgstr ""
 
 msgid "Previous Removal Reason"
-msgstr ""
-
-msgid "Process Duplicates"
 msgstr ""
 
 msgid "Project Data Quality Report"

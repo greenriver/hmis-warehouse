@@ -10,6 +10,7 @@ module WarehouseReports::ClientDetails
     include WarehouseReportAuthorization
     include SubpopulationHistoryScope
     include ClientDetailReports
+    include Filter::FilterScopes
 
     before_action :set_limited, only: [:index]
     before_action :set_filter
@@ -48,41 +49,23 @@ module WarehouseReports::ClientDetails
     end
 
     def exits_from_homelessness
+      @project_types = @filter.project_type_ids
       scope = service_history_source.exit.
         joins(:client).
         homeless.
         order(:last_date_in_program)
-      hsh_scope = history_scope(scope, @filter.sub_population)
-      hsh_scope = filter_for_project_types(hsh_scope)
-      hsh_scope = filter_for_organizations(hsh_scope)
-      hsh_scope = filter_for_projects(hsh_scope)
-      hsh_scope = filter_for_age_ranges(hsh_scope)
-      hsh_scope = filter_for_hoh(hsh_scope)
-      hsh_scope = filter_for_coc_codes(hsh_scope)
-      hsh_scope = filter_for_gender(hsh_scope)
-      hsh_scope = filter_for_race(hsh_scope)
-      hsh_scope = filter_for_ethnicity(hsh_scope)
-      hsh_scope
-    end
 
-    private def filter_params
-      return {} unless params[:filter].present?
-
-      params.require(:filter).permit(
-        :start,
-        :end,
-        :sub_population,
-        :heads_of_household,
-        :ph,
-        :gender,
-        :race,
-        :ethnicity,
-        age_ranges: [],
-        organization_ids: [],
-        project_ids: [],
-        project_type_codes: [],
-        coc_codes: [],
-      )
+      scope = history_scope(scope, @filter.sub_population)
+      scope = filter_for_project_type(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_projects(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_cocs(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
+      scope
     end
   end
 end
