@@ -994,4 +994,12 @@ class Role < ApplicationRecord
     end
   end
 
+  def add(users)
+    self.users = (self.users + Array.wrap(users)).uniq
+  end
+
+  def remove(users)
+    self.users = (self.users - Array.wrap(users))
+  end
+
 end
