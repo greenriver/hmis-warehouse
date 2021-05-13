@@ -17,7 +17,6 @@ class ReportingBase < ActiveRecord::Base
       'db/seeds' => ['db/reporting/seeds'],
       'config/database' => ['config/database_reporting.yml'],
     }
-    ENV['SCHEMA'] = 'db/reporting/schema.rb'
     # set config variables for custom database
     new_config.each do |path, value|
       Rails.application.config.paths[path] = value
