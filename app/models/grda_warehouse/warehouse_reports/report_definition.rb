@@ -44,7 +44,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def self.maintain_report_definitions
-      cleanup_unused_reports()
+      cleanup_unused_reports
       report_list.each do |category, reports|
         reports.each do |report|
           r = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: report[:url]).first_or_initialize
@@ -855,16 +855,16 @@ module GrdaWarehouse::WarehouseReports
           health: true,
         }
         r_list['Health: BH CP Claims/Payments'] << {
-          url: 'claims_reporting/warehouse_reports/performance',
-          name: 'BH CP Performance',
-          description: 'Performance metrics based on paid MassHealth claims.',
+          url: 'claims_reporting/warehouse_reports/engagement_trends',
+          name: 'Patient Engagement Trends',
+          description: 'Engagement metrics by length of engagement',
           limitable: false,
           health: true,
         }
         r_list['Health: BH CP Claims/Payments'] << {
-          url: 'claims_reporting/warehouse_reports/engagement_trends',
-          name: 'Patient Engagement Trends',
-          description: 'Engagement metrics by length of engagement',
+          url: 'claims_reporting/warehouse_reports/quality_measures',
+          name: 'BH CP Quality Measures',
+          description: 'Community Partners (CP) Program Quality Measures',
           limitable: false,
           health: true,
         }
@@ -1060,12 +1060,12 @@ module GrdaWarehouse::WarehouseReports
         'warehouse_reports/veteran_details/entries',
         'warehouse_reports/veteran_details/exits',
         'performance_dashboards/household',
+        'claims_reporting/warehouse_reports/performance',
       ]
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
       unless RailsDrivers.loaded.include?(:claims_reporting)
         cleanup << 'claims_reporting/warehouse_reports/reconciliation'
-        cleanup << 'claims_reporting/warehouse_reports/performance'
         cleanup << 'claims_reporting/warehouse_reports/engagement_trends'
       end
       cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)

@@ -82,7 +82,9 @@ CREATE TABLE public.access_groups (
     name character varying,
     user_id integer,
     coc_codes character varying[] DEFAULT '{}'::character varying[],
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    system jsonb DEFAULT '[]'::jsonb,
+    must_exist boolean DEFAULT false NOT NULL
 );
 
 
@@ -243,6 +245,53 @@ CREATE TABLE public.ar_internal_metadata (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
+
+
+--
+-- Name: cas_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_reports (
+    id integer NOT NULL,
+    client_id integer NOT NULL,
+    match_id integer NOT NULL,
+    decision_id integer NOT NULL,
+    decision_order integer NOT NULL,
+    match_step character varying NOT NULL,
+    decision_status character varying NOT NULL,
+    current_step boolean DEFAULT false NOT NULL,
+    active_match boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    elapsed_days integer DEFAULT 0 NOT NULL,
+    client_last_seen_date timestamp without time zone,
+    criminal_hearing_date timestamp without time zone,
+    decline_reason character varying,
+    not_working_with_client_reason character varying,
+    administrative_cancel_reason character varying,
+    client_spoken_with_services_agency boolean,
+    cori_release_form_submitted boolean
+);
+
+
+--
+-- Name: cas_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_reports_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_reports_id_seq OWNED BY public.cas_reports.id;
 
 
 --
@@ -420,29 +469,26 @@ ALTER SEQUENCE public.delayed_jobs_id_seq OWNED BY public.delayed_jobs.id;
 
 
 --
--- Name: document_exports; Type: TABLE; Schema: public; Owner: -
+-- Name: encryption_secrets; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.document_exports (
+CREATE TABLE public.encryption_secrets (
     id bigint NOT NULL,
+    version_stage character varying NOT NULL,
+    version_id character varying NOT NULL,
+    previous boolean DEFAULT true NOT NULL,
+    current boolean DEFAULT true NOT NULL,
+    rotated_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    type character varying NOT NULL,
-    user_id bigint NOT NULL,
-    version character varying NOT NULL,
-    status character varying NOT NULL,
-    query_string character varying,
-    file_data bytea,
-    filename character varying,
-    mime_type character varying
+    updated_at timestamp without time zone NOT NULL
 );
 
 
 --
--- Name: document_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: encryption_secrets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.document_exports_id_seq
+CREATE SEQUENCE public.encryption_secrets_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -451,10 +497,10 @@ CREATE SEQUENCE public.document_exports_id_seq
 
 
 --
--- Name: document_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: encryption_secrets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.document_exports_id_seq OWNED BY public.document_exports.id;
+ALTER SEQUENCE public.encryption_secrets_id_seq OWNED BY public.encryption_secrets.id;
 
 
 --
@@ -806,7 +852,9 @@ CREATE TABLE public.report_results (
     validations json,
     support json,
     delayed_job_id integer,
-    file_id integer
+    file_id integer,
+    support_file_id integer,
+    export_id integer
 );
 
 
@@ -910,87 +958,88 @@ CREATE TABLE public.roles (
     verb character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    can_edit_anything_super_user boolean DEFAULT false,
     can_view_clients boolean DEFAULT false,
     can_edit_clients boolean DEFAULT false,
-    can_view_censuses boolean DEFAULT false,
     can_view_census_details boolean DEFAULT false,
     can_edit_users boolean DEFAULT false,
-    can_edit_roles boolean DEFAULT false,
-    can_audit_users boolean DEFAULT false,
     can_view_full_ssn boolean DEFAULT false,
     can_view_full_dob boolean DEFAULT false,
     can_view_hiv_status boolean DEFAULT false,
     can_view_dmh_status boolean DEFAULT false,
     can_view_imports boolean DEFAULT false,
+    can_edit_roles boolean DEFAULT false,
     can_view_projects boolean DEFAULT false,
-    can_edit_projects boolean DEFAULT false,
-    can_edit_project_groups boolean DEFAULT false,
     can_view_organizations boolean DEFAULT false,
-    can_edit_organizations boolean DEFAULT false,
-    can_edit_data_sources boolean DEFAULT false,
-    can_search_window boolean DEFAULT false,
     can_view_client_window boolean DEFAULT false,
     can_upload_hud_zips boolean DEFAULT false,
+    can_administer_health boolean DEFAULT false,
+    can_edit_client_health boolean DEFAULT false,
+    can_view_client_health boolean DEFAULT false,
+    health_role boolean DEFAULT false NOT NULL,
+    can_edit_project_groups boolean DEFAULT false,
+    can_edit_anything_super_user boolean DEFAULT false,
+    can_edit_projects boolean DEFAULT false,
+    can_edit_organizations boolean DEFAULT false,
+    can_edit_data_sources boolean DEFAULT false,
     can_edit_translations boolean DEFAULT false,
     can_manage_assessments boolean DEFAULT false,
-    can_manage_client_files boolean DEFAULT false,
-    can_manage_window_client_files boolean DEFAULT false,
-    can_see_own_file_uploads boolean DEFAULT false,
     can_manage_config boolean DEFAULT false,
     can_edit_dq_grades boolean DEFAULT false,
+    can_manage_client_files boolean DEFAULT false,
+    can_manage_window_client_files boolean DEFAULT false,
     can_view_vspdat boolean DEFAULT false,
     can_edit_vspdat boolean DEFAULT false,
-    can_submit_vspdat boolean DEFAULT false,
     can_create_clients boolean DEFAULT false,
     can_view_client_history_calendar boolean DEFAULT false,
-    can_edit_client_notes boolean DEFAULT false,
-    can_edit_window_client_notes boolean DEFAULT false,
-    can_see_own_window_client_notes boolean DEFAULT false,
-    can_manage_cohorts boolean DEFAULT false,
-    can_edit_cohort_clients boolean DEFAULT false,
-    can_edit_assigned_cohorts boolean DEFAULT false,
-    can_view_assigned_cohorts boolean DEFAULT false,
+    can_view_aggregate_health boolean DEFAULT false,
     can_assign_users_to_clients boolean DEFAULT false,
     can_view_client_user_assignments boolean DEFAULT false,
     can_export_hmis_data boolean DEFAULT false,
     can_confirm_housing_release boolean DEFAULT false,
+    can_see_own_file_uploads boolean DEFAULT false,
+    can_search_window boolean DEFAULT false,
+    can_submit_vspdat boolean DEFAULT false,
+    can_edit_client_notes boolean DEFAULT false,
+    can_edit_window_client_notes boolean DEFAULT false,
+    can_see_own_window_client_notes boolean DEFAULT false,
     can_track_anomalies boolean DEFAULT false,
     can_view_all_reports boolean DEFAULT false,
     can_assign_reports boolean DEFAULT false,
     can_view_assigned_reports boolean DEFAULT false,
-    can_view_project_data_quality_client_details boolean DEFAULT false,
+    can_view_reports boolean DEFAULT false,
+    can_manage_cohorts boolean DEFAULT false,
+    can_edit_cohort_clients boolean DEFAULT false,
+    can_edit_assigned_cohorts boolean DEFAULT false,
+    can_view_assigned_cohorts boolean DEFAULT false,
     can_manage_organization_users boolean DEFAULT false,
-    can_view_all_user_client_assignments boolean DEFAULT false,
     can_add_administrative_event boolean DEFAULT false,
-    can_see_clients_in_window_for_assigned_data_sources boolean DEFAULT false,
-    can_upload_deidentified_hud_hmis_files boolean DEFAULT false,
-    can_upload_whitelisted_hud_hmis_files boolean DEFAULT false,
-    can_edit_warehouse_alerts boolean DEFAULT false,
-    can_upload_dashboard_extras boolean DEFAULT false,
-    can_administer_health boolean DEFAULT false,
-    can_edit_client_health boolean DEFAULT false,
-    can_view_client_health boolean DEFAULT false,
-    can_view_aggregate_health boolean DEFAULT false,
-    can_manage_health_agency boolean DEFAULT false,
+    can_view_project_data_quality_client_details boolean DEFAULT false,
+    can_manage_health_agency boolean DEFAULT false NOT NULL,
     can_approve_patient_assignments boolean DEFAULT false,
     can_manage_claims boolean DEFAULT false,
     can_manage_all_patients boolean DEFAULT false,
     can_manage_patients_for_own_agency boolean DEFAULT false,
-    can_manage_care_coordinators boolean DEFAULT false,
-    can_approve_cha boolean DEFAULT false,
-    can_approve_ssm boolean DEFAULT false,
-    can_approve_release boolean DEFAULT false,
-    can_approve_participation boolean DEFAULT false,
     can_edit_all_patient_items boolean DEFAULT false,
     can_edit_patient_items_for_own_agency boolean DEFAULT false,
     can_create_care_plans_for_own_agency boolean DEFAULT false,
     can_view_all_patients boolean DEFAULT false,
     can_view_patients_for_own_agency boolean DEFAULT false,
     can_add_case_management_notes boolean DEFAULT false,
+    can_see_clients_in_window_for_assigned_data_sources boolean DEFAULT false,
+    can_approve_patient_items_for_agency boolean DEFAULT false,
+    can_approve_cha boolean DEFAULT false,
+    can_approve_ssm boolean DEFAULT false,
+    can_approve_release boolean DEFAULT false,
+    can_approve_participation boolean DEFAULT false,
+    can_manage_care_coordinators boolean DEFAULT false,
     can_manage_accountable_care_organizations boolean DEFAULT false,
     can_view_member_health_reports boolean DEFAULT false,
-    health_role boolean DEFAULT false NOT NULL,
+    can_edit_warehouse_alerts boolean DEFAULT false,
+    can_upload_deidentified_hud_hmis_files boolean DEFAULT false,
+    can_upload_whitelisted_hud_hmis_files boolean DEFAULT false,
+    can_upload_dashboard_extras boolean DEFAULT false,
+    can_view_all_user_client_assignments boolean DEFAULT false,
+    can_audit_users boolean DEFAULT false,
     can_audit_clients boolean DEFAULT false,
     can_export_anonymous_hmis_data boolean DEFAULT false,
     can_view_youth_intake boolean DEFAULT false,
@@ -1004,39 +1053,46 @@ CREATE TABLE public.roles (
     can_edit_own_agency_youth_intake boolean DEFAULT false,
     can_view_clients_with_roi_in_own_coc boolean DEFAULT false,
     can_enable_2fa boolean DEFAULT false,
-    can_edit_help boolean DEFAULT false,
     can_view_ce_assessment boolean DEFAULT false,
     can_edit_ce_assessment boolean DEFAULT false,
     can_submit_ce_assessment boolean DEFAULT false,
-    can_edit_access_groups boolean DEFAULT false,
-    enforced_2fa boolean DEFAULT false,
+    can_edit_help boolean DEFAULT false,
     can_view_all_hud_reports boolean DEFAULT false,
     can_view_own_hud_reports boolean DEFAULT false,
+    enforced_2fa boolean DEFAULT false,
+    can_edit_access_groups boolean DEFAULT false,
     can_view_confidential_enrollment_details boolean DEFAULT false,
-    can_impersonate_users boolean DEFAULT false,
     can_manage_ad_hoc_data_sources boolean DEFAULT false,
     can_view_client_ad_hoc_data_sources boolean DEFAULT false,
+    can_impersonate_users boolean DEFAULT false,
     can_use_strict_search boolean DEFAULT false,
     can_use_separated_consent boolean DEFAULT false,
-    training_required boolean DEFAULT false,
     can_delete_projects boolean DEFAULT false,
     can_delete_data_sources boolean DEFAULT false,
-    can_edit_health_emergency_triage boolean DEFAULT false,
+    training_required boolean DEFAULT false,
     can_edit_health_emergency_clinical boolean DEFAULT false,
     can_see_health_emergency boolean DEFAULT false,
     can_edit_health_emergency_screening boolean DEFAULT false,
     can_see_health_emergency_history boolean DEFAULT false,
-    can_download_cohorts boolean DEFAULT false,
     can_edit_health_emergency_medical_restriction boolean DEFAULT false,
     can_see_health_emergency_medical_restriction boolean DEFAULT false,
     can_see_health_emergency_screening boolean DEFAULT false,
     can_see_health_emergency_clinical boolean DEFAULT false,
-    receives_medical_restriction_notifications boolean DEFAULT false,
     can_edit_health_emergency_contact_tracing boolean DEFAULT false,
+    receives_medical_restriction_notifications boolean DEFAULT false,
+    can_download_cohorts boolean DEFAULT false,
+    can_use_service_register boolean DEFAULT false,
     can_manage_auto_client_de_duplication boolean DEFAULT false,
     can_view_all_window_notes boolean DEFAULT false,
-    can_use_service_register boolean DEFAULT false,
-    can_delete_youth_intake boolean DEFAULT false
+    can_decrypt_pii boolean DEFAULT false,
+    can_delete_youth_intake boolean DEFAULT false,
+    can_administer_assigned_reports boolean DEFAULT false,
+    can_view_enrollment_details boolean DEFAULT false,
+    can_view_full_client_dashboard boolean DEFAULT false,
+    can_view_limited_client_dashboard boolean DEFAULT false,
+    can_view_cached_client_enrollments boolean DEFAULT false,
+    can_search_all_clients boolean DEFAULT false,
+    can_import_project_groups boolean DEFAULT false
 );
 
 
@@ -1174,6 +1230,99 @@ ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
 
 
 --
+-- Name: test_addresses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_addresses (
+    id bigint NOT NULL,
+    test_person_id integer,
+    street character varying
+);
+
+
+--
+-- Name: test_addresses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.test_addresses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.test_addresses_id_seq OWNED BY public.test_addresses.id;
+
+
+--
+-- Name: test_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_clients (
+    id bigint NOT NULL,
+    "FirstName" character varying,
+    "encrypted_FirstName" character varying,
+    "encrypted_FirstName_iv" character varying
+);
+
+
+--
+-- Name: test_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.test_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.test_clients_id_seq OWNED BY public.test_clients.id;
+
+
+--
+-- Name: test_people; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_people (
+    id bigint NOT NULL,
+    encrypted_first_name character varying,
+    encrypted_first_name_iv character varying,
+    email character varying,
+    hair character varying
+);
+
+
+--
+-- Name: test_people_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.test_people_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_people_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.test_people_id_seq OWNED BY public.test_people.id;
+
+
+--
 -- Name: tokens; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1271,6 +1420,42 @@ CREATE SEQUENCE public.translation_texts_id_seq
 --
 
 ALTER SEQUENCE public.translation_texts_id_seq OWNED BY public.translation_texts.id;
+
+
+--
+-- Name: two_factors_memorized_devices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.two_factors_memorized_devices (
+    id bigint NOT NULL,
+    user_id bigint,
+    uuid character varying,
+    name character varying,
+    expires_at timestamp without time zone,
+    session_id integer,
+    log_in_ip character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: two_factors_memorized_devices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.two_factors_memorized_devices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: two_factors_memorized_devices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.two_factors_memorized_devices_id_seq OWNED BY public.two_factors_memorized_devices.id;
 
 
 --
@@ -1439,11 +1624,12 @@ CREATE TABLE public.users (
     password_changed_at timestamp without time zone,
     training_completed boolean DEFAULT false,
     last_training_completed date,
-    uuid character varying,
     provider character varying,
     uid character varying,
     provider_raw_info json,
-    receive_account_request_notifications boolean DEFAULT false
+    uuid character varying,
+    receive_account_request_notifications boolean DEFAULT false,
+    provider_set_at timestamp without time zone
 );
 
 
@@ -1578,6 +1764,13 @@ ALTER TABLE ONLY public.agencies ALTER COLUMN id SET DEFAULT nextval('public.age
 
 
 --
+-- Name: cas_reports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_reports ALTER COLUMN id SET DEFAULT nextval('public.cas_reports_id_seq'::regclass);
+
+
+--
 -- Name: clients_unduplicated id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1606,10 +1799,10 @@ ALTER TABLE ONLY public.delayed_jobs ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
--- Name: document_exports id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: encryption_secrets id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.document_exports ALTER COLUMN id SET DEFAULT nextval('public.document_exports_id_seq'::regclass);
+ALTER TABLE ONLY public.encryption_secrets ALTER COLUMN id SET DEFAULT nextval('public.encryption_secrets_id_seq'::regclass);
 
 
 --
@@ -1725,6 +1918,27 @@ ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id
 
 
 --
+-- Name: test_addresses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_addresses ALTER COLUMN id SET DEFAULT nextval('public.test_addresses_id_seq'::regclass);
+
+
+--
+-- Name: test_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_clients ALTER COLUMN id SET DEFAULT nextval('public.test_clients_id_seq'::regclass);
+
+
+--
+-- Name: test_people id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_people ALTER COLUMN id SET DEFAULT nextval('public.test_people_id_seq'::regclass);
+
+
+--
 -- Name: tokens id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1743,6 +1957,13 @@ ALTER TABLE ONLY public.translation_keys ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.translation_texts ALTER COLUMN id SET DEFAULT nextval('public.translation_texts_id_seq'::regclass);
+
+
+--
+-- Name: two_factors_memorized_devices id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.two_factors_memorized_devices ALTER COLUMN id SET DEFAULT nextval('public.two_factors_memorized_devices_id_seq'::regclass);
 
 
 --
@@ -1836,6 +2057,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
+-- Name: cas_reports cas_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_reports
+    ADD CONSTRAINT cas_reports_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: clients_unduplicated clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1868,11 +2097,11 @@ ALTER TABLE ONLY public.delayed_jobs
 
 
 --
--- Name: document_exports document_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: encryption_secrets encryption_secrets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.document_exports
-    ADD CONSTRAINT document_exports_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.encryption_secrets
+    ADD CONSTRAINT encryption_secrets_pkey PRIMARY KEY (id);
 
 
 --
@@ -2012,6 +2241,30 @@ ALTER TABLE ONLY public.tags
 
 
 --
+-- Name: test_addresses test_addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_addresses
+    ADD CONSTRAINT test_addresses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: test_clients test_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_clients
+    ADD CONSTRAINT test_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: test_people test_people_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_people
+    ADD CONSTRAINT test_people_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: tokens tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2033,6 +2286,14 @@ ALTER TABLE ONLY public.translation_keys
 
 ALTER TABLE ONLY public.translation_texts
     ADD CONSTRAINT translation_texts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: two_factors_memorized_devices two_factors_memorized_devices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.two_factors_memorized_devices
+    ADD CONSTRAINT two_factors_memorized_devices_pkey PRIMARY KEY (id);
 
 
 --
@@ -2081,6 +2342,20 @@ ALTER TABLE ONLY public.versions
 
 ALTER TABLE ONLY public.warehouse_alerts
     ADD CONSTRAINT warehouse_alerts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: activity_logs_created_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX activity_logs_created_at_idx ON public.activity_logs USING brin (created_at);
+
+
+--
+-- Name: created_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX created_at_idx ON public.activity_logs USING brin (created_at);
 
 
 --
@@ -2161,6 +2436,13 @@ CREATE INDEX index_agencies_consent_limits_on_consent_limit_id ON public.agencie
 
 
 --
+-- Name: index_cas_reports_on_client_id_and_match_id_and_decision_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_cas_reports_on_client_id_and_match_id_and_decision_id ON public.cas_reports USING btree (client_id, match_id, decision_id);
+
+
+--
 -- Name: index_consent_limits_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2175,10 +2457,17 @@ CREATE UNIQUE INDEX index_db_credentials_on_user_id_and_role ON public.db_creden
 
 
 --
--- Name: index_document_exports_on_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_encryption_secrets_on_version_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_document_exports_on_user_id ON public.document_exports USING btree (user_id);
+CREATE UNIQUE INDEX index_encryption_secrets_on_version_id ON public.encryption_secrets USING btree (version_id);
+
+
+--
+-- Name: index_encryption_secrets_on_version_stage; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_encryption_secrets_on_version_stage ON public.encryption_secrets USING btree (version_stage);
 
 
 --
@@ -2364,6 +2653,13 @@ CREATE INDEX index_translation_texts_on_translation_key_id ON public.translation
 
 
 --
+-- Name: index_two_factors_memorized_devices_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_two_factors_memorized_devices_on_user_id ON public.two_factors_memorized_devices USING btree (user_id);
+
+
+--
 -- Name: index_uploads_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2434,6 +2730,13 @@ CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING bt
 
 
 --
+-- Name: index_users_on_uid_and_provider; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_users_on_uid_and_provider ON public.users USING btree (uid, provider);
+
+
+--
 -- Name: index_users_on_unlock_token; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2493,19 +2796,19 @@ ALTER TABLE ONLY public.glacier_archives
 
 
 --
+-- Name: two_factors_memorized_devices fk_rails_65991dd82f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.two_factors_memorized_devices
+    ADD CONSTRAINT fk_rails_65991dd82f FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: reports fk_rails_b231202c9b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reports
     ADD CONSTRAINT fk_rails_b231202c9b FOREIGN KEY (report_results_summary_id) REFERENCES public.report_results_summaries(id);
-
-
---
--- Name: document_exports fk_rails_b6db804ddb; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.document_exports
-    ADD CONSTRAINT fk_rails_b6db804ddb FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -2702,16 +3005,30 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200402002149'),
 ('20200410003006'),
 ('20200612150045'),
-('20200627165150'),
 ('20200709125338'),
 ('20200716133200'),
 ('20200720151331'),
 ('20200720221319'),
-('20200722021319'),
-('20200722150322'),
-('20200723051505'),
 ('20200724181711'),
-('20200727061729'),
-('20200728185654');
+('20200728185654'),
+('20201105132926'),
+('20201216141634'),
+('20201217155258'),
+('20201221141550'),
+('20201221183603'),
+('20210105183208'),
+('20210203195412'),
+('20210205193320'),
+('20210206022724'),
+('20210301141302'),
+('20210315191809'),
+('20210315200648'),
+('20210317190501'),
+('20210317215206'),
+('20210402181911'),
+('20210419203457'),
+('20210506185609'),
+('20210506185752'),
+('20210507151459');
 
 

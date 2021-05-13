@@ -50,8 +50,10 @@ module WarehouseReports
         reports['PublicReports::HomelessPopulation'] = PublicReports::HomelessPopulation
       end
       reports['IncomeBenefitsReport::Report'] = IncomeBenefitsReport::Report if RailsDrivers.loaded.include?(:income_benefits_report)
-      reports['ClaimsReporting::EngagementTrends'] = ClaimsReporting::EngagementTrends if RailsDrivers.loaded.include?(:claims_reporting)
-
+      if RailsDrivers.loaded.include?(:claims_reporting)
+        reports['ClaimsReporting::EngagementTrends'] = ClaimsReporting::EngagementTrends
+        reports['ClaimsReporting::QualityMeasures'] = ClaimsReporting::QualityMeasures
+      end
       reports
     end
   end
