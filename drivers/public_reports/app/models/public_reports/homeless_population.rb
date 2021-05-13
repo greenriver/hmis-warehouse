@@ -76,7 +76,15 @@ module PublicReports
     end
 
     def generate_publish_url_for(population)
-      "#{generate_publish_url}#{population}/index.html"
+      publish_url = if ENV['S3_PUBLIC_URL'].present?
+        "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
+      else
+        # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
+        "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}"
+      end
+      publish_url = "#{publish_url}/#{population}"
+      publish_url = "#{publish_url}/#{version_slug}" if version_slug.present?
+      "#{publish_url}/index.html"
     end
 
     def generate_embed_code_for(population)

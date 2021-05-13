@@ -59,6 +59,10 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
         expect(GrdaWarehouse::Hud::Funder.count).to eq(1)
       end
     end
+
+    it 'Appropriate error rows are generated' do
+      expect(HmisCsvValidation::UniqueHudKey.count).to eq(6)
+    end
   end
 
   def import(file_path, data_source)
