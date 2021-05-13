@@ -1295,6 +1295,44 @@ ALTER SEQUENCE public.claims_reporting_member_rosters_id_seq OWNED BY public.cla
 
 
 --
+-- Name: claims_reporting_quality_measures; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_quality_measures (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    options jsonb,
+    results jsonb,
+    processing_errors character varying,
+    completed_at timestamp without time zone,
+    started_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: claims_reporting_quality_measures_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_quality_measures_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_quality_measures_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_quality_measures_id_seq OWNED BY public.claims_reporting_quality_measures.id;
+
+
+--
 -- Name: claims_reporting_rx_claims; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1924,7 +1962,8 @@ CREATE TABLE public.eligibility_responses (
     original_filename character varying,
     deleted_at timestamp without time zone,
     num_errors integer,
-    patient_aco_changes json
+    patient_aco_changes json,
+    file character varying
 );
 
 
@@ -3008,6 +3047,44 @@ CREATE SEQUENCE public.health_goals_id_seq
 --
 
 ALTER SEQUENCE public.health_goals_id_seq OWNED BY public.health_goals.id;
+
+
+--
+-- Name: hl7_value_set_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hl7_value_set_codes (
+    id bigint NOT NULL,
+    value_set_name character varying NOT NULL,
+    value_set_oid character varying NOT NULL,
+    value_set_version character varying,
+    code_system character varying NOT NULL,
+    code_system_oid character varying NOT NULL,
+    code_system_version character varying,
+    code character varying NOT NULL,
+    definition character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: hl7_value_set_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hl7_value_set_codes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hl7_value_set_codes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hl7_value_set_codes_id_seq OWNED BY public.hl7_value_set_codes.id;
 
 
 --
@@ -4697,6 +4774,13 @@ ALTER TABLE ONLY public.claims_reporting_member_rosters ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: claims_reporting_quality_measures id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_quality_measures ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_quality_measures_id_seq'::regclass);
+
+
+--
 -- Name: claims_reporting_rx_claims id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4939,6 +5023,13 @@ ALTER TABLE ONLY public.health_flexible_service_vprs ALTER COLUMN id SET DEFAULT
 --
 
 ALTER TABLE ONLY public.health_goals ALTER COLUMN id SET DEFAULT nextval('public.health_goals_id_seq'::regclass);
+
+
+--
+-- Name: hl7_value_set_codes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hl7_value_set_codes ALTER COLUMN id SET DEFAULT nextval('public.hl7_value_set_codes_id_seq'::regclass);
 
 
 --
@@ -5357,6 +5448,14 @@ ALTER TABLE ONLY public.claims_reporting_member_rosters
 
 
 --
+-- Name: claims_reporting_quality_measures claims_reporting_quality_measures_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_quality_measures
+    ADD CONSTRAINT claims_reporting_quality_measures_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: claims_reporting_rx_claims claims_reporting_rx_claims_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5634,6 +5733,14 @@ ALTER TABLE ONLY public.health_flexible_service_vprs
 
 ALTER TABLE ONLY public.health_goals
     ADD CONSTRAINT health_goals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hl7_value_set_codes hl7_value_set_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hl7_value_set_codes
+    ADD CONSTRAINT hl7_value_set_codes_pkey PRIMARY KEY (id);
 
 
 --
@@ -5916,6 +6023,27 @@ CREATE INDEX claims_reporting_medical_claims_service_daterange ON public.claims_
 
 
 --
+-- Name: hl_value_set_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hl_value_set_code ON public.hl7_value_set_codes USING btree (code, code_system);
+
+
+--
+-- Name: hl_value_set_code_uniq_by_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hl_value_set_code_uniq_by_name ON public.hl7_value_set_codes USING btree (value_set_name, code_system, code);
+
+
+--
+-- Name: hl_value_set_code_uniq_by_oid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hl_value_set_code_uniq_by_oid ON public.hl7_value_set_codes USING btree (value_set_oid, code_system_oid, code);
+
+
+--
 -- Name: idx_cpd_on_cp_payment_upload_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6067,6 +6195,13 @@ CREATE INDEX index_claims_reporting_member_rosters_on_race ON public.claims_repo
 --
 
 CREATE INDEX index_claims_reporting_member_rosters_on_sex ON public.claims_reporting_member_rosters USING btree (sex);
+
+
+--
+-- Name: index_claims_reporting_quality_measures_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_quality_measures_on_user_id ON public.claims_reporting_quality_measures USING btree (user_id);
 
 
 --
@@ -7054,6 +7189,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210327131355'),
 ('20210330155241'),
 ('20210330181230'),
-('20210419174757');
+('20210419174757'),
+('20210422161421'),
+('20210510185734'),
+('20210511143037');
 
 
