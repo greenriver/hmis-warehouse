@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-06 17:15+0000\n"
-"PO-Revision-Date: 2021-04-06 17:15+0000\n"
+"POT-Creation-Date: 2021-05-13 17:46+0000\n"
+"PO-Revision-Date: 2021-05-13 17:46+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3447,9 +3447,6 @@ msgstr ""
 msgid "Client does not have a community preference."
 msgstr ""
 
-msgid "Clients"
-msgstr ""
-
 msgid "Cohort is visible in CAS"
 msgstr ""
 
@@ -3537,13 +3534,7 @@ msgstr ""
 msgid "HIV+"
 msgstr ""
 
-msgid "HMIS Blackout"
-msgstr ""
-
 msgid "HMIS Data Sources"
-msgstr ""
-
-msgid "HMIS Data Warehouse"
 msgstr ""
 
 msgid "HMIS Project ID"
@@ -3712,9 +3703,6 @@ msgid "Pre-Placement Project"
 msgstr ""
 
 msgid "Previous Removal Reason"
-msgstr ""
-
-msgid "Process Duplicates"
 msgstr ""
 
 msgid "Project Data Quality Report"
