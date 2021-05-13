@@ -927,6 +927,7 @@ DEPENDENCIES
   omniauth-rails_csrf_protection
   overcommit
   paper_trail
+  parallel
   paranoia (~> 2.0)
   pg
   premailer

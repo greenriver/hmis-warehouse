@@ -9404,6 +9404,74 @@ ALTER SEQUENCE public.hud_report_instances_id_seq OWNED BY public.hud_report_ins
 
 
 --
+-- Name: hud_report_spm_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_clients (
+    id bigint NOT NULL,
+    client_id integer NOT NULL,
+    data_source_id integer NOT NULL,
+    report_instance_id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    dob date,
+    first_name character varying,
+    last_name character varying,
+    m1a_es_sh_days integer,
+    m1a_es_sh_th_days integer,
+    m1b_es_sh_ph_days integer,
+    m1b_es_sh_th_ph_days integer,
+    m1_history jsonb,
+    m2_exit_from_project_type integer,
+    m2_exit_to_destination integer,
+    m2_reentry_days integer,
+    m2_history jsonb,
+    m3_active_project_types integer[],
+    m4_stayer boolean,
+    m4_latest_income numeric,
+    m4_latest_earned_income numeric,
+    m4_latest_non_earned_income numeric,
+    m4_earliest_income numeric,
+    m4_earliest_earned_income numeric,
+    m4_earliest_non_earned_income numeric,
+    m4_history jsonb,
+    m5_active_project_types integer[],
+    m5_recent_project_types integer[],
+    m5_history jsonb,
+    m6_exit_from_project_type integer,
+    m6_exit_to_destination integer,
+    m6_reentry_days integer,
+    m6c1_destination integer,
+    m6c2_destination integer,
+    m6_history jsonb,
+    m7a1_destination integer,
+    m7b1_destination integer,
+    m7b2_destination integer,
+    m7_history jsonb
+);
+
+
+--
+-- Name: hud_report_spm_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_clients_id_seq OWNED BY public.hud_report_spm_clients.id;
+
+
+--
 -- Name: hud_report_universe_members; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14742,6 +14810,13 @@ ALTER TABLE ONLY public.hud_report_instances ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hud_report_spm_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_clients ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_clients_id_seq'::regclass);
+
+
+--
 -- Name: hud_report_universe_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16806,6 +16881,14 @@ ALTER TABLE ONLY public.hud_report_dq_living_situations
 
 ALTER TABLE ONLY public.hud_report_instances
     ADD CONSTRAINT hud_report_instances_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_spm_clients hud_report_spm_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_clients
+    ADD CONSTRAINT hud_report_spm_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -26710,6 +26793,13 @@ CREATE INDEX site_export_id ON public."Geography" USING btree ("ExportID");
 
 
 --
+-- Name: spm_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX spm_client_conflict_columns ON public.hud_report_spm_clients USING btree (report_instance_id, client_id, data_source_id);
+
+
+--
 -- Name: taggings_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -29156,6 +29246,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210204141807'),
 ('20210209182423'),
 ('20210216125622'),
+('20210217173551'),
 ('20210217202610'),
 ('20210223011452'),
 ('20210225144651'),

@@ -154,26 +154,6 @@ module ClaimsReporting
     end
     memoize :aco_options
 
-    # Mental Health Diagnosis Category –
-    # The mental health diagnosis category represents a group of conditions
-    # classified by mental health and substance abuse categories included
-    # in the Clinical Classification Software (CCS) available at
-    # https://www.hcup-us.ahrq.gov/toolssoftware/ccs/ccsfactsheet.jsp.
-    #
-    attr_accessor :mental_health_diagnosis_category
-
-    def mental_health_diagnosis_category_options
-      {
-        sch: 'Schizophrenia',
-        pbd: 'Psychoses/Bipolar Disorders',
-        das: 'Depression/Anxiety/Stress Reactions',
-        pid: 'Personality/Impulse Disorder',
-        sia: 'Suicidal Ideation/Attempt',
-        sud: 'Substance Abuse Disorder',
-        other_bh: 'Other',
-      }.invert.to_a
-    end
-
     # Medical Diagnosis Category – The medical diagnosis category represents a group of conditions
     # classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS).
     # Every member is categorized as having a medical diagnosis based on the claims they
