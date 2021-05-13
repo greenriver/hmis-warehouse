@@ -6,7 +6,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 require 'memoist'
-require 'ruby-progressbar'
 
 # Calculator for various Quality Measures in the MassHealth Community Partners (CP) Program
 # https://www.mass.gov/guides/masshealth-community-partners-cp-program-information-for-providers
@@ -358,11 +357,11 @@ module ClaimsReporting
 
       logger.debug { "#{medical_claims_scope.count} medical_claims" }
 
-      pb = ProgressBar.create(total: medical_claims_by_member_id.size, format: '%c/%C (%P%%) %R/s%e [%B]')
+      # pb = ProgressBar.create(total: medical_claims_by_member_id.size, format: '%c/%C (%P%%) %R/s%e [%B]')
       rows = Parallel.flat_map(
         medical_claims_by_member_id,
         in_processes: 1,
-        finish: ->(_item, _i, _result) { pb.increment },
+        # finish: ->(_item, _i, _result) { pb.increment },
       ) do |member_id, claims|
         rows = []
         member = members_by_member_id[member_id]
