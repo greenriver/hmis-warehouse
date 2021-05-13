@@ -42,7 +42,7 @@ jobs:
           - 6379:6379
 
     steps:
-      - name: Set up dependancies
+      - name: Set up dependencies
         env:
           DATABASE_APP_DB_TEST: boston_hmis_test
           WAREHOUSE_DATABASE_DB_TEST: warehouse_test
@@ -71,7 +71,7 @@ jobs:
 
           gem install bundler --version=2.2.15
 
-      - run: npm install
+      - uses: actions/checkout@v2
 
       - name: Install gems
         run: |
