@@ -1,32 +1,6 @@
 = simple_form_for @filter, as: :filter, url: polymorphic_path([:warehouse_reports, :client_details, :actives], sub_population: @filter.sub_population), html: { method: :get, class: 'jFilter' } do |f|
   - content_for :filters_col_full do
-    .row
-      .col-md-8
-        = render 'warehouse_reports/date_range_filters', f:f
-      - if GrdaWarehouse::Config.get(:multi_coc_installation)
-        .col-sm-4
-          = f.input :coc_codes, collection: GrdaWarehouse::Lookups::CocCode.options_for_select(user: current_user), placeholder: 'Any CoC', as: :select_two, input_html: { multiple: true }, label: 'CoC Limit', required: false
-    .row
-      .col-md-4
-        = f.input :project_type_codes, collection: @filter.available_residential_project_types, placeholder: 'Any Project Type', input_html: { multiple: true, class: 'select2 jProjectTypes' }
-      .col-md-4
-        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), placeholder: 'Any Organization', as: :grouped_select, group_method: :last, label: 'Organizations', required: false, input_html: {multiple: true, class: :select2 }
-      .col-md-4
-        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
-    .row
-      .col-md-4
-        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, input_html: { class: :select2 }
-      .col-sm-4
-        = f.input :age_ranges, collection: @filter.available_age_ranges, placeholder: 'Any Age', include_blank: false, input_html: { multiple: true, class: :select2 }
-      .col-sm-4.d-flex.align-items-center.pt-no-label
-        = f.input :heads_of_household, as: :boolean, label: 'Limit to Heads of Household?'
-    .row
-      .col-4
-        = f.input :race, collection: HUD.races.invert, selected: @filter.race, as: :select_two, required: false, include_blank: 'All Races'
-      .col-4
-        = f.input :ethnicity, collection: HUD.ethnicities.invert, selected: @filter.ethnicity, as: :select_two, required: false, include_blank: 'All Ethnicities'
-      .col-4
-        = f.input :gender, collection: HUD.genders.invert, selected: @filter.gender, as: :select_two, required: false, include_blank: 'All Genders'
+    = render 'warehouse_reports/client_details/filter_fields', f: f
 
   - content_for :form_js do
     = render 'warehouse_reports/new_range_js'

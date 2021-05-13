@@ -54,6 +54,7 @@ module Filters
     attribute :dv_status, Array, default: []
     attribute :chronic_status, Boolean, default: false
     attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
+    attribute :limit_to_vispdat, Symbol, default: :all_clients
 
     validates_presence_of :start, :end
 
@@ -108,6 +109,8 @@ module Filters
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map { |m| m.to_i }
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true])
+      vispdat_limit = filters.dig(:limit_to_vispdat)&.to_sym
+      self.limit_to_vispdat = vispdat_limit if available_vispdat_limits.values.include?(vispdat_limit)
       ensure_dates_work if valid?
       self
     end
@@ -145,6 +148,7 @@ module Filters
           dv_status: dv_status,
           chronic_status: chronic_status,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
+          limit_to_vispdat: limit_to_vispdat,
         },
       }
     end
@@ -180,6 +184,7 @@ module Filters
         opts['DV Status'] = chosen_dv_status if dv_status.any?
         opts['Chronically Homeless'] = 'Yes' if chronic_status
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
+        opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
       end
     end
 
@@ -422,6 +427,18 @@ module Filters
       ::HUD.project_types.invert
     end
 
+    def available_vispdat_limits
+      {
+        'All clients' => :all_clients,
+        'Only clients with VI-SPDATs' => :with_vispdat,
+        'Only clients without VI-SPDATs' => :without_vispdat,
+      }
+    end
+
+    def chosen_vispdat_limits
+      available_vispdat_limits.invert[limit_to_vispdat]
+    end
+
     def project_type_ids
       ids = GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
         *project_type_codes.reject(&:blank?).map(&:to_sym),
@@ -579,6 +596,8 @@ module Filters
         'DV Status'
       when :heads_of_household
         'Heads of Household Only?'
+      when :limit_to_vispdat
+        'Client Limits'
       end
 
       return unless value.present?
@@ -632,6 +651,8 @@ module Filters
         chosen_dv_status
       when :heads_of_household
         yes_no(heads_of_household)
+      when :limit_to_vispdat
+        chosen_vispdat_limits
       end
     end
 
