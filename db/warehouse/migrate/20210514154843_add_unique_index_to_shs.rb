@@ -12,8 +12,8 @@ class AddUniqueIndexToShs < ActiveRecord::Migration[5.2]
     #   next if to_remove_ids.blank?
 
     #   puts "Removing #{to_remove_ids.count} SHS for client: #{client.id}"
-    #   GrdaWarehouse::ServiceHistoryService.where(id: to_remove_ids).delete_all
-    #   c.clear_view_cache
+    #   GrdaWarehouse::ServiceHistoryService.where(id: to_remove_ids, client_id: client.id).delete_all
+    #   client.clear_view_cache
     # end
 
     GrdaWarehouse::ServiceHistoryService.sub_tables.each do |year, name|
