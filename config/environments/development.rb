@@ -102,6 +102,16 @@ Rails.application.configure do
   # Web console from outside of docker
   config.web_console.whitelisted_ips = ['172.16.0.0/12', '192.168.0.0/16']
 
+  console do
+    if ENV['CONSOLE'] == 'pry'
+      require 'pry-rails'
+      config.console = Pry
+    else
+      require 'irb'
+      config.console = IRB
+    end
+  end
+
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''

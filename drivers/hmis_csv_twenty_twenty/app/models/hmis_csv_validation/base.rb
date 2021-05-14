@@ -26,6 +26,7 @@ class HmisCsvValidation::Base < GrdaWarehouseBase
     [
       HmisCsvValidation::Length,
       HmisCsvValidation::NonBlank,
+      HmisCsvValidation::UniqueHudKey,
     ].freeze
   end
 end
