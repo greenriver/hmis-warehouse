@@ -20,7 +20,7 @@
                   - if report.processing_errors?
                     = JSON::parse(report.processing_errors).first rescue report.processing_errors
                 %td
-                  /= report.filter.describe_filter_as_html
+                  = report.filter.describe_filter_as_html
                 %td.text-nowrap
                   = report.created_at
                   .text-sm.text-muted by #{report.user&.name}

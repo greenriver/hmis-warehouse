@@ -373,7 +373,7 @@ module ClaimsReporting
 
     def filter
       @filter ||= begin
-        f = ::Filters::ClaimsFilter.new(user_id: user_id)
+        f = ::Filters::EngagementFilter.new(user_id: user_id)
         f.set_from_params(options.with_indifferent_access)
         f
       end

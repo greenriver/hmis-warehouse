@@ -13,7 +13,7 @@ module ClaimsReporting::WarehouseReports
       @reports = report_class.ordered.visible_to(current_user)
       @reports = @reports.page(params[:page]).per(25)
       @report = report_class.new
-      @filter = ::Filters::ClaimsFilter.new(user_id: current_user.id)
+      @filter = ::Filters::EngagementFilter.new(user_id: current_user.id)
     end
 
     def create

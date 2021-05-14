@@ -13,13 +13,13 @@ module ClaimsReporting::WarehouseReports
       @reports = report_class.ordered.visible_to(current_user)
       @reports = @reports.page(params[:page]).per(25)
       @report = report_class.new
-      @filter = ::Filters::ClaimsFilter.new(user_id: current_user.id)
+      @filter = ::Filters::QualityMeasuresFilter.new(user_id: current_user.id)
     end
 
     def create
       @report = report_class.new(
         user_id: current_user.id,
-        options: {},
+        options: report_params,
       )
       @report.save
       ::WarehouseReports::GenericReportJob.perform_later(
@@ -31,12 +31,12 @@ module ClaimsReporting::WarehouseReports
     end
 
     def show
-      respond_to do |format|
-        format.html
-        format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=Patient Engagement Trends #{Time.current.to_s(:db)}.xlsx"
-        end
-      end
+      # respond_to do |format|
+      #   format.html
+      #   format.xlsx do
+      #     headers['Content-Disposition'] = "attachment; filename=Patient Engagement Trends #{Time.current.to_s(:db)}.xlsx"
+      #   end
+      # end
     end
 
     private def set_report
@@ -58,8 +58,6 @@ module ClaimsReporting::WarehouseReports
 
     private def report_params
       params.require(:filters).permit(
-        :food_insecurity, # FIXME
-        :cohort_type,
         age_ranges: [],
         races: [],
         ethnicities: [],
