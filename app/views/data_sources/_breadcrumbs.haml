@@ -1,3 +1,7 @@
 = content_for :crumbs do
   = link_to data_sources_path do
     &laquo; View Data Sources
+  - if defined? data_source
+    = link_to data_source_path do
+      &laquo; View 
+      = data_source.name 
