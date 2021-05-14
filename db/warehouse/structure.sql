@@ -23688,7 +23688,7 @@ CREATE INDEX index_shs_1900_date_client_id ON public.service_history_services_re
 -- Name: index_shs_1900_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_1900_date_en_id ON public.service_history_services_remainder USING btree (date, service_history_enrollment_id);
+CREATE UNIQUE INDEX index_shs_1900_date_en_id ON public.service_history_services_remainder USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23730,7 +23730,7 @@ CREATE INDEX index_shs_2000_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2000_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2000_date_en_id ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2000_date_en_id ON public.service_history_services_2000 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23779,7 +23779,7 @@ CREATE INDEX index_shs_2001_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2001_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2001_date_en_id ON public.service_history_services_2001 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2001_date_en_id ON public.service_history_services_2001 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23828,7 +23828,7 @@ CREATE INDEX index_shs_2002_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2002_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2002_date_en_id ON public.service_history_services_2002 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2002_date_en_id ON public.service_history_services_2002 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23877,7 +23877,7 @@ CREATE INDEX index_shs_2003_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2003_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2003_date_en_id ON public.service_history_services_2003 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2003_date_en_id ON public.service_history_services_2003 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23926,7 +23926,7 @@ CREATE INDEX index_shs_2004_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2004_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2004_date_en_id ON public.service_history_services_2004 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2004_date_en_id ON public.service_history_services_2004 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23975,7 +23975,7 @@ CREATE INDEX index_shs_2005_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2005_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2005_date_en_id ON public.service_history_services_2005 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2005_date_en_id ON public.service_history_services_2005 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24024,7 +24024,7 @@ CREATE INDEX index_shs_2006_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2006_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2006_date_en_id ON public.service_history_services_2006 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2006_date_en_id ON public.service_history_services_2006 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24073,7 +24073,7 @@ CREATE INDEX index_shs_2007_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2007_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2007_date_en_id ON public.service_history_services_2007 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2007_date_en_id ON public.service_history_services_2007 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24122,7 +24122,7 @@ CREATE INDEX index_shs_2008_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2008_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2008_date_en_id ON public.service_history_services_2008 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2008_date_en_id ON public.service_history_services_2008 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24171,7 +24171,7 @@ CREATE INDEX index_shs_2009_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2009_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2009_date_en_id ON public.service_history_services_2009 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2009_date_en_id ON public.service_history_services_2009 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24220,7 +24220,7 @@ CREATE INDEX index_shs_2010_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2010_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2010_date_en_id ON public.service_history_services_2010 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2010_date_en_id ON public.service_history_services_2010 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24269,7 +24269,7 @@ CREATE INDEX index_shs_2011_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2011_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2011_date_en_id ON public.service_history_services_2011 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2011_date_en_id ON public.service_history_services_2011 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24318,7 +24318,7 @@ CREATE INDEX index_shs_2012_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2012_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2012_date_en_id ON public.service_history_services_2012 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2012_date_en_id ON public.service_history_services_2012 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24367,7 +24367,7 @@ CREATE INDEX index_shs_2013_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2013_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2013_date_en_id ON public.service_history_services_2013 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2013_date_en_id ON public.service_history_services_2013 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24416,7 +24416,7 @@ CREATE INDEX index_shs_2014_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2014_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2014_date_en_id ON public.service_history_services_2014 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2014_date_en_id ON public.service_history_services_2014 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24465,7 +24465,7 @@ CREATE INDEX index_shs_2015_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2015_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2015_date_en_id ON public.service_history_services_2015 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2015_date_en_id ON public.service_history_services_2015 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24514,7 +24514,7 @@ CREATE INDEX index_shs_2016_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2016_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2016_date_en_id ON public.service_history_services_2016 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2016_date_en_id ON public.service_history_services_2016 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24563,7 +24563,7 @@ CREATE INDEX index_shs_2017_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2017_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2017_date_en_id ON public.service_history_services_2017 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2017_date_en_id ON public.service_history_services_2017 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24612,7 +24612,7 @@ CREATE INDEX index_shs_2018_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2018_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2018_date_en_id ON public.service_history_services_2018 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2018_date_en_id ON public.service_history_services_2018 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24661,7 +24661,7 @@ CREATE INDEX index_shs_2019_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2019_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2019_date_en_id ON public.service_history_services_2019 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2019_date_en_id ON public.service_history_services_2019 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24710,7 +24710,7 @@ CREATE INDEX index_shs_2020_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2020_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2020_date_en_id ON public.service_history_services_2020 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2020_date_en_id ON public.service_history_services_2020 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24759,7 +24759,7 @@ CREATE INDEX index_shs_2021_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2021_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2021_date_en_id ON public.service_history_services_2021 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2021_date_en_id ON public.service_history_services_2021 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24808,7 +24808,7 @@ CREATE INDEX index_shs_2022_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2022_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2022_date_en_id ON public.service_history_services_2022 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2022_date_en_id ON public.service_history_services_2022 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24857,7 +24857,7 @@ CREATE INDEX index_shs_2023_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2023_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2023_date_en_id ON public.service_history_services_2023 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2023_date_en_id ON public.service_history_services_2023 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24906,7 +24906,7 @@ CREATE INDEX index_shs_2024_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2024_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2024_date_en_id ON public.service_history_services_2024 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2024_date_en_id ON public.service_history_services_2024 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24955,7 +24955,7 @@ CREATE INDEX index_shs_2025_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2025_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2025_date_en_id ON public.service_history_services_2025 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2025_date_en_id ON public.service_history_services_2025 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25004,7 +25004,7 @@ CREATE INDEX index_shs_2026_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2026_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2026_date_en_id ON public.service_history_services_2026 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2026_date_en_id ON public.service_history_services_2026 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25053,7 +25053,7 @@ CREATE INDEX index_shs_2027_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2027_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2027_date_en_id ON public.service_history_services_2027 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2027_date_en_id ON public.service_history_services_2027 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25102,7 +25102,7 @@ CREATE INDEX index_shs_2028_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2028_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2028_date_en_id ON public.service_history_services_2028 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2028_date_en_id ON public.service_history_services_2028 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25151,7 +25151,7 @@ CREATE INDEX index_shs_2029_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2029_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2029_date_en_id ON public.service_history_services_2029 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2029_date_en_id ON public.service_history_services_2029 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25200,7 +25200,7 @@ CREATE INDEX index_shs_2030_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2030_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2030_date_en_id ON public.service_history_services_2030 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2030_date_en_id ON public.service_history_services_2030 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25249,7 +25249,7 @@ CREATE INDEX index_shs_2031_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2031_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2031_date_en_id ON public.service_history_services_2031 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2031_date_en_id ON public.service_history_services_2031 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25298,7 +25298,7 @@ CREATE INDEX index_shs_2032_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2032_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2032_date_en_id ON public.service_history_services_2032 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2032_date_en_id ON public.service_history_services_2032 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25347,7 +25347,7 @@ CREATE INDEX index_shs_2033_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2033_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2033_date_en_id ON public.service_history_services_2033 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2033_date_en_id ON public.service_history_services_2033 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25396,7 +25396,7 @@ CREATE INDEX index_shs_2034_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2034_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2034_date_en_id ON public.service_history_services_2034 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2034_date_en_id ON public.service_history_services_2034 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25445,7 +25445,7 @@ CREATE INDEX index_shs_2035_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2035_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2035_date_en_id ON public.service_history_services_2035 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2035_date_en_id ON public.service_history_services_2035 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25494,7 +25494,7 @@ CREATE INDEX index_shs_2036_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2036_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2036_date_en_id ON public.service_history_services_2036 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2036_date_en_id ON public.service_history_services_2036 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25543,7 +25543,7 @@ CREATE INDEX index_shs_2037_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2037_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2037_date_en_id ON public.service_history_services_2037 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2037_date_en_id ON public.service_history_services_2037 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25592,7 +25592,7 @@ CREATE INDEX index_shs_2038_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2038_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2038_date_en_id ON public.service_history_services_2038 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2038_date_en_id ON public.service_history_services_2038 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25641,7 +25641,7 @@ CREATE INDEX index_shs_2039_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2039_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2039_date_en_id ON public.service_history_services_2039 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2039_date_en_id ON public.service_history_services_2039 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25690,7 +25690,7 @@ CREATE INDEX index_shs_2040_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2040_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2040_date_en_id ON public.service_history_services_2040 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2040_date_en_id ON public.service_history_services_2040 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25739,7 +25739,7 @@ CREATE INDEX index_shs_2041_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2041_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2041_date_en_id ON public.service_history_services_2041 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2041_date_en_id ON public.service_history_services_2041 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25788,7 +25788,7 @@ CREATE INDEX index_shs_2042_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2042_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2042_date_en_id ON public.service_history_services_2042 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2042_date_en_id ON public.service_history_services_2042 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25837,7 +25837,7 @@ CREATE INDEX index_shs_2043_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2043_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2043_date_en_id ON public.service_history_services_2043 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2043_date_en_id ON public.service_history_services_2043 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25886,7 +25886,7 @@ CREATE INDEX index_shs_2044_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2044_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2044_date_en_id ON public.service_history_services_2044 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2044_date_en_id ON public.service_history_services_2044 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25935,7 +25935,7 @@ CREATE INDEX index_shs_2045_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2045_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2045_date_en_id ON public.service_history_services_2045 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2045_date_en_id ON public.service_history_services_2045 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25984,7 +25984,7 @@ CREATE INDEX index_shs_2046_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2046_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2046_date_en_id ON public.service_history_services_2046 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2046_date_en_id ON public.service_history_services_2046 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -26033,7 +26033,7 @@ CREATE INDEX index_shs_2047_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2047_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2047_date_en_id ON public.service_history_services_2047 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2047_date_en_id ON public.service_history_services_2047 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -26082,7 +26082,7 @@ CREATE INDEX index_shs_2048_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2048_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2048_date_en_id ON public.service_history_services_2048 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2048_date_en_id ON public.service_history_services_2048 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -26131,7 +26131,7 @@ CREATE INDEX index_shs_2049_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2049_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2049_date_en_id ON public.service_history_services_2049 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2049_date_en_id ON public.service_history_services_2049 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -26180,7 +26180,7 @@ CREATE INDEX index_shs_2050_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2050_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2050_date_en_id ON public.service_history_services_2050 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2050_date_en_id ON public.service_history_services_2050 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -26811,6 +26811,13 @@ CREATE UNIQUE INDEX taggings_idx ON public.taggings USING btree (tag_id, taggabl
 --
 
 CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_type, tagger_id, context);
+
+
+--
+-- Name: test_shs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
 
 
 --
@@ -29261,6 +29268,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210426165914'),
 ('20210427184522'),
 ('20210503165055'),
-('20210513185514');
+('20210513185514'),
+('20210514154843');
 
 
