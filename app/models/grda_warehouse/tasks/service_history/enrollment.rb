@@ -7,7 +7,7 @@
 # require 'newrelic_rpm'
 module GrdaWarehouse::Tasks::ServiceHistory
   class Enrollment < GrdaWarehouse::Hud::Enrollment
-    include TsqlImport
+    # include TsqlImport
     include ArelHelper
     include ActiveSupport::Benchmarkable
     include ::ServiceHistory::Builder
@@ -64,7 +64,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def service_history_valid?
-      # Extrapolating SO is implmented in create_service_history!, just force rebuild
+      # Extrapolating SO is implemented in create_service_history!, just force rebuild
       return false if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month) || project_extrapolates_contacts?
 
       processed_as.present? && processed_as == calculate_hash && service_history_enrollment.present?
@@ -120,7 +120,27 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
       return false unless days.any?
 
-      insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false)
+      service_history_service_source.import(
+        days.first.keys,
+        days.map(&:values),
+        validate: false,
+        batch_size: 1_000,
+        on_duplicate_key_update: {
+          conflict_target: [
+            :date,
+            :service_history_enrollment_id,
+          ],
+          columns: [
+            :service_type,
+            :age,
+            :record_type,
+            :client_id,
+            :project_type,
+            :homeless,
+            :literally_homeless,
+          ],
+        },
+      )
       update(processed_as: calculate_hash)
 
       :patch
@@ -161,7 +181,29 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # sometimes we have enrollments for projects that no longer exist
         return false unless project.present?
 
-        insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false, batch_size: 1000) if days.any?
+        if days.any?
+          service_history_service_source.import(
+            days.first.keys,
+            days.map(&:values),
+            validate: false,
+            batch_size: 1_000,
+            on_duplicate_key_update: {
+              conflict_target: [
+                :date,
+                :service_history_enrollment_id,
+              ],
+              columns: [
+                :service_type,
+                :age,
+                :record_type,
+                :client_id,
+                :project_type,
+                :homeless,
+                :literally_homeless,
+              ],
+            },
+          )
+        end
       end
       update(processed_as: calculate_hash)
 
