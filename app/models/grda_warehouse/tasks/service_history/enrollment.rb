@@ -94,7 +94,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       history_matches = build_for_dates.keys.sort != service_dates_from_service_history_for_enrollment.sort
       return false if history_matches
 
-      if self.exit&.ExitDate.present?
+      if self.exit&.ExitDate.present? || build_for_dates.count < service_dates_from_service_history_for_enrollment.count
         # Something is wrong, force a full rebuild, we probably got here
         # because an enrollment was merged in the ETL process
         create_service_history!(true)
@@ -320,7 +320,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         where(
           record_type: :service,
           service_history_enrollment_id: entry_record_id,
-        ).where(date_range).
+        ).where(shs_t[:date].gteq(self.EntryDate)).
         order(date: :asc).
         pluck(:date)
     end
@@ -331,7 +331,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
           service_history_enrollment_id: entry_record_id,
-        ).where(date_range).
+        ).where(shs_t[:date].gteq(self.EntryDate)).
         order(date: :asc).
         pluck(:date)
     end
