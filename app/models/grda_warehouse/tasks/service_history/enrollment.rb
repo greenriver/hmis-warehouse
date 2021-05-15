@@ -81,16 +81,27 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def already_processed?
       return false if processed_as.blank?
       return false if history_generated_on.blank?
-      return false if exit&.ExitDate.blank?
+      return false if self.exit&.ExitDate.blank?
       return false unless entry_exit_tracking?
 
-      exit.ExitDate > history_generated_on
+      self.exit.ExitDate > history_generated_on
     end
 
     def should_patch?
-      return true if entry_exit_tracking? && exit.blank?
+      # enrollment is still open
+      return true if entry_exit_tracking? && self.exit&.ExitDate.blank?
 
-      build_for_dates.keys.sort != service_dates_from_service_history_for_enrollment().sort
+      history_matches = build_for_dates.keys.sort != service_dates_from_service_history_for_enrollment.sort
+      return false if history_matches
+
+      if self.exit&.ExitDate.present?
+        # Something is wrong, force a full rebuild, we probably got here
+        # because an enrollment was merged in the ETL process
+        create_service_history!(true)
+        return false
+      end
+
+      true
     end
 
     # One method to rule them all.  This makes the determination if it
