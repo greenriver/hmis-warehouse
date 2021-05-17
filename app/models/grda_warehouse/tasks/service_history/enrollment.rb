@@ -138,7 +138,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         batch_size: 1_000,
         # Because this is a partitioned table, this doesnt work currently
         # on_duplicate_key_update: {
-        #   conflict_target: conflict_target,
+        #   conflict_target: shs_conflict_target,
         #   columns: shs_update_columns,
         # },
       )
@@ -209,7 +209,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             batch_size: 1_000,
             # Because this is a partitioned table, this doesnt work currently
             # on_duplicate_key_update: {
-            #   conflict_target: conflict_target,
+            #   conflict_target: shs_conflict_target,
             #   columns: shs_update_columns,
             # },
           )
