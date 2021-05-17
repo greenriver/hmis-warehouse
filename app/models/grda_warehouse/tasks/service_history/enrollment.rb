@@ -7,7 +7,7 @@
 # require 'newrelic_rpm'
 module GrdaWarehouse::Tasks::ServiceHistory
   class Enrollment < GrdaWarehouse::Hud::Enrollment
-    include TsqlImport
+    # include TsqlImport
     include ArelHelper
     include ActiveSupport::Benchmarkable
     include ::ServiceHistory::Builder
@@ -64,7 +64,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def service_history_valid?
-      # Extrapolating SO is implmented in create_service_history!, just force rebuild
+      # Extrapolating SO is implemented in create_service_history!, just force rebuild
       return false if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month) || project_extrapolates_contacts?
 
       processed_as.present? && processed_as == calculate_hash && service_history_enrollment.present?
@@ -81,16 +81,27 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def already_processed?
       return false if processed_as.blank?
       return false if history_generated_on.blank?
-      return false if exit&.ExitDate.blank?
+      return false if self.exit&.ExitDate.blank?
       return false unless entry_exit_tracking?
 
-      exit.ExitDate > history_generated_on
+      self.exit.ExitDate > history_generated_on
     end
 
     def should_patch?
-      return true if entry_exit_tracking? && exit.blank?
+      # enrollment is still open
+      return true if entry_exit_tracking? && self.exit&.ExitDate.blank?
 
-      build_for_dates.keys.sort != service_dates_from_service_history_for_enrollment().sort
+      history_matches = build_for_dates.keys.sort == service_dates_from_service_history_for_enrollment.sort
+      return false if history_matches
+
+      if self.exit&.ExitDate.present? || build_for_dates.count < service_dates_from_service_history_for_enrollment.count
+        # Something is wrong, force a full rebuild, we probably got here
+        # because an enrollment was merged in the ETL process
+        create_service_history!(true)
+        return false
+      end
+
+      true
     end
 
     # One method to rule them all.  This makes the determination if it
@@ -120,10 +131,39 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
       return false unless days.any?
 
-      insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false)
+      service_history_service_source.import(
+        days.first.keys,
+        days.map(&:values),
+        validate: false,
+        batch_size: 1_000,
+        # Because this is a partitioned table, this doesnt work currently
+        # on_duplicate_key_update: {
+        #   conflict_target: shs_conflict_target,
+        #   columns: shs_update_columns,
+        # },
+      )
       update(processed_as: calculate_hash)
 
       :patch
+    end
+
+    private def shs_conflict_target
+      [
+        :date,
+        :service_history_enrollment_id,
+      ]
+    end
+
+    private def shs_update_columns
+      [
+        :service_type,
+        :age,
+        :record_type,
+        :client_id,
+        :project_type,
+        :homeless,
+        :literally_homeless,
+      ]
     end
 
     def create_service_history! force=false
@@ -161,7 +201,19 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # sometimes we have enrollments for projects that no longer exist
         return false unless project.present?
 
-        insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false, batch_size: 1000) if days.any?
+        if days.any?
+          service_history_service_source.import(
+            days.first.keys,
+            days.map(&:values),
+            validate: false,
+            batch_size: 1_000,
+            # Because this is a partitioned table, this doesnt work currently
+            # on_duplicate_key_update: {
+            #   conflict_target: shs_conflict_target,
+            #   columns: shs_update_columns,
+            # },
+          )
+        end
       end
       update(processed_as: calculate_hash)
 
@@ -267,7 +319,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         where(
           record_type: :service,
           service_history_enrollment_id: entry_record_id,
-        ).where(date_range).
+        ).where(shs_t[:date].gteq(self.EntryDate)).
         order(date: :asc).
         pluck(:date)
     end
@@ -278,7 +330,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
           service_history_enrollment_id: entry_record_id,
-        ).where(date_range).
+        ).where(shs_t[:date].gteq(self.EntryDate)).
         order(date: :asc).
         pluck(:date)
     end
