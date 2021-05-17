@@ -6,18 +6,29 @@
 
 require 'rails_helper'
 
-RSpec.describe 'ClaimsReporting::QualityMeasuresReport', type: :model do
-  it 'works' do
-    report = ClaimsReporting::QualityMeasuresReport.for_plan_year('2019')
+RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
+  it 'can calculate with basic filters' do
+    date_range = Date.iso8601('2019-01-01')..Date.iso8601('2019-12-31')
+    test_race = 'BlackAfAmerican'
+    test_age_range = 'forty_to_forty_nine'
+    test_ethnicity = 1
+    test_gender =  2
+    test_aco = 3
 
-    expect(report.title).to eq('PY2019')
-    expect(report.date_range.first).to eq(Date.iso8601('2019-01-01'))
-    expect(report.date_range.last).to eq(Date.iso8601('2019-12-31'))
-
+    report = ClaimsReporting::QualityMeasuresReport.new(
+      date_range: date_range,
+      filter: Filters::QualityMeasuresFilter.new(
+        races: [test_race],
+        ethnicities: [test_ethnicity],
+        genders: [test_gender],
+        age_ranges: [test_age_range],
+        acos: [test_aco],
+      ),
+    )
     data = report.serializable_hash
 
-    assert_equal report.title, data[:title]
-    assert_equal report.date_range, data[:date_range]
+    expect(data).to be_kind_of(Hash)
+
     assert data.keys.include?(:measures)
   end
 end

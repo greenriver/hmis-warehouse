@@ -12,7 +12,7 @@ require 'memoist'
 module ClaimsReporting
   class QualityMeasuresReport
     include ActiveModel::Model
-    include ::Filter::FilterScopes
+    include HmisFilters
     extend Memoist
 
     # Base Range<Date> for this report. Some measures define derived ranges
@@ -246,7 +246,7 @@ module ClaimsReporting
 
       {
         date_range: date_range,
-        filters: filters.serializable_hash,
+        filter: filter.serializable_hash,
         measures: measure_info,
       }
     end
@@ -256,30 +256,32 @@ module ClaimsReporting
       serializable_hash[:measures][measure.to_sym]
     end
 
+    memoize :hud_clients_scope
+
+    def warehouse_client_scope
+      hmis_scope = ::GrdaWarehouse::DataSource.joins(:clients)
+      hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
+      hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
+      hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
+      hmis_scope
+    end
+    memoize :warehouse_client_scope
+
     # BH CP assigned enrollees 18 to 64 years of age as of December 31st of the measurement year.
     def assigned_enrollements_scope
       scope = ::ClaimsReporting::MemberEnrollmentRoster
 
-      filtered_by_client = (
-        filter.genders.present? ||
-        filter.races.present? ||
-        filter.ethnicities.present?
-      )
-      if filtered_by_client
-        hmis_scope = ::GrdaWarehouse::DataSource.joins(:clients)
-        hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
-        hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
-        hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
-        client_ids = hmis_scope.pluck(c_t[:id])
-        scope = scope.joins(:patient).merge(::Health::Patient.where(client_id: client_ids)) if client_ids.any?
-      end
+      # hud client properties
+      scope = scope.joins(:patient).merge(::Health::Patient.where(client_id: hud_clients_scope.ids)) if filtered_by_client?
 
       # and via patient referral data
       if filter.acos.present?
-        scope = scope.joins(patient: :patient_referral).merge(
-          ::Health::PatientReferral.at_acos(filter.acos),
-        )
+        logger.debug "XXX: applying acos=#{filter.acos}"
+        scope = scope.joins(patient: :patient_referral).merge(::Health::PatientReferral.at_acos(filter.acos))
       end
+
+      # age
+      scope = filter_for_age(scope, as_of: date_range.min)
 
       e_t = scope.quoted_table_name
       # TODO: handle "September"
@@ -294,7 +296,8 @@ module ClaimsReporting
       scope.where(
         member_id: ::ClaimsReporting::MemberRoster.where(date_of_birth: dob_range_1).select(:member_id),
       )
-      logger.debug "XXX: #{assigned_enrollements_scope.to_sql}"
+      logger.debug "XXX: #{scope.to_sql}"
+      scope
     end
     memoize :assigned_enrollements_scope
 

@@ -8,7 +8,7 @@
         = f.input :ethnicities, collection: HUD.ethnicities.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Ethnicity', placeholder: 'all ethnicities', hint: 'As reported in HMIS'
       .col-6
         = f.input :genders, collection: HUD.genders.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Gender', placeholder: 'all genders', hint: 'As reported in HMIS'
-        = f.input :age_ranges, collection: @filter.available_age_ranges, required: false, as: :select_two, input_html: { multiple: true}, placeholder: 'all ages'
+        = f.input :age_ranges, collection: @filter.available_age_ranges, required: false, as: :select_two, input_html: { multiple: true}, placeholder: 'all ages', hint: 'As of report end date'
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary']
 
