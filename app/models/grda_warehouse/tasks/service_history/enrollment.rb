@@ -136,25 +136,34 @@ module GrdaWarehouse::Tasks::ServiceHistory
         days.map(&:values),
         validate: false,
         batch_size: 1_000,
-        on_duplicate_key_update: {
-          conflict_target: [
-            :date,
-            :service_history_enrollment_id,
-          ],
-          columns: [
-            :service_type,
-            :age,
-            :record_type,
-            :client_id,
-            :project_type,
-            :homeless,
-            :literally_homeless,
-          ],
-        },
+        # Because this is a partitioned table, this doesnt work currently
+        # on_duplicate_key_update: {
+        #   conflict_target: conflict_target,
+        #   columns: shs_update_columns,
+        # },
       )
       update(processed_as: calculate_hash)
 
       :patch
+    end
+
+    private def shs_conflict_target
+      [
+        :date,
+        :service_history_enrollment_id,
+      ]
+    end
+
+    private def shs_update_columns
+      [
+        :service_type,
+        :age,
+        :record_type,
+        :client_id,
+        :project_type,
+        :homeless,
+        :literally_homeless,
+      ]
     end
 
     def create_service_history! force=false
@@ -198,21 +207,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
             days.map(&:values),
             validate: false,
             batch_size: 1_000,
-            on_duplicate_key_update: {
-              conflict_target: [
-                :date,
-                :service_history_enrollment_id,
-              ],
-              columns: [
-                :service_type,
-                :age,
-                :record_type,
-                :client_id,
-                :project_type,
-                :homeless,
-                :literally_homeless,
-              ],
-            },
+            # Because this is a partitioned table, this doesnt work currently
+            # on_duplicate_key_update: {
+            #   conflict_target: conflict_target,
+            #   columns: shs_update_columns,
+            # },
           )
         end
       end
