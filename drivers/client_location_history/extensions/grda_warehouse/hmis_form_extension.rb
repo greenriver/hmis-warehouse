@@ -15,6 +15,11 @@ module ClientLocationHistory::GrdaWarehouse
         joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.with_location_data)
       end
 
+      def self.cleanup_missing_locations
+        ClientLocationHistory::Location.where(source_type: 'GrdaWarehouse::HmisForm').
+          where.not(source_id: with_location_data.select(:id)).delete_all
+      end
+
       def self.maintain_location_histories
         ids = with_location_data.oldest_first.
           where(
@@ -24,13 +29,7 @@ module ClientLocationHistory::GrdaWarehouse
         return unless ids
 
         # Remove any locations where the hmis_form no longer exists
-        location_source_ids = ClientLocationHistory::Location.where(source_type: 'GrdaWarehouse::HmisForm').
-          pluck(:source_id)
-        to_remove = location_source_ids - ids
-        if to_remove.any?
-          ClientLocationHistory::Location.where(source_type: 'GrdaWarehouse::HmisForm').
-            where(source_id: to_remove).delete_all
-        end
+        cleanup_missing_locations
 
         # loop over those records in batches of 100
         ids.each_slice(100) do |batch|
