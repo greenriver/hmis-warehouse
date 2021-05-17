@@ -91,7 +91,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # enrollment is still open
       return true if entry_exit_tracking? && self.exit&.ExitDate.blank?
 
-      history_matches = build_for_dates.keys.sort != service_dates_from_service_history_for_enrollment.sort
+      history_matches = build_for_dates.keys.sort == service_dates_from_service_history_for_enrollment.sort
       return false if history_matches
 
       if self.exit&.ExitDate.present? || build_for_dates.count < service_dates_from_service_history_for_enrollment.count
