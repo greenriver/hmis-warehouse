@@ -267,7 +267,6 @@ module ClaimsReporting
     end
     memoize :warehouse_client_scope
 
-    # BH CP assigned enrollees 18 to 64 years of age as of December 31st of the measurement year.
     def assigned_enrollements_scope
       scope = ::ClaimsReporting::MemberEnrollmentRoster
 
@@ -281,13 +280,11 @@ module ClaimsReporting
       scope = filter_for_age(scope, as_of: date_range.min)
 
       e_t = scope.quoted_table_name
-      # TODO: handle "September"
-      # Members assigned to a BH CP on or between September 2nd of the year prior to the
-      # measurement year and September 1st of the measurement year.
+
       scope = scope.where(
         ["#{e_t}.cp_enroll_dt <= :max and (#{e_t}.cp_disenroll_dt IS NULL OR #{e_t}.cp_disenroll_dt > :max)", {
-          min: date_range.min,
-          max: date_range.max,
+          min: cp_enollment_date_range.min,
+          max: cp_enollment_date_range.max,
         }],
       )
       scope.where(
@@ -297,11 +294,21 @@ module ClaimsReporting
     end
     memoize :assigned_enrollements_scope
 
-    # TODO: handle "September"
+    def cp_enollment_date_range
+      # Handle "September"
+      # Members assigned to a BH CP on or between September 2nd of the year prior to the
+      # measurement year and September 1st of the measurement year.
+      #
+      # The usually measurement year is Jan 1 - Dec 31 so we shift back by three named months and add a day
+      (date_range.min << 4) + 1.day .. (date_range.max << 4) + 1.day
+    end
+    memoize :cp_enollment_date_range
+
+    # Handle "September"
     # BH CP enrollees 18 years of age or older as of September 2nd of the year prior to
     # the measurement year and 64 years of age as of December 31st of the measurement year.
     def dob_range_1
-      (dec_31_of_measurement_year - 64.years) .. (date_range.min - 18.years)
+      (dec_31_of_measurement_year - 64.years) .. (cp_enollment_date_range.min - 18.years)
     end
     memoize :dob_range_1
 
