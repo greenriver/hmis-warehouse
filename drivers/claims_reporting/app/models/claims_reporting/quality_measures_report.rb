@@ -275,10 +275,7 @@ module ClaimsReporting
       scope = scope.joins(:patient).merge(::Health::Patient.where(client_id: hud_clients_scope.ids)) if filtered_by_client?
 
       # and via patient referral data
-      if filter.acos.present?
-        logger.debug "XXX: applying acos=#{filter.acos}"
-        scope = scope.joins(patient: :patient_referral).merge(::Health::PatientReferral.at_acos(filter.acos))
-      end
+      scope = scope.joins(patient: :patient_referral).merge(::Health::PatientReferral.at_acos(filter.acos)) if filter.acos.present?
 
       # age
       scope = filter_for_age(scope, as_of: date_range.min)
@@ -296,7 +293,6 @@ module ClaimsReporting
       scope.where(
         member_id: ::ClaimsReporting::MemberRoster.where(date_of_birth: dob_range_1).select(:member_id),
       )
-      logger.debug "XXX: #{scope.to_sql}"
       scope
     end
     memoize :assigned_enrollements_scope

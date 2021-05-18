@@ -9,7 +9,7 @@ module ClaimsReporting
   # but that expects a scope that is joinable to "clients"
   module HmisFilters
     def hud_clients_scope
-      scope = GrdaWarehouse::Hud::Client
+      scope = GrdaWarehouse::Hud::Client.all
       scope = filter_for_race(scope)
       scope = filter_for_ethnicity(scope)
       scope = filter_for_gender(scope)
@@ -57,7 +57,7 @@ module ClaimsReporting
 
       # puts "HmisFilters: applying ethnicities=#{filter.ethnicities}"
 
-      scope.where(c_t[:Ethnicity].in(filter.ethnicities))
+      scope.where(Ethnicity: filter.ethnicities)
     end
 
     private def filter_for_gender(scope)
@@ -65,7 +65,7 @@ module ClaimsReporting
 
       # puts "HmisFilters: applying genders=#{filter.genders}"
 
-      scope.where(c_t[:Gender].in(filter.genders))
+      scope.where(Gender: filter.genders)
     end
 
     private def filter_for_age(scope, as_of: Date.current)

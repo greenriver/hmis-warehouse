@@ -9,26 +9,94 @@ require 'rails_helper'
 RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
   it 'can calculate with basic filters' do
     date_range = Date.iso8601('2019-01-01')..Date.iso8601('2019-12-31')
-    test_race = 'BlackAfAmerican'
-    test_age_range = 'forty_to_forty_nine'
-    test_ethnicity = 1
-    test_gender =  2
-    test_aco = 3
+
+    patients = []
+
+    # EMR data
+    aco = Health::AccountableCareOrganization.create!(
+      name: 'QualityMeasuresReport Test',
+      short_name: 'QMTEST',
+      edi_name: '',
+    )
+    aco2 = Health::AccountableCareOrganization.create!(
+      name: 'QualityMeasuresReport 2 Test',
+      short_name: 'QMTEST2',
+      edi_name: '',
+    )
+    # match
+    patients << create(:patient,
+                       medicaid_id: 'QMTEST000001',
+                       birthdate: date_range.min - 41.years,
+                       client: create(:hud_client,
+                                      Gender: 2, Ethnicity: 1, AmIndAKNative: 0, Asian: 1, BlackAfAmerican: 1, NativeHIOtherPacific: 0, White: 0, RaceNone: 0),
+                       patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
+    # match
+    patients << create(:patient,
+                       medicaid_id: 'QMTEST000002',
+                       birthdate: date_range.min - 41.years,
+                       client: create(:hud_client,
+                                      Gender: 3, Ethnicity: 8, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 1, White: 0, RaceNone: 0),
+                       patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
+    # wrong race
+    patients << create(:patient,
+                       medicaid_id: 'QMTEST000003',
+                       birthdate: date_range.min - 41.years,
+                       client: create(:hud_client,
+                                      Gender: 2, Ethnicity: 1, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 0, White: 1, RaceNone: 0),
+                       patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
+    # wrong ethnicity
+    patients << create(:patient,
+                       medicaid_id: 'QMTEST000004',
+                       birthdate: date_range.min - 41.years,
+                       client: create(:hud_client,
+                                      Gender: 1, Ethnicity: 2, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 0, White: 0, RaceNone: 1),
+                       patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
+    # wrong age
+    patients << create(:patient,
+                       medicaid_id: 'QMTEST000005',
+                       birthdate: date_range.min - 60.years,
+                       client: create(:hud_client,
+                                      Gender: 3, Ethnicity: 8, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 1, White: 0, RaceNone: 0),
+                       patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
+    # wrong aco
+    patients << create(:patient,
+                       medicaid_id: 'QMTEST000006',
+                       birthdate: date_range.min - 41.years,
+                       client: create(:hud_client,
+                                      Gender: 3, Ethnicity: 8, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 1, White: 0, RaceNone: 0),
+                       patient_referral: create(:patient_referral, accountable_care_organization_id: aco2.id))
+
+    # Claims data
+    patients.each do |p|
+      ClaimsReporting::MemberRoster.create!(
+        member_id: p.medicaid_id,
+        date_of_birth: p.birthdate, # We read the DOB from the MemberRoster for some reason
+      )
+      ClaimsReporting::MemberEnrollmentRoster.create!(
+        member_id: p.medicaid_id,
+        span_start_date: date_range.min,
+        span_end_date: date_range.max,
+        cp_enroll_dt: date_range.min + 30.days,
+      )
+    end
+
+    expect(Health::Patient.count).to eq(patients.count)
 
     report = ClaimsReporting::QualityMeasuresReport.new(
       date_range: date_range,
       filter: Filters::QualityMeasuresFilter.new(
-        races: [test_race],
-        ethnicities: [test_ethnicity],
-        genders: [test_gender],
-        age_ranges: [test_age_range],
-        acos: [test_aco],
+        races: ['NativeHIOtherPacific', 'MultiRacial'],
+        ethnicities: ['1', '8'],
+        genders: ['2', '3'],
+        age_ranges: [:forty_to_forty_nine],
+        acos: [aco.id],
       ),
     )
+    expect(report.assigned_enrollements_scope.count).to eq(2)
+
     data = report.serializable_hash
-
     expect(data).to be_kind_of(Hash)
-
-    assert data.keys.include?(:measures)
+    expect(data.keys).to include(:measures)
+    expect(data.dig(:measures, :assigned_enrollees, :value)).to be(2)
   end
 end
