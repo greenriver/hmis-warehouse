@@ -149,7 +149,7 @@ gem 'progress_bar', require: false
 gem 'slack-notifier'
 gem 'exception_notification'
 
-gem 'puma', '~> 3.12.6'
+gem 'puma', '~> 4.3.8'
 
 gem 'dotenv-rails'
 

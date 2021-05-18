@@ -10,8 +10,8 @@
         %th Active in ETO
         %th Fetch into Warehouse
         %th Display as confidential
-        %th Exclude from Window
-        %th Details visible in the window with release
+        %th Exclude from limited dashboard
+        %th Details visible in the limited dashboard with release
         %th HUD Entry/Exit/Update
         %th VI-SPDAT
         %th Pathways
@@ -22,6 +22,7 @@
         %th Health Case Note
         %th Contains Qualifying Activities (Health)
         %th COVID-19 Impact Assessment
+        %th Contains Location Data
     %tbody
       - @assessments.each do |assessment|
         %tr
@@ -30,33 +31,19 @@
               #{assessment.name} (#{assessment.assessment_id})
             %br
             = assessment.site_name
-          %td
-            = checkmark(assessment.active)
-          %td
-            = checkmark(assessment.fetch)
-          %td
-            = checkmark(assessment.confidential)
-          %td
-            = checkmark(assessment.exclude_from_window)
-          %td
-            = checkmark(assessment.details_in_window_with_release)
-          %td
-            = checkmark(assessment.hud_assessment)
-          %td
-            = checkmark(assessment.vispdat)
-          %td
-            = checkmark(assessment.pathways)
-          %td
-            = checkmark(assessment.triage_assessment)
-          %td
-            = checkmark(assessment.rrh_assessment)
-          %td
-            = checkmark(assessment.health)
-          %td
-            = checkmark(assessment.ssm)
-          %td
-            = checkmark(assessment.health_case_note)
-          %td
-            = checkmark(assessment.health_has_qualifying_activities)
-          %td
-            = checkmark(assessment.covid_19_impact_assessment)
+          %td= checkmark(assessment.active)
+          %td= checkmark(assessment.fetch)
+          %td= checkmark(assessment.confidential)
+          %td= checkmark(assessment.exclude_from_window)
+          %td= checkmark(assessment.details_in_window_with_release)
+          %td= checkmark(assessment.hud_assessment)
+          %td= checkmark(assessment.vispdat)
+          %td= checkmark(assessment.pathways)
+          %td= checkmark(assessment.triage_assessment)
+          %td= checkmark(assessment.rrh_assessment)
+          %td= checkmark(assessment.health)
+          %td= checkmark(assessment.ssm)
+          %td= checkmark(assessment.health_case_note)
+          %td= checkmark(assessment.health_has_qualifying_activities)
+          %td= checkmark(assessment.covid_19_impact_assessment)
+          %td= checkmark(assessment.with_location_data)
