@@ -18,7 +18,7 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
       short_name: 'QMTEST',
       edi_name: '',
     )
-    aco2 = Health::AccountableCareOrganization.create!(
+    wrong_aco = Health::AccountableCareOrganization.create!(
       name: 'QualityMeasuresReport 2 Test',
       short_name: 'QMTEST2',
       edi_name: '',
@@ -64,7 +64,7 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
                        birthdate: date_range.min - 41.years,
                        client: create(:hud_client,
                                       Gender: 3, Ethnicity: 8, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 1, White: 0, RaceNone: 0),
-                       patient_referral: create(:patient_referral, accountable_care_organization_id: aco2.id))
+                       patient_referral: create(:patient_referral, accountable_care_organization_id: wrong_aco.id))
 
     # Claims data
     patients.each do |p|

@@ -58,11 +58,11 @@ module ClaimsReporting::WarehouseReports
 
     private def report_params
       params.require(:filters).permit(
+        acos: [],
         age_ranges: [],
-        races: [],
         ethnicities: [],
         genders: [],
-        acos: [],
+        races: [],
       )
     end
   end

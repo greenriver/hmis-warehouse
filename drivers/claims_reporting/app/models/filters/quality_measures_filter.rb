@@ -25,12 +25,18 @@ module Filters
     attribute :default_end, String, default: nil
     attribute :start_age, String, default: nil
     attribute :end_age, String, default: nil
+    attribute :comparison_range_words, String, default: nil
 
     def for_params
-      super.tap do |info|
-        info[:filters].delete(:start)
-        info[:filters].delete(:end)
-      end
+      {
+        filters: {
+          acos: acos,
+          races: races,
+          genders: genders,
+          ethnicities: ethnicities,
+          age_ranges: age_ranges,
+        },
+      }
     end
 
     def set_from_params(params) # rubocop:disable Naming/AccessorMethodName
@@ -48,31 +54,25 @@ module Filters
     end
 
     def chosen_acos
-      Health::AccountableCareOrganization.active.where(id: acos).pluck(:short_name).sort
+      Health::AccountableCareOrganization.where(id: acos).pluck(:short_name).sort
     end
 
     def describe(key, value = chosen(key))
       return unless value.present?
 
-      title = case key
-      when :acos
-        'ACOs'
+      if key == :acos
+        ['ACOs', value]
+      else
+        super
       end
-
-      return super(key, value) if title.blank?
-
-      [title, value]
     end
 
     def chosen(key)
-      v = case key
-      when :acos
+      if key == :acos
         chosen_acos
+      else
+        super
       end
-
-      return super(key) if v.blank?
-
-      v
     end
   end
 end

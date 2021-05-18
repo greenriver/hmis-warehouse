@@ -126,7 +126,10 @@ module ClaimsReporting
       # run annual report for each selected plan_year, saving as we go if possible
 
       years.each do |year|
-        self.results[year] = ClaimsReporting::QualityMeasuresReport.for_plan_year(year.to_s).serializable_hash
+        self.results[year] = ClaimsReporting::QualityMeasuresReport.for_plan_year(
+          year.to_s,
+          filter: filter,
+        ).serializable_hash
         save unless new_record?
       end
     end

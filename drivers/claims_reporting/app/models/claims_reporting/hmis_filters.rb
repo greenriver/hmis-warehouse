@@ -57,7 +57,7 @@ module ClaimsReporting
 
       # puts "HmisFilters: applying ethnicities=#{filter.ethnicities}"
 
-      scope.where(Ethnicity: filter.ethnicities)
+      scope.where(c_t[:Ethnicity].in(filter.ethnicities))
     end
 
     private def filter_for_gender(scope)
@@ -65,7 +65,7 @@ module ClaimsReporting
 
       # puts "HmisFilters: applying genders=#{filter.genders}"
 
-      scope.where(Gender: filter.genders)
+      scope.where(c_t[:Gender].in(filter.genders))
     end
 
     private def filter_for_age(scope, as_of: Date.current)
