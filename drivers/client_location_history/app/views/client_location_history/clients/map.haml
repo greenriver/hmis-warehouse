@@ -1,0 +1,27 @@
+- title = "Location Map for #{@client.name}"
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+= render 'clients/aliases'
+= render 'clients/tab_navigation', current: map_client_location_history_client_path(@client)
+%h1= title
+:ruby
+  addresses = @client.client_location_histories.limit(10)
+  markers = addresses.map(&:as_point)
+  labels = addresses.map(&:as_label)
+  max_lat = addresses.maximum(:lat)
+  min_lat = addresses.minimum(:lat)
+  max_lon = addresses.maximum(:lon)
+  min_lon = addresses.minimum(:lon)
+
+- if addresses.any?
+  #client__location-history
+  = content_for :page_js do
+    :coffeescript
+      markers = #{markers.to_json.html_safe}
+      labels = #{labels.to_json.html_safe}
+      bounds = #{[[min_lat, min_lon], [max_lat, max_lon]].to_json.html_safe}
+      map = new App.Maps.MapWithMarkers('client__location-history', markers, labels, true, true, bounds)
+- else
+  .no-data
+    No previous addresses

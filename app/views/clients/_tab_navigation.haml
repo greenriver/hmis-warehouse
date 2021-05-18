@@ -27,14 +27,22 @@
       },
     }) if health_emergency?
     hmis.merge!({
-      client_history_path(@client) => {
-        title: 'History',
-        permission: show_demographic,
-      },
       enrollment_details_client_path(@client) => {
         title: 'Enrollment Details',
         permission: can_view_enrollment_details_tab? && show_demographic,
       },
+      client_history_path(@client) => {
+        title: 'History',
+        permission: show_demographic,
+      },
+    })
+    hmis.merge!({
+      map_client_location_history_client_path(@client) => {
+        title: 'Locations',
+        permission: show_demographic && can_view_client_locations?,
+      },
+    }) if RailsDrivers.loaded.include?(:client_location_history)
+    hmis.merge!({
       polymorphic_path(client_chronic_path_generator, client_id: @client) => {
         title: 'Chronic',
         permission: can_edit_clients? && show_demographic,

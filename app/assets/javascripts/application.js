@@ -29,6 +29,7 @@
 //= require jquery-ui/widgets/slider
 //= require jquery-ui/widgets/autocomplete
 //= require leaflet
+//= require leaflet.markercluster/leaflet.markercluster
 //= require jquery.periodicalupdater
 //= require jquery.updater
 //= require jquery.minicolors

@@ -7,5 +7,13 @@
 module ClientLocationHistory
   class Location < GrdaWarehouseBase
     belongs_to :source, polymorphic: true
+
+    def as_point
+      [lat, lon]
+    end
+
+    def as_label
+      "Seen on: #{located_on} <br />by #{collected_by}".html_safe
+    end
   end
 end

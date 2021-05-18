@@ -454,6 +454,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_view_client_locations: {
+        description: 'Access to the map view of client locations',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_view_enrollment_details: {
         description: 'Access to the enrollment details tab.  Users with Can View Clients get this automatically.',
         administrative: false,
