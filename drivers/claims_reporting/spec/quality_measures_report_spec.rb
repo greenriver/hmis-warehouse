@@ -23,14 +23,14 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
       short_name: 'QMTEST2',
       edi_name: '',
     )
-    # match
+    # match - single race
     patients << create(:patient,
                        medicaid_id: 'QMTEST000001',
                        birthdate: date_range.min - 41.years,
                        client: create(:hud_client,
                                       Gender: 2, Ethnicity: 1, AmIndAKNative: 0, Asian: 1, BlackAfAmerican: 1, NativeHIOtherPacific: 0, White: 0, RaceNone: 0),
                        patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
-    # match
+    # match - MultiRacial
     patients << create(:patient,
                        medicaid_id: 'QMTEST000002',
                        birthdate: date_range.min - 41.years,
