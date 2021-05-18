@@ -31,6 +31,7 @@ docker-compose.override.yml
 !/.github
 !/.env.test
 !/.eslintrc.js
+!/.rspec.sample
 
 # Ignore operational files
 package.box

@@ -10,6 +10,7 @@ module WarehouseReports
     include ArelHelper
     include SubpopulationHistoryScope
     include ClientDetailReports
+    include Filter::FilterScopes
 
     before_action :set_filter
 
@@ -41,37 +42,19 @@ module WarehouseReports
     #   end
     # end
 
-    private def filter_params
-      return {} unless params[:filter].present?
-
-      params.require(:filter).permit(
-        :start,
-        :end,
-        :sub_population,
-        :heads_of_household,
-        :ph,
-        :gender,
-        :race,
-        :ethnicity,
-        age_ranges: [],
-        organization_ids: [],
-        project_ids: [],
-        project_type_codes: [],
-        coc_codes: [],
-      )
-    end
-
     private def client_source
       GrdaWarehouse::Hud::Client.destination
     end
 
     private def service_history_scope
+      @project_types = @filter.project_type_ids
       scope = history_scope(service_history_source.in_project_type(@filter.project_type_ids), @filter.sub_population)
+      scope = filter_for_project_type(scope)
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
-      scope = filter_for_age_ranges(scope)
-      scope = filter_for_hoh(scope)
-      scope = filter_for_coc_codes(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_cocs(scope)
       scope = filter_for_gender(scope)
       scope = filter_for_race(scope)
       scope = filter_for_ethnicity(scope)

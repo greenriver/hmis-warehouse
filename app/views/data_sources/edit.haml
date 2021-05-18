@@ -1,0 +1,14 @@
+= render 'breadcrumbs', data_source: @data_source
+.row.mb-4
+  .col-sm-6
+    %h1= @data_source.name
+    %em.text-muted
+      Data Source ID:
+      %strong= @data_source.id
+  .col-sm-6.text-right
+.row
+  .col-sm-8
+    = simple_form_for @data_source, url: data_source_path do |f|
+      = render 'form', f: f
+      .form-actions
+        = f.button :submit, value: 'Save Data Source', class: 'btn btn-primary'

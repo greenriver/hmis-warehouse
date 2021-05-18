@@ -63,7 +63,7 @@ class MemoryAnalyzer
       puts "[INFO][MEMORY_ANALYZER] With #{_overall_stats.sample_count.to_i} samples, we found #{_overall_stats.average.round(1)}% average memory utilization and #{_overall_stats.maximum.round(1)}% maximum memory utilization"
 
       # recommend some percentage above maximum utilization in recent past
-      self.recommended_hard_limit_mb = (current_soft_limit_mb * ((_overall_stats.maximum * 3) / 100.0)).ceil
+      self.recommended_hard_limit_mb = (current_soft_limit_mb * ((_overall_stats.maximum * 4) / 100.0)).ceil
 
       self.recommended_soft_limit_mb =
         begin

@@ -1,0 +1,56 @@
+.c-card--flush.mb-5
+  %table.table.table-sm
+    %tr
+      %th.pl-2 Last Import Run
+      %td= @data_source.last_imported_at
+    %tr
+      %th.pl-2 Date Span
+      %td
+        - if data_span = @data_source.data_span
+          = "#{data_span[:start_date]} - #{data_span[:end_date]}"
+    - if ! @data_source.authoritative? && can_view_imports? && @data_source.uploads.any? && @data_source.directly_viewable_by?(current_user)
+      %tr
+        %th.pl-2 Uploads
+        %td
+          = link_to data_source_uploads_path(@data_source) do
+            View
+    - if @data_source.non_hmis_uploads.any? && current_user.can_upload_dashboard_extras?
+      %tr
+        %th.pl-2 Dashboard Extras Uploads
+        %td
+          = link_to 'View', data_source_non_hmis_uploads_path(@data_source)
+    - if can_edit_data_sources?
+      %tr
+        %th.pl-2
+          HMIS Export SourceID
+        %td
+          = @data_source.source_id
+      %tr
+        %th.pl-2
+          Visible in the Window into the Warehouse?
+        %td
+          = yes_no(@data_source.visible_in_window)
+      %tr
+        %th.pl-2
+          Does the Personal ID column contain a UUID?
+        %td
+          = yes_no(@data_source.munged_personal_id)
+      %tr
+        %th.pl-2
+          Import Paused?
+        %td
+          = yes_no(@data_source.import_paused)
+      - if @data_source.authoritative?
+        %tr
+          %th.pl-2 After Create Path
+          %td= @data_source.after_create_path
+        %tr
+          %th.pl-2 Authoritative Type
+          %td= GrdaWarehouse::DataSource.authoritative_types.invert[@data_source.authoritative_type&.to_sym] || 'blank'
+      %tr
+        %th.pl-2 Service Scanning Enabled?
+        %td= yes_no(@data_source.service_scannable)
+    %tr
+      %th.pl-2 Viewable by the following users, regardless of visibility in window
+      %td= @data_source.users.active.joins(:roles).where(roles: {can_view_clients: true}).diet.distinct.map(&:name).join(', ')
+  .text-right.m-2.mb-4

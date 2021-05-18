@@ -6,7 +6,7 @@
 
 # Validate that for any given importer_log_id there is only
 # one record marked valid for import
-class HmisCsvValidation::UniqueHudKey < HmisCsvValidation::Validation
+class HmisCsvValidation::UniqueHudKey < HmisCsvValidation::Error
   def self.check_validity!(klass, importer_log, _options)
     incorrect_counts = klass.
       where(importer_log_id: importer_log.id).
