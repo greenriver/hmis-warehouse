@@ -22,7 +22,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
   end
 
   it 'has been provided client data' do
-    assert_equal 4, @data_source.clients.count
+    assert_equal 6, @data_source.clients.count
   end
 
   it 'completed successfully' do
@@ -95,15 +95,13 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
     ['6a.1 and 6b.1', 'J6', 0, '% returning in <2yr from SO'],
     ['6a.1 and 6b.1', 'J7', 66.67, '% returning in <2yr'],
 
-    # FIXME
-    ['6c.1', 'C2', 4, 'Cat. 3 Persons in SH, TH and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing'],
-    ['6c.1', 'C3', 0, 'with the desired final state'],
-    ['6c.1', 'C4', 0, '.. as percentage'],
+    ['6c.1', 'C2', 5, 'Cat. 3 Persons in SH, TH and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing'],
+    ['6c.1', 'C3', 1, 'with the desired final state'],
+    ['6c.1', 'C4', 20, '.. as percentage'],
 
-    # FIXME
-    ['6c.2', 'C2', 0, 'Cat. 3 Persons in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project'],
-    ['6c.2', 'C3', 0, 'with the desired final state'],
-    ['6c.2', 'C4', 0, '.. as percentage'],
+    ['6c.2', 'C2', 1, 'Cat. 3 Persons in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project'],
+    ['6c.2', 'C3', 1, 'with the desired final state'],
+    ['6c.2', 'C4', 100, '.. as percentage'],
   ].each do |table, cell, expected_value, label|
     test_name = if expected_value.nil?
       "does not fill #{table} #{cell} #{label}".strip

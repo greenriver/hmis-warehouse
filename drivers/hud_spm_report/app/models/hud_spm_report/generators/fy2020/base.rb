@@ -62,6 +62,7 @@ module HudSpmReport::Generators::Fy2020
       household_id: :household_id,
       housing_status_at_entry: :housing_status_at_entry,
       housing_status_at_exit: :housing_status_at_exit,
+      MoveInDate: :move_in_date,
     }.freeze
 
     # HudReports::UniverseMember scope to use for this measure
@@ -521,69 +522,18 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def add_m7_clients
-      add_project_leavers_and_stayers 'Measure 7', :m7
-    end
-
-    private def add_project_leavers_and_stayers(question_name, m_code)
-      return unless add_clients_for_question?(question_name)
-
-      fields = if m_code == :m7
-        {
-          table_1: :m7b1_destination,
-          table_2: :m7b2_destination,
-          history: :m7_history,
-        }
-      elsif m_code == :m6
-        {
-          table_1: :m6c1_destination,
-          table_2: :m6c2_destination,
-          history: :m6_history,
-        }
-      else
-        raise 'Unexpected m_code'
-      end
-
-      m7_stays = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(
-        on_date: @report.end_date,
-      )
-
-      m7_columns = {
-        client_id: :client_id,
-        project_type: :computed_project_type,
-        destination: :destination,
-        date: :date,
-        MoveInDate: :move_in_date,
-
-        # keeping for audit history
-        first_date_in_program: :first_date_in_program,
-        last_date_in_program: :last_date_in_program,
-        project_id: :project_id,
-        project_name: :project_name,
-      }.freeze
-
       m7_exits = GrdaWarehouse::ServiceHistoryEnrollment.exit.ended_between(
         start_date: @report.start_date,
         end_date: @report.end_date + 1.day,
       )
+      m7_stays = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(
+        on_date: @report.end_date,
+      )
+      m7a1_exits = add_filters m7_exits.
+        hud_project_type(SO).
+        where.not(client_id: m7_stays.hud_project_type(SO).select(:client_id))
 
-      if m_code == :m6
-        # All metrics are limited to all clients in projects serving Category 3 homeless, in addition to the filters below.
-        # Metrics 6a.1 and 6b.1: Transitional Housing (Project Type 2), Safe Haven (Project Type 8) and Permanent Housing-Permanent Supportive Housing and Permanent Housing-Rapid Re-Housing (Project Types 3 and 13) clients who exited to permanent housing destinations 2 years prior to the report date range.
-        m7_exits = m7_exits.category_3
-        m7a1_exits = add_filters m7_exits.hud_project_type(SH + TH + RRH + PSH_ONLY)
-      elsif m_code == :m7
-        # Table 7a.1
-        # 1. Select leavers across all SO projects in the in the report date
-        # range. A “leaver” in this metric means the client must have exited an
-        # SO project in the report date range and was not active in that or any
-        # other SO project as of the [report end date].
-
-        m7a1_exits = add_filters m7_exits.
-          hud_project_type(SO).
-          where.not(client_id: m7_stays.hud_project_type(SO).select(:client_id))
-      end
-
-      process_scope_by_client question_name, m7a1_exits, m7_columns do |_client, client_enrollments|
+      process_scope_by_client 'Measure 7', m7a1_exits, SHE_COLUMNS do |_client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
@@ -600,105 +550,180 @@ module HudSpmReport::Generators::Fy2020
         }
       end
 
-      # Table 6c.1
-      # Metric 6c.1 mirrors Measure 7b.1 but with a universe of Category 3 SH, TH, PH – RRH, and PH (without a housing move-in date) (Project types: 8, 2, 13, and 3 without a move-in-date) system leavers in the current reporting year.
-      # Table 7b.1
-      # 1. Select leavers across all ES, SH, TH, PH-RRH, and PH projects in
-      # the in the report date range. A “leaver” in this metric means the
-      # client must have exited from a project of one of the given types in
-      # the report date range and was not active in that or any other project
-      # among the given types as of the [report end date].
-      m7b_excluded_destinations = [15, 6, 25, 24]
-      m7b1_project_types = ES + SH + TH + PH
-      m7b1_exits = add_filters m7_exits.
-        hud_project_type(
-          m7b1_project_types,
-        ).where.not(
-          client_id: m7_stays.hud_project_type(m7b1_project_types).select(:client_id),
-        )
+      add_project_leavers_and_stayers 'Measure 7', :m7
+    end
 
-      process_scope_by_client(question_name, m7b1_exits, m7_columns) do |_client, client_enrollments|
+    # #Metric 7b and  Metric 6c are mostly the same but
+    private def add_project_leavers_and_stayers(question_name, m_code)
+      return unless add_clients_for_question?(question_name)
+
+      stays = add_filters GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(
+        on_date: @report.end_date,
+      )
+
+      exits = add_filters GrdaWarehouse::ServiceHistoryEnrollment.exit.ended_between(
+        start_date: @report.start_date,
+        end_date: @report.end_date + 1.day,
+      )
+
+      if m_code == :m6
+        history_field = :m6_history
+        table_1_dest_field = :m6c1_destination
+        table_2_dest_field = :m6c2_destination
+
+        # Metric 6c.1 mirrors Measure 7b.1 but with a universe of Category 3
+        #  Safe Haven (project type 8),
+        #  Transitional Housing (Project Type 2),
+        #  Permanent Housing-Rapid Rehousing (Project Type 13),
+        #  and PH-PSH (Project Type 3, without a housing move-in date) clients who exited during the report range.
+        # Metric 6c.2: mirrors Measure 7b.2 but with a universe of Category 3
+        #  Permanent Housing – Permanent Supportive Housing (Project Type 3, with a housing move-in date) clients who are active in the report range.
+        exits = exits.category_3
+        table_1_project_types = [2, 8, 13, 3]
+        table_2_project_types = [3]
+      elsif m_code == :m7
+        history_field = :m7_history
+        table_1_dest_field = :m7b1_destination
+        table_2_dest_field = :m7b2_destination
+
+        # Metric 7b.1: Select leavers across all ES, SH, TH, PH-RRH, and PH projects ...
+        # Metric 7b.2: Select stayers and leavers across selected PH projects (types 3, 9 and 10) ...
+        table_1_project_types = ES + SH + TH + PH
+        table_2_project_types = PH_PSH
+      else
+        raise 'Unexpected m_code'
+      end
+
+      # Table 1 is either 7b.1 or 6c.1
+      #
+      # Step 1.  Select leavers `table_1_exits` across [table_1_project_types] in the report date
+      # range. A “leaver” in this metric means the client must have exited from a project of one of
+      # the given types in the report date range and was not active in that or any other project
+      # among the given types as of the [report end date]. `stays`
+      table_1_exits = exits.
+        hud_project_type(table_1_project_types).
+        where.not(client_id: stays.hud_project_type(table_1_project_types).select(:client_id))
+
+      # puts "#{table_1_dest_field} running..."
+      process_scope_by_client question_name, table_1_exits, SHE_COLUMNS do |_client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
-        last_exit = client_enrollments.max_by { |e| e[:date] }
+        last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
+        #  puts "#{table_1_dest_field} checking #{last_exit}"
 
-        # 3. If the latest exit was from a PH project (types 3, 9 and 10) where
-        # the [housing move-in date] is <= [report end date], exclude the client
-        # completely from this measure (the client will be reported in measure
-        # 7b.2). If the latest exit was from project types 3, 9 and 10 and there
-        # is no [housing move-in date] for that stay, the client is included in
-        # this measure.
-        next if last_exit[:project_type].in?(PH_PSH) && last_exit[:MoveInDate].present? && last_exit[:MoveInDate].to_date <= @report.end_date
+        # 3. If the latest exit was from a PH project (types 3, 9 and 10)
+        # where the [housing move-in date] is <= [report end date], exclude the client completely
+        # from this measure (the client will be reported in measure 7b.2).
+        # If .... there is no [housing move-in date] for that stay, the client is included in this measure.
+        if last_exit[:project_type].in?(PH_PSH) && last_exit[:MoveInDate].present? && last_exit[:MoveInDate] <= @report.end_date
+          # puts "EXCLUDED #{last_exit} in Step 3 from #{table_1_dest_field}"
+          next
+        end
 
         # 4. Reference the destinations of the project exits against Appendix A
         # (row headers) using the project type from which the exit occurred
         # (column headers). Destinations indicated with an X (values 15, 6, 25,
         # 24) cause leavers with those destinations to be completely excluded
         # from the entire measure (all of column C).
-        next if last_exit[:destination].in?(m7b_excluded_destinations)
+        excluded_destinations = if last_exit[:project_type] == 3 # SO
+          [6, 29, 24]
+        else
+          [15, 6, 25, 24]
+        end
+        if last_exit[:project_type].in? excluded_destinations
+          # puts "EXCLUDED #{last_exit} in Step 4 from #{table_1_dest_field}"
+          next
+        end
+        # M6 variant "a without a housing move-in date"
+        if m_code == :m6 && last_exit[:MoveInDate].present?
+          # puts "EXCLUDED #{last_exit} in Step 1 from #{table_1_dest_field}"
+          next
+        end
 
+        # Steps 5 - 7 are handled in the subclass
         {
-          fields[:table_1] => last_exit[:destination] || 99,
-          fields[:history] => client_enrollments,
-        }
+          table_1_dest_field => last_exit[:destination] || 99,
+          history_field => client_enrollments,
+        }.tap do |data|
+          # puts "FOUND #{last_exit} for #{table_1_dest_field}"
+        end
       end
 
-      # Table 6c.2
-      # Metric 6c.2 mirrors Measure 7b.2 but with a universe of Category 3 PH-PSH (Project Type 3) system stayers and leavers in the current reporting year, with a housing move-in date.
-      # Table 7b.2
-      # 1. Select stayers and leavers across selected PH projects (types 3, 9
-      # and 10). A “leaver” in this metric means the client must have exited
-      # from a project of one of the given types in the report date range and
-      # was not active in that or any other project among the given types as
-      # of the [report end date].
-      # 2. Data from PH-RRH projects is completely excluded from this metric.
-      m7b2_stays = m7_stays.hud_project_type(PH_PSH)
-      m7b2_exits = m7_exits.hud_project_type(PH_PSH).where.not(client_id: m7b2_stays.select(:client_id))
-      m7b2_cutoff_for_missing_move_in_date = '2015-01-01'.to_date
-      process_scope_by_client(question_name, m7b2_stays, m7_columns) do |_client, client_enrollments|
+      # Table 2 is either 7b.2 or 6c.2
+      #
+      # Step 1. Select stayers and leavers across selected PH projects (types 3, 9 and 10).
+      # “leaver” in this metric means the client must have exited from a project of one
+      # of the given types in the report date range and was not active in that
+      # or any other project among the given types as of the [report end date].
+      # puts "#{table_2_dest_field} running #{stays.to_sql}"
+      process_scope_by_client(question_name, stays, SHE_COLUMNS) do |_client, client_enrollments|
         last_stay = client_enrollments.max_by { |e| e[:date] }
+        # puts "#{table_2_dest_field} checking stay #{last_stay}"
 
-        # 3. Of the stayers selected in step 1, if the latest stay has
-        # no [housing move in date], or the [housing move-in date] is > [report end date],
-        # exclude the client completely from this measure
-        # FY2019 Note: "Some old enrollments don't have move-in-dates"
-        next if (
-            last_stay[:MoveInDate].blank? || last_stay[:MoveInDate].to_date > @report.end_date
-          ) && (
-            last_stay[:first_date_in_program] > m7b2_cutoff_for_missing_move_in_date
-          )
+        # 2. Data from PH-RRH projects is completely excluded from this metric.
+        if last_stay[:project_type].in? RRH
+          # puts "EXCLUDED Stay #{last_stay} in step 2 from #{table_2_dest_field}"
+          next
+        end
 
-        # 5. Reference the destinations of the project exits against
-        # Appendix A (row headers) and the “PH (all)” column. Destinations
-        # indicated with an X (values 15, 6, 25, 24) cause leavers with those
-        # destinations to be completely excluded from the entire measure
-        # (all of column C).
-        next if last_stay[:destination].in?(m7b_excluded_destinations)
+        # 3. Of the stayers selected in step 1, if the latest stay has no [housing move in date],
+        # or the [housing move-in date] is > [report end date], exclude the client completely from this measure.
+        if last_stay[:MoveInDate].blank? || last_stay[:MoveInDate] > @report.end_date
+          # puts "EXCLUDED Stay #{last_stay} in step 3 from #{table_2_dest_field}"
+          next
+        end
 
+        # Steps 5 - 7 are handled in the subclass
         {
-          fields[:table_2] => last_stay[:destination] || 99,
-          fields[:history] => client_enrollments,
-        }
+          table_2_dest_field => last_stay[:destination] || 99,
+          history_field => client_enrollments,
+        }.tap do |data|
+          # puts "FOUND #{last_stay} for #{table_2_dest_field}"
+        end
       end
-      process_scope_by_client(question_name, m7b2_exits, m7_columns) do |_client, client_enrollments|
-        # 4. Of the leavers selected in step 1, determine the latest project
-        # exit for each client. If there is no [housing move-in date] for
-        # that stay, the client is completely excluded from this measure
-        # (the client will be reported in 7b.1).
+
+      table_2_exits = add_filters exits.
+        hud_project_type(
+          table_2_project_types,
+        ).where.not(
+          client_id: stays.hud_project_type(table_2_project_types).select(:client_id),
+        )
+
+      # puts "#{table_2_dest_field} running #{table_2_exits.to_sql}"
+      process_scope_by_client(question_name, table_2_exits, SHE_COLUMNS) do |_client, client_enrollments|
+        last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
+        # puts "#{table_2_dest_field} checking exit #{last_exit}"
+
+        # # 2. Data from PH-RRH projects is completely excluded from this metric.
+        if last_exit[:project_type].in? RRH
+          # puts "EXCLUDED Exit #{last_exit} in step 2 from #{table_2_dest_field}"
+          next
+        end
+
+        # 4. Of the leavers selected in step 1, determine the latest project exit for
+        # each client. If there is no [housing move-in date] for that stay, the client is
+        # completely excluded from this measure (the client will be reported in 7b.1)..
         last_exit = client_enrollments.max_by { |e| e[:date] }
-        next if last_exit[:MoveInDate].blank?
+        if last_exit[:MoveInDate].blank?
+          # puts "EXCLUDED Exit #{last_exit} in step 4 from #{table_2_dest_field}"
+          next
+        end
 
-        # 5. Reference the destinations of the project exits against
-        # Appendix A (row headers) and the “PH (all)” column. Destinations
-        # indicated with an X (values 15, 6, 25, 24) cause leavers with those
-        # destinations to be completely excluded from the entire measure
-        # (all of column C).
-        next if last_exit[:destination].in?(m7b_excluded_destinations)
+        # 5. Reference the destinations of the project exits against Appendix A (row headers)
+        # and the “PH (all)” column. Destinations indicated with an X (values 15, 6, 25, 24)
+        # cause leavers with those destinations to be completely excluded from the entire measure (all of column C).
+        if last_exit[:project_type].in? [15, 6, 25, 24]
+          # puts "EXCLUDED Exit #{last_exit} in step 5 from #{table_2_dest_field}"
+          next
+        end
 
+        # Steps 6 - 7 are handled in the subclass
         {
-          fields[:table_2] => last_exit[:destination] || 99,
-          fields[:history] => client_enrollments,
-        }
+          table_2_dest_field => last_exit[:destination] || 99,
+          history_field => client_enrollments,
+        }.tap do |data|
+          # puts "FOUND #{last_stay} for #{table_2_dest_field}"
+        end
       end
     end
 

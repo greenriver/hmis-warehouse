@@ -10,7 +10,7 @@ module HudSpmReport::Filters
 
     # NOTE: This differs from the base filter class because it includes all projects based on project type, and doesn't include any projects based on CoCCode
     def effective_project_ids
-      @ids ||= begin
+      @effective_project_ids ||= begin
         ids = effective_project_ids_from_projects
         ids += effective_project_ids_from_project_groups
         ids += effective_project_ids_from_organizations
