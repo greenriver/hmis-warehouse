@@ -8,6 +8,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   include Eto::PathwaysAnswers
   include Eto::CovidAnswers
+  include RailsDrivers::Extensions
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :destination_client, through: :client
   belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::HMIS::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]

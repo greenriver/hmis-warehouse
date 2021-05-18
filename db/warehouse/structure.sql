@@ -188,7 +188,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -3861,6 +3861,45 @@ ALTER SEQUENCE public.chronics_id_seq OWNED BY public.chronics.id;
 
 
 --
+-- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.clh_locations (
+    id bigint NOT NULL,
+    client_id bigint,
+    source_type character varying,
+    source_id bigint,
+    located_on date,
+    lat double precision,
+    lon double precision,
+    collected_by character varying,
+    processed_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: clh_locations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.clh_locations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: clh_locations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.clh_locations_id_seq OWNED BY public.clh_locations.id;
+
+
+--
 -- Name: client_matches; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7249,7 +7288,8 @@ CREATE TABLE public.hmis_assessments (
     hud_assessment boolean DEFAULT false,
     triage_assessment boolean DEFAULT false,
     rrh_assessment boolean DEFAULT false,
-    covid_19_impact_assessment boolean DEFAULT false
+    covid_19_impact_assessment boolean DEFAULT false,
+    with_location_data boolean DEFAULT false NOT NULL
 );
 
 
@@ -8769,7 +8809,8 @@ CREATE TABLE public.hmis_forms (
     monthly_rent_total integer,
     percent_ami integer,
     household_type character varying,
-    household_size integer
+    household_size integer,
+    location_processed_at timestamp without time zone
 );
 
 
@@ -13979,6 +14020,13 @@ ALTER TABLE ONLY public.chronics ALTER COLUMN id SET DEFAULT nextval('public.chr
 
 
 --
+-- Name: clh_locations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clh_locations ALTER COLUMN id SET DEFAULT nextval('public.clh_locations_id_seq'::regclass);
+
+
+--
 -- Name: client_matches id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -15934,6 +15982,14 @@ ALTER TABLE ONLY public.children
 
 ALTER TABLE ONLY public.chronics
     ADD CONSTRAINT chronics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: clh_locations clh_locations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clh_locations
+    ADD CONSTRAINT clh_locations_pkey PRIMARY KEY (id);
 
 
 --
@@ -21474,6 +21530,20 @@ CREATE INDEX index_chronics_on_date ON public.chronics USING btree (date);
 
 
 --
+-- Name: index_clh_locations_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_clh_locations_on_client_id ON public.clh_locations USING btree (client_id);
+
+
+--
+-- Name: index_clh_locations_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_clh_locations_on_source_type_and_source_id ON public.clh_locations USING btree (source_type, source_id);
+
+
+--
 -- Name: index_client_matches_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -26731,6 +26801,13 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 
 
 --
+-- Name: test_shs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -29179,6 +29256,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210503165055'),
 ('20210513185514'),
 ('20210514154843'),
+('20210517144348'),
 ('20210515142741');
-
-
