@@ -53,13 +53,13 @@ module OmniAuth
       alias oauth2_access_token access_token
 
       def access_token
-        return if oauth2_access_token
-
-        ::OAuth2::AccessToken.new(client, oauth2_access_token.token, {
-                                    refresh_token: oauth2_access_token.refresh_token,
-                                    expires_in: oauth2_access_token.expires_in,
-                                    expires_at: oauth2_access_token.expires_at,
-                                  })
+        if oauth2_access_token
+          ::OAuth2::AccessToken.new(client, oauth2_access_token.token, {
+                                      refresh_token: oauth2_access_token.refresh_token,
+                                      expires_in: oauth2_access_token.expires_in,
+                                      expires_at: oauth2_access_token.expires_at,
+                                    })
+        end
       end
 
       def raw_info

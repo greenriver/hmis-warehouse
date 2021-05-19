@@ -66,12 +66,6 @@ module OmniauthSupport
     provider.present? && ENV['OKTA_DOMAIN'].present?
   end
 
-  def idp_id_info
-    return {} unless external_idp?
-
-    provider_raw_info&.dig('id_info') || {}
-  end
-
   # Remove the IDP present, reseting the password and
   # reactivating by default.
   #
