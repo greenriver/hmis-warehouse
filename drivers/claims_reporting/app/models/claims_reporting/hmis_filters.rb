@@ -30,17 +30,12 @@ module ClaimsReporting
       # puts "HmisFilters: applying races=#{filter.races}"
 
       keys = filter.races.map(&:to_s)
-      race_columns = ['AmIndAKNative', 'Asian', 'BlackAfAmerican', 'NativeHIOtherPacific', 'White', 'RaceNone']
-
+      # Remove RaceNone from the possibilities, it can't be a 1
+      race_columns = GrdaWarehouse::Hud::Client.race_fields - ['RaceNone']
       selected_races = (keys & race_columns)
+      multi_racial_scope = GrdaWarehouse::Hud::Client.multi_racial
 
-      multi_racial_scope = GrdaWarehouse::Hud::Client.where(
-        Arel.sql(
-          race_columns.map { |c| c_t[c].to_sql }.join(' + '),
-        ).gt(1),
-      )
-
-      scope = scope.where(Arel.sql('1').in(selected_races.map { |c| c_t[c] })) if selected_races.any?
+      scope = scope.with_races(selected_races) if selected_races.any?
 
       if keys.include?('MultiRacial')
         scope = if selected_races.any?
