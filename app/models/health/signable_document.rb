@@ -44,7 +44,7 @@ module Health
     delegate :signed?, to: :signature_request, allow_nil: true
 
     scope :signed, -> do
-      where.not("signed_by != '[]'").
+      where("signed_by != '[]'").
       joins(signature_request: :careplan).merge(Health::SignatureRequest.complete)
     end
 
