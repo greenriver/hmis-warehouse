@@ -24,7 +24,7 @@ module ClaimsReporting
     end
 
     scope :ordered, -> do
-      order(updated_at: :desc)
+      order(created_at: :desc)
     end
 
     def self.viewable_by(user)
@@ -67,7 +67,7 @@ module ClaimsReporting
 
     def filter
       @filter ||= begin
-        f = ::Filters::ClaimsFilter.new(user_id: user_id)
+        f = ::Filters::QualityMeasuresFilter.new(user_id: user_id)
         f.set_from_params((options || {}).with_indifferent_access)
         f
       end
@@ -126,7 +126,10 @@ module ClaimsReporting
       # run annual report for each selected plan_year, saving as we go if possible
 
       years.each do |year|
-        self.results[year] = ClaimsReporting::QualityMeasuresReport.for_plan_year(year.to_s).serializable_hash
+        self.results[year] = ClaimsReporting::QualityMeasuresReport.for_plan_year(
+          year.to_s,
+          filter: filter,
+        ).serializable_hash
         save unless new_record?
       end
     end
