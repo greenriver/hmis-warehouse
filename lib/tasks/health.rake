@@ -223,9 +223,9 @@ namespace :health do
       desc "Conditionally load the database schema"
       task :conditional_load, [] => [:environment] do |t, args|
         if HealthBase.connection.table_exists?(:schema_migrations)
-          Rake::Task['health:db:schema:load'].invoke
-        else
           puts "Refusing to load the health database schema since there are tables present. This is not an error."
+        else
+          Rake::Task['health:db:schema:load'].invoke
         end
       end
     end
@@ -241,10 +241,10 @@ namespace :health do
 
       desc "Conditionally load the database structure"
       task :conditional_load, [] => [:environment] do |t, args|
-        if HealthBase.connection.tables.length == 0
-          HealthBase.connection.execute(File.read('db/health/structure.sql'))
-        else
+        if HealthBase.connection.table_exists?(:schema_migrations)
           puts "Refusing to load the health database structure since there are tables present. This is not an error."
+        else
+          HealthBase.connection.execute(File.read('db/health/structure.sql'))
         end
       end
     end
