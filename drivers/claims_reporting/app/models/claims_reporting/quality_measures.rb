@@ -24,7 +24,7 @@ module ClaimsReporting
     end
 
     scope :ordered, -> do
-      order(updated_at: :desc)
+      order(created_at: :desc)
     end
 
     def self.viewable_by(user)

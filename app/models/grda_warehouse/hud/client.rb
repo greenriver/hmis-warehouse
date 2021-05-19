@@ -490,7 +490,7 @@ module GrdaWarehouse::Hud
     scope :with_races, ->(races) do
       return current_scope unless races&.compact&.present?
 
-      where(Arel.sql('1').in(selected_races.map { |race| c_t[race] }))
+      where(Arel.sql('1').in(races.map { |race| c_t[race] }))
     end
 
     scope :ethnicity_non_hispanic_non_latino, -> do
