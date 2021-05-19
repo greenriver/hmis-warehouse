@@ -18,7 +18,7 @@ class App.Maps.MapWithMarkers
           borderWidth: 6,
         }
         if marker.highlight
-          options.borderColor = 'DarkViolet'
+          options.borderColor = 'ForestGreen'
         m = L.marker(marker.lat_lon, icon: L.BeautifyIcon.icon(options))
         m.bindTooltip(marker.label.join('<br />'))
         group.addLayer(m)

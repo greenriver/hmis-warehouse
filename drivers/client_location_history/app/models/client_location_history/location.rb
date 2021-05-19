@@ -40,6 +40,8 @@ module ClientLocationHistory
     end
 
     def self.highlight(markers)
+      return [] if markers.empty?
+
       most_recent = markers.max_by { |m| m[:date] }
       most_recent[:highlight] = true
       most_recent[:label] << '<strong>Most-recent contact</strong>'.html_safe
