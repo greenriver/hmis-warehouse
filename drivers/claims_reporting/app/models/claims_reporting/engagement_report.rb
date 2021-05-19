@@ -26,10 +26,10 @@ module ClaimsReporting
 
     def initialize(cohort: nil, filter: nil)
       cohort ||= { scope: ClaimsReporting::MemberEnrollmentRoster.all }
-      filter ||= ::Filters::ClaimsFilter.new
+      filter ||= ::Filters::EngagementFilter.new
 
       raise ArgumentError, 'cohort[:scope] must contain a ClaimsReporting::MemberEnrollmentRoster scope' unless cohort[:scope].model.name == 'ClaimsReporting::MemberEnrollmentRoster'
-      raise ArgumentError, 'filter must be a ::Filters::ClaimsFilter' unless filter.is_a? ::Filters::ClaimsFilter
+      raise ArgumentError, 'filter must be a ::Filters::EngagementFilter' unless filter.is_a? ::Filters::EngagementFilter
 
       @filter = filter
 

@@ -10,8 +10,7 @@ module ClaimsReporting
   class EngagementTrends < HealthBase
     include Reporting::Status
     include Rails.application.routes.url_helpers
-    include ArelHelper
-    include ::Filter::FilterScopes
+    include HmisFilters
     extend Memoist
     acts_as_paranoid
 
@@ -180,7 +179,7 @@ module ClaimsReporting
         filter.ethnicities.present?
       )
       if filtered_by_client
-        hmis_scope = ::GrdaWarehouse::DataSource.joins(:clients)
+        hmis_scope = ::GrdaWarehouse::Hud::Client.all
         hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
         hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
         hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
@@ -195,7 +194,7 @@ module ClaimsReporting
         )
       end
 
-      scope = filter_for_age(scope) if filter.age_ranges.present?
+      scope = filter_for_age(scope, as_of: Date.current) if filter.age_ranges.present?
 
       if filter.food_insecurity.present?
         scope = scope.joins(:patient).merge(
@@ -210,75 +209,6 @@ module ClaimsReporting
       scope
     end
     memoize :cohort_scope
-
-    # to make the HMIS filters work
-    def report_scope_source
-      ::GrdaWarehouse::DataSource
-    end
-
-    # to make the HMIS filters work
-    private def multi_racial_clients
-      # Looking at all races with responses of 1, where we have a sum > 1
-      columns = [
-        c_t[:AmIndAKNative],
-        c_t[:Asian],
-        c_t[:BlackAfAmerican],
-        c_t[:NativeHIOtherPacific],
-        c_t[:White],
-      ]
-      report_scope_source.joins(:clients).
-        where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
-    end
-
-    # to make the HMIS filters work
-    private def race_alternative(key)
-      report_scope_source.joins(:clients).where(c_t[key].eq(1))
-    end
-
-    # to make the HMIS filters work
-    private def filter_for_ethnicity(scope)
-      return scope unless @filter.ethnicities.present?
-
-      scope.joins(:clients).where(c_t[:Ethnicity].in(@filter.ethnicities))
-    end
-
-    # to make the HMIS filters work
-    private def filter_for_gender(scope)
-      return scope unless @filter.genders.present?
-
-      scope.joins(:clients).where(c_t[:Gender].in(@filter.genders))
-    end
-
-    private def age_calculation
-      a_t = ClaimsReporting::MemberRoster.arel_table
-      nf(
-        'AGE',
-        [
-          Date.current,
-          a_t[:date_of_birth],
-        ],
-      )
-    end
-
-    private def filter_for_age(scope)
-      return scope unless filter.age_ranges.present? && (filter.available_age_ranges.values & filter.age_ranges).present?
-
-      # Or'ing ages is very slow, instead we'll build up an acceptable
-      # array of ages
-      ages = []
-      ages += (0..17).to_a if filter.age_ranges.include?(:under_eighteen)
-      ages += (18..24).to_a if filter.age_ranges.include?(:eighteen_to_twenty_four)
-      ages += (25..29).to_a if filter.age_ranges.include?(:twenty_five_to_twenty_nine)
-      ages += (30..39).to_a if filter.age_ranges.include?(:thirty_to_thirty_nine)
-      ages += (40..49).to_a if filter.age_ranges.include?(:forty_to_forty_nine)
-      ages += (50..59).to_a if filter.age_ranges.include?(:fifty_to_fifty_nine)
-      ages += (60..61).to_a if filter.age_ranges.include?(:sixty_to_sixty_one)
-      ages += (62..110).to_a if filter.age_ranges.include?(:over_sixty_one)
-
-      scope.joins(:member_roster).where(
-        Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in(ages),
-      )
-    end
 
     def engaged_history_cohorts
       {
@@ -373,7 +303,7 @@ module ClaimsReporting
 
     def filter
       @filter ||= begin
-        f = ::Filters::ClaimsFilter.new(user_id: user_id)
+        f = ::Filters::EngagementFilter.new(user_id: user_id)
         f.set_from_params(options.with_indifferent_access)
         f
       end
