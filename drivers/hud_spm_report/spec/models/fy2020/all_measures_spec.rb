@@ -41,22 +41,22 @@ RSpec.describe HudSpmReport::Generators::Fy2020::Generator, type: :model do
     assert_equal 9, @data_source.clients.count
   end
 
-  [
-    ['1a', 'A1', nil],
-    ['1a', 'C2', 2, 'persons in ES and SH'],
-    ['1a', 'E2', 152.5, 'mean LOT in ES and SH'],
-    ['1a', 'H2', 152.5, 'median LOT in ES and SH'],
-    ['1b', 'C2', 2, 'persons in ES, SH, and PH'],
-    # ['1b', 'E2', m1b_days, 'mean LOT in ES, SH, and PH'],
-    # ['1b', 'H2', m1b_days, 'median LOT in ES, SH, and PH'],
-  ].each do |question, cell, expected_value, label|
-    test_name = if expected_value.nil?
-      "does not fill #{question} #{cell}"
-    else
-      "fills #{question} #{cell} (#{label}) with #{expected_value}"
-    end
-    it test_name do
-      expect(report_result.answer(question: question, cell: cell).summary).to eq(expected_value)
-    end
-  end
+  # [
+  #   ['1a', 'A1', nil],
+  #   ['1a', 'C2', 2, 'persons in ES and SH'],
+  #   ['1a', 'E2', 152.5, 'mean LOT in ES and SH'],
+  #   ['1a', 'H2', 152.5, 'median LOT in ES and SH'],
+  #   ['1b', 'C2', 2, 'persons in ES, SH, and PH'],
+  #   # ['1b', 'E2', m1b_days, 'mean LOT in ES, SH, and PH'],
+  #   # ['1b', 'H2', m1b_days, 'median LOT in ES, SH, and PH'],
+  # ].each do |question, cell, expected_value, label|
+  #   test_name = if expected_value.nil?
+  #     "does not fill #{question} #{cell}"
+  #   else
+  #     "fills #{question} #{cell} (#{label}) with #{expected_value}"
+  #   end
+  #   it test_name do
+  #     expect(report_result.answer(question: question, cell: cell).summary).to eq(expected_value)
+  #   end
+  # end
 end

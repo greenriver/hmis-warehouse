@@ -269,7 +269,7 @@ module HudSpmReport::Generators::Fy2020
         # select all the necessary service history
         # for this batch of clients
         nights_for_batch = pluck_to_hash shs_columns, services_scope.
-          where(shs_t[:date].between(LOOKBACK_STOP_DATE, @report.end_date)).
+          where(shs_t[:date].between(LOOKBACK_STOP_DATE..@report.end_date)).
           where(
             client_id: clients_by_id.keys,
           ).order(client_id: :asc, date: :asc)
