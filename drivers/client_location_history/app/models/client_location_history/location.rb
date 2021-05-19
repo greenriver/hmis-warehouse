@@ -12,8 +12,38 @@ module ClientLocationHistory
       [lat, lon]
     end
 
-    def as_label
-      "Seen on: #{located_on} <br />by #{collected_by}".html_safe
+    def label
+      [
+        "Seen on: #{located_on}",
+        "by #{collected_by}",
+      ]
+    end
+
+    def as_marker
+      {
+        lat_lon: as_point,
+        label: label,
+        date: located_on,
+        highlight: false,
+      }
+    end
+
+    def self.bounds(locations)
+      max_lat = locations.maximum(:lat)
+      min_lat = locations.minimum(:lat)
+      max_lon = locations.maximum(:lon)
+      min_lon = locations.minimum(:lon)
+      [
+        [min_lat, min_lon],
+        [max_lat, max_lon],
+      ]
+    end
+
+    def self.highlight(markers)
+      most_recent = markers.max_by { |m| m[:date] }
+      most_recent[:highlight] = true
+      most_recent[:label] << '<strong>Most-recent contact</strong>'.html_safe
+      markers
     end
   end
 end

@@ -1,13 +1,22 @@
 -# %img{ src: "//maps.googleapis.com/maps/api/staticmap?#{params.map(&:to_query).join('&')}", style: 'display:block;margin: 0 auto;' }
-- addresses = @client.previous_permanent_locations_for_display(current_user).select{|m| m[:lat].present?}
-- markers = addresses.map{|m| [m[:lat], m[:lon]]}.uniq
-- labels = addresses.map{|m| m[:label]}.uniq
+:ruby
+  addresses = @client.previous_permanent_locations_for_display(current_user).select{|m| m[:lat].present?}
+  markers = addresses.map{ |m| {lat_lon: [m[:lat], m[:lon]], label: m[:label]} }.uniq
+  max_lat = addresses.map{ |m| m[:lat] }.max
+  min_lat = addresses.map{ |m| m[:lat] }.min
+  max_lon = addresses.map{ |m| m[:lon] }.max
+  min_lon = addresses.map{ |m| m[:lon] }.min
+  bounds = [
+    [min_lat, min_lon],
+    [max_lat, max_lon],
+  ]
+  options = { permanent: true, cluster: false, bounds: bounds }
 - if addresses.any?
   #client__previous-addresses
   :coffeescript
     markers = #{markers.to_json.html_safe}
-    labels = #{labels.to_json.html_safe}
-    map = new App.Maps.MapWithMarkers('client__previous-addresses', markers, labels)
+    options = #{options.to_json.html_safe}
+    map = new App.Maps.MapWithMarkers('client__previous-addresses', markers, options)
 - else
   .no-data
     No previous addresses
