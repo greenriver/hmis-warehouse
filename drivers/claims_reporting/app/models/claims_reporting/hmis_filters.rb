@@ -35,7 +35,7 @@ module ClaimsReporting
       selected_races = (keys & race_columns)
       multi_racial_scope = GrdaWarehouse::Hud::Client.multi_racial
 
-      scope = scope.with_races(selected_races) if selected_races.any?
+      scope = scope.merge(GrdaWarehouse::Hud::Client.with_races(selected_races)) if selected_races.any?
 
       if keys.include?('MultiRacial')
         scope = if selected_races.any?
