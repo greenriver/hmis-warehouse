@@ -14,19 +14,19 @@ class App.Maps.MapWithMarkers
       for marker in @data
         options = {
           iconShape: 'marker',
-          borderColor: 'DarkBlue',
+          borderColor: @options.border_color,
           borderWidth: 6,
         }
         if marker.highlight
-          options.borderColor = 'ForestGreen'
+          options.borderColor = @options.highlight_color
         m = L.marker(marker.lat_lon, icon: L.BeautifyIcon.icon(options))
-        m.bindTooltip(marker.label.join('<br />'))
+        m.bindTooltip(marker.label.join('<br />', { permanent: @options.permanent? }))
         group.addLayer(m)
       map.addLayer(group)
       map.fitBounds(bounds)
     else
       for marker in @data
-        L.marker(marker.lat_lon).bindTooltip(marker.label, { permanent: @options.permanent }).addTo map
+        L.marker(marker.lat_lon).bindTooltip(marker.label, { permanent: @options.permanent? }).addTo map
       if @data.length == 1
         map.setView(@data[0], 13)
       else

@@ -2,13 +2,11 @@
 :ruby
   addresses = @client.previous_permanent_locations_for_display(current_user).select{|m| m[:lat].present?}
   markers = addresses.map{ |m| {lat_lon: [m[:lat], m[:lon]], label: m[:label]} }.uniq
-  max_lat = addresses.map{ |m| m[:lat] }.max
-  min_lat = addresses.map{ |m| m[:lat] }.min
-  max_lon = addresses.map{ |m| m[:lon] }.max
-  min_lon = addresses.map{ |m| m[:lon] }.min
+  lat = addresses.map{ |m| m[:lat] }
+  lon = addresses.map{ |m| m[:lon] }
   bounds = [
-    [min_lat, min_lon],
-    [max_lat, max_lon],
+    [lat.min, lon.min],
+    [lat.max, lon.max],
   ]
   options = { permanent: true, cluster: false, bounds: bounds }
 - if addresses.any?

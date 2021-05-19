@@ -3,6 +3,7 @@
   and glyphicon icons
   (c) 2016-2017, Muhammad Arslan Sajid
   http://leafletjs.com
+  https://github.com/masajid390/BeautifyMarker/blob/master/LICENSE
 */
 
 /*global L of leaflet*/
@@ -119,9 +120,9 @@
 
                 iconDiv.innerHTML = !options.html ? this.createIconInnerHtml() : options.html;
                 this._setIconStyles(iconDiv);
-                
+
                 // having a marker requires an extra parent div for rotation correction
-                if (this.options.iconShape === 'marker') { 
+                if (this.options.iconShape === 'marker') {
                     var wrapperDiv = document.createElement('div');
                     wrapperDiv.className = 'beautify-marker';
                     wrapperDiv.appendChild(iconDiv);
