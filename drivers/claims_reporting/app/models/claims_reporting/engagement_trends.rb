@@ -179,7 +179,7 @@ module ClaimsReporting
         filter.ethnicities.present?
       )
       if filtered_by_client
-        hmis_scope = ::GrdaWarehouse::DataSource.joins(:clients)
+        hmis_scope = ::GrdaWarehouse::Hud::Client.all
         hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
         hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
         hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
