@@ -4,9 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# provides validation for date ranges
 module Filters
-  class ClaimsFilter < ::Filters::FilterBase
+  class EngagementFilter < ::Filters::FilterBase
     attribute :food_insecurity, Integer
     attribute :cohort_type, Symbol, default: :engaged_history # or :selected_period
     attribute :acos, Array, default: []

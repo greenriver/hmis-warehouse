@@ -12,14 +12,47 @@ require 'memoist'
 module ClaimsReporting
   class QualityMeasuresReport
     include ActiveModel::Model
+    include HmisFilters
     extend Memoist
 
-    # Title for this report
-    attr_reader :title
     # Base Range<Date> for this report. Some measures define derived ranges
     attr_reader :date_range
+
     # The Measure#id s we want to calculate. Defaults to all AVAILABLE_MEASURES.keys
     attr_reader :measures
+
+    # An optional ::Filters::QualityMeasuresFilter to apply to the data.
+    attr_reader :filter
+
+    # This report is normally run against a plan year...
+    def self.for_plan_year(year, **options)
+      year = year.to_i
+      new(
+        date_range: Date.new(year.to_i, 1, 1) .. Date.new(year.to_i, 12, 31),
+        **options,
+      )
+    end
+
+    def initialize(
+      date_range:,
+      filter: nil,
+      measures: nil
+    )
+      filter ||= ::Filters::QualityMeasuresFilter.new
+      raise ArgumentError, 'filter must be a ::Filters::QualityMeasuresFilter' unless filter.is_a? ::Filters::QualityMeasuresFilter
+
+      @filter = filter
+      @date_range = date_range
+
+      # which measures will we calculate
+      @measures = if measures
+        AVAILABLE_MEASURES.keys & measures
+      else
+        AVAILABLE_MEASURES.keys
+      end
+
+      raise ArgumentError, 'No valid measures provided' if @measures.none?
+    end
 
     Measure = Struct.new(:id, :title, :desc, :numerator, :denominator, keyword_init: true)
     AVAILABLE_MEASURES = [
@@ -87,7 +120,7 @@ module ClaimsReporting
         desc: <<~MD,
           The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age who had at least one comprehensive well-care visit with a PCP or an OB/GYN practitioner during the measurement year.
 
-          Members must be:
+          Continous Enrollment requirements:
 
           * BH CP enrollees without a CP disenrollment during the measurement year must be continuously enrolled in MassHealth during the measurement year.
           * BH CP enrollees with a CP disenrollment during the measurement year must be continuously enrolled in MassHealth for one year prior to the disenrollment date.
@@ -177,24 +210,6 @@ module ClaimsReporting
       ),
     ].index_by(&:id).freeze
 
-    def initialize(
-      title:,
-      date_range:,
-      measures: nil
-    )
-      @title = title
-      @date_range = date_range
-
-      # which measures will we calculate
-      @measures = if measures
-        AVAILABLE_MEASURES.keys & measures
-      else
-        AVAILABLE_MEASURES.keys
-      end
-
-      raise ArgumentError, 'No valid measures provided' if @measures.none?
-    end
-
     private def logger
       Rails.logger
     end
@@ -209,17 +224,6 @@ module ClaimsReporting
     #  - false part of the denominator only
     #  - true part of the numerator
     MeasureRow = Struct.new(:row_type, :row_id, *AVAILABLE_MEASURES.keys, keyword_init: true)
-
-    # The percentage of Behavioral Health Community Partner (BH CP) assigned enrollees 18 to 64 years of age with documentation of engagement within 122 days of the date of assignment to a BH CP.
-
-    def self.for_plan_year(year, **options)
-      year = year.to_i
-      new(
-        title: "PY#{year}",
-        date_range: Date.iso8601("#{year}-01-01") .. Date.iso8601("#{year}-12-31"),
-        **options,
-      )
-    end
 
     def serializable_hash
       measure_info = AVAILABLE_MEASURES.values.map do |m|
@@ -241,8 +245,8 @@ module ClaimsReporting
       end.to_h
 
       {
-        title: title,
         date_range: date_range,
+        filter: filter.serializable_hash,
         measures: measure_info,
       }
     end
@@ -252,30 +256,59 @@ module ClaimsReporting
       serializable_hash[:measures][measure.to_sym]
     end
 
-    # BH CP assigned enrollees 18 to 64 years of age as of December 31st of the measurement year.
+    memoize :hud_clients_scope
+
+    def warehouse_client_scope
+      hmis_scope = ::GrdaWarehouse::DataSource.joins(:clients)
+      hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
+      hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
+      hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
+      hmis_scope
+    end
+    memoize :warehouse_client_scope
+
     def assigned_enrollements_scope
-      # TODO: handle "September"
-      # Members assigned to a BH CP on or between September 2nd of the year prior to the
-      # measurement year and September 1st of the measurement year.
       scope = ::ClaimsReporting::MemberEnrollmentRoster
+
+      # hud client properties
+      scope = scope.joins(:patient).merge(::Health::Patient.where(client_id: hud_clients_scope.ids)) if filtered_by_client?
+
+      # and via patient referral data
+      scope = scope.joins(patient: :patient_referral).merge(::Health::PatientReferral.at_acos(filter.acos)) if filter.acos.present?
+
+      # age
+      scope = filter_for_age(scope, as_of: date_range.min)
+
       e_t = scope.quoted_table_name
-      # scope = scope.where(enrolled_flag: 'Y')
+
       scope = scope.where(
         ["#{e_t}.cp_enroll_dt <= :max and (#{e_t}.cp_disenroll_dt IS NULL OR #{e_t}.cp_disenroll_dt > :max)", {
-          min: date_range.min,
-          max: date_range.max,
+          min: cp_enollment_date_range.min,
+          max: cp_enollment_date_range.max,
         }],
       )
       scope.where(
         member_id: ::ClaimsReporting::MemberRoster.where(date_of_birth: dob_range_1).select(:member_id),
       )
+      scope
     end
+    memoize :assigned_enrollements_scope
 
-    # TODO: handle "September"
+    def cp_enollment_date_range
+      # Handle "September"
+      # Members assigned to a BH CP on or between September 2nd of the year prior to the
+      # measurement year and September 1st of the measurement year.
+      #
+      # The usually measurement year is Jan 1 - Dec 31 so we shift back by three named months and add a day
+      (date_range.min << 4) + 1.day .. (date_range.max << 4) + 1.day
+    end
+    memoize :cp_enollment_date_range
+
+    # Handle "September"
     # BH CP enrollees 18 years of age or older as of September 2nd of the year prior to
     # the measurement year and 64 years of age as of December 31st of the measurement year.
     def dob_range_1
-      (dec_31_of_measurement_year - 64.years) .. (date_range.min - 18.years)
+      (dec_31_of_measurement_year - 64.years) .. (cp_enollment_date_range.min - 18.years)
     end
     memoize :dob_range_1
 
