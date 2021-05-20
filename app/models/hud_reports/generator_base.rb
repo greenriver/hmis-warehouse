@@ -40,11 +40,11 @@ module HudReports
 
     # This selects just ids for the clients, to ensure uniqueness, but uses select instead of pluck
     # so that we can find in batches.
-    def client_scope
+    def client_scope(start_date: @report.start_date, end_date: @report.end_date)
       scope = client_source.
         distinct.
         joins(:service_history_enrollments).
-        merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: @report.start_date, end_date: @report.end_date))
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date))
 
       scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_coc(coc_code: @report.coc_codes)) if @report.coc_codes.present?
       scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project(@report.project_ids)) if @report.project_ids.present?

@@ -119,8 +119,8 @@ module HudSpmReport::Generators::Fy2020
 
     # yield batches of the client scope indexed by `#id`
     # with only the necessary columns fetched/populated
-    private def each_client_batch(scope)
-      client_scope.where(id: scope.select(:client_id)).select(
+    private def each_client_batch(scope, start_date: @report.start_date, end_date: @report.end_date)
+      client_scope(start_date: start_date, end_date: end_date).where(id: scope.select(:client_id)).select(
         :id,
         :PersonalID, # for debugging
         :data_source_id, # for add_universe_members
@@ -625,7 +625,7 @@ module HudSpmReport::Generators::Fy2020
         end
       end
 
-      # Table 2 is 7b.2
+      # Table 2 is 6c.2
       #
       # Step 1. Select stayers and leavers across selected PH projects (types 3, 9 and 10).
       # “leaver” in this metric means the client must have exited from a project of one
@@ -854,7 +854,7 @@ module HudSpmReport::Generators::Fy2020
         history_col,
       ].freeze
 
-      each_client_batch(m_exits_scope) do |clients_by_id|
+      each_client_batch(m_exits_scope, start_date: lookback_start_date, end_date: @report.end_date) do |clients_by_id|
         spm_clients = {}
 
         exits_by_client_id = exits_for_batch(m_exits_scope, clients_by_id.keys, SHE_COLUMNS).group_by do |e|
