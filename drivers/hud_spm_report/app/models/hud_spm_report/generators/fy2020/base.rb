@@ -599,7 +599,7 @@ module HudSpmReport::Generators::Fy2020
         # where the [housing move-in date] is <= [report end date], exclude the client completely
         # from this measure (the client will be reported in measure 6c.2).
         # If .... there is no [housing move-in date] for that stay, the client is included in this measure.
-        if last_exit[:project_type].in?(PH_PSH) && last_exit[:MoveInDate].present? && last_exit[:MoveInDate] <= @report.end_date
+        if last_exit[:project_type].in?(PSH_ONLY) && last_exit[:MoveInDate].present? && last_exit[:MoveInDate] <= @report.end_date
           # puts "EXCLUDED #{last_exit} in Step 3 from #{table_1_dest_field}"
           next
         end
@@ -739,7 +739,7 @@ module HudSpmReport::Generators::Fy2020
         # where the [housing move-in date] is <= [report end date], exclude the client completely
         # from this measure (the client will be reported in measure 7b.2).
         # If .... there is no [housing move-in date] for that stay, the client is included in this measure.
-        if last_exit[:project_type].in?(PSH_ONLY) && last_exit[:MoveInDate].present? && last_exit[:MoveInDate] <= @report.end_date
+        if last_exit[:project_type].in?(PH_PSH) && last_exit[:MoveInDate].present? && last_exit[:MoveInDate] <= @report.end_date
           # puts "EXCLUDED #{last_exit} in Step 3 from #{table_1_dest_field}"
           next
         end
