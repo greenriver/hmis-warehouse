@@ -519,7 +519,7 @@ module HudSpmReport::Generators::Fy2020
       # to serve Category 3 persons.
 
       add_exiting_clients('Measure 6', exits_scope.category_3, :m6, (TH + SH + PSH_ONLY + RRH).freeze)
-      add_project_leavers_and_stayers_m6 'Measure 6', :m6
+      add_project_leavers_and_stayers_m6 'Measure 6'
     end
 
     private def add_m7_clients
@@ -551,7 +551,7 @@ module HudSpmReport::Generators::Fy2020
         }
       end
 
-      add_project_leavers_and_stayers_m7('Measure 7', :m7)
+      add_project_leavers_and_stayers_m7('Measure 7')
     end
 
     private def add_project_leavers_and_stayers_m6(question_name)
@@ -634,7 +634,7 @@ module HudSpmReport::Generators::Fy2020
       # puts "#{table_2_dest_field} running #{stays.to_sql}"
       # 2. Data from PH-RRH projects is completely excluded from this metric.
       stays = stays.hud_project_type(table_2_project_types)
-      exits = exits..hud_project_type(table_2_project_types)
+      exits = exits.hud_project_type(table_2_project_types)
 
       process_scope_by_client(question_name, stays, SHE_COLUMNS) do |_client, client_enrollments|
         last_stay = client_enrollments.max_by { |e| e[:last_date_in_program] }
@@ -774,7 +774,7 @@ module HudSpmReport::Generators::Fy2020
       # puts "#{table_2_dest_field} running #{stays.to_sql}"
       # 2. Data from PH-RRH projects is completely excluded from this metric.
       stays = stays.hud_project_type(table_2_project_types)
-      exits = exits..hud_project_type(table_2_project_types)
+      exits = exits.hud_project_type(table_2_project_types)
 
       process_scope_by_client(question_name, stays, SHE_COLUMNS) do |_client, client_enrollments|
         last_stay = client_enrollments.max_by { |e| e[:last_date_in_program] }
