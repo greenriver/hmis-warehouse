@@ -1454,6 +1454,9 @@ module HudSpmReport::Generators::Fy2020
 
       # puts "Processing #{dates.count} dates" if @debug
       days.each do |k, bed_nights|
+        # ignore any days where not one of the bed_nights is in selected project types
+        next unless (bed_nights.map { |n| n[:project_type] } & project_types).any?
+
         # puts "Looking at: #{bed_nights.count} bed nights on #{k}" if @debug
         # process current day
 
@@ -1462,9 +1465,6 @@ module HudSpmReport::Generators::Fy2020
         in_stop_project = false
         has_countable_project = false
         bed_nights.each do |night|
-          # ignore any not in selected project types
-          next unless night[:project_type].in?(project_types)
-
           # ignore pre_entry/move_in nights if the metric wants us to
           next if night[:pre_entry] && !include_pre_entry
           next if night[:pre_move_in] && !include_pre_entry
