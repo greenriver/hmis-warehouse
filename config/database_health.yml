@@ -18,6 +18,7 @@ default: &default
 
 <%= ENV['RAILS_ENV'] %>:
   <<: *default
+  url: <%= ENV['HEALTH_DATABASE_URL'] %>
   database: <%= ENV['HEALTH_DATABASE_DB'] %>
 
 
