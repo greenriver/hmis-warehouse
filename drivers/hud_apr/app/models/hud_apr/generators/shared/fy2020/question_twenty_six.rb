@@ -12,7 +12,7 @@ module HudApr::Generators::Shared::Fy2020
       table_name = 'Q26a'
       metadata = {
         header_row: [' '] + q26_populations.keys,
-        row_labels: ch_categories.keys,
+        row_labels: ch_household_categories.keys,
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
@@ -25,7 +25,7 @@ module HudApr::Generators::Shared::Fy2020
       relevant_clients = universe.members.where(a_t[:project_type].in([1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14]))
       q26_populations.values.each_with_index do |population_clause, col_index|
         households = Set.new
-        ch_categories.values.each_with_index do |ch_clause, row_index|
+        ch_household_categories.values.each do |ch_clause, row_index, remove_previously_counted|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -35,7 +35,10 @@ module HudApr::Generators::Shared::Fy2020
             where(ch_clause).
             distinct.pluck(a_t[:household_id])
           # ignore previously counted households
-          household_ids -= households.to_a
+          if remove_previously_counted
+            household_ids -= households.to_a
+            households += household_ids
+          end
           members = universe.members.where(hoh_clause).where(a_t[:household_id].in(household_ids))
 
           value = members.count
@@ -324,6 +327,17 @@ module HudApr::Generators::Shared::Fy2020
 
     private def q26_populations
       sub_populations
+    end
+
+    private def ch_household_categories
+      # [ch_clause, row_index, remove_previously_counted]
+      {
+        'Chronically Homeless' => [a_t[:chronically_homeless].eq(true), 0, true],
+        'Client Doesn’t Know/Client Refused' => [a_t[:prior_living_situation].in([8, 9]), 2, true],
+        'Data Not Collected' => [a_t[:prior_living_situation].eq(99), 3, true],
+        'Not Chronically Homeless' => [a_t[:chronically_homeless].eq(false), 1, true], # Not chronically homeless if is none of the above
+        'Total' => [Arel.sql('1=1'), 4, false],
+      }.freeze
     end
 
     private def ch_categories
