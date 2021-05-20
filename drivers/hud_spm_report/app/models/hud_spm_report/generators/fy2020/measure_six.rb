@@ -51,8 +51,8 @@ module HudSpmReport::Generators::Fy2020
       {
         4 => TH,
         5 => SH,
-        6 => PH,
-        7 => SO + ES + TH + SH + PH,
+        6 => PSH_ONLY + RRH,
+        7 => TH + SH + PSH_ONLY + RRH,
       }.each do |row, project_types|
         scope = universe.members.where(t[:m6_exit_from_project_type].in(project_types))
         exited = scope
