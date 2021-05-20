@@ -12,7 +12,7 @@ module HudApr::Generators::Shared::Fy2020
       table_name = 'Q26a'
       metadata = {
         header_row: [' '] + q26_populations.keys,
-        row_labels: ch_household_categories.keys,
+        row_labels: ch_categories.keys,
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
@@ -327,17 +327,6 @@ module HudApr::Generators::Shared::Fy2020
 
     private def q26_populations
       sub_populations
-    end
-
-    private def ch_household_categories
-      # [ch_clause, row_index, remove_previously_counted]
-      {
-        'Chronically Homeless' => [a_t[:chronically_homeless].eq(true), 0, true],
-        'Client Doesn’t Know/Client Refused' => [a_t[:prior_living_situation].in([8, 9]), 2, true],
-        'Data Not Collected' => [a_t[:prior_living_situation].eq(99), 3, true],
-        'Not Chronically Homeless' => [a_t[:chronically_homeless].eq(false), 1, true], # Not chronically homeless if is none of the above
-        'Total' => [Arel.sql('1=1'), 4, false],
-      }.freeze
     end
 
     private def ch_categories
