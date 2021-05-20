@@ -445,7 +445,7 @@ module ClaimsReporting
         # rows.concat calculate_bh_cp_7(member, claims, enrollments) if measures.include?(:bh_cp_7)
         # rows.concat calculate_bh_cp_8(member, claims, enrollments) if measures.include?(:bh_cp_8)
 
-        # rows.concat calculate_bh_cp_9(member, claims, enrollments) if measures.include?(:bh_cp_9)
+        rows.concat calculate_bh_cp_9(member, claims, enrollments) if measures.include?(:bh_cp_9)
 
         rows
       end
@@ -686,13 +686,14 @@ module ClaimsReporting
       sets.each do |vs_name, code_system_data|
         lookup_table[vs_name] = {}
         code_system_data.each do |code_system, codes|
+          # We need to process these lookup tables to work well wth the claims reporting data
           if code_system.in? ['ICD10CM', 'ICD10PCS', 'ICD9CM', 'ICD10PCS']
-            # we don't generally have decimals in data
+            # we don't generally have decimals in data and should match on prefixes
             codes = codes.map { |code| code.gsub('.', '') }
             lookup_table[vs_name][code_system] = Regexp.new "^(#{codes.join('|')})"
           elsif code_system.in? ['UBTOB', 'UBREV']
-            # our claims data doesn't have leading zeros, it might in the future
-            codes = codes.flat_map { |code| [code, code.gsub('^0', '')] }
+            # our claims data doesn't have leading zeros
+            codes = codes.flat_map { |code| code.gsub(/^0/, '') }
             lookup_table[vs_name][code_system] = Set.new codes
           else
             lookup_table[vs_name][code_system] = Set.new codes
@@ -829,47 +830,53 @@ module ClaimsReporting
 
     #  Follow-Up After Hospitalization for Mental Illness (7 days)
     private def calculate_bh_cp_9(member, claims, enrollments)
+      rows = []
+
       # > Exclusions: Enrollees in Hospice (Hospice Value Set)
       if claims.any? { |c| measurement_year.cover?(c.service_start_date) && hospice?(c) }
         trace_exclusion do
           "BH_CP_9: Exclude MemberRoster#id=#{member.id} is in hospice"
         end
-        return []
+        return rows
       end
 
       # > Also Exclude: Members who decline to engage with the BH CP.
-      return [] if declined_to_engage?(enrollments)
+      return rows if declined_to_engage?(enrollments)
 
       discharges = []
-      claims.select do |c|
+      followup_days = Set.new
+      claims.each do |c|
         # > The denominator for this measure is based on discharges, not on enrollees.
         # > If enrollees have more than one discharge, include all discharges on or
         # > between January 1 and December 1 of the measurement year.
         next unless c.discharge_date && measurement_year.cover?(c.service_start_date) && mental_health_hospitalization?(c)
 
-        puts "BH_CP_9: MemberRoster#id=#{member.id}. Found mental_health_hospitalization..."
-
-        visit_date = c.discharge_date
         assert 'Mental health hospitalization visit must have a discharge_date', c.discharge_date.present?
 
         # > BH CP enrollees 18 to 64 years of age as of the date of discharge."
-        unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: visit_date)
-          trace_exclusion { "BH_CP_9: Exclude claim #{c.id}: DOB: #{c.member_dob} outside age range as of #{visit_date}" }
+        unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: c.discharge_date)
+          # trace_exclusion { "BH_CP_9: Exclude claim #{c.id}: DOB: #{c.member_dob} outside age range as of #{c.discharge_date}" }
           next
         end
 
         # > Continuously enrolled with BH CP from date of discharge through 7
         # > calendar days after discharge. There is no requirement for MassHealth enrollment."
-        followup_period = (visit_date .. 7.days.after(visit_date)).to_a
+        followup_period = (c.discharge_date .. 7.days.after(c.discharge_date)).to_a
         assert "followup_period must be 8 days, was #{followup_period.size} days.", followup_period.size == 8
 
         # > No allowable gap in BH CP enrollment during the continuous enrollment period.
         unless continuously_enrolled_cp?(enrollments, followup_period)
-          trace_exclusion { "BH_CP_9: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period.min .. followup_period.max}" }
+          # trace_exclusion { "BH_CP_9: Exclude claim #{c.id}: not continuously_enrolled_in_cp during #{followup_period.min .. followup_period.max}" }
           next
         end
 
+        followup_days |= followup_period
         discharges << c
+      end
+
+      unless discharges.empty?
+        puts "MemberRoster#id=#{member.id}: MH stays: #{discharges.map(&:stay_date_range).join(' ')}"
+        puts "followup_days: #{followup_days.to_a.map(&:iso8601).join(',')}"
       end
 
       # TODO: handle readmissions and direct transfers to an acute inpatient
@@ -878,15 +885,41 @@ module ClaimsReporting
       # >  1. Identify all acute and nonacute inpatient stays (Inpatient Stay Value Set).
       # >   2. Exclude nonacute inpatient stays (Nonacute Inpatient Stay Value Set).
       # >   3. Identify the admission date for the stay.
+
+      # Narrow down the claims we need to compare to discharges to
+      # those of the right type and in the universe of followup_days
+      readmits = []
+      eligable_cp_followups = []
+      claims.each do |c|
+        if c.admit_date
+          next unless followup_days.include?(c.admit_date)
+
+          readmits << c
+        end
+        next unless cp_followup?(c)
+        next unless followup_days.include?(c.service_start_date)
+
+        eligable_cp_followups << c
+      end
+
+      puts "MemberRoster#id=#{member.id}: readmits: #{readmits.map(&:stay_date_range).join(' ')}" unless readmits.empty?
+
+      puts "MemberRoster#id=#{member.id}: eligable_cp_followups: #{eligable_cp_followups.map(&:stay_date_range).join(' ')}" unless eligable_cp_followups.empty?
+
       # > Exclude both the initial discharge and the readmission/direct transfer discharge
       # > if the last discharge occurs after December 1 of the measurement year.
-      # >
+      # Handled above
+
       # > If the readmission/direct transfer to the acute inpatient care setting was for a
       # > principal diagnosis of mental health disorder or intentional self-harm
       # > (Mental Health Diagnosis Value count only the last discharge.
+
+      # We are going to have to find chains of MH admit  below
+
       # > If the readmission/direct transfer to the acute inpatient care setting was for
-      # > any other principal diagnosis exclude both the original and the readmission/direct transfer discharge.
-      # >
+      # > any other principal diagnosis exclude both the original and the readmission/direct
+      # > transfer discharge.
+
       # > Exclude discharges followed by readmission or direct transfer to a nonacute
       # > inpatient care setting within the 7-day follow-up period, regardless of
       # > principal diagnosis for the readmission. To identify readmissions and direct
@@ -896,49 +929,15 @@ module ClaimsReporting
       # >   3. Identify the admission date for the stay.
       # > These discharges are excluded from the measure because rehospitalization or
       # > direct transfer may prevent an outpatient follow-up visit from taking place.
-
-      # Avoid O(n^2) by finding the small set of dates containing the claims
-      # we will need to look for near each discharge
-      inpatient_stay_dates = Set.new
-      eligable_followups = Set.new
-      claims.select do |c|
-        # > A follow-up visit with a mental health practitioner within 7 days after
-        # > discharge. Do not include visits that occur on the date of discharge.
-        # > Any of the following meet criteria for a follow-up visit.
-
-        inpatient_stay_dates << c.admit_date if c.admit_date && inpatient_stay?(c) && discharges.none? { |v| v.claim_number == c.claim_number }
-
-        eligable_followups << c.service_start_date if cp_followup?(c)
-      end
-      # puts inpatient_stay_dates if inpatient_stay_dates.any?
-      # puts eligable_followups if eligable_followups.any?
-
-      rows = []
       discharges.each do |c|
-        visit_date = c.discharge_date
-        followup_period = (visit_date .. 7.days.after(visit_date)).to_a
-
-        # Exclude ED visits followed by admission to an acute or nonacute
-        # inpatient care setting on the date of the ED visit or within 7
-        # calendar days after the ED visit (8 total days), regardless of
-        # principal diagnosis for the admission.
-        if (admits = (inpatient_stay_dates & followup_period)).any?
-          trace_exclusion do
-            "BH_CP_4: Exclude claim #{c.id}: inpatient admitted too soon #{admits.to_a}"
-          end
-          next
-        end
-
-        # Discharges for enrollees with the following supports within 7 calendar days of discharge from an ED; include supports that occur on the date of discharge.
-        eligable_followup = (eligable_followups & followup_period).any?
-
+        followup_range = (c.discharge_date .. 7.days.after(c.discharge_date))
+        eligable_followup = eligable_cp_followups.any? { |f| followup_range.cover?(f.service_start_date) }
         row = MeasureRow.new(
           row_type: 'visit',
           row_id: c.id,
-          bh_cp_4: eligable_followup,
+          bh_cp_9: eligable_followup,
         )
-        # puts "Found #{row.inspect}" if row.bh_cp_4
-
+        puts "Found #{row.inspect}" if row.bh_cp_9
         rows << row
       end
       rows
@@ -1035,7 +1034,7 @@ module ClaimsReporting
       # > BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.
       unless in_age_range?(member.date_of_birth, 18.years .. 64.years, as_of: dec_31_of_measurement_year)
         trace_exclusion do
-          "BH_CP_5: Exclude MemberRoster#id=#{member.id} based on age"
+          "BH_CP_5: Exclude MemberRoster#id=#{member.id} based on age #{member.date_of_birth}"
         end
         return []
       end

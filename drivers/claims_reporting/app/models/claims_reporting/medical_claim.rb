@@ -205,6 +205,12 @@ module ClaimsReporting
       { members: members, updates: updates }
     end
 
+    def stay_date_range
+      return nil unless admit_date
+
+      admit_date .. discharge_date
+    end
+
     def engaged?
       completed_treatment_plan?
     end
