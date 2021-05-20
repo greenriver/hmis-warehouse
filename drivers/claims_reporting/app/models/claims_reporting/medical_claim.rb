@@ -83,20 +83,30 @@ module ClaimsReporting
       SQL
     end
 
-    def matches_icd10cm?(regexp)
-      (icd_version || '10') == '10' && dx_codes.any? { |code| regexp.match?(code) }
+    def matches_icd10cm?(_regex, dx1 = false)
+      return false unless (icd_version || '10') == '10'
+
+      dx1 ? regexp.match?(dx1) : dx_codes.any? { |code| regexp.match?(code) }
     end
 
-    def matches_icd9cm?(regexp)
-      icd_version == '9' && dx_codes.any? { |code| regexp.match?(code) }
+    def matches_icd9cm?(regexp, dx1 = false)
+      return false unless icd_version == 9
+
+      dx1 ? regexp.match?(dx1) : dx_codes.any? { |code| regexp.match?(code) }
     end
 
     def matches_icd10pcs?(regexp)
-      (icd_version || '10') == '10' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
+      ((icd_version || '10') == '10') && surgical_procedure_codes.any? { |code| regexp.match?(code) }
     end
 
     def matches_icd9pcs?(regexp)
       icd_version == '9' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def followup_period(n_days)
+      return unless discharge_date
+
+      discharge_date .. n_days.days.after(discharge_date)
     end
 
     # Calculates and updates the cumulative enrolled and engaged days as of each claims service_start_date.
