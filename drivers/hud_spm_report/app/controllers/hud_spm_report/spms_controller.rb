@@ -21,7 +21,7 @@ module HudSpmReport
           @show_recent = params[:id].to_i.positive?
           @questions = generator.questions.keys
           @contents = @report&.completed_questions
-          @path_for_running = running_hud_reports_smps_path(link_params.except('action', 'controller'))
+          @path_for_running = running_hud_reports_spms_path(link_params.except('action', 'controller'))
         end
         format.zip do
           exporter = ::HudReports::ZipExporter.new(@report)
@@ -34,7 +34,7 @@ module HudSpmReport
     def running
       @questions = generator.questions.keys
       @contents = @report&.completed_questions
-      @path_for_running = running_hud_reports_smps_path(link_params.except('action', 'controller'))
+      @path_for_running = running_hud_reports_spms_path(link_params.except('action', 'controller'))
     end
 
     def running_all_questions
