@@ -83,16 +83,16 @@ module ClaimsReporting
       SQL
     end
 
-    def matches_icd10cm?(_regex, dx1 = false)
+    def matches_icd10cm?(regexp, dx1_only = false)
       return false unless (icd_version || '10') == '10'
 
-      dx1 ? regexp.match?(dx1) : dx_codes.any? { |code| regexp.match?(code) }
+      dx1_only ? regexp.match?(dx_1) : dx_codes.any? { |code| regexp.match?(code) }
     end
 
-    def matches_icd9cm?(regexp, dx1 = false)
+    def matches_icd9cm?(regexp, dx1_only = false)
       return false unless icd_version == 9
 
-      dx1 ? regexp.match?(dx1) : dx_codes.any? { |code| regexp.match?(code) }
+      dx1_only ? regexp.match?(dx_1) : dx_codes.any? { |code| regexp.match?(code) }
     end
 
     def matches_icd10pcs?(regexp)
