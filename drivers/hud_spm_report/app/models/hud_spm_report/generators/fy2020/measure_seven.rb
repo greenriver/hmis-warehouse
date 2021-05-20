@@ -42,7 +42,7 @@ module HudSpmReport::Generators::Fy2020
       # whose destination is “temporary or institutional” as indicated with a
       #  (values 1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32) in Appendix A in
       # cell C3.
-      c3 = c2.where(t[:m7a1_destination].in([1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32])) # TODO?: was [1, 15, 14, 18, 27, 4, 12, 13, 5, 2, 25] in FY2019 impl
+      c3 = c2.where(t[:m7a1_destination].in([1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32]))
 
       # 6. Of the remaining leavers, report the distinct number of clients
       # whose destination is “permanent” as indicated with a X (values 26, 11,
