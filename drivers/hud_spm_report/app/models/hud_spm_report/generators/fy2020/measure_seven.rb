@@ -71,7 +71,7 @@ module HudSpmReport::Generators::Fy2020
       # 4. Reference the destinations of the project exits against Appendix A (row headers) using the project type from which the exit occurred (column headers). Destinations indicated with an X (values 15, 6, 25, 24) cause leavers with those destinations to be completely excluded from the entire measure (all of column C).
       # 5. Of the remaining leavers, report the distinct number of clients in
       # cell C2.
-      c2 = universe.members.where(t[:m7b1_destination].not_eq(0))
+      c2 = universe.members.where(t[:m7b1_destination].not_eq(nil))
 
       # 6. Of the remaining leavers, report the distinct number of clients
       # whose destination is “permanent” as indicated with a  (values 26, 11,
@@ -98,7 +98,7 @@ module HudSpmReport::Generators::Fy2020
 
       # 6. Of the selected clients, report the distinct number of stayers and
       # leavers in cell C2.
-      c2 = universe.members.where(t[:m7b2_destination].not_eq(0))
+      c2 = universe.members.where(t[:m7b2_destination].not_eq(nil))
 
       # 7. Of the selected clients, report the distinct number of leavers
       # whose destination is “permanent” as indicated with a  (values 26, 11,

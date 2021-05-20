@@ -595,7 +595,7 @@ module HudSpmReport::Generators::Fy2020
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
         #  puts "#{table_1_dest_field} checking #{last_exit}"
 
-        # 3. If the latest exit was from a PH project (types 3, 9 and 10)
+        # 3. If the latest exit was from a PH-PSH project (type 3)
         # where the [housing move-in date] is <= [report end date], exclude the client completely
         # from this measure (the client will be reported in measure 6c.2).
         # If .... there is no [housing move-in date] for that stay, the client is included in this measure.
@@ -637,7 +637,7 @@ module HudSpmReport::Generators::Fy2020
       exits = exits.hud_project_type(table_2_project_types)
 
       process_scope_by_client(question_name, stays, SHE_COLUMNS) do |_client, client_enrollments|
-        last_stay = client_enrollments.max_by { |e| e[:last_date_in_program] }
+        last_stay = client_enrollments.max_by { |e| e[:first_date_in_program] }
         # puts "#{table_2_dest_field} checking stay #{last_stay}"
 
         # 3. Of the stayers selected in step 1, if the latest stay has no [housing move in date],
@@ -649,7 +649,7 @@ module HudSpmReport::Generators::Fy2020
 
         # Steps 5 - 7 are handled in the subclass
         {
-          table_2_dest_field => last_stay[:destination] || 99,
+          table_2_dest_field => 0, # stayers may have destinations, but we note them as 0 so we can identify them
           history_field => client_enrollments,
         }.tap do |data|
           # puts "FOUND #{last_stay} for #{table_2_dest_field}"
@@ -773,7 +773,7 @@ module HudSpmReport::Generators::Fy2020
       exits = exits.hud_project_type(table_2_project_types)
 
       process_scope_by_client(question_name, stays, SHE_COLUMNS) do |_client, client_enrollments|
-        last_stay = client_enrollments.max_by { |e| e[:last_date_in_program] }
+        last_stay = client_enrollments.max_by { |e| e[:first_date_in_program] }
         # puts "#{table_2_dest_field} checking stay #{last_stay}"
 
         # 3. Of the stayers selected in step 1, if the latest stay has no [housing move in date],
@@ -785,7 +785,7 @@ module HudSpmReport::Generators::Fy2020
 
         # Steps 5 - 7 are handled in the subclass
         {
-          table_2_dest_field => last_stay[:destination] || 99,
+          table_2_dest_field => 0, # stayers may have destinations, but we note them as 0 so we can identify them
           history_field => client_enrollments,
         }.tap do |data|
           # puts "FOUND #{last_stay} for #{table_2_dest_field}"

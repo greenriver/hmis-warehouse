@@ -92,7 +92,7 @@ module HudSpmReport::Generators::Fy2020
 
       # 5. Of the remaining leavers, report the distinct number of clients in
       # cell C2.
-      c2 = universe.members.where(t[:m6c1_destination].not_eq(0))
+      c2 = universe.members.where(t[:m6c1_destination].not_eq(nil))
 
       # 6. Of the remaining leavers, report the distinct number of clients
       # whose destination is “permanent” as indicated with a  (values 26, 11,
@@ -119,7 +119,7 @@ module HudSpmReport::Generators::Fy2020
 
       # 6. Of the selected clients, report the distinct number of stayers and
       # leavers in cell C2.
-      c2 = universe.members.where(t[:m6c2_destination].not_eq(0).and(t[:m6c2_destination].not_eq(nil)))
+      c2 = universe.members.where(t[:m6c2_destination].not_eq(nil))
 
       # 7. Of the selected clients, report the distinct number of leavers
       # whose destination is “permanent” as indicated with a  (values 26, 11,
