@@ -869,8 +869,7 @@ module HudSpmReport::Generators::Fy2020
           # earliest [project exit date] where the [destination] was permanent housing.
           p_exit = client_exits.sort_by { |d| d[:last_date_in_program] }.detect do |client_exit|
             # inherit destination from HoH if age <= 17 and destination not collected
-            destination = destination_for(project_types, client_exit[:client_id], client_exit[:household_id])
-            client_exit[:destination] = destination if destination.present?
+            client_exit[:destination] = destination_for(project_types, client_exit[:client_id], client_exit[:household_id]) unless client_exit[:destination].present? && client_exit[:destination] != 99
 
             permanent_destination?(client_exit[:destination])
           end
@@ -1200,8 +1199,8 @@ module HudSpmReport::Generators::Fy2020
       @child_ids[project_types] ||= begin
         child_candidates_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           hud_project_type(project_types).
-          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+          open_between(start_date: @report.start_date - 2.years, end_date: @report.end_date).
+          with_service_between(start_date: @report.start_date - 2.years, end_date: @report.end_date).
           joins(:enrollment, :client).
           where(
             she_t[:destination].in(destination_not_collected).or(she_t[:destination].eq(nil)),
@@ -1237,8 +1236,8 @@ module HudSpmReport::Generators::Fy2020
       @hoh_destinations[project_types] ||= begin
         GrdaWarehouse::ServiceHistoryEnrollment.entry.
           hud_project_type(project_types).
-          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+          open_between(start_date: @report.start_date - 2.years, end_date: @report.end_date).
+          with_service_between(start_date: @report.start_date - 2.years, end_date: @report.end_date).
           joins(:client).
           where(she_t[:head_of_household].eq(true)).
           distinct.
