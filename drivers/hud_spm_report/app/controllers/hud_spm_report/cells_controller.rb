@@ -22,7 +22,7 @@ module HudSpmReport
 
       # this is a very wide table. just grab the cols related to this measure
       q_num = @question[/\d+\z/]
-      cols = ['client_id', 'first_name', 'last_name'] + HudSpmReport::Fy2020::SpmClient.column_names.select { |c| c.starts_with? "m#{q_num}_" }
+      cols = ['client_id', 'first_name', 'last_name'] + HudSpmReport::Fy2020::SpmClient.column_names.select { |c| c.starts_with? "m#{q_num}" }
       @headers = cols.map do |col|
         [col, HudSpmReport::Fy2020::SpmClient.human_attribute_name(col)]
       end.to_h

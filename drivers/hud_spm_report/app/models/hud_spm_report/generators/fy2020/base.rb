@@ -519,7 +519,7 @@ module HudSpmReport::Generators::Fy2020
       # to serve Category 3 persons.
 
       add_exiting_clients('Measure 6', exits_scope.category_3, :m6, (TH + SH + PSH_ONLY + RRH).freeze)
-      add_project_leavers_and_stayers_m6 'Measure 6'
+      add_project_leavers_and_stayers_m6('Measure 6')
     end
 
     private def add_m7_clients
@@ -656,12 +656,8 @@ module HudSpmReport::Generators::Fy2020
         end
       end
 
-      table_2_exits = add_filters exits.
-        hud_project_type(
-          table_2_project_types,
-        ).where.not(
-          client_id: stays.select(:client_id),
-        )
+      table_2_exits = add_filters exits.hud_project_type(table_2_project_types).
+        where.not(client_id: stays.select(:client_id))
 
       # puts "#{table_2_dest_field} running #{table_2_exits.to_sql}"
       process_scope_by_client(question_name, table_2_exits, SHE_COLUMNS) do |_client, client_enrollments|
@@ -679,7 +675,7 @@ module HudSpmReport::Generators::Fy2020
         # 5. Reference the destinations of the project exits against Appendix A (row headers)
         # and the “PH (all)” column. Destinations indicated with an X (values 15, 6, 25, 24)
         # cause leavers with those destinations to be completely excluded from the entire measure (all of column C).
-        if last_exit[:project_type].in? [15, 6, 25, 24]
+        if last_exit[:destination].in? [15, 6, 25, 24]
           # puts "EXCLUDED Exit #{last_exit} in step 5 from #{table_2_dest_field}"
           next
         end
@@ -819,7 +815,7 @@ module HudSpmReport::Generators::Fy2020
         # 5. Reference the destinations of the project exits against Appendix A (row headers)
         # and the “PH (all)” column. Destinations indicated with an X (values 15, 6, 25, 24)
         # cause leavers with those destinations to be completely excluded from the entire measure (all of column C).
-        if last_exit[:project_type].in? [15, 6, 25, 24]
+        if last_exit[:destination].in? [15, 6, 25, 24]
           # puts "EXCLUDED Exit #{last_exit} in step 5 from #{table_2_dest_field}"
           next
         end
