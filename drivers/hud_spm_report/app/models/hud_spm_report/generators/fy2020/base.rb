@@ -255,7 +255,7 @@ module HudSpmReport::Generators::Fy2020
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
         DateToStreetESSH: e_t[:DateToStreetESSH],
-        MoveInDate: e_t[:MoveInDate],
+        MoveInDate: she_t[:move_in_date],
       }
 
       updated_columns = [
@@ -1445,7 +1445,7 @@ module HudSpmReport::Generators::Fy2020
 
     # Applies logic described in the Programming Specifications to limit the entries
     # for each day to one, and only those that should be considered based on the project types
-    def filter_days_for_homelessness(dates, _project_types, stop_project_types, include_pre_entry)
+    def filter_days_for_homelessness(dates, project_types, stop_project_types, include_pre_entry)
       consider_move_in_dates = true
 
       filtered_days = []
@@ -1462,8 +1462,10 @@ module HudSpmReport::Generators::Fy2020
         in_stop_project = false
         has_countable_project = false
         bed_nights.each do |night|
-          # ignore pre_entry/move_in nights if the metric wants us to
+          # ignore any not in selected project types
+          next unless night[:project_type].in?(project_types)
 
+          # ignore pre_entry/move_in nights if the metric wants us to
           next if night[:pre_entry] && !include_pre_entry
           next if night[:pre_move_in] && !include_pre_entry
 
