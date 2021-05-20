@@ -33,7 +33,6 @@ module OmniauthSupport
         email: auth['info']['email'],
       ) || new(
         password: Devise.friendly_token,
-        confirmed_at: Time.current, # we are assuming its the providers job, not ours.
         agency: Agency.where(name: 'Unknown').first_or_create!,
       )
 
@@ -55,6 +54,9 @@ module OmniauthSupport
         user.provider_set_at = Time.current
         ::ApplicationMailer.with(user: user).provider_linked.deliver_later
       end
+
+      user.skip_confirmation! unless user.confirmed?
+      user.skip_reconfirmation!
       user.save(validate: false)
       user
     end
