@@ -12,6 +12,7 @@ module HudSpmReport
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
       @report_urls = report_urls
+      @path_for_running = running_all_questions_hud_reports_spms_path
     end
 
     def show
@@ -20,7 +21,7 @@ module HudSpmReport
           @show_recent = params[:id].to_i.positive?
           @questions = generator.questions.keys
           @contents = @report&.completed_questions
-          @path_for_running = running_hud_reports_dqs_path(link_params.except('action', 'controller'))
+          @path_for_running = running_hud_reports_smps_path(link_params.except('action', 'controller'))
         end
         format.zip do
           exporter = ::HudReports::ZipExporter.new(@report)
@@ -34,6 +35,10 @@ module HudSpmReport
       @questions = generator.questions.keys
       @contents = @report&.completed_questions
       @path_for_running = running_hud_reports_smps_path(link_params.except('action', 'controller'))
+    end
+
+    def running_all_questions
+      index
     end
 
     def new

@@ -8,6 +8,8 @@ BostonHmis::Application.routes.draw do
   # TODO: build this out
   scope module: :hud_spm_report, path: :hud_reports, as: :hud_reports do
     resources :spms do
+      get :running, on: :collection
+      get :running_all_questions, on: :collection
       resources :measures, only: [:show, :create] do
         get :result, on: :member
         get :running, on: :member
