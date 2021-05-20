@@ -119,6 +119,33 @@ module HudReports
       universe_scope(question).first_or_create
     end
 
+    # DANGER. This deletes the reports data without changing its state.
+    # Usefully for debugging, it should be be considered private and
+    # perhaps integrated with start_report, complete_report, start(question), complete(question)
+    def _purge_universe
+      # clear the polymorphic graph of universe membership
+      universe_members = HudReports::UniverseMember.with_deleted.where(
+        report_cell_id: report_cells
+      )
+
+      # universe_membership_type
+      universe_members.distinct.pluck(
+        :universe_membership_type,
+        :universe_membership_id
+      ).group_by(&:first).each do |sti_type, joins|
+        klass = sti_type.constantize
+        ids = joins.map(&:second)
+        # purge (really delete the data)
+        klass.with_deleted.where(id: ids).delete_all
+      end
+
+      # now we can kill the unverse_members
+      universe_members.delete_all
+
+      # and now the cells
+      report_cells.with_deleted.delete_all
+    end
+
     def existing_universe(question)
       report_cells.find_by(question: question, universe: true)
     end
