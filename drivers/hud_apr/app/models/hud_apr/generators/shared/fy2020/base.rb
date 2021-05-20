@@ -112,6 +112,7 @@ module HudApr::Generators::Shared::Fy2020
             chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
             chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
+            chronically_homeless_detail: last_service_history_enrollment.enrollment.chronically_homeless_at_start,
             currently_fleeing: health_and_dv&.CurrentlyFleeing,
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
