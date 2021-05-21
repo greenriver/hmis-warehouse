@@ -248,10 +248,10 @@ module HudSpmReport::Generators::Fy2020
       return unless add_clients_for_question?(measure_one)
 
       shs_columns = {
-        client_id: she_t[:client_id],
-        enrollment_id: she_t[:id],
+        client_id: shs_t[:client_id],
+        enrollment_id: shs_t[:service_history_enrollment_id],
         date: shs_t[:date],
-        project_type: she_t[:computed_project_type],
+        project_type: shs_t[:project_type],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
         DateToStreetESSH: e_t[:DateToStreetESSH],
@@ -271,9 +271,8 @@ module HudSpmReport::Generators::Fy2020
         # for this batch of clients
         nights_for_batch = pluck_to_hash shs_columns, services_scope.
           where(shs_t[:date].between(LOOKBACK_STOP_DATE..@report.end_date)).
-          where(
-            client_id: clients_by_id.keys,
-          ).order(client_id: :asc, date: :asc)
+          where(client_id: clients_by_id.keys).
+          order(client_id: :asc, date: :asc)
 
         # transform them into per client metrics
         pending_associations = nights_for_batch.group_by do |r|
@@ -304,10 +303,10 @@ module HudSpmReport::Generators::Fy2020
           report_client = build_report_client(
             client,
             m1_history: m1_history,
-            m1a_es_sh_days: calculate_days_homeless(nights, ES_SH, PH_TH, false),
-            m1a_es_sh_th_days: calculate_days_homeless(nights, ES_SH_TH, PH, false),
-            m1b_es_sh_ph_days: calculate_days_homeless(nights, ES_SH_PH, PH_TH, true),
-            m1b_es_sh_th_ph_days: calculate_days_homeless(nights, ES_SH_TH_PH, PH, true),
+            m1a_es_sh_days: calculate_valid_days_in_project_type(nights, ES_SH, PH_TH, false),
+            m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights, ES_SH_TH, PH, false),
+            m1b_es_sh_ph_days: calculate_valid_days_in_project_type(nights, ES_SH_PH, PH_TH, true),
+            m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights, ES_SH_TH_PH, PH, true),
           )
           [client, report_client]
         end.to_h
@@ -1259,10 +1258,8 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def services_scope
-      GrdaWarehouse::ServiceHistoryService.joins(
-        :client,
-        service_history_enrollment: :enrollment,
-      ).merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH))
+      GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: :enrollment).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH))
     end
 
     private def active_enrollments_scope
@@ -1316,23 +1313,23 @@ module HudSpmReport::Generators::Fy2020
     # Measure 1a / Metric 2: Persons in ES, SH, and TH – do not include data from element 3.917.
     # Measure 1b / Metric 1: Persons in ES, SH, and PH – include data from element 3.917 and time between [project start] and [housing move-in].
     # Measure 1b / Metric 2: Persons in ES, SH, TH, and PH – include data from element 3.917 and time between [project start] and [housing move-in].
-    def calculate_days_homeless(all_nights, project_types, stop_project_types, include_pre_entry)
-      homeless_days = filter_days_for_homelessness(
+    def calculate_valid_days_in_project_type(all_nights, project_types, stop_project_types, include_pre_entry)
+      days_in_selected_project_types = filter_days_for_days_in_project_types(
         all_nights,
         project_types,
         stop_project_types,
         include_pre_entry,
       )
 
-      if homeless_days.any?
+      if days_in_selected_project_types.any?
         # Find the latest bed night (stopping at the report date end)
-        client_end_date = [homeless_days.last.to_date, @report.end_date].min
+        client_end_date = [days_in_selected_project_types.last.to_date, @report.end_date].min
         # logger.info "Latest Homeless Bed Night: #{client_end_date}"
 
         # Determine the client's start date
         client_start_date = [client_end_date.to_date - 365.days, LOOKBACK_STOP_DATE].max
         # logger.info "Client's initial start date: #{client_start_date}"
-        days_before_client_start_date = homeless_days.select do |d|
+        days_before_client_start_date = days_in_selected_project_types.select do |d|
           d.to_date < client_start_date.to_date
         end
         # Move new start date back based on contiguous homelessness before the start date above
@@ -1349,12 +1346,14 @@ module HudSpmReport::Generators::Fy2020
         # logger.info "Client's new start date: #{client_start_date}"
 
         # Remove any days outside of client_start_date and client_end_date
-        # logger.info "Days homeless before limits #{homeless_days.count}"
-        homeless_days.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date > client_end_date.to_date }
-        # logger.info "Days homeless after limits #{homeless_days.count}"
+        # logger.info "Days homeless before limits #{days_in_selected_project_types.count}"
+        days_in_selected_project_types.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date > client_end_date.to_date }
+        # logger.info "Days homeless after limits #{days_in_selected_project_types.count}"
       end
+      # If the client doesn't have any days within the report range in the appropriate project types, exclude them
+      return nil unless days_in_selected_project_types.any? { |d| d >= @report.start_date }
 
-      homeless_days.uniq.count
+      days_in_selected_project_types.uniq.count
     end
 
     # The SPM reports need to consider nights that are not recorded
@@ -1445,7 +1444,7 @@ module HudSpmReport::Generators::Fy2020
 
     # Applies logic described in the Programming Specifications to limit the entries
     # for each day to one, and only those that should be considered based on the project types
-    def filter_days_for_homelessness(dates, project_types, stop_project_types, include_pre_entry)
+    def filter_days_for_days_in_project_types(dates, project_types, stop_project_types, include_pre_entry)
       consider_move_in_dates = true
 
       filtered_days = []
