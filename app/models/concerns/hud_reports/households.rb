@@ -34,6 +34,10 @@ module HudReports::Households
       households[household_id].map { |client| GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob]) }
     end
 
+    private def get_hh_id(service_history_enrollment)
+      service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
+    end
+
     private def households
       @households ||= {}.tap do |hh|
         enrollment_scope_without_preloads.preload(enrollment: :client).

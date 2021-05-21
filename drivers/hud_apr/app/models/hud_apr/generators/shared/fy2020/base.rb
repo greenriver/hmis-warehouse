@@ -29,10 +29,6 @@ module HudApr::Generators::Shared::Fy2020
       @universe ||= @report.universe(self.class.question_number)
     end
 
-    private def get_hh_id(service_history_enrollment)
-      service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
-    end
-
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
       @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
