@@ -59,7 +59,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureSeven, type: 
     expect(report_result.results['sevena1_c4']['value']).to eq(1)
   end
 
-  it 'counts 2 clients exiting from ES, SH, TH, and PH-RRH who exited, plus persons in other PH (no move-in dates)' do
+  it 'counts 3 clients exiting from ES, SH, TH, and PH-RRH who exited, plus persons in other PH (no move-in dates)' do
     expect(report_result.results['sevenb1_c2']['value']).to eq(3)
   end
 

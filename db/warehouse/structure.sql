@@ -9132,7 +9132,8 @@ CREATE TABLE public.hud_report_apr_clients (
     parenting_juvenile boolean,
     deleted_at timestamp without time zone,
     destination_client_id integer,
-    annual_assessment_in_window boolean
+    annual_assessment_in_window boolean,
+    chronically_homeless_detail character varying
 );
 
 
@@ -29348,6 +29349,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210513185514'),
 ('20210514154843'),
 ('20210515142741'),
-('20210517144348');
+('20210517144348'),
+('20210520184416');
 
 
