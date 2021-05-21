@@ -1,0 +1,30 @@
+defaults:
+  run:
+    # nektos/act assumes our container will have bash as an available shell.  `-alpine` containers dont
+    shell: '/bin/sh --noprofile --norc -e -o pipefail {0}'
+jobs:
+  # Label of the container job
+  audit:
+    runs-on: ubuntu-20.04
+    container: ruby:2.7.2-alpine
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build dependancies
+        run: |
+          ls -lart
+          env | sort
+          apk add --no-cache build-base git
+          git config --global pull.ff only
+      - name: Install gems
+        run: |
+          gem install --no-document bundler sassc bundle-audit brakeman
+
+      - name: Run bundle-audit
+        run: |
+          bundle-audit check --update --ignore CVE-2015-9284 CVE-2019-16676 CVE-2017-1002201
+
+      - name: Run brakeman
+        run: |
+          brakeman --faster --no-pager --except PermitAttributes,Render -i config/brakeman.ignore
