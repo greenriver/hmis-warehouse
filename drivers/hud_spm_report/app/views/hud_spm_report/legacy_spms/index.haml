@@ -1,0 +1,27 @@
+= content_for :crumbs do
+  = link_to hud_reports_spms_path do
+    = "« System Performance Measures"
+
+%h1 Legacy System Performance Measures
+
+%table.table.table-hover.table-striped.mt-4
+  %thead
+    %tr.report-base
+      %th
+        = link_to "HUD System Performance Measures - FY 2019", report_results_summary_path(@reports.first[:report_results_summary_id])
+      %th
+        Last Run
+      %th
+        Status
+      %th
+        Completed In
+  %tbody
+    - @reports.each do |report|
+      - last_result = report.last_result(current_user)
+      %tr
+        %td= link_to report.name, hud_reports_legacy_spm_path(report)
+        %td= last_result&.last_run
+        %td
+          - if status = last_result&.last_run_status
+            = link_to status, hud_reports_legacy_spm_legacy_result_path(report, last_result)
+        %td= last_result&.completed_in

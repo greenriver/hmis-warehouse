@@ -54,6 +54,10 @@ module HudReports
       end
     end
 
+    def failures
+      report_cells.where.not(error_messages: nil).pluck(:question, :cell_name, :status, :error_messages)
+    end
+
     # Mark a question as started
     #
     # @param question [String] the question name (e.g., 'Q1')
@@ -61,7 +65,7 @@ module HudReports
     # FIXME: maybe a single question column on report_instance to track if this is a single
     # question run or all questions.... Need bater start/complete logic
     def start(question, tables)
-      universe(question).update(status: 'Started', metadata: {tables: tables})
+      universe(question).update(status: 'Started', metadata: { tables: Array(tables) })
       start_report if build_for_questions.count == remaining_questions.count
     end
 
@@ -115,6 +119,33 @@ module HudReports
       universe_scope(question).first_or_create
     end
 
+    # DANGER. This deletes the reports data without changing its state.
+    # Usefully for debugging, it should be be considered private and
+    # perhaps integrated with start_report, complete_report, start(question), complete(question)
+    def _purge_universe
+      # clear the polymorphic graph of universe membership
+      universe_members = HudReports::UniverseMember.with_deleted.where(
+        report_cell_id: report_cells
+      )
+
+      # universe_membership_type
+      universe_members.distinct.pluck(
+        :universe_membership_type,
+        :universe_membership_id
+      ).group_by(&:first).each do |sti_type, joins|
+        klass = sti_type.constantize
+        ids = joins.map(&:second)
+        # purge (really delete the data)
+        klass.with_deleted.where(id: ids).delete_all
+      end
+
+      # now we can kill the unverse_members
+      universe_members.delete_all
+
+      # and now the cells
+      report_cells.with_deleted.delete_all
+    end
+
     def existing_universe(question)
       report_cells.find_by(question: question, universe: true)
     end
@@ -135,6 +166,28 @@ module HudReports
     # only allow alpha numeric
     def valid_table_name(table)
       table.match(/[A-Z0-9]+/i).to_s
+    end
+
+
+    def as_markdown
+      io = StringIO.new
+      question_names.each do |question|
+        metadata = existing_universe(question)&.metadata
+        if metadata
+          io << "## #{question}\n"
+          Array(metadata['tables']).compact.each do |table|
+            io.puts "### Table: #{table}\n"
+
+            exporter = HudReports::CsvExporter.new(self, table)
+            columns = exporter.display_column_names.to_a
+            rows = exporter.as_array.map{|row| row.map{|c| c.to_s.gsub(/\n/,'') } }
+
+            io.puts "#{ANSI::Table.new [columns]+rows[1..]}\n"
+          end
+        end
+      end
+
+      io.string
     end
   end
 end
