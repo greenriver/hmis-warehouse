@@ -209,7 +209,7 @@ module HudSpmReport::Generators::Fy2020
     # Add report filters to the scope
     private def add_filters(scope)
       if (project_ids = filter.effective_project_ids).any?
-        scope = scope.where(p_t[:id].in(project_ids))
+        scope = scope.joins(:project).where(p_t[:id].in(project_ids))
       end
       scope
     end
