@@ -100,8 +100,8 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
     ['6c.1', 'C4', 20, '.. as percentage'],
 
     ['6c.2', 'C2', 1, 'Cat. 3 Persons in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project'],
-    ['6c.2', 'C3', 1, 'with the desired final state'],
-    ['6c.2', 'C4', 100, '.. as percentage'],
+    ['6c.2', 'C3', 0, 'with the desired final state'],
+    ['6c.2', 'C4', 0, '.. as percentage'],
   ].each do |table, cell, expected_value, label|
     test_name = if expected_value.nil?
       "does not fill #{table} #{cell} #{label}".strip
