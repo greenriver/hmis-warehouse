@@ -12,7 +12,7 @@ on:
   #     - '**/*'
 jobs:
   # Label of the container job
-  rails:
+  tests:
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 

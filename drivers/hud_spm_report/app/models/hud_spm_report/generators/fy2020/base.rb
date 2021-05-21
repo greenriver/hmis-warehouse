@@ -21,6 +21,14 @@ module HudSpmReport::Generators::Fy2020
       raise 'Implement in your question report generator'.freeze
     end
 
+    def self.she_household_column
+      cl(she_t[:household_id], ct(she_t[:id], '*HH'))
+    end
+
+    def she_household_column
+      self.class.she_household_column
+    end
+
     LOOKBACK_STOP_DATE = Date.iso8601('2012-10-01').freeze
 
     ES = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es).flatten(1).freeze
@@ -60,7 +68,7 @@ module HudSpmReport::Generators::Fy2020
       project_type: :computed_project_type,
       project_id: :project_id,
       project_name: :project_name,
-      household_id: :household_id,
+      household_id: she_household_column,
       housing_status_at_entry: :housing_status_at_entry,
       housing_status_at_exit: :housing_status_at_exit,
       MoveInDate: :move_in_date,
@@ -1213,7 +1221,7 @@ module HudSpmReport::Generators::Fy2020
             e_t[:EntryDate],
             :age,
             :head_of_household_id,
-            :household_id,
+            she_household_column,
           )
 
         child_id_to_destination = {}
@@ -1236,7 +1244,11 @@ module HudSpmReport::Generators::Fy2020
           joins(:client).
           where(she_t[:head_of_household].eq(true)).
           distinct.
-          pluck(:head_of_household_id, :destination, :household_id).
+          pluck(
+            :head_of_household_id,
+            :destination,
+            she_household_column,
+          ).
           map do |(hoh_id, destination, household_id)|
             [[hoh_id, household_id], destination]
           end.to_h
@@ -1611,7 +1623,7 @@ module HudSpmReport::Generators::Fy2020
             e_t[:EntryDate],
             :age,
             :head_of_household_id,
-            :household_id,
+            she_household_column,
             :enrollment_group_id,
           )
 
@@ -1642,7 +1654,7 @@ module HudSpmReport::Generators::Fy2020
             :head_of_household_id,
             :client_id,
             :enrollment_group_id,
-            :household_id,
+            she_household_column,
           ).map do |(hoh_id, client_id, enrollment_id, household_id)|
             [[hoh_id, household_id], { client_id: client_id, enrollment_id: enrollment_id }]
           end.to_h
