@@ -41,8 +41,8 @@ module HudReports::Households
             # puts 'Household Batch: '
             # puts GetProcessMem.new.inspect
             batch.each do |enrollment|
-              hh[enrollment.household_id] ||= []
-              hh[enrollment.household_id] << {
+              hh[get_hh_id(enrollment)] ||= []
+              hh[get_hh_id(enrollment)] << {
                 source_client_id: enrollment.enrollment.client.id,
                 dob: enrollment.enrollment.client.DOB,
                 veteran_status: enrollment.enrollment.client.VeteranStatus,
