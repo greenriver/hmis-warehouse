@@ -391,25 +391,32 @@ module ClaimsReporting
       logger.debug { "#{medical_claims_scope.count} medical_claims" }
 
       # pb = ProgressBar.create(total: medical_claims_by_member_id.size, format: '%c/%C (%P%%) %R/s%e [%B]')
+      value_set_lookups # preload before we potentially fork to save IO/ram
+
       rows = Parallel.flat_map(
         medical_claims_by_member_id,
+        # we can spread the work below across many CPUS by removing/upping this number.
+        # There is very little I/O so using in_threads wont help much till Ruby 3 Ractor (or other GIL workarounds)
         in_processes: 1,
         # finish: ->(_item, _i, _result) { pb.increment },
       ) do |member_id, claims|
+        # we ideally do zero database calls in here
+
         rows = []
         member = members_by_member_id[member_id]
-        date_of_birth = member.date_of_birth
-        enrollments = enrollments_by_member_id[member_id]
-        assignment_date = enrollments.min_by(&:cp_enroll_dt).cp_enroll_dt
-        completed_treatment_plans = claims.select(&:completed_treatment_plan?)
-
-        # Members must be continuously enrolled in MassHealth during the measurement year.
-        continuous_in_masshealth = continuously_enrolled_mh?(enrollments, measurement_year, max_gap: 45)
-
-        # Members must be continuously enrolled in the BH CP for at least 122 calendar days.
-        continuous_in_bh_cp = continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
 
         if measures.include?(:bh_cp_1) || measures.include?(:bh_cp_2)
+          date_of_birth = member.date_of_birth
+          enrollments = enrollments_by_member_id[member_id]
+          assignment_date = enrollments.min_by(&:cp_enroll_dt).cp_enroll_dt
+          completed_treatment_plans = claims.select(&:completed_treatment_plan?)
+
+          # Members must be continuously enrolled in MassHealth during the measurement year.
+          continuous_in_masshealth = continuously_enrolled_mh?(enrollments, measurement_year, max_gap: 45)
+
+          # Members must be continuously enrolled in the BH CP for at least 122 calendar days.
+          continuous_in_bh_cp = continuously_enrolled_cp?(enrollments, measurement_year, min_days: 122)
+
           rows << MeasureRow.new(
             row_type: 'member', # spec also says "patients"/"enrollee"
             row_id: member_id,
@@ -441,7 +448,7 @@ module ClaimsReporting
         rows.concat calculate_bh_cp_5(member, claims, enrollments) if measures.include?(:bh_cp_5)
         rows.concat calculate_bh_cp_6(member, claims, enrollments) if measures.include?(:bh_cp_6)
 
-        # We dont have data to support this yet
+        # We don't have data to support these yet
         # rows.concat calculate_bh_cp_7(member, claims, enrollments) if measures.include?(:bh_cp_7)
         # rows.concat calculate_bh_cp_8(member, claims, enrollments) if measures.include?(:bh_cp_8)
 
@@ -533,7 +540,7 @@ module ClaimsReporting
       date_range.max.beginning_of_year .. date_range.max.end_of_year
     end
 
-    def dec_31_of_measurement_year
+    private def dec_31_of_measurement_year
       measurement_year.max
     end
 
@@ -1000,7 +1007,7 @@ module ClaimsReporting
     private def aod_abuse_or_dependence?(claim)
       # New episode of AOD abuse or dependence
       # FIXME this may need to be evaluated on
-      # all the claims in the same 'stay' TODO
+      # all the claims in the same 'stay'
       # this is used to find a IESD
 
       c = claim
@@ -1326,7 +1333,7 @@ module ClaimsReporting
       numerator = 0
       enumerable.each do |r|
         value = r.send(flag)
-        next if value.nil? # not part of this measure
+        next if value.nil? # row does not included in this measure
 
         if value.is_a?(Array)
           numerator += value.first
@@ -1391,8 +1398,8 @@ module ClaimsReporting
     end
 
     # Map the names used in the various CMS Quality Rating System spec
-    # to the OIDs. Not needed now but names will not be unique in
-    # Hl7::ValueSetCode as we flesh that out
+    # to the OIDs. Names will not be unique in Hl7::ValueSetCode as we load
+    # other sources
     VALUE_SETS = {
       'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013',
       'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
@@ -1434,9 +1441,5 @@ module ClaimsReporting
       'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
       'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
     }.freeze
-
-    private def connection
-      HealthBase.connection
-    end
   end
 end
