@@ -9132,7 +9132,8 @@ CREATE TABLE public.hud_report_apr_clients (
     parenting_juvenile boolean,
     deleted_at timestamp without time zone,
     destination_client_id integer,
-    annual_assessment_in_window boolean
+    annual_assessment_in_window boolean,
+    chronically_homeless_detail character varying
 );
 
 
@@ -26891,6 +26892,13 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 
 
 --
+-- Name: test_shs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -29341,6 +29349,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210513185514'),
 ('20210514154843'),
 ('20210515142741'),
-('20210517144348');
+('20210517144348'),
+('20210520184416');
 
 
