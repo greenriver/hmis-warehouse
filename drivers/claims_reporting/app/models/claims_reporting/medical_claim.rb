@@ -125,7 +125,7 @@ module ClaimsReporting
         member_ids.each_with_index do |member_id, idx|
           logger.info { "MedicalClaim.maintain_engaged_days!: Processing member #{idx + 1}/#{member_ids.length}." }
           enrollments = MemberEnrollmentRoster.where(member_id: member_id).select(
-            :span_start_date, :span_end_date
+            :member_id, :span_start_date, :span_end_date
           ).sort_by(&:span_start_date)
 
           logger.debug { "MedicalClaim.maintain_engaged_days!: Found #{enrollments.length} enrollment spans" }
