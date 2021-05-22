@@ -88,9 +88,10 @@ module ClaimsReporting
     end
 
     def import_all_from_health_sftp(
-      naming_convention: DEFAULT_NAMING_CONVENTION,
       root_path: '',
-      credentials: self.class.default_credentials
+      naming_convention: DEFAULT_NAMING_CONVENTION,
+      credentials: self.class.default_credentials,
+      redo_past_imports: false
     )
       # Allow only one in progress call per DB.
       # We will be read from our db, then an external SFTP
@@ -104,7 +105,7 @@ module ClaimsReporting
           credentials: credentials,
         )
         results.map do |r|
-          if r[:last_successful_import_id].present?
+          if r[:last_successful_import_id].present? && redo_past_imports
             logger.debug { "Skipping #{r}" }
             r
           else
