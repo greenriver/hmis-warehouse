@@ -613,11 +613,14 @@ module HmisCsvTwentyTwenty::Importer
       klass.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
       klass.logger.silence(Logger::WARN) do
         if upsert
-          klass.import(batch, on_duplicate_key_update:
-            {
+          klass.import(
+            batch,
+            on_duplicate_key_update: {
               conflict_target: klass.conflict_target,
               columns: columns,
-            }, validate: use_ar_model_validations)
+            },
+            validate: use_ar_model_validations,
+          )
         else
           klass.import(batch, validate: use_ar_model_validations)
         end
@@ -628,7 +631,19 @@ module HmisCsvTwentyTwenty::Importer
       log "batch failed: #{e.message}... processing records one at a time"
       errors = []
       batch.each do |row|
-        row.save!(validate: use_ar_model_validations)
+        if upsert
+          klass.import(
+            Array.wrap(row),
+            on_duplicate_key_update: {
+              conflict_target: klass.conflict_target,
+              columns: columns,
+            },
+            validate: use_ar_model_validations,
+            batch_size: 1,
+          )
+        else
+          klass.import(Array.wrap(row), validate: use_ar_model_validations, batch_size: 1)
+        end
         note_processed(file_name, 1, type)
       rescue ActiveRecord::ActiveRecordError, PG::Error => e
         errors << add_error(file: file_name, klass: klass, source_id: row[:source_id] || row[:source_hash], message: e.message)
