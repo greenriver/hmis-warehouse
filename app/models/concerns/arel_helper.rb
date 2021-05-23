@@ -62,12 +62,20 @@ module ArelHelper
 
     # create the COALESCE named function
     def cl(*args)
-      nf 'COALESCE', args
+      nf('COALESCE', args)
+    end
+
+    def self.cl(*args)
+      nf('COALESCE', args)
     end
 
     # create the CONCAT named function
     def ct(*args)
-      nf 'CONCAT', args
+      nf('CONCAT', args)
+    end
+
+    def self.ct(*args)
+      nf('CONCAT', args)
     end
 
     def lit(str)

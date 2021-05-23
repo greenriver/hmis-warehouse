@@ -1,0 +1,7 @@
+ExitID,EnrollmentID,PersonalID,ExitDate,Destination,OtherDestination,AssessmentDisposition,OtherDisposition,HousingAssessment,SubsidyInformation,ProjectCompletionStatus,EarlyExitReason,ExchangeForSex,ExchangeForSexPastThreeMonths,CountOfExchangeForSex,AskedOrForcedToExchangeForSex,AskedOrForcedToExchangeForSexPastThreeMonths,WorkPlaceViolenceThreats,WorkplacePromiseDifference,CoercedToContinueWork,LaborExploitPastThreeMonths,CounselingReceived,IndividualCounseling,FamilyCounseling,GroupCounseling,SessionCountAtExit,PostExitCounselingPlan,SessionsInPlan,DestinationSafeClient,DestinationSafeWorker,PosAdultConnections,PosPeerConnections,PosCommunityConnections,AftercareDate,AftercareProvided,EmailSocialMedia,Telephone,InPersonIndividual,InPersonGroup,CMExitReason,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+1,1,1,2013-7-31,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2013-7-31,2013-7-31,user,,31a77b417911747e41ef9936f9a4b657
+2,2,2,2013-7-31,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2013-7-31,2013-7-31,user,,31a77b417911747e41ef9936f9a4b657
+3,3,3,2013-7-31,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2013-7-31,2013-7-31,user,,31a77b417911747e41ef9936f9a4b657
+4,4,4,2015-7-31,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2013-7-31,2013-7-31,user,,31a77b417911747e41ef9936f9a4b657
+5,5,5,2015-7-31,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2013-7-31,2013-7-31,user,,31a77b417911747e41ef9936f9a4b657
+6,6,6,2015-7-31,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2013-7-31,2013-7-31,user,,31a77b417911747e41ef9936f9a4b657
