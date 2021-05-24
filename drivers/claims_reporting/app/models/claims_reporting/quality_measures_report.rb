@@ -322,7 +322,11 @@ module ClaimsReporting
         :member_roster,
       ).where(
         member_id: assigned_enrollements_scope.select(:member_id),
-      ).service_in(date_range)
+      ).service_in(measurement_and_prior_year) # some measures care about scripts outside of the year
+    end
+
+    def measurement_and_prior_year
+      (measurement_year.min - 1.year) .. measurement_year.max
     end
 
     def medical_claim_based_rows
@@ -359,6 +363,7 @@ module ClaimsReporting
           #:member_dob,
           #:claim_number, # "billed on the same claim"
           #:cp_pidsl, # "same CP"
+          :service_start_date,
           :ndc_code,
         ).group_by(&:member_id)
       else
@@ -470,6 +475,8 @@ module ClaimsReporting
           rx_claims = rx_claims_by_member_id[member_id] || []
           rows.concat calculate_bh_cp_10(member, claims, rx_claims, enrollments)
         end
+
+        rows.concat calculate_bh_cp_13(member, claims, enrollments) if measures.include?(:bh_cp_13)
         rows
       end
     end
@@ -641,8 +648,16 @@ module ClaimsReporting
       rows
     end
 
+    def missing_value_sets
+      @missing_value_sets ||= Set.new
+    end
+
     private def in_set?(vs_name, claim, dx1_only: false)
-      codes_by_system = value_set_lookups.fetch(vs_name)
+      codes_by_system = value_set_lookups.fetch(vs_name) do
+        missing_value_sets << vs_name
+        # logger.error { "MISSING #{vs_name}" }
+        {}
+      end
 
       # TODO?: Can we use LOINC (labs) or CVX (vaccine) codes
       # What about "Modifier" or add ad
@@ -1000,9 +1015,175 @@ module ClaimsReporting
       rows
     end
 
+    private def schizophrenia_or_bipolar_disorder?(claims)
+      # ... Schizophrenia Value Set; Bipolar Disorder Value Set; Other Bipolar Disorder Value Set
+      claims_with_dx = claims.select do |c|
+        true || in_set?('Schizophrenia', c) || in_set?('Bipolar Disorder', c) || in_set?('Other Bipolar Disorder', c)
+      end
+      return false if claims_with_dx.none?
+
+      # > At least one acute inpatient encounter, with any diagnosis of schizophrenia, schizoaffective disorder or bipolar disorder.
+      # - BH Stand Alone Acute Inpatient Value Set with...
+      # - Visit Setting Unspecified Value Set with Acute Inpatient POS Value Set...
+      if claims_with_dx.any? { |c| in_set?('BH Stand Alone Acute Inpatient', c) || (in_set?('Visit Setting Unspecified', c) && in_set?('Acute Inpatient POS', c)) }
+        puts 'BH_CP_10: At least one....'
+        return true
+      end
+
+      # > At least two of the following, on different dates of service, with or without a telehealth modifier (Telehealth Modifier Value Set)
+      visits = claims_with_dx.select do |c|
+        in_set?('Visit Setting Unspecified', c) && (
+          in_set?('Acute Inpatient POS', c) ||
+          in_set?('Partial Hospitalization', c) ||
+          in_set?('Community Mental Health Center POS', c) ||
+          in_set?('ED POS', c) ||
+          in_set?('Nonacute Inpatient POS', c) ||
+          in_set?('Telehealth POS', c)
+        ) ||
+        in_set?('BH Outpatient', c) ||
+        in_set?('Partial Hospitalization/Intensive Outpatient', c) ||
+        in_set?('Electroconvulsive Therapy', c) ||
+        in_set?('Observation', c) ||
+        in_set?('ED', c) ||
+        in_set?('BH Stand Alone Nonacute Inpatient', c)
+      end
+
+      # > where both encounters have any diagnosis of schizophrenia or schizoaffective disorder (Schizophrenia Value Set)
+      if visits.select { |c| in_set?('Schizophrenia', c) }.uniq(&:service_start_date).size >= 2
+        puts 'BH_CP_10: At least two Schizophrenia....'
+        return true
+      end
+
+      # > or both encounters have any diagnosis of bipolar disorder (Bipolar Disorder Value Set; Other Bipolar Disorder Value Set).
+      if visits.select { |c| in_set?('Bipolar Disorder', c) || in_set?('Other Bipolar Disorder', c) }.uniq(&:service_start_date).size >= 2
+        puts 'BH_CP_10: At least two Bipolar....'
+        return true
+      end
+
+      return false
+    end
+
     # Diabetes Screening for Individuals With Schizophrenia or Bipolar Disorder Who Are Using Antipsychotic Medications
-    private def calculate_bh_cp_10(_member, _claims, rx_claims, _enrollments)
+    private def calculate_bh_cp_10(member, claims, rx_claims, _enrollments)
       rows = []
+
+      # > BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.
+      unless in_age_range?(member.date_of_birth, 18.years .. 64.years, as_of: dec_31_of_measurement_year)
+        trace_exclusion do
+          "BH_CP_10: Exclude MemberRoster#id=#{member.id} based on age #{member.date_of_birth}"
+        end
+        return []
+      end
+
+      measurement_year_claims = claims.select { |c| measurement_year.cover?(c.service_start_date) }
+
+      # > Exclusions: Enrollees in Hospice (Hospice Value Set)
+      if measurement_year_claims.any? { |c| measurement_year.cover?(c.service_start_date) && hospice?(c) }
+        trace_exclusion do
+          "BH_CP_10: Exclude MemberRoster#id=#{member.id} is in hospice"
+        end
+        return []
+      end
+
+      # Step 1: Identify enrollees with schizophrenia or bipolar disorder as those who met at least one of the following criteria during the measurement year
+      return [] unless schizophrenia_or_bipolar_disorder?(measurement_year_claims)
+
+      puts "BH_CP_10: MemberRoster#id=#{member.id} -- Found schizophrenia or bipolar disorder"
+
+      # Exclude enrollees who met any of the following criteria:
+      # Enrollees with diabetes. There are two ways to identify members with
+      # diabetes: by claim/encounter data and by pharmacy data.  The
+      # organization must use both methods to identify enrollees with
+      # diabetes, but an enrollee need only be identified by one method to be
+      # excluded from the measure. Enrollees may be identified as having
+      # diabetes during the measurement year or the year prior to the
+      # measurement year.
+
+      # TODO – Claim/encounter data. Enrollees who met at any of the following
+      # criteria during the measurement year or the year prior to the
+      # measurement year (count services that occur over both years).
+
+      #   - At least one acute inpatient encounter (Acute Inpatient Value Set)
+      #   with a diagnosis of diabetes (Diabetes Value Set) without (Telehealth
+      #   Modifier Value Set; Telehealth POS Value Set).
+
+      #   - At least two outpatient visits (Outpatient Value Set), observation
+      #   visits (Observation Value Set), ED visits (ED Value Set) or nonacute
+      #   inpatient encounters (Nonacute Inpatient Value Set) on different dates
+      #   of service, with a diagnosis of diabetes (Diabetes Value Set). Visit
+      #   type need not be the same for the two encounters.
+
+      #   Only include nonacute inpatient encounters (Nonacute Inpatient Value
+      #   Set) without telehealth (Telehealth Modifier Value Set; Telehealth POS
+      #   Value Set).
+
+      #   Only one of the two visits may be a telehealth visit, a telephone
+      #   visit or an online assessment. Identify telehealth visits by the
+      #   presence of a telehealth modifier (Telehealth Modifier Value Set) or
+      #   the presence of a telehealth POS code (Telehealth POS Value Set)
+      #   associated with the outpatient visit. Use the code combinations below
+      #   to identify telephone visits and online assessments:
+
+      #   – A telephone visit (Telephone Visits Value Set) with any diagnosis of
+      #   diabetes (Diabetes Value Set).
+
+      #   – An online assessment (Online Assessments Value Set) with any diagnosis
+      #   of diabetes (Diabetes Value Set).
+
+      # – Pharmacy data. Enrollees who were dispensed insulin or oral
+      #   hypoglycemics/antihyperglycemics during the measurement year or
+      #   year prior to the measurement year on an ambulatory basis (Diabetes
+      #   Medications List).
+      #   TODO: on an ambulatory basis????
+      diabetes_rx = rx_claims.detect do |c|
+        measurement_and_prior_year.cover?(c.service_start_date) && rx_in_set?('Diabetes Medications', c)
+      end
+      if diabetes_rx
+        trace_exclusion do
+          "BH_CP_10: Excludes MemberRoster#id=#{member.id} Enrollees with diabetes due to diabetes_rx RxClaim#id=#{diabetes_rx.inspect}"
+        end
+      end
+
+      # > Enrollment
+      #
+      # The spec is a bit confusing here... basically we need to test potentially
+      # several periods of enrollment. If there are **no** CP disenrollments we
+      # check the full measurement year. If there are some we look at the one year period
+      # before each disenrollment.
+      # In both case we exclude cases if less than 122 days CP enrollment or
+      # with MH enrollment gaps of over 45 days
+      cp_disenrollments = enrollments.select do |e|
+        e.cp_disenroll_dt.present? && measurement_year.cover?(e.cp_disenroll_dt)
+      end
+      covered_ranges = if cp_disenrollments.none?
+        # For members continuously enrolled with the CP for at least 122 days,
+        # and with no CP disenrollment during the measurement year....
+        [measurement_year]
+      else
+        # > BH CP enrollees with a CP disenrollment during the measurement year
+        # > must be continuously enrolled in MassHealth for one year prior to the
+        # > disenrollment date.
+        cp_disenrollments.map do |e|
+          (e.cp_disenroll_dt - 1.year) .. e.cp_disenroll_dt
+        end
+      end
+      covered_ranges.each do |required_range|
+        unless continuously_enrolled_cp?(enrollments, required_range, min_days: 122)
+          trace_exclusion { "BH_CP_10: MemberRoster#id=#{member.id}  must be continuously enrolled with a BH CP for at least 122 calendar days. required_mh_range: #{required_mh_range}" }
+          return []
+        end
+        unless continuously_enrolled_mh?(enrollments, required_range, max_gap: 45)
+          trace_exclusion { "BH_CP_10: MemberRoster#id=#{member.id} must be continuously enrolled in MassHealth. required_mh_range: #{required_mh_range}" }
+          return []
+        end
+
+        diabetes_screening = claims.detect do |c|
+          required_range.cover?(c) && (in_set?('Glucose Tests', c) || in_set?('HbA1c Tests', c))
+        end
+        if diabetes_screening # rubocop:disable Style/IfUnlessModifier
+          puts "BH_CP_10: MemberRoster#id=#{member.id} -- Found diabetes_screening=#{diabetes_screening.inspect}"
+        end
+      end
 
       rx_claims.each do |c|
         puts "BH_CP_10: Diabetes Medication found in #{c.inspect}" if rx_in_set?('Diabetes Medications', c)
@@ -1010,6 +1191,81 @@ module ClaimsReporting
       end
 
       rows
+    end
+
+    private def calculate_bh_cp_13(member, claims, rx_claims, _enrollments)
+      # IHS - Index hospital stay. An acute inpatient stay with a discharge
+      # on or between January 1 and December 1 of the measurement year.
+      # Exclude stays that meet the exclusion criteria in the denominator
+      # section.
+
+      # Index Admission Date - The IHS admission date.
+
+      # Index Discharge Date - The IHS discharge date. The index discharge
+      # date must occur on or between January 1 and December 1 of the
+      # measurement year.
+
+      # Index Readmission Stay - An acute inpatient stay for any diagnosis
+      # with an admission date within 30 days of a previous Index Discharge
+      # Date.
+
+      # Index Readmission Date - The admission date associated with the
+      # Index Readmission Stay.
+
+      # Planned Hospital Stay - A hospital stay is considered planned if it
+      # meets criteria as described in step 3 (required exclusions) of the
+      # numerator.
+
+      # Enrollees with High Frequency of Index Hospital Stays - Enrollees
+      # with four or more index hospital stays on or between January 1 and
+      # December 1 of the measurement year.
+
+      # Classification Period - 365 days prior to and including an Index
+      # Discharge Date.
+
+      # Denominator
+      # Step 1
+
+      # Identify all acute inpatient discharges on or between January 1 and
+      # December 1 of the measurement year. To identify acute inpatient
+      # discharges:
+
+      # 1. Identify all acute and non-acute inpatient stays (Inpatient Stay
+      # Value Set).
+
+      # 2. Exclude non-acute inpatient stays (Nonacute Inpatient Stay Value
+      # Set).
+
+      # 3. Identify the discharge date for the stay.
+
+      # Inpatient stays where the discharge date from the first setting and
+      # the admission date to the second setting are two or more calendar days
+      # apart must be considered distinct inpatient stays. The measure
+      # includes acute discharges from any type of facility (including
+      # behavioral healthcare facilities).
+
+      #   Step 2
+      # Acute-to-acute direct transfers: Keep the original admission date as the Index Admission Date, but use the direct transfer’s discharge date as the Index Discharge Date.
+      # A direct transfer is when the discharge date from the first inpatient setting precedes the admission date to a second inpatient setting by one calendar day or less. For example:
+      # - An inpatient discharge on June 1, followed by an admission to another inpatient setting on June 1, is a direct transfer.
+      # - An inpatient discharge on June 1, followed by an admission to an inpatient setting on June 2, is a direct transfer.
+      # - An inpatient discharge on June1, followed by an admission to another inpatient setting on June 3, is not a direct transfer; these are two distinct inpatient stays.
+      # Use the following method to identify acute-to-acute direct transfers:
+      # 1. Identify all acute and nonacute inpatient stays (Inpatient Stay Value Set).
+      # 2. Exclude nonacute inpatient stays (Nonacute Inpatient Stay Value Set).
+      # 3. Identify the admission and discharge dates for the stay.
+      # Exclude the hospital stay if the direct transfer’s discharge date occurs after December 1 of the measurement year.
+
+      # Step 3 Exclude hospital stays where the Index Admission Date is the same as the Index Discharge Date.
+
+      # Step 4: Required Exclusions
+      # Exclude hospital stays for the following reasons:
+      #  Theenrolleediedduringthestay.
+      #  Female enrollees with a principal diagnosis of pregnancy (Pregnancy Value Set) on the discharge claim.
+      #  A principal diagnosis of a condition originating in the perinatal period (Perinatal Conditions Value Set) on the discharge claim.
+      # Note: For hospital stays where there was an acute-to-acute direct transfer (identified in step 2), use both the original stay and the direct transfer stay to identify exclusions in this step.
+
+      # Step 5 Calculate continuous enrollment.
     end
 
     private def pcp_practitioner?(_claim)
@@ -1029,8 +1285,8 @@ module ClaimsReporting
       )
     end
 
-    private def trace_set_match!(_vs_name, _claim, _code_type)
-      # puts "in_set? #{_vs_name} matched #{_code_type} for Claim#id=#{_claim.id}"
+    private def trace_set_match!(vs_name, claim, code_type) # rubocop:disable Lint/UnusedMethodArgument
+      # puts "in_set? #{vs_name} matched #{code_type} for Claim#id=#{claim.id}"
       true
     end
 
@@ -1448,18 +1704,28 @@ module ClaimsReporting
     # Map the names used in the various CMS Quality Rating System spec
     # to the OIDs. Names will not be unique in Hl7::ValueSetCode as we load
     # other sources
+    # MISSING for BH CP 10
+    # - Schizophrenia
+    # - Bipolar Disorder
+    # - Other Bipolar Disorder
+    # - BH Stand Alone Acute Inpatient
+    # - BH Stand Alone Nonacute Inpatient
+    # - Nonacute Inpatient POS
     VALUE_SETS = MEDICATION_LISTS.merge({
-      'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013', # rubocop:disable Layout/FirstHashElementIndentation
-      'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
+      'Acute Condition' => '2.16.840.1.113883.3.464.1004.1324', # rubocop:disable Layout/FirstHashElementIndentation
       'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1017',
       'Alcohol Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1424',
       'Ambulatory Surgical Center POS' => '2.16.840.1.113883.3.464.1004.1480',
+      'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013',
+      'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
       'BH Outpatient' => '2.16.840.1.113883.3.464.1004.1481',
+      'Bone Marrow Transplant' => '2.16.840.1.113883.3.464.1004.1325',
+      'Chemotherapy' => '2.16.840.1.113883.3.464.1004.1326',
       'Community Mental Health Center POS' => '2.16.840.1.113883.3.464.1004.1484',
       'Detoxification' => '2.16.840.1.113883.3.464.1004.1076',
       'Diabetes' => '2.16.840.1.113883.3.464.1004.1077',
-      'ED' => '2.16.840.1.113883.3.464.1004.1086',
       'ED POS' => '2.16.840.1.113883.3.464.1004.1087',
+      'ED' => '2.16.840.1.113883.3.464.1004.1086',
       'Electroconvulsive Therapy' => '2.16.840.1.113883.3.464.1004.1294',
       'HbA1c Tests' => '2.16.840.1.113883.3.464.1004.1116',
       'Hospice' => '2.16.840.1.113883.3.464.1004.1418',
@@ -1470,18 +1736,25 @@ module ClaimsReporting
       'IET Visits Group 2' => '2.16.840.1.113883.3.464.1004.1133',
       'Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1395',
       'Intentional Self-Harm' => '2.16.840.1.113883.3.464.1004.1468',
+      'Introduction of Autologous Pancreatic Cells' => '2.16.840.1.113883.3.464.1004.1459',
+      'Kidney Transplant' => '2.16.840.1.113883.3.464.1004.1141',
       'Mental Health Diagnosis' => '2.16.840.1.113883.3.464.1004.1178',
       'Mental Illness' => '2.16.840.1.113883.3.464.1004.1179',
-      'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
       'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
+      'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
       'Observation' => '2.16.840.1.113883.3.464.1004.1191',
       'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
-      'Other Drug Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1426',
       'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
-      'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
+      'Organ Transplant Other Than Kidney' => '2.16.840.1.113883.3.464.1004.1195',
+      'Other Drug Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1426',
       'Outpatient POS' => '2.16.840.1.113883.3.464.1004.1443',
+      'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
       'Partial Hospitalization POS' => '2.16.840.1.113883.3.464.1004.1491',
       'Partial Hospitalization/Intensive Outpatient' => '2.16.840.1.113883.3.464.1004.1492',
+      'Perinatal Conditions' => '2.16.840.1.113883.3.464.1004.1209',
+      'Potentially Planned Procedures' => '2.16.840.1.113883.3.464.1004.1327',
+      'Pregnancy' => '2.16.840.1.113883.3.464.1004.1219',
+      'Rehabilitation' => '2.16.840.1.113883.3.464.1004.1328',
       'Telehealth Modifier' => '2.16.840.1.113883.3.464.1004.1445',
       'Telehealth POS' => '2.16.840.1.113883.3.464.1004.1460',
       'Telephone Visits' => '2.16.840.1.113883.3.464.1004.1246',
