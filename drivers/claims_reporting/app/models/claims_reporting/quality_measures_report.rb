@@ -326,6 +326,14 @@ module ClaimsReporting
       ).service_in(date_range)
     end
 
+    def rx_claims_scope
+      ClaimsReporting::RxClaim.joins(
+        :member_roster,
+      ).where(
+        member_id: assigned_enrollements_scope.select(:member_id),
+      ).service_in(date_range)
+    end
+
     def medical_claim_based_rows
       members_by_member_id = ::ClaimsReporting::MemberRoster.where(
         member_id: assigned_enrollements_scope.select(:member_id),
@@ -352,6 +360,19 @@ module ClaimsReporting
       logger.debug { "#{assigned_enrollements_scope.count} enrollment spans" }
 
       rows = []
+
+      rx_claims_by_member_id = if measures.include?(:bh_cp_10)
+        rx_claims_scope.select(
+          :id,
+          :member_id,
+          #:member_dob,
+          #:claim_number, # "billed on the same claim"
+          #:cp_pidsl, # "same CP"
+          :ndc_code,
+        ).group_by(&:member_id)
+      else
+        {}
+      end
 
       medical_claims_by_member_id = medical_claims_scope.select(
         :id,
@@ -454,6 +475,10 @@ module ClaimsReporting
 
         rows.concat calculate_bh_cp_9(member, claims, enrollments) if measures.include?(:bh_cp_9)
 
+        if measures.include?(:bh_cp_10)
+          rx_claims = rx_claims_by_member_id[member_id] || []
+          rows.concat calculate_bh_cp_10(member, claims, rx_claims, enrollments)
+        end
         rows
       end
     end
@@ -629,7 +654,9 @@ module ClaimsReporting
       codes_by_system = value_set_lookups.fetch(vs_name)
 
       # TODO?: Can we use LOINC (labs) or CVX (vaccine) codes
-      # What about "Modifier"
+      # What about "Modifier" or add ad
+
+      # TODO? raise/warn on an unrecognised code_system_name?
 
       # Check first because its very likely to match
       procedure_codes = Set.new
@@ -667,6 +694,17 @@ module ClaimsReporting
 
       if (code_pattern = codes_by_system['ICD9PCS']) # rubocop:disable Style/GuardClause
         return trace_set_match!(vs_name, claim, :ICD9PCS) if claim.matches_icd9pcs? code_pattern
+      end
+    end
+
+    private def rx_in_set?(vs_name, claim)
+      codes_by_system = value_set_lookups.fetch(vs_name)
+
+      # TODO? RxNorm, CVX might also show up lookup code but we dont have any claims data with that info, nor a crosswalk handy
+      # TODO? raise/warn on an unrecognised code_system_name?
+
+      if (ndc_codes = codes_by_system['NDC']).present? # rubocop:disable Style/GuardClause
+        return trace_set_match!(vs_name, claim, :NDC) if ndc_codes.include?(claim.ndc_code)
       end
     end
 
@@ -834,7 +872,7 @@ module ClaimsReporting
       )
     end
 
-    #  Follow-Up After Hospitalization for Mental Illness (7 days)
+    # Follow-Up After Hospitalization for Mental Illness (7 days)
     private def calculate_bh_cp_9(member, claims, enrollments)
       rows = []
 
@@ -968,6 +1006,18 @@ module ClaimsReporting
         # puts "Found #{row.inspect}" if row.bh_cp_9
         rows << row
       end
+      rows
+    end
+
+    # Diabetes Screening for Individuals With Schizophrenia or Bipolar Disorder Who Are Using Antipsychotic Medications
+    private def calculate_bh_cp_10(_member, _claims, rx_claims, _enrollments)
+      rows = []
+
+      rx_claims.each do |c|
+        puts "BH_CP_10: Diabetes Medication found in #{c.inspect}" if rx_in_set?('Diabetes Medications', c)
+        puts "BH_CP_10: SSD Antipsychotic Medications found in #{c.inspect}" if rx_in_set?('SSD Antipsychotic Medications', c)
+      end
+
       rows
     end
 
@@ -1397,49 +1447,56 @@ module ClaimsReporting
       percentage medical_claim_based_rows, :bh_cp_13
     end
 
+    MEDICATION_LISTS = {
+      'SSD Antipsychotic Medications' => '2.16.840.1.113883.3.464.1004.2173',
+      'Diabetes Medications' => '2.16.840.1.113883.3.464.1004.2050',
+      'Opioid Use Disorder Treatment Medications' => '2.16.840.1.113883.3.464.1004.2142',
+      'Alcohol Use Disorder Treatment Medications' => '2.16.840.1.113883.3.464.1004.2026',
+    }.freeze
+
     # Map the names used in the various CMS Quality Rating System spec
     # to the OIDs. Names will not be unique in Hl7::ValueSetCode as we load
     # other sources
-    VALUE_SETS = {
-      'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013',
-      'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
-      'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1017',
-      'Alcohol Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1424',
-      'Ambulatory Surgical Center POS' => '2.16.840.1.113883.3.464.1004.1480',
-      'BH Outpatient' => '2.16.840.1.113883.3.464.1004.1481',
-      'Community Mental Health Center POS' => '2.16.840.1.113883.3.464.1004.1484',
-      'Detoxification' => '2.16.840.1.113883.3.464.1004.1076',
-      'Diabetes' => '2.16.840.1.113883.3.464.1004.1077',
-      'ED' => '2.16.840.1.113883.3.464.1004.1086',
-      'ED POS' => '2.16.840.1.113883.3.464.1004.1087',
-      'Electroconvulsive Therapy' => '2.16.840.1.113883.3.464.1004.1294',
-      'HbA1c Tests' => '2.16.840.1.113883.3.464.1004.1116',
-      'Hospice' => '2.16.840.1.113883.3.464.1004.1418',
-      'IET POS Group 1' => '2.16.840.1.113883.3.464.1004.1129',
-      'IET POS Group 2' => '2.16.840.1.113883.3.464.1004.1130',
-      'IET Stand Alone Visits' => '2.16.840.1.113883.3.464.1004.1131',
-      'IET Visits Group 1' => '2.16.840.1.113883.3.464.1004.1132',
-      'IET Visits Group 2' => '2.16.840.1.113883.3.464.1004.1133',
-      'Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1395',
-      'Intentional Self-Harm' => '2.16.840.1.113883.3.464.1004.1468',
-      'Mental Health Diagnosis' => '2.16.840.1.113883.3.464.1004.1178',
-      'Mental Illness' => '2.16.840.1.113883.3.464.1004.1179',
-      'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
-      'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
-      'Observation' => '2.16.840.1.113883.3.464.1004.1191',
-      'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
-      'Other Drug Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1426',
-      'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
-      'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
-      'Outpatient POS' => '2.16.840.1.113883.3.464.1004.1443',
-      'Partial Hospitalization POS' => '2.16.840.1.113883.3.464.1004.1491',
-      'Partial Hospitalization/Intensive Outpatient' => '2.16.840.1.113883.3.464.1004.1492',
-      'Telehealth Modifier' => '2.16.840.1.113883.3.464.1004.1445',
-      'Telehealth POS' => '2.16.840.1.113883.3.464.1004.1460',
-      'Telephone Visits' => '2.16.840.1.113883.3.464.1004.1246',
-      'Transitional Care Management Services' => '2.16.840.1.113883.3.464.1004.1462',
-      'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
-      'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
-    }.freeze
+    VALUE_SETS = MEDICATION_LISTS.merge({
+        'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013', # rubocop:disable Layout/FirstHashElementIndentation
+        'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
+        'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1017',
+        'Alcohol Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1424',
+        'Ambulatory Surgical Center POS' => '2.16.840.1.113883.3.464.1004.1480',
+        'BH Outpatient' => '2.16.840.1.113883.3.464.1004.1481',
+        'Community Mental Health Center POS' => '2.16.840.1.113883.3.464.1004.1484',
+        'Detoxification' => '2.16.840.1.113883.3.464.1004.1076',
+        'Diabetes' => '2.16.840.1.113883.3.464.1004.1077',
+        'ED' => '2.16.840.1.113883.3.464.1004.1086',
+        'ED POS' => '2.16.840.1.113883.3.464.1004.1087',
+        'Electroconvulsive Therapy' => '2.16.840.1.113883.3.464.1004.1294',
+        'HbA1c Tests' => '2.16.840.1.113883.3.464.1004.1116',
+        'Hospice' => '2.16.840.1.113883.3.464.1004.1418',
+        'IET POS Group 1' => '2.16.840.1.113883.3.464.1004.1129',
+        'IET POS Group 2' => '2.16.840.1.113883.3.464.1004.1130',
+        'IET Stand Alone Visits' => '2.16.840.1.113883.3.464.1004.1131',
+        'IET Visits Group 1' => '2.16.840.1.113883.3.464.1004.1132',
+        'IET Visits Group 2' => '2.16.840.1.113883.3.464.1004.1133',
+        'Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1395',
+        'Intentional Self-Harm' => '2.16.840.1.113883.3.464.1004.1468',
+        'Mental Health Diagnosis' => '2.16.840.1.113883.3.464.1004.1178',
+        'Mental Illness' => '2.16.840.1.113883.3.464.1004.1179',
+        'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
+        'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
+        'Observation' => '2.16.840.1.113883.3.464.1004.1191',
+        'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
+        'Other Drug Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1426',
+        'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
+        'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
+        'Outpatient POS' => '2.16.840.1.113883.3.464.1004.1443',
+        'Partial Hospitalization POS' => '2.16.840.1.113883.3.464.1004.1491',
+        'Partial Hospitalization/Intensive Outpatient' => '2.16.840.1.113883.3.464.1004.1492',
+        'Telehealth Modifier' => '2.16.840.1.113883.3.464.1004.1445',
+        'Telehealth POS' => '2.16.840.1.113883.3.464.1004.1460',
+        'Telephone Visits' => '2.16.840.1.113883.3.464.1004.1246',
+        'Transitional Care Management Services' => '2.16.840.1.113883.3.464.1004.1462',
+        'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
+        'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
+    }).freeze # rubocop:disable Layout/FirstHashElementIndentation
   end
 end
