@@ -1,3 +1,4 @@
+on: workflow_dispatch
 defaults:
   run:
     # nektos/act assumes our container will have bash as an available shell.  `-alpine` containers dont
