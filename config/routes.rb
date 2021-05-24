@@ -836,6 +836,7 @@ Rails.application.routes.draw do
       get :client_dashboard
       get :buttons
       get :pagination
+      get :stimulus_select
     end
   end
 
