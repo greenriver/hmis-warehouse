@@ -29,11 +29,22 @@ module SimpleReports
       @count ||= universe_members.count
     end
 
-    def add_members(members)
+    # Add report universe members to a report cell
+    # @param universe_members [Array<UniverseMember>] Clients to include in the report cell
+    def add_members(universe_members)
       UniverseMember.import(
-        members.map { |member| copy_member(member) },
+        universe_members.map { |member| copy_member(member) },
         validate: false,
         on_duplicate_key_ignore: true,
+      )
+    end
+
+    # Add clients to the report universe cell.
+    # @param members [Hash<Client, ReportClient>] ReportClient is the report-specific client type
+    def add_universe_members(members)
+      UniverseMember.import(
+        members.map { |client, universe_client| new_member(warehouse_client: client, universe_client: universe_client) },
+        validate: false,
       )
     end
 
@@ -41,8 +52,8 @@ module SimpleReports
       UniverseMember.new(
         report_cell: self,
         client_id: warehouse_client.id,
-        first_name: universe_client.first_name,
-        last_name: universe_client.last_name,
+        first_name: warehouse_client.first_name,
+        last_name: warehouse_client.last_name,
         universe_membership: universe_client,
       )
     end
@@ -68,7 +79,9 @@ module SimpleReports
       members_table = universe_members.arel_table
 
       table_join = members_table.join(universe_table_name).on(members_table[:universe_membership_id].eq(universe_table_name[:id]))
-      universe_members.joins(table_join.join_sources)
+      universe_members.
+        joins(report_cell: :report_instance).
+        joins(table_join.join_sources)
     end
   end
 end

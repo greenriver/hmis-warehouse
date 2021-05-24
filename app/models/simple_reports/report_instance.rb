@@ -19,11 +19,7 @@ module SimpleReports
     end
 
     def universe
-      report_cells.universe.first # There can only be one universe for a simple report
-    end
-
-    def universe= (members)
-      report_cells.build.add_members(members)
+      report_cells.universe.first_or_create # There can only be one universe for a simple report
     end
   end
 end

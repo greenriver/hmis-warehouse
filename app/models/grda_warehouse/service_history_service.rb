@@ -42,7 +42,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
 
   scope :homeless_between, -> (start_date:, end_date:) do
     homeless(chronic_types_only: false).where(date: (start_date..end_date))
-end
+  end
 
   scope :literally_homeless_between, -> (start_date:, end_date:) do
     homeless(chronic_types_only: true).where(date: (start_date..end_date))
@@ -58,6 +58,10 @@ end
 
   scope :adult, -> do
     where(age: (18..Float::INFINITY))
+  end
+
+  scope :bed_night, -> do
+    where(service_type: 200)
   end
 
   def self.project_type_column
