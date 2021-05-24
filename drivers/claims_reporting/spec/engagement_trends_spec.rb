@@ -9,14 +9,14 @@ require 'rails_helper'
 RSpec.describe 'ClaimsReporting::EngagementTrends', type: :model do
   let(:user) { create :user }
 
-  test_race = 'BlackAfAmerican'
+  test_races = ['BlackAfAmerican', 'MultiRacial']
   test_age_range = 'forty_to_forty_nine'
   test_ethnicity = 1
   test_gender =  2
   test_aco = 3
   standard_options = {
     cohort_type: :selected_period,
-    races: [test_race],
+    races: test_races,
     ethnicities: [test_ethnicity],
     genders: [test_gender],
     age_ranges: [test_age_range],

@@ -258,15 +258,6 @@ module ClaimsReporting
 
     memoize :hud_clients_scope
 
-    def warehouse_client_scope
-      hmis_scope = ::GrdaWarehouse::DataSource.joins(:clients)
-      hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
-      hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
-      hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
-      hmis_scope
-    end
-    memoize :warehouse_client_scope
-
     def assigned_enrollements_scope
       scope = ::ClaimsReporting::MemberEnrollmentRoster
 
@@ -1458,45 +1449,45 @@ module ClaimsReporting
     # to the OIDs. Names will not be unique in Hl7::ValueSetCode as we load
     # other sources
     VALUE_SETS = MEDICATION_LISTS.merge({
-        'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013', # rubocop:disable Layout/FirstHashElementIndentation
-        'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
-        'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1017',
-        'Alcohol Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1424',
-        'Ambulatory Surgical Center POS' => '2.16.840.1.113883.3.464.1004.1480',
-        'BH Outpatient' => '2.16.840.1.113883.3.464.1004.1481',
-        'Community Mental Health Center POS' => '2.16.840.1.113883.3.464.1004.1484',
-        'Detoxification' => '2.16.840.1.113883.3.464.1004.1076',
-        'Diabetes' => '2.16.840.1.113883.3.464.1004.1077',
-        'ED' => '2.16.840.1.113883.3.464.1004.1086',
-        'ED POS' => '2.16.840.1.113883.3.464.1004.1087',
-        'Electroconvulsive Therapy' => '2.16.840.1.113883.3.464.1004.1294',
-        'HbA1c Tests' => '2.16.840.1.113883.3.464.1004.1116',
-        'Hospice' => '2.16.840.1.113883.3.464.1004.1418',
-        'IET POS Group 1' => '2.16.840.1.113883.3.464.1004.1129',
-        'IET POS Group 2' => '2.16.840.1.113883.3.464.1004.1130',
-        'IET Stand Alone Visits' => '2.16.840.1.113883.3.464.1004.1131',
-        'IET Visits Group 1' => '2.16.840.1.113883.3.464.1004.1132',
-        'IET Visits Group 2' => '2.16.840.1.113883.3.464.1004.1133',
-        'Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1395',
-        'Intentional Self-Harm' => '2.16.840.1.113883.3.464.1004.1468',
-        'Mental Health Diagnosis' => '2.16.840.1.113883.3.464.1004.1178',
-        'Mental Illness' => '2.16.840.1.113883.3.464.1004.1179',
-        'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
-        'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
-        'Observation' => '2.16.840.1.113883.3.464.1004.1191',
-        'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
-        'Other Drug Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1426',
-        'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
-        'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
-        'Outpatient POS' => '2.16.840.1.113883.3.464.1004.1443',
-        'Partial Hospitalization POS' => '2.16.840.1.113883.3.464.1004.1491',
-        'Partial Hospitalization/Intensive Outpatient' => '2.16.840.1.113883.3.464.1004.1492',
-        'Telehealth Modifier' => '2.16.840.1.113883.3.464.1004.1445',
-        'Telehealth POS' => '2.16.840.1.113883.3.464.1004.1460',
-        'Telephone Visits' => '2.16.840.1.113883.3.464.1004.1246',
-        'Transitional Care Management Services' => '2.16.840.1.113883.3.464.1004.1462',
-        'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
-        'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
+      'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013', # rubocop:disable Layout/FirstHashElementIndentation
+      'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
+      'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1017',
+      'Alcohol Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1424',
+      'Ambulatory Surgical Center POS' => '2.16.840.1.113883.3.464.1004.1480',
+      'BH Outpatient' => '2.16.840.1.113883.3.464.1004.1481',
+      'Community Mental Health Center POS' => '2.16.840.1.113883.3.464.1004.1484',
+      'Detoxification' => '2.16.840.1.113883.3.464.1004.1076',
+      'Diabetes' => '2.16.840.1.113883.3.464.1004.1077',
+      'ED' => '2.16.840.1.113883.3.464.1004.1086',
+      'ED POS' => '2.16.840.1.113883.3.464.1004.1087',
+      'Electroconvulsive Therapy' => '2.16.840.1.113883.3.464.1004.1294',
+      'HbA1c Tests' => '2.16.840.1.113883.3.464.1004.1116',
+      'Hospice' => '2.16.840.1.113883.3.464.1004.1418',
+      'IET POS Group 1' => '2.16.840.1.113883.3.464.1004.1129',
+      'IET POS Group 2' => '2.16.840.1.113883.3.464.1004.1130',
+      'IET Stand Alone Visits' => '2.16.840.1.113883.3.464.1004.1131',
+      'IET Visits Group 1' => '2.16.840.1.113883.3.464.1004.1132',
+      'IET Visits Group 2' => '2.16.840.1.113883.3.464.1004.1133',
+      'Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1395',
+      'Intentional Self-Harm' => '2.16.840.1.113883.3.464.1004.1468',
+      'Mental Health Diagnosis' => '2.16.840.1.113883.3.464.1004.1178',
+      'Mental Illness' => '2.16.840.1.113883.3.464.1004.1179',
+      'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
+      'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
+      'Observation' => '2.16.840.1.113883.3.464.1004.1191',
+      'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
+      'Other Drug Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1426',
+      'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
+      'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
+      'Outpatient POS' => '2.16.840.1.113883.3.464.1004.1443',
+      'Partial Hospitalization POS' => '2.16.840.1.113883.3.464.1004.1491',
+      'Partial Hospitalization/Intensive Outpatient' => '2.16.840.1.113883.3.464.1004.1492',
+      'Telehealth Modifier' => '2.16.840.1.113883.3.464.1004.1445',
+      'Telehealth POS' => '2.16.840.1.113883.3.464.1004.1460',
+      'Telephone Visits' => '2.16.840.1.113883.3.464.1004.1246',
+      'Transitional Care Management Services' => '2.16.840.1.113883.3.464.1004.1462',
+      'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
+      'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
     }).freeze # rubocop:disable Layout/FirstHashElementIndentation
   end
 end
