@@ -4,7 +4,7 @@
   .col-sm-4
     - if false
       .pull-right
-        = link_to new_import_path, class: 'btn btn-primary pull-right' do 
+        = link_to new_import_path, class: 'btn btn-primary pull-right' do
           %span.icon-plus
           Import HUD CSV
 .row.table-utilities
@@ -25,6 +25,6 @@
                   = import.created_at
                 %td
                   = import.import_time
-               
+
 
 %p= paginate @imports

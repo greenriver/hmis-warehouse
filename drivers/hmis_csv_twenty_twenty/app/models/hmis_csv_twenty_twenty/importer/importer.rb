@@ -722,7 +722,7 @@ module HmisCsvTwentyTwenty::Importer
 
     def start_import
       db_transaction do
-        importer_log.update(status: :started)
+        importer_log.update(status: :started, started_at: Time.current)
         @loader_log.update(importer_log_id: importer_log.id)
         @started_at = Time.current
         log("Starting import for #{hash_as_log_str log_ids}.")
