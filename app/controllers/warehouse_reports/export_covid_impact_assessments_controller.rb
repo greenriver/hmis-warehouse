@@ -17,7 +17,20 @@ module WarehouseReports
         end
       @clients = client_scope.where(id: assessment_ids.keys)
       @assessments = GrdaWarehouse::HmisForm.covid_19_impact_assessments.
-        where(id: assessment_ids.values).joins(:destination_client).index_by do |form|
+        where(id: assessment_ids.values).joins(:destination_client).
+        select(
+          :id,
+          :client_id,
+          :data_source_id,
+          :total_subsidy,
+          :subsidy_months,
+          :monthly_rent_total,
+          :number_of_bedrooms,
+          :percent_ami,
+          :household_type,
+          :household_size,
+        ).
+        index_by do |form|
           form.destination_client.id
         end
     end
