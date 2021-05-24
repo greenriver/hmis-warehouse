@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_05_07_180809) do
+ActiveRecord::Schema.define(version: 2021_05_20_184416) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1387,6 +1387,22 @@ ActiveRecord::Schema.define(version: 2021_05_07_180809) do
     t.index ["date"], name: "index_chronics_on_date"
   end
 
+  create_table "clh_locations", force: :cascade do |t|
+    t.bigint "client_id"
+    t.string "source_type"
+    t.bigint "source_id"
+    t.date "located_on"
+    t.float "lat"
+    t.float "lon"
+    t.string "collected_by"
+    t.datetime "processed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["client_id"], name: "index_clh_locations_on_client_id"
+    t.index ["source_type", "source_id"], name: "index_clh_locations_on_source_type_and_source_id"
+  end
+
   create_table "client_matches", id: :serial, force: :cascade do |t|
     t.integer "source_client_id", null: false
     t.integer "destination_client_id", null: false
@@ -2029,6 +2045,27 @@ ActiveRecord::Schema.define(version: 2021_05_07_180809) do
     t.string "entity_type", null: false
     t.datetime "deleted_at"
     t.index ["access_group_id", "entity_id", "entity_type"], name: "one_entity_per_type_per_group", unique: true
+  end
+
+  create_table "hap_report_clients", force: :cascade do |t|
+    t.bigint "client_id"
+    t.integer "age"
+    t.boolean "emancipated"
+    t.boolean "head_of_household"
+    t.string "household_ids", array: true
+    t.integer "project_types", array: true
+    t.boolean "veteran"
+    t.boolean "mental_health"
+    t.boolean "substance_abuse"
+    t.boolean "domestic_violence"
+    t.integer "income_at_start"
+    t.integer "income_at_exit"
+    t.boolean "homeless"
+    t.integer "nights_in_shelter"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_hap_report_clients_on_client_id"
   end
 
   create_table "health_emergency_ama_restrictions", force: :cascade do |t|
@@ -3335,6 +3372,7 @@ ActiveRecord::Schema.define(version: 2021_05_07_180809) do
     t.boolean "triage_assessment", default: false
     t.boolean "rrh_assessment", default: false
     t.boolean "covid_19_impact_assessment", default: false
+    t.boolean "with_location_data", default: false, null: false
     t.index ["assessment_id"], name: "index_hmis_assessments_on_assessment_id"
     t.index ["data_source_id"], name: "index_hmis_assessments_on_data_source_id"
     t.index ["site_id"], name: "index_hmis_assessments_on_site_id"
@@ -4279,6 +4317,7 @@ ActiveRecord::Schema.define(version: 2021_05_07_180809) do
     t.integer "percent_ami"
     t.string "household_type"
     t.integer "household_size"
+    t.datetime "location_processed_at"
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
@@ -4460,6 +4499,7 @@ ActiveRecord::Schema.define(version: 2021_05_07_180809) do
     t.datetime "deleted_at"
     t.integer "destination_client_id"
     t.boolean "annual_assessment_in_window"
+    t.string "chronically_homeless_detail"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 
@@ -5819,6 +5859,7 @@ ActiveRecord::Schema.define(version: 2021_05_07_180809) do
     t.integer "project_type", limit: 2
     t.boolean "homeless"
     t.boolean "literally_homeless"
+    t.index ["date", "service_history_enrollment_id"], name: "shs_unique_date_she_id", unique: true
     t.index ["date"], name: "index_service_history_services_on_date"
     t.index ["project_type"], name: "index_service_history_services_on_project_type"
   end
@@ -6239,7 +6280,6 @@ ActiveRecord::Schema.define(version: 2021_05_07_180809) do
     t.index ["date"], name: "index_shs_2019_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2019_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2019_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2019_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2019_en_id_only"
   end
 
@@ -7019,6 +7059,9 @@ ActiveRecord::Schema.define(version: 2021_05_07_180809) do
 
   create_table "simple_report_cells", force: :cascade do |t|
     t.bigint "report_instance_id"
+    t.string "name"
+    t.boolean "universe", default: false
+    t.integer "summary"
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
