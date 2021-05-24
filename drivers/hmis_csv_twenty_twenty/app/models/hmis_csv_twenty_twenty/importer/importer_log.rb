@@ -6,6 +6,7 @@
 
 module HmisCsvTwentyTwenty::Importer
   class ImporterLog < GrdaWarehouseBase
+    include ActionView::Helpers::DateHelper
     self.table_name = 'hmis_csv_importer_logs'
 
     has_many :import_errors
@@ -18,6 +19,19 @@ module HmisCsvTwentyTwenty::Importer
 
     def resuming?
       status.to_s == 'resuming'
+    end
+
+    def import_time
+      return unless persisted?
+      # Historically we didn't set started_at
+      return unless started_at
+
+      if completed_at && started_at
+        seconds = ((completed_at - started_at) / 1.minute).round * 60
+        distance_of_time_in_words(seconds)
+      else
+        'processing...'
+      end
     end
   end
 end
