@@ -14,14 +14,14 @@ module HapReport
     attr_accessor :start_date, :end_date, :project_ids
 
     def build_report
-      create_universe
+      # create_universe
       report_labels.values.each do |sections|
         sections.values.each do |row_scope|
           project_columns.values.each do |column_scope|
             cell_name = "#{row_scope}_#{column_scope}"
             cell = report_cells.build(name: cell_name)
             if row_scope == :total_units_of_shelter_service
-              cell.summary = report_client_scope.where(column_scope).sum(a_t[:nights_in_shelter])
+              cell.summary = report_client_scope.where(send(column_scope)).sum(a_t[:nights_in_shelter])
             else
               cell_scope = send(row_scope).where(send(column_scope))
               cell.add_members(cell_scope)

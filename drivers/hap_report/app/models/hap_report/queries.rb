@@ -63,21 +63,24 @@ module HapReport::Queries
     def families_with_children
       @families_with_children ||= households.
         select { |_, v| v.size > 1 && v.any? { |_, age| age < 18 } }.
-        map { |k, _| k }
+        map { |_, v| v.map(&:first) }.
+        flatten
       a_t[:id].in(@families_with_children)
     end
 
     def adult_only_households
       @adult_only_households ||= households.
         select { |_, v| v.size > 1 && v.all? { |_, age| age >= 18 } }.
-        map { |k, _| k }
+        map { |_, v| v.map(&:first) }.
+        flatten
       a_t[:id].in(@adult_only_households)
     end
 
     def individuals
       @individuals ||= households.
         select { |_, v| v.size == 1 }.
-        map { |k, _| k }
+        map { |_, v| v.map(&:first) }.
+        flatten
       a_t[:id].in(@individuals)
     end
 
