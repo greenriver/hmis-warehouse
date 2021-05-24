@@ -258,15 +258,6 @@ module ClaimsReporting
 
     memoize :hud_clients_scope
 
-    def warehouse_client_scope
-      hmis_scope = ::GrdaWarehouse::DataSource.joins(:clients)
-      hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
-      hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
-      hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
-      hmis_scope
-    end
-    memoize :warehouse_client_scope
-
     def assigned_enrollements_scope
       scope = ::ClaimsReporting::MemberEnrollmentRoster
 
