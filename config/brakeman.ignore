@@ -41,6 +41,26 @@
       "note": "after_sign_in_path_for does sometimes return an offsite redirect but not an uncontrolled one"
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "0ea2018506ebfda99646143c3a6b329586df8a0a0b9ad12049e05c90566f6d22",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/us_census_api/is_a_database_view.rb",
+      "line": 39,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.exec_query(\"DROP #{materialized} VIEW IF EXISTS #{@view_name};\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::UsCensusApi::IsADatabaseView::ClassMethods",
+        "method": "drop!"
+      },
+      "user_input": "materialized",
+      "confidence": "Medium",
+      "note": "Injection from internal sources"
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "0fc8bda3aa0534d15b8341980b3cd903e10cf9bf203e38eb3abbc26ff6b5c0c2",
@@ -119,6 +139,26 @@
       "user_input": "pop[:pop_id]",
       "confidence": "Medium",
       "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "1547f3e0a337f1a7b198be3c3c47ebeba2160c2565c27f2fce794f2c5775535f",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/us_census_api/is_a_database_view.rb",
+      "line": 25,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.exec_query(\"CREATE #{materialized} VIEW #{@view_name} AS\\n#{view_definition}\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::UsCensusApi::IsADatabaseView::ClassMethods",
+        "method": "rebuild!"
+      },
+      "user_input": "materialized",
+      "confidence": "Medium",
+      "note": "Injection from internal sources"
     },
     {
       "warning_type": "Remote Code Execution",
@@ -463,6 +503,26 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "5fb07f23d96197864df77d4b7aa712e9cf74547e169e91a8f107307827019e80",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/shape/installer.rb",
+      "line": 45,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"./shape_files/#{conf.dir}/make.inserts #{ENV[\"RELEVANT_COC_STATE\"]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Shape::Installer",
+        "method": "run!"
+      },
+      "user_input": "conf.dir",
+      "confidence": "Medium",
+      "note": "Injection from internal sources"
+    },
+    {
       "warning_type": "Dynamic Render Path",
       "warning_code": 15,
       "fingerprint": "6012356b03eb94bac6208d03adf39acd1db517d644ec8c52e503b7efef462571",
@@ -627,6 +687,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "70c7d5e56f2aae7f8a1be7e25ea15fb31cb39d725235fad7940bb8e4a2840a25",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
+      "line": 47,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Shape::SharedBehaviors::ClassMethods",
+        "method": "simplify!"
+      },
+      "user_input": "simplification_distance_in_degrees",
+      "confidence": "Medium",
+      "note": "Injection from internal sources"
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "715caf7c369b0362888de763f9a7319144834a7915602582eb32ea620b3dcca9",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -778,22 +858,22 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "822ab18e43cc8a9807a17e1d1ecac0217f8446e30ea8531ce8e75f8402dc1ea0",
+      "fingerprint": "81e2b0d48a2dbe0a092252cf247638254bc6b7f2b6c876600d4edbd6102b7c72",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
-      "line": 48,
+      "line": 52,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))\")",
+      "code": "where(:full_geoid => nil).update_all(\"full_geoid = '#{Arel.sql(_full_geoid_prefix)}' || 'US' || #{_geoid_column}\")",
       "render_path": null,
       "location": {
         "type": "method",
         "class": "GrdaWarehouse::Shape::SharedBehaviors::ClassMethods",
-        "method": "simplify!"
+        "method": "set_full_geoid!"
       },
-      "user_input": "simplification_distance_in_degrees",
-      "confidence": "Medium",
-      "note": "injection is always a number and not from the database or user input"
+      "user_input": "Arel.sql(_full_geoid_prefix)",
+      "confidence": "Weak",
+      "note": "Injection from internal sources"
     },
     {
       "warning_type": "SQL Injection",
@@ -1267,6 +1347,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "b2c9b6c2e4f603540a84d053a8f50d5208879e95006481a667725bce5fb16b45",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/us_census_api/is_a_database_view.rb",
+      "line": 48,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.exec_query(\"REFRESH MATERIALIZED VIEW #{@view_name}\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::UsCensusApi::IsADatabaseView::ClassMethods",
+        "method": "refresh!"
+      },
+      "user_input": "@view_name",
+      "confidence": "Medium",
+      "note": "Injection from internal sources"
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "b2e9f8410ba6ed5963253a0daa5e634213118de8263268da7799b1a3440965fb",
@@ -1502,7 +1602,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 660,
+      "line": 662,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -1755,6 +1855,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-05-18 23:58:43 +0000",
+  "updated": "2021-05-25 16:39:07 +0000",
   "brakeman_version": "5.0.1"
 }

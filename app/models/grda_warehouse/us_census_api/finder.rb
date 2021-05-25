@@ -39,11 +39,11 @@ module GrdaWarehouse
         if internal_names.length > 1
           raise "[#{internal_names.join(', ')}] Only supporting single variable requests for speed. We can upgrade to multi-variable requests if needed"
         else
+          # sort by distance from requested year then prefer dicennial censu.
           result = geometry
             .census_values
             .includes(:census_variable)
             .where(census_variables: {internal_name: internal_names})
-            # sort by distance from requested year then prefer dicennial censu.
             .order(Arel.sql("abs(census_variables.year - #{self.year}) asc, CASE WHEN dataset='sf1' THEN 0 ELSE 1 END asc"))
             .first
 
