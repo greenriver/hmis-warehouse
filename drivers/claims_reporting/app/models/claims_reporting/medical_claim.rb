@@ -225,6 +225,14 @@ module ClaimsReporting
       completed_treatment_plan?
     end
 
+    def dead_upon_arrival?
+      dx_1 == 'R99'
+    end
+
+    def discharged_due_to_death?
+      patient_status == '20' # UB-04 FL 17 Patient Discharge Status
+    end
+
     # Qualifying Activity: BH CP Treatment Plan Complete
     def completed_treatment_plan?
       procedure_code == 'T2024' && procedure_modifier_1 == 'U4' && claim_status == 'P'
