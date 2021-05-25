@@ -112,6 +112,7 @@ module Filters
       vispdat_limit = filters.dig(:limit_to_vispdat)&.to_sym
       self.limit_to_vispdat = vispdat_limit if available_vispdat_limits.values.include?(vispdat_limit)
       ensure_dates_work if valid?
+      self.ph = filters.dig(:ph).in?(['1', 'true', true])
       self
     end
 

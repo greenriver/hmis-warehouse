@@ -16,6 +16,7 @@ module WarehouseReports::ClientDetails
     before_action :set_filter
 
     def index
+      @show_ph_destinations = true
       columns = {
         client_id: she_t[:client_id],
         date: she_t[:date],

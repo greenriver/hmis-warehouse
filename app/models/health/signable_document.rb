@@ -302,11 +302,14 @@ module Health
     end
 
     def self.process_unfetched_signed_documents
-      un_fetched_document.signed.find_each do |doc|
+      un_fetched_document.signed.find_each.with_index do |doc, i|
         # Make sure everything we need exists -- signable is polymorphic, so we can't join on it
         next unless doc.signable&.patient&.client&.present?
 
-        UpdateHealthFileFromHelloSignJob.perform_later(doc.id)
+        # Hello Sign has a rate limit of 25 requests per minute.
+        # Throw some sand in the system before we enqueue the next so we don't hit it.
+        wait = i + 1 * 10.seconds
+        UpdateHealthFileFromHelloSignJob.set(wait: wait).perform_later(doc.id)
       end
     end
   end
