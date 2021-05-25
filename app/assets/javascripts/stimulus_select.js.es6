@@ -8,15 +8,16 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
 
   initialize() {
     console.log('stimulus-select initializing')
-    this.fetch_remote_data()
-
   }
+
   connect() {
+    this.enableFancySelect()
     this.setupDependentProjectList()
+    this.fetchRemoteData()
   }
 
-  sayHello() {
-    console.log('sayHello fired')
+  updateSelectAllStatus() {
+    console.log('updateSelectAllStatus fired')
   }
 
   setupDependentProjectList() {
@@ -29,6 +30,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
   }
 
   updateDependentProjectList() {
+    console.log('here')
     if (this.hasProjectsTarget) {
       let $projectTarget = $(this.projectsTarget)
       let selected_project_ids = $projectTarget.val()
@@ -46,23 +48,23 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     }
   }
 
-
-
-  fetch_remote_data() {
+  fetchRemoteData() {
     this.elementTargets.forEach((el) => {
-      $select = $(el).filter('[data-collection-path]')
+      let $select = $(el).filter('[data-collection-path]')
       if ($select.length) {
-        // remote load
-        console.log($select)
-        // FIXME
-        // [url, data] = $select.data('collection-path').split('?')
-        // original_placeholder = $select.attr('placeholder') || 'Please choose'
-        // loading_placeholder = 'Loading...'
-        // $select.attr('placeholder', loading_placeholder)
-        // $.post(url, data), (data) =>
-        //   $select.append(data)
-        //   $select.attr('placeholder', original_placeholder)
+        const [url, data] = $select.data('collection-path').split('?')
+        const original_placeholder = $select.attr('placeholder') || 'Please choose'
+        const loading_placeholder = 'Loading...'
+        $select.attr('placeholder', loading_placeholder)
+        $.post(url, data, (data) => {
+          $select.append(data)
+          $select.attr('placeholder', original_placeholder)
+        })
       }
     })
+  }
+
+  enableFancySelect() {
+    $(this.elementTargets).select2()
   }
 })
