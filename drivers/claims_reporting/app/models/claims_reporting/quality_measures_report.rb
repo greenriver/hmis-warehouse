@@ -336,6 +336,7 @@ module ClaimsReporting
         :id,
         :member_id,
         :date_of_birth,
+        :sex,
       ).index_by(&:member_id)
 
       logger.debug { "#{members_by_member_id.size} members" }
@@ -352,10 +353,11 @@ module ClaimsReporting
         :cp_stop_rsn,
       ).group_by(&:member_id)
 
-      logger.debug { "#{assigned_enrollements_scope.count} enrollment spans" }
+      logger.debug { "#{assigned_enrollements_scope.size} enrollment spans" }
 
       rows = []
 
+      # only some measures need rx_claim data
       rx_claims_by_member_id = if measures.include?(:bh_cp_10)
         rx_claims_scope.select(
           :id,
@@ -384,6 +386,7 @@ module ClaimsReporting
         :service_end_date,
         :claim_type,
         :claim_status,
+        :patient_status,
         :admit_date,
         :discharge_date,
         :revenue_code,
@@ -401,13 +404,18 @@ module ClaimsReporting
         :surgical_procedure_code_2,
         :surgical_procedure_code_3,
         :surgical_procedure_code_4,
-        :surgical_procedure_code_5,
-        :enrolled_days
+        :surgical_procedure_code_5
+        #        :enrolled_days
       ).group_by(&:member_id)
+
+      progress_proc = if Rails.env.development?
+        require 'progress_bar'
+        pb = ProgressBar.new(medical_claims_by_member_id.size, :counter, :bar, :percentage, :rate, :eta)
+        ->(_item, _i, _result) { pb.increment! }
+      end
 
       logger.debug { "#{medical_claims_scope.count} medical_claims" }
 
-      # pb = ProgressBar.create(total: medical_claims_by_member_id.size, format: '%c/%C (%P%%) %R/s%e [%B]')
       value_set_lookups # preload before we potentially fork to save IO/ram
 
       rows = Parallel.flat_map(
@@ -415,7 +423,7 @@ module ClaimsReporting
         # we can spread the work below across many CPUS by removing/upping this number.
         # There is very little I/O so using in_threads wont help much till Ruby 3 Ractor (or other GIL workarounds)
         in_processes: 1,
-        # finish: ->(_item, _i, _result) { pb.increment },
+        finish: progress_proc,
       ) do |member_id, claims|
         # we ideally do zero database calls in here
 
@@ -424,7 +432,9 @@ module ClaimsReporting
 
         if measures.include?(:bh_cp_1) || measures.include?(:bh_cp_2)
           date_of_birth = member.date_of_birth
-          enrollments = enrollments_by_member_id[member_id]
+          enrollments = enrollments_by_member_id.fetch(member_id)
+
+          puts enrollments.inspect
           assignment_date = enrollments.min_by(&:cp_enroll_dt).cp_enroll_dt
           completed_treatment_plans = claims.select(&:completed_treatment_plan?)
 
@@ -476,6 +486,7 @@ module ClaimsReporting
           rows.concat calculate_bh_cp_10(member, claims, rx_claims, enrollments)
         end
 
+        enrollments = enrollments_by_member_id.fetch(member_id)
         rows.concat calculate_bh_cp_13(member, claims, enrollments) if measures.include?(:bh_cp_13)
         rows
       end
@@ -484,6 +495,8 @@ module ClaimsReporting
 
     # Do the enrollments indicate continuous enrollment in a Community Partner
     private def continuously_enrolled_cp?(enrollments, date_range, min_days: nil)
+      return false unless enrollments.present?
+
       # TODO: handle note from BH_CP_1
       # > The entity who submitted the documentation must be the same CP as the one that a member
       # > is enrolled with on the anchor date and during the 122-day continuous enrollment period.
@@ -513,11 +526,13 @@ module ClaimsReporting
     end
 
     private def continuously_enrolled_mh?(enrollments, date_range, max_gap: 0)
-      enrollments = enrollments.select { |e| e.span_date_range.overlaps?(date_range) }.sort
+      return false unless enrollments
 
-      enrollments.each_cons(2) do |e_prev, e|
+      selected_enrollments = enrollments.select { |e| e.span_date_range.overlaps?(date_range) }.sort
+
+      selected_enrollments.each_cons(2) do |e_prev, e|
         if (e.span_start_date - e_prev.span_end_date) > max_gap
-          logger.debug { "Found enrollment gap > #{max_gap} #{e_prev.span_end_date.inspect}..#{e.span_start_date.inspect}" }
+          # logger.debug { "Found enrollment gap > #{max_gap} #{e_prev.span_end_date.inspect}..#{e.span_start_date.inspect}" }
           return false
         end
       end
@@ -551,7 +566,7 @@ module ClaimsReporting
       # Stop Reason “Declined” in the Medicaid Management Information System (MMIS).
       #
       # Note: This is never populated in data we've seen as of Apr 2021
-      enrollments.any? { |e| e.cp_stop_rsn == 'Declined' }
+      enrollments && enrollments.any? { |e| e.cp_stop_rsn == 'Declined' }
     end
 
     private def measurement_year
@@ -882,12 +897,14 @@ module ClaimsReporting
       rows
     end
 
+    private def acute_inpatient_stay?(claim)
+      inpatient_stay?(claim) && !in_set?('Nonacute Inpatient Stay', claim)
+    end
+
     private def mental_health_hospitalization?(claim)
       (
         in_set?('Mental Illness', claim, dx1_only: true) || in_set?('Intentional Self-Harm', claim, dx1_only: true)
-      ) && (
-        inpatient_stay?(claim) && !in_set?('Nonacute Inpatient Stay', claim)
-      )
+      ) && acute_inpatient_stay?(claim)
     end
 
     # Follow-Up After Hospitalization for Mental Illness (7 days)
@@ -996,9 +1013,10 @@ module ClaimsReporting
       # > If the readmission/direct transfer to the acute inpatient care setting was for
       # > any other principal diagnosis exclude both the original and the readmission/direct
       # > transfer discharge.
-      mh_final_discharges.reject! do |d|
-        readmits.any? { |readmit| d.followup_period(7).cover?(readmit) && (inpatient_stay?(readmit) && !in_set?('Nonacute Inpatient Stay', readmit)) }
-      end
+      # FIXME
+      # mh_final_discharges.reject! do |d|
+      # ...
+      # end
 
       # > Exclude discharges followed by readmission or direct transfer to a nonacute
       # > inpatient care setting within the 7-day follow-up period, regardless of
@@ -1010,7 +1028,7 @@ module ClaimsReporting
       # > These discharges are excluded from the measure because rehospitalization or
       # > direct transfer may prevent an outpatient follow-up visit from taking place.
       mh_final_discharges.reject! do |d|
-        readmits.any? { |readmit| d.followup_period(7).cover?(readmit) && (inpatient_stay?(readmit) && in_set?('Nonacute Inpatient Stay', readmit)) }
+        readmits.any? { |readmit| d.followup_period(7).cover?(readmit) && acute_inpatient_stay?(readmit) }
       end
 
       mh_final_discharges.each do |c|
@@ -1251,79 +1269,116 @@ module ClaimsReporting
       rows
     end
 
-    private def calculate_bh_cp_13(member, claims, rx_claims, _enrollments)
-      # IHS - Index hospital stay. An acute inpatient stay with a discharge
-      # on or between January 1 and December 1 of the measurement year.
-      # Exclude stays that meet the exclusion criteria in the denominator
-      # section.
+    # BH CP #13: Hospital Readmissions (Adult)
+    private def calculate_bh_cp_13(member, claims, enrollments)
+      rows = []
 
-      # Index Admission Date - The IHS admission date.
+      # puts "BH_CP_13: Checking MemberRoster#id=#{member.id}"
+      # > Exclusions: Enrollees in Hospice (Hospice Value Set)
+      if claims.any? { |c| measurement_year.cover?(c.service_start_date) && hospice?(c) }
+        trace_exclusion do
+          "BH_CP_13: Exclude MemberRoster#id=#{member.id} is in hospice"
+        end
+        return []
+      end
 
-      # Index Discharge Date - The IHS discharge date. The index discharge
-      # date must occur on or between January 1 and December 1 of the
-      # measurement year.
+      # > Exclude: Members who decline to engage with the BH CP.
+      return [] if declined_to_engage?(enrollments)
 
-      # Index Readmission Stay - An acute inpatient stay for any diagnosis
-      # with an admission date within 30 days of a previous Index Discharge
-      # Date.
+      # > Step 1: Identify all acute inpatient discharges on or between January 1 and December 1 of the measurement year
+      year = measurement_year.max.year
+      cp_13_date_range = Date.new(year, 1, 1) .. Date.new(year, 12, 1)
+      acute_inpatient_claims = claims.select do |c|
+        c.discharge_date.present? && cp_13_date_range.cover?(c.discharge_date) && acute_inpatient_stay?(c)
+      end.sort_by(&:admit_date)
 
-      # Index Readmission Date - The admission date associated with the
-      # Index Readmission Stay.
+      # > Step 2: Acute-to-acute direct transfers
+      # > A direct transfer is when the discharge date from the first inpatient setting precedes
+      # > the admission date to a second inpatient setting by one calendar day or less.
 
-      # Planned Hospital Stay - A hospital stay is considered planned if it
-      # meets criteria as described in step 3 (required exclusions) of the
-      # numerator.
+      # so we split this history into "stays" that include any direct transfers
+      acute_inpatient_stays = acute_inpatient_claims.slice_when do |c1, c2|
+        (c2.admit_date - c1.discharge_date) > 1
+      end
 
-      # Enrollees with High Frequency of Index Hospital Stays - Enrollees
-      # with four or more index hospital stays on or between January 1 and
-      # December 1 of the measurement year.
+      acute_inpatient_stays.each do |stay_claims|
+        admit = stay_claims.first
+        discharge = stay_claims.last
+        index_admission_date = admit.admit_date
+        index_discharge_date =  discharge.discharge_date
 
-      # Classification Period - 365 days prior to and including an Index
-      # Discharge Date.
+        if index_admission_date == index_discharge_date
+          # > Step 3 Exclude hospital stays where the Index Admission Date is the same as the Index Discharge Date.
+          trace_exclusion do
+            "BH_CP_13: MedicalClaim#id=#{admit.id} Exclude hospital stays where the Index Admission Date is the same as the Index Discharge Date"
+          end
+          next
+        end
+        # > Step 4: Exclude hospital stays for the following reasons:
+        # > Note: For hospital stays where there was an acute-to-acute
+        # > direct transfer (identified in step 2), use both the
+        # > original stay and the direct transfer stay to identify
+        # > exclusions in this step.
+        next if stay_claims.any? do |c|
+          if c.discharged_due_to_death? || c.dead_upon_arrival?
+            trace_exclusion do
+              "BH_CP_13: MedicalClaim#id=#{c.id} The enrollee died during the stay"
+            end
+            true
+          end
+          if member.sex == 'Female' && in_set?('Pregnancy', c, dx1_only: true)
+            trace_exclusion do
+              "BH_CP_13: MedicalClaim#id=#{c.id} Female enrollees with a principal diagnosis of pregnancy"
+            end
+            true
+          end
+          if in_set?('Perinatal Conditions', c, dx1_only: true)
+            trace_exclusion do
+              "BH_CP_13: MedicalClaim#id=#{c.id} A principal diagnosis of a condition originating in the perinatal period"
+            end
+            true
+          end
+        end
 
-      # Denominator
-      # Step 1
+        # >  Step 5 Calculate continuous enrollment.
+        # > Members must be continuously enrolled in MassHealth 365
+        # > days prior to the Index Discharge Date through 30 days after
+        # > the Index Discharge Date;
+        continuous_range = 365.days.before(index_discharge_date) .. 30.days.after(index_discharge_date)
+        unless continuously_enrolled_mh?(enrollments, continuous_range, max_gap: 45)
+          trace_exclusion do
+            "BH_CP_13: MemberRoster#id=#{member.id} Not continuously_enrolled_mh for the year #{continuous_range}"
+          end
+          next
+        end
+        # > they must also be continuously
+        # > enrolled with the BH CP from the Index Discharge Date
+        # > through 30 days after the Index Discharge Date.
+        unless continuously_enrolled_cp?(enrollments, index_discharge_date .. 30.days.after(index_discharge_date))
+          trace_exclusion do
+            "BH_CP_13: MemberRoster#id=#{member.id} Not continuously_enrolled_cp for 30 days after #{index_discharge_date}"
+          end
+          next
+        end
+        # > no gap in MassHealth enrollment or BH CP enrollment
+        # > during the 30 days following the Index Discharge Date.
+        unless continuously_enrolled_mh?(enrollments, index_discharge_date .. 30.days.after(index_discharge_date), max_gap: 0)
+          trace_exclusion do
+            "BH_CP_13: MemberRoster#id=#{member.id} Not continuously_enrolled_mh for 30 days after #{index_discharge_date}"
+          end
+          next
+        end
 
-      # Identify all acute inpatient discharges on or between January 1 and
-      # December 1 of the measurement year. To identify acute inpatient
-      # discharges:
+        # puts 'BH_CP_13: Found an IHS'
+        row = MeasureRow.new(
+          row_type: 'stay',
+          row_id: "#{admit.id}-#{discharge.id}",
+          bh_cp_13: false,
+        )
+        rows << row
+      end
 
-      # 1. Identify all acute and non-acute inpatient stays (Inpatient Stay
-      # Value Set).
-
-      # 2. Exclude non-acute inpatient stays (Nonacute Inpatient Stay Value
-      # Set).
-
-      # 3. Identify the discharge date for the stay.
-
-      # Inpatient stays where the discharge date from the first setting and
-      # the admission date to the second setting are two or more calendar days
-      # apart must be considered distinct inpatient stays. The measure
-      # includes acute discharges from any type of facility (including
-      # behavioral healthcare facilities).
-
-      #   Step 2
-      # Acute-to-acute direct transfers: Keep the original admission date as the Index Admission Date, but use the direct transfer’s discharge date as the Index Discharge Date.
-      # A direct transfer is when the discharge date from the first inpatient setting precedes the admission date to a second inpatient setting by one calendar day or less. For example:
-      # - An inpatient discharge on June 1, followed by an admission to another inpatient setting on June 1, is a direct transfer.
-      # - An inpatient discharge on June 1, followed by an admission to an inpatient setting on June 2, is a direct transfer.
-      # - An inpatient discharge on June1, followed by an admission to another inpatient setting on June 3, is not a direct transfer; these are two distinct inpatient stays.
-      # Use the following method to identify acute-to-acute direct transfers:
-      # 1. Identify all acute and nonacute inpatient stays (Inpatient Stay Value Set).
-      # 2. Exclude nonacute inpatient stays (Nonacute Inpatient Stay Value Set).
-      # 3. Identify the admission and discharge dates for the stay.
-      # Exclude the hospital stay if the direct transfer’s discharge date occurs after December 1 of the measurement year.
-
-      # Step 3 Exclude hospital stays where the Index Admission Date is the same as the Index Discharge Date.
-
-      # Step 4: Required Exclusions
-      # Exclude hospital stays for the following reasons:
-      #  Theenrolleediedduringthestay.
-      #  Female enrollees with a principal diagnosis of pregnancy (Pregnancy Value Set) on the discharge claim.
-      #  A principal diagnosis of a condition originating in the perinatal period (Perinatal Conditions Value Set) on the discharge claim.
-      # Note: For hospital stays where there was an acute-to-acute direct transfer (identified in step 2), use both the original stay and the direct transfer stay to identify exclusions in this step.
-
-      # Step 5 Calculate continuous enrollment.
+      rows
     end
 
     private def pcp_practitioner?(_claim)
