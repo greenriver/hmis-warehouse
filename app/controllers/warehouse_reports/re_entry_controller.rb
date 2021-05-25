@@ -16,6 +16,7 @@ module WarehouseReports
     before_action :set_filter
 
     def index
+      @show_ph_destinations = true
       @project_types = @filter.project_type_ids
       # limit enrollments to only those who are re-entries
       re_entry_enrollment_ids = reporting_class.re_entry.distinct.pluck(:enrollment_id)
