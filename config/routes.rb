@@ -269,6 +269,7 @@ Rails.application.routes.draw do
       collection do
         get :summary
         get :running
+        post :render_report
       end
     end
     resources :active_veterans, only: [:index, :show, :destroy] do
