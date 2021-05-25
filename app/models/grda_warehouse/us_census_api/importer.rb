@@ -271,9 +271,7 @@ module GrdaWarehouse
               end
             end
 
-            if ENV['GEO_LIMIT'].blank?
-              CensusVariable.where(id: self.current_vars.values).update_all(downloaded: true)
-            end
+            CensusVariable.where(id: self.current_vars.values).update_all(downloaded: true)
           end
         end
       end

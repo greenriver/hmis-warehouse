@@ -11,9 +11,7 @@ namespace :us_census_api do
     ]
 
     @state_code = ENV.fetch('RELEVANT_COC_STATE')
-    #@years = 2010.up_to(Date.today.year - 1)
-    #@datasets = ['acs5', 'sf1', 'acs1']
-    @years = ENV.fetch('US_CENSUS_API_YEARS') { '2019' }.split(/,/).map(&:to_i)
+    @years = ENV.fetch('US_CENSUS_API_YEARS') { 2012.upto(Date.today.year - 1).map(&:to_s).join(',') }.split(/,/).map(&:to_i)
     @datasets = ENV.fetch('US_CENSUS_API_DATASETS') { 'acs5' }.split(/,/).filter { |d| d.match(/acs5|sf1/) }
   end
 
@@ -53,44 +51,15 @@ namespace :us_census_api do
     GrdaWarehouse::UsCensusApi::TestSuite.run_all!
   end
 
-  desc "Example"
-  task :example, [] => [:environment] do
-    census_data = {}
-    scope = GrdaWarehouse::Shape::CoC.limit(2)
-    full_census_count = scope.map(&:population).map(&:val).sum
+  desc "debug"
+  task :debug, [] => [:environment] do
+    report = PublicReports::HomelessPopulation.find(2)
 
-    include GrdaWarehouse::UsCensusApi::Aggregates
-
-    ::HUD.races(multi_racial: true).each do |key, label|
-      #puts key
-      #puts label
-
-      # We can make the finder class understand/translate codes
-      # see the include above for where these came from
-      race_var = case key
-                 when 'AmIndAKNative' then NATIVE_AMERICAN
-                 when 'Asian' then ASIAN
-                 when 'BlackAfAmerican' then BLACK
-                 when 'NativeHIOtherPacific' then PACIFIC_ISLANDER
-                 when 'White' then WHITE
-
-                 # Does RaceNone mean unknown or none of the above?
-                   # This might be wrong...
-                 when 'RaceNone' then OTHER_RACE
-
-                 when 'MultiRacial' then TWO_OR_MORE_RACES
-                 else
-                   raise "unknown race found"
-                 end
-
-      census_data[label] = 0
-
-      census_data[label] = scope
-        # need to handle missing populations, but this is the idea...
-        .map { |coc| coc.population(internal_names: race_var).val }
-        .sum / full_census_count.to_f if full_census_count&.positive?
+    report.instance_eval do
+      @coc_codes = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum)
+      @debug = true
     end
 
-    puts census_data.ai
+    report.send(:race_chart, :overall)
   end
 end

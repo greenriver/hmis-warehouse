@@ -120,8 +120,6 @@ module GrdaWarehouse
 
         value_tally.each do |census_variable_id, values|
           if values.length != num_pieces
-            #binding.irb
-            #raise "The number of geometries with data didn't match! Cannot sum them. Got #{values.length} but there were #{num_pieces} geometries involved"
             #puts "FAIL: #{CensusVariable.find(census_variable_id).internal_name}"
             results.bad += 1
           elsif values.length == 0
