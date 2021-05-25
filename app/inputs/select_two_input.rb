@@ -12,14 +12,14 @@ class SelectTwoInput < CollectionSelectInput
   def input(wrapper_options = nil)
     label_method, value_method = detect_collection_methods
 
-    data = {
-      data: {
-        target: 'stimulus-select.stimulusSelectElement',
-        action: 'change->stimulus-select#sayHello',
-      },
-    }
+    options = input_html_options
+    options[:data] ||= {}
+    options[:data]['stimulus-select-target'] ||= ''
+    options[:data]['stimulus-select-target'] << ' element '
+    options[:data][:action] ||= ''
+    options[:data][:action] << ' change->stimulus-select#sayHello '
 
-    merged_input_options = merge_wrapper_options(input_html_options.deep_merge(data), wrapper_options)
+    merged_input_options = merge_wrapper_options(options, wrapper_options)
 
     @builder.collection_select(
       attribute_name,

@@ -12,11 +12,11 @@
       %h1= content_for :title
 
     .c-list-search__search
-      .c-list-search__search-found-count.text-right.hide{data: {target: "#{stimulus_controller}.foundCount"}}
+      .c-list-search__search-found-count.text-right.hide{data: {"#{stimulus_controller}-target" => "foundCount"}}
         %p
           %span Number of reports found:
           %span.count
-        %p.hide{data: {target: "#{stimulus_controller}.searchAll"}}
+        %p.hide{data: {"#{stimulus_controller}-target" => "searchAll"}}
           %a{href: '#', data: {action: "click->#{stimulus_controller}#changeCategory", category: 'all'}} Search all reports
       %input.form-control{placeholder: 'Filter visible reports', data: {action: "input->#{stimulus_controller}#search"}}
 
@@ -26,14 +26,14 @@
         .c-list-search__list-group-header.c-list-search__list-group-header--static
           %h3.c-list-search__group-title Report Categories
         %ul
-          - base_data = {action: "click->#{stimulus_controller}#changeCategory", target: "#{stimulus_controller}.category"}
+          - base_data = {action: "click->#{stimulus_controller}#changeCategory", "#{stimulus_controller}-target" => "category"}
           %li.active{data: base_data.merge(category:'all')} All Reports
           - definitions_with_recents.each do |(category_name, reports)|
             %li{data: base_data.merge(category:category_name, hash:category_name.parameterize)}= category_name
-    .mb-4.c-list-search__list{data: {target: "#{stimulus_controller}.results"}}
+    .mb-4.c-list-search__list{data: {"#{stimulus_controller}-target" => "results"}}
       - definitions_with_recents.each_with_index do |(group_name, reports), index|
         - dashed_group_name = group_name.parameterize.dasherize
-        .c-list-search__list-group{class: ["c-list-search__list-group--#{group_name.parameterize}"], data: {category: group_name, target: "#{stimulus_controller}.categoryContent"}}
+        .c-list-search__list-group{class: ["c-list-search__list-group--#{group_name.parameterize}"], data: {category: group_name, "#{stimulus_controller}-target" => "categoryContent"}}
           .c-list-search__list-group-header
             %h3.c-list-search__group-title #{group_name}
             - if reports.any?{ |r| !r.limitable?}
@@ -44,7 +44,7 @@
             - reports.each do |report|
               - if report
                 - categories = [group_name]
-                %li.c-list-search__item-link{data: {title: report.name, categories: categories.to_s.html_safe, target: "#{stimulus_controller}.item"}}
+                %li.c-list-search__item-link{data: {title: report.name, categories: categories.to_s.html_safe, "#{stimulus_controller}-target" => "item"}}
                   = link_to report.url, class: '' do
                     .c-list-search__item-title
                       %h5= report.name
@@ -56,4 +56,4 @@
                       - if report.new_report?
                         .badge.badge-danger.mr-1.ml-2 New
                     %p.c-list-search__item-description= report.description.html_safe
-      .c-list-search__no-results{class: 'hide', data: {target: "#{stimulus_controller}.noResults"}} No Reports found
+      .c-list-search__no-results{class: 'hide', data: {"#{stimulus_controller}-target" => "noResults"}} No Reports found
