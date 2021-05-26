@@ -434,7 +434,6 @@ module ClaimsReporting
           date_of_birth = member.date_of_birth
           enrollments = enrollments_by_member_id.fetch(member_id)
 
-          puts enrollments.inspect
           assignment_date = enrollments.min_by(&:cp_enroll_dt).cp_enroll_dt
           completed_treatment_plans = claims.select(&:completed_treatment_plan?)
 
@@ -1285,11 +1284,15 @@ module ClaimsReporting
       # > Exclude: Members who decline to engage with the BH CP.
       return [] if declined_to_engage?(enrollments)
 
-      # > Step 1: Identify all acute inpatient discharges on or between January 1 and December 1 of the measurement year
+      #  between January 3 and December 31 of the measurement year
       year = measurement_year.max.year
-      cp_13_date_range = Date.new(year, 1, 1) .. Date.new(year, 12, 1)
+      readmit_range = Date.new(year, 1, 3) .. Date.new(year, 12, 31)
+
+      # > Step 1: Identify all acute inpatient discharges on or between January 1 and December 1 of the measurement year
+      # We select discharges for the whole year and filter later because we we need overlapping but different
+      # Discharge ranges for both the Numerator and denominator
       acute_inpatient_claims = claims.select do |c|
-        c.discharge_date.present? && cp_13_date_range.cover?(c.discharge_date) && acute_inpatient_stay?(c)
+        c.discharge_date.present? && measurement_year.cover?(c.discharge_date) && acute_inpatient_stay?(c)
       end.sort_by(&:admit_date)
 
       # > Step 2: Acute-to-acute direct transfers
@@ -1299,7 +1302,12 @@ module ClaimsReporting
       # so we split this history into "stays" that include any direct transfers
       acute_inpatient_stays = acute_inpatient_claims.slice_when do |c1, c2|
         (c2.admit_date - c1.discharge_date) > 1
-      end
+      end.to_a
+
+      n_stays = acute_inpatient_stays.size
+      raise 'Too many stays to compare' if n_stays > 10_000
+
+      # puts "Checking #{n_stays}x#{n_stays}=#{n_stays**2} stay pairs" if n_stays > 0
 
       acute_inpatient_stays.each do |stay_claims|
         admit = stay_claims.first
@@ -1315,29 +1323,33 @@ module ClaimsReporting
           next
         end
         # > Step 4: Exclude hospital stays for the following reasons:
+        # ...
         # > Note: For hospital stays where there was an acute-to-acute
         # > direct transfer (identified in step 2), use both the
         # > original stay and the direct transfer stay to identify
         # > exclusions in this step.
         next if stay_claims.any? do |c|
-          if c.discharged_due_to_death? || c.dead_upon_arrival?
+          exclude = false
+          exclude ||= c.discharge_date > Date.new(year, 12, 1) # Step 1...
+          exclude ||= if c.discharged_due_to_death? || c.dead_upon_arrival?
             trace_exclusion do
               "BH_CP_13: MedicalClaim#id=#{c.id} The enrollee died during the stay"
             end
             true
           end
-          if member.sex == 'Female' && in_set?('Pregnancy', c, dx1_only: true)
+          exclude ||= if member.sex == 'Female' && in_set?('Pregnancy', c, dx1_only: true)
             trace_exclusion do
               "BH_CP_13: MedicalClaim#id=#{c.id} Female enrollees with a principal diagnosis of pregnancy"
             end
             true
           end
-          if in_set?('Perinatal Conditions', c, dx1_only: true)
+          exclude ||= if in_set?('Perinatal Conditions', c, dx1_only: true)
             trace_exclusion do
               "BH_CP_13: MedicalClaim#id=#{c.id} A principal diagnosis of a condition originating in the perinatal period"
             end
             true
           end
+          exclude
         end
 
         # >  Step 5 Calculate continuous enrollment.
@@ -1369,11 +1381,60 @@ module ClaimsReporting
           next
         end
 
+        # > Numerator: At least one acute readmission for any diagnosis within 30 days of the Index Discharge Date.
+        # FIXME? O(n^2) but n is tiny
+        # We are using acute_inpatient_stays again to do:
+        # > Steo 1: Identify all acute inpatient stays with an admission date on or between January 3 and December 31 of the measurement year.
+        # > Step 2: Acute-to-acute direct transfers
+        readmitted_in_30_days = n_stays > 1 && acute_inpatient_stays.any? do |other_stay|
+          readmit_date = other_stay.first.admit_date
+
+          next unless readmit_range.cover?(readmit_date) # Numerator Step 1
+
+          next unless (readmit_date - index_discharge_date).between?(2, 30)
+
+          # > Step 3: Exclude ... Pregnancy/perinatal
+          next if stay_claims.any? do |c|
+            exclude = false
+            exclude ||= if member.sex == 'Female' && in_set?('Pregnancy', c, dx1_only: true)
+              trace_exclusion do
+                "BH_CP_13: MedicalClaim#id=#{c.id} Female enrollees with a principal diagnosis of pregnancy"
+              end
+              true
+            end
+            exclude ||= if in_set?('Perinatal Conditions', c, dx1_only: true)
+              trace_exclusion do
+                "BH_CP_13: MedicalClaim#id=#{c.id} A principal diagnosis of a condition originating in the perinatal period"
+              end
+              true
+            end
+
+            exclude
+          end
+          # > Step 3: Exclude ... Planned Admissions
+          next if stay_claims.any? do |c|
+            if in_set?('Chemotherapy', c, dx1_only: true) ||
+              in_set?('Readmissions', c, dx1_only: true) ||
+              in_set?('Kidney Transplant', c) ||
+              in_set?('Bone Marrow Transplant', c) ||
+              in_set?('Organ Transplant Other Than Kidney', c) ||
+              in_set?('Introduction of Autologous Pancreatic Cells', c) ||
+              (in_set?('Potentially Planned Procedures', c) && !in_set?('Acute Condition', c))
+            then # rubocop:disable Style/MultilineIfThen
+              # puts "BH_CP_13: MedicalClaim#id=#{c.id} Planned Admissions"
+              true
+            end
+          end
+
+          true
+        end
+        # puts "BH_CP_13: Found readmitted_in_30_days" if readmitted_in_30_days
+
         # puts 'BH_CP_13: Found an IHS'
         row = MeasureRow.new(
           row_type: 'stay',
           row_id: "#{admit.id}-#{discharge.id}",
-          bh_cp_13: false,
+          bh_cp_13: readmitted_in_30_days,
         )
         rows << row
       end
