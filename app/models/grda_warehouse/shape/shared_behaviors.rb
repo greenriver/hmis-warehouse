@@ -34,23 +34,45 @@ module GrdaWarehouse
         {}
       end
 
+      def population(args={})
+        args[:geometry] = self
+        UsCensusApi::Finder.new(args).best_value
+      end
+
       module ClassMethods
         # Drastically reduce size of shapes and payload to send to the UI
         def simplify!
-          # Save original if not done already
-          where(orig_geom: nil).update_all(Arel.sql("orig_geom = geom"))
-
-          # Reset geom (no-op the first time)
-          update_all(Arel.sql("geom = orig_geom"))
-
           # Simplify
           # https://postgis.net/docs/ST_Simplify.html
-          update_all(Arel.sql("geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))"))
+          where(simplified_geom: nil).update_all(Arel.sql("simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))"))
+        end
+
+        # This is the id the census returns
+        def set_full_geoid!
+          where(full_geoid: nil).update_all("full_geoid = '#{Arel.sql(_full_geoid_prefix)}' || 'US' || #{_geoid_column}")
+        end
+
+        def _full_geoid_prefix
+          raise "Please set the full geoid prefix in #{self.name} and try again"
+        end
+
+        # Often just geoid, but some datasets call it geoid10
+        def _geoid_column
+          'geoid'
+        end
+
+        def my_fips_state_code
+          @my_fips_state_code ||= State.find_by!(stusps: ENV['RELEVANT_COC_STATE']).geoid
         end
       end
 
       included do
-        scope :efficient, -> { select(column_names - ['orig_geom']) }
+        scope :efficient, -> { select(column_names - ['geom', 'simplified_geom']) }
+
+        has_many :census_values, foreign_key: :full_geoid, primary_key: :full_geoid, class_name: 'GrdaWarehouse::UsCensusApi::CensusValue'
+
+        scope :my_state, -> { where(statefp: my_fips_state_code) }
+        scope :not_my_state, -> { where.not(statefp: my_fips_state_code) }
       end
     end
   end
