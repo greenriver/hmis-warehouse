@@ -201,6 +201,20 @@ module ClaimsReporting
         denominator: '',
       ),
       Measure.new(
+        id: :bh_cp_13a,
+        title: 'BH CP #13: Hospital Readmissions (Adult): Enrollees with 1-3 stays',
+        desc: '',
+        numerator: '',
+        denominator: '',
+      ),
+      Measure.new(
+        id: :bh_cp_13b,
+        title: 'BH CP #13: Hospital Readmissions (Adult): Enrollees with 4+ stays',
+        desc: '',
+        numerator: '',
+        denominator: '',
+      ),
+      Measure.new(
         id: :assigned_enrollees,
         title: 'assigned enrollees',
       ),
@@ -227,7 +241,12 @@ module ClaimsReporting
 
     def serializable_hash
       measure_info = AVAILABLE_MEASURES.values.map do |m|
-        numerator, denominator = *send(m.id)
+        numerator, denominator = * if respond_to?(m.id)
+                                     send(m.id)
+                                   else
+                                     percentage medical_claim_based_rows, m.id
+        end
+
         # only one value indicates a count
         if denominator.present?
           value = (numerator.to_f / denominator) unless denominator.zero?
@@ -1269,7 +1288,7 @@ module ClaimsReporting
     end
 
     # BH CP #13: Hospital Readmissions (Adult)
-    private def calculate_bh_cp_13(member, claims, enrollments)
+    private def calculate_bh_cp_13(member, claims, enrollments) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       rows = []
 
       # puts "BH_CP_13: Checking MemberRoster#id=#{member.id}"
@@ -1437,6 +1456,16 @@ module ClaimsReporting
           bh_cp_13: readmitted_in_30_days,
         )
         rows << row
+      end
+
+      if rows.size.between?(1, 3)
+        rows.each do |r|
+          r.bh_cp_13a = r.bh_cp_13
+        end
+      elsif rows.size > 4
+        rows.each do |r|
+          r.bh_cp_13b = r.bh_cp_13
+        end
       end
 
       rows
@@ -1818,54 +1847,6 @@ module ClaimsReporting
       return nil if denominator.zero?
 
       [numerator, denominator]
-    end
-
-    def bh_cp_1
-      percentage medical_claim_based_rows, :bh_cp_1
-    end
-
-    def bh_cp_2
-      percentage medical_claim_based_rows, :bh_cp_2
-    end
-
-    def bh_cp_3
-      percentage medical_claim_based_rows, :bh_cp_3
-    end
-
-    def bh_cp_4
-      percentage medical_claim_based_rows, :bh_cp_4
-    end
-
-    def bh_cp_5
-      percentage medical_claim_based_rows, :bh_cp_5
-    end
-
-    def bh_cp_6
-      percentage medical_claim_based_rows, :bh_cp_6
-    end
-
-    def bh_cp_7
-      percentage medical_claim_based_rows, :bh_cp_7
-    end
-
-    def bh_cp_8
-      percentage medical_claim_based_rows, :bh_cp_8
-    end
-
-    def bh_cp_9
-      percentage medical_claim_based_rows, :bh_cp_9
-    end
-
-    def bh_cp_10
-      percentage medical_claim_based_rows, :bh_cp_10
-    end
-
-    def bh_cp_12
-      percentage medical_claim_based_rows, :bh_cp_12
-    end
-
-    def bh_cp_13
-      percentage medical_claim_based_rows, :bh_cp_13
     end
 
     MEDICATION_LISTS = {
