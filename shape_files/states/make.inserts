@@ -15,7 +15,7 @@ end
 system('shp2pgsql -p -I tl_2020_us_state.shp shape_states > states.structure.sql')
 
 system(<<~EOS)
-  shp2pgsql -c -I tl_2020_us_state.shp shape_states \
+  shp2pgsql -s 4326 -c -I tl_2020_us_state.shp shape_states \
     | sed -e 's/gid/id/' \
     | grep INSERT \
     > inserts.sql
