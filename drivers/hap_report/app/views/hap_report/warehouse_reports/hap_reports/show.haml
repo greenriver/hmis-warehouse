@@ -1,0 +1,30 @@
+= content_for :crumbs do
+  = link_to hap_report_warehouse_reports_hap_reports_path do
+    = "« HAP Reports"
+%h1.mb-5
+  HAP Report
+
+.warehouse-reports__completed
+  = render 'filters/report_parameters', options: @report.options, report: @report
+
+%table.table.table-striped
+  %thead
+    %th
+    - @report.project_columns.keys.each do |label|
+      %th= label
+  %tbody
+    - @report.report_labels.keys.each do |section|
+      %tr
+        %td
+          %strong= section
+        - @report.project_columns.keys.each do |_|
+          %td
+      - @report.report_labels[section].keys.each do |row|
+        %tr
+          %td= row
+          - @report.project_columns.values.each do |column_key|
+            - cell_name = "#{@report.report_labels[section][row]}_#{column_key}"
+            - if @report.blank_cells.include?(cell_name)
+              %td
+            - else
+              %td= @report.report_cells.where(name: cell_name).first.summary

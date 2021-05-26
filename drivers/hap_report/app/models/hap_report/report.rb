@@ -7,18 +7,22 @@
 module HapReport
   class Report < SimpleReports::ReportInstance
     include Queries
-    after_find :set_attributes
+    after_initialize :set_attributes
 
     HAP_FUNDING = 'HAP Funded'.freeze
 
     attr_accessor :start_date, :end_date, :project_ids
+    validates_presence_of :start_date, :end_date, :project_ids
 
     def build_report
-      # create_universe
+      update(status: :processing)
+      create_universe
       report_labels.values.each do |sections|
         sections.values.each do |row_scope|
           project_columns.values.each do |column_scope|
             cell_name = "#{row_scope}_#{column_scope}"
+            next if blank_cells.include?(cell_name)
+
             cell = report_cells.build(name: cell_name)
             if row_scope == :total_units_of_shelter_service
               cell.summary = report_client_scope.where(send(column_scope)).sum(a_t[:nights_in_shelter])
@@ -31,6 +35,7 @@ module HapReport
           end
         end
       end
+      update(status: :completed)
     end
 
     private def create_universe
@@ -208,6 +213,56 @@ module HapReport
       }.freeze
     end
 
+    def blank_cells
+      [
+        'adults_who_gained_employment_bridge_housing',
+        'adults_who_received_rental_assistance_for_multiple_crises_bridge_housing',
+        'adults_with_combined_rental_assistance_payments_bridge_housing',
+        'total_near_homeless_served_bridge_housing',
+        'total_homeless_served_bridge_housing',
+        'total_units_of_shelter_service_bridge_housing',
+
+        'veterans_served_case_management',
+
+        'adults_with_mh_services_case_management',
+        'adults_with_da_services_case_management',
+        'adults_with_dv_services_case_management',
+        'adults_who_gained_employment_case_management',
+        'adults_who_received_rental_assistance_for_multiple_crises_case_management',
+        'adults_with_combined_rental_assistance_payments_case_management',
+        'total_units_of_shelter_service_case_management',
+
+        'total_units_of_shelter_service_rental_assistance',
+
+        'adults_who_gained_employment_emergency_shelter',
+        'adults_who_received_rental_assistance_for_multiple_crises_emergency_shelter',
+        'adults_with_combined_rental_assistance_payments_emergency_shelter',
+        'total_near_homeless_served_emergency_shelter',
+        'total_homeless_served_emergency_shelter',
+
+        'adults_who_gained_employment_innovative',
+        'adults_who_received_rental_assistance_for_multiple_crises_innovative',
+        'adults_with_combined_rental_assistance_payments_innovative',
+        'total_near_homeless_served_innovative',
+        'total_homeless_served_innovative',
+        'total_units_of_shelter_service_innovative',
+
+        'veterans_served_total',
+        'adults_with_mh_services_total',
+        'adults_with_da_services_total',
+        'adults_with_dv_services_total',
+        'adults_employed_at_start_total',
+        'adults_who_gained_employment_total',
+        'adults_who_received_rental_assistance_for_multiple_crises_total',
+        'adults_with_combined_rental_assistance_payments_total',
+        'total_clients_served_total',
+        'total_clients_denied_total',
+        'total_near_homeless_served_total',
+        'total_homeless_served_total',
+        'total_units_of_shelter_service_total',
+      ].freeze
+    end
+
     def enrollment_scope
       GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
@@ -220,7 +275,26 @@ module HapReport
       GrdaWarehouse::Hud::Project.
         joins(:funders).
         merge(GrdaWarehouse::Hud::Funder.funding_source(funder_code: 46, other: HAP_FUNDING)).
-        viewable_by(user)
+        viewable_by(user).
+        map { |project| [project.name, project.ProjectID] }
+    end
+
+    def key_for_display(key)
+      case key
+      when 'project_ids'
+        return 'Projects'
+      end
+
+      key.humanize
+    end
+
+    def value_for_display(key, value)
+      case key
+      when 'project_ids'
+        return GrdaWarehouse::Hud::Project.where(ProjectID: value).map(&:name).join(', ')
+      end
+
+      value
     end
 
     private def report_client_scope
@@ -228,9 +302,11 @@ module HapReport
     end
 
     private def set_attributes
-      @start_date = options['start_date'].to_date
-      @end_date = options['end_date'].to_date
-      @project_ids = options['project_ids'].map(&:to_i)
+      return unless options.present?
+
+      @start_date = options['start_date']&.to_date
+      @end_date = options['end_date']&.to_date
+      @project_ids = options['project_ids']&.reject(&:blank?)&.map(&:to_i)
     end
   end
 end

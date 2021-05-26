@@ -1,6 +1,13 @@
-BostonHmis::Application.routes.draw do
-  scope :hap_report do
-    # TODO
-    # get '/my_path', to: 'hap_report/my_controller'
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+Rails.application.routes.draw do
+  namespace :hap_report do
+    namespace :warehouse_reports do
+      resources :hap_reports
+    end
   end
 end

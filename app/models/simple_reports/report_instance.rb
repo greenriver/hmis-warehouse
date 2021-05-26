@@ -12,14 +12,27 @@ module SimpleReports
     belongs_to :user
     has_many :report_cells
 
-    def initialize(options)
-      super
+    scope :viewable_by, ->(user) do
+      return all if user.can_view_all_reports?
+      return where(user_id: user.id) if user.can_view_assigned_reports?
 
-      self.options = options
+      none
     end
 
     def universe
       report_cells.universe.first_or_create # There can only be one universe for a simple report
+    end
+
+    def completed?
+      status == 'completed'
+    end
+
+    def key_for_display(key)
+      key.humanize
+    end
+
+    def value_for_display(_key, value)
+      value
     end
   end
 end
