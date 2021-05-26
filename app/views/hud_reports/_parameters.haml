@@ -17,7 +17,7 @@
             - projects[0..4].each do |project|
               %div= link_to_if can_view_projects?, project.name, project_path(project)
             - details = capture_haml do
-              - projects[5..].each do |project|
+              - projects[5..]&.each do |project|
                 %div= project&.name
                 - missing_ids.each do |id|
                   %div= "##{id} (deleted)"

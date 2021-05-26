@@ -45,7 +45,7 @@
         }
         var organization_ids = $('.jOrganizations').val();
         var selected_project_ids = $('.jProjects').val();
-        $.get('#{api_projects_path()}', {
+        $.post('#{api_projects_path()}', {
           project_types: project_types,
           organization_ids: organization_ids,
           selected_project_ids: selected_project_ids

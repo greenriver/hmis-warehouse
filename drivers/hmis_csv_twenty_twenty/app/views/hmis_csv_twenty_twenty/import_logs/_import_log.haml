@@ -1,6 +1,7 @@
 = render partial: 'breadcrumbs'
 - status = @import.import_time(details: true)
 - ds_name = @import.data_source.name
+
 %h1
   = _("Import Log from #{ds_name}")
 - if @import.importer_log&.paused?
@@ -13,6 +14,14 @@
       %tr
         %th Imported On
         %td= @import.created_at
+      %tr
+        %th Loaded
+        %td= @import&.loader_log&.load_time
+      - import_time = @import&.importer_log&.import_time
+      - if import_time
+        %tr
+          %th Imported
+          %td= import_time
       %tr
         %th Completed In
         %td
