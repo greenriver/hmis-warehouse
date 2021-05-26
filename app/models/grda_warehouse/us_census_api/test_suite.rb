@@ -165,8 +165,7 @@ module GrdaWarehouse
       # end
 
       def _years
-        #2010..(Date.today.year-3)
-        ENV['US_CENSUS_API_YEARS'].split(',').map(&:to_i)
+        @_years ||= ENV.fetch('US_CENSUS_API_YEARS') { 2012.upto(Date.today.year - 1).map(&:to_s).join(',') }.split(/,/).map(&:to_i)
       end
     end
   end

@@ -14,6 +14,8 @@ module GrdaWarehouse
       attr_accessor :year, :dataset
 
       def initialize(year:, dataset:)
+        require 'curb'
+
         self.year = year
         self.dataset = dataset
       end
