@@ -34,7 +34,12 @@ module GrdaWarehouse
       def initialize(coc:, candidates: nil)
         self.coc = coc
         self.value_tally = {}
-        self.candidates ||= :candidate_counties # Can also consider block groups or zip codes. Any geometry that covers the state completely can work if the code supports the geometry.
+
+        # Can also consider block groups or zip codes. Any geometry that covers
+        # the state completely can work if the code supports the geometry and
+        # the census data exists.
+        self.candidates ||= :candidate_counties
+
         self.num_pieces = 0
         self.area_sum = 0.0
         self.results = Struct.new(:good, :bad, :no_data).new
@@ -60,7 +65,7 @@ module GrdaWarehouse
       def _collect_data!
         coc.send(self.candidates).find_each do |piece_of_coc|
 
-          intersection = coc.orig_geom.intersection(piece_of_coc.orig_geom)
+          intersection = coc.geom.intersection(piece_of_coc.geom)
 
           next if intersection.nil?
 
@@ -75,7 +80,7 @@ module GrdaWarehouse
               sum
             end
 
-          area_of_piece_of_coc = GrdaWarehouse::Shape::SpatialRefSys.to_meters(piece_of_coc.orig_geom).area
+          area_of_piece_of_coc = GrdaWarehouse::Shape::SpatialRefSys.to_meters(piece_of_coc.geom).area
 
           percentage = area_in_coc / area_of_piece_of_coc
 
@@ -147,7 +152,7 @@ module GrdaWarehouse
       end
 
       def _coc_area
-        @_coc_area ||= GrdaWarehouse::Shape::SpatialRefSys.to_meters(coc.orig_geom).area
+        @_coc_area ||= GrdaWarehouse::Shape::SpatialRefSys.to_meters(coc.geom).area
       end
     end
   end

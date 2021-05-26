@@ -446,9 +446,9 @@ module PublicReports
           ::HUD.races(multi_racial: true).each do |race_code, label|
             census_data[label] = 0
             year = date.year
-            full_pop = population(year: year)
+            full_pop = get_us_census_population(year: year)
             if full_pop.positive?
-              census_data[label] = population(race_code: race_code, year: year) / full_pop.to_f
+              census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f
             end
           end
           all_destination_ids = with_service_in_quarter(report_scope, date, population).distinct.pluck(:client_id)
@@ -494,7 +494,7 @@ module PublicReports
       end
     end
 
-    private def population(race_code: 'All', year:)
+    private def get_us_census_population(race_code: 'All', year:)
       race_var = \
         case race_code
         when 'AmIndAKNative' then NATIVE_AMERICAN
@@ -509,9 +509,20 @@ module PublicReports
           raise "Invalid race code: #{race_code}"
         end
 
-      geometries.
-        map { |coc| coc.population(internal_names: race_var, year: year).val }.
-        sum
+      results = geometries.map do |coc|
+        coc.population(internal_names: race_var, year: year)
+      end
+
+      results.each do |result|
+        if result.error
+          Rails.logger.error "population error: #{result.msg}. Sum won't be right!"
+          return nil
+        elsif result.year != year
+          Rails.logger.warn "Using #{result.year} instead of #{year}"
+        end
+      end
+
+      results.map(&:val).sum
     end
 
     private def geometries

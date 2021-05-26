@@ -9,7 +9,7 @@
 module GrdaWarehouse
   module UsCensusApi
     class Finder
-      Results = Struct.new(:val, :components, :msg, :error)
+      Results = Struct.new(:val, :components, :msg, :error, :year, :dataset)
 
       CannotFindData = Class.new(StandardError)
 
@@ -50,9 +50,9 @@ module GrdaWarehouse
           if result.blank?
             # not sure how we want to handle this in this app
             # raise CannotFindData, "Cannot find values for #{internal_names} for #{geometry.full_geoid} for #{year} in #{dataset}!"
-            Results.new(nil, [], "Cannot find values for #{internal_names} for #{geometry.full_geoid} for #{year} ", true)
+            Results.new(nil, [], "Cannot find values for #{internal_names} for #{geometry.full_geoid} for #{year} ", true, nil, nil)
           else
-            Results.new(result.value, [result], "#{result.year}:#{result.dataset}", false)
+            Results.new(result.value, [result], "success", false, result.year, result.dataset)
           end
         end
       end

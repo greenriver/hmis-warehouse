@@ -6,8 +6,8 @@ namespace :us_census_api do
     @levels = [
       'STATE',
       'COUNTY',
-      'ZCTA5',
-      'BG',
+      'ZCTA5', # zip codes
+      # 'BG',  # block groups
     ]
 
     @state_code = ENV.fetch('RELEVANT_COC_STATE')

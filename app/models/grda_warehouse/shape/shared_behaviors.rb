@@ -67,7 +67,7 @@ module GrdaWarehouse
       end
 
       included do
-        scope :efficient, -> { select(column_names - ['orig_geom']) }
+        scope :efficient, -> { select(column_names - ['geom', 'simplified_geom']) }
 
         has_many :census_values, foreign_key: :full_geoid, primary_key: :full_geoid, class_name: 'GrdaWarehouse::UsCensusApi::CensusValue'
 
