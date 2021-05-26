@@ -68,9 +68,9 @@ module GrdaWarehouse
         _test_generic_sum!(ALL_PEOPLE, _zip_codes)
       end
 
-      define_method("test_zip_codes") do
-        _test_generic_sum!(ALL_PEOPLE, _block_groups)
-      end
+      # define_method("test_block_groups") do
+      #   _test_generic_sum!(ALL_PEOPLE, _block_groups)
+      # end
 
       RACE_ETH.each do |race_eth|
         define_method("test_#{race_eth}_counties") do
