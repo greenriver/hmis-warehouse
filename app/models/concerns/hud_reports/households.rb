@@ -62,7 +62,7 @@ module HudReports::Households
     private def household_member_data(enrollment)
       # return nil unless enrollment[:head_of_household]
 
-      households[enrollment.household_id]
+      households[enrollment.household_id] || []
     end
 
     # Note, you need to pass in a client because the date needs to be calculated

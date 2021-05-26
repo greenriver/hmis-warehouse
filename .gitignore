@@ -110,6 +110,12 @@ shape_files/**/*
 !/shape_files/CoC
 !/shape_files/CoC/README.md
 !/shape_files/CoC/make.inserts
+!/shape_files/states
+!/shape_files/states/README.md
+!/shape_files/states/make.inserts
+!/shape_files/counties
+!/shape_files/counties/README.md
+!/shape_files/counties/make.inserts
 !/shape_files/zip_codes.census.2018
 !/shape_files/zip_codes.census.2018/README.md
 !/shape_files/zip_codes.census.2018/make.inserts

@@ -17,6 +17,7 @@
           %th Filename
           %th Uploaded By
           %th Uploaded On
+          %th Processing Started
           %th Completed In
         %tbody
           - @uploads.each do |upload|
@@ -24,6 +25,9 @@
               %td= upload.file.to_s.split('/').last
               %td= upload.user&.name
               %td= upload.created_at
+              %td
+                - if upload.import_log&.loader_log.present?
+                  = upload.import_log.loader_log.started_at
               %td
                 - if upload.import_log.present?
                   = link_to upload.import_time, import_path(id: upload.import_log.id)

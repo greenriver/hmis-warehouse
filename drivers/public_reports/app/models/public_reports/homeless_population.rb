@@ -9,6 +9,7 @@ module PublicReports
   class HomelessPopulation < ::PublicReports::Report
     include ActionView::Helpers::TextHelper
     include ActionView::Helpers::NumberHelper
+    include GrdaWarehouse::UsCensusApi::Aggregates
     acts_as_paranoid
 
     def title
@@ -442,9 +443,13 @@ module PublicReports
           data = {}
           census_data = {}
           # Add census info
-          ::HUD.races(multi_racial: true).each do |key, label|
+          ::HUD.races(multi_racial: true).each do |race_code, label|
             census_data[label] = 0
-            census_data[label] = GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).with_measure(key).sum(:value) / full_census_count.to_f if full_census_count&.positive?
+            year = date.year
+            full_pop = get_us_census_population(year: year)
+            if full_pop.positive?
+              census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f
+            end
           end
           all_destination_ids = with_service_in_quarter(report_scope, date, population).distinct.pluck(:client_id)
           with_service_in_quarter(report_scope, date, population).
@@ -489,8 +494,39 @@ module PublicReports
       end
     end
 
-    private def full_census_count
-      @full_census_count ||= GrdaWarehouse::FederalCensusBreakdowns::Coc.coc_level.with_geography(coc_codes).full_set.with_measure(:all).sum(:value)
+    private def get_us_census_population(race_code: 'All', year:)
+      race_var = \
+        case race_code
+        when 'AmIndAKNative' then NATIVE_AMERICAN
+        when 'Asian' then ASIAN
+        when 'BlackAfAmerican' then BLACK
+        when 'NativeHIOtherPacific' then PACIFIC_ISLANDER
+        when 'White' then WHITE
+        when 'RaceNone' then OTHER_RACE
+        when 'MultiRacial' then TWO_OR_MORE_RACES
+        when 'All' then ALL_PEOPLE
+        else
+          raise "Invalid race code: #{race_code}"
+        end
+
+      results = geometries.map do |coc|
+        coc.population(internal_names: race_var, year: year)
+      end
+
+      results.each do |result|
+        if result.error
+          Rails.logger.error "population error: #{result.msg}. Sum won't be right!"
+          return nil
+        elsif result.year != year
+          Rails.logger.warn "Using #{result.year} instead of #{year}"
+        end
+      end
+
+      results.map(&:val).sum
+    end
+
+    private def geometries
+      @geometries ||= GrdaWarehouse::Shape::CoC.where(cocnum: coc_codes)
     end
 
     private def coc_codes

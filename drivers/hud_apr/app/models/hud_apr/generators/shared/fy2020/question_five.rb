@@ -85,6 +85,7 @@ module HudApr::Generators::Shared::Fy2020
           clause: stayers_clause,
         },
         # Number of adult stayers
+        # must match Q16-C14
         {
           cell: 'B9',
           clause: stayers_clause.
