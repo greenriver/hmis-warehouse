@@ -20,6 +20,7 @@
 
   = render 'warehouse_reports/filters', f:f
 
+- # FIXME: needs stimulus on form
 = content_for :page_js do
   :javascript
     $(document).ready(function() {
@@ -29,7 +30,7 @@
           project_types_ids = [2, 3, 13]
         }
         var selected_project_ids = $('.jProjects').val();
-        $.get('#{api_projects_path()}', {
+        $.post('#{api_projects_path()}', {
           project_type_ids: project_type_ids,
           selected_project_ids: selected_project_ids
         }, function(data){
@@ -38,4 +39,3 @@
       });
       $('.jProjectTypes').trigger('change');
     });
-

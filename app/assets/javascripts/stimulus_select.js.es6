@@ -21,16 +21,33 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
   }
 
   setupDependentProjectList() {
+    console.log('setupDependentProjectList')
+    $(this.organizationsTarget).on('select2:select', (e) => {
+      let event = new Event('change', { bubbles: true }) // fire a native event
+      e.target.dispatchEvent(event);
+    });
+    $(this.organizationsTarget).on('select2:clear', (e) => {
+      let event = new Event('change', { bubbles: true }) // fire a native event
+      e.target.dispatchEvent(event);
+    });
+    $(this.projectTypesTarget).on('select2:select', (e) => {
+      let event = new Event('change', { bubbles: true }) // fire a native event
+      e.target.dispatchEvent(event);
+    });
+    $(this.projectTypesTarget).on('select2:clear', (e) => {
+      let event = new Event('change', { bubbles: true }) // fire a native event
+      e.target.dispatchEvent(event);
+    });
     if (this.hasOrganizationsTarget) {
       $(this.organizationsTarget).trigger('change')
     }
-    if (this.projectTypesTarget) {
+    if (this.hasProjectTypesTarget) {
       $(this.projectTypesTarget).trigger('change')
     }
   }
 
   updateDependentProjectList() {
-    console.log('here')
+    console.log('updateDependentProjectList')
     if (this.hasProjectsTarget) {
       let $projectTarget = $(this.projectsTarget)
       let selected_project_ids = $projectTarget.val()
@@ -39,7 +56,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
       if (this.hasOrganizationsTarget) {
         selections.organization_ids = $(this.organizationsTarget).val()
       }
-      if (this.projectTypesTarget) {
+      if (this.hasProjectTypesTarget) {
         selections.project_types = $(this.projectTypesTarget).val()
       }
       $.post(url, selections, (data) => {
