@@ -101,6 +101,7 @@ module HudApr::Generators::Shared::Fy2020
       [
         'C12',
         'C13',
+        'C14', # must match Q5-B9 (adult stayers)
       ].freeze
     end
   end
