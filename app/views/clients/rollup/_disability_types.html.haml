@@ -44,10 +44,13 @@
               %td.date-cell= information_date
               - aggregated.each do |symptom, result|
                 %td
-                  = lighten_no(yes_no(result.response) || result.response)
-                  - if result.response && result.indefinite
-                    .light.text-small
-                      Indefinite & Impairs
+                  - if symptom == :hiv && ! can_view_hiv_status?
+                    [redacted]
+                  - else
+                    = lighten_no(yes_no(result.response) || result.response)
+                    - if result.response && result.indefinite
+                      .light.text-small
+                        Indefinite & Impairs
 
   - else
     .no-data
