@@ -44,7 +44,6 @@ module HudReports
     end
 
     def add_members(members)
-      binding.pry
       UniverseMember.import(
         members.map { |member| copy_member(member) },
         validate: false,
