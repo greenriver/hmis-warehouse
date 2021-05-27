@@ -209,6 +209,12 @@ module HapReport
       }.freeze
     end
 
+    def notes
+      {
+        total_clients_served: 'This number may be smaller than the sum if a client appears in both adult only, and with children, households',
+      }
+    end
+
     def project_columns
       {
         'Bridge Housing' => :bridge_housing,

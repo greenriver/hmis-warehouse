@@ -21,10 +21,15 @@
           %td
       - @report.report_labels[section].keys.each do |row|
         %tr
-          %td= row
+          %td
+            = row
+            - note = @report.notes[@report.report_labels[section][row]]
+            - if note.present?
+              %br
+              %small= note
           - @report.project_columns.values.each do |column_key|
             - cell_name = "#{@report.report_labels[section][row]}_#{column_key}"
             - if @report.blank_cells.include?(cell_name)
               %td
             - else
-              %td= @report.report_cells.where(name: cell_name).first.summary
+              %td= number_with_delimiter(@report.report_cells.where(name: cell_name).first.summary)
