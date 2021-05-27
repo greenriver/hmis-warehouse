@@ -31,6 +31,7 @@ class PerformanceDashboards::Base
     @household_type = filter.household_type
     @hoh_only = filter.hoh_only
     @age_ranges = filter.age_ranges
+    @length_of_times = filter.length_of_times
     @genders = filter.genders
     @races = filter.races
     @ethnicities = filter.ethnicities

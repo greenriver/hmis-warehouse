@@ -14,6 +14,7 @@ module PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Entering::Ethnicity
   include PerformanceDashboard::Overview::Entering::ProjectType
   include PerformanceDashboard::Overview::Entering::Coc
+  include PerformanceDashboard::Overview::Entering::LotHomeless
 
   def entering
     entries.distinct
@@ -43,6 +44,8 @@ module PerformanceDashboard::Overview::Entering
       entering_by_project_type_details(options)
     elsif options[:coc]
       entering_by_coc_details(options)
+    elsif options[:lot_homeless]
+      entering_by_lot_homeless_details(options)
     end
   end
 
