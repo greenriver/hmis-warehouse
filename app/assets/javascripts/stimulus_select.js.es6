@@ -12,17 +12,13 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
 
   connect() {
     this.enableFancySelect()
+    this.watchForSelect2Opens()
     this.enableSelectGroup()
     this.setupDependentProjectList()
     this.fetchRemoteData()
   }
 
-  updateSelectAllStatus() {
-    console.log('updateSelectAllStatus fired')
-  }
-
   setupDependentProjectList() {
-    console.log('setupDependentProjectList')
     if (this.hasOrganizationsTarget) {
       $(this.organizationsTarget).on('select2:select', (e) => {
         let event = new Event('change', { bubbles: true }) // fire a native event
@@ -48,7 +44,6 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
   }
 
   updateDependentProjectList() {
-    console.log('updateDependentProjectList')
     if (this.hasProjectsTarget) {
       let $projectTarget = $(this.projectsTarget)
       let selected_project_ids = $projectTarget.val()
@@ -85,21 +80,58 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
   enableFancySelect() {
     // maybe this should invoke a mutation observer looking for any of the targets being added to the page
     // then set them up as select2
-    $(this.elementTargets).each((i, field) => {
-      let options = {}
-      if (field.hasAttribute('multiple')) {
-        options.closeOnSelect = false
-      }
-      $(field).select2(options)
-      // $(field).on('select2:open', this.updateSelectAllState(this))
-    })
+    // $(this.elementTargets).each((i, field) => {
+    //   let options = {}
+    //   if (field.hasAttribute('multiple')) {
+    //     options.closeOnSelect = false
+    //   }
+    //   $(field).select2(options)
+    // })
+
+    let select_target = '[data-stimulus-select-target*="element"]'
+    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+    if (MutationObserver) {
+      let observer = new MutationObserver((mutations) => {
+        console.log($(select_target).length)
+        if ($(select_target).length > 0) {
+          console.log($(select_target).length)
+          $(select_target).each((i, field) => {
+            console.log(field)
+            // let options = {}
+            // if (field.hasAttribute('multiple')) {
+            //   options.closeOnSelect = false
+            // }
+            // $(field).select2(options)
+          })
+        }
+      });
+      observer.observe(document, { attributes: false, childList: true, characterData: false, subtree: true });
+    }
+  }
+
+  watchForSelect2Opens() {
+    let drop_down_class = '.select2-dropdown'
+    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+    if (MutationObserver) {
+      let observer = new MutationObserver((mutations) => {
+        if ($(drop_down_class).length > 0) {
+          $(drop_down_class).each((i, drop_down_span) => {
+            $(drop_down_span).find('ul.select2-results__options--nested .select2-results__option:first-of-type').each((i, el) => {
+              // trigger an update on the first option in each group to keep the select all/none text in sync
+              this.updateSelectAllState({target: el})
+            })
+          })
+        }
+      });
+      observer.observe(document, { attributes: false, childList: true, characterData: false, subtree: true });
+    }
   }
 
   enableSelectGroup() {
     let opt_group_class = '.select2-results__group'
     const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
     if (MutationObserver) {
-      let observer = new MutationObserver(function (mutations) {
+      let observer = new MutationObserver((mutations) => {
         if ($(opt_group_class).length > 0) {
           $(opt_group_class).each((i, strong) => {
 
@@ -131,26 +163,29 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
   toggleChildren(e) {
     let $select_all = $(e.target)
     let $parent = $select_all.next()
-
-    this._updateSelectAllClass($parent, $select_all)
     let $original_select = this._originalSelectFrom($select_all.closest('ul'))
+
+    // set class on select_alls so we can determine what to do based on what's currently selected
+    this._updateSelectAllClass($parent, $select_all)
+
     if ($select_all.hasClass('j-any-selected')) {
-      let to_unselect = this._optionGroupOptionValues($parent.find('li[aria-selected=true]'))
+      let $options = $parent.find('li[aria-selected=true]')
+      let to_unselect = this._optionGroupOptionValues($options)
       $original_select.find('option:selected').each((i, el) => {
         if (to_unselect.includes($(el).val())) {
           $(el).removeAttr('selected')
-          console.log('un-selected: ', el)
         }
       })
-      // $parent.find('li[aria-selected=true]').attr('')
+      $options.attr('aria-selected', false)
     } else {
-      let to_select = this._optionGroupOptionValues($parent.find('li[aria-selected=false]'))
+      let $options = $parent.find('li[aria-selected=false]')
+      let to_select = this._optionGroupOptionValues($options)
       $original_select.find('option').each((i, el) => {
         if (to_select.includes($(el).val())) {
           $(el).attr('selected', 'selected')
-          console.log('selected: ', el)
         }
       })
+      $options.attr('aria-selected', true)
     }
     this._updateSelectAllClass($parent, $select_all)
     $original_select.trigger('change')
