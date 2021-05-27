@@ -78,34 +78,63 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
   }
 
   enableFancySelect() {
-    // maybe this should invoke a mutation observer looking for any of the targets being added to the page
-    // then set them up as select2
-    // $(this.elementTargets).each((i, field) => {
-    //   let options = {}
-    //   if (field.hasAttribute('multiple')) {
-    //     options.closeOnSelect = false
-    //   }
-    //   $(field).select2(options)
-    // })
-
-    let select_target = '[data-stimulus-select-target*="element"]'
+    $('body').data('stimulus-select-initialized', [])
     const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
     if (MutationObserver) {
       let observer = new MutationObserver((mutations) => {
-        console.log($(select_target).length)
-        if ($(select_target).length > 0) {
-          console.log($(select_target).length)
-          $(select_target).each((i, field) => {
-            console.log(field)
-            // let options = {}
-            // if (field.hasAttribute('multiple')) {
-            //   options.closeOnSelect = false
-            // }
-            // $(field).select2(options)
-          })
-        }
+        this._addSelects()
       });
       observer.observe(document, { attributes: false, childList: true, characterData: false, subtree: true });
+    }
+  }
+
+  _addSelects() {
+    let select_target = '[data-stimulus-select-target*="element"]'
+    // don't do anything if we don't have any new select elements
+    if ($(select_target).length > 0) {
+      // Make sure we only initialize each field once
+      already_processed = $('body').data('stimulus-select-initialized')
+      $(select_target).each((i, field) => {
+        if (!already_processed.includes(field)) {
+          let options = {}
+
+          // Add options based on use-case
+          // CoCs get special functionality "My Coc (MA-500)" becomes MA-500 when selected
+          if (field.classList.contains('select2-parenthetical-when-selected')) {
+            options.templateSelection = (selected) => {
+              if (!selected.id) {
+                return selected.text
+              }
+              // use the parenthetical text to keep the select smaller
+              const matched = selected.text.match(/\((.+?)\)/)
+              if (matched && !matched.length == 2) {
+                return selected.text
+              } else if (matched && matched.length) {
+                return matched[1]
+              } else {
+                return selected.text
+              }
+            }
+          }
+
+          if (field.classList.contains('select2-id-when-selected')) {
+            options.templateSelection = (selected) => {
+              if (!selected.id) {
+                return selected.text
+              }
+              // use the code to keep the select smaller
+              return selected.id
+            }
+          }
+
+          if (field.hasAttribute('multiple')) {
+            options.closeOnSelect = false
+          }
+          $(field).select2(options)
+          already_processed.push(field)
+        }
+      })
+      $('body').data('stimulus-select-initialized', already_processed)
     }
   }
 

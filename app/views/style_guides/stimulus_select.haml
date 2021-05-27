@@ -15,6 +15,14 @@
           %h4 Select 2 - Multiselect (with select all/none)
           = f.input :stimulus_select_multi, collection: collection,  as: :select_two, input_html: { multiple: true }
 
+          %h4 Select 2 - simple form input - CoC special behavior
+          %p.font-italic Select inputs have class name: <strong>.select2-id-when-selected</strong>
+          = f.input :select2_coc_behavior_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-id-when-selected'] }, hint: 'Show value instead of label when selected'
+
+          %h4 Select 2 - simple form input - Parenthetical
+          %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
+          = f.input :select2_parenthetical_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
+
           %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
           = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
 
