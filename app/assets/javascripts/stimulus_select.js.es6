@@ -6,11 +6,12 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     return ['element', 'projectTypes', 'organizations', 'projects', 'optGroup', 'opt', 'selectAll']
   }
 
-  initialize() {
-    console.log('stimulus-select initializing')
-  }
+  // initialize() {
+  //   console.log('stimulus-select initializing')
+  // }
 
   connect() {
+    this.element['stimulusSelect'] = this // allow access to this controller from other controllers
     this.enableFancySelect()
     this.watchForSelect2Opens()
     this.enableSelectGroup()
@@ -51,20 +52,31 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     }
   }
 
+  // NOTE: this needs to work cross-controllers
   updateDependentProjectList() {
-    if (this.hasProjectsTarget) {
-      let $projectTarget = $(this.projectsTarget)
+    let $project_controller = $('[data-stimulus-select-target*="projects"]').closest('[data-controller*="stimulus-select"]')
+    let $organization_controller = $('[data-stimulus-select-target*="organizations"]').closest('[data-controller*="stimulus-select"]')
+
+    let $project_types_controller = $('[data-stimulus-select-target*="projectTypes"]').closest('[data-controller*="stimulus-select"]')
+
+    if ($project_controller.length > 0) {
+      let project_stimulus = $project_controller[0].stimulusSelect
+      // console.log(project_controller, project_controller.stimulusSelect)
+      let $projectTarget = $(project_stimulus.projectsTarget)
       let selected_project_ids = $projectTarget.val()
       let url = $projectTarget.data('project-url')
       selections = { selected_project_ids: selected_project_ids }
-      if (this.hasOrganizationsTarget) {
-        selections.organization_ids = $(this.organizationsTarget).val()
+      if ($organization_controller.length > 0) {
+        let organization_stimulus = $organization_controller[0].stimulusSelect
+        selections.organization_ids = $(organization_stimulus.organizationsTarget).val()
       }
-      if (this.hasProjectTypesTarget) {
-        selections.project_types = $(this.projectTypesTarget).val()
+      if ($project_types_controller.length > 0) {
+        let project_types_stimulus = $project_types_controller[0].stimulusSelect
+        selections.project_types = $(project_types_stimulus.projectTypesTarget).val()
       }
       $.post(url, selections, (data) => {
         $projectTarget.html(data)
+        $projectTarget.trigger('change')
       })
     }
   }
