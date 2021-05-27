@@ -32,4 +32,6 @@
             - if @report.blank_cells.include?(cell_name)
               %td
             - else
-              %td= number_with_delimiter(@report.report_cells.where(name: cell_name).first.summary)
+              - value = @report.cell(cell_name).summary
+              - count = @report.cell(cell_name).count
+              %td= link_to_if(count.positive?, number_with_delimiter(value), details_hap_report_warehouse_reports_hap_report_path(@report, cell: cell_name))

@@ -23,6 +23,10 @@ module SimpleReports
       report_cells.universe.first_or_create # There can only be one universe for a simple report
     end
 
+    def cell(cell_name)
+      report_cells.where(name: cell_name).first
+    end
+
     def completed?
       status == 'completed'
     end

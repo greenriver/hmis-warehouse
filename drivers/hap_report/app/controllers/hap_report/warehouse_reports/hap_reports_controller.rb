@@ -7,7 +7,7 @@
 module HapReport::WarehouseReports
   class HapReportsController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :set_report, only: [:show, :destroy]
+    before_action :set_report, only: [:show, :destroy, :details]
 
     def index
       @reports = report_scope.page(params[:page]).per(25)
@@ -32,6 +32,11 @@ module HapReport::WarehouseReports
       @report.destroy
       flash[:notice] = 'Report removed.'
       redirect_to action: :index
+    end
+
+    def details
+      @cell = params[:cell].humanize
+      @members = @report.cell(params[:cell]).members
     end
 
     def report_scope

@@ -23,7 +23,7 @@ module HapReport
             cell_name = "#{row_scope}_#{column_scope}"
             next if blank_cells.include?(cell_name)
 
-            cell = report_cells.build(name: cell_name)
+            cell = report_cells.create(name: cell_name)
             if row_scope == :total_units_of_shelter_service
               cell.summary = report_client_scope.where(send(column_scope)).sum(a_t[:nights_in_shelter])
             else

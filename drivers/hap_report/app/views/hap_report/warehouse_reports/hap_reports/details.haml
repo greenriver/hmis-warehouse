@@ -1,0 +1,20 @@
+= content_for :crumbs do
+  = link_to hap_report_warehouse_reports_hap_report_path(@report) do
+    = "« HAP Report"
+%h1.mb-5
+  = @cell
+
+.overflow-x-scroll{style: "height: 800px"}
+  %table.table.table-sm.table-striped
+    - attributes = @members.first.universe_membership.attribute_names - ['id', 'deleted_at', 'created_at', 'updated_at']
+    %thead
+      - (['first_name', 'last_name'] + attributes).each do |name|
+        %th= name.humanize
+    %tbody
+      - @members.each do |member|
+        %tr
+          %td= member[:first_name]
+          %td= member[:last_name]
+          - client_details = member.universe_membership
+          - attributes.each do |attribute|
+            %td= client_details[attribute]
