@@ -59,6 +59,7 @@ module HudReports
       UniverseMember.import(
         members.map { |client, universe_client| new_member(warehouse_client: client, universe_client: universe_client) },
         validate: false,
+        on_duplicate_key_ignore: true,
       )
     end
 

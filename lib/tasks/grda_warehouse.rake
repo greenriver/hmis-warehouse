@@ -258,7 +258,7 @@ namespace :grda_warehouse do
     rescue StandardError => e
       puts e.message
     end
-    TextMessage::Message.send_pending! if RailsDrivers.loaded.include?(:text_message)
+    TextMessage::Message.send_pending! if GrdaWarehouse::Config.get(:send_sms_for_covid_reminders) && RailsDrivers.loaded.include?(:text_message)
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
@@ -350,47 +350,10 @@ namespace :grda_warehouse do
 
   desc 'Get shapes'
   task :get_shapes, [] => [:environment] do
-    Rails.logger.info 'Downloading shapes of geometries (you need to set up your AWS environment to download)'
-    FileUtils.chdir(Rails.root.join('shape_files'))
-    system('./sync.from.s3')
-
-    num_zips = `find . -name '*zip'`.split(/\n/).length
-    if num_zips == 0
-      # If you don't care about CoC/ZipCode shapes and want to just get through
-      # the migration, just comment out this whole rake task. You can run it
-      # later
-      raise 'You didn\'t sync shape files correctly yet. Aborting'
+    Rails.logger.tagged('shapes') do
+      installer = GrdaWarehouse::Shape::Installer.new
+      installer.run!
+      installer.prune!
     end
-
-    Rails.logger.info 'Preparing shapes of geometries for insertion into database'
-    FileUtils.chdir(Rails.root)
-    system('./shape_files/zip_codes.census.2018/make.inserts') || exit
-    system('./shape_files/CoC/make.inserts') || exit
-
-    Rails.logger.info 'Inserting CoCs into the database, conserving RAM'
-    GrdaWarehouse::Shape::ZipCode.delete_all
-    GrdaWarehouse::Shape::CoC.delete_all
-    ActiveRecord::Base.logger.silence do
-      File.open('shape_files/CoC/coc.sql', 'r') do |fin|
-        fin.each_line do |line|
-          GrdaWarehouseBase.connection.execute(line)
-        end
-      end
-    end
-
-    Rails.logger.info 'Inserting zip codes into the database, conserving RAM (takes awhile)'
-    ActiveRecord::Base.logger.silence do
-      File.open('shape_files/zip_codes.census.2018/zip.codes.sql', 'r') do |fin|
-        fin.each_line do |line|
-          GrdaWarehouseBase.connection.execute(line)
-        end
-      end
-    end
-
-    Rails.logger.info 'Simplifying shapes for much faster UI'
-    GrdaWarehouse::Shape::ZipCode.simplify!
-    GrdaWarehouse::Shape::CoC.simplify!
-
-    Rails.logger.info 'Done with shape importing'
   end
 end

@@ -56,6 +56,7 @@ module Admin::EtoApi
           :triage_assessment,
           :rrh_assessment,
           :covid_19_impact_assessment,
+          :with_location_data,
         )
     end
   end

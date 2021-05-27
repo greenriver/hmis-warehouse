@@ -3,9 +3,102 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-
+require 'memoist'
 module ClaimsReporting
   class MedicalClaim < HealthBase
+    extend Memoist
+
+    phi_patient :member_id
+    belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
+
+    belongs_to :member_roster, primary_key: :member_id, foreign_key: :member_id
+
+    scope :service_in, ->(date_range) do
+      where(
+        arel_table[:service_start_date].lt(date_range.max).
+        and(
+          arel_table[:service_end_date].gteq(date_range.min).
+          or(arel_table[:service_end_date].eq(nil)),
+        ),
+      )
+    end
+
+    # like service_in but using daterange intersection index in postgres which *might* be faster...
+    scope :service_overlaps, ->(date_range) do
+      where ["daterange(service_start_date, service_end_date, '[]') && daterange(:min, :max, '[]')", { min: date_range.min, max: date_range.max }]
+    end
+
+    scope :engaging, -> do
+      paid.where(
+        procedure_code: 'T2024',
+        procedure_modifier_1: 'U4',
+        claim_status: 'P',
+      )
+    end
+
+    scope :paid, -> do
+      where(claim_status: 'P')
+    end
+
+    scope :matching_icd10cm, ->(pg_regexp_str) do
+      # Tip: pg_trgm gist or gin index can make ~ operators fast
+      # this will otherwise be slow!
+      where <<~SQL.squish, pattern: pg_regexp_str
+        COALESCE(icd_version. '10') AND (
+          dx_1 ~ :pattern
+          OR dx_2 ~ :pattern
+          OR dx_3 ~ :pattern
+          OR dx_4 ~ :pattern
+          OR dx_5 ~ :pattern
+          OR dx_6 ~ :pattern
+          OR dx_7 ~ :pattern
+          OR dx_8 ~ :pattern
+          OR dx_9 ~ :pattern
+          OR dx_10 ~ :pattern
+          OR dx_11 ~ :pattern
+          OR dx_12 ~ :pattern
+          OR dx_13 ~ :pattern
+          OR dx_14 ~ :pattern
+          OR dx_15 ~ :pattern
+          OR dx_16 ~ :pattern
+          OR dx_17 ~ :pattern
+          OR dx_18 ~ :pattern
+          OR dx_19 ~ :pattern
+          OR dx_20 ~ :pattern
+        )
+      SQL
+    end
+
+    scope :matching_icd10pcs, ->(pg_regexp_str) do
+      # Tip: pg_trgm gist or gin index can make ~ operators fast
+      # this will otherwise be slow!
+      where <<~SQL.squish, pattern: pg_regexp_str
+        COALESCE(icd_version. '10') = '10' AND (
+          surgical_procedure_code_1 ~ :pattern
+          OR surgical_procedure_code_2 ~ :pattern
+          OR surgical_procedure_code_3 ~ :pattern
+          OR surgical_procedure_code_4 ~ :pattern
+          OR surgical_procedure_code_5 ~ :pattern
+        )
+      SQL
+    end
+
+    def matches_icd10cm?(regexp)
+      (icd_version || '10') == '10' && dx_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def matches_icd9cm?(regexp)
+      icd_version == '9' && dx_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def matches_icd10pcs?(regexp)
+      (icd_version || '10') == '10' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def matches_icd9pcs?(regexp)
+      icd_version == '9' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
+    end
+
     # Calculates and updates the cumulative enrolled and engaged days as of each claims service_start_date.
     #
     # These can go down if there are large gaps in enrollment. Temporary gaps just stop counting days as enrolled.
@@ -112,39 +205,13 @@ module ClaimsReporting
       { members: members, updates: updates }
     end
 
-    phi_patient :member_id
-    belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
-
-    belongs_to :member_roster, primary_key: :member_id, foreign_key: :member_id
-
-    scope :service_in, ->(date_range) do
-      where(
-        arel_table[:service_start_date].lt(date_range.max).
-        and(
-          arel_table[:service_end_date].gteq(date_range.min).
-          or(arel_table[:service_end_date].eq(nil)),
-        ),
-      )
-    end
-
-    scope :engaging, -> do
-      where(
-        procedure_code: 'T2024',
-        procedure_modifier_1: 'U4',
-        claim_status: 'P',
-      )
-    end
-
-    scope :paid, -> do
-      where(claim_status: 'P')
-    end
-
     def engaged?
-      procedure_code == 'T2024' && procedure_modifier_1 == 'U4' && claim_status == 'P'
+      completed_treatment_plan?
     end
 
-    def self.service_overlaps(date_range)
-      where ["daterange(service_start_date, service_end_date, '[]') && daterange(:min, :max, '[]')", { min: date_range.min, max: date_range.max }]
+    # Qualifying Activity: BH CP Treatment Plan Complete
+    def completed_treatment_plan?
+      procedure_code == 'T2024' && procedure_modifier_1 == 'U4' && claim_status == 'P'
     end
 
     def modifiers
@@ -155,16 +222,47 @@ module ClaimsReporting
         procedure_modifier_4,
       ].select(&:present?)
     end
+    memoize :modifiers
+
+    def dx_codes
+      [
+        dx_1, dx_2, dx_3, dx_4, dx_5, dx_6, dx_7, dx_8, dx_9, dx_10,
+        dx_11, dx_12, dx_13, dx_14, dx_15, dx_16, dx_17, dx_18, dx_19, dx_20
+      ].select(&:present?)
+    end
+    memoize :dx_codes
+
+    # FIXME? Faster to avoid the casts which we don't happen to need?
+    # def dx_codes2
+    #   values = []
+    #   [
+    #     :dx_1, :dx_2, :dx_3, :dx_4, :dx_5, :dx_6, :dx_7, :dx_8, :dx_9,
+    #     :dx_10, :dx_11, :dx_12, :dx_13, :dx_14, :dx_15, :dx_16, :dx_17, :dx_18, :dx_19, :dx_20
+    #   ].each do |name|
+    #     v = read_attribute_before_type_cast(name)
+    #     values << v if v.present?
+    #   end
+
+    #   values
+    # end
+    # memoize :dx_codes2
+
+    def surgical_procedure_codes
+      [
+        surgical_procedure_code_1,
+        surgical_procedure_code_2,
+        surgical_procedure_code_3,
+        surgical_procedure_code_4,
+        surgical_procedure_code_5,
+      ].select(&:present?)
+    end
+    memoize :surgical_procedure_codes
 
     def procedure_with_modifiers
       # sort is here since this is used as a key to match against other data
       ([procedure_code] + modifiers.sort).join('>').to_s
     end
-
-    # Qualifying Activity: BH CP Treatment Plan Complete
-    def bh_cp_1?
-      procedure_code == 'T2024' && 'U4'.in?(modifiers)
-    end
+    memoize :procedure_with_modifiers
 
     include ClaimsReporting::CsvHelpers
     def self.conflict_target

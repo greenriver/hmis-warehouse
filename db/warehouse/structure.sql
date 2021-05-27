@@ -66,6 +66,24 @@ COMMENT ON EXTENSION postgis IS 'PostGIS geometry, geography, and raster spatial
 
 
 --
+-- Name: census_levels; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.census_levels AS ENUM (
+    'STATE',
+    'COUNTY',
+    'PLACE',
+    'SLDU',
+    'SLDL',
+    'ZCTA5',
+    'TRACT',
+    'BG',
+    'TABBLOCK',
+    'CUSTOM'
+);
+
+
+--
 -- Name: service_history_service_insert_trigger(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3604,6 +3622,110 @@ ALTER SEQUENCE public.census_by_project_types_id_seq OWNED BY public.census_by_p
 
 
 --
+-- Name: census_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.census_groups (
+    id bigint NOT NULL,
+    year integer NOT NULL,
+    dataset character varying NOT NULL,
+    name character varying NOT NULL,
+    description text NOT NULL,
+    created_on date
+);
+
+
+--
+-- Name: census_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.census_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: census_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.census_groups_id_seq OWNED BY public.census_groups.id;
+
+
+--
+-- Name: census_values; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.census_values (
+    id bigint NOT NULL,
+    census_variable_id bigint NOT NULL,
+    value numeric NOT NULL,
+    full_geoid character varying NOT NULL,
+    created_on date NOT NULL,
+    census_level public.census_levels NOT NULL
+);
+
+
+--
+-- Name: census_values_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.census_values_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: census_values_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.census_values_id_seq OWNED BY public.census_values.id;
+
+
+--
+-- Name: census_variables; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.census_variables (
+    id bigint NOT NULL,
+    year integer NOT NULL,
+    downloaded boolean DEFAULT false NOT NULL,
+    dataset character varying NOT NULL,
+    name character varying NOT NULL,
+    label text NOT NULL,
+    concept text NOT NULL,
+    census_group character varying NOT NULL,
+    census_attributes character varying NOT NULL,
+    internal_name character varying,
+    created_on date NOT NULL
+);
+
+
+--
+-- Name: census_variables_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.census_variables_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: census_variables_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.census_variables_id_seq OWNED BY public.census_variables.id;
+
+
+--
 -- Name: censuses; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3752,6 +3874,45 @@ CREATE SEQUENCE public.chronics_id_seq
 --
 
 ALTER SEQUENCE public.chronics_id_seq OWNED BY public.chronics.id;
+
+
+--
+-- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.clh_locations (
+    id bigint NOT NULL,
+    client_id bigint,
+    source_type character varying,
+    source_id bigint,
+    located_on date,
+    lat double precision,
+    lon double precision,
+    collected_by character varying,
+    processed_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: clh_locations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.clh_locations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: clh_locations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.clh_locations_id_seq OWNED BY public.clh_locations.id;
 
 
 --
@@ -5001,6 +5162,96 @@ ALTER SEQUENCE public.fake_data_id_seq OWNED BY public.fake_data.id;
 
 
 --
+-- Name: federal_census_breakdowns; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.federal_census_breakdowns (
+    id bigint NOT NULL,
+    accurate_on date,
+    type character varying,
+    geography_level character varying,
+    geography character varying,
+    measure character varying,
+    value integer,
+    geo_id character varying,
+    race character varying,
+    gender character varying,
+    age_min integer,
+    age_max integer,
+    source character varying,
+    census_variable_name character varying
+);
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.accurate_on; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.accurate_on IS 'Most recent census date';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.geography_level; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.geography_level IS 'State, zip, CoC (or maybe 010, 040, 050)';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.geography; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.geography IS 'MA, 02101, MA-500';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.measure; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.measure IS 'Detail of race, age, etc. (Asian, 50-59...)';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.value; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.value IS 'count of population';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.source; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.source IS 'Source of data';
+
+
+--
+-- Name: COLUMN federal_census_breakdowns.census_variable_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.federal_census_breakdowns.census_variable_name IS 'For debugging, variable name used in source';
+
+
+--
+-- Name: federal_census_breakdowns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.federal_census_breakdowns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: federal_census_breakdowns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.federal_census_breakdowns_id_seq OWNED BY public.federal_census_breakdowns.id;
+
+
+--
 -- Name: files; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5195,6 +5446,52 @@ CREATE SEQUENCE public.group_viewable_entities_id_seq
 --
 
 ALTER SEQUENCE public.group_viewable_entities_id_seq OWNED BY public.group_viewable_entities.id;
+
+
+--
+-- Name: hap_report_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hap_report_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    age integer,
+    emancipated boolean,
+    head_of_household boolean,
+    household_ids character varying[],
+    project_types integer[],
+    veteran boolean,
+    mental_health boolean,
+    substance_abuse boolean,
+    domestic_violence boolean,
+    income_at_start integer,
+    income_at_exit integer,
+    homeless boolean,
+    nights_in_shelter integer,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    head_of_household_for character varying[]
+);
+
+
+--
+-- Name: hap_report_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hap_report_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hap_report_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hap_report_clients_id_seq OWNED BY public.hap_report_clients.id;
 
 
 --
@@ -7081,7 +7378,8 @@ CREATE TABLE public.hmis_assessments (
     hud_assessment boolean DEFAULT false,
     triage_assessment boolean DEFAULT false,
     rrh_assessment boolean DEFAULT false,
-    covid_19_impact_assessment boolean DEFAULT false
+    covid_19_impact_assessment boolean DEFAULT false,
+    with_location_data boolean DEFAULT false NOT NULL
 );
 
 
@@ -8604,7 +8902,8 @@ CREATE TABLE public.hmis_forms (
     monthly_rent_total integer,
     percent_ami integer,
     household_type character varying,
-    household_size integer
+    household_size integer,
+    location_processed_at timestamp without time zone
 );
 
 
@@ -8931,7 +9230,8 @@ CREATE TABLE public.hud_report_apr_clients (
     parenting_juvenile boolean,
     deleted_at timestamp without time zone,
     destination_client_id integer,
-    annual_assessment_in_window boolean
+    annual_assessment_in_window boolean,
+    chronically_homeless_detail character varying
 );
 
 
@@ -9241,6 +9541,74 @@ CREATE SEQUENCE public.hud_report_instances_id_seq
 --
 
 ALTER SEQUENCE public.hud_report_instances_id_seq OWNED BY public.hud_report_instances.id;
+
+
+--
+-- Name: hud_report_spm_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_clients (
+    id bigint NOT NULL,
+    client_id integer NOT NULL,
+    data_source_id integer NOT NULL,
+    report_instance_id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    dob date,
+    first_name character varying,
+    last_name character varying,
+    m1a_es_sh_days integer,
+    m1a_es_sh_th_days integer,
+    m1b_es_sh_ph_days integer,
+    m1b_es_sh_th_ph_days integer,
+    m1_history jsonb,
+    m2_exit_from_project_type integer,
+    m2_exit_to_destination integer,
+    m2_reentry_days integer,
+    m2_history jsonb,
+    m3_active_project_types integer[],
+    m4_stayer boolean,
+    m4_latest_income numeric,
+    m4_latest_earned_income numeric,
+    m4_latest_non_earned_income numeric,
+    m4_earliest_income numeric,
+    m4_earliest_earned_income numeric,
+    m4_earliest_non_earned_income numeric,
+    m4_history jsonb,
+    m5_active_project_types integer[],
+    m5_recent_project_types integer[],
+    m5_history jsonb,
+    m6_exit_from_project_type integer,
+    m6_exit_to_destination integer,
+    m6_reentry_days integer,
+    m6c1_destination integer,
+    m6c2_destination integer,
+    m6_history jsonb,
+    m7a1_destination integer,
+    m7b1_destination integer,
+    m7b2_destination integer,
+    m7_history jsonb
+);
+
+
+--
+-- Name: hud_report_spm_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_clients_id_seq OWNED BY public.hud_report_spm_clients.id;
 
 
 --
@@ -10632,7 +11000,8 @@ CREATE TABLE public.public_report_reports (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    precalculated_data text
+    precalculated_data text,
+    version_slug character varying
 );
 
 
@@ -10699,7 +11068,70 @@ CREATE TABLE public.public_report_settings (
     font_weight_0 character varying,
     font_weight_1 character varying,
     font_weight_2 character varying,
-    font_weight_3 character varying
+    font_weight_3 character varying,
+    gender_color_0 character varying,
+    gender_color_1 character varying,
+    gender_color_2 character varying,
+    gender_color_3 character varying,
+    gender_color_4 character varying,
+    gender_color_5 character varying,
+    gender_color_6 character varying,
+    gender_color_7 character varying,
+    gender_color_8 character varying,
+    age_color_0 character varying,
+    age_color_1 character varying,
+    age_color_2 character varying,
+    age_color_3 character varying,
+    age_color_4 character varying,
+    age_color_5 character varying,
+    age_color_6 character varying,
+    age_color_7 character varying,
+    age_color_8 character varying,
+    household_composition_color_0 character varying,
+    household_composition_color_1 character varying,
+    household_composition_color_2 character varying,
+    household_composition_color_3 character varying,
+    household_composition_color_4 character varying,
+    household_composition_color_5 character varying,
+    household_composition_color_6 character varying,
+    household_composition_color_7 character varying,
+    household_composition_color_8 character varying,
+    race_color_0 character varying,
+    race_color_1 character varying,
+    race_color_2 character varying,
+    race_color_3 character varying,
+    race_color_4 character varying,
+    race_color_5 character varying,
+    race_color_6 character varying,
+    race_color_7 character varying,
+    race_color_8 character varying,
+    time_color_0 character varying,
+    time_color_1 character varying,
+    time_color_2 character varying,
+    time_color_3 character varying,
+    time_color_4 character varying,
+    time_color_5 character varying,
+    time_color_6 character varying,
+    time_color_7 character varying,
+    time_color_8 character varying,
+    housing_type_color_0 character varying,
+    housing_type_color_1 character varying,
+    housing_type_color_2 character varying,
+    housing_type_color_3 character varying,
+    housing_type_color_4 character varying,
+    housing_type_color_5 character varying,
+    housing_type_color_6 character varying,
+    housing_type_color_7 character varying,
+    housing_type_color_8 character varying,
+    population_color_0 character varying,
+    population_color_1 character varying,
+    population_color_2 character varying,
+    population_color_3 character varying,
+    population_color_4 character varying,
+    population_color_5 character varying,
+    population_color_6 character varying,
+    population_color_7 character varying,
+    population_color_8 character varying
 );
 
 
@@ -10727,6 +11159,7 @@ ALTER SEQUENCE public.public_report_settings_id_seq OWNED BY public.public_repor
 --
 
 CREATE TABLE public.recent_report_enrollments (
+    id integer,
     "EnrollmentID" character varying(50),
     "PersonalID" character varying,
     "ProjectID" character varying(50),
@@ -10812,7 +11245,6 @@ CREATE TABLE public.recent_report_enrollments (
     "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer,
-    id integer,
     "LOSUnderThreshold" integer,
     "PreviousStreetESSH" integer,
     "UrgentReferral" integer,
@@ -10845,6 +11277,9 @@ CREATE TABLE public.recent_report_enrollments (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "SexualOrientationOther" character varying(100),
+    history_generated_on date,
+    original_household_id character varying,
+    service_history_processing_job_id bigint,
     demographic_id integer,
     client_id integer
 );
@@ -11747,17 +12182,18 @@ ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_hi
 --
 
 CREATE TABLE public.service_history_services_2000 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11765,17 +12201,18 @@ CREATE TABLE public.service_history_services_2000 (
 --
 
 CREATE TABLE public.service_history_services_2001 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11783,17 +12220,18 @@ CREATE TABLE public.service_history_services_2001 (
 --
 
 CREATE TABLE public.service_history_services_2002 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11801,17 +12239,18 @@ CREATE TABLE public.service_history_services_2002 (
 --
 
 CREATE TABLE public.service_history_services_2003 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11819,17 +12258,18 @@ CREATE TABLE public.service_history_services_2003 (
 --
 
 CREATE TABLE public.service_history_services_2004 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11837,17 +12277,18 @@ CREATE TABLE public.service_history_services_2004 (
 --
 
 CREATE TABLE public.service_history_services_2005 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11855,17 +12296,18 @@ CREATE TABLE public.service_history_services_2005 (
 --
 
 CREATE TABLE public.service_history_services_2006 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11873,17 +12315,18 @@ CREATE TABLE public.service_history_services_2006 (
 --
 
 CREATE TABLE public.service_history_services_2007 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11891,17 +12334,18 @@ CREATE TABLE public.service_history_services_2007 (
 --
 
 CREATE TABLE public.service_history_services_2008 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11909,17 +12353,18 @@ CREATE TABLE public.service_history_services_2008 (
 --
 
 CREATE TABLE public.service_history_services_2009 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11927,17 +12372,18 @@ CREATE TABLE public.service_history_services_2009 (
 --
 
 CREATE TABLE public.service_history_services_2010 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11945,17 +12391,18 @@ CREATE TABLE public.service_history_services_2010 (
 --
 
 CREATE TABLE public.service_history_services_2011 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11963,17 +12410,18 @@ CREATE TABLE public.service_history_services_2011 (
 --
 
 CREATE TABLE public.service_history_services_2012 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11981,17 +12429,18 @@ CREATE TABLE public.service_history_services_2012 (
 --
 
 CREATE TABLE public.service_history_services_2013 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -11999,17 +12448,18 @@ CREATE TABLE public.service_history_services_2013 (
 --
 
 CREATE TABLE public.service_history_services_2014 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12017,17 +12467,18 @@ CREATE TABLE public.service_history_services_2014 (
 --
 
 CREATE TABLE public.service_history_services_2015 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12035,17 +12486,18 @@ CREATE TABLE public.service_history_services_2015 (
 --
 
 CREATE TABLE public.service_history_services_2016 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12053,17 +12505,18 @@ CREATE TABLE public.service_history_services_2016 (
 --
 
 CREATE TABLE public.service_history_services_2017 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12071,17 +12524,18 @@ CREATE TABLE public.service_history_services_2017 (
 --
 
 CREATE TABLE public.service_history_services_2018 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12089,17 +12543,18 @@ CREATE TABLE public.service_history_services_2018 (
 --
 
 CREATE TABLE public.service_history_services_2019 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12107,17 +12562,18 @@ CREATE TABLE public.service_history_services_2019 (
 --
 
 CREATE TABLE public.service_history_services_2020 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12125,17 +12581,18 @@ CREATE TABLE public.service_history_services_2020 (
 --
 
 CREATE TABLE public.service_history_services_2021 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12143,17 +12600,18 @@ CREATE TABLE public.service_history_services_2021 (
 --
 
 CREATE TABLE public.service_history_services_2022 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12161,17 +12619,18 @@ CREATE TABLE public.service_history_services_2022 (
 --
 
 CREATE TABLE public.service_history_services_2023 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12179,17 +12638,18 @@ CREATE TABLE public.service_history_services_2023 (
 --
 
 CREATE TABLE public.service_history_services_2024 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12197,17 +12657,18 @@ CREATE TABLE public.service_history_services_2024 (
 --
 
 CREATE TABLE public.service_history_services_2025 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12215,17 +12676,18 @@ CREATE TABLE public.service_history_services_2025 (
 --
 
 CREATE TABLE public.service_history_services_2026 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12233,17 +12695,18 @@ CREATE TABLE public.service_history_services_2026 (
 --
 
 CREATE TABLE public.service_history_services_2027 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12251,17 +12714,18 @@ CREATE TABLE public.service_history_services_2027 (
 --
 
 CREATE TABLE public.service_history_services_2028 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12269,17 +12733,18 @@ CREATE TABLE public.service_history_services_2028 (
 --
 
 CREATE TABLE public.service_history_services_2029 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12287,17 +12752,18 @@ CREATE TABLE public.service_history_services_2029 (
 --
 
 CREATE TABLE public.service_history_services_2030 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12305,17 +12771,18 @@ CREATE TABLE public.service_history_services_2030 (
 --
 
 CREATE TABLE public.service_history_services_2031 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12323,17 +12790,18 @@ CREATE TABLE public.service_history_services_2031 (
 --
 
 CREATE TABLE public.service_history_services_2032 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12341,17 +12809,18 @@ CREATE TABLE public.service_history_services_2032 (
 --
 
 CREATE TABLE public.service_history_services_2033 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12359,17 +12828,18 @@ CREATE TABLE public.service_history_services_2033 (
 --
 
 CREATE TABLE public.service_history_services_2034 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12377,17 +12847,18 @@ CREATE TABLE public.service_history_services_2034 (
 --
 
 CREATE TABLE public.service_history_services_2035 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12395,17 +12866,18 @@ CREATE TABLE public.service_history_services_2035 (
 --
 
 CREATE TABLE public.service_history_services_2036 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12413,17 +12885,18 @@ CREATE TABLE public.service_history_services_2036 (
 --
 
 CREATE TABLE public.service_history_services_2037 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12431,17 +12904,18 @@ CREATE TABLE public.service_history_services_2037 (
 --
 
 CREATE TABLE public.service_history_services_2038 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12449,17 +12923,18 @@ CREATE TABLE public.service_history_services_2038 (
 --
 
 CREATE TABLE public.service_history_services_2039 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12467,17 +12942,18 @@ CREATE TABLE public.service_history_services_2039 (
 --
 
 CREATE TABLE public.service_history_services_2040 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12485,17 +12961,18 @@ CREATE TABLE public.service_history_services_2040 (
 --
 
 CREATE TABLE public.service_history_services_2041 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12503,17 +12980,18 @@ CREATE TABLE public.service_history_services_2041 (
 --
 
 CREATE TABLE public.service_history_services_2042 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12521,17 +12999,18 @@ CREATE TABLE public.service_history_services_2042 (
 --
 
 CREATE TABLE public.service_history_services_2043 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12539,17 +13018,18 @@ CREATE TABLE public.service_history_services_2043 (
 --
 
 CREATE TABLE public.service_history_services_2044 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12557,17 +13037,18 @@ CREATE TABLE public.service_history_services_2044 (
 --
 
 CREATE TABLE public.service_history_services_2045 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12575,17 +13056,18 @@ CREATE TABLE public.service_history_services_2045 (
 --
 
 CREATE TABLE public.service_history_services_2046 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12593,17 +13075,18 @@ CREATE TABLE public.service_history_services_2046 (
 --
 
 CREATE TABLE public.service_history_services_2047 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12611,17 +13094,18 @@ CREATE TABLE public.service_history_services_2047 (
 --
 
 CREATE TABLE public.service_history_services_2048 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12629,17 +13113,18 @@ CREATE TABLE public.service_history_services_2048 (
 --
 
 CREATE TABLE public.service_history_services_2049 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12647,17 +13132,18 @@ CREATE TABLE public.service_history_services_2049 (
 --
 
 CREATE TABLE public.service_history_services_2050 (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12684,17 +13170,18 @@ CREATE MATERIALIZED VIEW public.service_history_services_materialized AS
 --
 
 CREATE TABLE public.service_history_services_remainder (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -12770,6 +13257,49 @@ ALTER SEQUENCE public.service_scanning_services_id_seq OWNED BY public.service_s
 
 
 --
+-- Name: shape_block_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_block_groups (
+    id bigint NOT NULL,
+    statefp character varying,
+    countyfp character varying,
+    tractce character varying,
+    blkgrpce character varying,
+    geoid character varying,
+    namelsad character varying,
+    mtfcc character varying,
+    funcstat character varying,
+    aland double precision,
+    awater double precision,
+    intptlat character varying,
+    intptlon character varying,
+    full_geoid character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_block_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.shape_block_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shape_block_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.shape_block_groups_id_seq OWNED BY public.shape_block_groups.id;
+
+
+--
 -- Name: shape_cocs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -12821,8 +13351,9 @@ CREATE TABLE public.shape_cocs (
     unsh_vets numeric,
     shape_leng numeric,
     shape_area numeric,
-    orig_geom public.geometry(MultiPolygon,4326),
-    geom public.geometry(MultiPolygon,4326)
+    geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
+    full_geoid character varying
 );
 
 
@@ -12846,6 +13377,99 @@ ALTER SEQUENCE public.shape_cocs_id_seq OWNED BY public.shape_cocs.id;
 
 
 --
+-- Name: shape_counties; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_counties (
+    id bigint NOT NULL,
+    statefp character varying,
+    countyfp character varying,
+    countyns character varying,
+    full_geoid character varying,
+    geoid character varying,
+    name character varying,
+    namelsad character varying,
+    lsad character varying,
+    classfp character varying,
+    mtfcc character varying,
+    csafp character varying,
+    cbsafp character varying,
+    metdivfp character varying,
+    funcstat character varying,
+    aland double precision,
+    awater double precision,
+    intptlat character varying,
+    intptlon character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_counties_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.shape_counties_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shape_counties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.shape_counties_id_seq OWNED BY public.shape_counties.id;
+
+
+--
+-- Name: shape_states; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_states (
+    id bigint NOT NULL,
+    region character varying,
+    division character varying,
+    statefp character varying,
+    statens character varying,
+    full_geoid character varying,
+    geoid character varying,
+    stusps character varying,
+    name character varying,
+    lsad character varying,
+    mtfcc character varying,
+    funcstat character varying,
+    aland double precision,
+    awater double precision,
+    intptlat character varying,
+    intptlon character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_states_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.shape_states_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shape_states_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.shape_states_id_seq OWNED BY public.shape_states.id;
+
+
+--
 -- Name: shape_zip_codes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -12860,8 +13484,9 @@ CREATE TABLE public.shape_zip_codes (
     awater10 double precision,
     intptlat10 character varying(11),
     intptlon10 character varying(12),
-    orig_geom public.geometry(MultiPolygon,4326),
-    geom public.geometry(MultiPolygon,4326)
+    geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
+    full_geoid character varying
 );
 
 
@@ -12882,6 +13507,113 @@ CREATE SEQUENCE public.shape_zip_codes_id_seq
 --
 
 ALTER SEQUENCE public.shape_zip_codes_id_seq OWNED BY public.shape_zip_codes.id;
+
+
+--
+-- Name: simple_report_cells; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.simple_report_cells (
+    id bigint NOT NULL,
+    report_instance_id bigint,
+    name character varying,
+    universe boolean DEFAULT false,
+    summary integer,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: simple_report_cells_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.simple_report_cells_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: simple_report_cells_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.simple_report_cells_id_seq OWNED BY public.simple_report_cells.id;
+
+
+--
+-- Name: simple_report_instances; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.simple_report_instances (
+    id bigint NOT NULL,
+    type character varying,
+    options json,
+    user_id bigint,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    status character varying
+);
+
+
+--
+-- Name: simple_report_instances_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.simple_report_instances_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: simple_report_instances_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.simple_report_instances_id_seq OWNED BY public.simple_report_instances.id;
+
+
+--
+-- Name: simple_report_universe_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.simple_report_universe_members (
+    id bigint NOT NULL,
+    report_cell_id bigint,
+    universe_membership_type character varying,
+    universe_membership_id bigint,
+    client_id bigint,
+    first_name character varying,
+    last_name character varying,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: simple_report_universe_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.simple_report_universe_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: simple_report_universe_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.simple_report_universe_members_id_seq OWNED BY public.simple_report_universe_members.id;
 
 
 --
@@ -14244,6 +14976,27 @@ ALTER TABLE ONLY public.census_by_project_types ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: census_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_groups ALTER COLUMN id SET DEFAULT nextval('public.census_groups_id_seq'::regclass);
+
+
+--
+-- Name: census_values id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_values ALTER COLUMN id SET DEFAULT nextval('public.census_values_id_seq'::regclass);
+
+
+--
+-- Name: census_variables id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_variables ALTER COLUMN id SET DEFAULT nextval('public.census_variables_id_seq'::regclass);
+
+
+--
 -- Name: censuses id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -14269,6 +15022,13 @@ ALTER TABLE ONLY public.children ALTER COLUMN id SET DEFAULT nextval('public.chi
 --
 
 ALTER TABLE ONLY public.chronics ALTER COLUMN id SET DEFAULT nextval('public.chronics_id_seq'::regclass);
+
+
+--
+-- Name: clh_locations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clh_locations ALTER COLUMN id SET DEFAULT nextval('public.clh_locations_id_seq'::regclass);
 
 
 --
@@ -14468,6 +15228,13 @@ ALTER TABLE ONLY public.fake_data ALTER COLUMN id SET DEFAULT nextval('public.fa
 
 
 --
+-- Name: federal_census_breakdowns id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.federal_census_breakdowns ALTER COLUMN id SET DEFAULT nextval('public.federal_census_breakdowns_id_seq'::regclass);
+
+
+--
 -- Name: files id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -14500,6 +15267,13 @@ ALTER TABLE ONLY public.grades ALTER COLUMN id SET DEFAULT nextval('public.grade
 --
 
 ALTER TABLE ONLY public.group_viewable_entities ALTER COLUMN id SET DEFAULT nextval('public.group_viewable_entities_id_seq'::regclass);
+
+
+--
+-- Name: hap_report_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hap_report_clients ALTER COLUMN id SET DEFAULT nextval('public.hap_report_clients_id_seq'::regclass);
 
 
 --
@@ -15028,6 +15802,13 @@ ALTER TABLE ONLY public.hud_report_instances ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hud_report_spm_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_clients ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_clients_id_seq'::regclass);
+
+
+--
 -- Name: hud_report_universe_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -15308,6 +16089,13 @@ ALTER TABLE ONLY public.service_scanning_services ALTER COLUMN id SET DEFAULT ne
 
 
 --
+-- Name: shape_block_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_block_groups ALTER COLUMN id SET DEFAULT nextval('public.shape_block_groups_id_seq'::regclass);
+
+
+--
 -- Name: shape_cocs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -15315,10 +16103,45 @@ ALTER TABLE ONLY public.shape_cocs ALTER COLUMN id SET DEFAULT nextval('public.s
 
 
 --
+-- Name: shape_counties id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_counties ALTER COLUMN id SET DEFAULT nextval('public.shape_counties_id_seq'::regclass);
+
+
+--
+-- Name: shape_states id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_states ALTER COLUMN id SET DEFAULT nextval('public.shape_states_id_seq'::regclass);
+
+
+--
 -- Name: shape_zip_codes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.shape_zip_codes ALTER COLUMN id SET DEFAULT nextval('public.shape_zip_codes_id_seq'::regclass);
+
+
+--
+-- Name: simple_report_cells id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_cells ALTER COLUMN id SET DEFAULT nextval('public.simple_report_cells_id_seq'::regclass);
+
+
+--
+-- Name: simple_report_instances id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_instances ALTER COLUMN id SET DEFAULT nextval('public.simple_report_instances_id_seq'::regclass);
+
+
+--
+-- Name: simple_report_universe_members id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_universe_members ALTER COLUMN id SET DEFAULT nextval('public.simple_report_universe_members_id_seq'::regclass);
 
 
 --
@@ -15826,6 +16649,30 @@ ALTER TABLE ONLY public.census_by_project_types
 
 
 --
+-- Name: census_groups census_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_groups
+    ADD CONSTRAINT census_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: census_values census_values_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_values
+    ADD CONSTRAINT census_values_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: census_variables census_variables_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_variables
+    ADD CONSTRAINT census_variables_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: censuses_averaged_by_year censuses_averaged_by_year_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -15855,6 +16702,14 @@ ALTER TABLE ONLY public.children
 
 ALTER TABLE ONLY public.chronics
     ADD CONSTRAINT chronics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: clh_locations clh_locations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clh_locations
+    ADD CONSTRAINT clh_locations_pkey PRIMARY KEY (id);
 
 
 --
@@ -16082,6 +16937,14 @@ ALTER TABLE ONLY public.fake_data
 
 
 --
+-- Name: federal_census_breakdowns federal_census_breakdowns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.federal_census_breakdowns
+    ADD CONSTRAINT federal_census_breakdowns_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: files files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -16119,6 +16982,14 @@ ALTER TABLE ONLY public.grades
 
 ALTER TABLE ONLY public.group_viewable_entities
     ADD CONSTRAINT group_viewable_entities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hap_report_clients hap_report_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hap_report_clients
+    ADD CONSTRAINT hap_report_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -16722,6 +17593,14 @@ ALTER TABLE ONLY public.hud_report_instances
 
 
 --
+-- Name: hud_report_spm_clients hud_report_spm_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_clients
+    ADD CONSTRAINT hud_report_spm_clients_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hud_report_universe_members hud_report_universe_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -17050,6 +17929,14 @@ ALTER TABLE ONLY public.service_scanning_services
 
 
 --
+-- Name: shape_block_groups shape_block_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_block_groups
+    ADD CONSTRAINT shape_block_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: shape_cocs shape_cocs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -17058,11 +17945,51 @@ ALTER TABLE ONLY public.shape_cocs
 
 
 --
+-- Name: shape_counties shape_counties_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_counties
+    ADD CONSTRAINT shape_counties_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shape_states shape_states_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_states
+    ADD CONSTRAINT shape_states_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: shape_zip_codes shape_zip_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.shape_zip_codes
     ADD CONSTRAINT shape_zip_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: simple_report_cells simple_report_cells_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_cells
+    ADD CONSTRAINT simple_report_cells_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: simple_report_instances simple_report_instances_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_instances
+    ADD CONSTRAINT simple_report_instances_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: simple_report_universe_members simple_report_universe_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_universe_members
+    ADD CONSTRAINT simple_report_universe_members_pkey PRIMARY KEY (id);
 
 
 --
@@ -19897,6 +20824,13 @@ CREATE INDEX idx_enrollment_ds_id_hh_id_p_id ON public."Enrollment" USING btree 
 
 
 --
+-- Name: idx_fed_census_acc_on_geo_measure; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_fed_census_acc_on_geo_measure ON public.federal_census_breakdowns USING btree (accurate_on, geography, geography_level, measure);
+
+
+--
 -- Name: idx_hmis_2020_affiliations_imid_du; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -21052,6 +21986,62 @@ CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btre
 
 
 --
+-- Name: index_census_groups_on_year_and_dataset_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_census_groups_on_year_and_dataset_and_name ON public.census_groups USING btree (year, dataset, name);
+
+
+--
+-- Name: index_census_values_on_census_level; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_values_on_census_level ON public.census_values USING btree (census_level);
+
+
+--
+-- Name: index_census_values_on_census_variable_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_values_on_census_variable_id ON public.census_values USING btree (census_variable_id);
+
+
+--
+-- Name: index_census_values_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_values_on_full_geoid ON public.census_values USING btree (full_geoid);
+
+
+--
+-- Name: index_census_values_on_full_geoid_and_census_variable_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_census_values_on_full_geoid_and_census_variable_id ON public.census_values USING btree (full_geoid, census_variable_id);
+
+
+--
+-- Name: index_census_variables_on_dataset; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_variables_on_dataset ON public.census_variables USING btree (dataset);
+
+
+--
+-- Name: index_census_variables_on_internal_name_and_year_and_dataset; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_variables_on_internal_name_and_year_and_dataset ON public.census_variables USING btree (internal_name, year, dataset) WHERE (internal_name IS NOT NULL);
+
+
+--
+-- Name: index_census_variables_on_year_and_dataset_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_census_variables_on_year_and_dataset_and_name ON public.census_variables USING btree (year, dataset, name);
+
+
+--
 -- Name: index_censuses_ave_year_ds_id_proj_type_org_id_proj_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -21098,6 +22088,20 @@ CREATE INDEX index_chronics_on_client_id ON public.chronics USING btree (client_
 --
 
 CREATE INDEX index_chronics_on_date ON public.chronics USING btree (date);
+
+
+--
+-- Name: index_clh_locations_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_clh_locations_on_client_id ON public.clh_locations USING btree (client_id);
+
+
+--
+-- Name: index_clh_locations_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_clh_locations_on_source_type_and_source_id ON public.clh_locations USING btree (source_type, source_id);
 
 
 --
@@ -21441,6 +22445,13 @@ CREATE INDEX index_files_on_vispdat_id ON public.files USING btree (vispdat_id);
 --
 
 CREATE INDEX index_grades_on_type ON public.grades USING btree (type);
+
+
+--
+-- Name: index_hap_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hap_report_clients_on_client_id ON public.hap_report_clients USING btree (client_id);
 
 
 --
@@ -23117,10 +24128,45 @@ CREATE INDEX index_sh_tracking_method ON public.warehouse_client_service_history
 
 
 --
+-- Name: index_shape_block_groups_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_block_groups_on_full_geoid ON public.shape_block_groups USING btree (full_geoid);
+
+
+--
+-- Name: index_shape_block_groups_on_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_block_groups_on_geoid ON public.shape_block_groups USING btree (geoid);
+
+
+--
+-- Name: index_shape_block_groups_on_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_block_groups_on_geom ON public.shape_block_groups USING gist (geom);
+
+
+--
+-- Name: index_shape_block_groups_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_block_groups_on_simplified_geom ON public.shape_block_groups USING gist (simplified_geom);
+
+
+--
 -- Name: index_shape_cocs_on_cocname; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_shape_cocs_on_cocname ON public.shape_cocs USING btree (cocname);
+
+
+--
+-- Name: index_shape_cocs_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_cocs_on_full_geoid ON public.shape_cocs USING btree (full_geoid);
 
 
 --
@@ -23131,10 +24177,10 @@ CREATE INDEX index_shape_cocs_on_geom ON public.shape_cocs USING gist (geom);
 
 
 --
--- Name: index_shape_cocs_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_cocs_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_cocs_on_orig_geom ON public.shape_cocs USING gist (orig_geom);
+CREATE INDEX index_shape_cocs_on_simplified_geom ON public.shape_cocs USING gist (simplified_geom);
 
 
 --
@@ -23145,6 +24191,83 @@ CREATE INDEX index_shape_cocs_on_st ON public.shape_cocs USING btree (st);
 
 
 --
+-- Name: index_shape_counties_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_counties_on_full_geoid ON public.shape_counties USING btree (full_geoid);
+
+
+--
+-- Name: index_shape_counties_on_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_counties_on_geoid ON public.shape_counties USING btree (geoid);
+
+
+--
+-- Name: index_shape_counties_on_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_counties_on_geom ON public.shape_counties USING gist (geom);
+
+
+--
+-- Name: index_shape_counties_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_counties_on_simplified_geom ON public.shape_counties USING gist (simplified_geom);
+
+
+--
+-- Name: index_shape_counties_on_statefp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_counties_on_statefp ON public.shape_counties USING btree (statefp);
+
+
+--
+-- Name: index_shape_states_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_full_geoid ON public.shape_states USING btree (full_geoid);
+
+
+--
+-- Name: index_shape_states_on_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_states_on_geoid ON public.shape_states USING btree (geoid);
+
+
+--
+-- Name: index_shape_states_on_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_geom ON public.shape_states USING gist (geom);
+
+
+--
+-- Name: index_shape_states_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_simplified_geom ON public.shape_states USING gist (simplified_geom);
+
+
+--
+-- Name: index_shape_states_on_stusps; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_stusps ON public.shape_states USING btree (stusps);
+
+
+--
+-- Name: index_shape_zip_codes_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_zip_codes_on_full_geoid ON public.shape_zip_codes USING btree (full_geoid);
+
+
+--
 -- Name: index_shape_zip_codes_on_geom; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23152,10 +24275,10 @@ CREATE INDEX index_shape_zip_codes_on_geom ON public.shape_zip_codes USING gist 
 
 
 --
--- Name: index_shape_zip_codes_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_zip_codes_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_zip_codes_on_orig_geom ON public.shape_zip_codes USING gist (orig_geom);
+CREATE INDEX index_shape_zip_codes_on_simplified_geom ON public.shape_zip_codes USING gist (simplified_geom);
 
 
 --
@@ -23246,7 +24369,7 @@ CREATE INDEX index_shs_1900_date_client_id ON public.service_history_services_re
 -- Name: index_shs_1900_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_1900_date_en_id ON public.service_history_services_remainder USING btree (date, service_history_enrollment_id);
+CREATE UNIQUE INDEX index_shs_1900_date_en_id ON public.service_history_services_remainder USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23288,7 +24411,7 @@ CREATE INDEX index_shs_2000_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2000_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2000_date_en_id ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2000_date_en_id ON public.service_history_services_2000 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23337,7 +24460,7 @@ CREATE INDEX index_shs_2001_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2001_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2001_date_en_id ON public.service_history_services_2001 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2001_date_en_id ON public.service_history_services_2001 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23386,7 +24509,7 @@ CREATE INDEX index_shs_2002_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2002_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2002_date_en_id ON public.service_history_services_2002 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2002_date_en_id ON public.service_history_services_2002 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23435,7 +24558,7 @@ CREATE INDEX index_shs_2003_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2003_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2003_date_en_id ON public.service_history_services_2003 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2003_date_en_id ON public.service_history_services_2003 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23484,7 +24607,7 @@ CREATE INDEX index_shs_2004_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2004_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2004_date_en_id ON public.service_history_services_2004 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2004_date_en_id ON public.service_history_services_2004 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23533,7 +24656,7 @@ CREATE INDEX index_shs_2005_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2005_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2005_date_en_id ON public.service_history_services_2005 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2005_date_en_id ON public.service_history_services_2005 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23582,7 +24705,7 @@ CREATE INDEX index_shs_2006_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2006_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2006_date_en_id ON public.service_history_services_2006 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2006_date_en_id ON public.service_history_services_2006 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23631,7 +24754,7 @@ CREATE INDEX index_shs_2007_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2007_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2007_date_en_id ON public.service_history_services_2007 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2007_date_en_id ON public.service_history_services_2007 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23680,7 +24803,7 @@ CREATE INDEX index_shs_2008_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2008_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2008_date_en_id ON public.service_history_services_2008 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2008_date_en_id ON public.service_history_services_2008 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23729,7 +24852,7 @@ CREATE INDEX index_shs_2009_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2009_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2009_date_en_id ON public.service_history_services_2009 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2009_date_en_id ON public.service_history_services_2009 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23778,7 +24901,7 @@ CREATE INDEX index_shs_2010_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2010_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2010_date_en_id ON public.service_history_services_2010 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2010_date_en_id ON public.service_history_services_2010 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23827,7 +24950,7 @@ CREATE INDEX index_shs_2011_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2011_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2011_date_en_id ON public.service_history_services_2011 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2011_date_en_id ON public.service_history_services_2011 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23876,7 +24999,7 @@ CREATE INDEX index_shs_2012_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2012_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2012_date_en_id ON public.service_history_services_2012 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2012_date_en_id ON public.service_history_services_2012 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23925,7 +25048,7 @@ CREATE INDEX index_shs_2013_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2013_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2013_date_en_id ON public.service_history_services_2013 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2013_date_en_id ON public.service_history_services_2013 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -23974,7 +25097,7 @@ CREATE INDEX index_shs_2014_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2014_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2014_date_en_id ON public.service_history_services_2014 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2014_date_en_id ON public.service_history_services_2014 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24023,7 +25146,7 @@ CREATE INDEX index_shs_2015_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2015_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2015_date_en_id ON public.service_history_services_2015 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2015_date_en_id ON public.service_history_services_2015 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24072,7 +25195,7 @@ CREATE INDEX index_shs_2016_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2016_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2016_date_en_id ON public.service_history_services_2016 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2016_date_en_id ON public.service_history_services_2016 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24121,7 +25244,7 @@ CREATE INDEX index_shs_2017_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2017_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2017_date_en_id ON public.service_history_services_2017 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2017_date_en_id ON public.service_history_services_2017 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24170,7 +25293,7 @@ CREATE INDEX index_shs_2018_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2018_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2018_date_en_id ON public.service_history_services_2018 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2018_date_en_id ON public.service_history_services_2018 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24219,7 +25342,7 @@ CREATE INDEX index_shs_2019_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2019_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2019_date_en_id ON public.service_history_services_2019 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2019_date_en_id ON public.service_history_services_2019 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24268,7 +25391,7 @@ CREATE INDEX index_shs_2020_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2020_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2020_date_en_id ON public.service_history_services_2020 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2020_date_en_id ON public.service_history_services_2020 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24317,7 +25440,7 @@ CREATE INDEX index_shs_2021_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2021_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2021_date_en_id ON public.service_history_services_2021 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2021_date_en_id ON public.service_history_services_2021 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24366,7 +25489,7 @@ CREATE INDEX index_shs_2022_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2022_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2022_date_en_id ON public.service_history_services_2022 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2022_date_en_id ON public.service_history_services_2022 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24415,7 +25538,7 @@ CREATE INDEX index_shs_2023_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2023_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2023_date_en_id ON public.service_history_services_2023 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2023_date_en_id ON public.service_history_services_2023 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24464,7 +25587,7 @@ CREATE INDEX index_shs_2024_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2024_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2024_date_en_id ON public.service_history_services_2024 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2024_date_en_id ON public.service_history_services_2024 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24513,7 +25636,7 @@ CREATE INDEX index_shs_2025_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2025_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2025_date_en_id ON public.service_history_services_2025 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2025_date_en_id ON public.service_history_services_2025 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24562,7 +25685,7 @@ CREATE INDEX index_shs_2026_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2026_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2026_date_en_id ON public.service_history_services_2026 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2026_date_en_id ON public.service_history_services_2026 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24611,7 +25734,7 @@ CREATE INDEX index_shs_2027_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2027_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2027_date_en_id ON public.service_history_services_2027 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2027_date_en_id ON public.service_history_services_2027 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24660,7 +25783,7 @@ CREATE INDEX index_shs_2028_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2028_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2028_date_en_id ON public.service_history_services_2028 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2028_date_en_id ON public.service_history_services_2028 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24709,7 +25832,7 @@ CREATE INDEX index_shs_2029_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2029_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2029_date_en_id ON public.service_history_services_2029 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2029_date_en_id ON public.service_history_services_2029 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24758,7 +25881,7 @@ CREATE INDEX index_shs_2030_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2030_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2030_date_en_id ON public.service_history_services_2030 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2030_date_en_id ON public.service_history_services_2030 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24807,7 +25930,7 @@ CREATE INDEX index_shs_2031_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2031_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2031_date_en_id ON public.service_history_services_2031 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2031_date_en_id ON public.service_history_services_2031 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24856,7 +25979,7 @@ CREATE INDEX index_shs_2032_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2032_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2032_date_en_id ON public.service_history_services_2032 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2032_date_en_id ON public.service_history_services_2032 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24905,7 +26028,7 @@ CREATE INDEX index_shs_2033_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2033_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2033_date_en_id ON public.service_history_services_2033 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2033_date_en_id ON public.service_history_services_2033 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -24954,7 +26077,7 @@ CREATE INDEX index_shs_2034_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2034_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2034_date_en_id ON public.service_history_services_2034 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2034_date_en_id ON public.service_history_services_2034 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25003,7 +26126,7 @@ CREATE INDEX index_shs_2035_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2035_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2035_date_en_id ON public.service_history_services_2035 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2035_date_en_id ON public.service_history_services_2035 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25052,7 +26175,7 @@ CREATE INDEX index_shs_2036_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2036_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2036_date_en_id ON public.service_history_services_2036 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2036_date_en_id ON public.service_history_services_2036 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25101,7 +26224,7 @@ CREATE INDEX index_shs_2037_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2037_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2037_date_en_id ON public.service_history_services_2037 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2037_date_en_id ON public.service_history_services_2037 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25150,7 +26273,7 @@ CREATE INDEX index_shs_2038_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2038_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2038_date_en_id ON public.service_history_services_2038 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2038_date_en_id ON public.service_history_services_2038 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25199,7 +26322,7 @@ CREATE INDEX index_shs_2039_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2039_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2039_date_en_id ON public.service_history_services_2039 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2039_date_en_id ON public.service_history_services_2039 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25248,7 +26371,7 @@ CREATE INDEX index_shs_2040_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2040_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2040_date_en_id ON public.service_history_services_2040 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2040_date_en_id ON public.service_history_services_2040 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25297,7 +26420,7 @@ CREATE INDEX index_shs_2041_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2041_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2041_date_en_id ON public.service_history_services_2041 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2041_date_en_id ON public.service_history_services_2041 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25346,7 +26469,7 @@ CREATE INDEX index_shs_2042_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2042_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2042_date_en_id ON public.service_history_services_2042 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2042_date_en_id ON public.service_history_services_2042 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25395,7 +26518,7 @@ CREATE INDEX index_shs_2043_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2043_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2043_date_en_id ON public.service_history_services_2043 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2043_date_en_id ON public.service_history_services_2043 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25444,7 +26567,7 @@ CREATE INDEX index_shs_2044_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2044_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2044_date_en_id ON public.service_history_services_2044 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2044_date_en_id ON public.service_history_services_2044 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25493,7 +26616,7 @@ CREATE INDEX index_shs_2045_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2045_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2045_date_en_id ON public.service_history_services_2045 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2045_date_en_id ON public.service_history_services_2045 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25542,7 +26665,7 @@ CREATE INDEX index_shs_2046_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2046_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2046_date_en_id ON public.service_history_services_2046 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2046_date_en_id ON public.service_history_services_2046 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25591,7 +26714,7 @@ CREATE INDEX index_shs_2047_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2047_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2047_date_en_id ON public.service_history_services_2047 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2047_date_en_id ON public.service_history_services_2047 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25640,7 +26763,7 @@ CREATE INDEX index_shs_2048_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2048_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2048_date_en_id ON public.service_history_services_2048 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2048_date_en_id ON public.service_history_services_2048 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25689,7 +26812,7 @@ CREATE INDEX index_shs_2049_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2049_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2049_date_en_id ON public.service_history_services_2049 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2049_date_en_id ON public.service_history_services_2049 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25738,7 +26861,7 @@ CREATE INDEX index_shs_2050_date_client_id ON public.service_history_services_20
 -- Name: index_shs_2050_date_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shs_2050_date_en_id ON public.service_history_services_2050 USING btree (service_history_enrollment_id, date, record_type);
+CREATE UNIQUE INDEX index_shs_2050_date_en_id ON public.service_history_services_2050 USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -25788,6 +26911,34 @@ CREATE INDEX index_shsm_literally_homeless_p_type_c_id ON public.service_history
 --
 
 CREATE INDEX index_shsm_shse_id ON public.service_history_services_materialized USING btree (service_history_enrollment_id);
+
+
+--
+-- Name: index_simple_report_cells_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_cells_on_report_instance_id ON public.simple_report_cells USING btree (report_instance_id);
+
+
+--
+-- Name: index_simple_report_instances_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_instances_on_user_id ON public.simple_report_instances USING btree (user_id);
+
+
+--
+-- Name: index_simple_report_universe_members_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_universe_members_on_client_id ON public.simple_report_universe_members USING btree (client_id);
+
+
+--
+-- Name: index_simple_report_universe_members_on_report_cell_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_universe_members_on_report_cell_id ON public.simple_report_universe_members USING btree (report_cell_id);
 
 
 --
@@ -26330,6 +27481,20 @@ CREATE INDEX sh_date_ds_id_org_id_proj_id_proj_type ON public.warehouse_client_s
 
 
 --
+-- Name: shs_unique_date_she_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX shs_unique_date_she_id ON public.service_history_services USING btree (date, service_history_enrollment_id);
+
+
+--
+-- Name: simple_report_univ_type_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX simple_report_univ_type_and_id ON public.simple_report_universe_members USING btree (universe_membership_type, universe_membership_id);
+
+
+--
 -- Name: site_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -26351,6 +27516,13 @@ CREATE INDEX site_export_id ON public."Geography" USING btree ("ExportID");
 
 
 --
+-- Name: spm_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX spm_client_conflict_columns ON public.hud_report_spm_clients USING btree (report_instance_id, client_id, data_source_id);
+
+
+--
 -- Name: taggings_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -26369,6 +27541,13 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 --
 
 CREATE UNIQUE INDEX uniq_hud_report_universe_members ON public.hud_report_universe_members USING btree (report_cell_id, universe_membership_id, universe_membership_type) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: uniq_simple_report_universe_members; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_universe_members USING btree (report_cell_id, universe_membership_id, universe_membership_type) WHERE (deleted_at IS NULL);
 
 
 --
@@ -27696,6 +28875,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210204141807'),
 ('20210209182423'),
 ('20210216125622'),
+('20210217173551'),
 ('20210217202610'),
 ('20210223011452'),
 ('20210225144651'),
@@ -27705,6 +28885,23 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210305204708'),
 ('20210312200044'),
 ('20210325202706'),
-('20210330124825');
+('20210330124825'),
+('20210422191627'),
+('20210426165914'),
+('20210427184522'),
+('20210428193540'),
+('20210503165055'),
+('20210505010944'),
+('20210507180711'),
+('20210507180738'),
+('20210507180809'),
+('20210510182341'),
+('20210513185514'),
+('20210514154843'),
+('20210515142741'),
+('20210517144348'),
+('20210520184416'),
+('20210526182148'),
+('20210527140359');
 
 

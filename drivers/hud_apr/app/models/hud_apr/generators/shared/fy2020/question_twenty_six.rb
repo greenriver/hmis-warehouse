@@ -34,8 +34,11 @@ module HudApr::Generators::Shared::Fy2020
           household_ids = relevant_clients.where(population_clause).
             where(ch_clause).
             distinct.pluck(a_t[:household_id])
-          # ignore previously counted households
-          household_ids -= households.to_a
+          # ignore previously counted households, except for the last line (total)
+          if row_index < ch_categories.size - 1
+            household_ids -= households.to_a
+            households += household_ids
+          end
           members = universe.members.where(hoh_clause).where(a_t[:household_id].in(household_ids))
 
           value = members.count
@@ -328,10 +331,10 @@ module HudApr::Generators::Shared::Fy2020
 
     private def ch_categories
       {
-        'Chronically Homeless' => a_t[:chronically_homeless].eq(true),
-        'Not Chronically Homeless' => a_t[:chronically_homeless].eq(false),
-        'Client Doesn’t Know/Client Refused' => a_t[:prior_living_situation].in([8, 9]),
-        'Data Not Collected' => a_t[:prior_living_situation].eq(99),
+        'Chronically Homeless' => a_t[:chronically_homeless_detail].eq('yes'),
+        'Not Chronically Homeless' => a_t[:chronically_homeless_detail].eq('no'),
+        'Client Doesn’t Know/Client Refused' => a_t[:chronically_homeless_detail].eq('dk_or_r'),
+        'Data Not Collected' => a_t[:chronically_homeless_detail].eq('missing'),
         'Total' => Arel.sql('1=1'),
       }.freeze
     end

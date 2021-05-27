@@ -485,6 +485,13 @@ module GrdaWarehouse::Hud
       where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
     end
 
+    # races should be an array of valid races from race_fields
+    scope :with_races, ->(races) do
+      return current_scope unless races&.compact&.present?
+
+      where(Arel.sql('1').in(races.map { |race| c_t[race] }))
+    end
+
     scope :ethnicity_non_hispanic_non_latino, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).

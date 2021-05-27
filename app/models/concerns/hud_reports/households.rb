@@ -34,6 +34,10 @@ module HudReports::Households
       households[household_id].map { |client| GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob]) }
     end
 
+    private def get_hh_id(service_history_enrollment)
+      service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
+    end
+
     private def households
       @households ||= {}.tap do |hh|
         enrollment_scope_without_preloads.preload(enrollment: :client).
@@ -41,8 +45,8 @@ module HudReports::Households
             # puts 'Household Batch: '
             # puts GetProcessMem.new.inspect
             batch.each do |enrollment|
-              hh[enrollment.household_id] ||= []
-              hh[enrollment.household_id] << {
+              hh[get_hh_id(enrollment)] ||= []
+              hh[get_hh_id(enrollment)] << {
                 source_client_id: enrollment.enrollment.client.id,
                 dob: enrollment.enrollment.client.DOB,
                 veteran_status: enrollment.enrollment.client.VeteranStatus,
@@ -58,7 +62,7 @@ module HudReports::Households
     private def household_member_data(enrollment)
       # return nil unless enrollment[:head_of_household]
 
-      households[enrollment.household_id]
+      households[enrollment.household_id] || []
     end
 
     # Note, you need to pass in a client because the date needs to be calculated

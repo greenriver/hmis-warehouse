@@ -39,7 +39,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
 
     def update
       version_slug = params.dig(:public_report, :version_slug)
-      if version_slug.present?
+      if params[:public_report]&.key?(:version_slug)
         @report.update(version_slug: version_slug)
         respond_with(@report, location: path_to_report)
       elsif params.dig(:public_report, :published_url).present?
