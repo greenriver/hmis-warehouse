@@ -20,7 +20,6 @@ class GroupedSelectTwoInput < SimpleForm::Inputs::GroupedCollectionSelectInput
     # options[:data][:action] << ' change->stimulus-select#updateSelectAllStatus '
 
     merged_input_options = merge_wrapper_options(options, wrapper_options)
-
     @builder.grouped_collection_select(
       attribute_name,
       grouped_collection,

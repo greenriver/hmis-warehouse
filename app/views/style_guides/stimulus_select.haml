@@ -24,19 +24,19 @@
           = f.input :select2_parenthetical_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
 
           %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
-          = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
+          = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, placeholder: 'Please choose'}, label: 'Projects', include_blank: 'Please choose'
 
-          - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).viewable_by(current_user).last.id
+          - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).with_project_type([1]).viewable_by(current_user).last.id
           %h4 Select 2 - Ajax load of Options for Projects #{selected} pre-selected (warehouse)
-          = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
+          = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }, placeholder: 'Any Project'}, label: 'Projects'
 
           %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
-          = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, multiple: true}, label: 'Projects'
+          = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(), placeholder: 'Any Project'}, multiple: true}, label: 'Projects'
 
           %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
-          = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
+          = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true, placeholder: 'Any Project'}, label: 'Projects'
 
           %h4 Dependent Ajax Loaded Select
           = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, as: :select_two, input_html: { multiple: true, data: { 'stimulus-select-target' => 'projectTypes', action: 'change->stimulus-select#updateDependentProjectList' }}
-          = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }}, label: 'Organizations', required: false, placeholder: 'Any Organization'
-          = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: {'stimulus-select-target' => 'projects', project_url: api_projects_path() }}, label: 'Projects', required: false, placeholder: 'Any Project'
+          = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }, placeholder: 'Any Organization'}, label: 'Organizations', required: false
+          = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: {'stimulus-select-target' => 'projects', project_url: api_projects_path() }, placeholder: 'Any Project'}, label: 'Projects', required: false

@@ -38,7 +38,7 @@
   background-color: $brand-primary;
 }
 
-.select2-container--default .select2-results__group {
+.select2-container--default [aria-multiselectable="true"] .select2-results__group {
   display: flex;
   justify-content: space-between;
   cursor: pointer;

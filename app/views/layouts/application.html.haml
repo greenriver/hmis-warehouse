@@ -20,7 +20,6 @@
     = csrf_meta_tags
   - data = {}
   - data.merge!({ spy: :scroll, target: '.scrollspy' }) if content_for(:body_data_scrollspy)
-  - data.merge!({ controller: 'stimulus-select' })
   %body{class: body_classes, data: data}
     = render 'layouts/header_warnings'
 
