@@ -35,7 +35,7 @@ module HapReport::WarehouseReports
     end
 
     def report_scope
-      HapReport::Report.viewable_by(current_user)
+      HapReport::Report.viewable_by(current_user).order(id: :desc)
     end
 
     private def report_options

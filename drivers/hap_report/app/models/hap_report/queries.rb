@@ -55,7 +55,7 @@ module HapReport::Queries
             hap_client.household_ids.each do |h_id|
               hash[h_id] ||= []
               hash[h_id] << {
-                client_id: client.id,
+                client_id: hap_client.id,
                 head: hap_client.head_of_household_for.include?(h_id),
                 age: hap_client.age,
               }
