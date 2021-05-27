@@ -54,7 +54,11 @@ module HapReport::Queries
             hap_client = client.universe_membership
             hap_client.household_ids.each do |h_id|
               hash[h_id] ||= []
-              hash[h_id] << [client.id, hap_client.age]
+              hash[h_id] << {
+                client_id: client.id,
+                head: hap_client.head_of_household_for.include?(h_id),
+                age: hap_client.age,
+              }
             end
           end
         end
@@ -62,18 +66,34 @@ module HapReport::Queries
 
     def families_with_children
       @families_with_children ||= households.
-        select { |_, v| v.size > 1 && v.any? { |_, age| age < 18 } }.
-        map { |_, v| v.map(&:first) }.
+        select { |_, v| v.size > 1 && v.any? { |client| client[:age] < 18 } }.
+        map { |_, v| v.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@families_with_children)
     end
 
+    def only_head_of_families_with_children
+      @head_of_families_with_children ||= households.
+        select { |_, v| v.size > 1 && v.any? { |client| client[:age] < 18 } }.
+        map { |_, v| v.select { |client| client[:head] }.map { |client| client[:client_id] } }.
+        flatten
+      a_t[:id].in(@head_of_families_with_children)
+    end
+
     def adult_only_households
       @adult_only_households ||= households.
-        select { |_, v| v.size > 1 && v.all? { |_, age| age >= 18 } }.
-        map { |_, v| v.map(&:first) }.
+        select { |_, v| v.size > 1 && v.all? { |client| client[:age] >= 18 } }.
+        map { |_, v| v.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@adult_only_households)
+    end
+
+    def only_head_of_adult_only_households
+      @head_of_adult_only_households ||= households.
+        select { |_, v| v.size > 1 && v.all? { |client| client[:age] >= 18 } }.
+        map { |_, v| v.select { |client| client[:head] }.map { |client| client[:client_id] } }.
+        flatten
+      a_t[:id].in(@head_of_adult_only_households)
     end
 
     def individuals
@@ -82,10 +102,6 @@ module HapReport::Queries
         map { |_, v| v.map(&:first) }.
         flatten
       a_t[:id].in(@individuals)
-    end
-
-    def head_of_household
-      a_t[:head_of_household].eq(true)
     end
 
     def under_sixty

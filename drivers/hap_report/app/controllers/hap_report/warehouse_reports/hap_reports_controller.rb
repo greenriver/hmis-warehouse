@@ -17,7 +17,10 @@ module HapReport::WarehouseReports
     def create
       @report = report_scope.create(user_id: current_user.id, status: :pending, options: report_options)
       @reports = report_scope.page(params[:page]).per(25)
-      @report.delay.build_report if @report.valid?
+      if @report.valid?
+        @report.delay.build_report
+        @report = report_scope.build # reset the view
+      end
 
       render :index
     end
