@@ -34,6 +34,10 @@ RSpec.describe AccessGroup, type: :model do
       # gracefully handles removing non-existant users
       access_group.remove([user_one, user_two])
       expect(access_group.users.length).to be 0
+
+      # can re-add previously removed users
+      access_group.add([user_one, user_two])
+      expect(access_group.users.length).to be 2
     end
   end
 end

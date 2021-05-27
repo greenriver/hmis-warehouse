@@ -35,6 +35,10 @@ RSpec.describe Role, type: :model do
       # gracefully handles removing non-existant users
       role.remove([user_one, user_two])
       expect(role.users.length).to be 0
+
+      # can re-add previously removed users
+      role.add([user_one, user_two])
+      expect(role.users.length).to be 2
     end
   end
 end
