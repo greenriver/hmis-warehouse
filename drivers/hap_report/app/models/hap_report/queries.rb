@@ -66,7 +66,7 @@ module HapReport::Queries
 
     def families_with_children
       @families_with_children ||= households.
-        select { |_, v| v.size > 1 && v.any? { |client| client[:age] < 18 } }.
+        select { |_, v| v.any? { |client| client[:age] < 18 } }.
         map { |_, v| v.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@families_with_children)
@@ -74,7 +74,7 @@ module HapReport::Queries
 
     def only_head_of_families_with_children
       @head_of_families_with_children ||= households.
-        select { |_, v| v.size > 1 && v.any? { |client| client[:age] < 18 } }.
+        select { |_, v| v.any? { |client| client[:age] < 18 } }.
         map { |_, v| v.select { |client| client[:head] }.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@head_of_families_with_children)
@@ -82,7 +82,7 @@ module HapReport::Queries
 
     def adult_only_households
       @adult_only_households ||= households.
-        select { |_, v| v.size > 1 && v.all? { |client| client[:age] >= 18 } }.
+        select { |_, v| v.all? { |client| client[:age] >= 18 } }.
         map { |_, v| v.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@adult_only_households)
@@ -90,7 +90,7 @@ module HapReport::Queries
 
     def only_head_of_adult_only_households
       @head_of_adult_only_households ||= households.
-        select { |_, v| v.size > 1 && v.all? { |client| client[:age] >= 18 } }.
+        select { |_, v| v.all? { |client| client[:age] >= 18 } }.
         map { |_, v| v.select { |client| client[:head] }.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@head_of_adult_only_households)
@@ -98,8 +98,7 @@ module HapReport::Queries
 
     def individuals
       @individuals ||= households.
-        select { |_, v| v.size == 1 }.
-        map { |_, v| v.map(&:first) }.
+        map { |_, v| v.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@individuals)
     end
