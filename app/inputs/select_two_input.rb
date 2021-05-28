@@ -16,8 +16,6 @@ class SelectTwoInput < CollectionSelectInput
     options[:data] ||= {}
     options[:data]['stimulus-select-target'] ||= ''
     options[:data]['stimulus-select-target'] << ' element '
-    # options[:data][:action] ||= ''
-    # options[:data][:action] << ' change->stimulus-select#updateSelectAllStatus '
     merged_input_options = merge_wrapper_options(options, wrapper_options)
 
     @builder.collection_select(
