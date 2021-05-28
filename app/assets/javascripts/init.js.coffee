@@ -44,3 +44,4 @@ $ ->
   # setup click copies
   $('body').on 'click', '.jClickToCopy', ->
     App.util.copyToClipboard $('div.tooltip:visible .pid')
+window.CableReady = window.CableReady.default

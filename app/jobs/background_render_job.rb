@@ -1,6 +1,6 @@
-class BackgroundRenderJob < ApplicationJob
+class BackgroundRenderJob < BaseJob
   include CableReady::Broadcaster
-  queue_as :render
+  queue_as :short_running
 
   def perform(render_id, **args)
     cable_ready[BackgroundRenderChannel.stream_name(render_id)]

@@ -1,5 +1,7 @@
 App.StimulusApp.register('list-search', class extends Stimulus.Controller {
-  static values = {renderId: String, url: String, fetchParams: Object}
+  static get values() {
+    return {renderId: String, url: String, fetchParams: Object}
+  }
 
   connect() {
     // set a unique id for this render

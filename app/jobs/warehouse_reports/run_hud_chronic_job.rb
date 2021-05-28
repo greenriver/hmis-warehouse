@@ -5,7 +5,7 @@
 ###
 
 module WarehouseReports
-  class RunHudChronicJob < BaseJob
+  class RunHudChronicJob < BackgroundRenderJob
     include ArelHelper
     include HudChronic
 
@@ -13,7 +13,7 @@ module WarehouseReports
 
     attr_accessor :params
 
-    def perform(report_params)
+    def render_html(**report_params)
       # load_filter expects params from the controller, so we store them in an attribute, and add permit to it
       report_params.define_singleton_method(:deep_slice) do |*args|
         result = {}
@@ -93,6 +93,8 @@ module WarehouseReports
       report.save
 
       NotifyUser.hud_chronic_report_finished(report_params[:current_user_id], report.id).deliver_later
+
+      WarehouseReports::HudChronicsController.render partial: 'reports', assigns: { jobs: [ self ], reports: [ report ] }
     end
 
     def log(msg, underline: false)
