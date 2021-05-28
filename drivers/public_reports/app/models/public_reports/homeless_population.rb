@@ -531,10 +531,22 @@ module PublicReports
 
     private def coc_codes
       scope = filter_for_range(report_scope)
-      @coc_codes ||= scope.joins(project: :project_cocs).distinct.
-        pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
-          override.presence || original
-        end
+
+      @coc_codes ||= \
+        begin
+          result = scope.joins(project: :project_cocs).distinct.
+            pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
+              override.presence || original
+            end
+
+          resonable_cocs_count = GrdaWarehouse::Shape::CoC.my_state.where(cocnum: result).count
+
+          if resonable_cocs_count == 0 && !Rails.env.production?
+            result = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum)
+          end
+
+          result
+      end
     end
 
     private def household_chart(population)
