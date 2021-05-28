@@ -10,7 +10,7 @@ module GrdaWarehouse
       extend ActiveSupport::Concern
 
       def geo_hash_geometry
-        RGeo::GeoJSON.encode(geom)
+        RGeo::GeoJSON.encode(simplified_geom)
       end
 
       def centroid
