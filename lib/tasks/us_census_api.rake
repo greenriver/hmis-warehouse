@@ -56,7 +56,6 @@ namespace :us_census_api do
     report = PublicReports::HomelessPopulation.find(2)
 
     report.instance_eval do
-      @coc_codes = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum)
       @debug = true
     end
 
