@@ -280,7 +280,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @health_and_dvs[client.id]
   end
 
-  def disabled_and_imparing?(client)
+  def disabled_and_impairing?(client)
     @disabled_and_impairing ||= begin
       clients.chronically_disabled(filter.end).pluck(:id)
     end

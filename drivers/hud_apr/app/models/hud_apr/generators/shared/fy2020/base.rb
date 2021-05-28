@@ -40,7 +40,7 @@ module HudApr::Generators::Shared::Fy2020
         approximate_move_in_dates = {}
         enrollments_by_client_id.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
-          hh_id = last_service_history_enrollment.household_id
+          hh_id = get_hh_id(last_service_history_enrollment)
           date = [
             @report.start_date,
             last_service_history_enrollment.first_date_in_program,
@@ -112,6 +112,7 @@ module HudApr::Generators::Shared::Fy2020
             chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
             chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
+            chronically_homeless_detail: last_service_history_enrollment.enrollment.chronically_homeless_at_start,
             currently_fleeing: health_and_dv&.CurrentlyFleeing,
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
@@ -142,9 +143,9 @@ module HudApr::Generators::Shared::Fy2020
             hiv_aids_exit: disabilities_at_exit.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids: disabilities.detect(&:hiv?).present?,
-            household_id: last_service_history_enrollment.household_id,
+            household_id: get_hh_id(last_service_history_enrollment),
             household_members: household_member_data(last_service_history_enrollment),
-            household_type: household_types[last_service_history_enrollment.household_id],
+            household_type: household_types[get_hh_id(last_service_history_enrollment)],
             housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment,
             income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
             income_date_at_exit: income_at_exit&.InformationDate,

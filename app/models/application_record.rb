@@ -11,7 +11,6 @@ class ApplicationRecord < ActiveRecord::Base
 
   def self.original_config
     original_config = {
-      env_schema: nil,
       'db' => ['db'],
       'db/migrate' => ['db/migrate'],
       'db/seeds' => ['db/seeds'],
@@ -21,7 +20,6 @@ class ApplicationRecord < ActiveRecord::Base
 
   def self.setup_config
     new_config = original_config
-    ENV['SCHEMA'] = 'db/reporting/schema.rb'
     # set config variables for custom database
     new_config.each do |path, value|
       Rails.application.config.paths[path] = value

@@ -181,6 +181,7 @@ Rails.application.routes.draw do
       collection do
         get :overlap
         get :details
+        get :clients
       end
     end
     resources :ce_assessments, only: [:index]
@@ -622,6 +623,8 @@ Rails.application.routes.draw do
   resources :project_cocs, only: [:edit, :update]
 
   resources :project_groups, except: [:destroy, :show] do
+    get :maintenance, on: :collection
+    post :import, on: :collection
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
     resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group' do
       get :support, on: :member
@@ -730,8 +733,12 @@ Rails.application.routes.draw do
       post :confirm
     end
 
-    resources :roles
-    resources :groups
+    resources :roles do
+      resources :users, only: [:create, :destroy], controller: 'roles/users'
+    end
+    resources :groups do
+      resources :users, only: [:create, :destroy], controller: 'groups/users'
+    end
     resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do
@@ -817,6 +824,7 @@ Rails.application.routes.draw do
 
   unless Rails.env.production?
     resource :style_guide, only: :none do
+      get :index
       get :form
       get :careplan
       get :health_team

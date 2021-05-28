@@ -187,7 +187,11 @@ module HmisCsvTwentyTwenty::Aggregated
             ProjectID: combined_project_ids,
           ),
         ).distinct.pluck(:id)
-      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: dest_clients).run!
+
+      # Mark all of these clients as needing a full rebuild so we don't end up with thousands of service history services
+      GrdaWarehouse::Hud::Client.where(id: dest_clients).
+        each(&:invalidate_service_history)
+      GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
     end
 
     def combined_project_ids

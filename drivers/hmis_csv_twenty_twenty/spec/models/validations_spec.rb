@@ -121,7 +121,7 @@ RSpec.describe 'Validate import files', type: :model do
   end
 
   it 'excludes expected current_living_situation failures' do
-    expect(GrdaWarehouse::Hud::CurrentLivingSituation.where(EnrollmentID: 'FAILURE').count).to eq(0)
+    expect(GrdaWarehouse::Hud::CurrentLivingSituation.where(CurrentLivingSitID: 'VALID').count).to eq(1)
   end
 
   # Disability

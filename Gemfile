@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-
 gem 'rails', '~>5.2.4'
 gem 'rails_drivers'
 
@@ -25,6 +24,8 @@ gem 'active_record_extended', '~> 1.4.0'
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
+
+gem 'census_api', github: 'greenriver/census_api'
 
 # spatial manipulations
 gem 'activerecord-postgis-adapter'
@@ -149,7 +150,7 @@ gem 'progress_bar', require: false
 gem 'slack-notifier'
 gem 'exception_notification'
 
-gem 'puma', '~> 3.12.6'
+gem 'puma', '~> 4.3.8'
 
 gem 'dotenv-rails'
 
@@ -189,6 +190,8 @@ gem 'attr_encrypted', '~> 3.1.0'
 gem 'ajax_modal_rails', '~> 1.0'
 gem 'browser'
 gem 'ansi'
+
+gem 'parallel'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

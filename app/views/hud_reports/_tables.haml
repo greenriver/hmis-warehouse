@@ -1,6 +1,5 @@
 - metadata = report&.existing_universe(question)&.metadata
 - if metadata.present?
-  - metadata['tables'].each do |table|
-    %h3= table
-    - exporter = HudReports::CsvExporter.new(@report, table)
-    = render 'hud_reports/table', exporter: exporter
+  - Array(metadata['tables']).each do |table|
+    %h3= "Table #{table}"
+    = render 'hud_reports/table', report: report, question: question, table: table

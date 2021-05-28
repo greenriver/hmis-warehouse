@@ -1,0 +1,16 @@
+.well.warehouse-reports__completed
+  %p This report was generated on #{@report.completed_at.to_date} by #{@report.user&.name} with the following limits.
+  .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
+  = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
+    %p You can optionally specify a sub-folder to make this report unique from others.  This often takes the form of a CoC code, or version number.  If you only expect to have one published version of the report, you can leave it blank.
+    .d-flex
+      = f.input :version_slug, label: 'Folder',  wrapper_html: { class: 'ml-auto' }
+      .ml-4.pt-no-label
+        = f.submit 'Update Folder', class: 'btn btn-secondary'
+  %p If the report contents below are correct, you can publish this publicly.  Once published, any prior versions published to the same location will be replaced with the new version.
+
+  = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
+    = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
+    .d-flex
+      .ml-auto
+        = f.submit 'Publish', data: { confirm: @report.publish_warning }

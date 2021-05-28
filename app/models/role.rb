@@ -124,7 +124,7 @@ class Role < ApplicationRecord
         ],
       },
       can_view_census_details: {
-        description: 'Ability to "drill down" on census reports and see who was where on a given day',
+        description: '[DEPRECATED] Ability to "drill down" on census reports and see who was where on a given day',
         administrative: true,
         categories: [
           'Reporting',
@@ -223,6 +223,13 @@ class Role < ApplicationRecord
       },
       can_edit_projects: {
         description: 'Edit level access for projects and project overrides',
+        administrative: true,
+        categories: [
+          'Data Sources & Inventory',
+        ],
+      },
+      can_import_project_groups: {
+        description: 'Import groupings of projects, this process is un-aware of user project-group associations',
         administrative: true,
         categories: [
           'Data Sources & Inventory',
@@ -442,6 +449,13 @@ class Role < ApplicationRecord
       },
       can_view_client_history_calendar: {
         description: 'Access to the calendar view of client enrollments',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
+      can_view_client_locations: {
+        description: 'Access to the map view of client locations',
         administrative: false,
         categories: [
           'Client Extras',
@@ -985,6 +999,14 @@ class Role < ApplicationRecord
         ActiveRecord::Migration.add_column :roles, permission, :boolean, default: false
       end
     end
+  end
+
+  def add(users)
+    self.users = (self.users + Array.wrap(users)).uniq
+  end
+
+  def remove(users)
+    self.users = (self.users - Array.wrap(users))
   end
 
 end

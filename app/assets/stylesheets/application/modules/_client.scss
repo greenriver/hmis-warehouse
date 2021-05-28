@@ -9,8 +9,7 @@
 .service-type__entry,
 .service-type__exit,
 .service-type__extrapolated,
-.service-type__first,
-{
+.service-type__first {
   background-color: $gray-020;
   margin: 0.2em 0;
   font-size: 0.7em;
@@ -151,6 +150,7 @@
   }
 }
 #client__previous-addresses { height: 250px; }
+#client__location-history { height: 500px; }
 
 .merge-row {
   margin-bottom: space(4);
@@ -426,6 +426,10 @@ $client-image-height: 200px;
 }
 .zero-width {
   width: 0;
+}
+.client__enrollment--household {
+  max-height: 250px;
+  overflow: auto;
 }
 
 .rollup__square {

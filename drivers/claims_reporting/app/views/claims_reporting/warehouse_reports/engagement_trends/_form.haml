@@ -1,5 +1,16 @@
 - url = polymorphic_path(@report.report_path_array)
 = simple_form_for @filter, as: :filters, url: url do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-6
+        = f.input :age_ranges, collection: @filter.available_age_ranges, required: false, as: :select_two, input_html: { multiple: true}, placeholder: 'all ages'
+        = f.input :races, collection: HUD.races(multi_racial: true).invert.except('None'), required: false,  as: :select_two, input_html: { multiple: true}, label: 'Race', placeholder: 'all races', hint: 'As reported in HMIS'
+        = f.input :ethnicities, collection: HUD.ethnicities.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Ethnicity', placeholder: 'all ethnicities', hint: 'As reported in HMIS'
+        = f.input :genders, collection: HUD.genders.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Gender', placeholder: 'all genders', hint: 'As reported in HMIS'
+      .col-6
+        = f.input :food_insecurity, as: :select_two, collection: @filter.available_food_insecurities, hint: 'Limit to patients with initial SSM food insecurity scores at or below the chosen value', placeholder: 'all levels of food insecurity'
+        = f.input :acos, as: :select_two, collection: @filter.available_acos, input_html: { multiple: true }, label: 'ACO', placeholder: 'all ACOs', hint: 'Current assigned in the Care Hub'
+        = f.input :cohort_type, as: :select_two, collection: @filter.available_cohort_types, include_blank: false, label: 'Cohort calculation type'
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary']
 

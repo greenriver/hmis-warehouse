@@ -38,8 +38,9 @@ module HudReports
       run_question!
       remaining_questions = @report.remaining_questions - [self.class.question_number]
       @report.update(remaining_questions: remaining_questions)
-    rescue Exception => e
-      @report.answer(question: self.class.question_number).update(error_messages: e.full_message, status: 'Failed')
+    rescue StandardError => e
+      sanitized_message = "#{e.message} at #{Rails.backtrace_cleaner.clean(e.backtrace, :all).join('; ')}}"
+      @report.answer(question: self.class.question_number).update(error_messages: sanitized_message, status: 'Failed')
       @report.update(state: 'Failed')
       raise e
     end

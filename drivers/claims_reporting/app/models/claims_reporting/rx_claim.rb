@@ -1,6 +1,7 @@
 module ClaimsReporting
   class RxClaim < HealthBase
     phi_patient :member_id
+    belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
 
     include ClaimsReporting::CsvHelpers
 

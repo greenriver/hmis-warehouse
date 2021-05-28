@@ -33,7 +33,6 @@ module OmniauthSupport
         email: auth['info']['email'],
       ) || new(
         password: Devise.friendly_token,
-        confirmed_at: Time.current, # we are assuming its the providers job, not ours.
         agency: Agency.where(name: 'Unknown').first_or_create!,
       )
 
@@ -50,10 +49,14 @@ module OmniauthSupport
 
       # Notify existing users the first time OKTA is used
       # to sign into their account
-      if !user.new_record? && user.provider_changed?
+      if !user.new_record? && user.provider_set_at.blank?
         logger.info { "User#from_omniauth linking to pre-existing user. provider:#{user.provider} uid:#{user.uid} existing_user_id:#{user.id}" }
+        user.provider_set_at = Time.current
         ::ApplicationMailer.with(user: user).provider_linked.deliver_later
       end
+
+      user.skip_confirmation! unless user.confirmed?
+      user.skip_reconfirmation!
       user.save(validate: false)
       user
     end
@@ -77,6 +80,7 @@ module OmniauthSupport
     assign_attributes(
       provider: nil,
       uid: nil,
+      provider_set_at: nil,
     )
 
     if reactivate

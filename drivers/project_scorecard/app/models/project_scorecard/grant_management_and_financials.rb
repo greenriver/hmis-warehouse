@@ -12,6 +12,8 @@ module ProjectScorecard
         return nil unless [amount_awarded, months_since_start, funds_expended].all?
 
         projected_amount = amount_awarded * (months_since_start / 12.0)
+        return nil if projected_amount.zero?
+
         (((projected_amount - funds_expended) / projected_amount) * 100).round
       end
 
@@ -27,14 +29,18 @@ module ProjectScorecard
 
       def cost_per_participant
         return nil unless [budget_plus_match, participants_in_psh].all?
+        return nil unless participants_in_psh.positive?
 
         (budget_plus_match / participants_in_psh).round
       end
 
       def cost_efficiency_score
-        if project.psh?
+        return 0 if expansion_year
+
+        # Note: per 5/3/2021 request, treat SH as PSH
+        if key_project.psh? || key_project.sh?
           score(cost_per_participant, 0..8_999, 9_000..11_000)
-        elsif project.rrh?
+        elsif key_project.rrh?
           score(cost_per_participant, 0..2_499, 2_500..5_400)
         end
       end
@@ -47,6 +53,7 @@ module ProjectScorecard
 
       def percentage_recaptured
         return nil unless [prior_unspent_amount].all?
+        return nil if prior_amount_awarded.zero?
 
         ((prior_unspent_amount / prior_amount_awarded.to_f) * 100).round
       end
@@ -62,6 +69,7 @@ module ProjectScorecard
 
       def percentage_meetings_attended
         return nil unless [coc_meetings_attended, coc_meetings].all?
+        return nil if coc_meetings.zero?
 
         ((coc_meetings_attended / coc_meetings.to_f) * 100).round
       end

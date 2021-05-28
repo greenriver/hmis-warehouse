@@ -3,19 +3,15 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-
+require 'memoist'
 module ClaimsReporting
   class MedicalClaim < HealthBase
+    extend Memoist
+
     phi_patient :member_id
+    belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
 
-    belongs_to :patient,
-               class_name: 'Health::Patient',
-               primary_key: :member_id,
-               foreign_key: :medicaid_id
-
-    belongs_to :member_roster,
-               primary_key: :member_id,
-               foreign_key: :member_id
+    belongs_to :member_roster, primary_key: :member_id, foreign_key: :member_id
 
     scope :service_in, ->(date_range) do
       where(
@@ -27,8 +23,13 @@ module ClaimsReporting
       )
     end
 
+    # like service_in but using daterange intersection index in postgres which *might* be faster...
+    scope :service_overlaps, ->(date_range) do
+      where ["daterange(service_start_date, service_end_date, '[]') && daterange(:min, :max, '[]')", { min: date_range.min, max: date_range.max }]
+    end
+
     scope :engaging, -> do
-      where(
+      paid.where(
         procedure_code: 'T2024',
         procedure_modifier_1: 'U4',
         claim_status: 'P',
@@ -36,11 +37,181 @@ module ClaimsReporting
     end
 
     scope :paid, -> do
-      where(patient_status: 'P')
+      where(claim_status: 'P')
     end
 
-    def self.service_overlaps(date_range)
-      where ["daterange(service_start_date, service_end_date, '[]') && daterange(:min, :max, '[]')", { min: date_range.min, max: date_range.max }]
+    scope :matching_icd10cm, ->(pg_regexp_str) do
+      # Tip: pg_trgm gist or gin index can make ~ operators fast
+      # this will otherwise be slow!
+      where <<~SQL.squish, pattern: pg_regexp_str
+        COALESCE(icd_version. '10') AND (
+          dx_1 ~ :pattern
+          OR dx_2 ~ :pattern
+          OR dx_3 ~ :pattern
+          OR dx_4 ~ :pattern
+          OR dx_5 ~ :pattern
+          OR dx_6 ~ :pattern
+          OR dx_7 ~ :pattern
+          OR dx_8 ~ :pattern
+          OR dx_9 ~ :pattern
+          OR dx_10 ~ :pattern
+          OR dx_11 ~ :pattern
+          OR dx_12 ~ :pattern
+          OR dx_13 ~ :pattern
+          OR dx_14 ~ :pattern
+          OR dx_15 ~ :pattern
+          OR dx_16 ~ :pattern
+          OR dx_17 ~ :pattern
+          OR dx_18 ~ :pattern
+          OR dx_19 ~ :pattern
+          OR dx_20 ~ :pattern
+        )
+      SQL
+    end
+
+    scope :matching_icd10pcs, ->(pg_regexp_str) do
+      # Tip: pg_trgm gist or gin index can make ~ operators fast
+      # this will otherwise be slow!
+      where <<~SQL.squish, pattern: pg_regexp_str
+        COALESCE(icd_version. '10') = '10' AND (
+          surgical_procedure_code_1 ~ :pattern
+          OR surgical_procedure_code_2 ~ :pattern
+          OR surgical_procedure_code_3 ~ :pattern
+          OR surgical_procedure_code_4 ~ :pattern
+          OR surgical_procedure_code_5 ~ :pattern
+        )
+      SQL
+    end
+
+    def matches_icd10cm?(regexp)
+      (icd_version || '10') == '10' && dx_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def matches_icd9cm?(regexp)
+      icd_version == '9' && dx_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def matches_icd10pcs?(regexp)
+      (icd_version || '10') == '10' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def matches_icd9pcs?(regexp)
+      icd_version == '9' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
+    end
+
+    # Calculates and updates the cumulative enrolled and engaged days as of each claims service_start_date.
+    #
+    # These can go down if there are large gaps in enrollment. Temporary gaps just stop counting days as enrolled.
+    #
+    # We loop over distinct members_id and update each members claims atomically. This could be done
+    # in parallel if needed.
+    def self.maintain_engaged_days!
+      members = 0
+      updates = 0
+      log_timing 'maintain_engaged_days!' do
+        enrollment_gap_limit = 365.days # a gap longer than this will reset our counters
+        last_claim_date = MedicalClaim.maximum(:service_start_date) || Date.current
+        member_ids = distinct.pluck(:member_id)
+        member_ids.each_with_index do |member_id, idx|
+          logger.info { "MedicalClaim.maintain_engaged_days!: Processing member #{idx + 1}/#{member_ids.length}." }
+          enrollments = MemberEnrollmentRoster.where(member_id: member_id).select(
+            :span_start_date, :span_end_date
+          ).sort_by(&:span_start_date)
+
+          logger.debug { "MedicalClaim.maintain_engaged_days!: Found #{enrollments.length} enrollment spans" }
+
+          # enrolled_day is the number of days of enrollment to date.
+          #
+          # Create a map of dates to number of enrolled days to date.
+          # Enrollments might overlap (they shouldn't but do) so we have
+          # sorted by span_start_date above so the enrollment that gives
+          # them the most credited days is used.
+          # We stop counting during gaps and start over at zero enrolled days
+          # if the gap gets too long.
+          enrolled_dates = {}
+          enrollments.each_with_index do |e, e_idx|
+            range_start = e.span_start_date
+            range_end = if e == enrollments.last
+              last_claim_date
+            else
+              enrollments[e_idx + 1].span_start_date
+            end
+            (range_start .. range_end).each do |date|
+              previous_day = (date - 1.day)
+              previous_days_count = (enrolled_dates[previous_day] || 0)
+              enrolled_dates[date] ||= if date < e.span_end_date
+                previous_days_count + 1
+              elsif (date - e.span_end_date) > enrollment_gap_limit
+                0
+              else
+                previous_days_count
+              end
+            end
+          end
+
+          # Use that as lookup iterate over all claims for the
+          # member from oldest to newest and update the
+          # enrolled_days as of the service data. Once
+          # we find a valid claim indicating successful engagement
+          # we can also set the cumulative engaged_days
+          tuples = []
+          conn = connection
+          engagement_date = nil
+
+          where(member_id: member_id).select(
+            :id,
+            :service_start_date,
+            :claim_status,
+            :procedure_code,
+            :procedure_modifier_1,
+          ).order(service_start_date: :asc).each do |claim|
+            enrolled_days = enrolled_dates[claim.service_start_date] || 0
+
+            # Locate a valid QA for Care Plan completion
+            engagement_date ||= claim.service_start_date if claim.engaged?
+
+            # engaged_days is the sum of enrolled_days after that point
+            engaged_days = if engagement_date
+              raise 'claim data out of order' if claim.service_start_date < engagement_date
+
+              previous_day = (engagement_date - 1.day)
+              pre_engaged_enrolled_days = enrolled_dates[previous_day] || 0
+
+              # clamp to 0.. if a user becomes engaged on the first day
+              # of a enrollment gap (which should be impossible). In that
+              # case pre_engaged_enrolled_days would be 365 and
+              # enrolled_days would be 0
+              (enrolled_days - pre_engaged_enrolled_days).clamp(0, enrolled_days)
+            else
+              0
+            end
+            tuples << "(#{conn.quote claim.id},#{conn.quote enrolled_days},#{conn.quote engaged_days})"
+          end
+          logger.debug { "MedicalClaim.maintain_engaged_days!: Updating #{tuples.size} claim records" }
+          updates += tuples.size
+          if tuples.any?
+            sql = <<~SQL
+              UPDATE #{quoted_table_name}
+              SET enrolled_days=t.enrolled_days, engaged_days=t.engaged_days
+              FROM (VALUES #{tuples.join(',')}) AS t (id, enrolled_days, engaged_days)
+              WHERE #{quoted_table_name}.id = t.id
+            SQL
+            connection.execute(sql)
+          end
+          members += 1
+        end
+        updates
+      end
+      { members: members, updates: updates }
+    end
+
+    def engaged?
+      completed_treatment_plan?
+    end
+
+    # Qualifying Activity: BH CP Treatment Plan Complete
+    def completed_treatment_plan?
+      procedure_code == 'T2024' && procedure_modifier_1 == 'U4' && claim_status == 'P'
     end
 
     def modifiers
@@ -51,16 +222,47 @@ module ClaimsReporting
         procedure_modifier_4,
       ].select(&:present?)
     end
+    memoize :modifiers
+
+    def dx_codes
+      [
+        dx_1, dx_2, dx_3, dx_4, dx_5, dx_6, dx_7, dx_8, dx_9, dx_10,
+        dx_11, dx_12, dx_13, dx_14, dx_15, dx_16, dx_17, dx_18, dx_19, dx_20
+      ].select(&:present?)
+    end
+    memoize :dx_codes
+
+    # FIXME? Faster to avoid the casts which we don't happen to need?
+    # def dx_codes2
+    #   values = []
+    #   [
+    #     :dx_1, :dx_2, :dx_3, :dx_4, :dx_5, :dx_6, :dx_7, :dx_8, :dx_9,
+    #     :dx_10, :dx_11, :dx_12, :dx_13, :dx_14, :dx_15, :dx_16, :dx_17, :dx_18, :dx_19, :dx_20
+    #   ].each do |name|
+    #     v = read_attribute_before_type_cast(name)
+    #     values << v if v.present?
+    #   end
+
+    #   values
+    # end
+    # memoize :dx_codes2
+
+    def surgical_procedure_codes
+      [
+        surgical_procedure_code_1,
+        surgical_procedure_code_2,
+        surgical_procedure_code_3,
+        surgical_procedure_code_4,
+        surgical_procedure_code_5,
+      ].select(&:present?)
+    end
+    memoize :surgical_procedure_codes
 
     def procedure_with_modifiers
       # sort is here since this is used as a key to match against other data
       ([procedure_code] + modifiers.sort).join('>').to_s
     end
-
-    # Qualifying Activity: BH CP Treatment Plan Complete
-    def bh_cp_1?
-      procedure_code == 'T2024' && 'U4'.in?(modifiers)
-    end
+    memoize :procedure_with_modifiers
 
     include ClaimsReporting::CsvHelpers
     def self.conflict_target

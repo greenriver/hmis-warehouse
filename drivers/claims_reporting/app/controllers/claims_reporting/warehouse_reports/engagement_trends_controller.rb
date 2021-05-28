@@ -13,9 +13,7 @@ module ClaimsReporting::WarehouseReports
       @reports = report_class.ordered.visible_to(current_user)
       @reports = @reports.page(params[:page]).per(25)
       @report = report_class.new
-      # TODO: this should probably be a different filter eventually, but isn't in use currently other than
-      # as a placeholder for the form
-      @filter = ::Filters::FilterBase.new
+      @filter = ::Filters::EngagementFilter.new(user_id: current_user.id)
     end
 
     def create
@@ -26,7 +24,7 @@ module ClaimsReporting::WarehouseReports
         options: {
           start_date: dates.min.iso8601,
           end_date: dates.max.iso8601,
-        },
+        }.merge(report_params),
       )
       @report.save
       ::WarehouseReports::GenericReportJob.perform_later(
@@ -38,6 +36,12 @@ module ClaimsReporting::WarehouseReports
     end
 
     def show
+      respond_to do |format|
+        format.html
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=Patient Engagement Trends #{Time.current.to_s(:db)}.xlsx"
+        end
+      end
     end
 
     private def set_report
@@ -55,6 +59,18 @@ module ClaimsReporting::WarehouseReports
 
     private def flash_interpolation_options
       { resource_name: @report.title }
+    end
+
+    private def report_params
+      params.require(:filters).permit(
+        :food_insecurity, # FIXME
+        :cohort_type,
+        age_ranges: [],
+        races: [],
+        ethnicities: [],
+        genders: [],
+        acos: [],
+      )
     end
   end
 end

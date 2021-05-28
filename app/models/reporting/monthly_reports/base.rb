@@ -11,6 +11,7 @@ module Reporting::MonthlyReports
   class Base < ReportingBase
     include ArelHelper
     include ::Reporting::MonthlyReports::MonthlyReportCharts
+    EXPIRY = if Rails.env.development? then 30.seconds else 22.hours end
 
     self.table_name = :warehouse_partitioned_monthly_reports
 
@@ -65,13 +66,12 @@ module Reporting::MonthlyReports
     end
 
     def self.available_months
-      Rails.cache.fetch([self.name, 'month-range'], expires_in: 24.hours) do
+      Rails.cache.fetch([name, 'month-range'], expires_in: EXPIRY) do
         distinct.
-        order(year: :desc, month: :desc).
-        pluck(:year, :month).map do |year, month|
-          date = Date.new(year, month, 1)
-          [[year, month], date.strftime('%B %Y')]
-        end.to_h
+          order(year: :desc, month: :desc).
+          pluck(:year, :month).map do |year, month|
+            Date.new(year, month, 1)
+          end
       end
     end
 

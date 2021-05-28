@@ -19,12 +19,15 @@ module ProjectScorecard
     include GrantManagementAndFinancials
     include ReviewOnly
 
-    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
+    belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
     belongs_to :user, class_name: 'User'
     belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
 
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
+    has_many :project_group_project_contacts, through: :project_group, source: :contacts
+    has_many :project_group_organization_contacts, through: :project_group, source: :organization_contacts
 
     def completed?
       status == 'completed'
@@ -151,8 +154,24 @@ module ProjectScorecard
       ].freeze
     end
 
+    def project_name
+      return project.name if project.present?
+
+      project_group.name
+    end
+
+    def key_project
+      return project if project.present?
+
+      candidate = project_group.projects.detect(&:rrh?)
+      candidate = project_group.projects.detect(&:psh?) if candidate.blank?
+      candidate = project_group.projects.detect(&:sh?) if candidate.blank?
+      candidate = project_group.projects.first if candidate.blank?
+      candidate
+    end
+
     def title
-      "#{project.name} Project Scorecard"
+      "#{project_name} Project Scorecard"
     end
 
     def url
@@ -162,20 +181,32 @@ module ProjectScorecard
     def run_and_save!
       update(started_at: Time.current)
 
-      previous = self.class.where(project_id: project_id).
-        where.not(id: id).
-        order(id: :desc).
-        first
+      previous = if project_id.present?
+        self.class.where(project_id: project_id).
+          where.not(id: id).
+          order(id: :desc).
+          first
+      else
+        self.class.where(project_group_id: project_group_id).
+          where.not(id: id).
+          order(id: :desc).
+          first
+      end
       assessment_answers = {}
 
       if RailsDrivers.loaded.include?(:hud_apr)
         # Generate APR
         filter = ::Filters::FilterBase.new(user_id: user_id)
+        if project_id.present?
+          project_ids = [project_id]
+        else
+          project_ids = GrdaWarehouse::ProjectGroup.viewable_by(User.find(user_id)).find(project_group_id).projects.pluck(:id)
+        end
         filter.set_from_params(
           {
             start: start_date,
             end: end_date,
-            project_ids: [project_id],
+            project_ids: project_ids,
           },
         )
         questions = [
@@ -210,7 +241,7 @@ module ProjectScorecard
 
             average_los_leavers: answer(apr, 'Q22b', 'B2'),
 
-            percent_pii_errors: answer(apr, 'Q6a', 'F8'),
+            percent_pii_errors: answer(apr, 'Q6a', 'F8').to_f * 100,
 
             days_to_lease_up: answer(apr, 'Q22c', 'B11'),
           },
@@ -227,13 +258,14 @@ module ProjectScorecard
         percent_increased_other_cash_income_at_exit = percentage(increased_other_income / leavers_or_annual_expected_with_other_income.to_f)
 
         # Data quality calculations
-        total_persons_served = answer(apr, 'Q5a', 'B1')
+        total_hoh_served = answer(apr, 'Q5a', 'B14')
 
-        total_ude_errors = (2..6).map { |row| answer(apr, 'Q6b', 'B' + row.to_s) }.sum
-        percent_ude_errors = percentage(total_ude_errors / total_persons_served.to_f)
+        # need unique count of client_ids not, sum of counts since someone might appear more than once
+        total_ude_errors = (2..6).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
+        percent_ude_errors = percentage(total_ude_errors / total_hoh_served.to_f)
 
-        total_income_and_housing_errors = (2..5).map { |row| answer(apr, 'Q6c', 'B' + row.to_s) }.sum
-        percent_income_and_housing_errors = percentage(total_income_and_housing_errors / total_persons_served.to_f)
+        total_income_and_housing_errors = (2..5).map { |row| answer_client_ids(apr, 'Q6c', 'B' + row.to_s) }.flatten.uniq.count
+        percent_income_and_housing_errors = percentage(total_income_and_housing_errors / total_hoh_served.to_f)
 
         assessment_answers.merge!(
           {
@@ -247,9 +279,9 @@ module ProjectScorecard
 
       assessment_answers.merge!(
         {
-          percent_returns_to_homelessness: percent_returns_to_homelessness_from_spm,
-          clients_with_vispdats: clients_with_vispdats_fom_hmis.count,
-          average_vispdat_score: average_vispdat_score_fom_hmis,
+          percent_returns_to_homelessness: percent_returns_to_homelessness_from_spm(project_ids),
+          clients_with_vispdats: clients_with_vispdats_fom_hmis(project_ids).count,
+          average_vispdat_score: average_vispdat_score_fom_hmis(project_ids),
         },
       )
 
@@ -271,7 +303,7 @@ module ProjectScorecard
     end
 
     def contacts
-      @contacts ||= project_contacts + organization_contacts
+      @contacts ||= (project_contacts + organization_contacts + project_group_project_contacts + project_group_organization_contacts).uniq
     end
 
     def send_email_to_owner
@@ -279,12 +311,12 @@ module ProjectScorecard
     end
 
     # TODO: When the SPM is updated, this should be too
-    private def percent_returns_to_homelessness_from_spm
+    private def percent_returns_to_homelessness_from_spm(project_ids)
       options = {
         report_start: start_date,
         report_end: end_date,
-        project_id: [project_id],
-        project_group_ids: [], # Must be included
+        project_id: project_ids,
+        project_group_ids: [], # Must be included, but we break it out into project_id
       }
 
       report = Reports::SystemPerformance::Fy2019::MeasureTwo.first
@@ -308,26 +340,30 @@ module ProjectScorecard
       percentage(number_of_returns / number_of_exits.to_f)
     end
 
-    private def clients_with_vispdats_fom_hmis
+    private def clients_with_vispdats_fom_hmis(project_ids)
       GrdaWarehouse::Hud::Client.
         joins(:source_hmis_forms).
         merge(GrdaWarehouse::HmisForm.vispdat).
         where(id: GrdaWarehouse::ServiceHistoryEnrollment.
           entry.
           open_between(start_date: start_date, end_date: end_date).
-          in_project(project_id).
+          in_project(project_ids).
           select(:client_id)).
         distinct
     end
 
-    private def average_vispdat_score_fom_hmis
-      clients_with_vispdats_fom_hmis.
+    private def average_vispdat_score_fom_hmis(project_ids)
+      clients_with_vispdats_fom_hmis(project_ids).
         merge(GrdaWarehouse::HmisForm.within_range(start_date..end_date)).
         average(:vispdat_total_score)
     end
 
     private def answer(report, table, cell)
       report.answer(question: table, cell: cell).summary
+    end
+
+    private def answer_client_ids(report, table, cell)
+      report.answer(question: table, cell: cell).universe_members.pluck(:client_id)
     end
 
     private def percentage(value)

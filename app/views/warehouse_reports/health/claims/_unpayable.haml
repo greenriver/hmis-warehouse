@@ -12,9 +12,8 @@
     - included_unpayable_qas = qas.reject(&:ignored)
     - content_for :panel_collapse_content, flush: true do
       .d-flex.mb-4
-        .ml-auto
-          Medicaid ID:
-          = link_to sample_qa.patient.medicaid_id, polymorphic_path(careplans_path_generator, client_id: sample_qa.patient.client_id)
+        Medicaid ID:
+        = link_to sample_qa.patient.medicaid_id, polymorphic_path(qas_path_generator, client_id: sample_qa.patient.client_id), target: "_blank"
       .overflow-scroll
         %table.table.table-sm.table-striped.table-hover
           %thead

@@ -128,7 +128,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
           enrollments.map do |entry|
             project = entry.project
             organization = entry.organization
-            services = entry.service_history_services
+            dates_served = entry.service_history_services.where(record_type: service_types).distinct.pluck(:date)
             project_name = if project.confidential? && ! include_confidential_names
               project.safe_project_name
             else
@@ -139,12 +139,11 @@ module ClientAccessControl::GrdaWarehouse::Hud
               end
               "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
             end
-            dates_served = services.select { |m| service_types.include?(m.record_type) }.map(&:date).uniq
             count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
             # days included in adjusted days that are not also served by a residential project
             adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
             homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: enrollments)
-            most_recent_service = services.sort_by(&:date)&.last&.date
+            most_recent_service = dates_served.max
             new_episode = new_episode?(enrollments: enrollments, enrollment: entry)
             {
               client_source_id: entry.source_client.id,

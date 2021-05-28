@@ -74,6 +74,8 @@ module ProjectScorecard
       end
 
       def m_and_f_max
+        return 40 if expansion_year
+
         50
       end
 

@@ -242,6 +242,8 @@ module Importing
     end
 
     def sync_with_cas
+      return unless CasBase.db_exists?
+
       # Disable CAS for anyone who's been housed in CAS
       GrdaWarehouse::CasHoused.inactivate_clients
 

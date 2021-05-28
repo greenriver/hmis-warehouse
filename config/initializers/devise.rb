@@ -412,7 +412,7 @@ Devise.setup do |config|
     domain = ENV.fetch('OKTA_DOMAIN')
     auth_server = ENV.fetch('OKTA_AUTH_SERVER') { 'default' }
 
-    puts "OKTA: SSO enabled domain=#{domain}"
+    # puts "OKTA: SSO enabled domain=#{domain}"
 
     connection_build_callback = if Rails.env.development?
       puts 'OKTA: WARNING: request logging enabled'

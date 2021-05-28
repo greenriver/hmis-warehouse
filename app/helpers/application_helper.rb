@@ -129,6 +129,11 @@ module ApplicationHelper
     # this catches empty
   end
 
+  def quarter(date)
+    month = date.month + 2
+    (month.ceil / 3)
+  end
+
   # returns the class associated with the current sort order of a column
   def current_sort_order(columns)
     columns[sort_column] = sort_direction

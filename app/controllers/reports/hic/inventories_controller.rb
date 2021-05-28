@@ -10,14 +10,9 @@ module Reports
       @date = params[:date]&.to_date || params.dig(:report, :date) || Date.current
 
       @inventories = GrdaWarehouse::Hud::Inventory.joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
-        merge(GrdaWarehouse::Hud::Project.with_hud_project_type(PROJECT_TYPES)).
+        within_range(@filter.on..@filter.on).
+        merge(project_scope).
         distinct
-
-      if @date.present?
-        @inventories = @inventories.merge(GrdaWarehouse::Hud::Inventory.within_range(@date..@date))
-        @inventories = @inventories.merge(GrdaWarehouse::Hud::Project.active_on(@date))
-      end
 
       respond_to do |format|
         format.html
