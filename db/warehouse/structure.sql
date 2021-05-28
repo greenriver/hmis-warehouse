@@ -12742,7 +12742,7 @@ CREATE TABLE public.shape_block_groups (
     intptlat character varying,
     intptlon character varying,
     full_geoid character varying,
-    orig_geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326)
 );
 
@@ -12818,8 +12818,8 @@ CREATE TABLE public.shape_cocs (
     unsh_vets numeric,
     shape_leng numeric,
     shape_area numeric,
-    orig_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     full_geoid character varying
 );
 
@@ -12867,7 +12867,7 @@ CREATE TABLE public.shape_counties (
     awater double precision,
     intptlat character varying,
     intptlon character varying,
-    orig_geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326)
 );
 
@@ -12912,7 +12912,7 @@ CREATE TABLE public.shape_states (
     awater double precision,
     intptlat character varying,
     intptlon character varying,
-    orig_geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326)
 );
 
@@ -12951,8 +12951,8 @@ CREATE TABLE public.shape_zip_codes (
     awater10 double precision,
     intptlat10 character varying(11),
     intptlon10 character varying(12),
-    orig_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     full_geoid character varying
 );
 
@@ -24057,10 +24057,10 @@ CREATE INDEX index_shape_block_groups_on_geom ON public.shape_block_groups USING
 
 
 --
--- Name: index_shape_block_groups_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_block_groups_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_block_groups_on_orig_geom ON public.shape_block_groups USING gist (orig_geom);
+CREATE INDEX index_shape_block_groups_on_simplified_geom ON public.shape_block_groups USING gist (simplified_geom);
 
 
 --
@@ -24085,10 +24085,10 @@ CREATE INDEX index_shape_cocs_on_geom ON public.shape_cocs USING gist (geom);
 
 
 --
--- Name: index_shape_cocs_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_cocs_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_cocs_on_orig_geom ON public.shape_cocs USING gist (orig_geom);
+CREATE INDEX index_shape_cocs_on_simplified_geom ON public.shape_cocs USING gist (simplified_geom);
 
 
 --
@@ -24120,10 +24120,10 @@ CREATE INDEX index_shape_counties_on_geom ON public.shape_counties USING gist (g
 
 
 --
--- Name: index_shape_counties_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_counties_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_counties_on_orig_geom ON public.shape_counties USING gist (orig_geom);
+CREATE INDEX index_shape_counties_on_simplified_geom ON public.shape_counties USING gist (simplified_geom);
 
 
 --
@@ -24155,10 +24155,10 @@ CREATE INDEX index_shape_states_on_geom ON public.shape_states USING gist (geom)
 
 
 --
--- Name: index_shape_states_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_states_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_states_on_orig_geom ON public.shape_states USING gist (orig_geom);
+CREATE INDEX index_shape_states_on_simplified_geom ON public.shape_states USING gist (simplified_geom);
 
 
 --
@@ -24183,10 +24183,10 @@ CREATE INDEX index_shape_zip_codes_on_geom ON public.shape_zip_codes USING gist 
 
 
 --
--- Name: index_shape_zip_codes_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_zip_codes_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_zip_codes_on_orig_geom ON public.shape_zip_codes USING gist (orig_geom);
+CREATE INDEX index_shape_zip_codes_on_simplified_geom ON public.shape_zip_codes USING gist (simplified_geom);
 
 
 --
