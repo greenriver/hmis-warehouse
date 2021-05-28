@@ -1,4 +1,11 @@
 GIT
+  remote: https://github.com/greenriver/census_api.git
+  revision: 39303ab2463f50078f28c867c23cd27d525f5173
+  specs:
+    census_api (2.0.1)
+      http
+
+GIT
   remote: https://github.com/greenriver/composite_primary_keys.git
   revision: e50b101268f903da35d808443cf16a474b878c49
   branch: active-record-5.2.4-compatability
@@ -339,6 +346,9 @@ GEM
     faraday-net_http (1.0.1)
     fast_gettext (2.0.3)
     ffi (1.14.2)
+    ffi-compiler (1.0.1)
+      ffi (>= 1.0.0)
+      rake
     ffi-geos (2.1.0)
       ffi (>= 1.0.0)
     flamegraph (0.9.5)
@@ -404,9 +414,17 @@ GEM
       nokogiri (>= 1.6.0)
       ruby_parser (~> 3.5)
     htmlentities (4.3.4)
+    http (4.4.1)
+      addressable (~> 2.3)
+      http-cookie (~> 1.0)
+      http-form_data (~> 2.2)
+      http-parser (~> 1.2.0)
     http-accept (1.7.0)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
+    http-form_data (2.3.0)
+    http-parser (1.2.3)
+      ffi-compiler (>= 1.0, < 2.0)
     i18n (1.8.10)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
@@ -637,7 +655,7 @@ GEM
       rgeo (>= 1.0.0)
     rgeo-geojson (2.1.1)
       rgeo (>= 1.0.0)
-    rgeo-proj4 (2.0.1)
+    rgeo-proj4 (3.0.1)
       rgeo (~> 2.0)
     roo (2.8.3)
       nokogiri (~> 1)
@@ -869,6 +887,7 @@ DEPENDENCIES
   carrierwave-i18n
   caxlsx
   caxlsx_rails
+  census_api!
   charlock_holmes
   coffee-rails
   combine_pdf

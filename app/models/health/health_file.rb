@@ -48,7 +48,7 @@ module Health
       return nil unless client.patient
 
       client.patient.contributed_enrollment_ranges.each do |range|
-        return true if range.covers?(signature)
+        return true if range.cover?(signature)
       end
 
       return false

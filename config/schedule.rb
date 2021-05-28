@@ -93,6 +93,10 @@ every 1.day, at: shifted_time.strftime('%I:%M %P') do
   rake "grda_warehouse:ftps_s3_sync"
 end
 
+shifted_time = Time.parse(import_schedule) - 5.hours
+every 1.month, at: shifted_time.strftime('%I:%M %P') do
+  rake "us_census_api:all"
+end
 
 if ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
   every 1.day, at: '11:03 am' do

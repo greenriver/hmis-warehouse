@@ -15,7 +15,6 @@ module HudSpmReport::Filters
         ids += effective_project_ids_from_project_groups
         ids += effective_project_ids_from_organizations
         ids += effective_project_ids_from_data_sources
-        ids += effective_project_ids_from_coc_codes
         ids = all_project_ids if ids.empty?
 
         ids = ids.uniq.reject(&:blank?)
