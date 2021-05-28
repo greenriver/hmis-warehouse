@@ -9,10 +9,10 @@
 - if @contacts.any?
   #client__location-history
   = content_for :page_js do
-    :coffeescript
-      markers = #{@markers.to_json.html_safe}
-      options = #{@options.to_json.html_safe}
-      map = new App.Maps.MapWithMarkers('client__location-history', markers, options)
+    :javascript
+      var markers = #{@markers.to_json.html_safe};
+      var options = #{@options.to_json.html_safe};
+      var map = new App.Maps.MapWithMarkers('client__location-history', markers, options);
 - else
   .no-data
     No previous locations

@@ -30,7 +30,6 @@ class App.Maps.MapWithMarkers
       map.addLayer(group)
       map.fitBounds(bounds)
     else
-      console.log(@data)
       for marker in @data
         m = L.marker(marker.lat_lon)
         if @options.link
