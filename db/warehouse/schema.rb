@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_30_124825) do
+ActiveRecord::Schema.define(version: 2021_05_27_140359) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1333,6 +1333,34 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.integer "client_count", default: 0, null: false
   end
 
+  create_table "census_groups", force: :cascade do |t|
+    t.integer "year", null: false
+    t.string "dataset", null: false
+    t.string "name", null: false
+    t.text "description", null: false
+    t.date "created_on"
+    t.index ["year", "dataset", "name"], name: "index_census_groups_on_year_and_dataset_and_name", unique: true
+  end
+
+# Could not dump table "census_values" because of following StandardError
+#   Unknown type 'census_levels' for column 'census_level'
+
+  create_table "census_variables", force: :cascade do |t|
+    t.integer "year", null: false
+    t.boolean "downloaded", default: false, null: false
+    t.string "dataset", null: false
+    t.string "name", null: false
+    t.text "label", null: false
+    t.text "concept", null: false
+    t.string "census_group", null: false
+    t.string "census_attributes", null: false
+    t.string "internal_name"
+    t.date "created_on", null: false
+    t.index ["dataset"], name: "index_census_variables_on_dataset"
+    t.index ["internal_name", "year", "dataset"], name: "index_census_variables_on_internal_name_and_year_and_dataset", where: "(internal_name IS NOT NULL)"
+    t.index ["year", "dataset", "name"], name: "index_census_variables_on_year_and_dataset_and_name", unique: true
+  end
+
   create_table "censuses", id: :serial, force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.integer "ProjectType", null: false
@@ -1385,6 +1413,22 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.string "project_names"
     t.index ["client_id"], name: "index_chronics_on_client_id"
     t.index ["date"], name: "index_chronics_on_date"
+  end
+
+  create_table "clh_locations", force: :cascade do |t|
+    t.bigint "client_id"
+    t.string "source_type"
+    t.bigint "source_id"
+    t.date "located_on"
+    t.float "lat"
+    t.float "lon"
+    t.string "collected_by"
+    t.datetime "processed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["client_id"], name: "index_clh_locations_on_client_id"
+    t.index ["source_type", "source_id"], name: "index_clh_locations_on_source_type_and_source_id"
   end
 
   create_table "client_matches", id: :serial, force: :cascade do |t|
@@ -1943,6 +1987,23 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.text "client_ids"
   end
 
+  create_table "federal_census_breakdowns", force: :cascade do |t|
+    t.date "accurate_on", comment: "Most recent census date"
+    t.string "type"
+    t.string "geography_level", comment: "State, zip, CoC (or maybe 010, 040, 050)"
+    t.string "geography", comment: "MA, 02101, MA-500"
+    t.string "measure", comment: "Detail of race, age, etc. (Asian, 50-59...)"
+    t.integer "value", comment: "count of population"
+    t.string "geo_id"
+    t.string "race"
+    t.string "gender"
+    t.integer "age_min"
+    t.integer "age_max"
+    t.string "source", comment: "Source of data"
+    t.string "census_variable_name", comment: "For debugging, variable name used in source"
+    t.index ["accurate_on", "geography", "geography_level", "measure"], name: "idx_fed_census_acc_on_geo_measure"
+  end
+
   create_table "files", id: :serial, force: :cascade do |t|
     t.string "type", null: false
     t.string "file"
@@ -2012,6 +2073,28 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.string "entity_type", null: false
     t.datetime "deleted_at"
     t.index ["access_group_id", "entity_id", "entity_type"], name: "one_entity_per_type_per_group", unique: true
+  end
+
+  create_table "hap_report_clients", force: :cascade do |t|
+    t.bigint "client_id"
+    t.integer "age"
+    t.boolean "emancipated"
+    t.boolean "head_of_household"
+    t.string "household_ids", array: true
+    t.integer "project_types", array: true
+    t.boolean "veteran"
+    t.boolean "mental_health"
+    t.boolean "substance_abuse"
+    t.boolean "domestic_violence"
+    t.integer "income_at_start"
+    t.integer "income_at_exit"
+    t.boolean "homeless"
+    t.integer "nights_in_shelter"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "head_of_household_for", array: true
+    t.index ["client_id"], name: "index_hap_report_clients_on_client_id"
   end
 
   create_table "health_emergency_ama_restrictions", force: :cascade do |t|
@@ -3318,6 +3401,7 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.boolean "triage_assessment", default: false
     t.boolean "rrh_assessment", default: false
     t.boolean "covid_19_impact_assessment", default: false
+    t.boolean "with_location_data", default: false, null: false
     t.index ["assessment_id"], name: "index_hmis_assessments_on_assessment_id"
     t.index ["data_source_id"], name: "index_hmis_assessments_on_data_source_id"
     t.index ["site_id"], name: "index_hmis_assessments_on_site_id"
@@ -4262,6 +4346,7 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.integer "percent_ami"
     t.string "household_type"
     t.integer "household_size"
+    t.datetime "location_processed_at"
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
@@ -4443,6 +4528,7 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.datetime "deleted_at"
     t.integer "destination_client_id"
     t.boolean "annual_assessment_in_window"
+    t.string "chronically_homeless_detail"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 
@@ -4613,6 +4699,50 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.jsonb "remaining_questions"
     t.jsonb "coc_codes"
     t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
+  end
+
+  create_table "hud_report_spm_clients", force: :cascade do |t|
+    t.integer "client_id", null: false
+    t.integer "data_source_id", null: false
+    t.integer "report_instance_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.date "dob"
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "m1a_es_sh_days"
+    t.integer "m1a_es_sh_th_days"
+    t.integer "m1b_es_sh_ph_days"
+    t.integer "m1b_es_sh_th_ph_days"
+    t.jsonb "m1_history"
+    t.integer "m2_exit_from_project_type"
+    t.integer "m2_exit_to_destination"
+    t.integer "m2_reentry_days"
+    t.jsonb "m2_history"
+    t.integer "m3_active_project_types", array: true
+    t.boolean "m4_stayer"
+    t.decimal "m4_latest_income"
+    t.decimal "m4_latest_earned_income"
+    t.decimal "m4_latest_non_earned_income"
+    t.decimal "m4_earliest_income"
+    t.decimal "m4_earliest_earned_income"
+    t.decimal "m4_earliest_non_earned_income"
+    t.jsonb "m4_history"
+    t.integer "m5_active_project_types", array: true
+    t.integer "m5_recent_project_types", array: true
+    t.jsonb "m5_history"
+    t.integer "m6_exit_from_project_type"
+    t.integer "m6_exit_to_destination"
+    t.integer "m6_reentry_days"
+    t.integer "m6c1_destination"
+    t.integer "m6c2_destination"
+    t.jsonb "m6_history"
+    t.integer "m7a1_destination"
+    t.integer "m7b1_destination"
+    t.integer "m7b2_destination"
+    t.jsonb "m7_history"
+    t.index ["report_instance_id", "client_id", "data_source_id"], name: "spm_client_conflict_columns", unique: true
   end
 
   create_table "hud_report_universe_members", force: :cascade do |t|
@@ -5401,6 +5531,7 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.text "precalculated_data"
+    t.string "version_slug"
     t.index ["created_at"], name: "index_public_report_reports_on_created_at"
     t.index ["updated_at"], name: "index_public_report_reports_on_updated_at"
     t.index ["user_id"], name: "index_public_report_reports_on_user_id"
@@ -5446,9 +5577,73 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.string "font_weight_1"
     t.string "font_weight_2"
     t.string "font_weight_3"
+    t.string "gender_color_0"
+    t.string "gender_color_1"
+    t.string "gender_color_2"
+    t.string "gender_color_3"
+    t.string "gender_color_4"
+    t.string "gender_color_5"
+    t.string "gender_color_6"
+    t.string "gender_color_7"
+    t.string "gender_color_8"
+    t.string "age_color_0"
+    t.string "age_color_1"
+    t.string "age_color_2"
+    t.string "age_color_3"
+    t.string "age_color_4"
+    t.string "age_color_5"
+    t.string "age_color_6"
+    t.string "age_color_7"
+    t.string "age_color_8"
+    t.string "household_composition_color_0"
+    t.string "household_composition_color_1"
+    t.string "household_composition_color_2"
+    t.string "household_composition_color_3"
+    t.string "household_composition_color_4"
+    t.string "household_composition_color_5"
+    t.string "household_composition_color_6"
+    t.string "household_composition_color_7"
+    t.string "household_composition_color_8"
+    t.string "race_color_0"
+    t.string "race_color_1"
+    t.string "race_color_2"
+    t.string "race_color_3"
+    t.string "race_color_4"
+    t.string "race_color_5"
+    t.string "race_color_6"
+    t.string "race_color_7"
+    t.string "race_color_8"
+    t.string "time_color_0"
+    t.string "time_color_1"
+    t.string "time_color_2"
+    t.string "time_color_3"
+    t.string "time_color_4"
+    t.string "time_color_5"
+    t.string "time_color_6"
+    t.string "time_color_7"
+    t.string "time_color_8"
+    t.string "housing_type_color_0"
+    t.string "housing_type_color_1"
+    t.string "housing_type_color_2"
+    t.string "housing_type_color_3"
+    t.string "housing_type_color_4"
+    t.string "housing_type_color_5"
+    t.string "housing_type_color_6"
+    t.string "housing_type_color_7"
+    t.string "housing_type_color_8"
+    t.string "population_color_0"
+    t.string "population_color_1"
+    t.string "population_color_2"
+    t.string "population_color_3"
+    t.string "population_color_4"
+    t.string "population_color_5"
+    t.string "population_color_6"
+    t.string "population_color_7"
+    t.string "population_color_8"
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
+    t.integer "id"
     t.string "EnrollmentID", limit: 50
     t.string "PersonalID"
     t.string "ProjectID", limit: 50
@@ -5534,7 +5729,6 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id"
-    t.integer "id"
     t.integer "LOSUnderThreshold"
     t.integer "PreviousStreetESSH"
     t.integer "UrgentReferral"
@@ -5567,6 +5761,9 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.string "SexualOrientationOther", limit: 100
+    t.date "history_generated_on"
+    t.string "original_household_id"
+    t.bigint "service_history_processing_job_id"
     t.integer "demographic_id"
     t.integer "client_id"
     t.index ["EntryDate"], name: "entrydate_ret_index"
@@ -5735,6 +5932,7 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.integer "project_type", limit: 2
     t.boolean "homeless"
     t.boolean "literally_homeless"
+    t.index ["date", "service_history_enrollment_id"], name: "shs_unique_date_she_id", unique: true
     t.index ["date"], name: "index_service_history_services_on_date"
     t.index ["project_type"], name: "index_service_history_services_on_project_type"
   end
@@ -5753,10 +5951,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2000_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2000_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2000_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2000_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2000_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2000_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2000_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2000_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2000_en_id_only"
   end
 
@@ -5774,10 +5972,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2001_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2001_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2001_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2001_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2001_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2001_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2001_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2001_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2001_en_id_only"
   end
 
@@ -5795,10 +5993,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2002_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2002_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2002_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2002_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2002_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2002_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2002_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2002_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2002_en_id_only"
   end
 
@@ -5816,10 +6014,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2003_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2003_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2003_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2003_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2003_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2003_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2003_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2003_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2003_en_id_only"
   end
 
@@ -5837,10 +6035,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2004_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2004_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2004_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2004_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2004_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2004_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2004_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2004_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2004_en_id_only"
   end
 
@@ -5858,10 +6056,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2005_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2005_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2005_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2005_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2005_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2005_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2005_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2005_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2005_en_id_only"
   end
 
@@ -5879,10 +6077,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2006_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2006_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2006_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2006_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2006_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2006_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2006_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2006_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2006_en_id_only"
   end
 
@@ -5900,10 +6098,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2007_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2007_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2007_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2007_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2007_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2007_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2007_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2007_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2007_en_id_only"
   end
 
@@ -5921,10 +6119,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2008_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2008_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2008_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2008_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2008_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2008_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2008_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2008_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2008_en_id_only"
   end
 
@@ -5942,10 +6140,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2009_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2009_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2009_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2009_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2009_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2009_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2009_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2009_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2009_en_id_only"
   end
 
@@ -5963,10 +6161,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2010_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2010_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2010_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2010_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2010_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2010_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2010_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2010_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2010_en_id_only"
   end
 
@@ -5984,10 +6182,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2011_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2011_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2011_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2011_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2011_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2011_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2011_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2011_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2011_en_id_only"
   end
 
@@ -6005,10 +6203,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2012_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2012_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2012_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2012_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2012_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2012_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2012_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2012_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2012_en_id_only"
   end
 
@@ -6026,10 +6224,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2013_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2013_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2013_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2013_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2013_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2013_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2013_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2013_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2013_en_id_only"
   end
 
@@ -6047,10 +6245,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2014_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2014_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2014_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2014_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2014_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2014_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2014_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2014_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2014_en_id_only"
   end
 
@@ -6068,10 +6266,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2015_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2015_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2015_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2015_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2015_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2015_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2015_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2015_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2015_en_id_only"
   end
 
@@ -6089,10 +6287,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2016_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2016_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2016_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2016_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2016_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2016_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2016_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2016_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2016_en_id_only"
   end
 
@@ -6110,10 +6308,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2017_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2017_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2017_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2017_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2017_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2017_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2017_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2017_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2017_en_id_only"
   end
 
@@ -6131,10 +6329,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2018_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2018_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2018_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2018_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2018_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2018_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2018_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2018_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2018_en_id_only"
   end
 
@@ -6152,10 +6350,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2019_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2019_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2019_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2019_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2019_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2019_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2019_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2019_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2019_en_id_only"
   end
 
@@ -6173,10 +6371,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2020_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2020_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2020_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2020_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2020_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2020_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2020_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2020_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2020_en_id_only"
   end
 
@@ -6194,10 +6392,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2021_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2021_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2021_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2021_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2021_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2021_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2021_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2021_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2021_en_id_only"
   end
 
@@ -6215,10 +6413,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2022_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2022_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2022_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2022_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2022_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2022_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2022_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2022_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2022_en_id_only"
   end
 
@@ -6236,10 +6434,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2023_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2023_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2023_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2023_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2023_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2023_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2023_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2023_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2023_en_id_only"
   end
 
@@ -6257,10 +6455,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2024_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2024_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2024_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2024_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2024_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2024_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2024_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2024_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2024_en_id_only"
   end
 
@@ -6278,10 +6476,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2025_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2025_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2025_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2025_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2025_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2025_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2025_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2025_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2025_en_id_only"
   end
 
@@ -6299,10 +6497,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2026_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2026_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2026_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2026_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2026_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2026_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2026_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2026_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2026_en_id_only"
   end
 
@@ -6320,10 +6518,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2027_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2027_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2027_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2027_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2027_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2027_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2027_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2027_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2027_en_id_only"
   end
 
@@ -6341,10 +6539,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2028_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2028_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2028_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2028_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2028_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2028_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2028_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2028_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2028_en_id_only"
   end
 
@@ -6362,10 +6560,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2029_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2029_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2029_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2029_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2029_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2029_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2029_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2029_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2029_en_id_only"
   end
 
@@ -6383,10 +6581,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2030_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2030_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2030_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2030_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2030_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2030_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2030_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2030_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2030_en_id_only"
   end
 
@@ -6404,10 +6602,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2031_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2031_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2031_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2031_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2031_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2031_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2031_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2031_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2031_en_id_only"
   end
 
@@ -6425,10 +6623,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2032_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2032_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2032_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2032_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2032_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2032_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2032_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2032_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2032_en_id_only"
   end
 
@@ -6446,10 +6644,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2033_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2033_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2033_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2033_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2033_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2033_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2033_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2033_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2033_en_id_only"
   end
 
@@ -6467,10 +6665,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2034_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2034_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2034_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2034_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2034_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2034_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2034_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2034_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2034_en_id_only"
   end
 
@@ -6488,10 +6686,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2035_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2035_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2035_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2035_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2035_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2035_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2035_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2035_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2035_en_id_only"
   end
 
@@ -6509,10 +6707,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2036_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2036_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2036_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2036_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2036_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2036_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2036_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2036_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2036_en_id_only"
   end
 
@@ -6530,10 +6728,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2037_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2037_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2037_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2037_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2037_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2037_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2037_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2037_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2037_en_id_only"
   end
 
@@ -6551,10 +6749,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2038_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2038_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2038_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2038_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2038_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2038_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2038_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2038_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2038_en_id_only"
   end
 
@@ -6572,10 +6770,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2039_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2039_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2039_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2039_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2039_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2039_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2039_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2039_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2039_en_id_only"
   end
 
@@ -6593,10 +6791,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2040_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2040_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2040_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2040_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2040_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2040_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2040_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2040_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2040_en_id_only"
   end
 
@@ -6614,10 +6812,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2041_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2041_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2041_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2041_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2041_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2041_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2041_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2041_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2041_en_id_only"
   end
 
@@ -6635,10 +6833,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2042_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2042_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2042_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2042_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2042_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2042_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2042_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2042_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2042_en_id_only"
   end
 
@@ -6656,10 +6854,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2043_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2043_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2043_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2043_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2043_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2043_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2043_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2043_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2043_en_id_only"
   end
 
@@ -6677,10 +6875,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2044_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2044_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2044_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2044_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2044_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2044_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2044_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2044_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2044_en_id_only"
   end
 
@@ -6698,10 +6896,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2045_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2045_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2045_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2045_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2045_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2045_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2045_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2045_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2045_en_id_only"
   end
 
@@ -6719,10 +6917,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2046_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2046_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2046_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2046_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2046_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2046_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2046_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2046_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2046_en_id_only"
   end
 
@@ -6740,10 +6938,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2047_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2047_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2047_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2047_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2047_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2047_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2047_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2047_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2047_en_id_only"
   end
 
@@ -6761,10 +6959,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2048_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2048_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2048_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2048_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2048_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2048_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2048_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2048_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2048_en_id_only"
   end
 
@@ -6782,10 +6980,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2049_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2049_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2049_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2049_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2049_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2049_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2049_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2049_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2049_en_id_only"
   end
 
@@ -6803,10 +7001,10 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["client_id", "date", "record_type"], name: "index_shs_2050_date_client_id"
     t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2050_c_id_en_id"
     t.index ["client_id"], name: "index_shs_2050_client_id_only"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2050_date_en_id", unique: true
     t.index ["date"], name: "index_shs_2050_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2050_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2050_date_project_type"
-    t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2050_date_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2050_en_id_only"
   end
 
@@ -6823,7 +7021,7 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.boolean "literally_homeless"
     t.index ["date", "client_id"], name: "index_shs_1900_date_client_id"
     t.index ["date", "project_type"], name: "index_shs_1900_date_project_type"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_1900_date_en_id"
+    t.index ["date", "service_history_enrollment_id"], name: "index_shs_1900_date_en_id", unique: true
     t.index ["date"], name: "index_shs_1900_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_remainder_on_id", unique: true
   end
@@ -6859,6 +7057,28 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.index ["type"], name: "index_service_scanning_services_on_type"
     t.index ["updated_at"], name: "index_service_scanning_services_on_updated_at"
     t.index ["user_id"], name: "index_service_scanning_services_on_user_id"
+  end
+
+  create_table "shape_block_groups", force: :cascade do |t|
+    t.string "statefp"
+    t.string "countyfp"
+    t.string "tractce"
+    t.string "blkgrpce"
+    t.string "geoid"
+    t.string "namelsad"
+    t.string "mtfcc"
+    t.string "funcstat"
+    t.float "aland"
+    t.float "awater"
+    t.string "intptlat"
+    t.string "intptlon"
+    t.string "full_geoid"
+    t.geometry "simplified_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["full_geoid"], name: "index_shape_block_groups_on_full_geoid"
+    t.index ["geoid"], name: "index_shape_block_groups_on_geoid", unique: true
+    t.index ["geom"], name: "index_shape_block_groups_on_geom", using: :gist
+    t.index ["simplified_geom"], name: "index_shape_block_groups_on_simplified_geom", using: :gist
   end
 
   create_table "shape_cocs", force: :cascade do |t|
@@ -6908,12 +7128,67 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.decimal "unsh_vets"
     t.decimal "shape_leng"
     t.decimal "shape_area"
-    t.geometry "orig_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
     t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "simplified_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.string "full_geoid"
     t.index ["cocname"], name: "index_shape_cocs_on_cocname"
+    t.index ["full_geoid"], name: "index_shape_cocs_on_full_geoid", unique: true
     t.index ["geom"], name: "index_shape_cocs_on_geom", using: :gist
-    t.index ["orig_geom"], name: "index_shape_cocs_on_orig_geom", using: :gist
+    t.index ["simplified_geom"], name: "index_shape_cocs_on_simplified_geom", using: :gist
     t.index ["st"], name: "index_shape_cocs_on_st"
+  end
+
+  create_table "shape_counties", force: :cascade do |t|
+    t.string "statefp"
+    t.string "countyfp"
+    t.string "countyns"
+    t.string "full_geoid"
+    t.string "geoid"
+    t.string "name"
+    t.string "namelsad"
+    t.string "lsad"
+    t.string "classfp"
+    t.string "mtfcc"
+    t.string "csafp"
+    t.string "cbsafp"
+    t.string "metdivfp"
+    t.string "funcstat"
+    t.float "aland"
+    t.float "awater"
+    t.string "intptlat"
+    t.string "intptlon"
+    t.geometry "simplified_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["full_geoid"], name: "index_shape_counties_on_full_geoid"
+    t.index ["geoid"], name: "index_shape_counties_on_geoid", unique: true
+    t.index ["geom"], name: "index_shape_counties_on_geom", using: :gist
+    t.index ["simplified_geom"], name: "index_shape_counties_on_simplified_geom", using: :gist
+    t.index ["statefp"], name: "index_shape_counties_on_statefp"
+  end
+
+  create_table "shape_states", force: :cascade do |t|
+    t.string "region"
+    t.string "division"
+    t.string "statefp"
+    t.string "statens"
+    t.string "full_geoid"
+    t.string "geoid"
+    t.string "stusps"
+    t.string "name"
+    t.string "lsad"
+    t.string "mtfcc"
+    t.string "funcstat"
+    t.float "aland"
+    t.float "awater"
+    t.string "intptlat"
+    t.string "intptlon"
+    t.geometry "simplified_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["full_geoid"], name: "index_shape_states_on_full_geoid"
+    t.index ["geoid"], name: "index_shape_states_on_geoid", unique: true
+    t.index ["geom"], name: "index_shape_states_on_geom", using: :gist
+    t.index ["simplified_geom"], name: "index_shape_states_on_simplified_geom", using: :gist
+    t.index ["stusps"], name: "index_shape_states_on_stusps"
   end
 
   create_table "shape_zip_codes", force: :cascade do |t|
@@ -6926,11 +7201,64 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
     t.float "awater10"
     t.string "intptlat10", limit: 11
     t.string "intptlon10", limit: 12
-    t.geometry "orig_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
     t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "simplified_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.string "full_geoid"
+    t.index ["full_geoid"], name: "index_shape_zip_codes_on_full_geoid"
     t.index ["geom"], name: "index_shape_zip_codes_on_geom", using: :gist
-    t.index ["orig_geom"], name: "index_shape_zip_codes_on_orig_geom", using: :gist
+    t.index ["simplified_geom"], name: "index_shape_zip_codes_on_simplified_geom", using: :gist
     t.index ["zcta5ce10"], name: "index_shape_zip_codes_on_zcta5ce10", unique: true
+  end
+
+  create_table "simple_report_cells", force: :cascade do |t|
+    t.bigint "report_instance_id"
+    t.string "name"
+    t.boolean "universe", default: false
+    t.integer "summary"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["report_instance_id"], name: "index_simple_report_cells_on_report_instance_id"
+  end
+
+  create_table "simple_report_instances", force: :cascade do |t|
+    t.string "type"
+    t.json "options"
+    t.bigint "user_id"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "status"
+    t.index ["user_id"], name: "index_simple_report_instances_on_user_id"
+  end
+
+  create_table "simple_report_universe_members", force: :cascade do |t|
+    t.bigint "report_cell_id"
+    t.string "universe_membership_type"
+    t.bigint "universe_membership_id"
+    t.bigint "client_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_simple_report_universe_members_on_client_id"
+    t.index ["report_cell_id", "universe_membership_id", "universe_membership_type"], name: "uniq_simple_report_universe_members", unique: true, where: "(deleted_at IS NULL)"
+    t.index ["report_cell_id"], name: "index_simple_report_universe_members_on_report_cell_id"
+    t.index ["universe_membership_type", "universe_membership_id"], name: "simple_report_univ_type_and_id"
+  end
+
+  create_table "synthetic_assessments", force: :cascade do |t|
+    t.bigint "enrollment_id"
+    t.bigint "client_id"
+    t.string "type"
+    t.string "source_type"
+    t.bigint "source_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_synthetic_assessments_on_client_id"
+    t.index ["enrollment_id"], name: "index_synthetic_assessments_on_enrollment_id"
+    t.index ["source_type", "source_id"], name: "index_synthetic_assessments_on_source_type_and_source_id"
   end
 
   create_table "taggings", id: :serial, force: :cascade do |t|
@@ -7543,6 +7871,822 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
       "Geography"."GeographyType",
       "Geography".source_hash
      FROM "Geography";
+  SQL
+  create_view "bi_Affiliation", sql_definition: <<-SQL
+      SELECT "Affiliation".id AS "AffiliationID",
+      "Project".id AS "ProjectID",
+      "Affiliation"."ResProjectID",
+      "Affiliation"."DateCreated",
+      "Affiliation"."DateUpdated",
+      "Affiliation"."UserID",
+      "Affiliation"."DateDeleted",
+      "Affiliation"."ExportID",
+      "Affiliation".data_source_id
+     FROM ("Affiliation"
+       JOIN "Project" ON ((("Affiliation".data_source_id = "Project".data_source_id) AND (("Affiliation"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
+    WHERE ("Affiliation"."DateDeleted" IS NULL);
+  SQL
+  create_view "bi_Assessment", sql_definition: <<-SQL
+      SELECT "Assessment".id AS "AssessmentID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Enrollment".id AS "EnrollmentID",
+      "Assessment"."AssessmentDate",
+      "Assessment"."AssessmentLocation",
+      "Assessment"."AssessmentType",
+      "Assessment"."AssessmentLevel",
+      "Assessment"."PrioritizationStatus",
+      "Assessment"."DateCreated",
+      "Assessment"."DateUpdated",
+      "Assessment"."UserID",
+      "Assessment"."DateDeleted",
+      "Assessment"."ExportID",
+      "Assessment".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("Assessment"
+       JOIN "Enrollment" ON ((("Assessment".data_source_id = "Enrollment".data_source_id) AND (("Assessment"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("Assessment".data_source_id = source_clients.data_source_id) AND (("Assessment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Assessment"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_AssessmentQuestions", sql_definition: <<-SQL
+      SELECT "AssessmentQuestions".id AS "AssessmentQuestionID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Assessment".id AS "AssessmentID",
+      "Enrollment".id AS "EnrollmentID",
+      "AssessmentQuestions"."AssessmentQuestionGroup",
+      "AssessmentQuestions"."AssessmentQuestionOrder",
+      "AssessmentQuestions"."AssessmentQuestion",
+      "AssessmentQuestions"."AssessmentAnswer",
+      "AssessmentQuestions"."DateCreated",
+      "AssessmentQuestions"."DateUpdated",
+      "AssessmentQuestions"."UserID",
+      "AssessmentQuestions"."DateDeleted",
+      "AssessmentQuestions"."ExportID",
+      "AssessmentQuestions".data_source_id,
+      source_clients.id AS demographic_id
+     FROM (((((("AssessmentQuestions"
+       JOIN "Enrollment" ON ((("AssessmentQuestions".data_source_id = "Enrollment".data_source_id) AND (("AssessmentQuestions"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("AssessmentQuestions".data_source_id = source_clients.data_source_id) AND (("AssessmentQuestions"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Assessment" ON ((("AssessmentQuestions".data_source_id = "Assessment".data_source_id) AND (("AssessmentQuestions"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentQuestions"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_AssessmentResults", sql_definition: <<-SQL
+      SELECT "AssessmentResults".id AS "AssessmentResultID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Assessment".id AS "AssessmentID",
+      "Enrollment".id AS "EnrollmentID",
+      "AssessmentResults"."AssessmentResultType",
+      "AssessmentResults"."AssessmentResult",
+      "AssessmentResults"."DateCreated",
+      "AssessmentResults"."DateUpdated",
+      "AssessmentResults"."UserID",
+      "AssessmentResults"."DateDeleted",
+      "AssessmentResults"."ExportID",
+      "AssessmentResults".data_source_id,
+      source_clients.id AS demographic_id
+     FROM (((((("AssessmentResults"
+       JOIN "Enrollment" ON ((("AssessmentResults".data_source_id = "Enrollment".data_source_id) AND (("AssessmentResults"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("AssessmentResults".data_source_id = source_clients.data_source_id) AND (("AssessmentResults"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Assessment" ON ((("AssessmentResults".data_source_id = "Assessment".data_source_id) AND (("AssessmentResults"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentResults"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_Client", sql_definition: <<-SQL
+      SELECT "Client".id AS personalid,
+      4 AS "HashStatus",
+      encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
+      encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
+      encode(sha256((soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
+      encode(sha256((soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
+      "Client"."NameDataQuality",
+      concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
+      "Client"."SSNDataQuality",
+      "Client"."DOB",
+      "Client"."DOBDataQuality",
+      "Client"."AmIndAKNative",
+      "Client"."Asian",
+      "Client"."BlackAfAmerican",
+      "Client"."NativeHIOtherPacific",
+      "Client"."White",
+      "Client"."RaceNone",
+      "Client"."Ethnicity",
+      "Client"."Gender",
+      "Client"."VeteranStatus",
+      "Client"."YearEnteredService",
+      "Client"."YearSeparated",
+      "Client"."WorldWarII",
+      "Client"."KoreanWar",
+      "Client"."VietnamWar",
+      "Client"."DesertStorm",
+      "Client"."AfghanistanOEF",
+      "Client"."IraqOIF",
+      "Client"."IraqOND",
+      "Client"."OtherTheater",
+      "Client"."MilitaryBranch",
+      "Client"."DischargeStatus",
+      "Client"."DateCreated",
+      "Client"."DateUpdated",
+      "Client"."UserID",
+      "Client"."DateDeleted",
+      "Client"."ExportID"
+     FROM "Client"
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
+  SQL
+  create_view "bi_CurrentLivingSituation", sql_definition: <<-SQL
+      SELECT "CurrentLivingSituation".id AS "CurrentLivingSitID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Enrollment".id AS "EnrollmentID",
+      "CurrentLivingSituation"."InformationDate",
+      "CurrentLivingSituation"."CurrentLivingSituation",
+      "CurrentLivingSituation"."VerifiedBy",
+      "CurrentLivingSituation"."LeaveSituation14Days",
+      "CurrentLivingSituation"."SubsequentResidence",
+      "CurrentLivingSituation"."ResourcesToObtain",
+      "CurrentLivingSituation"."LeaseOwn60Day",
+      "CurrentLivingSituation"."MovedTwoOrMore",
+      "CurrentLivingSituation"."LocationDetails",
+      "CurrentLivingSituation"."DateCreated",
+      "CurrentLivingSituation"."DateUpdated",
+      "CurrentLivingSituation"."UserID",
+      "CurrentLivingSituation"."DateDeleted",
+      "CurrentLivingSituation"."ExportID",
+      "CurrentLivingSituation".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("CurrentLivingSituation"
+       JOIN "Enrollment" ON ((("CurrentLivingSituation".data_source_id = "Enrollment".data_source_id) AND (("CurrentLivingSituation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("CurrentLivingSituation".data_source_id = source_clients.data_source_id) AND (("CurrentLivingSituation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("CurrentLivingSituation"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_Demographics", sql_definition: <<-SQL
+      SELECT "Client".id AS personalid,
+      4 AS "HashStatus",
+      encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
+      encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
+      encode(sha256((soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
+      encode(sha256((soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
+      "Client"."NameDataQuality",
+      concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
+      "Client"."SSNDataQuality",
+      "Client"."DOB",
+      "Client"."DOBDataQuality",
+      "Client"."AmIndAKNative",
+      "Client"."Asian",
+      "Client"."BlackAfAmerican",
+      "Client"."NativeHIOtherPacific",
+      "Client"."White",
+      "Client"."RaceNone",
+      "Client"."Ethnicity",
+      "Client"."Gender",
+      "Client"."VeteranStatus",
+      "Client"."YearEnteredService",
+      "Client"."YearSeparated",
+      "Client"."WorldWarII",
+      "Client"."KoreanWar",
+      "Client"."VietnamWar",
+      "Client"."DesertStorm",
+      "Client"."AfghanistanOEF",
+      "Client"."IraqOIF",
+      "Client"."IraqOND",
+      "Client"."OtherTheater",
+      "Client"."MilitaryBranch",
+      "Client"."DischargeStatus",
+      "Client"."DateCreated",
+      "Client"."DateUpdated",
+      "Client"."UserID",
+      "Client"."DateDeleted",
+      "Client"."ExportID",
+      warehouse_clients.destination_id AS client_id,
+      "Client".data_source_id
+     FROM ("Client"
+       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE ((data_sources.deleted_at IS NULL) AND ((data_sources.source_type IS NOT NULL) OR (data_sources.authoritative = true))))));
+  SQL
+  create_view "bi_Disabilities", sql_definition: <<-SQL
+      SELECT "Disabilities".id AS "DisabilitiesID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Enrollment".id AS "EnrollmentID",
+      "Disabilities"."InformationDate",
+      "Disabilities"."DisabilityType",
+      "Disabilities"."DisabilityResponse",
+      "Disabilities"."IndefiniteAndImpairs",
+      "Disabilities"."TCellCountAvailable",
+      "Disabilities"."TCellCount",
+      "Disabilities"."TCellSource",
+      "Disabilities"."ViralLoadAvailable",
+      "Disabilities"."ViralLoad",
+      "Disabilities"."ViralLoadSource",
+      "Disabilities"."DataCollectionStage",
+      "Disabilities"."DateCreated",
+      "Disabilities"."DateUpdated",
+      "Disabilities"."UserID",
+      "Disabilities"."DateDeleted",
+      "Disabilities"."ExportID",
+      "Disabilities".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("Disabilities"
+       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Disabilities"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_EmploymentEducation", sql_definition: <<-SQL
+      SELECT "EmploymentEducation".id AS "EmploymentEducationID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Enrollment".id AS "EnrollmentID",
+      "EmploymentEducation"."InformationDate",
+      "EmploymentEducation"."LastGradeCompleted",
+      "EmploymentEducation"."SchoolStatus",
+      "EmploymentEducation"."Employed",
+      "EmploymentEducation"."EmploymentType",
+      "EmploymentEducation"."NotEmployedReason",
+      "EmploymentEducation"."DataCollectionStage",
+      "EmploymentEducation"."DateCreated",
+      "EmploymentEducation"."DateUpdated",
+      "EmploymentEducation"."UserID",
+      "EmploymentEducation"."DateDeleted",
+      "EmploymentEducation"."ExportID",
+      "EmploymentEducation".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("EmploymentEducation"
+       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EmploymentEducation"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_Enrollment", sql_definition: <<-SQL
+      SELECT "Enrollment".id AS "EnrollmentID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Project".id AS "ProjectID",
+      "Enrollment"."EntryDate",
+      "Enrollment"."HouseholdID",
+      "Enrollment"."RelationshipToHoH",
+      "Enrollment"."LivingSituation",
+      "Enrollment"."LengthOfStay",
+      "Enrollment"."LOSUnderThreshold",
+      "Enrollment"."PreviousStreetESSH",
+      "Enrollment"."DateToStreetESSH",
+      "Enrollment"."TimesHomelessPastThreeYears",
+      "Enrollment"."MonthsHomelessPastThreeYears",
+      "Enrollment"."DisablingCondition",
+      "Enrollment"."DateOfEngagement",
+      "Enrollment"."MoveInDate",
+      "Enrollment"."DateOfPATHStatus",
+      "Enrollment"."ClientEnrolledInPATH",
+      "Enrollment"."ReasonNotEnrolled",
+      "Enrollment"."WorstHousingSituation",
+      "Enrollment"."PercentAMI",
+      "Enrollment"."LastPermanentStreet",
+      "Enrollment"."LastPermanentCity",
+      "Enrollment"."LastPermanentState",
+      "Enrollment"."LastPermanentZIP",
+      "Enrollment"."AddressDataQuality",
+      "Enrollment"."DateOfBCPStatus",
+      "Enrollment"."EligibleForRHY",
+      "Enrollment"."ReasonNoServices",
+      "Enrollment"."RunawayYouth",
+      "Enrollment"."SexualOrientation",
+      "Enrollment"."SexualOrientationOther",
+      "Enrollment"."FormerWardChildWelfare",
+      "Enrollment"."ChildWelfareYears",
+      "Enrollment"."ChildWelfareMonths",
+      "Enrollment"."FormerWardJuvenileJustice",
+      "Enrollment"."JuvenileJusticeYears",
+      "Enrollment"."JuvenileJusticeMonths",
+      "Enrollment"."UnemploymentFam",
+      "Enrollment"."MentalHealthIssuesFam",
+      "Enrollment"."PhysicalDisabilityFam",
+      "Enrollment"."AlcoholDrugAbuseFam",
+      "Enrollment"."InsufficientIncome",
+      "Enrollment"."IncarceratedParent",
+      "Enrollment"."ReferralSource",
+      "Enrollment"."CountOutreachReferralApproaches",
+      "Enrollment"."UrgentReferral",
+      "Enrollment"."TimeToHousingLoss",
+      "Enrollment"."ZeroIncome",
+      "Enrollment"."AnnualPercentAMI",
+      "Enrollment"."FinancialChange",
+      "Enrollment"."HouseholdChange",
+      "Enrollment"."EvictionHistory",
+      "Enrollment"."SubsidyAtRisk",
+      "Enrollment"."LiteralHomelessHistory",
+      "Enrollment"."DisabledHoH",
+      "Enrollment"."CriminalRecord",
+      "Enrollment"."SexOffender",
+      "Enrollment"."DependentUnder6",
+      "Enrollment"."SingleParent",
+      "Enrollment"."HH5Plus",
+      "Enrollment"."IraqAfghanistan",
+      "Enrollment"."FemVet",
+      "Enrollment"."HPScreeningScore",
+      "Enrollment"."ThresholdScore",
+      "Enrollment"."VAMCStation",
+      "Enrollment"."DateCreated",
+      "Enrollment"."DateUpdated",
+      "Enrollment"."UserID",
+      "Enrollment"."DateDeleted",
+      "Enrollment"."ExportID",
+      "Enrollment".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("Enrollment"
+       JOIN "Project" ON ((("Enrollment".data_source_id = "Project".data_source_id) AND (("Enrollment"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
+       JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Enrollment"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_EnrollmentCoC", sql_definition: <<-SQL
+      SELECT "EnrollmentCoC".id AS "EnrollmentCoCID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Project".id AS "ProjectID",
+      "Enrollment".id AS "EnrollmentID",
+      "EnrollmentCoC"."HouseholdID",
+      "EnrollmentCoC"."InformationDate",
+      "EnrollmentCoC"."CoCCode",
+      "EnrollmentCoC"."DataCollectionStage",
+      "EnrollmentCoC"."DateCreated",
+      "EnrollmentCoC"."DateUpdated",
+      "EnrollmentCoC"."UserID",
+      "EnrollmentCoC"."DateDeleted",
+      "EnrollmentCoC"."ExportID",
+      "EnrollmentCoC".data_source_id,
+      source_clients.id AS demographic_id
+     FROM (((((("EnrollmentCoC"
+       JOIN "Project" ON ((("EnrollmentCoC".data_source_id = "Project".data_source_id) AND (("EnrollmentCoC"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("EnrollmentCoC".data_source_id = "Enrollment".data_source_id) AND (("EnrollmentCoC"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("EnrollmentCoC".data_source_id = source_clients.data_source_id) AND (("EnrollmentCoC"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EnrollmentCoC"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_Event", sql_definition: <<-SQL
+      SELECT "Event".id AS "EventID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Enrollment".id AS "EnrollmentID",
+      "Event"."EventDate",
+      "Event"."Event",
+      "Event"."ProbSolDivRRResult",
+      "Event"."ReferralCaseManageAfter",
+      "Event"."LocationCrisisorPHHousing",
+      "Event"."ReferralResult",
+      "Event"."ResultDate",
+      "Event"."DateCreated",
+      "Event"."DateUpdated",
+      "Event"."UserID",
+      "Event"."DateDeleted",
+      "Event"."ExportID",
+      "Event".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("Event"
+       JOIN "Enrollment" ON ((("Event".data_source_id = "Enrollment".data_source_id) AND (("Event"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("Event".data_source_id = source_clients.data_source_id) AND (("Event"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Event"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_Exit", sql_definition: <<-SQL
+      SELECT "Exit".id AS "ExitID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Enrollment".id AS "EnrollmentID",
+      "Exit"."ExitDate",
+      "Exit"."Destination",
+      "Exit"."OtherDestination",
+      "Exit"."HousingAssessment",
+      "Exit"."SubsidyInformation",
+      "Exit"."ProjectCompletionStatus",
+      "Exit"."EarlyExitReason",
+      "Exit"."ExchangeForSex",
+      "Exit"."ExchangeForSexPastThreeMonths",
+      "Exit"."CountOfExchangeForSex",
+      "Exit"."AskedOrForcedToExchangeForSex",
+      "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
+      "Exit"."WorkPlaceViolenceThreats",
+      "Exit"."WorkplacePromiseDifference",
+      "Exit"."CoercedToContinueWork",
+      "Exit"."LaborExploitPastThreeMonths",
+      "Exit"."CounselingReceived",
+      "Exit"."IndividualCounseling",
+      "Exit"."FamilyCounseling",
+      "Exit"."GroupCounseling",
+      "Exit"."SessionCountAtExit",
+      "Exit"."PostExitCounselingPlan",
+      "Exit"."SessionsInPlan",
+      "Exit"."DestinationSafeClient",
+      "Exit"."DestinationSafeWorker",
+      "Exit"."PosAdultConnections",
+      "Exit"."PosPeerConnections",
+      "Exit"."PosCommunityConnections",
+      "Exit"."AftercareDate",
+      "Exit"."AftercareProvided",
+      "Exit"."EmailSocialMedia",
+      "Exit"."Telephone",
+      "Exit"."InPersonIndividual",
+      "Exit"."InPersonGroup",
+      "Exit"."CMExitReason",
+      "Exit"."DateCreated",
+      "Exit"."DateUpdated",
+      "Exit"."UserID",
+      "Exit"."DateDeleted",
+      "Exit"."ExportID",
+      "Exit".data_source_id,
+      source_clients.id AS demographic_id
+     FROM (((("Exit"
+       JOIN "Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Exit"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_Export", sql_definition: <<-SQL
+      SELECT "Export".id AS "ExportID",
+      "Export"."SourceType",
+      "Export"."SourceID",
+      "Export"."SourceName",
+      "Export"."SourceContactFirst",
+      "Export"."SourceContactLast",
+      "Export"."SourceContactPhone",
+      "Export"."SourceContactExtension",
+      "Export"."SourceContactEmail",
+      "Export"."ExportDate",
+      "Export"."ExportStartDate",
+      "Export"."ExportEndDate",
+      "Export"."SoftwareName",
+      "Export"."SoftwareVersion",
+      "Export"."ExportPeriodType",
+      "Export"."ExportDirective",
+      "Export"."HashStatus",
+      "Export".data_source_id
+     FROM "Export";
+  SQL
+  create_view "bi_Funder", sql_definition: <<-SQL
+      SELECT "Funder".id AS "FunderID",
+      "Project".id AS "ProjectID",
+      "Funder"."Funder",
+      "Funder"."OtherFunder",
+      "Funder"."GrantID",
+      "Funder"."StartDate",
+      "Funder"."EndDate",
+      "Funder"."DateCreated",
+      "Funder"."DateUpdated",
+      "Funder"."UserID",
+      "Funder"."DateDeleted",
+      "Funder"."ExportID",
+      "Funder".data_source_id
+     FROM ("Funder"
+       JOIN "Project" ON ((("Funder".data_source_id = "Project".data_source_id) AND (("Funder"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
+    WHERE ("Funder"."DateDeleted" IS NULL);
+  SQL
+  create_view "bi_HealthAndDV", sql_definition: <<-SQL
+      SELECT "HealthAndDV".id AS "HealthAndDVID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Enrollment".id AS "EnrollmentID",
+      "HealthAndDV"."InformationDate",
+      "HealthAndDV"."DomesticViolenceVictim",
+      "HealthAndDV"."WhenOccurred",
+      "HealthAndDV"."CurrentlyFleeing",
+      "HealthAndDV"."GeneralHealthStatus",
+      "HealthAndDV"."DentalHealthStatus",
+      "HealthAndDV"."MentalHealthStatus",
+      "HealthAndDV"."PregnancyStatus",
+      "HealthAndDV"."DueDate",
+      "HealthAndDV"."DataCollectionStage",
+      "HealthAndDV"."DateCreated",
+      "HealthAndDV"."DateUpdated",
+      "HealthAndDV"."UserID",
+      "HealthAndDV"."DateDeleted",
+      "HealthAndDV"."ExportID",
+      "HealthAndDV".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("HealthAndDV"
+       JOIN "Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("HealthAndDV"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_IncomeBenefits", sql_definition: <<-SQL
+      SELECT "IncomeBenefits".id AS "IncomeBenefitsID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Enrollment".id AS "EnrollmentID",
+      "IncomeBenefits"."InformationDate",
+      "IncomeBenefits"."IncomeFromAnySource",
+      "IncomeBenefits"."TotalMonthlyIncome",
+      "IncomeBenefits"."Earned",
+      "IncomeBenefits"."EarnedAmount",
+      "IncomeBenefits"."Unemployment",
+      "IncomeBenefits"."UnemploymentAmount",
+      "IncomeBenefits"."SSI",
+      "IncomeBenefits"."SSIAmount",
+      "IncomeBenefits"."SSDI",
+      "IncomeBenefits"."SSDIAmount",
+      "IncomeBenefits"."VADisabilityService",
+      "IncomeBenefits"."VADisabilityServiceAmount",
+      "IncomeBenefits"."VADisabilityNonService",
+      "IncomeBenefits"."VADisabilityNonServiceAmount",
+      "IncomeBenefits"."PrivateDisability",
+      "IncomeBenefits"."PrivateDisabilityAmount",
+      "IncomeBenefits"."WorkersComp",
+      "IncomeBenefits"."WorkersCompAmount",
+      "IncomeBenefits"."TANF",
+      "IncomeBenefits"."TANFAmount",
+      "IncomeBenefits"."GA",
+      "IncomeBenefits"."GAAmount",
+      "IncomeBenefits"."SocSecRetirement",
+      "IncomeBenefits"."SocSecRetirementAmount",
+      "IncomeBenefits"."Pension",
+      "IncomeBenefits"."PensionAmount",
+      "IncomeBenefits"."ChildSupport",
+      "IncomeBenefits"."ChildSupportAmount",
+      "IncomeBenefits"."Alimony",
+      "IncomeBenefits"."AlimonyAmount",
+      "IncomeBenefits"."OtherIncomeSource",
+      "IncomeBenefits"."OtherIncomeAmount",
+      "IncomeBenefits"."OtherIncomeSourceIdentify",
+      "IncomeBenefits"."BenefitsFromAnySource",
+      "IncomeBenefits"."SNAP",
+      "IncomeBenefits"."WIC",
+      "IncomeBenefits"."TANFChildCare",
+      "IncomeBenefits"."TANFTransportation",
+      "IncomeBenefits"."OtherTANF",
+      "IncomeBenefits"."OtherBenefitsSource",
+      "IncomeBenefits"."OtherBenefitsSourceIdentify",
+      "IncomeBenefits"."InsuranceFromAnySource",
+      "IncomeBenefits"."Medicaid",
+      "IncomeBenefits"."NoMedicaidReason",
+      "IncomeBenefits"."Medicare",
+      "IncomeBenefits"."NoMedicareReason",
+      "IncomeBenefits"."SCHIP",
+      "IncomeBenefits"."NoSCHIPReason",
+      "IncomeBenefits"."VAMedicalServices",
+      "IncomeBenefits"."NoVAMedReason",
+      "IncomeBenefits"."EmployerProvided",
+      "IncomeBenefits"."NoEmployerProvidedReason",
+      "IncomeBenefits"."COBRA",
+      "IncomeBenefits"."NoCOBRAReason",
+      "IncomeBenefits"."PrivatePay",
+      "IncomeBenefits"."NoPrivatePayReason",
+      "IncomeBenefits"."StateHealthIns",
+      "IncomeBenefits"."NoStateHealthInsReason",
+      "IncomeBenefits"."IndianHealthServices",
+      "IncomeBenefits"."NoIndianHealthServicesReason",
+      "IncomeBenefits"."OtherInsurance",
+      "IncomeBenefits"."OtherInsuranceIdentify",
+      "IncomeBenefits"."HIVAIDSAssistance",
+      "IncomeBenefits"."NoHIVAIDSAssistanceReason",
+      "IncomeBenefits"."ADAP",
+      "IncomeBenefits"."NoADAPReason",
+      "IncomeBenefits"."ConnectionWithSOAR",
+      "IncomeBenefits"."DataCollectionStage",
+      "IncomeBenefits"."DateCreated",
+      "IncomeBenefits"."DateUpdated",
+      "IncomeBenefits"."UserID",
+      "IncomeBenefits"."DateDeleted",
+      "IncomeBenefits"."ExportID",
+      "IncomeBenefits".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("IncomeBenefits"
+       JOIN "Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("IncomeBenefits"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_Inventory", sql_definition: <<-SQL
+      SELECT "Inventory".id AS "InventoryID",
+      "Project".id AS "ProjectID",
+      "Inventory"."CoCCode",
+      "Inventory"."HouseholdType",
+      "Inventory"."Availability",
+      "Inventory"."UnitInventory",
+      "Inventory"."BedInventory",
+      "Inventory"."CHVetBedInventory",
+      "Inventory"."YouthVetBedInventory",
+      "Inventory"."VetBedInventory",
+      "Inventory"."CHYouthBedInventory",
+      "Inventory"."YouthBedInventory",
+      "Inventory"."CHBedInventory",
+      "Inventory"."OtherBedInventory",
+      "Inventory"."ESBedType",
+      "Inventory"."InventoryStartDate",
+      "Inventory"."InventoryEndDate",
+      "Inventory"."DateCreated",
+      "Inventory"."DateUpdated",
+      "Inventory"."UserID",
+      "Inventory"."DateDeleted",
+      "Inventory"."ExportID",
+      "Inventory".data_source_id
+     FROM ("Inventory"
+       JOIN "Project" ON ((("Inventory".data_source_id = "Project".data_source_id) AND (("Inventory"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
+    WHERE ("Inventory"."DateDeleted" IS NULL);
+  SQL
+  create_view "bi_Organization", sql_definition: <<-SQL
+      SELECT "Organization".id AS "OrganizationID",
+      "Organization"."OrganizationName",
+      "Organization"."VictimServicesProvider",
+      "Organization"."OrganizationCommonName",
+      "Organization"."DateCreated",
+      "Organization"."DateUpdated",
+      "Organization"."UserID",
+      "Organization"."DateDeleted",
+      "Organization"."ExportID",
+      "Organization".data_source_id
+     FROM "Organization"
+    WHERE ("Organization"."DateDeleted" IS NULL);
+  SQL
+  create_view "bi_Project", sql_definition: <<-SQL
+      SELECT "Project".id AS "ProjectID",
+      "Organization".id AS "OrganizationID",
+      "Project"."ProjectName",
+      "Project"."ProjectCommonName",
+      "Project"."OperatingStartDate",
+      "Project"."OperatingEndDate",
+      "Project"."ContinuumProject",
+      "Project"."ProjectType",
+      "Project"."HousingType",
+      "Project"."ResidentialAffiliation",
+      "Project"."TrackingMethod",
+      "Project"."HMISParticipatingProject",
+      "Project"."TargetPopulation",
+      "Project"."PITCount",
+      "Project"."DateCreated",
+      "Project"."DateUpdated",
+      "Project"."UserID",
+      "Project"."DateDeleted",
+      "Project"."ExportID",
+      "Project".data_source_id
+     FROM ("Project"
+       JOIN "Organization" ON ((("Project".data_source_id = "Organization".data_source_id) AND (("Project"."OrganizationID")::text = ("Organization"."OrganizationID")::text) AND ("Organization"."DateDeleted" IS NULL))))
+    WHERE ("Project"."DateDeleted" IS NULL);
+  SQL
+  create_view "bi_ProjectCoC", sql_definition: <<-SQL
+      SELECT "ProjectCoC".id AS "ProjectCoCID",
+      "Project".id AS "ProjectID",
+      "ProjectCoC"."CoCCode",
+      "ProjectCoC"."Geocode",
+      "ProjectCoC"."Address1",
+      "ProjectCoC"."Address2",
+      "ProjectCoC"."City",
+      "ProjectCoC"."State",
+      "ProjectCoC"."Zip",
+      "ProjectCoC"."GeographyType",
+      "ProjectCoC"."DateCreated",
+      "ProjectCoC"."DateUpdated",
+      "ProjectCoC"."UserID",
+      "ProjectCoC"."DateDeleted",
+      "ProjectCoC"."ExportID",
+      "ProjectCoC".data_source_id
+     FROM ("ProjectCoC"
+       JOIN "Project" ON ((("ProjectCoC".data_source_id = "Project".data_source_id) AND (("ProjectCoC"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
+    WHERE ("ProjectCoC"."DateDeleted" IS NULL);
+  SQL
+  create_view "bi_Services", sql_definition: <<-SQL
+      SELECT "Services".id AS "ServicesID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Enrollment".id AS "EnrollmentID",
+      "Services"."DateProvided",
+      "Services"."RecordType",
+      "Services"."TypeProvided",
+      "Services"."OtherTypeProvided",
+      "Services"."SubTypeProvided",
+      "Services"."FAAmount",
+      "Services"."ReferralOutcome",
+      "Services"."DateCreated",
+      "Services"."DateUpdated",
+      "Services"."UserID",
+      "Services"."DateDeleted",
+      "Services"."ExportID",
+      "Services".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("Services"
+       JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateProvided" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_data_sources", sql_definition: <<-SQL
+      SELECT data_sources.id,
+      data_sources.name,
+      data_sources.short_name
+     FROM data_sources
+    WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
+  SQL
+  create_view "bi_lookups_ethnicities", sql_definition: <<-SQL
+      SELECT lookups_ethnicities.id,
+      lookups_ethnicities.value,
+      lookups_ethnicities.text
+     FROM lookups_ethnicities;
+  SQL
+  create_view "bi_lookups_funding_sources", sql_definition: <<-SQL
+      SELECT lookups_funding_sources.id,
+      lookups_funding_sources.value,
+      lookups_funding_sources.text
+     FROM lookups_funding_sources;
+  SQL
+  create_view "bi_lookups_genders", sql_definition: <<-SQL
+      SELECT lookups_genders.id,
+      lookups_genders.value,
+      lookups_genders.text
+     FROM lookups_genders;
+  SQL
+  create_view "bi_lookups_living_situations", sql_definition: <<-SQL
+      SELECT lookups_living_situations.id,
+      lookups_living_situations.value,
+      lookups_living_situations.text
+     FROM lookups_living_situations;
+  SQL
+  create_view "bi_lookups_project_types", sql_definition: <<-SQL
+      SELECT lookups_project_types.id,
+      lookups_project_types.value,
+      lookups_project_types.text
+     FROM lookups_project_types;
+  SQL
+  create_view "bi_lookups_relationships", sql_definition: <<-SQL
+      SELECT lookups_relationships.id,
+      lookups_relationships.value,
+      lookups_relationships.text
+     FROM lookups_relationships;
+  SQL
+  create_view "bi_lookups_tracking_methods", sql_definition: <<-SQL
+      SELECT lookups_tracking_methods.id,
+      lookups_tracking_methods.value,
+      lookups_tracking_methods.text
+     FROM lookups_tracking_methods;
+  SQL
+  create_view "bi_lookups_yes_no_etcs", sql_definition: <<-SQL
+      SELECT lookups_yes_no_etcs.id,
+      lookups_yes_no_etcs.value,
+      lookups_yes_no_etcs.text
+     FROM lookups_yes_no_etcs;
+  SQL
+  create_view "bi_nightly_census_by_projects", sql_definition: <<-SQL
+      SELECT nightly_census_by_projects.id,
+      nightly_census_by_projects.date,
+      nightly_census_by_projects.project_id,
+      nightly_census_by_projects.veterans,
+      nightly_census_by_projects.non_veterans,
+      nightly_census_by_projects.children,
+      nightly_census_by_projects.adults,
+      nightly_census_by_projects.all_clients,
+      nightly_census_by_projects.beds
+     FROM nightly_census_by_projects;
+  SQL
+  create_view "bi_service_history_enrollments", sql_definition: <<-SQL
+      SELECT service_history_enrollments.id,
+      service_history_enrollments.client_id,
+      service_history_enrollments.data_source_id,
+      service_history_enrollments.first_date_in_program,
+      service_history_enrollments.last_date_in_program,
+      service_history_enrollments.age,
+      service_history_enrollments.destination,
+      service_history_enrollments.head_of_household_id,
+      service_history_enrollments.household_id,
+      service_history_enrollments.project_name,
+      service_history_enrollments.project_tracking_method,
+      service_history_enrollments.computed_project_type,
+      service_history_enrollments.move_in_date,
+      "Project".id AS project_id,
+      "Enrollment".id AS enrollment_id
+     FROM (((service_history_enrollments
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
+       JOIN "Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
+       JOIN "Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = service_history_enrollments.data_source_id) AND (("Enrollment"."EnrollmentID")::text = (service_history_enrollments.enrollment_group_id)::text) AND (("Enrollment"."ProjectID")::text = (service_history_enrollments.project_id)::text))))
+    WHERE (((service_history_enrollments.record_type)::text = 'entry'::text) AND ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval))));
+  SQL
+  create_view "bi_service_history_services", sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.service_history_enrollment_id,
+      service_history_services.record_type,
+      service_history_services.date,
+      service_history_services.age,
+      service_history_services.client_id,
+      service_history_services.project_type
+     FROM (service_history_services
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
+    WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
   SQL
   create_view "combined_cohort_client_changes", sql_definition: <<-SQL
       SELECT cc.id,
@@ -8184,6 +9328,26 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
       service_history_enrollments.head_of_household
      FROM service_history_enrollments;
   SQL
+  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.service_history_enrollment_id,
+      service_history_services.record_type,
+      service_history_services.date,
+      service_history_services.age,
+      service_history_services.service_type,
+      service_history_services.client_id,
+      service_history_services.project_type,
+      service_history_services.homeless,
+      service_history_services.literally_homeless
+     FROM service_history_services;
+  SQL
+  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
+
   create_view "todd_stats", sql_definition: <<-SQL
       SELECT pg_stat_all_tables.relname,
       round((
@@ -8207,840 +9371,4 @@ ActiveRecord::Schema.define(version: 2021_03_30_124825) do
      FROM pg_stat_all_tables
     WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
   SQL
-  create_view "bi_Organization", sql_definition: <<-SQL
-      SELECT "Organization".id AS "OrganizationID",
-      "Organization"."OrganizationName",
-      "Organization"."VictimServicesProvider",
-      "Organization"."OrganizationCommonName",
-      "Organization"."DateCreated",
-      "Organization"."DateUpdated",
-      "Organization"."UserID",
-      "Organization"."DateDeleted",
-      "Organization"."ExportID",
-      "Organization".data_source_id
-     FROM "Organization"
-    WHERE ("Organization"."DateDeleted" IS NULL);
-  SQL
-  create_view "bi_Project", sql_definition: <<-SQL
-      SELECT "Project".id AS "ProjectID",
-      "Organization".id AS "OrganizationID",
-      "Project"."ProjectName",
-      "Project"."ProjectCommonName",
-      "Project"."OperatingStartDate",
-      "Project"."OperatingEndDate",
-      "Project"."ContinuumProject",
-      "Project"."ProjectType",
-      "Project"."HousingType",
-      "Project"."ResidentialAffiliation",
-      "Project"."TrackingMethod",
-      "Project"."HMISParticipatingProject",
-      "Project"."TargetPopulation",
-      "Project"."PITCount",
-      "Project"."DateCreated",
-      "Project"."DateUpdated",
-      "Project"."UserID",
-      "Project"."DateDeleted",
-      "Project"."ExportID",
-      "Project".data_source_id
-     FROM ("Project"
-       JOIN "Organization" ON ((("Project".data_source_id = "Organization".data_source_id) AND (("Project"."OrganizationID")::text = ("Organization"."OrganizationID")::text) AND ("Organization"."DateDeleted" IS NULL))))
-    WHERE ("Project"."DateDeleted" IS NULL);
-  SQL
-  create_view "bi_ProjectCoC", sql_definition: <<-SQL
-      SELECT "ProjectCoC".id AS "ProjectCoCID",
-      "Project".id AS "ProjectID",
-      "ProjectCoC"."CoCCode",
-      "ProjectCoC"."Geocode",
-      "ProjectCoC"."Address1",
-      "ProjectCoC"."Address2",
-      "ProjectCoC"."City",
-      "ProjectCoC"."State",
-      "ProjectCoC"."Zip",
-      "ProjectCoC"."GeographyType",
-      "ProjectCoC"."DateCreated",
-      "ProjectCoC"."DateUpdated",
-      "ProjectCoC"."UserID",
-      "ProjectCoC"."DateDeleted",
-      "ProjectCoC"."ExportID",
-      "ProjectCoC".data_source_id
-     FROM ("ProjectCoC"
-       JOIN "Project" ON ((("ProjectCoC".data_source_id = "Project".data_source_id) AND (("ProjectCoC"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-    WHERE ("ProjectCoC"."DateDeleted" IS NULL);
-  SQL
-  create_view "bi_Affiliation", sql_definition: <<-SQL
-      SELECT "Affiliation".id AS "AffiliationID",
-      "Project".id AS "ProjectID",
-      "Affiliation"."ResProjectID",
-      "Affiliation"."DateCreated",
-      "Affiliation"."DateUpdated",
-      "Affiliation"."UserID",
-      "Affiliation"."DateDeleted",
-      "Affiliation"."ExportID",
-      "Affiliation".data_source_id
-     FROM ("Affiliation"
-       JOIN "Project" ON ((("Affiliation".data_source_id = "Project".data_source_id) AND (("Affiliation"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-    WHERE ("Affiliation"."DateDeleted" IS NULL);
-  SQL
-  create_view "bi_Export", sql_definition: <<-SQL
-      SELECT "Export".id AS "ExportID",
-      "Export"."SourceType",
-      "Export"."SourceID",
-      "Export"."SourceName",
-      "Export"."SourceContactFirst",
-      "Export"."SourceContactLast",
-      "Export"."SourceContactPhone",
-      "Export"."SourceContactExtension",
-      "Export"."SourceContactEmail",
-      "Export"."ExportDate",
-      "Export"."ExportStartDate",
-      "Export"."ExportEndDate",
-      "Export"."SoftwareName",
-      "Export"."SoftwareVersion",
-      "Export"."ExportPeriodType",
-      "Export"."ExportDirective",
-      "Export"."HashStatus",
-      "Export".data_source_id
-     FROM "Export";
-  SQL
-  create_view "bi_Inventory", sql_definition: <<-SQL
-      SELECT "Inventory".id AS "InventoryID",
-      "Project".id AS "ProjectID",
-      "Inventory"."CoCCode",
-      "Inventory"."HouseholdType",
-      "Inventory"."Availability",
-      "Inventory"."UnitInventory",
-      "Inventory"."BedInventory",
-      "Inventory"."CHVetBedInventory",
-      "Inventory"."YouthVetBedInventory",
-      "Inventory"."VetBedInventory",
-      "Inventory"."CHYouthBedInventory",
-      "Inventory"."YouthBedInventory",
-      "Inventory"."CHBedInventory",
-      "Inventory"."OtherBedInventory",
-      "Inventory"."ESBedType",
-      "Inventory"."InventoryStartDate",
-      "Inventory"."InventoryEndDate",
-      "Inventory"."DateCreated",
-      "Inventory"."DateUpdated",
-      "Inventory"."UserID",
-      "Inventory"."DateDeleted",
-      "Inventory"."ExportID",
-      "Inventory".data_source_id
-     FROM ("Inventory"
-       JOIN "Project" ON ((("Inventory".data_source_id = "Project".data_source_id) AND (("Inventory"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-    WHERE ("Inventory"."DateDeleted" IS NULL);
-  SQL
-  create_view "bi_Funder", sql_definition: <<-SQL
-      SELECT "Funder".id AS "FunderID",
-      "Project".id AS "ProjectID",
-      "Funder"."Funder",
-      "Funder"."OtherFunder",
-      "Funder"."GrantID",
-      "Funder"."StartDate",
-      "Funder"."EndDate",
-      "Funder"."DateCreated",
-      "Funder"."DateUpdated",
-      "Funder"."UserID",
-      "Funder"."DateDeleted",
-      "Funder"."ExportID",
-      "Funder".data_source_id
-     FROM ("Funder"
-       JOIN "Project" ON ((("Funder".data_source_id = "Project".data_source_id) AND (("Funder"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-    WHERE ("Funder"."DateDeleted" IS NULL);
-  SQL
-  create_view "bi_Services", sql_definition: <<-SQL
-      SELECT "Services".id AS "ServicesID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Enrollment".id AS "EnrollmentID",
-      "Services"."DateProvided",
-      "Services"."RecordType",
-      "Services"."TypeProvided",
-      "Services"."OtherTypeProvided",
-      "Services"."SubTypeProvided",
-      "Services"."FAAmount",
-      "Services"."ReferralOutcome",
-      "Services"."DateCreated",
-      "Services"."DateUpdated",
-      "Services"."UserID",
-      "Services"."DateDeleted",
-      "Services"."ExportID",
-      "Services".data_source_id,
-      source_clients.id AS demographic_id
-     FROM ((((("Services"
-       JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateProvided" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_Exit", sql_definition: <<-SQL
-      SELECT "Exit".id AS "ExitID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Enrollment".id AS "EnrollmentID",
-      "Exit"."ExitDate",
-      "Exit"."Destination",
-      "Exit"."OtherDestination",
-      "Exit"."HousingAssessment",
-      "Exit"."SubsidyInformation",
-      "Exit"."ProjectCompletionStatus",
-      "Exit"."EarlyExitReason",
-      "Exit"."ExchangeForSex",
-      "Exit"."ExchangeForSexPastThreeMonths",
-      "Exit"."CountOfExchangeForSex",
-      "Exit"."AskedOrForcedToExchangeForSex",
-      "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
-      "Exit"."WorkPlaceViolenceThreats",
-      "Exit"."WorkplacePromiseDifference",
-      "Exit"."CoercedToContinueWork",
-      "Exit"."LaborExploitPastThreeMonths",
-      "Exit"."CounselingReceived",
-      "Exit"."IndividualCounseling",
-      "Exit"."FamilyCounseling",
-      "Exit"."GroupCounseling",
-      "Exit"."SessionCountAtExit",
-      "Exit"."PostExitCounselingPlan",
-      "Exit"."SessionsInPlan",
-      "Exit"."DestinationSafeClient",
-      "Exit"."DestinationSafeWorker",
-      "Exit"."PosAdultConnections",
-      "Exit"."PosPeerConnections",
-      "Exit"."PosCommunityConnections",
-      "Exit"."AftercareDate",
-      "Exit"."AftercareProvided",
-      "Exit"."EmailSocialMedia",
-      "Exit"."Telephone",
-      "Exit"."InPersonIndividual",
-      "Exit"."InPersonGroup",
-      "Exit"."CMExitReason",
-      "Exit"."DateCreated",
-      "Exit"."DateUpdated",
-      "Exit"."UserID",
-      "Exit"."DateDeleted",
-      "Exit"."ExportID",
-      "Exit".data_source_id,
-      source_clients.id AS demographic_id
-     FROM (((("Exit"
-       JOIN "Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Exit"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_EnrollmentCoC", sql_definition: <<-SQL
-      SELECT "EnrollmentCoC".id AS "EnrollmentCoCID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Project".id AS "ProjectID",
-      "Enrollment".id AS "EnrollmentID",
-      "EnrollmentCoC"."HouseholdID",
-      "EnrollmentCoC"."InformationDate",
-      "EnrollmentCoC"."CoCCode",
-      "EnrollmentCoC"."DataCollectionStage",
-      "EnrollmentCoC"."DateCreated",
-      "EnrollmentCoC"."DateUpdated",
-      "EnrollmentCoC"."UserID",
-      "EnrollmentCoC"."DateDeleted",
-      "EnrollmentCoC"."ExportID",
-      "EnrollmentCoC".data_source_id,
-      source_clients.id AS demographic_id
-     FROM (((((("EnrollmentCoC"
-       JOIN "Project" ON ((("EnrollmentCoC".data_source_id = "Project".data_source_id) AND (("EnrollmentCoC"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("EnrollmentCoC".data_source_id = "Enrollment".data_source_id) AND (("EnrollmentCoC"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("EnrollmentCoC".data_source_id = source_clients.data_source_id) AND (("EnrollmentCoC"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EnrollmentCoC"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_Disabilities", sql_definition: <<-SQL
-      SELECT "Disabilities".id AS "DisabilitiesID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Enrollment".id AS "EnrollmentID",
-      "Disabilities"."InformationDate",
-      "Disabilities"."DisabilityType",
-      "Disabilities"."DisabilityResponse",
-      "Disabilities"."IndefiniteAndImpairs",
-      "Disabilities"."TCellCountAvailable",
-      "Disabilities"."TCellCount",
-      "Disabilities"."TCellSource",
-      "Disabilities"."ViralLoadAvailable",
-      "Disabilities"."ViralLoad",
-      "Disabilities"."ViralLoadSource",
-      "Disabilities"."DataCollectionStage",
-      "Disabilities"."DateCreated",
-      "Disabilities"."DateUpdated",
-      "Disabilities"."UserID",
-      "Disabilities"."DateDeleted",
-      "Disabilities"."ExportID",
-      "Disabilities".data_source_id,
-      source_clients.id AS demographic_id
-     FROM ((((("Disabilities"
-       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Disabilities"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_HealthAndDV", sql_definition: <<-SQL
-      SELECT "HealthAndDV".id AS "HealthAndDVID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Enrollment".id AS "EnrollmentID",
-      "HealthAndDV"."InformationDate",
-      "HealthAndDV"."DomesticViolenceVictim",
-      "HealthAndDV"."WhenOccurred",
-      "HealthAndDV"."CurrentlyFleeing",
-      "HealthAndDV"."GeneralHealthStatus",
-      "HealthAndDV"."DentalHealthStatus",
-      "HealthAndDV"."MentalHealthStatus",
-      "HealthAndDV"."PregnancyStatus",
-      "HealthAndDV"."DueDate",
-      "HealthAndDV"."DataCollectionStage",
-      "HealthAndDV"."DateCreated",
-      "HealthAndDV"."DateUpdated",
-      "HealthAndDV"."UserID",
-      "HealthAndDV"."DateDeleted",
-      "HealthAndDV"."ExportID",
-      "HealthAndDV".data_source_id,
-      source_clients.id AS demographic_id
-     FROM ((((("HealthAndDV"
-       JOIN "Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("HealthAndDV"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_IncomeBenefits", sql_definition: <<-SQL
-      SELECT "IncomeBenefits".id AS "IncomeBenefitsID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Enrollment".id AS "EnrollmentID",
-      "IncomeBenefits"."InformationDate",
-      "IncomeBenefits"."IncomeFromAnySource",
-      "IncomeBenefits"."TotalMonthlyIncome",
-      "IncomeBenefits"."Earned",
-      "IncomeBenefits"."EarnedAmount",
-      "IncomeBenefits"."Unemployment",
-      "IncomeBenefits"."UnemploymentAmount",
-      "IncomeBenefits"."SSI",
-      "IncomeBenefits"."SSIAmount",
-      "IncomeBenefits"."SSDI",
-      "IncomeBenefits"."SSDIAmount",
-      "IncomeBenefits"."VADisabilityService",
-      "IncomeBenefits"."VADisabilityServiceAmount",
-      "IncomeBenefits"."VADisabilityNonService",
-      "IncomeBenefits"."VADisabilityNonServiceAmount",
-      "IncomeBenefits"."PrivateDisability",
-      "IncomeBenefits"."PrivateDisabilityAmount",
-      "IncomeBenefits"."WorkersComp",
-      "IncomeBenefits"."WorkersCompAmount",
-      "IncomeBenefits"."TANF",
-      "IncomeBenefits"."TANFAmount",
-      "IncomeBenefits"."GA",
-      "IncomeBenefits"."GAAmount",
-      "IncomeBenefits"."SocSecRetirement",
-      "IncomeBenefits"."SocSecRetirementAmount",
-      "IncomeBenefits"."Pension",
-      "IncomeBenefits"."PensionAmount",
-      "IncomeBenefits"."ChildSupport",
-      "IncomeBenefits"."ChildSupportAmount",
-      "IncomeBenefits"."Alimony",
-      "IncomeBenefits"."AlimonyAmount",
-      "IncomeBenefits"."OtherIncomeSource",
-      "IncomeBenefits"."OtherIncomeAmount",
-      "IncomeBenefits"."OtherIncomeSourceIdentify",
-      "IncomeBenefits"."BenefitsFromAnySource",
-      "IncomeBenefits"."SNAP",
-      "IncomeBenefits"."WIC",
-      "IncomeBenefits"."TANFChildCare",
-      "IncomeBenefits"."TANFTransportation",
-      "IncomeBenefits"."OtherTANF",
-      "IncomeBenefits"."OtherBenefitsSource",
-      "IncomeBenefits"."OtherBenefitsSourceIdentify",
-      "IncomeBenefits"."InsuranceFromAnySource",
-      "IncomeBenefits"."Medicaid",
-      "IncomeBenefits"."NoMedicaidReason",
-      "IncomeBenefits"."Medicare",
-      "IncomeBenefits"."NoMedicareReason",
-      "IncomeBenefits"."SCHIP",
-      "IncomeBenefits"."NoSCHIPReason",
-      "IncomeBenefits"."VAMedicalServices",
-      "IncomeBenefits"."NoVAMedReason",
-      "IncomeBenefits"."EmployerProvided",
-      "IncomeBenefits"."NoEmployerProvidedReason",
-      "IncomeBenefits"."COBRA",
-      "IncomeBenefits"."NoCOBRAReason",
-      "IncomeBenefits"."PrivatePay",
-      "IncomeBenefits"."NoPrivatePayReason",
-      "IncomeBenefits"."StateHealthIns",
-      "IncomeBenefits"."NoStateHealthInsReason",
-      "IncomeBenefits"."IndianHealthServices",
-      "IncomeBenefits"."NoIndianHealthServicesReason",
-      "IncomeBenefits"."OtherInsurance",
-      "IncomeBenefits"."OtherInsuranceIdentify",
-      "IncomeBenefits"."HIVAIDSAssistance",
-      "IncomeBenefits"."NoHIVAIDSAssistanceReason",
-      "IncomeBenefits"."ADAP",
-      "IncomeBenefits"."NoADAPReason",
-      "IncomeBenefits"."ConnectionWithSOAR",
-      "IncomeBenefits"."DataCollectionStage",
-      "IncomeBenefits"."DateCreated",
-      "IncomeBenefits"."DateUpdated",
-      "IncomeBenefits"."UserID",
-      "IncomeBenefits"."DateDeleted",
-      "IncomeBenefits"."ExportID",
-      "IncomeBenefits".data_source_id,
-      source_clients.id AS demographic_id
-     FROM ((((("IncomeBenefits"
-       JOIN "Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("IncomeBenefits"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_EmploymentEducation", sql_definition: <<-SQL
-      SELECT "EmploymentEducation".id AS "EmploymentEducationID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Enrollment".id AS "EnrollmentID",
-      "EmploymentEducation"."InformationDate",
-      "EmploymentEducation"."LastGradeCompleted",
-      "EmploymentEducation"."SchoolStatus",
-      "EmploymentEducation"."Employed",
-      "EmploymentEducation"."EmploymentType",
-      "EmploymentEducation"."NotEmployedReason",
-      "EmploymentEducation"."DataCollectionStage",
-      "EmploymentEducation"."DateCreated",
-      "EmploymentEducation"."DateUpdated",
-      "EmploymentEducation"."UserID",
-      "EmploymentEducation"."DateDeleted",
-      "EmploymentEducation"."ExportID",
-      "EmploymentEducation".data_source_id,
-      source_clients.id AS demographic_id
-     FROM ((((("EmploymentEducation"
-       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EmploymentEducation"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_CurrentLivingSituation", sql_definition: <<-SQL
-      SELECT "CurrentLivingSituation".id AS "CurrentLivingSitID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Enrollment".id AS "EnrollmentID",
-      "CurrentLivingSituation"."InformationDate",
-      "CurrentLivingSituation"."CurrentLivingSituation",
-      "CurrentLivingSituation"."VerifiedBy",
-      "CurrentLivingSituation"."LeaveSituation14Days",
-      "CurrentLivingSituation"."SubsequentResidence",
-      "CurrentLivingSituation"."ResourcesToObtain",
-      "CurrentLivingSituation"."LeaseOwn60Day",
-      "CurrentLivingSituation"."MovedTwoOrMore",
-      "CurrentLivingSituation"."LocationDetails",
-      "CurrentLivingSituation"."DateCreated",
-      "CurrentLivingSituation"."DateUpdated",
-      "CurrentLivingSituation"."UserID",
-      "CurrentLivingSituation"."DateDeleted",
-      "CurrentLivingSituation"."ExportID",
-      "CurrentLivingSituation".data_source_id,
-      source_clients.id AS demographic_id
-     FROM ((((("CurrentLivingSituation"
-       JOIN "Enrollment" ON ((("CurrentLivingSituation".data_source_id = "Enrollment".data_source_id) AND (("CurrentLivingSituation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("CurrentLivingSituation".data_source_id = source_clients.data_source_id) AND (("CurrentLivingSituation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("CurrentLivingSituation"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_Event", sql_definition: <<-SQL
-      SELECT "Event".id AS "EventID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Enrollment".id AS "EnrollmentID",
-      "Event"."EventDate",
-      "Event"."Event",
-      "Event"."ProbSolDivRRResult",
-      "Event"."ReferralCaseManageAfter",
-      "Event"."LocationCrisisorPHHousing",
-      "Event"."ReferralResult",
-      "Event"."ResultDate",
-      "Event"."DateCreated",
-      "Event"."DateUpdated",
-      "Event"."UserID",
-      "Event"."DateDeleted",
-      "Event"."ExportID",
-      "Event".data_source_id,
-      source_clients.id AS demographic_id
-     FROM ((((("Event"
-       JOIN "Enrollment" ON ((("Event".data_source_id = "Enrollment".data_source_id) AND (("Event"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("Event".data_source_id = source_clients.data_source_id) AND (("Event"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Event"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_Assessment", sql_definition: <<-SQL
-      SELECT "Assessment".id AS "AssessmentID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Enrollment".id AS "EnrollmentID",
-      "Assessment"."AssessmentDate",
-      "Assessment"."AssessmentLocation",
-      "Assessment"."AssessmentType",
-      "Assessment"."AssessmentLevel",
-      "Assessment"."PrioritizationStatus",
-      "Assessment"."DateCreated",
-      "Assessment"."DateUpdated",
-      "Assessment"."UserID",
-      "Assessment"."DateDeleted",
-      "Assessment"."ExportID",
-      "Assessment".data_source_id,
-      source_clients.id AS demographic_id
-     FROM ((((("Assessment"
-       JOIN "Enrollment" ON ((("Assessment".data_source_id = "Enrollment".data_source_id) AND (("Assessment"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("Assessment".data_source_id = source_clients.data_source_id) AND (("Assessment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Assessment"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_AssessmentQuestions", sql_definition: <<-SQL
-      SELECT "AssessmentQuestions".id AS "AssessmentQuestionID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Assessment".id AS "AssessmentID",
-      "Enrollment".id AS "EnrollmentID",
-      "AssessmentQuestions"."AssessmentQuestionGroup",
-      "AssessmentQuestions"."AssessmentQuestionOrder",
-      "AssessmentQuestions"."AssessmentQuestion",
-      "AssessmentQuestions"."AssessmentAnswer",
-      "AssessmentQuestions"."DateCreated",
-      "AssessmentQuestions"."DateUpdated",
-      "AssessmentQuestions"."UserID",
-      "AssessmentQuestions"."DateDeleted",
-      "AssessmentQuestions"."ExportID",
-      "AssessmentQuestions".data_source_id,
-      source_clients.id AS demographic_id
-     FROM (((((("AssessmentQuestions"
-       JOIN "Enrollment" ON ((("AssessmentQuestions".data_source_id = "Enrollment".data_source_id) AND (("AssessmentQuestions"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("AssessmentQuestions".data_source_id = source_clients.data_source_id) AND (("AssessmentQuestions"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Assessment" ON ((("AssessmentQuestions".data_source_id = "Assessment".data_source_id) AND (("AssessmentQuestions"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentQuestions"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_AssessmentResults", sql_definition: <<-SQL
-      SELECT "AssessmentResults".id AS "AssessmentResultID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Assessment".id AS "AssessmentID",
-      "Enrollment".id AS "EnrollmentID",
-      "AssessmentResults"."AssessmentResultType",
-      "AssessmentResults"."AssessmentResult",
-      "AssessmentResults"."DateCreated",
-      "AssessmentResults"."DateUpdated",
-      "AssessmentResults"."UserID",
-      "AssessmentResults"."DateDeleted",
-      "AssessmentResults"."ExportID",
-      "AssessmentResults".data_source_id,
-      source_clients.id AS demographic_id
-     FROM (((((("AssessmentResults"
-       JOIN "Enrollment" ON ((("AssessmentResults".data_source_id = "Enrollment".data_source_id) AND (("AssessmentResults"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("AssessmentResults".data_source_id = source_clients.data_source_id) AND (("AssessmentResults"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Assessment" ON ((("AssessmentResults".data_source_id = "Assessment".data_source_id) AND (("AssessmentResults"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentResults"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_Client", sql_definition: <<-SQL
-      SELECT "Client".id AS personalid,
-      4 AS "HashStatus",
-      encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
-      encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
-      encode(sha256((soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
-      encode(sha256((soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
-      "Client"."NameDataQuality",
-      concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID"
-     FROM "Client"
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
-  SQL
-  create_view "bi_Demographics", sql_definition: <<-SQL
-      SELECT "Client".id AS personalid,
-      4 AS "HashStatus",
-      encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
-      encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
-      encode(sha256((soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
-      encode(sha256((soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
-      "Client"."NameDataQuality",
-      concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID",
-      warehouse_clients.destination_id AS client_id,
-      "Client".data_source_id
-     FROM ("Client"
-       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE ((data_sources.deleted_at IS NULL) AND ((data_sources.source_type IS NOT NULL) OR (data_sources.authoritative = true))))));
-  SQL
-  create_view "bi_Enrollment", sql_definition: <<-SQL
-      SELECT "Enrollment".id AS "EnrollmentID",
-      warehouse_clients.destination_id AS "PersonalID",
-      "Project".id AS "ProjectID",
-      "Enrollment"."EntryDate",
-      "Enrollment"."HouseholdID",
-      "Enrollment"."RelationshipToHoH",
-      "Enrollment"."LivingSituation",
-      "Enrollment"."LengthOfStay",
-      "Enrollment"."LOSUnderThreshold",
-      "Enrollment"."PreviousStreetESSH",
-      "Enrollment"."DateToStreetESSH",
-      "Enrollment"."TimesHomelessPastThreeYears",
-      "Enrollment"."MonthsHomelessPastThreeYears",
-      "Enrollment"."DisablingCondition",
-      "Enrollment"."DateOfEngagement",
-      "Enrollment"."MoveInDate",
-      "Enrollment"."DateOfPATHStatus",
-      "Enrollment"."ClientEnrolledInPATH",
-      "Enrollment"."ReasonNotEnrolled",
-      "Enrollment"."WorstHousingSituation",
-      "Enrollment"."PercentAMI",
-      "Enrollment"."LastPermanentStreet",
-      "Enrollment"."LastPermanentCity",
-      "Enrollment"."LastPermanentState",
-      "Enrollment"."LastPermanentZIP",
-      "Enrollment"."AddressDataQuality",
-      "Enrollment"."DateOfBCPStatus",
-      "Enrollment"."EligibleForRHY",
-      "Enrollment"."ReasonNoServices",
-      "Enrollment"."RunawayYouth",
-      "Enrollment"."SexualOrientation",
-      "Enrollment"."SexualOrientationOther",
-      "Enrollment"."FormerWardChildWelfare",
-      "Enrollment"."ChildWelfareYears",
-      "Enrollment"."ChildWelfareMonths",
-      "Enrollment"."FormerWardJuvenileJustice",
-      "Enrollment"."JuvenileJusticeYears",
-      "Enrollment"."JuvenileJusticeMonths",
-      "Enrollment"."UnemploymentFam",
-      "Enrollment"."MentalHealthIssuesFam",
-      "Enrollment"."PhysicalDisabilityFam",
-      "Enrollment"."AlcoholDrugAbuseFam",
-      "Enrollment"."InsufficientIncome",
-      "Enrollment"."IncarceratedParent",
-      "Enrollment"."ReferralSource",
-      "Enrollment"."CountOutreachReferralApproaches",
-      "Enrollment"."UrgentReferral",
-      "Enrollment"."TimeToHousingLoss",
-      "Enrollment"."ZeroIncome",
-      "Enrollment"."AnnualPercentAMI",
-      "Enrollment"."FinancialChange",
-      "Enrollment"."HouseholdChange",
-      "Enrollment"."EvictionHistory",
-      "Enrollment"."SubsidyAtRisk",
-      "Enrollment"."LiteralHomelessHistory",
-      "Enrollment"."DisabledHoH",
-      "Enrollment"."CriminalRecord",
-      "Enrollment"."SexOffender",
-      "Enrollment"."DependentUnder6",
-      "Enrollment"."SingleParent",
-      "Enrollment"."HH5Plus",
-      "Enrollment"."IraqAfghanistan",
-      "Enrollment"."FemVet",
-      "Enrollment"."HPScreeningScore",
-      "Enrollment"."ThresholdScore",
-      "Enrollment"."VAMCStation",
-      "Enrollment"."DateCreated",
-      "Enrollment"."DateUpdated",
-      "Enrollment"."UserID",
-      "Enrollment"."DateDeleted",
-      "Enrollment"."ExportID",
-      "Enrollment".data_source_id,
-      source_clients.id AS demographic_id
-     FROM ((((("Enrollment"
-       JOIN "Project" ON ((("Enrollment".data_source_id = "Project".data_source_id) AND (("Enrollment"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-       JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-       JOIN "Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Enrollment"."DateDeleted" IS NULL)));
-  SQL
-  create_view "bi_service_history_services", sql_definition: <<-SQL
-      SELECT service_history_services.id,
-      service_history_services.service_history_enrollment_id,
-      service_history_services.record_type,
-      service_history_services.date,
-      service_history_services.age,
-      service_history_services.client_id,
-      service_history_services.project_type
-     FROM (service_history_services
-       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
-    WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
-  SQL
-  create_view "bi_service_history_enrollments", sql_definition: <<-SQL
-      SELECT service_history_enrollments.id,
-      service_history_enrollments.client_id,
-      service_history_enrollments.data_source_id,
-      service_history_enrollments.first_date_in_program,
-      service_history_enrollments.last_date_in_program,
-      service_history_enrollments.age,
-      service_history_enrollments.destination,
-      service_history_enrollments.head_of_household_id,
-      service_history_enrollments.household_id,
-      service_history_enrollments.project_name,
-      service_history_enrollments.project_tracking_method,
-      service_history_enrollments.computed_project_type,
-      service_history_enrollments.move_in_date,
-      "Project".id AS project_id,
-      "Enrollment".id AS enrollment_id
-     FROM (((service_history_enrollments
-       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
-       JOIN "Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
-       JOIN "Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = service_history_enrollments.data_source_id) AND (("Enrollment"."EnrollmentID")::text = (service_history_enrollments.enrollment_group_id)::text) AND (("Enrollment"."ProjectID")::text = (service_history_enrollments.project_id)::text))))
-    WHERE (((service_history_enrollments.record_type)::text = 'entry'::text) AND ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval))));
-  SQL
-  create_view "bi_data_sources", sql_definition: <<-SQL
-      SELECT data_sources.id,
-      data_sources.name,
-      data_sources.short_name
-     FROM data_sources
-    WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
-  SQL
-  create_view "bi_lookups_ethnicities", sql_definition: <<-SQL
-      SELECT lookups_ethnicities.id,
-      lookups_ethnicities.value,
-      lookups_ethnicities.text
-     FROM lookups_ethnicities;
-  SQL
-  create_view "bi_lookups_funding_sources", sql_definition: <<-SQL
-      SELECT lookups_funding_sources.id,
-      lookups_funding_sources.value,
-      lookups_funding_sources.text
-     FROM lookups_funding_sources;
-  SQL
-  create_view "bi_lookups_genders", sql_definition: <<-SQL
-      SELECT lookups_genders.id,
-      lookups_genders.value,
-      lookups_genders.text
-     FROM lookups_genders;
-  SQL
-  create_view "bi_lookups_living_situations", sql_definition: <<-SQL
-      SELECT lookups_living_situations.id,
-      lookups_living_situations.value,
-      lookups_living_situations.text
-     FROM lookups_living_situations;
-  SQL
-  create_view "bi_lookups_project_types", sql_definition: <<-SQL
-      SELECT lookups_project_types.id,
-      lookups_project_types.value,
-      lookups_project_types.text
-     FROM lookups_project_types;
-  SQL
-  create_view "bi_lookups_relationships", sql_definition: <<-SQL
-      SELECT lookups_relationships.id,
-      lookups_relationships.value,
-      lookups_relationships.text
-     FROM lookups_relationships;
-  SQL
-  create_view "bi_lookups_tracking_methods", sql_definition: <<-SQL
-      SELECT lookups_tracking_methods.id,
-      lookups_tracking_methods.value,
-      lookups_tracking_methods.text
-     FROM lookups_tracking_methods;
-  SQL
-  create_view "bi_lookups_yes_no_etcs", sql_definition: <<-SQL
-      SELECT lookups_yes_no_etcs.id,
-      lookups_yes_no_etcs.value,
-      lookups_yes_no_etcs.text
-     FROM lookups_yes_no_etcs;
-  SQL
-  create_view "bi_nightly_census_by_projects", sql_definition: <<-SQL
-      SELECT nightly_census_by_projects.id,
-      nightly_census_by_projects.date,
-      nightly_census_by_projects.project_id,
-      nightly_census_by_projects.veterans,
-      nightly_census_by_projects.non_veterans,
-      nightly_census_by_projects.children,
-      nightly_census_by_projects.adults,
-      nightly_census_by_projects.all_clients,
-      nightly_census_by_projects.beds
-     FROM nightly_census_by_projects;
-  SQL
-  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
-      SELECT service_history_services.id,
-      service_history_services.service_history_enrollment_id,
-      service_history_services.record_type,
-      service_history_services.date,
-      service_history_services.age,
-      service_history_services.service_type,
-      service_history_services.client_id,
-      service_history_services.project_type,
-      service_history_services.homeless,
-      service_history_services.literally_homeless
-     FROM service_history_services;
-  SQL
-  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
-  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
-  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
-
 end
