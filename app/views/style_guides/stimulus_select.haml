@@ -5,10 +5,13 @@
 - huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
 .container.py-4
   %h1 Stimulus Select
+  - if params[:mock_2]
+    = debug params[:mock_2]
   %section
-    = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
+    = simple_form_for @form, as: :mock_2, defaults: form_defaults, method: :get, url: '#' do |f|
+      - klass = if request.xhr? then 'col-12' else 'col-6' end
       .row
-        .col-6
+        %div{class: klass}
           %h4 Select 2 - Default
           = f.input :stimulus_select, collection: collection, as: :select_two
 
@@ -40,3 +43,5 @@
           = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, as: :select_two, input_html: { multiple: true, data: { 'stimulus-select-target' => 'projectTypes', action: 'change->stimulus-select#updateDependentProjectList' }}
           = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }, placeholder: 'Any Organization'}, label: 'Organizations', required: false
           = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: {'stimulus-select-target' => 'projects', project_url: api_projects_path() }, placeholder: 'Any Project'}, label: 'Projects', required: false
+
+          = f.submit 'Update'

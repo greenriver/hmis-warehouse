@@ -151,12 +151,12 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
 
   toggleAll() {
     if (this._anySourceOptionSelected()) {
-      $(this.elementTarget).find('option').removeAttr('selected')
+      $(this.elementTarget).val([])
     } else {
-      $(this.elementTarget).find('option').attr('selected', 'selected')
+      let all_options = $(this.elementTarget).find('option').map((i, el) => { return el.value })
+      $(this.elementTarget).val(all_options)
     }
     $(this.elementTarget).trigger('change')
-
   }
 
   watchForSelect2Opens() {
@@ -218,22 +218,15 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     this._updateSelectAllClass($parent, $select_all)
     // Always include all children to keep them in-sync
     let $options = $parent.find('li')
+    let current_selection = $original_select.val()
     if ($select_all.hasClass('j-any-selected')) {
       let to_unselect = this._optionGroupOptionValues($options)
-      $original_select.find('option').each((i, el) => {
-        if (to_unselect.includes($(el).val())) {
-          $(el).removeAttr('selected')
-        }
-      })
-      $options.attr('aria-selected', false)
+      $original_select.val(current_selection.filter(x => !to_unselect.includes(x)))
+      $options.attr('aria-selected', false) // this should not be necessary, but select2 doesn't do this automatically
     } else {
       let to_select = this._optionGroupOptionValues($options)
-      $original_select.find('option').each((i, el) => {
-        if (to_select.includes($(el).val())) {
-          $(el).attr('selected', 'selected')
-        }
-      })
-      $options.attr('aria-selected', true)
+      $original_select.val($original_select.val().concat(to_select))
+      $options.attr('aria-selected', true) // this should not be necessary, but select2 doesn't do this automatically
     }
     this._updateSelectAllClass($parent, $select_all)
     $original_select.trigger('change')
@@ -272,8 +265,8 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
 
   _initToggleSelectAll() {
     let $select = $(this.elementTarget)
-    let $selectAllToggle = $select.closest('.form-group').find('.select2-select-all')
-
+    let $selectAllToggle = $select.closest('.form-group').find('.select2-select-all').html('<a href="#"></a>')
+    $selectAllToggle.on('click', (e) => { e.preventDefault() })
     $selectAllToggle
       .attr('data-stimulus-select-target', 'selectAll')
       .attr('data-action', 'click->stimulus-select#toggleAll')
@@ -292,6 +285,6 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
   }
 
   _updateSelectAllText() {
-    $(this.selectAllTarget).text(this._selectAllText())
+    $(this.selectAllTarget).find('a').text(this._selectAllText())
   }
 })

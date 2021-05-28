@@ -414,8 +414,6 @@ SimpleForm.setup do |config|
       bb.use :label
       # NOTE: we would prefer to add the data elements here, but that doesn't appear possible
       bb.wrapper tag: 'div', class: 'select2-select-all' do |select_all|
-        select_all.wrapper tag: 'span', class: 'mr-2' do
-        end
       end
     end
     b.wrapper tag: 'div', class: 'd-flex flex-row justify-content-between align-items-center' do |bb|
