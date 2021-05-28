@@ -56,20 +56,6 @@
             %h3 Select 2 Inputs
             %hr
 
-            %h4 Select 2 - Default
-            = f.input :select2, collection: collection, input_html: { class: :select2 }
-
-            %h4 Select 2 - Multiselect (with select all/none)
-            = f.input :select2_multi, collection: collection, input_html: { class: :select2, multiple: true }
-
-            %h4 Select 2 - CoC special behavior
-            %p.font-italic Select inputs have class name: <strong>.select2-id-when-selected</strong>
-            = f.input :select2_coc_behavior, collection: collection, input_html: { class: [:select2, 'select2-id-when-selected'] }, hint: 'Show value instead of label when selected'
-
-            %h4 Select 2 - Parenthetical
-            %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
-            = f.input :select2_parenthetical, collection: collection, input_html: { class: [:select2, 'select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
-
             %h4 Select 2 - simple form input - Default
             = f.input :select2_simple_form, collection: collection, as: :select_two
 
