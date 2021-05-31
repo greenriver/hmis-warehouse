@@ -12,6 +12,15 @@
       - klass = if request.xhr? then 'col-12' else 'col-6' end
       .row
         %div{class: klass}
+          %h4 Select Tag (single)
+          - options = options_from_collection_for_select(GrdaWarehouse::DataSource.options_for_select(user: current_user).each, :last, :first, params[:data_source_id])
+          = render 'inputs/select', field_name: :select_tag_1, label: 'Data Source', options: options, html_options: { include_blank: 'All Data Sources' }
+
+          %h4 Select Tag (multiple)
+          - options = options_from_collection_for_select(GrdaWarehouse::DataSource.options_for_select(user: current_user).each, :last, :first, params[:data_source_id])
+          = render 'inputs/select', field_name: :select_tag_2, label: 'Data Source', options: options, html_options: { include_blank: 'All Data Sources',  multiple: true }
+
+
           %h4 Select 2 - Default
           = f.input :stimulus_select, collection: collection, as: :select_two
 

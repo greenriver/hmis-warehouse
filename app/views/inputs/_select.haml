@@ -1,0 +1,6 @@
+.form-group.select_two{ class: field_name, data: { controller: 'stimulus-select'}}
+  .select2__label-wrapper
+    %label= label
+    .select2-select-all
+  .d-flex.flex-row.justify-content-between.align-items-center
+    = select_tag(field_name, options, html_options.deep_merge(class: 'stimulus-select', data: { 'stimulus-select-target' => 'element' }))

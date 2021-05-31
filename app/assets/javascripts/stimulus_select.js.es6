@@ -146,6 +146,10 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     $select.select2(options)
     if (this.elementTarget.hasAttribute('multiple')) {
       this._initToggleSelectAll()
+      $select.on('select2:unselecting', (e) => {
+        // Prevent toggling of select2 drop-down when unselecting
+        $select.select2('open')
+      })
     }
   }
 
