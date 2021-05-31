@@ -38,8 +38,8 @@
 
         - if can_view_vspdat?
           .col-sm-4.mb-3
-            %label VSPDAT Vulnerability
-            = select_tag(:vulnerability, options_from_collection_for_select({'' => 'All Vulnerabilities', low: 'Low Vulnerabilty', medium: 'Medium Vulnerabilty', high: 'High Vulnerabilty', all: 'All Clients with VI-SPDATs'}, :first, :last, params[:vulnerability]), class: 'select2', style: 'width: 100%;')
+            - options = options_from_collection_for_select({ '' => 'All Vulnerabilities', low: 'Low Vulnerabilty', medium: 'Medium Vulnerabilty', high: 'High Vulnerabilty', all: 'All Clients with VI-SPDATs'}, :first, :last, params[:vulnerability])
+            = render 'inputs/select', field_name: :vulnerability, label: 'VSPDAT Vulnerability', options: options
 
         .col-sm-4.mb-3
           %label Age Group
