@@ -494,7 +494,7 @@ module HmisCsvTwentyTwenty::Importer
                   destination_class.where(
                     data_source_id: incoming.data_source_id,
                     PersonalID: incoming.PersonalID,
-                  ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+                  ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020') + [:pending_date_deleted]))
                   @updated_source_client_ids << incoming.PersonalID
                 end
                 note_processed(file_name, batch.count, 'updated')
@@ -511,7 +511,7 @@ module HmisCsvTwentyTwenty::Importer
               destination_class.where(
                 data_source_id: incoming.data_source_id,
                 PersonalID: incoming.PersonalID,
-              ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+              ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020') + [:pending_date_deleted]))
               @updated_source_client_ids << incoming.id
             end
             note_processed(file_name, batch.count, 'updated')
