@@ -1,0 +1,2 @@
+ExportID,SourceType,SourceID,SourceName,SourceContactFirst,SourceContactLast,SourceContactPhone,SourceContactExtension,SourceContactEmail,ExportDate,ExportStartDate,ExportEndDate,SoftwareName,SoftwareVersion,ExportPeriodType,ExportDirective,HashStatus
+2021-01-01_User,1,MA-500,,User,LastName,,,user@example.com,2021-05-25 11:00:38,2012-10-01,2021-05-25,HMIS Software,,3,2,1
