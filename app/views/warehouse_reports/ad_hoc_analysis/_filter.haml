@@ -14,7 +14,7 @@
       .col-sm-6.mb-4
         = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, placeholder: 'Any Organization', input_html: {multiple: true }, label: 'Organizations'
       .col-sm-6.mb-4
-        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), placeholder: 'Any Data Source', input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
+        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), placeholder: 'Any Data Source', input_html: {multiple: true}, label: 'Data Sources', as: :select_two
       .col-sm-6.mb-4
         = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, as: :select_two, label: 'Sub-population'
 

@@ -9,7 +9,7 @@
         = f.input :project_type, input_html: {name: 'report_result[options][project_type][]', multiple: true}, as: select_two, collection: Reports::DataQuality::Fy2017::Base.available_project_types, required: false
       .col-sm-4
         = f.input :data_source_id, input_html: {name: 'report_result[options][data_source_id]'}, as: select_two, collection: Reports::DataQuality::Fy2017::Base.available_data_sources.viewable_by(current_user), required: false
-        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.viewable_by(current_user).pluck(:CoCCode), selected: GrdaWarehouse::Config.get(:site_coc_codes), input_html: {name: 'report_result[options][coc_code]', class: :select2 }, hint: GrdaWarehouse::Config.get(:site_coc_codes), required: false
+        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.viewable_by(current_user).pluck(:CoCCode), selected: GrdaWarehouse::Config.get(:site_coc_codes), input_html: {name: 'report_result[options][coc_code]' }, hint: GrdaWarehouse::Config.get(:site_coc_codes), required: false, as: :select_two
       .col-sm-4
         .form-group
           %label.control-lable.string

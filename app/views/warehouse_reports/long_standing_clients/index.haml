@@ -10,7 +10,7 @@
   - content_for :filters_col_full do
     %label{for: :years}
       Years ago
-      = select_tag(:years, options_for_select((3..15), @years), {value: @years, class: :select2})
+      = select_tag(:years, options_for_select((3..15), @years), {value: @years}), as: :select_two
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Update View', class: 'ml-2'
