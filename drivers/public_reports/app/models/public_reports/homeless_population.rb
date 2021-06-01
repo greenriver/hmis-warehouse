@@ -445,6 +445,7 @@ module PublicReports
           # Add census info
           ::HUD.races(multi_racial: true).each do |race_code, label|
             census_data[label] = 0
+            data[::HUD.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year)
             census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop.positive?
@@ -457,7 +458,6 @@ module PublicReports
             find_each do |enrollment|
               client = enrollment.client
               race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
-              data[::HUD.race(race, multi_racial: true)] ||= Set.new
               data[::HUD.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
