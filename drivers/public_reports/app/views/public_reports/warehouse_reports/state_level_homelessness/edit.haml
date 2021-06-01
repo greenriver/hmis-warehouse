@@ -1,0 +1,10 @@
+- title = "Edit #{@report.instance_title}"
+- content_for :title, title
+= render 'breadcrumbs'
+%h1.mb-5= title
+
+= render 'public_reports/publish'
+
+%p Once published the following report will be available at: #{@report.generate_publish_url}
+.well
+  %iframe{src: raw_public_reports_warehouse_reports_state_level_homelessness_path(@report), width: '100%', height: 400, frameBorder: 0}

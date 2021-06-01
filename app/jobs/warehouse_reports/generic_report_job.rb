@@ -48,6 +48,7 @@ module WarehouseReports
         reports['PublicReports::HomelessCount'] = PublicReports::HomelessCount
         reports['PublicReports::HomelessCountComparison'] = PublicReports::HomelessCountComparison
         reports['PublicReports::HomelessPopulation'] = PublicReports::HomelessPopulation
+        reports['PublicReports::StateLevelHomelessness'] = PublicReports::StateLevelHomelessness
       end
       reports['IncomeBenefitsReport::Report'] = IncomeBenefitsReport::Report if RailsDrivers.loaded.include?(:income_benefits_report)
       if RailsDrivers.loaded.include?(:claims_reporting)

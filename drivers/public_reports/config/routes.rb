@@ -24,6 +24,9 @@ BostonHmis::Application.routes.draw do
         get :adults_with_children, on: :member
         get :veterans, on: :member
       end
+      resources :state_level_homelessness do
+        get :raw, on: :member
+      end
       resources :public_configs, only: [:index, :create]
     end
   end

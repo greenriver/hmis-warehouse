@@ -1,0 +1,7 @@
+- chart_class = 'pit-chart'
+= debug @report.precalculated_data
+- data = JSON.parse(@report.precalculated_data)
+
+.chart.chart-pit.pt-2{ class: chart_class }
+%div.d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
+= render 'line_chart', chart_class: chart_class, data: data['pit_chart'], category: :population

@@ -1,0 +1,14 @@
+- title = @report.instance_title
+- content_for :title, title
+= render 'breadcrumbs'
+%h1.mb-5= title
+
+= render 'public_reports/re_publish'
+
+%p
+  The following report is available at the url:
+  = link_to @report.published_url, @report.published_url, target: '_blank'
+  and can be embedded using the following code.
+%code= @report.embed_code
+.well
+  %iframe{src: public_reports_warehouse_reports_state_level_homelessness_path(@report), width: '100%', height: 400, frameBorder: 0}
