@@ -535,8 +535,8 @@ module PublicReports
           pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
             override.presence || original
           end
-        resonable_cocs_count = GrdaWarehouse::Shape::CoC.my_state.where(cocnum: result).count
-        result = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum) if resonable_cocs_count.zero? && !Rails.env.production?
+        reasonable_cocs_count = GrdaWarehouse::Shape::CoC.my_state.where(cocnum: result).count
+        result = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
 
         result
       end
