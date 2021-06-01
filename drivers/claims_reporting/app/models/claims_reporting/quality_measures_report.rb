@@ -9,6 +9,14 @@ require 'memoist'
 
 # Calculator for various Quality Measures in the MassHealth Community Partners (CP) Program
 # https://www.mass.gov/guides/masshealth-community-partners-cp-program-information-for-providers
+
+# Comments reference instructions from MassHealth (our original spec) updated with the
+# [QRS2021] "2021 Quality Rating System Measure Technical Specifications"
+# https://www.cms.gov/files/document/2021-qrs-measure-technical-specifications.pdf
+# "Calculating the Plan All-Cause Readmissions (PCR) Measure in the 2021 Adult and Health Home Core Sets"
+# Technical Assistance Resource
+# https://www.medicaid.gov/medicaid/quality-of-care/downloads/pcr-ta-resource.pdf
+# Both As of May 28, 2021
 module ClaimsReporting
   class QualityMeasuresReport
     include ActiveModel::Model
@@ -1307,11 +1315,16 @@ module ClaimsReporting
       year = measurement_year.max.year
       readmit_range = Date.new(year, 1, 3) .. Date.new(year, 12, 31)
 
-      # > Step 1: Identify all acute inpatient discharges on or between January 1 and December 1 of the measurement year
+      # > Step 1: Identify all acute inpatient discharges [and observation stay discharges] on or between January 1
+      # and December 1 of the measurement year
       # We select discharges for the whole year and filter later because we we need overlapping but different
       # Discharge ranges for both the Numerator and denominator
+      #
+      # [QRS2021] added "observation stay discharges"
       acute_inpatient_claims = claims.select do |c|
-        c.discharge_date.present? && measurement_year.cover?(c.discharge_date) && acute_inpatient_stay?(c)
+        c.discharge_date.present? && measurement_year.cover?(c.discharge_date) && (
+          acute_inpatient_stay?(c) || in_set?('Observation Stay', c)
+        )
       end.sort_by(&:admit_date)
 
       # > Step 2: Acute-to-acute direct transfers
@@ -1476,9 +1489,13 @@ module ClaimsReporting
     private def bh_cp_13_risk_adjustments(member, stay_claims)
       debug_prefix = " BH_CP_13: MemberRoster#id=#{member.id} stay=#{stay_claims.first.id}"
 
-      puts "#{debug_prefix} bh_cp_13_risk_adjustments"
+      # Since we are now user 2021 QRS Plan All-Cause Readmissions (PCR)
+      # as the spec for risk adjustment date We are using
+      # the methods for that.
+      # See https://www.cms.gov/files/document/2021-qrs-measure-technical-specifications.pdf
+      # ClaimsReporting::Calculators::PcrRiskAdjustment
       had_surgery = stay_claims.any? do |c|
-        # TODO
+        in_set?('Surgical Procedures', c)
       end
       raise "#{debug_prefix} had_surgery" if had_surgery
     end
@@ -1917,6 +1934,7 @@ module ClaimsReporting
       'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
       'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
       'Observation' => '2.16.840.1.113883.3.464.1004.1191',
+      'Observation Stay' => '2.16.840.1.113883.3.464.1004.1461',
       'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
       'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
       'Organ Transplant Other Than Kidney' => '2.16.840.1.113883.3.464.1004.1195',
@@ -1929,6 +1947,7 @@ module ClaimsReporting
       'Potentially Planned Procedures' => '2.16.840.1.113883.3.464.1004.1327',
       'Pregnancy' => '2.16.840.1.113883.3.464.1004.1219',
       'Rehabilitation' => '2.16.840.1.113883.3.464.1004.1328',
+      'Surgery Procedure' => '2.16.840.1.113883.3.464.1004.2223',
       'Telehealth Modifier' => '2.16.840.1.113883.3.464.1004.1445',
       'Telehealth POS' => '2.16.840.1.113883.3.464.1004.1460',
       'Telephone Visits' => '2.16.840.1.113883.3.464.1004.1246',
