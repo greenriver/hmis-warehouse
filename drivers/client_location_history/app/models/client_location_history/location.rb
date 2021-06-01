@@ -6,7 +6,9 @@
 
 module ClientLocationHistory
   class Location < GrdaWarehouseBase
+    include Rails.application.routes.url_helpers
     belongs_to :source, polymorphic: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     def as_point
       [lat, lon]
@@ -26,6 +28,22 @@ module ClientLocationHistory
         date: located_on,
         highlight: false,
       }
+    end
+
+    def as_marker_with_name(user)
+      name = if user.can_view_clients?
+        link_for(client_path(client), client.name)
+      else
+        client.name
+      end
+      as_marker.merge(
+        client_id: client.id,
+        label: [name] + label,
+      )
+    end
+
+    private def link_for(path, text)
+      "<a href=\"#{path}\" target=\"_blank\">#{text}</a>"
     end
 
     def self.bounds(locations)

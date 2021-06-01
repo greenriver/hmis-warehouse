@@ -1,12 +1,12 @@
-- title = "Location Map for #{@client.name}"
+- title = _('Client Contact Locations')
 - content_for :title, title
-= render 'clients/breadcrumbs'
 
-= render 'clients/aliases'
-= render 'clients/tab_navigation', current: map_client_location_history_client_path(@client)
-%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
+%h1.mb-5= title
+
 = render 'filter'
-- if @locations.any?
+
+- if @contacts.any?
   #client__location-history
   = content_for :page_js do
     :javascript

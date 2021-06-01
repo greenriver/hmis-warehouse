@@ -1050,6 +1050,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:client_location_history)
+        r_list['Operational'] << {
+          url: 'client_location_history/warehouse_reports/client_location_history',
+          name: 'Client Contact Locations',
+          description: 'A map of the most recent client locations.',
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -1092,6 +1101,8 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'dashboards/veterans' unless RailsDrivers.loaded.include?(:veterans_sub_pop)
       cleanup << 'census_tracking/warehouse_reports/census_trackers' unless RailsDrivers.loaded.include?(:census_tracking)
       cleanup << 'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
+       cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
+
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
