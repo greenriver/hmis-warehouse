@@ -39,7 +39,7 @@
   %p
     These fields are required because they form the basis of the assessment score.
   - @assessment.scored_column_options.each do |column, options|
-    = f.input column, options.merge({input_html: {class: :select2}})
+    = f.input column, options.merge({as: :select_two})
 %h3 Barriers to Housing Placement
 .well.assessment.assessment-housing-barriers
   .row
@@ -72,7 +72,7 @@
 .well.assessment.assessment-assessor-rating
   .row
     .col-6
-      = f.input :assessor_rating, label: 'Rate your overall impression of the level of services needed for this household to maintain housing', collection: @assessment.assessor_rating_options, input_html: {class: :select2}
+      = f.input :assessor_rating, label: 'Rate your overall impression of the level of services needed for this household to maintain housing', collection: @assessment.assessor_rating_options, as: :select_two
 %hr.mt-8
 %h2.mt-8 Vulnerability and Prioritization Worksheet
 .well.assessment.assessment-vulnerability-worksheet

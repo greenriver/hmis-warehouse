@@ -5,11 +5,11 @@
         = f.input :source, collection: @query.possible_sources, input_html: { id: 'source-source', class: :select2}
       .col-sm-6
         .hideable.datas.mb-4
-          = f.input :data_source, collection: @query.all_sources[:data_sources], input_html: {class: :select2}
+          = f.input :data_source, collection: @query.all_sources[:data_sources], as: :select_two
         .hideable.org.mb-4
-          = f.input :organization, collection: @query.all_sources[:organizations], input_html: {class: :select2}
+          = f.input :organization, collection: @query.all_sources[:organizations], as: :select_two
         .hideable.proj.mb-4
-          = f.input :project, collection: @query.all_sources[:projects], input_html: {class: :select2}
+          = f.input :project, collection: @query.all_sources[:projects], as: :select_two
     .row.w-100
       .col-sm-12
         = f.input :columns, collection: @query.possible_columns, input_html: { multiple: true, id: 'columns', class: :select2}
