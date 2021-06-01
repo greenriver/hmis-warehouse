@@ -8,7 +8,7 @@
       .col-3
         = f.input :project_types, collection: HUD.project_types.invert, as: :select_two, input_html: { multiple: true }
       .col-3
-        = f.input :project_ids, collection: filtered_project_list, as: :grouped_select, group_method: :last, input_html: {multiple: true, class: ['select2', 'jProjects'] }, selected: @project_ids, label: 'Projects', required: false
+        = f.input :project_ids, collection: filtered_project_list, as: :grouped_select_two, group_method: :last, input_html: {multiple: true, class: ['jProjects'] }, selected: @project_ids, label: 'Projects', required: false
     .row
       .col-sm-12
         Clients are included in the report if they are recorded as currently fleeing domestic violence in the reporting range.
