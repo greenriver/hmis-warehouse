@@ -42,8 +42,8 @@
             = render 'inputs/select', field_name: :vulnerability, label: 'VSPDAT Vulnerability', options: options
 
         .col-sm-4.mb-3
-          %label Age Group
-          = select_tag(:age_group, options_from_collection_for_select(GrdaWarehouse::Hud::Client.ahar_age_groups.map{|k,r| [k,r[:name]]}.to_h, :first, :last, params[:age_group]), include_blank: 'All Ages', class: 'select2', style: 'width: 100%;')
+          - options = options_from_collection_for_select(GrdaWarehouse::Hud::Client.ahar_age_groups.map{|k,r| [k,r[:name]]}.to_h, :first, :last, params[:age_group])
+          = render 'inputs/select', field_name: :age_group, label: 'Age Group', options: options, html_options: { include_blank: 'All Ages' }
 
       .o-filtration__option
         .checkbox
@@ -53,8 +53,8 @@
 
       .o-filtration__option.row
         .col-sm-8
-          %label Population
-          = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params[:population]), class: 'select2', style: 'width: 100%;')
+          - options = options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params[:population])
+          = render 'inputs/select', field_name: :population, label: 'Population', options: options
 
       .o-filtration__actions.form__actions
         = link_to clients_path, class:'btn btn-secondary' do
