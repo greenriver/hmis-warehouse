@@ -659,14 +659,18 @@ module PublicReports
     private def time_homeless(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
-          data = {}
+          data = {
+            'less than a month' => 0,
+            'One to six months' => 0,
+            'Six to twelve months' => 0,
+            'More than one year' => 0,
+          }
           counted_clients = Set.new
           with_service_in_quarter(report_scope, date, population).
             joins(client: :processed_service_history).
             preload(client: :processed_service_history).
             find_each do |enrollment|
               client = enrollment.client
-              data[bucket_days(client.days_homeless(on_date: date))] ||= 0
               data[bucket_days(client.days_homeless(on_date: date))] += 1 unless counted_clients.include?(client.id)
               counted_clients << client.id
             end

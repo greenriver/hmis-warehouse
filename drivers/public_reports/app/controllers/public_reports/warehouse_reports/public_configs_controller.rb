@@ -118,6 +118,15 @@ module PublicReports::WarehouseReports
         :population_color_6,
         :population_color_7,
         :population_color_8,
+        :location_type_color_0,
+        :location_type_color_1,
+        :location_type_color_2,
+        :location_type_color_3,
+        :location_type_color_4,
+        :location_type_color_5,
+        :location_type_color_6,
+        :location_type_color_7,
+        :location_type_color_8,
       )
     end
 

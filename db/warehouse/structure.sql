@@ -11163,7 +11163,16 @@ CREATE TABLE public.public_report_settings (
     population_color_5 character varying,
     population_color_6 character varying,
     population_color_7 character varying,
-    population_color_8 character varying
+    population_color_8 character varying,
+    location_type_color_0 character varying,
+    location_type_color_1 character varying,
+    location_type_color_2 character varying,
+    location_type_color_3 character varying,
+    location_type_color_4 character varying,
+    location_type_color_5 character varying,
+    location_type_color_6 character varying,
+    location_type_color_7 character varying,
+    location_type_color_8 character varying
 );
 
 
@@ -29870,6 +29879,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210514154843'),
 ('20210515142741'),
 ('20210517144348'),
-('20210520184416');
+('20210520184416'),
+('20210601135719');
 
 
