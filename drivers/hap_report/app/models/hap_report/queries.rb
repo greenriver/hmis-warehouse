@@ -64,20 +64,21 @@ module HapReport::Queries
         end
     end
 
-    def families_with_children
-      @families_with_children ||= households.
+    # An individual emancipated minor falls into this category, and will be subsequently counted as an adult in A2
+    def households_with_children
+      @households_with_children ||= households.
         select { |_, v| v.any? { |client| client[:age] < 18 } }.
         map { |_, v| v.map { |client| client[:client_id] } }.
         flatten
-      a_t[:id].in(@families_with_children)
+      a_t[:id].in(@households_with_children)
     end
 
-    def only_head_of_families_with_children
-      @head_of_families_with_children ||= households.
+    def only_head_of_households_with_children
+      @head_of_households_with_children ||= households.
         select { |_, v| v.any? { |client| client[:age] < 18 } }.
         map { |_, v| v.select { |client| client[:head] }.map { |client| client[:client_id] } }.
         flatten
-      a_t[:id].in(@head_of_families_with_children)
+      a_t[:id].in(@head_of_households_with_children)
     end
 
     def adult_only_households
@@ -94,13 +95,6 @@ module HapReport::Queries
         map { |_, v| v.select { |client| client[:head] }.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@head_of_adult_only_households)
-    end
-
-    def individuals
-      @individuals ||= households.
-        map { |_, v| v.map { |client| client[:client_id] } }.
-        flatten
-      a_t[:id].in(@individuals)
     end
 
     def under_sixty
@@ -120,7 +114,7 @@ module HapReport::Queries
     end
 
     def da_services
-      a_t[:substance_abuse].eq(true)
+      a_t[:substance_abuse_disorder].eq(true)
     end
 
     def dv_services

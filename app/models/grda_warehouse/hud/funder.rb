@@ -45,12 +45,9 @@ module GrdaWarehouse::Hud
 
     scope :funding_source, ->(funder_code: nil, other: nil) do
       if other.present?
-        where(
-          f_t[:Funder].eq(funder_code).
-            and(f_t[:OtherFunder].eq(other))
-        )
+        where(Funder: funder_code, OtherFunder: other)
       else
-        where(f_t[:Funder].eq(funder_code))
+        where(Funder: funder_code)
       end
     end
 

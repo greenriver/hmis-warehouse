@@ -39,68 +39,80 @@ module HapReport
     end
 
     private def create_universe
-      hap_clients = {}
-      enrollment_scope.find_each do |processed_enrollment|
-        disabilities = processed_enrollment.enrollment.disabilities
-        mental_health = disabilities.chronically_disabled.mental.exists?
-        substance_abuse = disabilities.chronically_disabled.substance.exists?
+      enrollment_scope.find_in_batches do |batch|
+        hap_clients = {}
+        batch.each do |processed_enrollment|
+          disabilities = processed_enrollment.enrollment.disabilities
+          mental_health = disabilities.chronically_disabled.mental.exists?
+          substance_abuse_disorder = disabilities.chronically_disabled.substance.exists?
 
-        health_and_dvs = processed_enrollment.enrollment.health_and_dvs
-        domestic_violence = health_and_dvs.currently_fleeing.exists?
+          health_and_dvs = processed_enrollment.enrollment.health_and_dvs
+          domestic_violence = health_and_dvs.currently_fleeing.exists?
 
-        income_benefits = processed_enrollment.enrollment.income_benefits
-        income_at_start = income_benefits.at_entry.with_earned_income.pluck(:EarnedAmount).compact.max # Should be only one
-        income_at_exit = income_benefits.at_exit.with_earned_income.pluck(:EarnedAmount).compact.max # Should be only one
+          income_benefits = processed_enrollment.enrollment.income_benefits
+          income_at_start = income_benefits.at_entry.with_earned_income.pluck(:EarnedAmount).compact.max # Should be only one
+          income_at_exit = income_benefits.at_exit.with_earned_income.pluck(:EarnedAmount).compact.max # Should be only one
 
-        client = processed_enrollment.client
-        nights_in_shelter = processed_enrollment.service_history_services.
-          service_between(start_date: @start_date, end_date: @end_date).
-          bed_night.
-          count
+          client = processed_enrollment.client
+          nights_in_shelter = processed_enrollment.service_history_services.
+            service_between(start_date: @start_date, end_date: @end_date).
+            bed_night.
+            count
 
-        existing_client = hap_clients[processed_enrollment.client] || HapClient.new
-        new_client = HapClient.new(
-          client_id: existing_client[:client_id] || processed_enrollment.client_id,
-          age: existing_client[:age] || client.age,
-          emancipated: false,
-          head_of_household: existing_client[:head_of_household] || processed_enrollment.head_of_household?,
-          household_ids: (Array.wrap(existing_client[:household_ids]) << processed_enrollment.household_id).uniq,
-          project_types: (Array.wrap(existing_client[:project_types]) << processed_enrollment.project_type).uniq,
-          veteran: existing_client[:veteran] || processed_enrollment.client.veteran?,
-          mental_health: existing_client[:mental_health] || mental_health,
-          substance_abuse: existing_client[:substance_abuse] || substance_abuse,
-          domestic_violence: existing_client[:domestic_violence] || domestic_violence,
-          income_at_start: [existing_client[:income_at_start], income_at_start].compact.max,
-          income_at_exit: [existing_client[:income_at_exit], income_at_exit].compact.max,
-          homeless: existing_client[:homeless] || client.service_history_enrollments.homeless.open_between(start_date: @start_date, end_date: @end_date).exists?,
-          nights_in_shelter: [existing_client[:nights_in_shelter], nights_in_shelter].compact.sum,
-        )
-        new_client[:head_of_household_for] = if processed_enrollment.head_of_household?
-          (Array.wrap(existing_client[:head_of_household_for])) << processed_enrollment.household_id
-        else
-          existing_client[:head_of_household_for] || []
+          household_id = processed_enrollment.household_id || "#{processed_enrollment.enrollment_group_id}*hh"
+          head_of_household = if processed_enrollment.household_id
+            processed_enrollment.head_of_household?
+          else
+            true
+          end
+
+          existing_client = hap_clients[processed_enrollment.client] || HapClient.new
+          new_client = HapClient.new(
+            client_id: existing_client[:client_id] || processed_enrollment.client_id,
+            age: existing_client[:age] || client.age,
+            emancipated: false,
+            head_of_household: existing_client[:head_of_household] || head_of_household,
+            household_ids: (Array.wrap(existing_client[:household_ids]) << household_id).uniq,
+            project_types: (Array.wrap(existing_client[:project_types]) << processed_enrollment.project_type).uniq,
+            veteran: existing_client[:veteran] || processed_enrollment.client.veteran?,
+            mental_health: existing_client[:mental_health] || mental_health,
+            substance_abuse_disorder: existing_client[:substance_abuse_disorder] || substance_abuse_disorder,
+            domestic_violence: existing_client[:domestic_violence] || domestic_violence,
+            income_at_start: [existing_client[:income_at_start], income_at_start].compact.max,
+            income_at_exit: [existing_client[:income_at_exit], income_at_exit].compact.max,
+            homeless: existing_client[:homeless] || client.service_history_enrollments.homeless.open_between(start_date: @start_date, end_date: @end_date).exists?,
+            nights_in_shelter: [existing_client[:nights_in_shelter], nights_in_shelter].compact.sum,
+          )
+          new_client[:head_of_household_for] = if head_of_household
+            (Array.wrap(existing_client[:head_of_household_for])) << household_id
+          else
+            existing_client[:head_of_household_for] || []
+          end
+
+          hap_clients[client] = new_client
         end
-
-        hap_clients[processed_enrollment.client] = new_client
+        HapClient.import(hap_clients.values)
+        universe.add_universe_members(hap_clients)
       end
-      HapClient.import(hap_clients.values)
-      universe.add_universe_members(hap_clients)
     end
 
-    def members_of_families_with_children
-      report_client_scope.where(families_with_children)
+    def members_of_households_with_children
+      report_client_scope.where(households_with_children)
     end
 
-    def head_of_families_with_children
-      report_client_scope.where(only_head_of_families_with_children)
+    def head_of_households_with_children
+      report_client_scope.where(only_head_of_households_with_children)
     end
 
-    def adults_in_families_with_children
-      members_of_families_with_children.where(adults)
+    # An emancipated minor falls in this bucket
+    def adults_in_households_with_children
+      members_of_households_with_children.where(adults)
     end
 
-    def children_in_families_with_children
-      members_of_families_with_children.where(children)
+    # Because household containing just an emancipated minor will count as a household with children,
+    # the spec constraint that the count of these should be be >= to the number of households may not hold
+    def children_in_households_with_children
+      members_of_households_with_children.where(children)
     end
 
     def adults_in_adult_only_households
@@ -120,31 +132,31 @@ module HapReport
     end
 
     def adults_served
-      report_client_scope.where(individuals).where(adults)
+      report_client_scope.where(adults)
     end
 
     def veterans_served
-      report_client_scope.where(individuals).where(adults).where(veterans)
+      report_client_scope.where(adults).where(veterans)
     end
 
     def adults_with_mh_services
-      report_client_scope.where(individuals).where(adults).where(mh_services)
+      report_client_scope.where(adults).where(mh_services)
     end
 
     def adults_with_da_services
-      report_client_scope.where(individuals).where(adults).where(da_services)
+      report_client_scope.where(adults).where(da_services)
     end
 
     def adults_with_dv_services
-      report_client_scope.where(individuals).where(adults).where(dv_services)
+      report_client_scope.where(adults).where(dv_services)
     end
 
     def adults_employed_at_start
-      report_client_scope.where(individuals).where(adults).where(employed_at_start)
+      report_client_scope.where(adults).where(employed_at_start)
     end
 
     def adults_who_gained_employment
-      report_client_scope.where(individuals).where(adults).where(gained_employment)
+      report_client_scope.where(adults).where(gained_employment)
     end
 
     def adults_who_received_rental_assistance_for_multiple_crises
@@ -175,9 +187,9 @@ module HapReport
       {
         'HOUSEHOLDS WITH CHILDREN' =>
           {
-            'A. 1. Total number of unduplicated families with children served during fiscal year' => :head_of_families_with_children,
-            'A. 2. Of the total in A1. how many were adults ' => :adults_in_families_with_children,
-            'A. 3. Of the total in A1 how many were children ' => :children_in_families_with_children,
+            'A. 1. Total number of unduplicated families with children served during fiscal year' => :head_of_households_with_children,
+            'A. 2. Of the total in A1. how many were adults ' => :adults_in_households_with_children,
+            'A. 3. Of the total in A1 how many were children ' => :children_in_households_with_children,
           },
         'ADULT-ONLY HOUSEHOLDS' =>
           {

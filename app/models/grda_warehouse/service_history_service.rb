@@ -60,10 +60,6 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     where(age: (18..Float::INFINITY))
   end
 
-  scope :bed_night, -> do
-    where(service_type: 200)
-  end
-
   def self.project_type_column
     :project_type
   end
