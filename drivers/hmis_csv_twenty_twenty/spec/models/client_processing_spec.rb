@@ -73,15 +73,16 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
 
         it 'all clients have a non-nil source_hash' do
           expect(GrdaWarehouse::Hud::Client.source.pluck(:source_hash).compact.count).to eq(2)
+          expect(GrdaWarehouse::Hud::Client.source.where(source_hash: 'aaa').count).to eq(0)
         end
 
         it 'all enrollments have a non-nil source_hash' do
           expect(GrdaWarehouse::Hud::Enrollment.pluck(:source_hash).compact.count).to eq(4)
         end
 
-        describe 'when re-importing' do
+        describe 'when re-importing with changed enrollment' do
           before(:all) do
-            file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing'
+            file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing_2'
             import(file_path, @data_source)
           end
 
