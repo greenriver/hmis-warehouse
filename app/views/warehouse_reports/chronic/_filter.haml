@@ -2,7 +2,7 @@
   - content_for :filters_col_full do
     .row
       .col-sm-3
-        = f.input :on, collection: @filter.chronic_days, label: 'Chronic on Date', input_html: { class: 'select2 jFilterOn' }
+        = f.input :on, collection: @filter.chronic_days, label: 'Chronic on Date', input_html: { class: 'jFilterOn' }, as: :select_two
       .col-sm-3
         = f.input :min_age, collection: @filter.ages, include_blank: false, label: 'Minimum Age', as: :select_two
       .col-sm-3
