@@ -18,7 +18,7 @@
             label_method: :number_and_name,
             required: true,
             label: 'Primary CoC',
-            input_html: { class: [:select2], id: 'compare_coc1'}
+            input_html: { id: 'compare_coc1'}, as: :select_two
         .col-md-6
           = f.input :coc2_id,
             collection: @cocs,
@@ -26,7 +26,7 @@
             label_method: :number_and_name,
             required: false,
             label: 'Secondary CoC',
-            input_html: { class: [:select2], id: 'compare_coc2'}
+            input_html: { id: 'compare_coc2'}, as: :select_two
     .col-lg-6
       .row
         .col-md-6
