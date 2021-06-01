@@ -9,7 +9,7 @@
         = f.input :no_service_after_date, label: 'No Service After', as: :date_picker, input_html: {value: @filter.no_service_after_date}
     .row
       .col-4
-        = f.input :sub_population, collection: @filter.available_sub_populations, selected:  @filter.sub_population, required: false, include_blank: false, input_html: {class: 'select2'}
+        = f.input :sub_population, collection: @filter.available_sub_populations, selected:  @filter.sub_population, required: false, include_blank: false, as: :select_two
       .col-4
         = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), placeholder: 'Any Organization', as: :grouped_select_two, group_method: :last, input_html: {multiple: true }, selected: @filter.organization_ids, label: 'Organizations', required: false
       .col-4
