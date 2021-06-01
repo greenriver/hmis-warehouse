@@ -9,11 +9,11 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Homeless Count Generator')
+      _('Number Homeless Report Generator')
     end
 
     def instance_title
-      _('Homeless Count Report')
+      _('Number Homeless Report')
     end
 
     private def public_s3_directory
