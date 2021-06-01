@@ -11,7 +11,7 @@
       .col-sm-3
         = f.input :service_type, collection: ServiceScanning::Service.available_types, input_html: { class: 'select2 jType' }, label: 'Service Provided', include_blank: false
       .col-sm-3.jOtherType
-        = f.input :other_type, collection: ServiceScanning::Service.known_other_types, input_html: { class: 'select2' }, label: 'Service Detail', include_blank: 'Any'
+        = f.input :other_type, collection: ServiceScanning::Service.known_other_types, as: :select_two, label: 'Service Detail', include_blank: 'Any'
 
   - content_for :filter_actions do
     = f.submit 'Update', class: ['btn', 'btn-primary']
