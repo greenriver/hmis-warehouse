@@ -41,9 +41,9 @@
         = f.input :data_source_ids, collection: @report.available_data_sources_for_select, input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
     .row
       .col-sm-6
-        = f.input :organization_ids, collection: @report.available_organizations_for_select, as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
+        = f.input :organization_ids, collection: @report.available_organizations_for_select, as: :grouped_select_two, group_method: :last, input_html: {multiple: true }, label: 'Organizations'
       .col-sm-6
-        = f.input :project_ids, collection: @report.available_projects_for_select, as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
+        = f.input :project_ids, collection: @report.available_projects_for_select, as: :grouped_select_two, group_method: :last, input_html: {multiple: true }, label: 'Projects'
   #household.tab-pane{role: :tabpanel}
     .row
       .col-sm-4
