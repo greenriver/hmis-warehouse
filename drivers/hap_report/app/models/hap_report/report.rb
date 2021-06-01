@@ -331,6 +331,14 @@ module HapReport
       value
     end
 
+    def self.report_options
+      [
+        :start,
+        :end,
+        :project_ids,
+      ].freeze
+    end
+
     private def report_client_scope
       universe.members
     end
@@ -338,8 +346,8 @@ module HapReport
     private def set_attributes
       return unless options.present?
 
-      @start_date = options['start_date']&.to_date
-      @end_date = options['end_date']&.to_date
+      @start_date = options['start']&.to_date
+      @end_date = options['end']&.to_date
       @project_ids = options['project_ids']&.reject(&:blank?)&.map(&:to_i)
     end
   end

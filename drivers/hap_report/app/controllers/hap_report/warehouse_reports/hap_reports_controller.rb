@@ -11,20 +11,21 @@ module HapReport::WarehouseReports
 
     def index
       @reports = report_scope.page(params[:page]).per(25)
-      @report = report_scope.build
+      @filter = HapReport::HapFilter.new(user_id: current_user.id)
     end
 
     def create
-      @report = report_scope.create(user_id: current_user.id, status: :pending, options: report_options)
-      @reports = report_scope.page(params[:page]).per(25)
-      if @report.valid?
+      @filter = HapReport::HapFilter.new(user_id: current_user.id).set_from_params(filter_params)
+      if @filter.valid?
+        @report = report_scope.create(user_id: @filter.user_id, options: report_options(@filter))
         ::WarehouseReports::GenericReportJob.perform_later(
-          user_id: current_user.id,
+          user_id: @filter.user_id,
           report_class: @report.class.name,
           report_id: @report.id,
         )
         redirect_to action: :index
       else
+        @reports = report_scope.page(params[:page]).per(25)
         render :index # Show validation errors
       end
     end
@@ -43,18 +44,26 @@ module HapReport::WarehouseReports
       @members = @report.cell(params[:cell]).members
     end
 
-    def report_scope
-      HapReport::Report.viewable_by(current_user).order(id: :desc)
+    def report_class
+      HapReport::Report
     end
 
-    private def report_options
-      return [] unless params[:hap_report_report].present?
+    def report_scope
+      report_class.viewable_by(current_user).order(id: :desc)
+    end
 
-      params.require(:hap_report_report).permit(
-        :start_date,
-        :end_date,
+    private def filter_params
+      return [] unless params[:filter].present?
+
+      params.require(:filter).permit(
+        :start,
+        :end,
         project_ids: [],
       )
+    end
+
+    def report_options(filter)
+      filter.for_params[:filters].select { |k, _| report_class.report_options.include?(k) }
     end
 
     private def set_report
