@@ -33,7 +33,7 @@
         - if multiple_project_types?
           = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, required: false, input_html: { multiple: true, class: [:select2, 'select2-parenthetical-when-selected'] }, wrapper_html: last_group_html
         - else
-          = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, required: false, label: 'Project Type', input_html: { class: :select2 }, wrapper_html: last_group_html
+          = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, required: false, label: 'Project Type', as: :select_two, wrapper_html: last_group_html
     .row.mt-4
       .col-sm-6
         = f.input :funder_ids, collection: @report.available_funders_for_select, input_html: {multiple: true, class: 'select2'}, label: 'Funding Sources'
@@ -47,13 +47,13 @@
   #household.tab-pane{role: :tabpanel}
     .row
       .col-sm-4
-        = f.input :household_type, collection: @report.household_types, include_blank: false, required: false, input_html: { class: :select2 }
+        = f.input :household_type, collection: @report.household_types, include_blank: false, required: false, as: :select_two
       .col-sm-4.d-flex.align-items-center
         = f.input :hoh_only, as: :boolean, label: 'Only Heads of Household', required: false, wrapper_html: last_group_html
   #demographics.tab-pane{role: :tabpanel}
     .row
       .col-sm-4
-        = f.input :sub_population, collection: PerformanceDashboards::Overview.sub_populations, label: 'Sub-Population', include_blank: false, input_html: { class: :select2 }, wrapper_html: last_group_html
+        = f.input :sub_population, collection: PerformanceDashboards::Overview.sub_populations, label: 'Sub-Population', include_blank: false, as: :select_two, wrapper_html: last_group_html
       .col-sm-4
         = f.input :races, collection: HUD.races.invert, required: false, input_html: { multiple: true, class: :select2 }, wrapper_html: last_group_html
       .col-sm-4

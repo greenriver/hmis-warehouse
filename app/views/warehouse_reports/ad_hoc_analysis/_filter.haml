@@ -4,9 +4,9 @@
       .col-6
         = render 'warehouse_reports/date_range_filters', f:f
       .col-3
-        = f.input :start_age, collection: (0..100), input_html: { class: :select2 }, label: 'Age greater than'
+        = f.input :start_age, collection: (0..100), as: :select_two, label: 'Age greater than'
       .col-3
-        = f.input :end_age, collection: (0..100), input_html: { class: :select2 }, label: 'Age less than'
+        = f.input :end_age, collection: (0..100), as: :select_two, label: 'Age less than'
 
     .row.mt-4
       .col-sm-6.mb-4

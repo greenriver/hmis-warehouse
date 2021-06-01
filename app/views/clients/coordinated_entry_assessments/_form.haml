@@ -3,7 +3,7 @@
 .well.assessment.assessment-basic-information
   .row
     .col-sm-6
-      = f.input :assessor_id, collection: User.all, input_html: { class: :select2 }
+      = f.input :assessor_id, collection: User.all, as: :select_two
       = f.input :location, label: 'Current Client Location'
 
 %h3 Special Considerations

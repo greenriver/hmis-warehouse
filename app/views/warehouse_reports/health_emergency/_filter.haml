@@ -11,7 +11,7 @@
       - if sort_options.count > 1
         .row
           .col-sm-3
-            = f.input :sort, collection: sort_options.invert, include_blank: false, input_html: { class: :select2 }
+            = f.input :sort, collection: sort_options.invert, include_blank: false, as: :select_two
     - content_for :filter_actions do
       = f.button :submit, value: 'Update View'
 

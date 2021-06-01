@@ -2,7 +2,7 @@
   .row
     - if can_edit_health_emergency_screening?
       .col-md-8
-        = f.input :agency, label: 'Where do you work?', collection: Agency.all, input_html: { class: :select2 }, selected: @triage.agency&.id
+        = f.input :agency, label: 'Where do you work?', collection: Agency.all, as: :select_two, selected: @triage.agency&.id
         = f.input :location, label: 'Where is this being collected?'
         = f.input :exposure, collection: @triage.exposure_options, include_blank: '', label: "Has #{@client.name} been exposed?", as: :boolean_button_group
         = f.input :symptoms, collection: @triage.symptom_options, include_blank: '', label: "Does #{@client.name} have symptoms?", as: :boolean_button_group
