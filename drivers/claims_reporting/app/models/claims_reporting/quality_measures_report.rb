@@ -1497,6 +1497,9 @@ module ClaimsReporting
       had_surgery = stay_claims.any? do |c|
         in_set?('Surgical Procedures', c)
       end
+      observation_stay = stay_claims.any? do |c|
+        in_set?('Observation Stay', c)
+      end
       raise "#{debug_prefix} had_surgery" if had_surgery
     end
 

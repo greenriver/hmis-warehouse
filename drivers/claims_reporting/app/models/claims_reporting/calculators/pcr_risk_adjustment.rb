@@ -64,9 +64,9 @@ module ClaimsReporting::Calculators
       cc_to_hcc cc_codes
     end
 
-    # returns a Hash of various calculated components based on attributes
-    # of the Index Health Stay
-    # can raise if we are unable to load the XLSX file containing risk lookup data
+    # Build a Hash of various calculated components based on attributes
+    # of the Index Health Stay.
+    # Ccan raise if we are unable to load the XLSX file containing risk lookup data.
     def process_ihs( # rubocop:disable Metrics/ParameterLists
       age:, # Integer age
       gender:, # Biological Sex: 'Male' or 'Female' (also accepts 'm' or 'f' or similar variants)
@@ -95,12 +95,13 @@ module ClaimsReporting::Calculators
         lookup_hcc_weight hcc_code
       end
 
-      # 5. Link the age and gender weights for each IHS. Use Table PCR-MD-OtherWeights.
+      # 5. Link the age and gender weights for each IHS.
       age_gender_weight = lookup_age_gender_weight(age, gender)
 
-      # 6. Sum all weights associated with the IHS (i.e., presence of surgery, primary discharge
-      # diagnosis, comorbidities, age, gender and base risk weight) and use the formula below
-      # to calculate the Estimated Readmission Risk for each IHS.
+      # 6. Sum all weights associated with the IHS (i.e., observation
+      # stay, presence of surgery, primary discharge diagnosis,
+      # comorbidities, age and gender) and use the formula below to
+      # calculate th𝑒𝑒e Estimated Readmission Risk for each IHS.
       sum_of_weights = ([
         observation_weight,
         surg_weight,
@@ -115,7 +116,8 @@ module ClaimsReporting::Calculators
       # is the sum of the Estimated Readmission Risk calculated in step 6 for each IHS.
       # This gets done when summing patients/members
 
-      # 8. Use the formula below and the Expected Readmissions Rate calculated in step 6 to calculate the variance for each IHS.
+      # 8. Use the formula below and the Expected Readmissions Rate calculated in step 6 to
+      # calculate the variance for each IHS.
       variance = expected_readmit_rate * (1 - expected_readmit_rate)
 
       {
