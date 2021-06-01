@@ -2,7 +2,7 @@
   - content_for :filters_col_full do
     .row
       .col-sm-4
-        = f.input :month, selected: @report.month.iso8601, collection: available_months, value_method: :iso8601, label_method: proc {|v| v.strftime('%b %Y')}, input_html: { class: :select2,  multiple: false }, label: 'Date of Services During'
+        = f.input :month, selected: @report.month.iso8601, collection: available_months, value_method: :iso8601, label_method: proc {|v| v.strftime('%b %Y')}, input_html: {  multiple: false }, label: 'Date of Services During', as: :select_two
       .col-sm-4
         = f.submit 'Update Report', class: 'btn btn-primary mt-no-label'
   = render 'warehouse_reports/filters', f:f, submit_button: nil

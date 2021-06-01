@@ -13,7 +13,7 @@
 
     .row
       .col
-        = f.input :acos, collection: available_acos, selected: @acos, input_html: {class: :select2, multiple: true}, label: 'ACO/MCOs to include'
+        = f.input :acos, collection: available_acos, selected: @acos, input_html: {multiple: true}, label: 'ACO/MCOs to include', as: :select_two
     .row
       .col
         = f.input :start_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @start_month, as: :select_two, label: 'From the start of'

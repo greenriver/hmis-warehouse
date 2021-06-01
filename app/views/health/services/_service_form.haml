@@ -2,7 +2,7 @@
   .jServicesForm
     .row
       .col-sm-8
-        = f.input :service_type, collection: @service.class.available_types, input_html: {class: :select2, style: 'width: 100%;'}
+        = f.input :service_type, collection: @service.class.available_types, input_html: {style: 'width: 100%;'}, as: :select_two
     .row
       .col-sm-8
         = f.input :provider

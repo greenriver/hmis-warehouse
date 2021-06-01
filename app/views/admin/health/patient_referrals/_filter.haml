@@ -45,11 +45,11 @@
             .o-filtration__option.row
               .col-sm-10
                 .form-group.mb-0
-                  = f.input :agency_id, collection: @agencies, label: 'Response from', include_blank: 'Select to filter', required: false, input_html: {class: :select2, style: 'width: 100%;'}
+                  = f.input :agency_id, collection: @agencies, label: 'Response from', include_blank: 'Select to filter', required: false, input_html: {style: 'width: 100%;'}, as: :select_two
             .o-filtration__option.row
               .col-sm-10
                 .form-group.mb-0
-                  = f.input :assigned_agency_id, collection: @agencies, label: 'Assigned to', include_blank: 'Select to filter', required: false, input_html: {class: :select2, style: 'width: 100%;'}
+                  = f.input :assigned_agency_id, collection: @agencies, label: 'Assigned to', include_blank: 'Select to filter', required: false, input_html: {style: 'width: 100%;'}, as: :select_two
             .o-filtration__actions.form__actions
               = link_to filters_path, class: 'btn btn-secondary' do
                 %i.icon-cross
