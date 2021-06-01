@@ -1,7 +1,12 @@
 require 'roo'
 require 'memoist'
 
-# Plan All-Cause Readmissions (PCR) Risk Calculator
+# Latest Plan All-Cause Readmissions (PCR) Risk Calculator
+#
+# Note: the algorithm, reference data format and weights all changed
+# in each of the first 3 years of the Community Partners Program.
+# If year specific models are needed it probably makes sense to implement
+# in separate classes with a similar interface and a factory pattern
 #
 # Comments reference instructions from MassHealth (our original spec) updated with the
 # "2021 Quality Rating System Measure Technical Specifications"
@@ -45,7 +50,7 @@ module ClaimsReporting::Calculators
     # - a CC with no HCC mappings
     def calculate_hcc_codes(dx_codes)
       # > Step 2 Assign each diagnosis to a comorbid Clinical Condition (CC) category using
-      # > Table CC—Comorbid [CC-Mapping]. If the code appears more than once in Table CC—Comorbid,
+      # > Table CC—Comorbid [CC-Mapping in QRS2021]. If the code appears more than once in Table CC—Comorbid,
       # > it is assigned to multiple CCs.
       # >
       # > Exclude all diagnoses that cannot be assigned to a comorbid CC category.
