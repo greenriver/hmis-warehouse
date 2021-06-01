@@ -6,6 +6,7 @@
 
 module HapReport
   class Report < SimpleReports::ReportInstance
+    include Rails.application.routes.url_helpers
     include Queries
     after_initialize :set_attributes
 
@@ -14,7 +15,7 @@ module HapReport
     attr_accessor :start_date, :end_date, :project_ids
     validates_presence_of :start_date, :end_date, :project_ids
 
-    def build_report
+    def run_and_save!
       update(status: :processing)
       create_universe
       report_labels.values.each do |sections|
@@ -36,6 +37,14 @@ module HapReport
         end
       end
       update(status: :completed)
+    end
+
+    def title
+      'HAP Report'
+    end
+
+    def url
+      hap_report_warehouse_reports_hap_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
 
     private def create_universe

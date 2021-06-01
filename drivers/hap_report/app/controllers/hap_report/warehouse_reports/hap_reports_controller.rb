@@ -18,11 +18,15 @@ module HapReport::WarehouseReports
       @report = report_scope.create(user_id: current_user.id, status: :pending, options: report_options)
       @reports = report_scope.page(params[:page]).per(25)
       if @report.valid?
-        @report.delay.build_report
-        @report = report_scope.build # reset the view
+        ::WarehouseReports::GenericReportJob.perform_later(
+          user_id: current_user.id,
+          report_class: @report.class.name,
+          report_id: @report.id,
+        )
+        redirect_to action: :index
+      else
+        render :index # Show validation errors
       end
-
-      render :index
     end
 
     def show
