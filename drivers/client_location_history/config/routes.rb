@@ -3,5 +3,8 @@ BostonHmis::Application.routes.draw do
     resources :clients, only: [:none] do
       get :map, on: :member
     end
+    namespace :warehouse_reports do
+      resources :client_location_history, only: [:index]
+    end
   end
 end

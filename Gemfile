@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-
 gem 'rails', '~>5.2.4'
 gem 'rails_drivers'
 
@@ -25,6 +24,8 @@ gem 'active_record_extended', '~> 1.4.0'
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
+
+gem 'census_api', github: 'greenriver/census_api'
 
 # spatial manipulations
 gem 'activerecord-postgis-adapter'

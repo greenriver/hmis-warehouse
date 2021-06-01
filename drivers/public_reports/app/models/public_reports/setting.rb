@@ -54,6 +54,7 @@ module PublicReports
         :race,
         :time,
         :housing_type,
+        :location_type,
         :population,
       ]
     end

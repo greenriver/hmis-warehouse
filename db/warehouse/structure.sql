@@ -66,6 +66,24 @@ COMMENT ON EXTENSION postgis IS 'PostGIS geometry, geography, and raster spatial
 
 
 --
+-- Name: census_levels; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.census_levels AS ENUM (
+    'STATE',
+    'COUNTY',
+    'PLACE',
+    'SLDU',
+    'SLDL',
+    'ZCTA5',
+    'TRACT',
+    'BG',
+    'TABBLOCK',
+    'CUSTOM'
+);
+
+
+--
 -- Name: record_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -3711,6 +3729,110 @@ CREATE SEQUENCE public.census_by_project_types_id_seq
 --
 
 ALTER SEQUENCE public.census_by_project_types_id_seq OWNED BY public.census_by_project_types.id;
+
+
+--
+-- Name: census_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.census_groups (
+    id bigint NOT NULL,
+    year integer NOT NULL,
+    dataset character varying NOT NULL,
+    name character varying NOT NULL,
+    description text NOT NULL,
+    created_on date
+);
+
+
+--
+-- Name: census_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.census_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: census_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.census_groups_id_seq OWNED BY public.census_groups.id;
+
+
+--
+-- Name: census_values; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.census_values (
+    id bigint NOT NULL,
+    census_variable_id bigint NOT NULL,
+    value numeric NOT NULL,
+    full_geoid character varying NOT NULL,
+    created_on date NOT NULL,
+    census_level public.census_levels NOT NULL
+);
+
+
+--
+-- Name: census_values_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.census_values_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: census_values_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.census_values_id_seq OWNED BY public.census_values.id;
+
+
+--
+-- Name: census_variables; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.census_variables (
+    id bigint NOT NULL,
+    year integer NOT NULL,
+    downloaded boolean DEFAULT false NOT NULL,
+    dataset character varying NOT NULL,
+    name character varying NOT NULL,
+    label text NOT NULL,
+    concept text NOT NULL,
+    census_group character varying NOT NULL,
+    census_attributes character varying NOT NULL,
+    internal_name character varying,
+    created_on date NOT NULL
+);
+
+
+--
+-- Name: census_variables_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.census_variables_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: census_variables_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.census_variables_id_seq OWNED BY public.census_variables.id;
 
 
 --
@@ -11041,7 +11163,16 @@ CREATE TABLE public.public_report_settings (
     population_color_5 character varying,
     population_color_6 character varying,
     population_color_7 character varying,
-    population_color_8 character varying
+    population_color_8 character varying,
+    location_type_color_0 character varying,
+    location_type_color_1 character varying,
+    location_type_color_2 character varying,
+    location_type_color_3 character varying,
+    location_type_color_4 character varying,
+    location_type_color_5 character varying,
+    location_type_color_6 character varying,
+    location_type_color_7 character varying,
+    location_type_color_8 character varying
 );
 
 
@@ -12602,6 +12733,49 @@ ALTER SEQUENCE public.service_scanning_services_id_seq OWNED BY public.service_s
 
 
 --
+-- Name: shape_block_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_block_groups (
+    id bigint NOT NULL,
+    statefp character varying,
+    countyfp character varying,
+    tractce character varying,
+    blkgrpce character varying,
+    geoid character varying,
+    namelsad character varying,
+    mtfcc character varying,
+    funcstat character varying,
+    aland double precision,
+    awater double precision,
+    intptlat character varying,
+    intptlon character varying,
+    full_geoid character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_block_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.shape_block_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shape_block_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.shape_block_groups_id_seq OWNED BY public.shape_block_groups.id;
+
+
+--
 -- Name: shape_cocs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -12653,8 +12827,9 @@ CREATE TABLE public.shape_cocs (
     unsh_vets numeric,
     shape_leng numeric,
     shape_area numeric,
-    orig_geom public.geometry(MultiPolygon,4326),
-    geom public.geometry(MultiPolygon,4326)
+    geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
+    full_geoid character varying
 );
 
 
@@ -12678,6 +12853,99 @@ ALTER SEQUENCE public.shape_cocs_id_seq OWNED BY public.shape_cocs.id;
 
 
 --
+-- Name: shape_counties; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_counties (
+    id bigint NOT NULL,
+    statefp character varying,
+    countyfp character varying,
+    countyns character varying,
+    full_geoid character varying,
+    geoid character varying,
+    name character varying,
+    namelsad character varying,
+    lsad character varying,
+    classfp character varying,
+    mtfcc character varying,
+    csafp character varying,
+    cbsafp character varying,
+    metdivfp character varying,
+    funcstat character varying,
+    aland double precision,
+    awater double precision,
+    intptlat character varying,
+    intptlon character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_counties_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.shape_counties_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shape_counties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.shape_counties_id_seq OWNED BY public.shape_counties.id;
+
+
+--
+-- Name: shape_states; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_states (
+    id bigint NOT NULL,
+    region character varying,
+    division character varying,
+    statefp character varying,
+    statens character varying,
+    full_geoid character varying,
+    geoid character varying,
+    stusps character varying,
+    name character varying,
+    lsad character varying,
+    mtfcc character varying,
+    funcstat character varying,
+    aland double precision,
+    awater double precision,
+    intptlat character varying,
+    intptlon character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_states_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.shape_states_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shape_states_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.shape_states_id_seq OWNED BY public.shape_states.id;
+
+
+--
 -- Name: shape_zip_codes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -12692,8 +12960,9 @@ CREATE TABLE public.shape_zip_codes (
     awater10 double precision,
     intptlat10 character varying(11),
     intptlon10 character varying(12),
-    orig_geom public.geometry(MultiPolygon,4326),
-    geom public.geometry(MultiPolygon,4326)
+    geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
+    full_geoid character varying
 );
 
 
@@ -14058,6 +14327,27 @@ ALTER TABLE ONLY public.ce_assessments ALTER COLUMN id SET DEFAULT nextval('publ
 --
 
 ALTER TABLE ONLY public.census_by_project_types ALTER COLUMN id SET DEFAULT nextval('public.census_by_project_types_id_seq'::regclass);
+
+
+--
+-- Name: census_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_groups ALTER COLUMN id SET DEFAULT nextval('public.census_groups_id_seq'::regclass);
+
+
+--
+-- Name: census_values id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_values ALTER COLUMN id SET DEFAULT nextval('public.census_values_id_seq'::regclass);
+
+
+--
+-- Name: census_variables id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_variables ALTER COLUMN id SET DEFAULT nextval('public.census_variables_id_seq'::regclass);
 
 
 --
@@ -15503,10 +15793,31 @@ ALTER TABLE ONLY public.service_scanning_services ALTER COLUMN id SET DEFAULT ne
 
 
 --
+-- Name: shape_block_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_block_groups ALTER COLUMN id SET DEFAULT nextval('public.shape_block_groups_id_seq'::regclass);
+
+
+--
 -- Name: shape_cocs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.shape_cocs ALTER COLUMN id SET DEFAULT nextval('public.shape_cocs_id_seq'::regclass);
+
+
+--
+-- Name: shape_counties id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_counties ALTER COLUMN id SET DEFAULT nextval('public.shape_counties_id_seq'::regclass);
+
+
+--
+-- Name: shape_states id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_states ALTER COLUMN id SET DEFAULT nextval('public.shape_states_id_seq'::regclass);
 
 
 --
@@ -16026,6 +16337,30 @@ ALTER TABLE ONLY public.ce_assessments
 
 ALTER TABLE ONLY public.census_by_project_types
     ADD CONSTRAINT census_by_project_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: census_groups census_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_groups
+    ADD CONSTRAINT census_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: census_values census_values_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_values
+    ADD CONSTRAINT census_values_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: census_variables census_variables_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.census_variables
+    ADD CONSTRAINT census_variables_pkey PRIMARY KEY (id);
 
 
 --
@@ -17269,11 +17604,35 @@ ALTER TABLE ONLY public.service_scanning_services
 
 
 --
+-- Name: shape_block_groups shape_block_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_block_groups
+    ADD CONSTRAINT shape_block_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: shape_cocs shape_cocs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.shape_cocs
     ADD CONSTRAINT shape_cocs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shape_counties shape_counties_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_counties
+    ADD CONSTRAINT shape_counties_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shape_states shape_states_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_states
+    ADD CONSTRAINT shape_states_pkey PRIMARY KEY (id);
 
 
 --
@@ -21565,6 +21924,62 @@ CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btre
 
 
 --
+-- Name: index_census_groups_on_year_and_dataset_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_census_groups_on_year_and_dataset_and_name ON public.census_groups USING btree (year, dataset, name);
+
+
+--
+-- Name: index_census_values_on_census_level; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_values_on_census_level ON public.census_values USING btree (census_level);
+
+
+--
+-- Name: index_census_values_on_census_variable_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_values_on_census_variable_id ON public.census_values USING btree (census_variable_id);
+
+
+--
+-- Name: index_census_values_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_values_on_full_geoid ON public.census_values USING btree (full_geoid);
+
+
+--
+-- Name: index_census_values_on_full_geoid_and_census_variable_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_census_values_on_full_geoid_and_census_variable_id ON public.census_values USING btree (full_geoid, census_variable_id);
+
+
+--
+-- Name: index_census_variables_on_dataset; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_variables_on_dataset ON public.census_variables USING btree (dataset);
+
+
+--
+-- Name: index_census_variables_on_internal_name_and_year_and_dataset; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_census_variables_on_internal_name_and_year_and_dataset ON public.census_variables USING btree (internal_name, year, dataset) WHERE (internal_name IS NOT NULL);
+
+
+--
+-- Name: index_census_variables_on_year_and_dataset_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_census_variables_on_year_and_dataset_and_name ON public.census_variables USING btree (year, dataset, name);
+
+
+--
 -- Name: index_censuses_ave_year_ds_id_proj_type_org_id_proj_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23630,10 +24045,45 @@ CREATE INDEX index_sh_tracking_method ON public.warehouse_client_service_history
 
 
 --
+-- Name: index_shape_block_groups_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_block_groups_on_full_geoid ON public.shape_block_groups USING btree (full_geoid);
+
+
+--
+-- Name: index_shape_block_groups_on_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_block_groups_on_geoid ON public.shape_block_groups USING btree (geoid);
+
+
+--
+-- Name: index_shape_block_groups_on_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_block_groups_on_geom ON public.shape_block_groups USING gist (geom);
+
+
+--
+-- Name: index_shape_block_groups_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_block_groups_on_simplified_geom ON public.shape_block_groups USING gist (simplified_geom);
+
+
+--
 -- Name: index_shape_cocs_on_cocname; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_shape_cocs_on_cocname ON public.shape_cocs USING btree (cocname);
+
+
+--
+-- Name: index_shape_cocs_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_cocs_on_full_geoid ON public.shape_cocs USING btree (full_geoid);
 
 
 --
@@ -23644,10 +24094,10 @@ CREATE INDEX index_shape_cocs_on_geom ON public.shape_cocs USING gist (geom);
 
 
 --
--- Name: index_shape_cocs_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_cocs_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_cocs_on_orig_geom ON public.shape_cocs USING gist (orig_geom);
+CREATE INDEX index_shape_cocs_on_simplified_geom ON public.shape_cocs USING gist (simplified_geom);
 
 
 --
@@ -23658,6 +24108,83 @@ CREATE INDEX index_shape_cocs_on_st ON public.shape_cocs USING btree (st);
 
 
 --
+-- Name: index_shape_counties_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_counties_on_full_geoid ON public.shape_counties USING btree (full_geoid);
+
+
+--
+-- Name: index_shape_counties_on_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_counties_on_geoid ON public.shape_counties USING btree (geoid);
+
+
+--
+-- Name: index_shape_counties_on_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_counties_on_geom ON public.shape_counties USING gist (geom);
+
+
+--
+-- Name: index_shape_counties_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_counties_on_simplified_geom ON public.shape_counties USING gist (simplified_geom);
+
+
+--
+-- Name: index_shape_counties_on_statefp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_counties_on_statefp ON public.shape_counties USING btree (statefp);
+
+
+--
+-- Name: index_shape_states_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_full_geoid ON public.shape_states USING btree (full_geoid);
+
+
+--
+-- Name: index_shape_states_on_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_states_on_geoid ON public.shape_states USING btree (geoid);
+
+
+--
+-- Name: index_shape_states_on_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_geom ON public.shape_states USING gist (geom);
+
+
+--
+-- Name: index_shape_states_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_simplified_geom ON public.shape_states USING gist (simplified_geom);
+
+
+--
+-- Name: index_shape_states_on_stusps; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_stusps ON public.shape_states USING btree (stusps);
+
+
+--
+-- Name: index_shape_zip_codes_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_zip_codes_on_full_geoid ON public.shape_zip_codes USING btree (full_geoid);
+
+
+--
 -- Name: index_shape_zip_codes_on_geom; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23665,10 +24192,10 @@ CREATE INDEX index_shape_zip_codes_on_geom ON public.shape_zip_codes USING gist 
 
 
 --
--- Name: index_shape_zip_codes_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_zip_codes_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_zip_codes_on_orig_geom ON public.shape_zip_codes USING gist (orig_geom);
+CREATE INDEX index_shape_zip_codes_on_simplified_geom ON public.shape_zip_codes USING gist (simplified_geom);
 
 
 --
@@ -26892,13 +27419,6 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 
 
 --
--- Name: test_shs; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
-
-
---
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -29345,11 +29865,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210422191627'),
 ('20210426165914'),
 ('20210427184522'),
+('20210428193540'),
 ('20210503165055'),
+('20210505010944'),
 ('20210513185514'),
 ('20210514154843'),
 ('20210515142741'),
 ('20210517144348'),
-('20210520184416');
+('20210520184416'),
+('20210601135719');
 
 
