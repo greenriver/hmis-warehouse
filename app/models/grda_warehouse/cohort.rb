@@ -296,6 +296,7 @@ module GrdaWarehouse
         ::CohortColumns::AssessmentScore.new(),
         ::CohortColumns::VispdatScoreManual.new(),
         ::CohortColumns::DaysOnCohort.new(),
+        ::CohortColumns::DateAddedToCohort.new(),
         ::CohortColumns::CasVashEligible.new(),
         ::CohortColumns::PreviousRemovalReason.new(),
         ::CohortColumns::HealthPrioritized.new(),
