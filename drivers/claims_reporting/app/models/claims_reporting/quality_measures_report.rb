@@ -264,7 +264,7 @@ module ClaimsReporting
         end
 
         # any detail tables?
-        detail_table_msg = "#{m_id}_table"
+        detail_table_msg = "#{m.id}_table"
         [m.id, {
           id: m.id,
           title: m.title,
@@ -1493,6 +1493,7 @@ module ClaimsReporting
       rows
     end
 
+    # An array of arrays describing a table of details for the measure
     def bh_cp_13_table
       rows = {
         bh_cp_13: 'All Enrollees',
@@ -1515,15 +1516,22 @@ module ClaimsReporting
         [] + cols.values,
       ]
       rows.each do |row_id, row_heading|
-        n, d = * percentage(medical_claim_based_rows, row_id)
-        v = n / d if d.positive?
-        table += [row_heading] + cols.keys.map do |col_id|
-          case col_id
-          when :numerator then n
-          when :denominator then d
-          when :value then v
-          end
-        end
+        numerator, denominator = * percentage(medical_claim_based_rows, row_id)
+        value = (numerator / denominator).round(4) if denominator&.positive?
+        expected_count = nil
+        expected_value = nil
+        variance = nil
+        oe_ratio = nil
+        table << [
+          row_heading,
+          numerator,
+          denominator,
+          value&.round(4),
+          expected_count&.round(4),
+          expected_value&.round(4),
+          variance&.round(4),
+          oe_ratio&.round(4),
+        ]
       end
 
       table
