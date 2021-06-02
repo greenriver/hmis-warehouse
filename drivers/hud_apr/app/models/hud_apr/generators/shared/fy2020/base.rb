@@ -65,7 +65,7 @@ module HudApr::Generators::Shared::Fy2020
           client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
           exit_date = last_service_history_enrollment.last_date_in_program
-          exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date < @report.end_date
+          exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
           income_at_annual_assessment = annual_assessment(enrollment)
