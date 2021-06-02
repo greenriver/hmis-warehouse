@@ -938,14 +938,14 @@ module GrdaWarehouse::WarehouseReports
         if PublicReports::Report.new.ready_public_s3_bucket!
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/point_in_time',
-            name: 'Public Point-in-Time Report Generator',
+            name: 'Point-in-Time Report Generator',
             description: 'Use this to review and publish Point-in-Time charts for public consumption.',
             limitable: false,
             health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/pit_by_month',
-            name: 'Public Point-in-Time by Month Report Generator',
+            name: 'Point-in-Time by Month Report Generator',
             description: 'Use this to review and publish Point-in-Time by month charts for public consumption.',
             limitable: false,
             health: false,
@@ -959,28 +959,28 @@ module GrdaWarehouse::WarehouseReports
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/number_housed',
-            name: 'Public Number Housed Report Generator',
+            name: 'Number Housed Report Generator',
             description: 'Use this to review and publish the number of clients housed for public consumption.',
             limitable: false,
             health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_count',
-            name: 'Public Number Homeless Report Generator',
+            name: 'Number Homeless Report Generator',
             description: 'Use this to review and publish the number of homeless clients for public consumption.',
             limitable: false,
             health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_count_comparison',
-            name: 'Public Percent Homeless Comparison Report Generator',
+            name: 'Percent Homeless Comparison Report Generator',
             description: 'Use this to review and publish the change of homeless clients for public consumption.',
             limitable: false,
             health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_populations',
-            name: 'Public Homeless Populations Report Generator',
+            name: 'Homeless Populations Report Generator',
             description: 'Use this to review and publish the homeless population report for public consumption.',
             limitable: false,
             health: false,
@@ -1050,6 +1050,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:client_location_history)
+        r_list['Operational'] << {
+          url: 'client_location_history/warehouse_reports/client_location_history',
+          name: 'Client Contact Locations',
+          description: 'A map of the most recent client locations.',
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -1092,6 +1101,8 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'dashboards/veterans' unless RailsDrivers.loaded.include?(:veterans_sub_pop)
       cleanup << 'census_tracking/warehouse_reports/census_trackers' unless RailsDrivers.loaded.include?(:census_tracking)
       cleanup << 'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
+       cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
+
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all

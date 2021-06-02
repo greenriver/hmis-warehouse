@@ -9,7 +9,7 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Homeless Count Comparison Generator')
+      _('Percent Homeless Comparison Report Generator')
     end
 
     def instance_title

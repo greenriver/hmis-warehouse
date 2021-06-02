@@ -17,10 +17,15 @@ fips_code = GrdaWarehouse::UsCensusApi::StateFIPS.new(ARGV[0]).code
 basename = "tl_2020_#{fips_code}_bg"
 puts "Using #{basename}.zip"
 
-Zip::File.open(basename+".zip") do |zipfile|
-  zipfile.each do |file|
-    zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)
+begin
+  Zip::File.open(basename+".zip") do |zipfile|
+    zipfile.each do |file|
+      zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)
+    end
   end
+rescue Zip::Error
+  puts 'ERROR: Unable to extract zip file'
+  return
 end
 
 system("shp2pgsql -s 4269:4326 -p -I #{basename}.shp shape_block_groups > block_groups.structure.sql")

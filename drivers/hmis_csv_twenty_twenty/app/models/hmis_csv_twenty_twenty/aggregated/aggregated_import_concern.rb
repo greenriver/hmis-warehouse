@@ -47,7 +47,7 @@ module HmisCsvTwentyTwenty::Aggregated::AggregatedImportConcern
         updated_batch,
         on_duplicate_key_update: {
           conflict_target: conflict_target,
-          columns: upsert_column_names(version: '2020'),
+          columns: upsert_column_names(version: '2020') - [:pending_date_deleted],
         },
       )
     end

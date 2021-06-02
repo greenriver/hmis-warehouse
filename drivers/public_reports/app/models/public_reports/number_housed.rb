@@ -9,7 +9,7 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Number Housed Generator')
+      _('Number Housed Report Generator')
     end
 
     def instance_title
