@@ -61,9 +61,11 @@ module PublicReports
       {
         # count: percent_change_in_count,
         date_range: filter_object.date_range_words,
+        quarters: quarter_dates,
         summary: summary,
         pit_chart: pit_chart,
         inflow_outflow: inflow_outflow,
+        location_chart: location_chart,
         # overall_homeless_map: overall_homeless_map,
         # population_homeless_maps: population_homeless_maps,
         # housing_status: housing_status,
@@ -91,6 +93,15 @@ module PublicReports
       scope
     end
 
+    # a convenience method to ensure clients all have at least one open homeless enrollment
+    # within the report period, and meet all of the other criteria, but not limited by
+    # SHE record type
+    private def homeless_scope
+      GrdaWarehouse::ServiceHistoryEnrollment.homeless.
+        open_between(start_date: filter_object.start, end_date: filter_object.end).
+        where(client_id: report_scope.select(:client_id))
+    end
+
     private def quarter_dates
       date = filter_object.start_date
       # force the start to be within the chosen date range
@@ -107,14 +118,14 @@ module PublicReports
       date = pit_counts.map(&:first).last
       start_date = date.beginning_of_year
       end_date = date.end_of_year
-      homeless_scope = GrdaWarehouse::ServiceHistoryEnrollment.homeless.entry.
+      scope = homeless_scope.entry.
         with_service_between(
           start_date: start_date,
           end_date: end_date,
         )
-      households = homeless_scope.heads_of_households.select(:client_id).distinct.count
-      homeless_clients = homeless_scope.select(:client_id).distinct.count
-      unsheltered = homeless_scope.hud_project_type(4).select(:client_id).distinct.count
+      households = scope.heads_of_households.select(:client_id).distinct.count
+      homeless_clients = scope.select(:client_id).distinct.count
+      unsheltered = scope.hud_project_type(4).select(:client_id).distinct.count
       {
         year: date.year,
         date: date,
@@ -162,7 +173,7 @@ module PublicReports
       pit_count_dates.map do |date|
         start_date = date.beginning_of_year
         end_date = date.end_of_year
-        count = GrdaWarehouse::ServiceHistoryEnrollment.homeless.entry.
+        count = homeless_scope.entry.
           with_service_between(
             start_date: start_date,
             end_date: end_date,
@@ -181,12 +192,12 @@ module PublicReports
       pit_count_dates.map do |date|
         start_date = date.beginning_of_year
         end_date = date.end_of_year
-        in_count = GrdaWarehouse::ServiceHistoryEnrollment.homeless.first_date.
+        in_count = homeless_scope.first_date.
           started_between(start_date: start_date, end_date: end_date).
           select(:client_id).
           distinct.
           count
-        out_count = GrdaWarehouse::ServiceHistoryEnrollment.homeless.entry.
+        out_count = homeless_scope.entry.
           exit_within_date_range(start_date: start_date, end_date: end_date).
           where(destination: ::HUD.permanent_destinations).
           select(:client_id).
@@ -197,6 +208,40 @@ module PublicReports
           in_count,
           out_count,
         ]
+      end
+    end
+
+    private def location_chart
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+          scope = homeless_scope.with_service_between(
+            start_date: start_date,
+            end_date: end_date,
+          )
+          sheltered = scope.homeless_sheltered.select(:client_id).distinct
+
+          unsheltered = scope.homeless_unsheltered.select(:client_id).distinct
+
+          charts[date.iso8601] = {
+            all_homeless: {
+              data: [
+                ['Sheltered', sheltered.count],
+                ['Unsheltered', unsheltered.count],
+              ],
+              total: total_for(scope, nil),
+            },
+            homeless_veterans: {
+              data: [
+                ['Sheltered', sheltered.veteran.count],
+                ['Unsheltered', unsheltered.veteran.count],
+              ],
+              total: total_for(scope, :veterans),
+            },
+
+          }
+        end
       end
     end
 

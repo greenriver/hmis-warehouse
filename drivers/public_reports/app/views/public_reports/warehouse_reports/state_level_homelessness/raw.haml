@@ -1,3 +1,4 @@
+= render 'chart_css'
 - data = JSON.parse(@report.precalculated_data)
 = debug data
 
@@ -24,3 +25,8 @@
 %div{ class: chart_class }
 .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
 = render 'line_chart', chart_class: chart_class, data: data['inflow_outflow'], category: :population
+
+%h3 Who is experiencing homelessness?
+= render 'slider', data: data['quarters']
+
+= render 'location_chart', data: data['location_chart']
