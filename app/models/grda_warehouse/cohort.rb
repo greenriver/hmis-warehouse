@@ -207,6 +207,7 @@ module GrdaWarehouse
         ::CohortColumns::Age.new(),
         ::CohortColumns::Gender.new(),
         ::CohortColumns::Ssn.new(),
+        ::CohortColumns::ClientId.new(),
         ::CohortColumns::CalculatedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new(),
