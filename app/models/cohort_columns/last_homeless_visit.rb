@@ -19,7 +19,7 @@ module CohortColumns
         split(';')&.
         map(&:strip)&.
         sort do |a, b|
-          get_date(a) <=> get_date(b)
+          get_date(b) <=> get_date(a)
         end&.join('; ')
     end
 
