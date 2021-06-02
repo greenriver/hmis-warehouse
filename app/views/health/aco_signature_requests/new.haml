@@ -18,7 +18,3 @@
     = link_to polymorphic_path(careplans_path_generator, {client_id: @client.id, careplan_id: @careplan.id}), class: ['ml-auto', 'btn', 'btn-secondary'] do
       Cancel
     = f.submit 'Send to ACO', class: ['btn', 'btn-primary', 'ml-2']
-
-= content_for :page_js do
-  :javascript
-    $('.select2').select2();

@@ -8,7 +8,3 @@
   =# f.input :number, label: 'Goal Number', collection: Health::Goal::Base.available_numbers
   .form-actions
     = f.button :submit, value: 'Add Goal'
-
-= content_for :page_js do
-  :javascript
-    $('.select2').select2();
