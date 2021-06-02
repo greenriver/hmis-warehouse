@@ -18,7 +18,7 @@
               - headers.each do |row|
                 %tr
                   - row.each do |col|
-                    %th{colspan:(7 if row.length == 1)}= col
+                    %th{colspan:(table.last.length if row.length == 1)}= col
             - table.each do |row|
               %tr
                 - row_head = row.shift

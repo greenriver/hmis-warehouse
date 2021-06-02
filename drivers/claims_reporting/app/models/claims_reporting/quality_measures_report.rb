@@ -62,7 +62,14 @@ module ClaimsReporting
       raise ArgumentError, 'No valid measures provided' if @measures.none?
     end
 
-    Measure = Struct.new(:id, :title, :desc, :numerator, :denominator, keyword_init: true)
+    Measure = Struct.new(
+      :id,
+      :title,
+      :desc,
+      :numerator,
+      :denominator,
+      keyword_init: true,
+    )
     AVAILABLE_MEASURES = [
       Measure.new(
         id: :bh_cp_1,
@@ -152,13 +159,6 @@ module ClaimsReporting
         title: 'BH CP #7: Initiation of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
         desc: <<~MD,
           <mark>**Note**: This measure requires AOD claims data which are currently not available.</mark>
-
-          The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with a new episode of alcohol, opioid,
-          or other drug (AOD) abuse or dependence who received the following.
-
-          - Initiation of AOD Treatment. The percentage of enrollees who initiate treatment through an inpatient AOD admission,
-            outpatient visit, intensive outpatient encounter or partial hospitalization, telehealth or medication assisted treatment
-            (medication treatment) within 14 days of the diagnosis.
         MD
         numerator: 'BH CP enrollees 18 to 64 years of age who initiate/engage with AOD treatment.',
         denominator: 'BH CP enrollees 18 to 64 years of age with a new episode of AOD during the intake period.',
@@ -168,12 +168,6 @@ module ClaimsReporting
         title: 'BH CP #8: Engagement of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
         desc: <<~MD,
           <mark>**Note**: This measure requires AOD claims data which are currently not available.</mark>
-
-          The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age with a new episode of alcohol, opioid,
-          or other drug (AOD) abuse or dependence who received the following.
-
-          - Engagement of AOD Treatment. The percentage of enrollees who initiated treatment and who had two or more additional
-            AOD services or medication treatment within 34 days of the initiation visit.
         MD
         numerator: 'BH CP enrollees 18 to 64 years of age who initiate/engage with AOD treatment.',
         denominator: 'BH CP enrollees 18 to 64 years of age with a new episode of AOD during the intake period.',
@@ -181,16 +175,28 @@ module ClaimsReporting
       Measure.new(
         id: :bh_cp_9,
         title: 'BH CP #9: Follow-Up After Hospitalization for Mental Illness (7 days) - % events',
-        desc: '',
-        numerator: '',
-        denominator: '',
+        desc: <<~MD,
+          The percentage of discharges for Behavioral Health Community
+          Partner (BH CP) enrollees 18 to 64 years of age who were hospitalized
+          for treatment of selected mental illness or intentional self-harm
+          diagnoses and who received a follow-up visit with a mental health
+          practitioner within 7 days of discharge.
+        MD
+        numerator: 'BH CP enrollees 18 to 64 years of age who had a follow-up visit with a mental health practitioner within 7 calendar days after discharge.',
+        denominator: 'BH CP enrollees 18 to 64 years of age as of the date of discharge.',
       ),
       Measure.new(
         id: :bh_cp_10,
         title: 'BH CP #10: Diabetes Screening for Individuals With Schizophrenia or Bipolar Disorder Who Are Using Antipsychotic Medications',
-        desc: '',
-        numerator: '',
-        denominator: '',
+        desc: <<~MD,
+          The percentage of Behavioral Health Community Partner (BH CP)
+          enrollees 18 to 64 years of age with schizophrenia,
+          schizoaffective disorder or bipolar disorder, who were
+          dispensed an antipsychotic medication and had a diabetes
+          screening test during the measurement year.
+        MD
+        numerator: 'BH CP enrollees 18 to 64 years of age with schizophrenia, schizoaffective disorder or bipolar disorder, who were dispensed an antipsychotic medication and received a diabetes screening test during the measurement year.',
+        denominator: 'BH CP enrollees 18 to 64 years of age with schizophrenia, schizoaffective disorder or bipolar disorder and were dispensed an antipsychotic medication during the measurement year.',
       ),
       Measure.new(
         id: :bh_cp_12,
@@ -198,15 +204,25 @@ module ClaimsReporting
         desc: <<~MD,
           <mark>**Note**: This measure requires AOD claims data which are currently not available.</mark>
         MD
-        numerator: '',
-        denominator: '',
+        numerator: 'Number of emergency department visits made by BH CP enrollees 18 to 64 years of age with serious mental illness and/or substance addiction.',
+        denominator: 'BH CP enrollees 18 to 64 years of age who are identified with serious mental illness and/or substance addiction',
       ),
       Measure.new(
         id: :bh_cp_13,
         title: 'BH CP #13: Hospital Readmissions (Adult)',
-        desc: '',
-        numerator: '',
-        denominator: '',
+        desc: <<~MD,
+          For Behavioral Health Community Partner (BH CP) enrollees 18 to 64
+          years of age, the number of acute inpatient stays during the
+          measurement year that were followed by an unplanned acute readmission
+          for any diagnosis within 30 days and the predicted probability of an
+          acute readmission. Data are reported in the following categories:
+
+          1. Count of Index Hospital Stays (IHS) (denominator)
+          2. Count of Observed 30-Day Readmissions (numerator)
+          3. Count ofExpected 30-Day Readmissions
+        MD
+        numerator: 'The number of 30-day readmissions for BH CP enrollees.',
+        denominator: 'The number of Index Hospital Stays for BH CP enrollees.',
       ),
       Measure.new(
         id: :bh_cp_13a,
@@ -224,11 +240,11 @@ module ClaimsReporting
       ),
       Measure.new(
         id: :assigned_enrollees,
-        title: 'assigned enrollees',
+        title: 'Selected Assigned Enrollees',
       ),
       Measure.new(
         id: :medical_claims,
-        title: 'medical service claims',
+        title: 'Selected Medical Service Claims',
       ),
     ].index_by(&:id).freeze
 
@@ -1513,11 +1529,11 @@ module ClaimsReporting
 
       table = [
         ['Frequency of Index Hospital Stays'],
-        [] + cols.values,
+        [''] + cols.values,
       ]
       rows.each do |row_id, row_heading|
         numerator, denominator = * percentage(medical_claim_based_rows, row_id)
-        value = (numerator / denominator).round(4) if denominator&.positive?
+        value = (numerator.to_f / denominator).round(4) if denominator&.positive?
         expected_count = nil
         expected_value = nil
         variance = nil
