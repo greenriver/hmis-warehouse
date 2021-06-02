@@ -1500,7 +1500,7 @@ module ClaimsReporting
         rows.each do |r|
           r.bh_cp_13a = r.bh_cp_13
         end
-      elsif rows.size > 4
+      elsif rows.size >= 4
         rows.each do |r|
           r.bh_cp_13b = r.bh_cp_13
         end
