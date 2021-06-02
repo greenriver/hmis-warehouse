@@ -610,7 +610,7 @@ Rails.application.routes.draw do
   resources :organizations, only: [:destroy] do
     resources :contacts, except: [:show], controller: 'organizations/contacts'
   end
-  resources :projects, only: [:index, :edit, :show, :update, :destroy] do
+  resources :projects, only: [:edit, :show, :update, :destroy] do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show] do
       get :support, on: :member

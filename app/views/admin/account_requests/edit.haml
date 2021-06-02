@@ -14,7 +14,3 @@
       .c-columns__column-content
         = f.input :access_group_ids, as: :check_boxes, label_method: :name, collection: AccessGroup.general, label: false
   = f.submit 'Approve', class: 'btn btn-secondary btn-sm'
-
-= content_for :page_js do
-  :javascript
-    $('.select2').select2();

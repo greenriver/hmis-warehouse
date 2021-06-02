@@ -63,7 +63,6 @@
 //= require ./init_stimulus
 //= require_directory ./admin/client_matches
 //= require_directory ./census
-//= require_directory ./filter
 //= require_directory ./maps
 //= require_directory ./reports
 //= require_directory ./rollups

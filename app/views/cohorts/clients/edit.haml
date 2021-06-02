@@ -16,10 +16,10 @@
               - # treat booleans differently
               - if !!column.value(@cohort_client) == column&.value(@cohort_client)
                 = checkmark column.value(@cohort_client)
-              - else 
+              - else
                 = column.value(@cohort_client)
             - elsif column.input_type == 'select2'
-              - options = {as: 'select', input_html: {class: 'select2'}}
+              - options = {as: 'select_two'}
               - options[:collection] = column.available_options
               = f.input column.column.to_sym, options
             - elsif column.input_type == 'radio_buttons'
@@ -54,7 +54,6 @@
         Remove from #{@cohort.name}
 
 :javascript
-  $('.select2').select2();
   $.fn.datepicker.defaults.format = "M d, yyyy";
   $('abbr').tooltip();
   $('[data-toggle="tooltip"]').tooltip();

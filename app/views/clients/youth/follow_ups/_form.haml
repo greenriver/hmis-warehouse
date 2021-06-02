@@ -6,7 +6,6 @@
 - content_for :page_js do
   :javascript
     $(function() {
-      $('.select2').select2();
       $('.jHousingStatus').on('change', function() {
         if ($('.jHousingStatus').val() != "No") {
           $('.jZipCode').show()
