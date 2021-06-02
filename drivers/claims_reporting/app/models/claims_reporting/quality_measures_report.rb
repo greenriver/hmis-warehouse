@@ -1325,7 +1325,7 @@ module ClaimsReporting
         c.discharge_date.present? && measurement_year.cover?(c.discharge_date) && (
           acute_inpatient_stay?(c) || in_set?('Observation Stay', c)
         )
-      end.sort_by(&:admit_date)
+      end.sort_by(&:service_start_date)
 
       # > Step 2: Acute-to-acute direct transfers
       # > A direct transfer is when the discharge date from the first inpatient setting precedes
@@ -1333,7 +1333,10 @@ module ClaimsReporting
 
       # so we split this history into "stays" that include any direct transfers
       acute_inpatient_stays = acute_inpatient_claims.slice_when do |c1, c2|
-        (c2.admit_date - c1.discharge_date) > 1
+        # and add fall backs for Observation Stays which dont have admit_date
+        c2_start_date = c2.admit_date || c2.service_start_date
+        c1_end_date = c1.discharge_date || c1.service_end_date
+        (c2_start_date - c1_end_date) > 1
       end.to_a
 
       n_stays = acute_inpatient_stays.size
@@ -1342,8 +1345,6 @@ module ClaimsReporting
       # puts "Checking #{n_stays}x#{n_stays}=#{n_stays**2} stay pairs" if n_stays > 0
 
       acute_inpatient_stays.each do |stay_claims|
-        bh_cp_13_risk_adjustments(member, stay_claims)
-
         admit = stay_claims.first
         discharge = stay_claims.last
         index_admission_date = admit.admit_date
@@ -1414,6 +1415,8 @@ module ClaimsReporting
           end
           next
         end
+
+        bh_cp_13_risk_adjustments(member, stay_claims, comborb_dx_codes)
 
         # > Numerator: At least one acute readmission for any diagnosis within 30 days of the Index Discharge Date.
         # FIXME? O(n^2) but n is tiny
@@ -1486,7 +1489,12 @@ module ClaimsReporting
       rows
     end
 
-    private def bh_cp_13_risk_adjustments(member, stay_claims)
+    private def pcr_risk_adjustment_calculator
+      ::ClaimsReporting::Calculators::PcrRiskAdjustment.new
+    end
+    memoize :pcr_risk_adjustment_calculator
+
+    private def bh_cp_13_risk_adjustments(member, stay_claims, claims, _comborb_dx_codes)
       debug_prefix = " BH_CP_13: MemberRoster#id=#{member.id} stay=#{stay_claims.first.id}"
 
       # Since we are now user 2021 QRS Plan All-Cause Readmissions (PCR)
@@ -1494,13 +1502,74 @@ module ClaimsReporting
       # the methods for that.
       # See https://www.cms.gov/files/document/2021-qrs-measure-technical-specifications.pdf
       # ClaimsReporting::Calculators::PcrRiskAdjustment
+
+      discharge_date = stay_claims.last.discharge_date
+      discharge_dx_code = stay_claims.first.dx_1
+
+      # > Step 1
+      # > Identify all diagnoses for encounters during the classification period. Include the following when identifying encounters:
+      comorb_dx_codes = Set.new
+      claims.each do |c|
+        # > • Outpatient visits (Outpatient Value Set).
+        # > • Telephone visits (Telephone Visits Value Set)
+        # > • Observation visits (Observation Value Set).
+        # > • ED visits (ED Value Set).
+        # > • Inpatient events:
+        # > – Nonacute inpatient encounters (Nonacute Inpatient Value Set).
+        # > – Acute inpatient encounters (Acute Inpatient Value Set).
+        # > – Acute and nonacute inpatient discharges (Inpatient Stay Value Set).
+
+        # > Use the date of service for outpatient, observation and ED visits. Use the discharge date for inpatient events.
+        date = if in_set?('Outpatient', c) ||
+          in_set?('Telephone Visits', c) ||
+          in_set?('Observation', c)
+
+          c.service_start_date
+        elsif in_set?('ED', c) ||
+          in_set?('Nonacute Inpatient', c) ||
+          in_set?('Acute Inpatient', c)
+
+          c.discharge_date
+        end
+
+        next unless date.present?
+
+        comorb_dx_codes += c.dx_codes
+      end
+      # > Exclude the primary discharge diagnosis on the IHS.
+      comorb_dx_codes -= [discharge_dx_code]
+
+      # > Step 3 Assign each diagnosis to a comorbid Clinical Condition (CC)
+      # > category using Table CC— Comorbid. If the code appears more than once
+      # > in Table CC—Comorbid, it is assigned to multiple CCs.
+      # >All digits must match
+      # > exactly when mapping diagnosis codes to the comorbid CCs.
+      comorb_cc_codes = comorb_dx_codes.map do |dx_code|
+        compcr_risk_adjustment_calculator.cc_mapping[dx_code]
+      end.compect
+      # > Exclude all
+      # > diagnoses that cannot be assigned to a comorbid CC category. For
+      # > members with no qualifying diagnoses from face-to-face encounters,
+      # > skip to the Risk Adjustment Weighting section.
+      return unless comorb_cc_codes.any?
+
       had_surgery = stay_claims.any? do |c|
         in_set?('Surgical Procedures', c)
       end
       observation_stay = stay_claims.any? do |c|
         in_set?('Observation Stay', c)
       end
-      raise "#{debug_prefix} had_surgery" if had_surgery
+
+      pcr_risk_adjustment_calculator.process_ihs(
+        age: GrdaWarehouse::Hud::Client.age(dob: member.date_of_birth, date: discharge_date),
+        gender: member.sex, # they mean biological sex
+        observation_stay: observation_stay,
+        had_surgery: had_surgery,
+        discharge_dx_code: discharge_dx_code,
+        comborb_dx_codes: comorb_dx_codes,
+      ).tap do |result|
+        puts "#{debug_prefix} #{result.inspect}" unless result[:sum_of_weights].zero?
+      end
     end
 
     private def pcp_practitioner?(_claim)
