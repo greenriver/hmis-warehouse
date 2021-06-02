@@ -1,5 +1,3 @@
-- select2_input_html = { class: ['select2--full-width'] }, as: :select_two
-- select2_wrapper_html = {class: 'mb-3'}
 - available_team_members = @patient.available_team_members
 .col-md-6
   .form-group.mb-3
@@ -12,7 +10,7 @@
     -#.col
     -#  = f.input :patient_signature_mode, collection: @careplan.signature_modes, as: :select_two, label: 'Signed'
 
-  = f.input :provider_id, label: 'Primary Care Provider or PCP Designee', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html, disabled: @careplan.locked? && f.object.provider_id.present?
+  = f.input :provider_id, as: :select_two, label: 'Primary Care Provider or PCP Designee', collection: available_team_members, input_html: { class: ['select2--full-width'] }, wrapper_html: { class: 'mb-3'}, disabled: @careplan.locked? && f.object.provider_id.present?
 
   = f.input :provider_signature_requested_at, as: :date_picker, label: 'Date Requested'
 
@@ -24,6 +22,4 @@
 
 .col-md-6
 
-  = f.input :representative_id, label: 'Patient’s Designated Representative', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html, disabled: @careplan.locked?
-
-
+  = f.input :representative_id, as: :select_two, label: 'Patient’s Designated Representative', collection: available_team_members, input_html: { class: ['select2--full-width'] }, wrapper_html: { class: 'mb-3'}, disabled: @careplan.locked?

@@ -2,6 +2,6 @@
 - if @cohort.user_can_edit_cohort_clients(current_user) && @column.display_for_user(current_user).to_s != 'read_only'
   = simple_form_for @cohort_client, url: cohort_cohort_client_path(@cohort, @cohort_client), method: :patch do |f|
     - if @column.input_type == 'select2'
-      - options = {as: :select, label: false, input_html: {class: 'jSubmitOnChange'}}, as: :select_two
+      - options = {as: :select_two, label: false, input_html: { class: 'jSubmitOnChange' }}
       - options[:collection] = @column.available_options
       = f.input @column.column.to_sym, options
