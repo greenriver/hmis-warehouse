@@ -30,8 +30,10 @@
       %tr.c-table__header.c-table__header--secondary
         %th.c-table__cell--border-r-primary{colspan:1}
           .mb-2
-            - options = options_for_select(Role.permission_categories.to_h {|p| [p, p]})
-            = render 'inputs/select', field_name: 'select_permission_categories', label: 'Permission Categories', options: options
+            %select.j-table__search.form-control.w-100.select2{multiple: true, placeholder: 'Select permission categories'}
+              -# %option.disabled{disabled: true} Select cateories
+              - Role.permission_categories.each do |cat|
+                %option{value: cat}= cat
           %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
         - @roles.each do |role|
           %th.c-table__cell--border-r-secondary.c-table__header-title.text-center.j-table__object{data:{role: role.id}}
