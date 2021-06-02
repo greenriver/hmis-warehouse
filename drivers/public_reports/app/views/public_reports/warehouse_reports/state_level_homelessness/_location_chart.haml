@@ -1,4 +1,6 @@
 
-- chart_class = "housing-status-chart"
-= debug data
-= render 'donut_chart', data: data, population: :all_homeless, chart_class: chart_class, category: :location_type, title: 'All People'
+- chart_class = "all-homeless-housing-status-chart"
+= render 'donut_chart', data: data['all_homeless'], chart_class: chart_class, category: :location_type, title: 'All People'
+
+- chart_class = "veterans-housing-status-chart"
+= render 'donut_chart', data: data['homeless_veterans'], chart_class: chart_class, category: :location_type, title: 'Veterans'

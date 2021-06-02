@@ -45,6 +45,7 @@
     var quarter_string = `Q${selected_quarter} ${date_object.getFullYear()}`;
     $('.jQuarterChosenDate').text(quarter_string);
     // update all charts
+    console.log(charts)
     $.each(charts, function(i){
       var chart = charts[i].chart;
       var dates = charts[i].dates;

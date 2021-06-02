@@ -213,6 +213,8 @@ module PublicReports
 
     private def location_chart
       {}.tap do |charts|
+        charts[:all_homeless] = {}
+        charts[:homeless_veterans] = {}
         quarter_dates.each do |date|
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
@@ -223,23 +225,19 @@ module PublicReports
           sheltered = scope.homeless_sheltered.select(:client_id).distinct
 
           unsheltered = scope.homeless_unsheltered.select(:client_id).distinct
-
-          charts[date.iso8601] = {
-            all_homeless: {
-              data: [
-                ['Sheltered', sheltered.count],
-                ['Unsheltered', unsheltered.count],
-              ],
-              total: total_for(scope, nil),
-            },
-            homeless_veterans: {
-              data: [
-                ['Sheltered', sheltered.veteran.count],
-                ['Unsheltered', unsheltered.veteran.count],
-              ],
-              total: total_for(scope, :veterans),
-            },
-
+          charts[:all_homeless][date.iso8601] = {
+            data: [
+              ['Sheltered', sheltered.count],
+              ['Unsheltered', unsheltered.count],
+            ],
+            total: total_for(scope, nil),
+          }
+          charts[:homeless_veterans][date.iso8601] = {
+            data: [
+              ['Sheltered', sheltered.veteran.count],
+              ['Unsheltered', unsheltered.veteran.count],
+            ],
+            total: total_for(scope.veteran, :veterans),
           }
         end
       end
