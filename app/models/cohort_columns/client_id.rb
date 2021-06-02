@@ -11,7 +11,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def value(cohort_client)
-      cohort_client.client.id
+      cohort_client.client_id
     end
 
     def display_read_only(user)
