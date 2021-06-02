@@ -11163,7 +11163,16 @@ CREATE TABLE public.public_report_settings (
     population_color_5 character varying,
     population_color_6 character varying,
     population_color_7 character varying,
-    population_color_8 character varying
+    population_color_8 character varying,
+    location_type_color_0 character varying,
+    location_type_color_1 character varying,
+    location_type_color_2 character varying,
+    location_type_color_3 character varying,
+    location_type_color_4 character varying,
+    location_type_color_5 character varying,
+    location_type_color_6 character varying,
+    location_type_color_7 character varying,
+    location_type_color_8 character varying
 );
 
 
@@ -12742,7 +12751,7 @@ CREATE TABLE public.shape_block_groups (
     intptlat character varying,
     intptlon character varying,
     full_geoid character varying,
-    orig_geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326)
 );
 
@@ -12818,8 +12827,8 @@ CREATE TABLE public.shape_cocs (
     unsh_vets numeric,
     shape_leng numeric,
     shape_area numeric,
-    orig_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     full_geoid character varying
 );
 
@@ -12867,7 +12876,7 @@ CREATE TABLE public.shape_counties (
     awater double precision,
     intptlat character varying,
     intptlon character varying,
-    orig_geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326)
 );
 
@@ -12912,7 +12921,7 @@ CREATE TABLE public.shape_states (
     awater double precision,
     intptlat character varying,
     intptlon character varying,
-    orig_geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326)
 );
 
@@ -12951,8 +12960,8 @@ CREATE TABLE public.shape_zip_codes (
     awater10 double precision,
     intptlat10 character varying(11),
     intptlon10 character varying(12),
-    orig_geom public.geometry(MultiPolygon,4326),
     geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
     full_geoid character varying
 );
 
@@ -24057,10 +24066,10 @@ CREATE INDEX index_shape_block_groups_on_geom ON public.shape_block_groups USING
 
 
 --
--- Name: index_shape_block_groups_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_block_groups_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_block_groups_on_orig_geom ON public.shape_block_groups USING gist (orig_geom);
+CREATE INDEX index_shape_block_groups_on_simplified_geom ON public.shape_block_groups USING gist (simplified_geom);
 
 
 --
@@ -24085,10 +24094,10 @@ CREATE INDEX index_shape_cocs_on_geom ON public.shape_cocs USING gist (geom);
 
 
 --
--- Name: index_shape_cocs_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_cocs_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_cocs_on_orig_geom ON public.shape_cocs USING gist (orig_geom);
+CREATE INDEX index_shape_cocs_on_simplified_geom ON public.shape_cocs USING gist (simplified_geom);
 
 
 --
@@ -24120,10 +24129,10 @@ CREATE INDEX index_shape_counties_on_geom ON public.shape_counties USING gist (g
 
 
 --
--- Name: index_shape_counties_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_counties_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_counties_on_orig_geom ON public.shape_counties USING gist (orig_geom);
+CREATE INDEX index_shape_counties_on_simplified_geom ON public.shape_counties USING gist (simplified_geom);
 
 
 --
@@ -24155,10 +24164,10 @@ CREATE INDEX index_shape_states_on_geom ON public.shape_states USING gist (geom)
 
 
 --
--- Name: index_shape_states_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_states_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_states_on_orig_geom ON public.shape_states USING gist (orig_geom);
+CREATE INDEX index_shape_states_on_simplified_geom ON public.shape_states USING gist (simplified_geom);
 
 
 --
@@ -24183,10 +24192,10 @@ CREATE INDEX index_shape_zip_codes_on_geom ON public.shape_zip_codes USING gist 
 
 
 --
--- Name: index_shape_zip_codes_on_orig_geom; Type: INDEX; Schema: public; Owner: -
+-- Name: index_shape_zip_codes_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_shape_zip_codes_on_orig_geom ON public.shape_zip_codes USING gist (orig_geom);
+CREATE INDEX index_shape_zip_codes_on_simplified_geom ON public.shape_zip_codes USING gist (simplified_geom);
 
 
 --
@@ -27410,13 +27419,6 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 
 
 --
--- Name: test_shs; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
-
-
---
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -29870,6 +29872,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210514154843'),
 ('20210515142741'),
 ('20210517144348'),
-('20210520184416');
+('20210520184416'),
+('20210601135719');
 
 

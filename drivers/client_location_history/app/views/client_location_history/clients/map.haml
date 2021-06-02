@@ -5,19 +5,14 @@
 = render 'clients/aliases'
 = render 'clients/tab_navigation', current: map_client_location_history_client_path(@client)
 %h1= title
-:ruby
-  locations = @client.client_location_histories
-  markers = locations.map(&:as_marker)
-  bounds = ClientLocationHistory::Location.bounds(locations)
-  markers = ClientLocationHistory::Location.highlight(markers)
-  options = { bounds: bounds, cluster: true, border_color: 'DarkBlue', highlight_color: 'ForestGreen' }
-- if locations.any?
+= render 'filter'
+- if @locations.any?
   #client__location-history
   = content_for :page_js do
-    :coffeescript
-      markers = #{markers.to_json.html_safe}
-      options = #{options.to_json.html_safe}
-      map = new App.Maps.MapWithMarkers('client__location-history', markers, options)
+    :javascript
+      var markers = #{@markers.to_json.html_safe};
+      var options = #{@options.to_json.html_safe};
+      var map = new App.Maps.MapWithMarkers('client__location-history', markers, options);
 - else
   .no-data
     No previous locations

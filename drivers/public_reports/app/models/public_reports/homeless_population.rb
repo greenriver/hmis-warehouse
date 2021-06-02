@@ -13,7 +13,7 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Homeless Population Report Generator')
+      _('Homeless Populations Report Generator')
     end
 
     def instance_title
@@ -445,11 +445,10 @@ module PublicReports
           # Add census info
           ::HUD.races(multi_racial: true).each do |race_code, label|
             census_data[label] = 0
+            data[::HUD.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year)
-            if full_pop.positive?
-              census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f
-            end
+            census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop.positive?
           end
           all_destination_ids = with_service_in_quarter(report_scope, date, population).distinct.pluck(:client_id)
           with_service_in_quarter(report_scope, date, population).
@@ -459,7 +458,6 @@ module PublicReports
             find_each do |enrollment|
               client = enrollment.client
               race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
-              data[::HUD.race(race, multi_racial: true)] ||= Set.new
               data[::HUD.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
@@ -532,20 +530,15 @@ module PublicReports
     private def coc_codes
       scope = filter_for_range(report_scope)
 
-      @coc_codes ||= \
-        begin
-          result = scope.joins(project: :project_cocs).distinct.
-            pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
-              override.presence || original
-            end
-
-          resonable_cocs_count = GrdaWarehouse::Shape::CoC.my_state.where(cocnum: result).count
-
-          if resonable_cocs_count == 0 && !Rails.env.production?
-            result = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum)
+      @coc_codes ||= begin
+        result = scope.joins(project: :project_cocs).distinct.
+          pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
+            override.presence || original
           end
+        reasonable_cocs_count = GrdaWarehouse::Shape::CoC.my_state.where(cocnum: result).count
+        result = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
 
-          result
+        result
       end
     end
 
@@ -666,14 +659,18 @@ module PublicReports
     private def time_homeless(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
-          data = {}
+          data = {
+            'less than a month' => 0,
+            'One to six months' => 0,
+            'Six to twelve months' => 0,
+            'More than one year' => 0,
+          }
           counted_clients = Set.new
           with_service_in_quarter(report_scope, date, population).
             joins(client: :processed_service_history).
             preload(client: :processed_service_history).
             find_each do |enrollment|
               client = enrollment.client
-              data[bucket_days(client.days_homeless(on_date: date))] ||= 0
               data[bucket_days(client.days_homeless(on_date: date))] += 1 unless counted_clients.include?(client.id)
               counted_clients << client.id
             end
