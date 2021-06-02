@@ -21,8 +21,8 @@ module ClaimsReporting::Calculators
 
     def initialize
       # these is kept outside of source. ANd
-      @shared_xlsx = Rails.root.join('tmp/RAU Table - PCR Medicaid MY2020.xlsx')
-      @pcr_xlsx = Rails.root.join('tmp/PCR Risk Adjustment Tables MY2020.xlsx')
+      @shared_xlsx = Rails.root.join('config/claims_reporting/RAU Table - PCR Medicaid MY2020.xlsx')
+      @pcr_xlsx = Rails.root.join('config/claims_reporting/PCR Risk Adjustment Tables MY2020.xlsx')
     end
 
     # https://www.cms.gov/files/document/2021-qrs-measure-technical-specifications.pdf

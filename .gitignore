@@ -121,4 +121,8 @@ shape_files/**/*
 !/shape_files/zip_codes.census.2018/make.inserts
 
 # vendor cache folder
-/vendor/cache
+/vendor/cach
+
+
+# Claims Reporting Reference data
+config/claims_reporting/*
