@@ -19,10 +19,31 @@ module ClaimsReporting::Calculators
   class PcrRiskAdjustment
     extend Memoist
 
+    # This class needs some support files to work. Helper method for places
+    # where we want to test if it has what it nees
+    def self.available?
+      new
+      true
+    rescue StandardError
+      false
+    end
+
+    # Note: This will raise if we are unable to load the XLSX files containing risk lookup data.
     def initialize
-      # these is kept outside of source. ANd
+      # These must be downloaded separately.
       @shared_xlsx = Rails.root.join('config/claims_reporting/RAU Table - PCR Medicaid MY2020.xlsx')
       @pcr_xlsx = Rails.root.join('config/claims_reporting/PCR Risk Adjustment Tables MY2020.xlsx')
+
+      raise <<~TXT unless File.exist?(@shared_xlsx) && File.exist?(@pcr_xlsx)
+        Missing Risk Adjustment Tables
+
+        To use the PcrRiskAdjustment calculator obtain:
+          - RAU Table - PCR Medicaid MY2020.xlsx
+          - PCR Risk Adjustment Tables MY2020.xlsx
+        from the link below and place them in config/claims_reporting/
+
+        http://store.ncqa.org/index.php/catalog/product/view/id/3761/s/hedis-my-2020-risk-adjustment-tables/
+      TXT
     end
 
     # https://www.cms.gov/files/document/2021-qrs-measure-technical-specifications.pdf
@@ -66,14 +87,13 @@ module ClaimsReporting::Calculators
 
     # Build a Hash of various calculated components based on attributes
     # of the Index Health Stay.
-    # Ccan raise if we are unable to load the XLSX file containing risk lookup data.
     def process_ihs( # rubocop:disable Metrics/ParameterLists
       age:, # Integer age
       gender:, # Biological Sex: 'Male' or 'Female' (also accepts 'm' or 'f' or similar variants)
       observation_stay:, # true if the IHS was an 'Observation Stay'
       had_surgery:, # true if the patient had surgery during the stay
       discharge_dx_code:, # the primary discharge diagnosis on the IHS
-      comborb_dx_codes: # all diagnoses for encounters during the classification period excluding the primary discharge diagnosis on the IHS
+      comorb_dx_codes: # all diagnoses for encounters during the classification period excluding the primary discharge diagnosis on the IHS
     )
       # For each IHS, use the following steps to identify risk adjustment weights based on presence of surgeries, discharge condition, comorbidity, age and gender.
 
@@ -90,7 +110,7 @@ module ClaimsReporting::Calculators
       end
 
       # 4. For each IHS with a comorbidity HCC Category, link the weights.
-      hcc_codes = calculate_hcc_codes(comborb_dx_codes)
+      hcc_codes = calculate_hcc_codes(comorb_dx_codes)
       hcc_weights = hcc_codes.map do |hcc_code|
         lookup_hcc_weight hcc_code
       end
@@ -130,7 +150,7 @@ module ClaimsReporting::Calculators
         discharge_dx_code: discharge_dx_code,
         discharge_cc_codes: discharge_cc_codes,
         discharge_weights: discharge_weights,
-        comborb_dx_codes: comborb_dx_codes,
+        comorb_dx_codes: comorb_dx_codes,
         hcc_codes: hcc_codes,
         hcc_weights: hcc_weights,
         sum_of_weights: sum_of_weights,

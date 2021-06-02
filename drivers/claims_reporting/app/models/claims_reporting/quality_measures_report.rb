@@ -1416,7 +1416,7 @@ module ClaimsReporting
           next
         end
 
-        bh_cp_13_risk_adjustments(member, stay_claims, comborb_dx_codes)
+        bh_cp_13_risk_adjustments(member, stay_claims, claims)
 
         # > Numerator: At least one acute readmission for any diagnosis within 30 days of the Index Discharge Date.
         # FIXME? O(n^2) but n is tiny
@@ -1491,11 +1491,16 @@ module ClaimsReporting
 
     private def pcr_risk_adjustment_calculator
       ::ClaimsReporting::Calculators::PcrRiskAdjustment.new
+    rescue StandardError => e
+      logger.warn { "PcrRiskAdjustment calculator is unavailable: #{e.message}" }
+      nil
     end
     memoize :pcr_risk_adjustment_calculator
 
-    private def bh_cp_13_risk_adjustments(member, stay_claims, claims, _comborb_dx_codes)
+    private def bh_cp_13_risk_adjustments(member, stay_claims, claims)
       debug_prefix = " BH_CP_13: MemberRoster#id=#{member.id} stay=#{stay_claims.first.id}"
+
+      return unless pcr_risk_adjustment_calculator
 
       # Since we are now user 2021 QRS Plan All-Cause Readmissions (PCR)
       # as the spec for risk adjustment date We are using
@@ -1532,7 +1537,7 @@ module ClaimsReporting
           c.discharge_date
         end
 
-        next unless date.present?
+        next unless date.present? && measurement_year.cover?(date)
 
         comorb_dx_codes += c.dx_codes
       end
@@ -1545,10 +1550,10 @@ module ClaimsReporting
       # >All digits must match
       # > exactly when mapping diagnosis codes to the comorbid CCs.
       comorb_cc_codes = comorb_dx_codes.map do |dx_code|
-        compcr_risk_adjustment_calculator.cc_mapping[dx_code]
-      end.compect
-      # > Exclude all
-      # > diagnoses that cannot be assigned to a comorbid CC category. For
+        pcr_risk_adjustment_calculator.cc_mapping[dx_code]
+      end.compact
+
+      # > Exclude all diagnoses that cannot be assigned to a comorbid CC category. For
       # > members with no qualifying diagnoses from face-to-face encounters,
       # > skip to the Risk Adjustment Weighting section.
       return unless comorb_cc_codes.any?
@@ -1566,7 +1571,7 @@ module ClaimsReporting
         observation_stay: observation_stay,
         had_surgery: had_surgery,
         discharge_dx_code: discharge_dx_code,
-        comborb_dx_codes: comorb_dx_codes,
+        comorb_dx_codes: comorb_dx_codes,
       ).tap do |result|
         puts "#{debug_prefix} #{result.inspect}" unless result[:sum_of_weights].zero?
       end

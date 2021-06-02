@@ -5,7 +5,7 @@
 
 require 'rails_helper'
 
-if File.exist?(Rails.root.join('tmp/RAU Table - PCR Medicaid MY2020.xlsx'))
+if ClaimsReporting::Calculators::PcrRiskAdjustment.available?
   RSpec.describe 'ClaimsReporting::Calculators::PcrRiskAdjustment', type: :model do
     it 'matches the example for Step 4 page 62 in 2021 Quality Rating System Measure Technical Spec' do
       calc = ClaimsReporting::Calculators::PcrRiskAdjustment.new
@@ -32,7 +32,7 @@ if File.exist?(Rails.root.join('tmp/RAU Table - PCR Medicaid MY2020.xlsx'))
         observation_stay: true,
         had_surgery: true,
         discharge_dx_code: 'G40011',
-        comborb_dx_codes: ['G8320', 'E0852', 'A0104'],
+        comorb_dx_codes: ['G8320', 'E0852', 'A0104'],
       }
 
       result = calc.process_ihs(**input)
