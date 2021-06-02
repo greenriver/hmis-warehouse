@@ -11,7 +11,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def value(cohort_client)
-      cohort_client.created_at.to_date.to_i
+      cohort_client.created_at.to_date
     end
   end
 end

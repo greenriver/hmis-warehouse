@@ -15,9 +15,7 @@ module CohortColumns
     end
 
     def display_read_only(user)
-      html = content_tag(:span, class: 'hidden') do
-        value(cohort_client)
-      end
+      html = content_tag(:span, value(cohort_client), class: 'hidden')
       html += link_to_if(user.can_access_some_version_of_clients?, value(cohort_client), appropriate_client_path(cohort_client.client), target: '_blank')
       html
     end

@@ -18,7 +18,7 @@ module Cohorts
       columns = cohort_source.available_columns.deep_dup
       if params.include? :order
         order = params[:order].split(',')
-        columns = columns.sort_by { |col| order.index(col.column.to_s) }
+        columns = columns.sort_by { |col| order.index(col.column.to_s) || 500 }
       end
       columns.each do |column|
         visibility_state = cohort_params[:visible][column.column]
