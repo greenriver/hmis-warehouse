@@ -35,6 +35,7 @@
                   %span{data: {toggle: :tooltip, title: info.denominator}}
                     = f.format_i(data[:denominator])
           - else
-            = f.format_d(data[:value])
+            .h3
+              = f.format_d(data[:value])
           - if (table=data[:table]).is_a? Array
-            = render 'detail_table', table: table, id: "m#{measure_id}_#{year}", title: "#{info.title.split(':').first} #{year} Details"
+            = render 'detail_table', table: table, id: "m#{measure_id}_#{year}", title: "#{year} #{info.title} Details"
