@@ -61,7 +61,7 @@ module PublicReports
       {
         # count: percent_change_in_count,
         date_range: filter_object.date_range_words,
-        # summary: summary,
+        summary: summary,
         pit_chart: pit_chart,
         inflow_outflow: inflow_outflow,
         # overall_homeless_map: overall_homeless_map,
@@ -103,9 +103,30 @@ module PublicReports
       dates
     end
 
+    private def summary
+      date = pit_counts.map(&:first).last
+      start_date = date.beginning_of_year
+      end_date = date.end_of_year
+      homeless_scope = GrdaWarehouse::ServiceHistoryEnrollment.homeless.entry.
+        with_service_between(
+          start_date: start_date,
+          end_date: end_date,
+        )
+      households = homeless_scope.heads_of_households.select(:client_id).distinct.count
+      homeless_clients = homeless_scope.select(:client_id).distinct.count
+      unsheltered = homeless_scope.hud_project_type(4).select(:client_id).distinct.count
+      {
+        year: date.year,
+        date: date,
+        homeless_households: households,
+        homeless_clients: homeless_clients,
+        unsheltered_clients: unsheltered,
+      }
+    end
+
     private def pit_chart
       x = ['x']
-      y = ['Unique People Experiencing Homelessness']
+      y = ['People served in ES, SO, SH, or TH']
       pit_counts.each do |date, count|
         x << date
         y << count
@@ -115,12 +136,14 @@ module PublicReports
 
     private def inflow_outflow
       x = ['x']
-      y = ['People Entering Homelessness']
-      entering_counts.each do |date, count|
+      ins = ['People entering ES, SO, SH, or TH (first time homeless)']
+      outs = ['People exiting ES, SO, SH, or TH to a permanent destination']
+      inflow_out_flow_counts.each do |date, in_count, out_count|
         x << date
-        y << count
+        ins << in_count
+        outs << out_count
       end
-      [x, y].to_json
+      [x, ins, outs].to_json
     end
 
     private def pit_count_dates
@@ -136,53 +159,45 @@ module PublicReports
     end
 
     private def pit_counts
-      she_scope = GrdaWarehouse::ServiceHistoryEnrollment.homeless
-      pit_count_dates.map do |date|
-        [
-          date,
-          client_count_for_date(date, she_scope),
-        ]
-      end
-    end
-
-    private def entering_counts
       pit_count_dates.map do |date|
         start_date = date.beginning_of_year
         end_date = date.end_of_year
-        she_scope = GrdaWarehouse::ServiceHistoryEnrollment.homeless.entry_within_date_range(start_date: start_date, end_date: end_date)
+        count = GrdaWarehouse::ServiceHistoryEnrollment.homeless.entry.
+          with_service_between(
+            start_date: start_date,
+            end_date: end_date,
+          ).
+          select(:client_id).
+          distinct.
+          count
         [
           date,
-          client_count_for_date(date, she_scope),
+          count,
         ]
       end
     end
 
-    private def client_count_for_date(date, she_scope)
-      scope = with_service_in_year(report_scope, date, :homeless).
-        select(:client_id).
-        distinct
-      # NOTE age calculations need to be done for the day in question
-
-      # limit final count to the appropriate housing type
-      scope.merge(she_scope).count
-    end
-
-    private def scope_for(population, start_date, end_date, scope)
-      case population
-      when :homeless
-        scope = scope.homeless
-      when :entering
-        scope = scope.entry_within_date_range(start_date: start_date, end_date: end_date)
-        # when :individuals
-        #   scope = scope.where.not(household_id: adult_and_child_household_ids_by_date(date))
-        # when :adults_with_children
-        #   scope = scope.where(household_id: adult_and_child_household_ids_by_date(date))
-        # when :hoh_from_adults_with_children
-        #   scope = scope.where(household_id: adult_and_child_household_ids_by_date(date)).heads_of_households
-        # when :veterans
-        #   scope = scope.veterans
+    private def inflow_out_flow_counts
+      pit_count_dates.map do |date|
+        start_date = date.beginning_of_year
+        end_date = date.end_of_year
+        in_count = GrdaWarehouse::ServiceHistoryEnrollment.homeless.first_date.
+          started_between(start_date: start_date, end_date: end_date).
+          select(:client_id).
+          distinct.
+          count
+        out_count = GrdaWarehouse::ServiceHistoryEnrollment.homeless.entry.
+          exit_within_date_range(start_date: start_date, end_date: end_date).
+          where(destination: ::HUD.permanent_destinations).
+          select(:client_id).
+          distinct.
+          count
+        [
+          date,
+          in_count,
+          out_count,
+        ]
       end
-      scope
     end
 
     private def total_for(scope, population)
@@ -198,23 +213,6 @@ module PublicReports
       end
 
       pluralize(number_with_delimiter(count), word)
-    end
-
-    private def with_service_in_year(scope, date, population)
-      service_scope = :current_scope
-      start_date = date.beginning_of_year
-      end_date = date.end_of_year
-      scope = scope_for(population, start_date, end_date, scope).
-        with_service_between(
-          start_date: start_date,
-          end_date: end_date,
-          service_scope: service_scope,
-        )
-
-      # enforce that the clients have some homeless history within the
-      # time-frame in-question, but allow all of their appropriate history
-      # to be included
-      scope.where(client_id: scope.homeless.select(:client_id))
     end
 
     private def get_us_census_population(race_code: 'All', year:)

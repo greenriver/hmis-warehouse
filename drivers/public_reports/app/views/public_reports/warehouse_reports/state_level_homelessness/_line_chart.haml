@@ -1,7 +1,6 @@
 :javascript
   (function() {
-    var data = { data: #{data.to_s.html_safe} };
-    console.log(data)
+    var data = #{data.to_s.html_safe};
     var chart = bb.generate({
       data: {
         x: 'x',
@@ -11,11 +10,14 @@
       bindto: {
         element: ".#{chart_class}"
       },
+      point: {
+        r: 5
+      },
       axis: {
         x: {
           type: 'timeseries',
           tick: {
-            format: 'Q%q %Y'
+            format: '%Y'
           },
           padding: {
             right: 1000*60*60*24*60, // Two months padding to accomodate the tick label: milliseconds, seconds, minutes, hours, days
@@ -33,14 +35,6 @@
             show: false,
             format: d3.format("~s")
           }
-        }
-      },
-      grid: {
-        x: {
-          show: false
-        },
-        y: {
-          show: false
         }
       },
       color: {
