@@ -262,12 +262,16 @@ module ClaimsReporting
           value = numerator
           numerator = nil
         end
+
+        # any detail tables?
+        detail_table_msg = "#{m_id}_table"
         [m.id, {
           id: m.id,
           title: m.title,
           numerator: numerator,
           denominator: denominator,
           value: value,
+          table: (send(detail_table_msg) if respond_to?(detail_table_msg)),
         }]
       end.to_h
 
@@ -1489,6 +1493,42 @@ module ClaimsReporting
       rows
     end
 
+    def bh_cp_13_table
+      rows = {
+        bh_cp_13: 'All Enrollees',
+        bh_cp_13a: 'Enrollee had 1-3 index hospital stays',
+        bh_cp_13b: 'Enrollee had 4+ index hospital stays',
+      }
+
+      cols = {
+        numerator: 'Numerator (Number of observed IHS with a readmission within 30 days of discharge)',
+        denominator: 'Denominator (Count the number of IHS)',
+        value: 'Observed Readmission Rate',
+        expected_count: 'Count of Expected 30-Day Readmissions',
+        expected_value: 'Expected Readmission Rate',
+        variance: 'Variance',
+        oe_ratio: 'O/E Ratio',
+      }
+
+      table = [
+        ['Frequency of Index Hospital Stays'],
+        [] + cols.values,
+      ]
+      rows.each do |row_id, row_heading|
+        n, d = * percentage(medical_claim_based_rows, row_id)
+        v = n / d if d.positive?
+        table += [row_heading] + cols.keys.map do |col_id|
+          case col_id
+          when :numerator then n
+          when :denominator then d
+          when :value then v
+          end
+        end
+      end
+
+      table
+    end
+
     private def pcr_risk_adjustment_calculator
       ::ClaimsReporting::Calculators::PcrRiskAdjustment.new
     rescue StandardError => e
@@ -1498,8 +1538,6 @@ module ClaimsReporting
     memoize :pcr_risk_adjustment_calculator
 
     private def bh_cp_13_risk_adjustments(member, stay_claims, claims)
-      debug_prefix = " BH_CP_13: MemberRoster#id=#{member.id} stay=#{stay_claims.first.id}"
-
       return unless pcr_risk_adjustment_calculator
 
       # Since we are now user 2021 QRS Plan All-Cause Readmissions (PCR)
@@ -1573,7 +1611,8 @@ module ClaimsReporting
         discharge_dx_code: discharge_dx_code,
         comorb_dx_codes: comorb_dx_codes,
       ).tap do |result|
-        puts "#{debug_prefix} #{result.inspect}" unless result[:sum_of_weights].zero?
+        # debug_prefix = " BH_CP_13: MemberRoster#id=#{member.id} stay=#{stay_claims.first.id}"
+        # puts "#{debug_prefix} Risk adjustment data #{result.inspect}" unless result[:sum_of_weights].zero?
       end
     end
 
