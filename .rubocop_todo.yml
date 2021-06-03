@@ -348,7 +348,6 @@ Layout/SpaceAroundBlockParameters:
     - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
-    - 'app/models/grda_warehouse/hud/funder.rb'
     - 'app/models/report.rb'
 
 # Offense count: 44
@@ -524,7 +523,6 @@ Lint/BinaryOperatorWithIdenticalOperands:
 # Cop supports --auto-correct.
 Lint/BooleanSymbol:
   Exclude:
-    - 'app/models/grda_warehouse/hud/funder.rb'
     - 'app/models/grda_warehouse/hud/inventory.rb'
 
 # Offense count: 2
