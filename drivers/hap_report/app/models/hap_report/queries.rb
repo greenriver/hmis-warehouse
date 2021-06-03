@@ -9,7 +9,7 @@ module HapReport::Queries
   include  ArelHelper
 
   included do
-    def a_t
+    private def a_t
       HapReport::HapClient.arel_table
     end
 
