@@ -16,6 +16,7 @@ module HapReport::WarehouseReports
 
     def create
       @filter = HapReport::HapFilter.new(user_id: current_user.id).set_from_params(filter_params)
+
       if @filter.valid?
         @report = report_scope.create(user_id: @filter.user_id, options: report_options(@filter))
         ::WarehouseReports::GenericReportJob.perform_later(

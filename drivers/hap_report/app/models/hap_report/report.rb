@@ -310,16 +310,16 @@ module HapReport
       GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         preload(:client, enrollment: [:disabilities, :health_and_dvs, :income_benefits]).
-        where(project_id: @project_ids).
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)).
         open_between(start_date: @start_date, end_date: @end_date)
     end
 
     def self.hap_projects(user)
-      GrdaWarehouse::Hud::Project.
+      scope = GrdaWarehouse::Hud::Project.
         joins(:funders).
-        merge(GrdaWarehouse::Hud::Funder.funding_source(funder_code: 46, other: HAP_FUNDING)).
-        viewable_by(user).
-        map { |project| [project.name, project.ProjectID] }
+        merge(GrdaWarehouse::Hud::Funder.funding_source(funder_code: 46, other: HAP_FUNDING))
+      GrdaWarehouse::Hud::Project.options_for_select(user: user, scope: scope)
     end
 
     def key_for_display(key)
@@ -334,7 +334,7 @@ module HapReport
     def value_for_display(key, value)
       case key
       when 'project_ids'
-        return GrdaWarehouse::Hud::Project.where(ProjectID: value).map(&:name).join(', ')
+        return GrdaWarehouse::Hud::Project.where(id: value).map(&:name).join(', ')
       end
 
       value
