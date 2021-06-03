@@ -19,9 +19,11 @@ require 'memoist'
 # Both As of May 28, 2021
 module ClaimsReporting
   class QualityMeasuresReport
-    include ActiveModel::Model
-    include HmisFilters
     extend Memoist
+
+    include ActiveModel::Model
+
+    include HmisFilters
 
     # Base Range<Date> for this report. Some measures define derived ranges
     attr_reader :date_range
@@ -58,7 +60,6 @@ module ClaimsReporting
       else
         AVAILABLE_MEASURES.keys
       end
-
       raise ArgumentError, 'No valid measures provided' if @measures.none?
     end
 
@@ -261,7 +262,14 @@ module ClaimsReporting
     #  - nil (not in the universe for the measure)
     #  - false part of the denominator only
     #  - true part of the numerator
-    MeasureRow = Struct.new(:row_type, :row_id, *AVAILABLE_MEASURES.keys, keyword_init: true)
+    MeasureRow = Struct.new(
+      :row_type,
+      :row_id,
+      :variance, # only used by BH_CP_13 Risk Assessment now
+      :expected_value, # only used by BH_CP_13 Risk Assessment now
+      *AVAILABLE_MEASURES.keys,
+      keyword_init: true,
+    )
 
     def serializable_hash
       measure_info = AVAILABLE_MEASURES.values.map do |m|
@@ -303,8 +311,6 @@ module ClaimsReporting
       serializable_hash[:measures][measure.to_sym]
     end
 
-    memoize :hud_clients_scope
-
     def assigned_enrollements_scope
       scope = ::ClaimsReporting::MemberEnrollmentRoster
 
@@ -330,7 +336,6 @@ module ClaimsReporting
       )
       scope
     end
-    memoize :assigned_enrollements_scope
 
     def cp_enollment_date_range
       # Handle "September"
@@ -1436,7 +1441,9 @@ module ClaimsReporting
           next
         end
 
-        bh_cp_13_risk_adjustments(member, stay_claims, claims)
+        row_id = "#{admit.id}-#{discharge.id}"
+
+        ra = bh_cp_13_ihs_risk_adjustment(member, stay_claims, claims)
 
         # > Numerator: At least one acute readmission for any diagnosis within 30 days of the Index Discharge Date.
         # FIXME? O(n^2) but n is tiny
@@ -1490,8 +1497,10 @@ module ClaimsReporting
         # puts 'BH_CP_13: Found an IHS'
         row = MeasureRow.new(
           row_type: 'stay',
-          row_id: "#{admit.id}-#{discharge.id}",
+          row_id: row_id,
           bh_cp_13: readmitted_in_30_days,
+          variance: (ra[:variance] if ra),
+          expected_value: (ra[:expected_readmit_rate] if ra),
         )
         rows << row
       end
@@ -1508,10 +1517,13 @@ module ClaimsReporting
 
       rows
     end
+    memoize :medical_claim_based_rows
 
     # An array of arrays describing a table of details for the measure
     def bh_cp_13_table
-      rows = {
+      measure_rows = medical_claim_based_rows
+
+      table_rows = {
         bh_cp_13: 'All Enrollees',
         bh_cp_13a: 'Enrollee had 1-3 index hospital stays',
         bh_cp_13b: 'Enrollee had 4+ index hospital stays',
@@ -1531,17 +1543,33 @@ module ClaimsReporting
         ['Frequency of Index Hospital Stays'],
         [''] + cols.values,
       ]
-      rows.each do |row_id, row_heading|
-        numerator, denominator = * percentage(medical_claim_based_rows, row_id)
-        value = (numerator.to_f / denominator).round(4) if denominator&.positive?
-        expected_count = nil
-        expected_value = nil
-        variance = nil
-        oe_ratio = nil
+
+      table_rows.each do |measure_id, row_heading|
+        numerator, denominator = * percentage(measure_rows, measure_id)
+        value = (numerator.to_f / denominator) if denominator&.positive?
+
+        selected_rows = rows_for_measure(measure_rows, measure_id)
+        expected_value = 0
+        variance = 0
+        selected_rows.each do |row|
+          # Note: The confusing names are in the spec
+          # > The Count of Expected Readmissions is the sum of the Estimated Readmission Risk calculated in step 6 for each IHS
+          expected_value += row.expected_value
+          # > Calculate the total (sum) variance for each age group.
+          variance += row.variance
+        end
+
+        # > Expected Readmission Rate: The Count of Expected 30-Day Readmissions divided by the Count of Index Stays
+        expected_count = expected_value / denominator
+
+        # > O/E Ratio: The Count of Observed 30-Day Readmissions divided by the Count of Expected 30-Day Readmissions calculated by IDSS.
+        oe_ratio = numerator.to_f / expected_count if expected_count.positive?
+
         table << [
           row_heading,
           numerator,
           denominator,
+          # > Round to four decimal places using the .5 rule
           value&.round(4),
           expected_count&.round(4),
           expected_value&.round(4),
@@ -1552,6 +1580,7 @@ module ClaimsReporting
 
       table
     end
+    # memoize :bh_cp_13_table
 
     private def pcr_risk_adjustment_calculator
       ::ClaimsReporting::Calculators::PcrRiskAdjustment.new
@@ -1561,7 +1590,7 @@ module ClaimsReporting
     end
     memoize :pcr_risk_adjustment_calculator
 
-    private def bh_cp_13_risk_adjustments(member, stay_claims, claims)
+    private def bh_cp_13_ihs_risk_adjustment(member, stay_claims, claims)
       return unless pcr_risk_adjustment_calculator
 
       # Since we are now user 2021 QRS Plan All-Cause Readmissions (PCR)
@@ -1996,6 +2025,12 @@ module ClaimsReporting
       medical_claims_scope.count
     end
     memoize :medical_claims
+
+    private def rows_for_measure(enumerable, flag)
+      enumerable.reject do |r|
+        r.send(flag).nil?
+      end
+    end
 
     private def percentage(enumerable, flag)
       denominator = 0
