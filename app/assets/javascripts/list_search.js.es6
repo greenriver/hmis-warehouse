@@ -222,7 +222,7 @@ window.App.ListSearch = class ListSearch {
     this.search = debounce(this.search, 100)
     this.term = ''
     this.searchCategories = []
-    if (this.props.initSelect2) {
+    if (this.props.inputClass == '.j-table__search') {
       $(`${this.props.inputClass}.select2`).select2()
     }
     this.registerEvents()

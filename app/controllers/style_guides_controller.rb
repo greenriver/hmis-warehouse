@@ -35,6 +35,10 @@ class StyleGuidesController < ApplicationController
     @form = OpenStruct.new
   end
 
+  def stimulus_select
+    @form = OpenStruct.new
+  end
+
   def health_team
     @member = Health::Team::Member.new
     @patient = Health::Patient.pilot.first
@@ -56,6 +60,7 @@ class StyleGuidesController < ApplicationController
       client_dashboard: 'Client Dashboard',
       buttons: 'Buttons',
       pagination: 'Pagination',
+      stimulus_select: 'Stimulus Select',
     }
   end
   helper_method :guide_routes

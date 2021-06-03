@@ -22,7 +22,7 @@
       %label.form-check-label(for='custom_project_type') Custom
 
   #j-custom-project-type{class: homeless && 'd-none', aria: {hidden: homeless}}
-    = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, required: false, input_html: { multiple: @report.multiple_project_types?, class: klasses, id: 'filters_project_type_codes'}, label: 'Project Types'
+    = f.input :project_type_codes, as: :select_two, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, required: false, input_html: { multiple: @report.multiple_project_types?, class: klasses, id: 'filters_project_type_codes'}, label: 'Project Types'
 
 - content_for :page_js do
   :javascript

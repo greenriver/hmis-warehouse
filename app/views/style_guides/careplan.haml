@@ -1,3 +1,4 @@
+= render 'breadcrumbs'
 .slab
   = simple_form_for(@careplan, as: :careplan, url: polymorphic_path(careplan_pilot_path_generator, client_id: @client.id)) do |f|
     .pull-right
@@ -11,21 +12,21 @@
     .row
       .col-md-2.col-md-offset-4.col-sm-4
         .mt-3.slab__base-dates
-          = f.input :sdh_enroll_date, label: 'SHD Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}      
+          = f.input :sdh_enroll_date, label: 'SHD Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}
           = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker}}
       .col-md-4.col-sm-4
         .slab__header
           Self-Sufficiency Assessment
         .row
           .col-md-6
-              
+
             = f.input :self_sufficiency_baseline_due_date, label: 'Baseline Due', as: :string, input_html: {data: {provide: :datepicker}}
-              
+
             = f.input :self_sufficiency_final_due_date, label: 'Baseline Completed', as: :string, input_html: {data: {provide: :datepicker}}
           .col-md-6
-              
+
             = f.input :self_sufficiency_baseline_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker}}
-              
+
             = f.input :self_sufficiency_final_completed_date, label: 'Final Completed', as: :string, input_html: {data: {provide: :datepicker}}
     .row
       .col-md-6.col-md-offset-4.col-sm-3
@@ -107,10 +108,10 @@
                       = f.input :bh_plan, label: 'BH'
 
                   .form-actions.pull-right
-                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do
                       Delete Goal
                     = f.button :submit, value: 'Update Goal'
-        
+
 
 
 
@@ -143,7 +144,7 @@
                       = f.input :bh_plan, label: 'BH'
 
                   .form-actions.pull-right
-                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do
                       Delete Goal
                     = f.button :submit, value: 'Update Goal'
           - elsif ['Health::Goal::Social'].include?(goal.type)
@@ -168,7 +169,7 @@
                       = f.input :az_disabilities, label: 'Disabilities'
                       = f.input :az_food, label: 'Food Insecurity'
                       = f.input :az_employment, label: 'Employment'
-                    
+
                       = f.input :az_training, label: 'Adult Ed/Training'
                       = f.input :az_transportation, label: 'Mobility/Transportation'
                       = f.input :az_life_skills, label: 'Life Skills & Activities of Daily Living (ADLs)'
@@ -180,15 +181,15 @@
                       = f.input :az_criminal_justice, label: 'Criminal Justice'
                       = f.input :az_legal, label: 'Legal, Non-Criminal'
                       = f.input :az_safety, label: 'Safety'
-                   
+
                       = f.input :az_risk, label: 'Risk'
                       = f.input :az_family, label: 'Family & Social Relationships'
                       = f.input :az_community, label: 'Community Involvement'
                       = f.input :az_time_management, label: 'Daily Time Management'
-                    
+
 
                   .form-actions.pull-right
-                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: social.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: social.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do
                       Delete Goal
                     = f.button :submit, value: 'Update Goal'
           - elsif ['Health::Goal::SelfManagement'].include?(goal.type)
@@ -209,7 +210,7 @@
                       = f.input :goal_details, as: :text, input_html: {rows: 10}
 
                   .form-actions.pull-right
-                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: self_management.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: self_management.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do
                       Delete Goal
                     = f.button :submit, value: 'Update Goal'
 

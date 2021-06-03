@@ -406,6 +406,23 @@ SimpleForm.setup do |config|
     b.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
   end
 
+  # select two
+  config.wrappers :select_two, tag: 'div', class: 'form-group ready', error_class: 'form-group-invalid', valid_class: 'form-group-valid', wrapper_html: { data: { controller: 'stimulus-select ' }} do |b|
+    b.use :html5
+    b.optional :readonly
+    b.wrapper tag: 'div', class: 'select2__label-wrapper' do |bb|
+      bb.use :label
+      # NOTE: we would prefer to add the data elements here, but that doesn't appear possible
+      bb.wrapper tag: 'div', class: 'select2-select-all' do |select_all|
+      end
+    end
+    b.wrapper tag: 'div', class: 'd-flex flex-row justify-content-between align-items-center' do |bb|
+      bb.use :input, class: 'custom-select mx-1', error_class: 'is-invalid', valid_class: ''
+    end
+    b.use :full_error, wrap_with: { tag: 'div', class: 'invalid-feedback d-block' }
+    b.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
+  end
+
   # custom range input
   config.wrappers :custom_range, tag: 'div', class: 'form-group', error_class: 'form-group-invalid', valid_class: 'form-group-valid' do |b|
     b.use :html5
@@ -483,17 +500,7 @@ SimpleForm.setup do |config|
     range:         :vertical_range,
     time:          :vertical_multi_select,
     pretty_boolean: :custom_boolean,
+    select_two: :select_two,
+    grouped_select_two: :select_two,
   }
-
-  # enable custom form wrappers
-  # config.wrapper_mappings = {
-  #   boolean:       :custom_boolean,
-  #   check_boxes:   :custom_collection,
-  #   date:          :custom_multi_select,
-  #   datetime:      :custom_multi_select,
-  #   file:          :custom_file,
-  #   radio_buttons: :custom_collection,
-  #   range:         :custom_range,
-  #   time:          :custom_multi_select
-  # }
 end

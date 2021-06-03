@@ -32,8 +32,3 @@
       = link_to url_for(action: :index, breakdown: breakdown), class: 'btn btn-outline-primary ml-auto' do
         %i.icon-settings_backup_restore
         Reset to Default
-
-= content_for :page_js do
-  :javascript
-    App.select2.init()
-    App.remoteSelectLoad.init()

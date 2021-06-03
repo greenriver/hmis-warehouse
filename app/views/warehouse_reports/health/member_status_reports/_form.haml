@@ -10,7 +10,7 @@
         .col-sm-3
           = f.input :effective_date, as: :date_picker, label: 'Export Date'
         .col-sm-3
-          = f.input :receiver, collection: Health::AccountableCareOrganization.active.pluck(:name, :short_name), include_blank: 'All ACOs', input_html: {class: :select2}
+          = f.input :receiver, collection: Health::AccountableCareOrganization.active.pluck(:name, :short_name), include_blank: 'All ACOs', as: :select_two
 
     - content_for :filter_actions do
       .col-sm-2.pt-no-label
