@@ -229,7 +229,6 @@ module GrdaWarehouse::Hud
           distinct.
           individual.select(:client_id)
       )
-
     end
 
     scope :currently_homeless, -> (chronic_types_only: false) do
