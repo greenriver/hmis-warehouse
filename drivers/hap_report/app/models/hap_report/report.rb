@@ -53,7 +53,7 @@ module HapReport
         batch.each do |processed_enrollment|
           disabilities = processed_enrollment.enrollment.disabilities
           mental_health = disabilities.chronically_disabled.mental.exists?
-          substance_abuse_disorder = disabilities.chronically_disabled.substance.exists?
+          substance_use_disorder = disabilities.chronically_disabled.substance.exists?
 
           health_and_dvs = processed_enrollment.enrollment.health_and_dvs
           domestic_violence = health_and_dvs.currently_fleeing.exists?
@@ -85,7 +85,7 @@ module HapReport
             project_types: (Array.wrap(existing_client[:project_types]) << processed_enrollment.project_type).uniq,
             veteran: existing_client[:veteran] || processed_enrollment.client.veteran?,
             mental_health: existing_client[:mental_health] || mental_health,
-            substance_abuse_disorder: existing_client[:substance_abuse_disorder] || substance_abuse_disorder,
+            substance_use_disorder: existing_client[:substance_use_disorder] || substance_use_disorder,
             domestic_violence: existing_client[:domestic_violence] || domestic_violence,
             income_at_start: [existing_client[:income_at_start], income_at_start].compact.max,
             income_at_exit: [existing_client[:income_at_exit], income_at_exit].compact.max,

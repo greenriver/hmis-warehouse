@@ -6,10 +6,15 @@ require 'zip'
 
 FileUtils.chdir(Pathname.new(__FILE__).dirname)
 
-Zip::File.open("tl_2020_us_county.zip") do |zipfile|
-  zipfile.each do |file|
-    zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)
+begin
+  Zip::File.open("tl_2020_us_county.zip") do |zipfile|
+    zipfile.each do |file|
+      zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)
+    end
   end
+rescue Zip::Error
+  puts 'ERROR: Unable to extract zip file'
+  return
 end
 
 system('shp2pgsql -p -I tl_2020_us_county.shp shape_counties > counties.structure.sql')

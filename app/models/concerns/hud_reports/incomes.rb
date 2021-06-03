@@ -23,7 +23,7 @@ module HudReports::Incomes
   included do
     private def annual_assessment(enrollment)
       enrollment.income_benefits_annual_update.select do |i|
-        i.InformationDate < report_end_date
+        i.InformationDate <= report_end_date
       end.max_by(&:InformationDate)
     end
 

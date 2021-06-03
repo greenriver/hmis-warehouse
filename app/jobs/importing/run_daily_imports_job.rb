@@ -60,9 +60,6 @@ module Importing
         # on large data operations, and any other project data cleanup
         GrdaWarehouse::Tasks::ProjectCleanup.new.run!
         @notifier.ping('Projects cleaned') if @send_notifications
-        # Sometimes client data changes in such a way as to leave behind stub
-        # clients with no enrollments, this clears those out.
-        # GrdaWarehouse::Tasks::ClientCleanup.new.remove_clients_without_enrollments! unless active_imports?
 
         # This fixes any unused destination clients that can
         # bungle up the service history generation, among other things

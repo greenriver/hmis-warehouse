@@ -114,7 +114,7 @@ module HapReport::Queries
     end
 
     def da_services
-      a_t[:substance_abuse_disorder].eq(true)
+      a_t[:substance_use_disorder].eq(true)
     end
 
     def dv_services

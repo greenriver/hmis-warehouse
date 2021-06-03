@@ -1,6 +1,6 @@
 namespace :us_census_api do
   desc "Uses the census API to pull down all the variables we need into a usable form and then do some post-processing if needed"
-  task :all, [] => [:shapes, :vars, :import, :coc_agg, :test]
+  task :all, [] => [:shapes, :vars, :import, :coc_agg, :summary, :test]
 
   task :setup, [] => [:environment] do
     @levels = [
@@ -46,6 +46,28 @@ namespace :us_census_api do
     GrdaWarehouse::UsCensusApi::CoCAgg.run!
   end
 
+  desc "Output summary of what we've harvested"
+  task :summary, [] => [:environment] do
+    GrdaWarehouse::UsCensusApi::CensusReview.rebuild!
+
+    result = GrdaWarehouseBase.connection.exec_query(<<~SQL)
+      select year,
+        SUM(CASE WHEN census_level = 'STATE' THEN 1 ELSE 0 END) AS state_count,
+        SUM(CASE WHEN census_level = 'COUNTY' THEN 1 ELSE 0 END) AS county_count,
+        SUM(CASE WHEN census_level = 'ZCTA5' THEN 1 ELSE 0 END) AS zip_code_count,
+        SUM(CASE WHEN census_level = 'CUSTOM' THEN 1 ELSE 0 END) AS coc_count,
+        SUM(CASE WHEN census_level = 'BG' THEN 1 ELSE 0 END) AS block_group_count
+      from census_reviews
+      group by year
+      order by year
+    SQL
+    puts "Total number of values for each year/geometry(geography)"
+    puts "%4s %15s %15s %15s %15s" % ['year', 'state_count', 'county_count', 'zip_code_count', 'coc_count']
+    result.each do |row|
+      puts "%4d %15d %15d %15d %15d" % [row['year'], row['state_count'], row['county_count'], row['zip_code_count'], row['coc_count']]
+    end
+  end
+
   desc "Run some computations that sanity check the values"
   task :test, [] => [:environment] do |t, args|
     GrdaWarehouse::UsCensusApi::TestSuite.run_all!
@@ -56,7 +78,6 @@ namespace :us_census_api do
     report = PublicReports::HomelessPopulation.find(2)
 
     report.instance_eval do
-      @coc_codes = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum)
       @debug = true
     end
 

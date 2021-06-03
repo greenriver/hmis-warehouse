@@ -88,9 +88,10 @@ module ClaimsReporting
     end
 
     def import_all_from_health_sftp(
-      naming_convention: DEFAULT_NAMING_CONVENTION,
       root_path: '',
-      credentials: self.class.default_credentials
+      naming_convention: DEFAULT_NAMING_CONVENTION,
+      credentials: self.class.default_credentials,
+      redo_past_imports: false
     )
       # Allow only one in progress call per DB.
       # We will be read from our db, then an external SFTP
@@ -104,7 +105,7 @@ module ClaimsReporting
           credentials: credentials,
         )
         results.map do |r|
-          if r[:last_successful_import_id].present?
+          if r[:last_successful_import_id].present? && redo_past_imports
             logger.debug { "Skipping #{r}" }
             r
           else
@@ -152,7 +153,10 @@ module ClaimsReporting
 
     # zip_path_or_io is passed Zip::InputStream.open
     # returns a hash of counts found per CSV file
-    def import_from_zip(zip_path_or_io, replace_all: false, new_import: true)
+    def import_from_zip(zip_path_or_io,
+      replace_all: false,
+      new_import: true,
+      file_filter: nil)
       full_path = if zip_path_or_io.respond_to?(:path)
         File.expand_path zip_path_or_io.path
       else
@@ -187,6 +191,11 @@ module ClaimsReporting
           files.each do |name_pattern, klass|
             next unless entry.name.ends_with?(name_pattern)
 
+            if file_filter && !file_filter.match?(entry.name)
+              logger.warn "Skipping #{entry.name} which is not in #{file_filter.inspect}"
+              next
+            end
+
             logger.info "found #{entry.name}, importing..."
             results[name_pattern] = { step: :import_csv_data }
             record_progress results
@@ -204,7 +213,7 @@ module ClaimsReporting
         results: results,
         successful: true,
       )
-      run_post_import_hook
+      run_post_import_hook(file_filter)
       results
     rescue Interrupt
       record_complete(successful: false, status_message: 'Aborted')
@@ -214,10 +223,12 @@ module ClaimsReporting
       raise
     end
 
-    private def run_post_import_hook
-      ClaimsReporting::MemberEnrollmentRoster.maintain_engagement!
-      ClaimsReporting::MemberEnrollmentRoster.maintain_first_claim_date!
-      ClaimsReporting::MedicalClaim.maintain_engaged_days!
+    private def run_post_import_hook(file_filter)
+      if file_filter.nil? || file_filter.match?('member_enrollment_roster.csv')
+        ClaimsReporting::MemberEnrollmentRoster.maintain_engagement!
+        ClaimsReporting::MemberEnrollmentRoster.maintain_first_claim_date!
+      end
+      ClaimsReporting::MedicalClaim.maintain_engaged_days! if file_filter.nil? || file_filter.match?('medical_claims.csv')
     end
 
     private def record_start(method_name, method_args, source_url)
