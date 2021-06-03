@@ -111,7 +111,7 @@ module GrdaWarehouse::WarehouseReports
       hoh_to_stabilization_count.merge!(hoh_to_stabilization.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
 
       hoh_exits_to_ph = (hoh_to_ph.keys | hoh_to_stabilization.keys).map do |month|
-        [month, (Array.wrap(hoh_to_ph[month]) + Array.wrap(hoh_to_stabilization[month])).uniq(&:client_id)]
+        [month, (Array.wrap(hoh_to_ph[month]).compact + Array.wrap(hoh_to_stabilization[month]).compact).uniq(&:client_id)]
       end.to_h
 
       hoh_exits_to_ph_count = {}
