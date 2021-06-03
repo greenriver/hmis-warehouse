@@ -54,6 +54,7 @@ module WarehouseReports
         reports['ClaimsReporting::EngagementTrends'] = ClaimsReporting::EngagementTrends
         reports['ClaimsReporting::QualityMeasures'] = ClaimsReporting::QualityMeasures
       end
+      reports['HapReport::Report'] = HapReport::Report if RailsDrivers.loaded.include?(:hap_report)
       reports
     end
   end

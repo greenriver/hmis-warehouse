@@ -78,6 +78,10 @@ module ArelHelper
       nf('CONCAT', args)
     end
 
+    def any(*args)
+      nf 'ANY', args
+    end
+
     def lit(str)
       self.class.lit str
     end

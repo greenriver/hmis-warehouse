@@ -1,0 +1,27 @@
+%button.btn.btn-sm.btn-secondary{type: :button, data: {toggle: :modal, target: "##{id}"}}
+  Details
+.modal{id: id, tabindex: -1, role: :dialog, 'aria-labelledby': "#{id}-title"}
+  .modal-dialog{role: :document, style: 'max-width: 90vw'}
+    .modal-content
+      .modal-header
+        %h5.modal-title{id:"#{id}-title"}= title
+        %button.close{type: :button, 'data-dismiss': :modal, 'aria-label': 'Close'}
+          %span{'aria-hidden': true} &times;
+      .modal-body
+        :ruby
+          headers = []
+          headers << table.shift
+          headers << table.shift
+        .table-responsive
+          %table.table.table-sm.table-bordered.table-striped
+            %thead
+              - headers.each do |row|
+                %tr
+                  - row.each do |col|
+                    %th{colspan:(table.last.length if row.length == 1)}= col
+            - table.each do |row|
+              %tr
+                - row_head = row.shift
+                %th{axis: :row}= row_head
+                - row.each do |col|
+                  %td= col

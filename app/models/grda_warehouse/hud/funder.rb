@@ -43,6 +43,14 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :funding_source, ->(funder_code: nil, other: nil) do
+      if other.present?
+        where(Funder: funder_code, OtherFunder: other)
+      else
+        where(Funder: funder_code)
+      end
+    end
+
     scope :viewable_by, -> (user) do
       joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(user))

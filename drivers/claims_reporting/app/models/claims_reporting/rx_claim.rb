@@ -3,7 +3,18 @@ module ClaimsReporting
     phi_patient :member_id
     belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
 
+    belongs_to :member_roster, primary_key: :member_id, foreign_key: :member_id
     include ClaimsReporting::CsvHelpers
+
+    scope :service_in, ->(date_range) do
+      where(
+        arel_table[:service_start_date].lt(date_range.max).
+        and(
+          arel_table[:service_end_date].gteq(date_range.min).
+          or(arel_table[:service_end_date].eq(nil)),
+        ),
+      )
+    end
 
     def self.conflict_target
       ['member_id', 'claim_number', 'line_number']
