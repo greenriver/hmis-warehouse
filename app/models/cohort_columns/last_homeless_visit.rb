@@ -15,7 +15,16 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort_client.client.processed_service_history&.last_homeless_visit
+      cohort_client.client.processed_service_history&.last_homeless_visit&.
+        split(';')&.
+        map(&:strip)&.
+        sort do |a, b|
+          get_date(b) <=> get_date(a)
+        end&.join('; ')
+    end
+
+    private def get_date(visit)
+      visit.split(':').last.strip.to_date
     end
   end
 end
