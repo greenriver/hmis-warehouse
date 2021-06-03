@@ -262,6 +262,11 @@ module ClaimsReporting
     #  - nil (not in the universe for the measure)
     #  - false part of the denominator only
     #  - true part of the numerator
+    # TODO: Refactor into {measure_id, row_id, value, ....}
+    # it turns out we almost never get to derive more than one measure
+    # from a single row so the meta-programmed fields are wasted space
+    # and brain power and in a few cases the value held is not the
+    # tri-state flag described above
     MeasureRow = Struct.new(
       :row_type,
       :row_id,
@@ -1546,24 +1551,32 @@ module ClaimsReporting
 
       table_rows.each do |measure_id, row_heading|
         numerator, denominator = * percentage(measure_rows, measure_id)
-        value = (numerator.to_f / denominator) if denominator&.positive?
+        value = (numerator.to_f / denominator) if numerator && denominator&.positive?
 
-        selected_rows = rows_for_measure(measure_rows, measure_id)
-        expected_value = 0
-        variance = 0
-        selected_rows.each do |row|
-          # Note: The confusing names are in the spec
-          # > The Count of Expected Readmissions is the sum of the Estimated Readmission Risk calculated in step 6 for each IHS
-          expected_value += row.expected_value
-          # > Calculate the total (sum) variance for each age group.
-          variance += row.variance
+        if value
+          selected_rows = rows_for_measure(measure_rows, measure_id)
+          expected_value = 0
+          variance = 0
+          selected_rows.each do |row|
+            # Note: The confusing names are in the spec
+            # > The Count of Expected Readmissions is the sum of the Estimated Readmission Risk calculated in step 6 for each IHS
+            expected_value += row.expected_value if row.expected_value
+            # > Calculate the total (sum) variance for each age group.
+            variance += row.variance if row.variance
+          end
+
+          # > Expected Readmission Rate:
+          # > The Count of Expected 30-Day Readmissions divided by the Count of Index Stays
+          expected_count = expected_value / denominator
+
+          # > O/E Ratio: The Count of Observed 30-Day Readmissions divided by the Count of Expected 30-Day Readmissions calculated by IDSS.
+          oe_ratio = numerator.to_f / expected_count if expected_count.positive?
+        else
+          expected_value = nil
+          variance = nil
+          expected_count = nil
+          oe_ratio = nil
         end
-
-        # > Expected Readmission Rate: The Count of Expected 30-Day Readmissions divided by the Count of Index Stays
-        expected_count = expected_value / denominator
-
-        # > O/E Ratio: The Count of Observed 30-Day Readmissions divided by the Count of Expected 30-Day Readmissions calculated by IDSS.
-        oe_ratio = numerator.to_f / expected_count if expected_count.positive?
 
         table << [
           row_heading,
@@ -1580,7 +1593,7 @@ module ClaimsReporting
 
       table
     end
-    # memoize :bh_cp_13_table
+    memoize :bh_cp_13_table
 
     private def pcr_risk_adjustment_calculator
       ::ClaimsReporting::Calculators::PcrRiskAdjustment.new
