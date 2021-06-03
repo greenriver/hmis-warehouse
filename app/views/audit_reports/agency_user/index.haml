@@ -7,7 +7,7 @@
     - content_for :filters_col_full do
       .row
         .col.col-sm-3
-          = f.input :agency, collection: @agencies, selected: @agency_id, input_html: { class: :select2 }, include_blank: 'All Agencies'
+          = f.input :agency, collection: @agencies, selected: @agency_id, as: :select_two, include_blank: 'All Agencies'
     - content_for :filter_actions do
       = f.button :submit, value: 'Update View'
     = render 'warehouse_reports/filters', f:f

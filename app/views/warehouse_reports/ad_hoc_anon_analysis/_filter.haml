@@ -4,19 +4,19 @@
       .col-6
         = render 'warehouse_reports/date_range_filters', f:f
       .col-3
-        = f.input :start_age, collection: (0..100), input_html: { class: :select2 }, label: 'Age greater than'
+        = f.input :start_age, collection: (0..100), as: :select_two, label: 'Age greater than'
       .col-3
-        = f.input :end_age, collection: (0..100), input_html: { class: :select2 }, label: 'Age less than'
+        = f.input :end_age, collection: (0..100), as: :select_two, label: 'Age less than'
 
     .row.mt-4
       -# .col-sm-6.mb-4
-      -#   = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.residential.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
+      -#   = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.residential.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true }, label: 'Projects'
       -# .col-sm-6.mb-4
-      -#   = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
+      -#   = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true }, label: 'Organizations'
       -# .col-sm-6.mb-4
-      -#   = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
+      -#   = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), input_html: {multiple: true}, label: 'Data Sources', as: :select_two
       .col-sm-6.mb-4
-        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, input_html: { class: 'select2' }, label: 'Sub-population'
+        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, as: :select_two, label: 'Sub-population'
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Generate Export'

@@ -6,7 +6,7 @@
       .col-sm-3
         = f.input :end, input_html: {value: @filter.end, class: 'form-control jStart'}, as: :date_picker
       .col-sm-3
-        = f.input :cohort_id, collection: @filter.available_cohorts_for(current_user), input_html: { class: :select2}
+        = f.input :cohort_id, collection: @filter.available_cohorts_for(current_user), as: :select_two
 
   - content_for :filter_actions do
     .row

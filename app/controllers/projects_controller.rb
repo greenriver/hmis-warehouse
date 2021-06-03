@@ -12,28 +12,6 @@ class ProjectsController < ApplicationController
 
   include ArelHelper
 
-  def index
-    # search
-    @projects = if params[:q].present?
-      project_scope.text_search(params[:q])
-    else
-      project_scope
-    end
-    # sort / paginate
-    at = project_scope.arel_table
-    column = at[sort_column.to_sym]
-    column = o_t[:OrganizationName] if sort_column == 'organization_id'
-    sort = column.send(sort_direction)
-    # Filter
-    @projects = @projects.filter(filter_columns) if params[:project].present?
-    @projects = @projects.
-      includes(:organization).
-      preload(:geographies).
-      preload(:inventories).
-      order(sort).
-      page(params[:page]).per(50)
-  end
-
   def show
     @clients = @project.service_history_enrollments.entry.
       preload(:client).

@@ -33,17 +33,17 @@
 
       .o-filtration__option.row.mb-4
         .col-sm-4.mb-3
-          %label Data Source
-          = select_tag(:data_source_id, options_from_collection_for_select(GrdaWarehouse::DataSource.options_for_select(user: current_user).each, :last, :first, params[:data_source_id]), include_blank: 'All Data Sources', class: 'select2', style: 'width: 100%;')
+          - options = options_from_collection_for_select(GrdaWarehouse::DataSource.options_for_select(user: current_user).each, :last, :first, params[:data_source_id])
+          = render 'inputs/select', field_name: :data_source_id, label: 'Data Source', options: options, html_options: { include_blank: 'All Data Sources' }
 
         - if can_view_vspdat?
           .col-sm-4.mb-3
-            %label VSPDAT Vulnerability
-            = select_tag(:vulnerability, options_from_collection_for_select({'' => 'All Vulnerabilities', low: 'Low Vulnerabilty', medium: 'Medium Vulnerabilty', high: 'High Vulnerabilty', all: 'All Clients with VI-SPDATs'}, :first, :last, params[:vulnerability]), class: 'select2', style: 'width: 100%;')
+            - options = options_from_collection_for_select({ '' => 'All Vulnerabilities', low: 'Low Vulnerabilty', medium: 'Medium Vulnerabilty', high: 'High Vulnerabilty', all: 'All Clients with VI-SPDATs'}, :first, :last, params[:vulnerability])
+            = render 'inputs/select', field_name: :vulnerability, label: 'VSPDAT Vulnerability', options: options
 
         .col-sm-4.mb-3
-          %label Age Group
-          = select_tag(:age_group, options_from_collection_for_select(GrdaWarehouse::Hud::Client.ahar_age_groups.map{|k,r| [k,r[:name]]}.to_h, :first, :last, params[:age_group]), include_blank: 'All Ages', class: 'select2', style: 'width: 100%;')
+          - options = options_from_collection_for_select(GrdaWarehouse::Hud::Client.ahar_age_groups.map{|k,r| [k,r[:name]]}.to_h, :first, :last, params[:age_group])
+          = render 'inputs/select', field_name: :age_group, label: 'Age Group', options: options, html_options: { include_blank: 'All Ages' }
 
       .o-filtration__option
         .checkbox
@@ -53,8 +53,8 @@
 
       .o-filtration__option.row
         .col-sm-8
-          %label Population
-          = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params[:population]), class: 'select2', style: 'width: 100%;')
+          - options = options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params[:population])
+          = render 'inputs/select', field_name: :population, label: 'Population', options: options
 
       .o-filtration__actions.form__actions
         = link_to clients_path, class:'btn btn-secondary' do

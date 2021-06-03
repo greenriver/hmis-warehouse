@@ -10,7 +10,7 @@
 = simple_form_for @signature_request, as: :signature_request, url: @form_url do |f|
   .row
     .col-sm-8
-      = f.input :team_member_id, collection: @available_team_members, required: true, label: 'Accountable Care Organization (ACO) Contact ', input_html: {class: :select2, style: 'width: 100%;'}
+      = f.input :team_member_id, collection: @available_team_members, required: true, label: 'Accountable Care Organization (ACO) Contact ', input_html: {style: 'width: 100%;'}, as: :select_two
   = link_to polymorphic_path([:new] + team_member_path_generator, {client_id: @client.id}), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true} do
     %span.icon-plus
     Add Team Member
@@ -18,7 +18,3 @@
     = link_to polymorphic_path(careplans_path_generator, {client_id: @client.id, careplan_id: @careplan.id}), class: ['ml-auto', 'btn', 'btn-secondary'] do
       Cancel
     = f.submit 'Send to ACO', class: ['btn', 'btn-primary', 'ml-2']
-
-= content_for :page_js do
-  :javascript
-    $('.select2').select2();

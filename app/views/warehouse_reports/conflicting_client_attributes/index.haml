@@ -7,7 +7,7 @@
   - content_for :filters_col_full do
     .row
       .col-sm-4
-        = f.input :attribute, collection: attributes, selected: @attribute_name, input_html: { class: :select2 }
+        = f.input :attribute, collection: attributes, selected: @attribute_name, as: :select_two
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Update View'

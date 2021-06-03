@@ -1,0 +1,65 @@
+report = @report
+wb = xlsx_package.workbook
+measures = ClaimsReporting::QualityMeasuresReport::AVAILABLE_MEASURES
+wb.add_worksheet(name: 'Summary') do |sheet|
+  heading = sheet.styles.add_style(
+    sz: 12,
+    b: true,
+    bg_color: '66666666',
+    fg_color: 'FFFFFFFF',
+    alignment: { horizontal: :left, vertical: :top, wrap_text: true },
+  )
+  pct = sheet.styles.add_style(
+    sz: 14,
+    num_fmt: Axlsx::NUM_FMT_PERCENT,
+    alignment: { horizontal: :left, vertical: :top, wrap_text: true },
+  )
+  count = sheet.styles.add_style(
+    sz: 14,
+    format_code: '#,###',
+    alignment: { horizontal: :left, vertical: :top, wrap_text: true },
+  )
+  text = sheet.styles.add_style(
+    sz: 12,
+    alignment: { horizontal: :left, vertical: :top, wrap_text: true },
+  )
+
+  row = ['Measure']
+  styles = [heading]
+  report.years.each do |year|
+    row.concat [year.to_s, '', '']
+    styles.concat [heading, heading, heading]
+  end
+  # row.concat ['ID']
+  # styles.concat [heading]
+  sheet.add_row row, style: styles
+
+  row = ['']
+  styles = [heading]
+  report.years.each do |_year|
+    row.concat ['Value', 'Numerator', 'Denominator']
+    styles.concat [heading, heading, heading]
+  end
+  # row.concat ['']
+  # styles.concat [heading]
+  sheet.add_row row, style: styles
+
+  measures.each do |measure_id, info|
+    row = ["#{info.title}\n\n#{info.desc}".strip]
+    styles = [text]
+    report.years.each do |year|
+      data = report.measure_value(year, measure_id)
+      row.concat [data[:value], data[:numerator], data[:denominator]]
+      if data[:value] && data[:numerator]
+        styles.concat [pct, count, count]
+      else
+        styles.concat [count, nil, nil]
+      end
+    end
+    # row.concat [info.id]
+    # styles.concat [text]
+    sheet.add_row row, style: styles
+  end
+
+  sheet.column_widths 80, *1000.times.map { |_| 14 }
+end
