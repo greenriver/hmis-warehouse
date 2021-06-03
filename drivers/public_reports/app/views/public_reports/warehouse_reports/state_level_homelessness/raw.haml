@@ -29,4 +29,6 @@
 %h3 Who is experiencing homelessness?
 = render 'slider', data: data['quarters']
 
-= render 'location_chart', data: data['location_chart']
+.d-flex
+  = render 'location_chart', data: data['location_chart']
+  = render 'household_type', data: data['household_type']

@@ -5,11 +5,13 @@
 ###
 
 # require 'get_process_mem'
+require 'memoist'
 module PublicReports
   class StateLevelHomelessness < ::PublicReports::Report
     include ActionView::Helpers::TextHelper
     include ActionView::Helpers::NumberHelper
     include GrdaWarehouse::UsCensusApi::Aggregates
+    extend Memoist
     acts_as_paranoid
 
     MIN_THRESHOLD = 10
@@ -66,10 +68,10 @@ module PublicReports
         pit_chart: pit_chart,
         inflow_outflow: inflow_outflow,
         location_chart: location_chart,
+        household_type: household_type,
         # overall_homeless_map: overall_homeless_map,
         # population_homeless_maps: population_homeless_maps,
-        # housing_status: housing_status,
-        # household_type: household_type,
+
         # race_chart: race_chart,
         # housing_status_breakdowns: housing_status_breakdowns,
       }.to_json
@@ -242,6 +244,82 @@ module PublicReports
         end
       end
     end
+
+    private def household_type
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+          total = adult_only_household_ids(start_date, end_date).count + adult_and_child_household_ids(start_date, end_date).count + child_only_household_ids(start_date, end_date).count
+          charts[date.iso8601] = {
+            data: [
+              ['Adult Only', adult_only_household_ids(start_date, end_date).count],
+              ['Adults with Children', adult_and_child_household_ids(start_date, end_date).count],
+              ['Children-Only Households', child_only_household_ids(start_date, end_date).count],
+            ],
+            total: pluralize(number_with_delimiter(total), 'Household'),
+          }
+        end
+      end
+    end
+
+    private def households(start_date, end_date)
+      households = {}
+      counted_ids = Set.new
+      shs_scope = GrdaWarehouse::ServiceHistoryService.where(date: start_date..end_date)
+      homeless_scope.with_service_between(
+        start_date: start_date,
+        end_date: end_date,
+        service_scope: shs_scope,
+      ).
+        joins(:service_history_services).
+        merge(shs_scope).
+        order(shs_t[:date].asc).
+        pluck(cl(she_t[:household_id], she_t[:enrollment_group_id]), shs_t[:age], shs_t[:client_id]).
+        each do |hh_id, age, client_id|
+          next if age.blank? || age.negative?
+
+          key = [hh_id, client_id]
+          households[hh_id] ||= []
+          households[hh_id] << age unless counted_ids.include?(key)
+          counted_ids << key
+        end
+      households
+    end
+    memoize :households
+
+    private def adult_and_child_household_ids(start_date, end_date)
+      adult_and_child_households = Set.new
+      households(start_date, end_date).each do |hh_id, household|
+        child_present = household.any? { |age| age < 18 }
+        adult_present = household.any? { |age| age >= 18 }
+        adult_and_child_households << hh_id if child_present && adult_present
+      end
+      adult_and_child_households
+    end
+    memoize :adult_and_child_household_ids
+
+    private def child_only_household_ids(start_date, end_date)
+      child_only_households = Set.new
+      households(start_date, end_date).each do |hh_id, household|
+        child_present = household.any? { |age| age < 18 }
+        adult_present = household.any? { |age| age >= 18 }
+        child_only_households << hh_id if child_present && ! adult_present
+      end
+      child_only_households
+    end
+    memoize :child_only_household_ids
+
+    private def adult_only_household_ids(start_date, end_date)
+      adult_only_household_ids = Set.new
+      households(start_date, end_date).each do |hh_id, household|
+        child_present = household.any? { |age| age < 18 }
+        # Include clients of unknown age
+        adult_only_household_ids << hh_id unless child_present
+      end
+      adult_only_household_ids
+    end
+    memoize :adult_only_household_ids
 
     private def total_for(scope, population)
       count = scope.select(:client_id).distinct.count
