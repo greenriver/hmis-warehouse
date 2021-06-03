@@ -1555,21 +1555,23 @@ module ClaimsReporting
 
         if value
           selected_rows = rows_for_measure(measure_rows, measure_id)
-          expected_value = 0
+          expected_count = 0
           variance = 0
           selected_rows.each do |row|
             # Note: The confusing names are in the spec
             # > The Count of Expected Readmissions is the sum of the Estimated Readmission Risk calculated in step 6 for each IHS
-            expected_value += row.expected_value if row.expected_value
+            expected_count += row.expected_value if row.expected_value
             # > Calculate the total (sum) variance for each age group.
             variance += row.variance if row.variance
           end
 
           # > Expected Readmission Rate:
           # > The Count of Expected 30-Day Readmissions divided by the Count of Index Stays
-          expected_count = expected_value / denominator
+          # The spec says devided by the math only makes sense if you multiply
+          expected_value = expected_count / denominator
 
-          # > O/E Ratio: The Count of Observed 30-Day Readmissions divided by the Count of Expected 30-Day Readmissions calculated by IDSS.
+          # > O/E Ratio: The Count of Observed 30-Day Readmissions
+          # > divided by the Count of Expected 30-Day Readmissions calculated by IDSS.
           oe_ratio = numerator.to_f / expected_count if expected_count.positive?
         else
           expected_value = nil
