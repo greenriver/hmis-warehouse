@@ -69,10 +69,9 @@ module PublicReports
         inflow_outflow: inflow_outflow,
         location_chart: location_chart,
         household_type: household_type,
+        race_chart: race_chart,
         # overall_homeless_map: overall_homeless_map,
         # population_homeless_maps: population_homeless_maps,
-
-        # race_chart: race_chart,
         # housing_status_breakdowns: housing_status_breakdowns,
       }.to_json
     end
@@ -258,6 +257,68 @@ module PublicReports
               ['Children-Only Households', child_only_household_ids(start_date, end_date).count],
             ],
             total: pluralize(number_with_delimiter(total), 'Household'),
+          }
+        end
+      end
+    end
+
+    private def race_chart
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+          client_ids = Set.new
+          client_cache = GrdaWarehouse::Hud::Client.new
+          data = {}
+          census_data = {}
+          # Add census info
+          ::HUD.races(multi_racial: true).each do |race_code, label|
+            census_data[label] = 0
+            data[::HUD.race(race_code, multi_racial: true)] ||= Set.new
+            year = date.year
+            full_pop = get_us_census_population(year: year)
+            census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop.positive?
+          end
+
+          scope = homeless_scope.with_service_between(
+            start_date: start_date,
+            end_date: end_date,
+          )
+          all_destination_ids = scope.distinct.pluck(:client_id)
+          scope.joins(:client).preload(:client).
+            order(first_date_in_program: :desc). # Use the newest start
+            find_each do |enrollment|
+              client = enrollment.client
+              race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
+              data[::HUD.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
+              client_ids << client.id
+            end
+          total_count = data.map { |_, ids| ids.count }.sum
+          # Format:
+          # [["Black or African American",38, 53],["White",53, 76],["Native Hawaiian or Other Pacific Islander",1, 12],["Multi-Racial",4, 10],["Asian",1, 5],["American Indian or Alaska Native",1, 1]]
+          combined_data = data.map do |race, ids|
+            label = if race == 'None'
+              'Unknown'
+            else
+              race
+            end
+            [
+              label,
+              ids.count / total_count.to_f, # Homeless Data
+              census_data[race], # Federal Census Data
+            ]
+          end
+          charts[date.iso8601] = {
+            # then the title for the tooltip needs to be adjusted for 0, 1 where 0 is homeless population, 1 is whole population
+            # data for census population is stored in GrdaWarehouse::FederalCensusBreakdowns:Coc
+            # get distinct on max date prior to date in question with identifier and measure
+            # use distinct ProjectCoC.CoCCodes to determine the scope for census data
+            # sum value after getting appropriate set of rows
+            # add index on [accurate_on, identifier, type, measure]
+            data: combined_data,
+            title: _('Racial Composition'),
+            total: total_for(scope, nil),
+            categories: ['Homeless Population', 'Overall Population'],
           }
         end
       end
