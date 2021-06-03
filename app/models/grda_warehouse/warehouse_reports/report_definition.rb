@@ -905,6 +905,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:data_source_report)
+        r_list['Operational'] << {
+          url: 'data_source_report/warehouse_reports/reports',
+          name: 'Data Source Report',
+          description: 'Details of Data Sources',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:disability_summary)
         r_list['Operational'] << {
           url: 'disability_summary/warehouse_reports/disability_summary',
@@ -1091,6 +1100,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
       cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
       cleanup << 'destination_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:destination_report)
+      cleanup << 'data_source_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:data_source_report)
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       unless RailsDrivers.loaded.include?(:public_reports)
