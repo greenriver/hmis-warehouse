@@ -1,4 +1,4 @@
-- @data.each do |org_name, projects|
+- @data.each do |(o_id, org_name), projects|
   %optgroup{label: org_name}
     - projects.each do |name, id, selected|
       - if selected

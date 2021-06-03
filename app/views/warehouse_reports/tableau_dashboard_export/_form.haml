@@ -2,7 +2,7 @@
   - content_for :filters_col_l do
     .row
       .col-sm-6
-        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), include_blank: "CoC Code (All)", required: false, label: false, input_html: { class: 'select2' }
+        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), include_blank: "CoC Code (All)", required: false, label: false, as: :select_two
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue report'

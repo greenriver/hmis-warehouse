@@ -118,7 +118,7 @@ gem 'htmlentities'
 # gem 'jquery-datatables-rails'
 # gem 'bootstrap4-datetime-picker-rails'
 gem 'bootstrap3-datetimepicker-rails', '~> 4.17.42'
-gem 'stimulusjs-rails', '~> 1.1.1'
+# gem 'stimulusjs-rails', '~> 1.1.1'
 
 # ETO API related
 gem 'rest-client', '~> 2.0'

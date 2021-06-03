@@ -20,12 +20,12 @@
           = f.input :phone
       .row
         .col-sm-10
-          = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, include_blank: true, input_html: { class: :select2 }, required: true
+          = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, include_blank: true, as: :select_two, required: true
       - if @user.two_factor_enabled?
         .row
           .col-sm-8
             %p This user has enabled Two-Factor authentication.  If this is preventing login, you can turn it off below.  Before you do, you should ensure the request is coming from the actual user.  Once off, the user will need to re-enable it.
-            = f.input :otp_required_for_login, as: :select, label: 'Require two-factor authentication', include_blank: false, input_html: {class: [:select2, :j2Fa]}
+            = f.input :otp_required_for_login, as: :select, label: 'Require two-factor authentication', include_blank: false, input_html: {class: [:j2Fa]}, as: :select_two
 
   .col-sm-6
     .form--checkbox-groups

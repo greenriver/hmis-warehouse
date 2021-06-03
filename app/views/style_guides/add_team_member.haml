@@ -1,8 +1,9 @@
+= render 'breadcrumbs'
 - content_for :modal_title, 'Add a Team Member'
 
 = simple_form_for('') do |f|
   %p TODO: Should organization really be a required field? If so, remove the hint I added. :)
-  = f.input :type, label: 'Category of Team Member', input_html: {class: 'select2'}
+  = f.input :type, label: 'Category of Team Member', as: :select_two
   = f.input :first_name, label: 'First Name'
   = f.input :last_name, label: 'Last Name'
   = f.input :title, label: 'Role', hint: 'PCP, RN or Family Member, Specialist etc.'

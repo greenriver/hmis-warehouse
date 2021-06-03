@@ -36,7 +36,7 @@
       .col-sm-4
         = f.input :nickname
       .col-sm-4
-        = f.input :language_answer, collection: @vispdat.class.language_options, label: "Language", input_html: { class: 'select2' }
+        = f.input :language_answer, collection: @vispdat.class.language_options, label: "Language", as: :select_two
     .row
       .col-sm-12
         %h3 Consent Form

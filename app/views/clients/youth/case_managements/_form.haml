@@ -1,7 +1,7 @@
 
 = f.input :engaged_on, as: :date_picker, label: 'Engagement Date'
 = f.input :activity, label: 'Case Management Notes', as: :text, input_html: {rows: 10}
-= f.input :housing_status, collection: @entity.class.youth_housing_status_options, label: "Youth Housing Status Check Up", input_html: { class: [:select2, 'jHousingStatus'] }
+= f.input :housing_status, collection: @entity.class.youth_housing_status_options, label: "Youth Housing Status Check Up", input_html: { class: ['jHousingStatus'] }, as: :select_two
 .jOtherHousingStatus
   = f.input :other_housing_status, hidden: true
 .jZipCode
@@ -10,7 +10,6 @@
 - content_for :page_js do
   :javascript
     $(function() {
-      $('.select2').select2();
       $('.jHousingStatus').change(function() {
         if ($('.jHousingStatus').val() == "Other:") {
           $('.jOtherHousingStatus').show()

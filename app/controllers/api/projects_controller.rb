@@ -24,11 +24,12 @@ module Api
             :ProjectName,
             :computed_project_type,
             o_t[:OrganizationName],
-          ).each do |id, p_name, type, o_name|
+            o_t[:id],
+          ).each do |id, p_name, type, o_name, o_id|
             name = GrdaWarehouse::Hud::Project.confidentialize(name: p_name)
             name = p_name if can_view_confidential_enrollment_details?
-            @data[o_name] ||= []
-            @data[o_name] << [
+            @data[[o_id, o_name]] ||= []
+            @data[[o_id, o_name]] << [
               "#{name} (#{HUD.project_type_brief(type)})",
               id,
               selected_project_ids.include?(id),
@@ -48,7 +49,7 @@ module Api
       formatted = {
         results: [],
       }
-      data.each do |org_name, projects|
+      data.each do |(_, org_name), projects|
         group = {
           text: org_name,
           children: [],
