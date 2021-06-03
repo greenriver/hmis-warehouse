@@ -89,7 +89,8 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
       this.selectAll()
     } else {
       this.hideAllCategories()
-      el.classList.add(ACTIVE_CLASS)
+      el.classList.add(this.ACTIVE_CLASS)
+      el.setAttribute('aria-pressed', true)
     }
     showOrHideElement(category === ALL_KEY, this.searchAllTarget)
 
@@ -112,6 +113,7 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
   hideAllCategories() {
     this.categoryTargets.forEach(el => {
       el.classList.remove(this.ACTIVE_CLASS)
+      el.setAttribute('aria-pressed', false)
     })
   }
 

@@ -25,12 +25,13 @@
       .c-list-search__filtration-nav-wrapper
         .c-list-search__list-group-header.c-list-search__list-group-header--static
           %h3.c-list-search__group-title Report Categories
-        %ul
+        .list-search__button-wrapper
           - base_data = {action: "click->#{stimulus_controller}#changeCategory keydown->#{stimulus_controller}#keyboardChangeCategory", target: "#{stimulus_controller}.category"}
-          - a11y_options = {tabindex: 0, aria:{controls: 'list-search__list'}}
-          %li.active{data: base_data.merge(category:'all'), **a11y_options} All Reports
+          - def a11y_options(pressed)
+            - {tabindex: 0, aria:{controls: 'list-search__list', pressed: pressed}}
+          %button{data: base_data.merge(category:'all'), **a11y_options('true')} All Reports
           - definitions_with_recents.each do |(category_name, reports)|
-            %li{data: base_data.merge(category:category_name, hash:category_name.parameterize), **a11y_options}= category_name
+            %button{data: base_data.merge(category:category_name, hash:category_name.parameterize), **a11y_options('false')}= category_name
     .mb-4.c-list-search__list#list-search__list{data: {target: "#{stimulus_controller}.results"}}
       - definitions_with_recents.each_with_index do |(group_name, reports), index|
         - dashed_group_name = group_name.parameterize.dasherize
