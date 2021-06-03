@@ -8,6 +8,7 @@ module HapReport
   class Report < SimpleReports::ReportInstance
     include Rails.application.routes.url_helpers
     include Queries
+    include Reporting::Status
     after_initialize :set_attributes
 
     HAP_FUNDING = 'HAP Funded'.freeze
@@ -16,7 +17,7 @@ module HapReport
     validates_presence_of :start_date, :end_date, :project_ids
 
     def run_and_save!
-      update(status: :processing)
+      start
       create_universe
       report_labels.values.each do |sections|
         sections.values.each do |row_scope|
@@ -36,7 +37,15 @@ module HapReport
           end
         end
       end
-      update(status: :completed)
+      complete
+    end
+
+    def start
+      update(started_at: Time.current)
+    end
+
+    def complete
+      update(completed_at: Time.current)
     end
 
     def title

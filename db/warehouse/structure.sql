@@ -13078,7 +13078,9 @@ CREATE TABLE public.simple_report_instances (
     deleted_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    status character varying
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone
 );
 
 
@@ -30149,6 +30151,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210526182148'),
 ('20210527140359'),
 ('20210601135719'),
-('20210601173704');
+('20210601173704'),
+('20210603121547');
 
 

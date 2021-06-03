@@ -1,10 +1,10 @@
-.warehouse-reports__ad_hoc-export
+.warehouse-reports__hap-report
   - if @reports.exists?
     .d-flex
       %p= page_entries_info @reports, entry_name: _('report')
       %p.ml-auto= paginate @reports
-    .table-responsive
-      %table.table.table-sm.table-hover
+    .card
+      %table.table.table-striped.mb-0
         %thead
           %tr
             %th Status

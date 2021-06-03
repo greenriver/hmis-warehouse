@@ -5,12 +5,12 @@
   = @cell
 
 .overflow-x-scroll{style: "height: 800px"}
-  %table.table.table-sm.table-striped
+  %table.table.table-sm.table-bordered.table-fixed
     - attributes = @members.first.universe_membership.attribute_names - ['id', 'deleted_at', 'created_at', 'updated_at']
-    %thead
+    %thead.thead-dark
       - (['first_name', 'last_name'] + attributes).each do |name|
         %th= name.humanize
-    %tbody
+    %tbody.thead-dark
       - @members.each do |member|
         %tr
           %td= member[:first_name]
