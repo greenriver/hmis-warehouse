@@ -207,13 +207,19 @@ module ClaimsReporting
           end
         end
       end
-      record_complete(successful: true, status_message: '')
+
+      results[:post_import_hook] = { started_at: Time.current }
+      record_progress results
+      run_post_import_hook(file_filter)
+      results[:post_import_hook][:completed_at] = Time.current
+      record_progress results
+
       import.update!(
         completed_at: Time.current,
         results: results,
         successful: true,
       )
-      run_post_import_hook(file_filter)
+
       results
     rescue Interrupt
       record_complete(successful: false, status_message: 'Aborted')
