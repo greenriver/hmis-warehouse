@@ -99,7 +99,6 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
   }
 
   keyboardChangeCategory( e ) {
-    console.log(e)
     if ( e.keyCode == 13 ) {
       this.changeCategory( e )
     }
