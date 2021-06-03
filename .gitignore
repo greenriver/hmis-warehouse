@@ -28,6 +28,7 @@ docker-compose.override.yml
 !/.gitignore
 !/.overcommit.yml
 !/.rubocop.yml
+!/.rubocop_todo.yml
 !/.github
 !/.env.test
 !/.eslintrc.js
