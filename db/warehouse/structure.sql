@@ -5527,6 +5527,52 @@ ALTER SEQUENCE public.group_viewable_entities_id_seq OWNED BY public.group_viewa
 
 
 --
+-- Name: hap_report_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hap_report_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    age integer,
+    emancipated boolean,
+    head_of_household boolean,
+    household_ids character varying[],
+    project_types integer[],
+    veteran boolean,
+    mental_health boolean,
+    substance_use_disorder boolean,
+    domestic_violence boolean,
+    income_at_start integer,
+    income_at_exit integer,
+    homeless boolean,
+    nights_in_shelter integer,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    head_of_household_for character varying[]
+);
+
+
+--
+-- Name: hap_report_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hap_report_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hap_report_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hap_report_clients_id_seq OWNED BY public.hap_report_clients.id;
+
+
+--
 -- Name: health_emergency_ama_restrictions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -12986,6 +13032,115 @@ ALTER SEQUENCE public.shape_zip_codes_id_seq OWNED BY public.shape_zip_codes.id;
 
 
 --
+-- Name: simple_report_cells; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.simple_report_cells (
+    id bigint NOT NULL,
+    report_instance_id bigint,
+    name character varying,
+    universe boolean DEFAULT false,
+    summary integer,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: simple_report_cells_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.simple_report_cells_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: simple_report_cells_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.simple_report_cells_id_seq OWNED BY public.simple_report_cells.id;
+
+
+--
+-- Name: simple_report_instances; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.simple_report_instances (
+    id bigint NOT NULL,
+    type character varying,
+    options json,
+    user_id bigint,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone
+);
+
+
+--
+-- Name: simple_report_instances_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.simple_report_instances_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: simple_report_instances_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.simple_report_instances_id_seq OWNED BY public.simple_report_instances.id;
+
+
+--
+-- Name: simple_report_universe_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.simple_report_universe_members (
+    id bigint NOT NULL,
+    report_cell_id bigint,
+    universe_membership_type character varying,
+    universe_membership_id bigint,
+    client_id bigint,
+    first_name character varying,
+    last_name character varying,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: simple_report_universe_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.simple_report_universe_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: simple_report_universe_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.simple_report_universe_members_id_seq OWNED BY public.simple_report_universe_members.id;
+
+
+--
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14624,6 +14779,13 @@ ALTER TABLE ONLY public.group_viewable_entities ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: hap_report_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hap_report_clients ALTER COLUMN id SET DEFAULT nextval('public.hap_report_clients_id_seq'::regclass);
+
+
+--
 -- Name: health_emergency_ama_restrictions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -15828,6 +15990,27 @@ ALTER TABLE ONLY public.shape_zip_codes ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: simple_report_cells id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_cells ALTER COLUMN id SET DEFAULT nextval('public.simple_report_cells_id_seq'::regclass);
+
+
+--
+-- Name: simple_report_instances id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_instances ALTER COLUMN id SET DEFAULT nextval('public.simple_report_instances_id_seq'::regclass);
+
+
+--
+-- Name: simple_report_universe_members id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_universe_members ALTER COLUMN id SET DEFAULT nextval('public.simple_report_universe_members_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16673,6 +16856,14 @@ ALTER TABLE ONLY public.grades
 
 ALTER TABLE ONLY public.group_viewable_entities
     ADD CONSTRAINT group_viewable_entities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hap_report_clients hap_report_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hap_report_clients
+    ADD CONSTRAINT hap_report_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -17641,6 +17832,30 @@ ALTER TABLE ONLY public.shape_states
 
 ALTER TABLE ONLY public.shape_zip_codes
     ADD CONSTRAINT shape_zip_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: simple_report_cells simple_report_cells_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_cells
+    ADD CONSTRAINT simple_report_cells_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: simple_report_instances simple_report_instances_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_instances
+    ADD CONSTRAINT simple_report_instances_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: simple_report_universe_members simple_report_universe_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.simple_report_universe_members
+    ADD CONSTRAINT simple_report_universe_members_pkey PRIMARY KEY (id);
 
 
 --
@@ -22386,6 +22601,13 @@ CREATE INDEX index_grades_on_type ON public.grades USING btree (type);
 
 
 --
+-- Name: index_hap_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hap_report_clients_on_client_id ON public.hap_report_clients USING btree (client_id);
+
+
+--
 -- Name: index_health_emergency_ama_restrictions_on_agency_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -26831,6 +27053,34 @@ CREATE INDEX index_shsm_shse_id ON public.service_history_services_materialized 
 
 
 --
+-- Name: index_simple_report_cells_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_cells_on_report_instance_id ON public.simple_report_cells USING btree (report_instance_id);
+
+
+--
+-- Name: index_simple_report_instances_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_instances_on_user_id ON public.simple_report_instances USING btree (user_id);
+
+
+--
+-- Name: index_simple_report_universe_members_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_universe_members_on_client_id ON public.simple_report_universe_members USING btree (client_id);
+
+
+--
+-- Name: index_simple_report_universe_members_on_report_cell_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_universe_members_on_report_cell_id ON public.simple_report_universe_members USING btree (report_cell_id);
+
+
+--
 -- Name: index_staff_x_client_s_id_c_id_r_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27377,6 +27627,13 @@ CREATE UNIQUE INDEX shs_unique_date_she_id ON public.service_history_services US
 
 
 --
+-- Name: simple_report_univ_type_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX simple_report_univ_type_and_id ON public.simple_report_universe_members USING btree (universe_membership_type, universe_membership_id);
+
+
+--
 -- Name: site_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27419,10 +27676,24 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 
 
 --
+-- Name: test_shs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX uniq_hud_report_universe_members ON public.hud_report_universe_members USING btree (report_cell_id, universe_membership_id, universe_membership_type) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: uniq_simple_report_universe_members; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_universe_members USING btree (report_cell_id, universe_membership_id, universe_membership_type) WHERE (deleted_at IS NULL);
 
 
 --
@@ -29868,11 +30139,19 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210428193540'),
 ('20210503165055'),
 ('20210505010944'),
+('20210507180711'),
+('20210507180738'),
+('20210507180809'),
+('20210510182341'),
 ('20210513185514'),
 ('20210514154843'),
 ('20210515142741'),
 ('20210517144348'),
 ('20210520184416'),
-('20210601135719');
+('20210526182148'),
+('20210527140359'),
+('20210601135719'),
+('20210601173704'),
+('20210603121547');
 
 

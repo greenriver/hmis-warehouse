@@ -73,6 +73,10 @@ module ServiceHistoryServiceConcern
       service_within_date_range(start_date: years.years.ago.to_date, end_date: Date.current)
     end
 
+    scope :bed_night, -> do
+      where(service_type: 200)
+    end
+
     def self.service_types
       service_types = ['service']
       service_types << 'extrapolated' if GrdaWarehouse::Config.get(:so_day_as_month)
