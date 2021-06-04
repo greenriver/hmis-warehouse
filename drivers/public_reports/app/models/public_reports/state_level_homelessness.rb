@@ -70,7 +70,7 @@ module PublicReports
         location_chart: location_chart,
         household_type: household_type,
         race_chart: race_chart,
-        # overall_homeless_map: overall_homeless_map,
+        need_map: need_map,
         # population_homeless_maps: population_homeless_maps,
         # housing_status_breakdowns: housing_status_breakdowns,
       }.to_json
@@ -324,6 +324,68 @@ module PublicReports
       end
     end
 
+    private def need_map
+      {
+        homeless_map: homeless_map,
+        youth_homeless_map: youth_homeless_map,
+        adults_homeless_map: adults_homeless_map,
+        adults_with_children_homeless_map: adults_with_children_homeless_map,
+        veterans_homeless_map: veterans_homeless_map,
+      }
+    end
+
+    private def population_by_coc
+      @population_by_coc ||= {}.tap do |charts|
+        quarter_dates.map(&:year).uniq.each do |year|
+          charts[year] = {}
+          geometries.each do |coc|
+            charts[year][coc.cocnum] = coc.population(internal_names: ALL_PEOPLE, year: year).val
+          end
+        end
+      end
+    end
+
+    # Counts and rate of homeless individuals by CoC
+    private def homeless_map
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+          charts[date.iso8601] = {}
+          coc_codes.each do |coc_code|
+            count = homeless_scope.with_service_between(
+              start_date: start_date,
+              end_date: end_date,
+            ).in_coc(coc_code: coc_code).count
+            count = 10 if count < 10
+            # rate per 10,000
+            rate = count / population_by_coc[date.year][coc_code].to_f / 10_000
+            charts[date.iso8601][coc_code] = {
+              count: count,
+              rate: rate,
+            }
+          end
+        end
+      end
+    end
+
+    private def youth_homeless_map
+
+    end
+
+    private def adults_homeless_map
+
+    end
+
+    private def adults_with_children_homeless_map
+
+    end
+
+    private def veterans_homeless_map
+
+    end
+
+
     private def households(start_date, end_date)
       households = {}
       counted_ids = Set.new
@@ -433,18 +495,7 @@ module PublicReports
     end
 
     private def coc_codes
-      scope = filter_for_range(report_scope)
-
-      @coc_codes ||= begin
-        result = scope.joins(project: :project_cocs).distinct.
-          pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
-            override.presence || original
-          end
-        reasonable_cocs_count = GrdaWarehouse::Shape::CoC.my_state.where(cocnum: result).count
-        result = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
-
-        result
-      end
+      @coc_codes ||= GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum)
     end
   end
 end
