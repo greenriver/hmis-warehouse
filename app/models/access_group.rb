@@ -53,6 +53,10 @@ class AccessGroup < ApplicationRecord
     end
   end
 
+  def general?
+    user_id.blank?
+  end
+
   def add(users)
     self.users = (self.users + Array.wrap(users)).uniq
   end

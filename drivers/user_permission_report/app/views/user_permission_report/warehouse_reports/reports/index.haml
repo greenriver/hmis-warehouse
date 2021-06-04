@@ -1,0 +1,57 @@
+:scss
+  .user-permission-report td ul {
+    padding-left: 0;
+    margin-left: 1em;
+  }
+:ruby
+  title = _('User Permission Report')
+  content_for :title, title
+
+= render 'warehouse_reports/breadcrumbs', tab: 'operational'
+
+.o-page
+  .o-page__header
+    - @prompt = t '.search_prompt'
+
+    .o-page__controls
+      .o-page__search
+        = render 'search_form', tooltip: 'Search on a user\'s first name, last name or email address', aria: { label: 'User Search' }, data: {placement: 'bottom'}
+
+.row
+  .col-sm-8
+    %h1= content_for :title
+
+- if @users.any?
+  .d-flex
+    %p= page_entries_info @users, entry_name: _('user')
+    %p.ml-auto= paginate @users
+  .card.user-permission-report
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-fixed.table-striped
+        %thead
+          %th Name
+          %th Roles
+          %th Access Groups
+          - @group_associations.each do |ga|
+            %th= ga.to_s.humanize.titleize
+        %tbody
+          - @users.each do |user|
+            %tr
+              %td
+                = link_to_if can_edit_users?, user.name_with_email, edit_admin_user_path(user)
+              %td
+                %ul
+                  - user.roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.each do |i|
+                    %li= i
+              %td
+                %ul
+                  - user.access_groups.map{|g| next unless g.general?; link_to_if can_edit_access_groups?, g.name, edit_admin_group_path(g)}.compact.each do |i|
+                    %li= i
+              - @group_associations.each do |ga|
+                %td
+                  %ul
+                    - associated_items(user, ga).each do |i|
+                      %li= i
+  %p= paginate @users
+- else
+  %p.none-found
