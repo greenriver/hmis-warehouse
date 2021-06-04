@@ -1,7 +1,5 @@
 = render 'chart_css'
 - data = JSON.parse(@report.precalculated_data)
-= debug data
-
 
 %h3 Homeless Households
 = number_with_delimiter(data['summary']['homeless_households'])

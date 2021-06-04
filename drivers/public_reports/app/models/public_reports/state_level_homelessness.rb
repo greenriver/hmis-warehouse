@@ -115,6 +115,14 @@ module PublicReports
       dates
     end
 
+    def map_shapes
+      GrdaWarehouse::Shape.geo_collection_hash(state_coc_shapes)
+    end
+
+    private def state_coc_shapes
+      GrdaWarehouse::Shape::CoC.my_state
+    end
+
     private def summary
       date = pit_counts.map(&:first).last
       start_date = date.beginning_of_year
@@ -347,13 +355,39 @@ module PublicReports
 
     # Counts and rate of homeless individuals by CoC
     private def homeless_map
+      census_comparison(homeless_scope)
+    end
+
+    private def youth_homeless_map
+      @filter = filter_object.deep_dup
+      @filter.age_ranges = [:eighteen_to_twenty_four]
+      scope = filter_for_age(homeless_scope)
+      census_comparison(scope)
+    end
+
+    private def adults_homeless_map
+      scope = homeless_scope.adult_only_households
+      census_comparison(scope)
+    end
+
+    private def adults_with_children_homeless_map
+      scope = homeless_scope.adults_with_children
+      census_comparison(scope)
+    end
+
+    private def veterans_homeless_map
+      scope = homeless_scope.veterans
+      census_comparison(scope)
+    end
+
+    private def census_comparison(scope)
       {}.tap do |charts|
         quarter_dates.each do |date|
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
           charts[date.iso8601] = {}
           coc_codes.each do |coc_code|
-            count = homeless_scope.with_service_between(
+            count = scope.with_service_between(
               start_date: start_date,
               end_date: end_date,
             ).in_coc(coc_code: coc_code).count
@@ -368,23 +402,6 @@ module PublicReports
         end
       end
     end
-
-    private def youth_homeless_map
-
-    end
-
-    private def adults_homeless_map
-
-    end
-
-    private def adults_with_children_homeless_map
-
-    end
-
-    private def veterans_homeless_map
-
-    end
-
 
     private def households(start_date, end_date)
       households = {}

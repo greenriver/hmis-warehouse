@@ -1,0 +1,20 @@
+.d-flex
+  .w-50
+    %h4 All Homeless Individuals
+    .jQuarterChosenDate
+    #all-homeless-map
+  .w-50
+    #comparison-map
+
+- # include the map class directly
+= render 'map_js'
+
+
+:javascript
+  (function() {
+    const map = new CocMap({
+      elementId: "#all-homeless-map",
+      shapes: #{@report.map_shapes.to_json.html_safe},
+    })
+  }).call(this);
+= debug data
