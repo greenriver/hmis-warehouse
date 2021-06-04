@@ -15,6 +15,7 @@
           %th Client Records
           %th Project Count
           %th Last Import Run
+          %th
       %tbody
         %tr
           %td Warehouse
@@ -34,3 +35,13 @@
                 .mt-2
                   %em
                     Enrollments remaining to process: #{data_source.unprocessed_enrollment_count}
+            %td
+              -# NOTE: this will only show the data source as stalled if the files were brought in by the system user
+              - if most_recently_completed.present?
+                - stall_date = data_source.stalled_since?(most_recently_completed)
+                - if stall_date
+                  .label.label-warning
+                    same file since: #{stall_date}
+              - if data_source.import_paused
+                .label.label-info
+                  import paused
