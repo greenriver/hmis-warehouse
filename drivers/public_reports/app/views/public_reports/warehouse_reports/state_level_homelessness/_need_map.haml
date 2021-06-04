@@ -2,9 +2,9 @@
   .w-50
     %h4 All Homeless Individuals
     .jQuarterChosenDate
-    #all-homeless-map
+    .state-map#all-homeless-map
   .w-50
-    #comparison-map
+    .state-map#comparison-map
 
 - # include the map class directly
 = render 'map_js'
@@ -12,8 +12,12 @@
 
 :javascript
   (function() {
-    const map = new CocMap({
-      elementId: "#all-homeless-map",
+    const homeless_map = new CocMap({
+      elementId: "all-homeless-map",
+      shapes: #{@report.map_shapes.to_json.html_safe},
+    })
+    const comparison_map = new CocMap({
+      elementId: "comparison-map",
       shapes: #{@report.map_shapes.to_json.html_safe},
     })
   }).call(this);
