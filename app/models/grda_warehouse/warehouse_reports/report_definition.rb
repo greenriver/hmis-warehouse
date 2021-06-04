@@ -909,7 +909,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Operational'] << {
           url: 'data_source_report/warehouse_reports/reports',
           name: 'Data Source Report',
-          description: 'Details of Data Sources',
+          description: 'Status and details of HMIS source data',
           limitable: true,
           health: false,
         }
