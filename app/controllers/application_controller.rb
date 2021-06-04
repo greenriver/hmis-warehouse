@@ -112,12 +112,11 @@ class ApplicationController < ActionController::Base
     super
   end
 
-  cattr_accessor :refresh_translations_after
   def possibly_reset_fast_gettext_cache
-    return unless refresh_translations_after.blank? || Time.current > refresh_translations_after
-
-    FastGettext.cache.reload!
-    ApplicationController.refresh_translations_after = Time.current + 4.hours
+    Rails.cache.fetch("translations_refreshed_at_for_#{set_hostname}", expires_in: 15.minutes) do
+      FastGettext.cache.reload!
+      Time.current
+    end
   end
 
   def _basic_auth
