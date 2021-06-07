@@ -17,6 +17,18 @@ require 'memoist'
 # Technical Assistance Resource
 # https://www.medicaid.gov/medicaid/quality-of-care/downloads/pcr-ta-resource.pdf
 # Both As of May 28, 2021
+
+
+# TODO: Calling this a Report is a misnomer now. Its really a bunch of calculators/classifiers
+# and some metadata for each.
+# When we next update this, we should move each measure and calculate_bh_cp* method to
+# separate classes for better code readability and test-ability.
+# There is some shared/reusable bits like continuously_enrolled_* and the
+# various date_ranges that could be mixed or passed in to each.
+# `#value_set_lookups` `#in_set?` and friends should move to the model in HL7:: namespace
+# with the VALUE_SETS constant as a constructor for it, since "Value Sets" and "Code Systems"
+# are useful concepts for all HL7-based medical coding.
+
 module ClaimsReporting
   class QualityMeasuresReport
     extend Memoist
@@ -26,6 +38,8 @@ module ClaimsReporting
     include HmisFilters
 
     # Base Range<Date> for this report. Some measures define derived ranges
+    # Most of the measures assume this is a Calendar year in their calculations
+    # and expectations around health insurance etc.
     attr_reader :date_range
 
     # The Measure#id s we want to calculate. Defaults to all AVAILABLE_MEASURES.keys
@@ -34,7 +48,7 @@ module ClaimsReporting
     # An optional ::Filters::QualityMeasuresFilter to apply to the data.
     attr_reader :filter
 
-    # This report is normally run against a plan year...
+    # This report is normally run against a medicaid plan year...
     def self.for_plan_year(year, **options)
       year = year.to_i
       new(
@@ -330,6 +344,7 @@ module ClaimsReporting
 
       e_t = scope.quoted_table_name
 
+
       scope = scope.where(
         ["#{e_t}.cp_enroll_dt <= :max and (#{e_t}.cp_disenroll_dt IS NULL OR #{e_t}.cp_disenroll_dt > :max)", {
           min: cp_enollment_date_range.min,
@@ -342,17 +357,14 @@ module ClaimsReporting
       scope
     end
 
+    # Members assigned to a BH CP on or between September 2nd of the year prior to the
+    # measurement year and September 1st of the measurement year.
     def cp_enollment_date_range
       # Handle "September"
-      # Members assigned to a BH CP on or between September 2nd of the year prior to the
-      # measurement year and September 1st of the measurement year.
-      #
       # The usually measurement year is Jan 1 - Dec 31 so we shift back by three named months and add a day
       (date_range.min << 4) + 1.day .. (date_range.max << 4) + 1.day
     end
-    memoize :cp_enollment_date_range
 
-    # Handle "September"
     # BH CP enrollees 18 years of age or older as of September 2nd of the year prior to
     # the measurement year and 64 years of age as of December 31st of the measurement year.
     def dob_range_1
@@ -487,10 +499,10 @@ module ClaimsReporting
 
         rows = []
         member = members_by_member_id[member_id]
+        enrollments = enrollments_by_member_id.fetch(member_id)
 
         if measures.include?(:bh_cp_1) || measures.include?(:bh_cp_2)
           date_of_birth = member.date_of_birth
-          enrollments = enrollments_by_member_id.fetch(member_id)
 
           assignment_date = enrollments.min_by(&:cp_enroll_dt).cp_enroll_dt
           completed_treatment_plans = claims.select(&:completed_treatment_plan?)
@@ -543,7 +555,6 @@ module ClaimsReporting
           rows.concat calculate_bh_cp_10(member, claims, rx_claims, enrollments)
         end
 
-        enrollments = enrollments_by_member_id.fetch(member_id)
         rows.concat calculate_bh_cp_13(member, claims, enrollments) if measures.include?(:bh_cp_13)
         rows
       end
@@ -1108,7 +1119,7 @@ module ClaimsReporting
       # - BH Stand Alone Acute Inpatient Value Set with...
       # - Visit Setting Unspecified Value Set with Acute Inpatient POS Value Set...
       if claims_with_dx.any? { |c| in_set?('BH Stand Alone Acute Inpatient', c) || (in_set?('Visit Setting Unspecified', c) && in_set?('Acute Inpatient POS', c)) }
-        puts 'BH_CP_10: At least one inpatient....'
+        # puts 'BH_CP_10: At least one inpatient....'
         return true
       end
 
@@ -1132,20 +1143,20 @@ module ClaimsReporting
 
       # > where both encounters have any diagnosis of schizophrenia or schizoaffective disorder (Schizophrenia Value Set)
       if visits.select { |c| in_set?('Schizophrenia', c) }.uniq(&:service_start_date).size >= 2
-        puts 'BH_CP_10: At least two Schizophrenia....'
+        # puts 'BH_CP_10: At least two Schizophrenia....'
         return true
       end
 
       # > or both encounters have any diagnosis of bipolar disorder (Bipolar Disorder Value Set; Other Bipolar Disorder Value Set).
       if visits.select { |c| in_set?('Bipolar Disorder', c) || in_set?('Other Bipolar Disorder', c) }.uniq(&:service_start_date).size >= 2
-        puts 'BH_CP_10: At least two Bipolar....'
+        # puts 'BH_CP_10: At least two Bipolar....'
         return true
       end
 
       return false
     end
 
-    private def diabetes?(_claims, rx_claims)
+    private def diabetes?(claims, rx_claims)
       # There are two ways to identify members with
       # diabetes: by claim/encounter data and by pharmacy data.  The
       # organization must use both methods to identify enrollees with
@@ -1154,23 +1165,43 @@ module ClaimsReporting
       # diabetes during the measurement year or the year prior to the
       # measurement year.
 
-      # TODO – Claim/encounter data. Enrollees who met at any of the following
+      # Claim/encounter data. Enrollees who met at any of the following
       # criteria during the measurement year or the year prior to the
       # measurement year (count services that occur over both years).
 
-      #   - At least one acute inpatient encounter (Acute Inpatient Value Set)
-      #   with a diagnosis of diabetes (Diabetes Value Set) without (Telehealth
-      #   Modifier Value Set; Telehealth POS Value Set).
+      inpatient_diabetes = claims.any? do |c|
+        #   - At least one acute inpatient encounter (Acute Inpatient Value Set)
+        #   with a diagnosis of diabetes (Diabetes Value Set) without (Telehealth
+        #   Modifier Value Set; Telehealth POS Value Set).
+        (
+          in_set?('Acute Inpatient', c) && in_set?('Diabetes', c) && !(
+            in_set?('Telehealth Modifier', c) || in_set?('Telehealth POS', c)
+          )
+        )
+      end
+      return true if inpatient_diabetes
 
       #   - At least two outpatient visits (Outpatient Value Set), observation
       #   visits (Observation Value Set), ED visits (ED Value Set) or nonacute
       #   inpatient encounters (Nonacute Inpatient Value Set) on different dates
       #   of service, with a diagnosis of diabetes (Diabetes Value Set). Visit
       #   type need not be the same for the two encounters.
-
+      #
       #   Only include nonacute inpatient encounters (Nonacute Inpatient Value
       #   Set) without telehealth (Telehealth Modifier Value Set; Telehealth POS
       #   Value Set).
+      outpatient_claims = claims.select do |c|
+        in_set?('Diabetes', c) && (
+          in_set?('Outpatient', c) ||
+          in_set?('Observation', c) ||
+          in_set?('ED', c) ||
+          (
+            in_set?('Nonacute Inpatient', c) && !(
+              in_set?('Telehealth Modifier', c) || in_set?('Telehealth POS', c)
+            )
+          )
+        )
+      end
 
       #   Only one of the two visits may be a telehealth visit, a telephone
       #   visit or an online assessment. Identify telehealth visits by the
@@ -1178,12 +1209,16 @@ module ClaimsReporting
       #   the presence of a telehealth POS code (Telehealth POS Value Set)
       #   associated with the outpatient visit. Use the code combinations below
       #   to identify telephone visits and online assessments:
-
+      #
       #   – A telephone visit (Telephone Visits Value Set) with any diagnosis of
       #   diabetes (Diabetes Value Set).
-
+      #
       #   – An online assessment (Online Assessments Value Set) with any diagnosis
       #   of diabetes (Diabetes Value Set).
+      remote_claims = outpatient_claims.select do |c|
+        in_set?('Telephone Visits', c) || in_set?('Online Assessments', c)
+      end
+      return true if outpatient_claims.size > 2 && !( outpatient_claims - remote_claims).empty?
 
       # – Pharmacy data. Enrollees who were dispensed insulin or oral
       #   hypoglycemics/antihyperglycemics during the measurement year or
@@ -1221,10 +1256,10 @@ module ClaimsReporting
           rx_in_set?('Long Acting Injections 28 Days Supply Medications', c)
         )
       end
-
       # – Claim/encounter data. An antipsychotic medication (Long-Acting
       # – Injections Value Set).
-      # TODO. We need the missing Long-Acting Injections Value Set
+      # There no longer appears to bea  "Long-Acting Injections" Value Set
+      # for medical claims data
     end
 
     # Diabetes Screening for Individuals With Schizophrenia or Bipolar Disorder Who Are Using Antipsychotic Medications
@@ -1252,17 +1287,17 @@ module ClaimsReporting
       # Step 1: Identify enrollees with schizophrenia or bipolar disorder as those who met at least one of the following criteria during the measurement year
       return [] unless schizophrenia_or_bipolar_disorder?(measurement_year_claims)
 
-      puts "BH_CP_10: MemberRoster#id=#{member.id} -- Found schizophrenia or bipolar disorder"
+      # puts "BH_CP_10: MemberRoster#id=#{member.id} -- Found schizophrenia or bipolar disorder"
 
       # Exclude enrollees who met any of the following criteria:
       # Enrollees with diabetes.
       if diabetes?(claims, rx_claims)
-        puts "BH_CP_10: MemberRoster#id=#{member.id} -- Excluded due to diabetes"
+        # puts "BH_CP_10: MemberRoster#id=#{member.id} -- Excluded due to diabetes"
         return []
       end
       # NOT taking antipsychotics
       unless antipsychotic_meds?(claims, rx_claims)
-        puts "BH_CP_10: MemberRoster#id=#{member.id} -- Excluded due to not taking antipsychotis meds"
+        # puts "BH_CP_10: MemberRoster#id=#{member.id} -- Excluded due to not taking antipsychotis meds"
         return []
       end
 
@@ -1300,11 +1335,14 @@ module ClaimsReporting
         end
 
         diabetes_screening = claims.detect do |c|
-          required_range.cover?(c) && (in_set?('Glucose Tests', c) || in_set?('HbA1c Tests', c))
+          # RE: CPT_GLUCOSE The spec called for a "Glucose Tests" Value Set
+          # which I could not find. That said there are only a few Glucose test
+          # CPT codes and we don't have lab data so we cant use LOINC
+          required_range.cover?(c.service_start_date) && (
+            in_set?('HbA1c Tests', c) || c.procedure_code.in?(CPT_GLUCOSE)
+          )
         end
-        if diabetes_screening
-          puts "BH_CP_10: MemberRoster#id=#{member.id} -- Found diabetes_screening=#{diabetes_screening.inspect}"
-        end
+        # puts "BH_CP_10: MemberRoster#id=#{member.id} -- Found diabetes_screening=#{diabetes_screening.inspect}" if diabetes_screening
         row = MeasureRow.new(
           row_type: 'enrollee',
           row_id: "#{member.id}-#{required_range.min}-#{required_range.max}",
@@ -1313,13 +1351,13 @@ module ClaimsReporting
         rows << row
       end
 
-      rx_claims.each do |c|
-        puts "BH_CP_10: Diabetes Medication found in #{c.inspect}" if rx_in_set?('Diabetes Medications', c)
-        puts "BH_CP_10: SSD Antipsychotic Medications found in #{c.inspect}" if rx_in_set?('SSD Antipsychotic Medications', c)
-      end
-
       rows
     end
+
+    # 82947 Glucose; quantitative, blood (except reagent strip)
+    # 82948 Glucose; blood, reagent strip
+    # 82962 Glucose; blood by glucose monitoring device(s) cleared by the FDA specifically for home use
+    CPT_GLUCOSE = ['82947', '82948', '82962']
 
     # BH CP #13: Hospital Readmissions (Adult)
     private def calculate_bh_cp_13(member, claims, enrollments) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
@@ -1479,7 +1517,7 @@ module ClaimsReporting
           # > Step 3: Exclude ... Planned Admissions
           next if stay_claims.any? do |c|
             if in_set?('Chemotherapy', c, dx1_only: true) ||
-              # FIXME?: Cant find this one in_set?('Readmissions', c, dx1_only: true) ||
+              in_set?('Rehabilitation', c, dx1_only: true) ||
               in_set?('Kidney Transplant', c) ||
               in_set?('Bone Marrow Transplant', c) ||
               in_set?('Organ Transplant Other Than Kidney', c) ||
@@ -2064,6 +2102,19 @@ module ClaimsReporting
       [numerator, denominator]
     end
 
+    # Map the names used in the various CMS Quality Rating System specs
+    # to the OIDs. Names will not be unique in Hl7::ValueSetCode as we load
+    # other sources
+    # Note: We were missing names used in BH CP 10 from the standard sources
+    # so a custom list from our TA partner was loaded under the non-standard
+    # 'x.' placeholder OIDs
+    # - Schizophrenia
+    # - Bipolar Disorder
+    # - Other Bipolar Disorder
+    # - BH Stand Alone Acute Inpatient
+    # - BH Stand Alone Nonacute Inpatient
+    # - Nonacute Inpatient POS
+    # - Long-Acting Injections - see note near "Long Acting Injections" in MEDICATION_LISTS
     MEDICATION_LISTS = {
       'SSD Antipsychotic Medications' => '2.16.840.1.113883.3.464.1004.2173',
       'Diabetes Medications' => '2.16.840.1.113883.3.464.1004.2050',
@@ -2075,21 +2126,6 @@ module ClaimsReporting
       'Long Acting Injections 30 Days Supply Medications' => '2.16.840.1.113883.3.464.1004.2190',
       'Long Acting Injections 28 Days Supply Medications' => '2.16.840.1.113883.3.464.1004.2101',
     }.freeze
-
-    # Map the names used in the various CMS Quality Rating System specs
-    # to the OIDs. Names will not be unique in Hl7::ValueSetCode as we load
-    # other sources
-    #
-    # We were missing names used in BH CP 10 from the standard sources
-    # so a custom list from our TA partner was loaded under the non-standard
-    # 'x.' placeholder OIDs
-    # - Schizophrenia
-    # - Bipolar Disorder
-    # - Other Bipolar Disorder
-    # - BH Stand Alone Acute Inpatient
-    # - BH Stand Alone Nonacute Inpatient
-    # - Nonacute Inpatient POS
-    # - Long-Acting Injections - see note near "Long Acting Injections" in MEDICATION_LISTS
     VALUE_SETS = MEDICATION_LISTS.merge({
       'Acute Condition' => '2.16.840.1.113883.3.464.1004.1324',
       'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1810',
