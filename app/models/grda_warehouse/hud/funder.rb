@@ -16,10 +16,10 @@ module GrdaWarehouse::Hud
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: :true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: true
     belongs_to :data_source
 
-    scope :open_between, -> (start_date:, end_date: ) do
+    scope :open_between, -> (start_date:, end_date:) do
       at = arel_table
 
       closed_within_range = at[:StartDate].gt(start_date).
