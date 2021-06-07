@@ -1,16 +1,16 @@
 :javascript
   class CocMap {
-    constructor({ elementId, shapes }) {
-      console.log(shapes)
+    constructor({ elementId, shapes, colors }) {
       this.initInfoBox = this.initInfoBox.bind(this);
       this.initLegend = this.initLegend.bind(this);
       this.style = this.style.bind(this);
       this.updateInfo = this.updateInfo.bind(this);
       this.clearInfo = this.clearInfo.bind(this);
       this.onEachFeature = this.onEachFeature.bind(this);
-      this.updateShapes = this.updateShapes.bind(this);
+      this.updateMetrics = this.updateMetrics.bind(this);
       this.elementId = elementId;
       this.shapes = shapes;
+      this.colors = colors;
       this.showingData = false;
       const mapOptions = {
         minZoom: 5,
@@ -31,7 +31,7 @@
         })
         .addTo(this.map);
 
-      // Do not show basemap to resmeble mock
+      // Do not show basemap
       // osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
       // osmAttrib = 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
       // osm = new L.TileLayer(osmUrl, {attribution: osmAttrib})
@@ -53,6 +53,7 @@
     initInfoBox() {
       this.info = L.control();
       this.info.update = (props) => {
+        console.log('infobox', props)
         let innerHTML = '';
         let hidden = true;
         if (props != null) {
@@ -125,6 +126,7 @@
     }
 
     getColor(d) {
+      console.log(d, colors)
       if (d > 200) {
         return '#D17200';
       } else if (d > 165) {
@@ -165,14 +167,12 @@
       if (this.info != null) {
         this.info.update(layer.feature.properties);
       }
-      if (layer.feature.properties.id != this.secondaryId) {
-        this.bringLayerToFront(layer);
-        layer.setStyle({
-          color: '#888',
-          weight: 3,
-          opacity: 1,
-        });
-      }
+      this.bringLayerToFront(layer);
+      layer.setStyle({
+        color: '#888',
+        weight: 3,
+        opacity: 1,
+      });
     }
 
     clearInfo(e) {
@@ -198,7 +198,8 @@
       return layer.on(handlers);
     }
 
-    updateShapes({ shapes, primaryId, secondaryId }) {
+    updateShapes({ shapes }) {
+      console.log('updateShapes', l.feature.properties)
       this.showingData = true;
       this.geojson.getLayers().forEach((l) => {
         const shapeMetric = shapes[l.feature.properties.id];
@@ -209,5 +210,9 @@
           fillOpacity: 1,
         });
       });
+    }
+
+    updateMetrics({ metrics }) {
+      console.log(metrics)
     }
   };

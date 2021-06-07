@@ -12,13 +12,29 @@
 
 :javascript
   (function() {
+    const shapes = #{@report.map_shapes.to_json.html_safe}
     const homeless_map = new CocMap({
       elementId: "all-homeless-map",
-      shapes: #{@report.map_shapes.to_json.html_safe},
+      shapes: shapes,
+      colors: #{@report.chart_color_pattern(:population)},
     })
     const comparison_map = new CocMap({
       elementId: "comparison-map",
-      shapes: #{@report.map_shapes.to_json.html_safe},
+      shapes: shapes,
+      colors: #{@report.chart_color_pattern(:population)},
     })
+    const dates = #{data['homeless_map'].to_json.html_safe}
+    $('.jQuarters').on('change', function(e) {
+      var index = $(this).val();
+      var selected_date = $(this).data('dates')[index];
+
+      var date_object = new Date(Date.parse(selected_date) + 7*3600*1000); // JS has a hard time with the timezones, we just need to be roughly in the US
+      var selected_quarter = quarter_of_the_year(date_object);
+      console.log(selected_quarter)
+      console.log(dates, selected_date, dates[selected_date])
+    });
+    // homeless_map.updateMetrics()
+
+    $('.jQuarters').trigger('change');
   }).call(this);
 = debug data
