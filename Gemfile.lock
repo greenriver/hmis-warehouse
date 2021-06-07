@@ -204,9 +204,9 @@ GEM
     browser (5.3.0)
     builder (3.2.4)
     bumbler (0.8.0)
-    bundler-audit (0.7.0.1)
+    bundler-audit (0.8.0)
       bundler (>= 1.2.0, < 3)
-      thor (>= 0.18, < 2)
+      thor (~> 1.0)
     business_time (0.10.0)
       activesupport (>= 3.2.0)
       sorted_set
