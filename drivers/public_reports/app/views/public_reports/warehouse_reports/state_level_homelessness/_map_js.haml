@@ -1,8 +1,7 @@
 :javascript
   class CocMap {
-    constructor({ elementId, shapes, colors }) {
+    constructor({ elementId, shapes, metrics, colors }) {
       this.initInfoBox = this.initInfoBox.bind(this);
-      this.initLegend = this.initLegend.bind(this);
       this.style = this.style.bind(this);
       this.updateInfo = this.updateInfo.bind(this);
       this.clearInfo = this.clearInfo.bind(this);
@@ -11,6 +10,7 @@
       this.elementId = elementId;
       this.shapes = shapes;
       this.colors = colors;
+      this.metrics = metrics;
       this.showingData = false;
       const mapOptions = {
         minZoom: 5,
@@ -48,32 +48,18 @@
 
       this.initInfoBox();
     }
-    // @initLegend()
 
     initInfoBox() {
       this.info = L.control();
       this.info.update = (props) => {
-        console.log('infobox', props)
         let innerHTML = '';
         let hidden = true;
         if (props != null) {
           const { id, name, cocnum, metric } = props;
-          const { primaryId, secondaryId, primaryName } = this;
-          innerHTML = `<h4>${name} (${cocnum})</h4>`;
-          if (id == primaryId) {
-            innerHTML += '<p>Primary CoC</p>';
-          } else if (primaryId) {
-            if (id == secondaryId) {
-              innerHTML += '<p>Secondary CoC</p>';
-            }
-            if (metric == null) {
-              innerHTML += '<p>No shared clients because data is unavailable for this CoC</p>';
-            } else {
-              innerHTML += `<p><stron>${metric}</strong> shared clients with ${
-                primaryName || 'the primary CoC'
-              }</p>`;
-            }
-          }
+          const rate = this.metrics[cocnum].rate
+          const count = this.metrics[cocnum].count
+          innerHTML = `<h4>${name} (${cocnum})</h4><div class="rate">${rate} per 10,000 people</div><div class="count">${count} clients</div>`;
+
           hidden = false;
         }
         this._div.innerHTML = innerHTML;
@@ -89,31 +75,6 @@
       return this.info.addTo(this.map);
     }
 
-    initLegend() {
-      const legend = L.control({ position: 'bottomleft' });
-
-      legend.onAdd = () => {
-        const div = L.DomUtil.create('div', 'l-info l-legend');
-        const metricValues = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
-        let i = 0;
-        while (i < metricValues.length - 1) {
-          let line = '<i style="background:' + this.getColor(metricValues[i]) + '"></i> ';
-          line += metricValues[i];
-          if (metricValues[i + 1] != null) {
-            line += ' - ' + metricValues[i + 1] + '</br>';
-          } else {
-            line += '+';
-          }
-
-          div.innerHTML += line;
-          i += 1;
-        }
-        return div;
-      };
-
-      return legend.addTo(this.map);
-    }
-
     style() {
       return {
         fillColor: 'white',
@@ -125,25 +86,10 @@
       };
     }
 
-    getColor(d) {
-      console.log(d, colors)
-      if (d > 200) {
-        return '#D17200';
-      } else if (d > 165) {
-        return '#D38628';
-      } else if (d > 132) {
-        return '#D59A4F';
-      } else if (d > 100) {
-        return '#D7AE77';
-      } else if (d > 67) {
-        return '#D9C29E';
-      } else if (d > 34) {
-        return '#DBD6C6';
-      } else if (d > 0) {
-        return '#DDEAED';
-      } else {
-        return '#FFFFFF';
-      }
+    getColor(rate) {
+      let division_size = 1 / this.colors.length
+      let division = Math.floor(rate / division_size)
+      return this.colors[division]
     }
 
     bringLayerToFront(layer) {
@@ -198,21 +144,16 @@
       return layer.on(handlers);
     }
 
-    updateShapes({ shapes }) {
-      console.log('updateShapes', l.feature.properties)
-      this.showingData = true;
+    updateMetrics(metrics) {
+      this.metrics = metrics
       this.geojson.getLayers().forEach((l) => {
-        const shapeMetric = shapes[l.feature.properties.id];
-        l.feature.properties.metric = shapeMetric;
+        const coc_number = l.feature.properties.cocnum
+        l.feature.properties.metric = this.metrics[coc_number].rate
         this.geojson.resetStyle(l);
         return l.setStyle({
-          fillColor: this.getColor(shapeMetric),
+          fillColor: this.getColor(l.feature.properties.metric),
           fillOpacity: 1,
         });
       });
-    }
-
-    updateMetrics({ metrics }) {
-      console.log(metrics)
     }
   };

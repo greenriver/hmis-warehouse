@@ -396,7 +396,7 @@ module PublicReports
             rate = count / population_by_coc[date.year][coc_code].to_f / 10_000
             charts[date.iso8601][coc_code] = {
               count: count,
-              rate: rate,
+              rate: rate.round(1),
             }
           end
         end

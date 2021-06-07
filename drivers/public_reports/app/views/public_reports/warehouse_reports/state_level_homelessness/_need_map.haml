@@ -3,8 +3,33 @@
     %h4 All Homeless Individuals
     .jQuarterChosenDate
     .state-map#all-homeless-map
+    .state-map-all-homeless-legend.d-flex
+      - colors = JSON.parse(@report.chart_color_pattern(:population))
+      - colors.each_with_index do |color, i|
+        - division_size = 1.0 / colors.count
+        - division_start = i * division_size
+        - division_end = (i + 1) * division_size
+        .ml-4
+          .color-box.mr-auto.ml-auto.p-2{style: "background-color: #{color}; width: 20px; height: 20px;"}
+          .color-range
+            #{division_start.round(1)} - #{division_end.round(1)}
+    .w-100
+      Rate of homelessness per 10,000 people
+
   .w-50
     .state-map#comparison-map
+    .state-map-comparison-legend.d-flex
+      - colors = JSON.parse(@report.chart_color_pattern(:population))
+      - colors.each_with_index do |color, i|
+        - division_size = 1.0 / colors.count
+        - division_start = i * division_size
+        - division_end = (i + 1) * division_size
+        .ml-4
+          .color-box.mr-auto.ml-auto.p-2{style: "background-color: #{color}; width: 20px; height: 20px;"}
+          .color-range
+            #{division_start.round(1)} - #{division_end.round(1)}
+    .w-100
+      Rate per 10,000 people
 
 - # include the map class directly
 = render 'map_js'
@@ -14,23 +39,26 @@
   (function() {
     const shapes = #{@report.map_shapes.to_json.html_safe}
     const homeless_data = #{data['homeless_map'].to_json.html_safe}
+    let selected_date = $('.jQuarters').data('dates')[0];
     const comparison_data = #{data['youth_homeless_map'].to_json.html_safe}
     const homeless_map = new CocMap({
       elementId: "all-homeless-map",
       shapes: shapes,
+      metrics: homeless_data[selected_date],
       colors: #{@report.chart_color_pattern(:population)},
     })
     const comparison_map = new CocMap({
       elementId: "comparison-map",
       shapes: shapes,
+      metrics: comparison_data[selected_date],
       colors: #{@report.chart_color_pattern(:population)},
     })
 
     $('.jQuarters').on('change', function(e) {
       var index = $(this).val();
       var selected_date = $(this).data('dates')[index];
-      console.log(homeless_data, selected_date, homeless_data[selected_date])
-      console.log(comparison_data, selected_date, comparison_data[selected_date])
+      homeless_map.updateMetrics(homeless_data[selected_date])
+      comparison_map.updateMetrics(comparison_data[selected_date])
     });
     // homeless_map.updateMetrics()
 

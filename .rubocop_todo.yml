@@ -918,7 +918,6 @@ Style/EmptyLiteral:
 Style/FormatString:
   Exclude:
     - 'app/models/glacier/chunker.rb'
-    - 'app/models/grda_warehouse/tasks/hmis_csv_validator.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/base.rb'
     - 'app/models/similarity_metric/experiment/float_formatter.rb'
     - 'app/models/similarity_metric/experiment/integer_formatter.rb'
