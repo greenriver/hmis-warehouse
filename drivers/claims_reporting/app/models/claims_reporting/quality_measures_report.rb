@@ -477,9 +477,10 @@ module ClaimsReporting
 
       rows = Parallel.flat_map(
         medical_claims_by_member_id,
-        # we can spread the work below across many CPUS by removing/upping this number.
+        # we can spread the work below across many CPUS by removing
+        # the in_threads and running in_processes
         # There is very little I/O so using in_threads wont help much till Ruby 3 Ractor (or other GIL workarounds)
-        in_processes: 1,
+        in_threads: 1, # this avoids the fork for now.
         finish: progress_proc,
       ) do |member_id, claims|
         # we ideally do zero database calls in here
@@ -719,17 +720,12 @@ module ClaimsReporting
       rows
     end
 
-    def missing_value_sets
-      @missing_value_sets ||= Set.new
-    end
-
     private def in_set?(vs_name, claim, dx1_only: false)
       codes_by_system = value_set_lookups.fetch(vs_name) do
-        # TODO? raise/warn on an unrecognised code_system_name?
-        missing_value_sets << vs_name
-        # logger.error { "MISSING #{vs_name}" }
-        {}
+        raise "Value Set '#{vs_name}' is unknown"
+        #{}
       end
+      raise "Value Set '#{vs_name}' has no codes defined" if codes_by_system.empty?
 
       # TODO?: Can we use LOINC (labs) or CVX (vaccine) codes
       # What about "Modifier"
@@ -781,7 +777,7 @@ module ClaimsReporting
         return trace_set_match!(vs_name, claim, :ICD9CM) if claim.matches_icd9cm?(code_pattern, dx1_only)
       end
 
-      if (code_pattern = codes_by_system['ICD9PCS']) # rubocop:disable Style/GuardClause
+      if (code_pattern = codes_by_system['ICD9PCS'])
         return trace_set_match!(vs_name, claim, :ICD9PCS) if claim.matches_icd9pcs? code_pattern
       end
     end
@@ -792,7 +788,7 @@ module ClaimsReporting
       # TODO? RxNorm, CVX might also show up lookup code but we dont have any claims data with that info, nor a crosswalk handy
       # TODO? raise/warn on an unrecognised code_system_name?
 
-      if (ndc_codes = codes_by_system['NDC']).present? # rubocop:disable Style/GuardClause
+      if (ndc_codes = codes_by_system['NDC']).present?
         return trace_set_match!(vs_name, claim, :NDC) if ndc_codes.include?(claim.ndc_code)
       end
     end
@@ -1123,7 +1119,7 @@ module ClaimsReporting
           in_set?('Community Mental Health Center POS', c) ||
           in_set?('ED POS', c) ||
           in_set?('Nonacute Inpatient POS', c) ||
-          in_set?('Partial Hospitalization', c) ||
+          in_set?('Partial Hospitalization POS', c) ||
           in_set?('Telehealth POS', c)
         ) ||
         in_set?('BH Outpatient', c) ||
@@ -1198,7 +1194,7 @@ module ClaimsReporting
       diabetes_rx = rx_claims.detect do |c|
         measurement_and_prior_year.cover?(c.service_start_date) && rx_in_set?('Diabetes Medications', c)
       end
-      if diabetes_rx # rubocop:disable Style/GuardClause
+      if diabetes_rx
         trace_exclusion do
           "BH_CP_10: Excludes MemberRoster#id=#{member.id} Enrollees with diabetes due to diabetes_rx RxClaim#id=#{diabetes_rx.inspect}"
         end
@@ -1232,7 +1228,7 @@ module ClaimsReporting
     end
 
     # Diabetes Screening for Individuals With Schizophrenia or Bipolar Disorder Who Are Using Antipsychotic Medications
-    private def calculate_bh_cp_10(member, claims, rx_claims, _enrollments)
+    private def calculate_bh_cp_10(member, claims, rx_claims, enrollments)
       rows = []
 
       # > BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.
@@ -1306,7 +1302,7 @@ module ClaimsReporting
         diabetes_screening = claims.detect do |c|
           required_range.cover?(c) && (in_set?('Glucose Tests', c) || in_set?('HbA1c Tests', c))
         end
-        if diabetes_screening # rubocop:disable Style/IfUnlessModifier
+        if diabetes_screening
           puts "BH_CP_10: MemberRoster#id=#{member.id} -- Found diabetes_screening=#{diabetes_screening.inspect}"
         end
         row = MeasureRow.new(
@@ -1483,7 +1479,7 @@ module ClaimsReporting
           # > Step 3: Exclude ... Planned Admissions
           next if stay_claims.any? do |c|
             if in_set?('Chemotherapy', c, dx1_only: true) ||
-              in_set?('Readmissions', c, dx1_only: true) ||
+              # FIXME?: Cant find this one in_set?('Readmissions', c, dx1_only: true) ||
               in_set?('Kidney Transplant', c) ||
               in_set?('Bone Marrow Transplant', c) ||
               in_set?('Organ Transplant Other Than Kidney', c) ||
@@ -1665,7 +1661,7 @@ module ClaimsReporting
       return unless comorb_cc_codes.any?
 
       had_surgery = stay_claims.any? do |c|
-        in_set?('Surgical Procedures', c)
+        in_set?('Surgery Procedure', c)
       end
       observation_stay = stay_claims.any? do |c|
         in_set?('Observation Stay', c)
@@ -1701,7 +1697,7 @@ module ClaimsReporting
       )
     end
 
-    private def trace_set_match!(vs_name, claim, code_type) # rubocop:disable Lint/UnusedMethodArgument
+    private def trace_set_match!(vs_name, claim, code_type)
       # puts "in_set? #{vs_name} matched #{code_type} for Claim#id=#{claim.id}"
       true
     end
@@ -2084,7 +2080,9 @@ module ClaimsReporting
     # to the OIDs. Names will not be unique in Hl7::ValueSetCode as we load
     # other sources
     #
-    # We are missing names used in BH CP 10
+    # We were missing names used in BH CP 10 from the standard sources
+    # so a custom list from our TA partner was loaded under the non-standard
+    # 'x.' placeholder OIDs
     # - Schizophrenia
     # - Bipolar Disorder
     # - Other Bipolar Disorder
@@ -2093,8 +2091,9 @@ module ClaimsReporting
     # - Nonacute Inpatient POS
     # - Long-Acting Injections - see note near "Long Acting Injections" in MEDICATION_LISTS
     VALUE_SETS = MEDICATION_LISTS.merge({
-      'Acute Condition' => '2.16.840.1.113883.3.464.1004.1324', # rubocop:disable Layout/FirstHashElementIndentation
-      'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1017',
+      'Acute Condition' => '2.16.840.1.113883.3.464.1004.1324',
+      'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1810',
+      'Acute Inpatient POS' => '2.16.840.1.113883.3.464.1004.1027',
       'Alcohol Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1424',
       'Ambulatory Surgical Center POS' => '2.16.840.1.113883.3.464.1004.1480',
       'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013',
@@ -2144,6 +2143,12 @@ module ClaimsReporting
       'Transitional Care Management Services' => '2.16.840.1.113883.3.464.1004.1462',
       'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
       'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
-    }).freeze # rubocop:disable Layout/FirstHashElementIndentation
+      'Schizophrenia' => 'x.Schizophrenia',
+      'Bipolar Disorder' => 'x.Bipolar Disorder',
+      'Other Bipolar Disorder' => 'x.Other Bipolar Disorder',
+      'BH Stand Alone Acute Inpatient' => 'x.BH Stand Alone Acute Inpatient',
+      'BH Stand Alone Nonacute Inpatient' => 'x.BH Stand Alone Nonacute Inpatient',
+      'Nonacute Inpatient POS' => 'x.Nonacute Inpatient POS',
+    }).freeze
   end
 end
