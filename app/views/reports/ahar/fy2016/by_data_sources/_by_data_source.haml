@@ -4,7 +4,7 @@
     = f.error_notification
     .row.mb-2
       .col-sm-4
-        = f.input :data_source, input_html: {name: 'report_result[options][data_source]'}, as :select_two, collection: Reports::Ahar::Fy2017::ByDataSource.available_data_sources_for_filtering
+        = f.input :data_source, input_html: {name: 'report_result[options][data_source]'}, as: :select_two, collection: Reports::Ahar::Fy2017::ByDataSource.available_data_sources_for_filtering
       .col-sm-4
         %label.control-lable.string.required
           %abbr{data: {original_title: "required"}} *
