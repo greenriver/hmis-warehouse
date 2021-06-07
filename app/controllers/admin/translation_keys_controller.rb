@@ -58,6 +58,7 @@ module Admin
 
     def update
       if @translation_key.update(translation_key_params)
+        FastGettext.expire_cache_for(@translation_key.key)
         flash[:notice] = 'Saved!'
         redirect_to @translation_key
       else
