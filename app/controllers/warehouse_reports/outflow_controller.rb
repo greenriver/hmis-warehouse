@@ -39,7 +39,7 @@ module WarehouseReports
     helper_method :describe_computations
 
     private def set_report
-      @filter = ::Filters::OutflowReport.new(filter_options)
+      @filter = ::Filters::OutflowReport.new(user_id: current_user.id).set_from_params(filter_options)
       @report = GrdaWarehouse::WarehouseReports::OutflowReport.new(@filter, current_user)
     end
 
@@ -57,6 +57,7 @@ module WarehouseReports
           ethnicities: [],
           organization_ids: [],
           project_ids: [],
+          project_group_ids: [],
           no_recent_service_project_ids: [],
         )
         if opts[:start].to_date > opts[:end].to_date
@@ -67,6 +68,7 @@ module WarehouseReports
         opts[:project_ids] = cleanup_ids(opts[:project_ids])
         opts[:organization_ids] = cleanup_ids(opts[:organization_ids])
         opts[:no_recent_service_project_ids] = cleanup_ids(opts[:no_recent_service_project_ids])
+        opts[:project_group_ids] = cleanup_ids(opts[:project_group_ids])
         opts[:races] = opts[:races].select { |r| ::HUD.races.include?(r) } if opts[:races].present?
         opts[:ethnicities] = opts[:ethnicities].reject(&:blank?).map(&:to_i) if opts[:ethnicities].present?
         opts[:genders] = opts[:genders].reject(&:blank?).map(&:to_i) if opts[:genders].present?
@@ -76,6 +78,7 @@ module WarehouseReports
           start: default_start.to_date,
           end: default_end.to_date,
           no_service_after_date: default_no_service_after_date,
+          sub_population: :clients,
         }
       end
     end
