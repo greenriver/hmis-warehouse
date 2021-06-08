@@ -107,7 +107,7 @@ module ClaimsReporting
       max_codes = 0
       scope.logger.silence(Logger::INFO) do
         scope.select(:id, *DX_COLS).in_batches do |batch|
-          updates = batch.map do |claim| # rubocop:disable Lint/UselessAssignment
+          updates = batch.map do |claim|
             pb&.increment!
             ccsrs_for_claim = lookup_claim(claim)
             max_codes = ccsrs_for_claim.size if ccsrs_for_claim.size > max_codes

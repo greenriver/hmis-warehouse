@@ -66,17 +66,17 @@ module Hl7
       end
 
       import(batch, validate: false, on_duplicate_key_update: {
-               conflict_target: [:value_set_oid, :code_system_oid, :code],
-               columns: [
-                 :value_set_name,
-                 :value_set_version,
-                 :code_system,
-                 :code_system_version,
-                 :code,
-                 :definition,
-                 :updated_at,
-               ],
-             })
+         conflict_target: [:value_set_oid, :code_system, :code],
+         columns: [
+           :value_set_name,
+           :value_set_version,
+           :code_system,
+           :code_system_version,
+           :code,
+           :definition,
+           :updated_at,
+         ],
+       })
     end
   end
 end
