@@ -17,6 +17,15 @@
       Rate of homelessness per 10,000 people
 
   .w-50
+    .d-flex
+      %label.ml-auto.mb-2{ for: 'comparison-map-trigger' }
+        Choose a Population Group
+        %br
+        %select#comparison-map-trigger.jComparisonMapTrigger{name: 'comparison-map-trigger'}
+          %option{value: 'Youth and Young Adults (age 18-24)'} Youth and Young Adults (age 18-24)
+          %option{value: 'Adults in Adult Only Households (age 18+)'} Adults in Adult Only Households (age 18+)
+          %option{value: 'Adults with Children'} Adults with Children
+          %option{value: 'Veterans'} Veterans
     .state-map#comparison-map
     .state-map-comparison-legend.d-flex
       - colors = JSON.parse(@report.chart_color_pattern(:population))
@@ -60,7 +69,10 @@
       homeless_map.updateMetrics(homeless_data[selected_date])
       comparison_map.updateMetrics(comparison_data[selected_date])
     });
-    // homeless_map.updateMetrics()
+    $('.jComparisonMapTrigger').on('change', function(e) {
+
+    });
+
 
     $('.jQuarters').trigger('change');
   }).call(this);
