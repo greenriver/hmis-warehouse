@@ -316,9 +316,10 @@ module HapReport
     end
 
     def self.hap_projects(user)
-      scope = GrdaWarehouse::Hud::Project.
+      scope = GrdaWarehouse::Hud::Project.where(id: GrdaWarehouse::Hud::Project.
         joins(:funders).
-        merge(GrdaWarehouse::Hud::Funder.funding_source(funder_code: 46, other: HAP_FUNDING))
+        merge(GrdaWarehouse::Hud::Funder.funding_source(funder_code: 46, other: HAP_FUNDING)).
+        select(:id))
       GrdaWarehouse::Hud::Project.options_for_select(user: user, scope: scope)
     end
 

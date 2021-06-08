@@ -4,7 +4,7 @@
     = f.error_notification
     .row.mb-2
       .col-sm-4
-        = f.input :project, input_html: {name: 'report_result[options][project]'}, as: select_two, collection: Reports::Ahar::Fy2016::ByProject.available_projects_for_filtering
+        = f.input :project, input_html: {name: 'report_result[options][project]'}, as: :select_two, collection: Reports::Ahar::Fy2016::ByProject.available_projects_for_filtering
       .col-sm-4
         %label.control-lable.string.required
           %abbr{data: {original_title: "required"}} *
