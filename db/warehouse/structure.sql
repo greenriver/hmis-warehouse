@@ -5462,7 +5462,7 @@ CREATE TABLE public.hap_report_clients (
     project_types integer[],
     veteran boolean,
     mental_health boolean,
-    substance_use_disorder boolean,
+    substance_abuse_disorder boolean,
     domestic_violence boolean,
     income_at_start integer,
     income_at_exit integer,
@@ -9544,6 +9544,76 @@ ALTER SEQUENCE public.hud_report_instances_id_seq OWNED BY public.hud_report_ins
 
 
 --
+-- Name: hud_report_path_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_path_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    report_instance_id bigint,
+    first_name character varying,
+    last_name character varying,
+    age integer,
+    dob date,
+    dob_quality integer,
+    gender integer,
+    am_ind_ak_native integer,
+    asian integer,
+    black_af_american integer,
+    native_hi_other_pacific integer,
+    white integer,
+    race_none integer,
+    ethnicity integer,
+    veteran integer,
+    substance_use_disorder integer,
+    soar integer,
+    prior_living_situation integer,
+    length_of_stay integer,
+    chronically_homeless character varying,
+    domestic_violence integer,
+    active_client boolean,
+    new_client boolean,
+    enrolled_client boolean,
+    date_of_determination date,
+    reason_not_enrolled integer,
+    project_type integer,
+    first_date_in_program date,
+    last_date_in_program date,
+    contacts jsonb,
+    services jsonb,
+    referrals jsonb,
+    income_from_any_source_entry integer,
+    incomes_at_entry jsonb,
+    income_from_any_source_exit integer,
+    incomes_at_exit jsonb,
+    income_from_any_source_report_end integer,
+    incomes_at_report_end jsonb,
+    destination integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: hud_report_path_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_path_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_path_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_path_clients_id_seq OWNED BY public.hud_report_path_clients.id;
+
+
+--
 -- Name: hud_report_spm_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13179,17 +13249,18 @@ CREATE MATERIALIZED VIEW public.service_history_services_materialized AS
 --
 
 CREATE TABLE public.service_history_services_remainder (
-    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
+    id integer DEFAULT nextval('public.service_history_services_id_seq'::regclass),
+    service_history_enrollment_id integer,
+    record_type character varying(50),
+    date date,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-);
+)
+INHERITS (public.service_history_services);
 
 
 --
@@ -13624,6 +13695,76 @@ CREATE SEQUENCE public.simple_report_universe_members_id_seq
 --
 
 ALTER SEQUENCE public.simple_report_universe_members_id_seq OWNED BY public.simple_report_universe_members.id;
+
+
+--
+-- Name: synthetic_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_assessments (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_assessments_id_seq OWNED BY public.synthetic_assessments.id;
+
+
+--
+-- Name: synthetic_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_events (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_events_id_seq OWNED BY public.synthetic_events.id;
 
 
 --
@@ -15812,6 +15953,13 @@ ALTER TABLE ONLY public.hud_report_instances ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hud_report_path_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_path_clients ALTER COLUMN id SET DEFAULT nextval('public.hud_report_path_clients_id_seq'::regclass);
+
+
+--
 -- Name: hud_report_spm_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16152,6 +16300,20 @@ ALTER TABLE ONLY public.simple_report_instances ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.simple_report_universe_members ALTER COLUMN id SET DEFAULT nextval('public.simple_report_universe_members_id_seq'::regclass);
+
+
+--
+-- Name: synthetic_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_assessments ALTER COLUMN id SET DEFAULT nextval('public.synthetic_assessments_id_seq'::regclass);
+
+
+--
+-- Name: synthetic_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_events ALTER COLUMN id SET DEFAULT nextval('public.synthetic_events_id_seq'::regclass);
 
 
 --
@@ -17603,6 +17765,14 @@ ALTER TABLE ONLY public.hud_report_instances
 
 
 --
+-- Name: hud_report_path_clients hud_report_path_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_path_clients
+    ADD CONSTRAINT hud_report_path_clients_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hud_report_spm_clients hud_report_spm_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18000,6 +18170,22 @@ ALTER TABLE ONLY public.simple_report_instances
 
 ALTER TABLE ONLY public.simple_report_universe_members
     ADD CONSTRAINT simple_report_universe_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_assessments synthetic_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_assessments
+    ADD CONSTRAINT synthetic_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_events synthetic_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_events
+    ADD CONSTRAINT synthetic_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -23130,6 +23316,20 @@ CREATE INDEX index_hud_report_instances_on_user_id ON public.hud_report_instance
 
 
 --
+-- Name: index_hud_report_path_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_client_id ON public.hud_report_path_clients USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_path_clients_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_report_instance_id ON public.hud_report_path_clients USING btree (report_instance_id);
+
+
+--
 -- Name: index_hud_report_universe_members_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -26959,6 +27159,48 @@ CREATE UNIQUE INDEX index_staff_x_client_s_id_c_id_r_id ON public.hmis_staff_x_c
 
 
 --
+-- Name: index_synthetic_assessments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_client_id ON public.synthetic_assessments USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_assessments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_enrollment_id ON public.synthetic_assessments USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_assessments_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_source_type_and_source_id ON public.synthetic_assessments USING btree (source_type, source_id);
+
+
+--
+-- Name: index_synthetic_events_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_client_id ON public.synthetic_events USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_events_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_events_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_source_type_and_source_id ON public.synthetic_events USING btree (source_type, source_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28896,6 +29138,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210312200044'),
 ('20210325202706'),
 ('20210330124825'),
+('20210413143040'),
 ('20210422191627'),
 ('20210426165914'),
 ('20210427184522'),
@@ -28915,6 +29158,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210527140359'),
 ('20210601135719'),
 ('20210601173704'),
-('20210603121547');
+('20210603121547'),
+('20210603143037'),
+('20210604155334');
 
 

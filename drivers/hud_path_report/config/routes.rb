@@ -1,6 +1,13 @@
 BostonHmis::Application.routes.draw do
-  scope :hud_path_report do
-    # TODO
-    # get '/my_path', to: 'hud_path_report/my_controller'
+  scope module: :hud_path_report, path: :hud_reports, as: :hud_reports do
+    resources :paths do
+      get :running, on: :collection
+      get :running_all_questions, on: :collection
+      resources :questions, only: [:show, :create] do
+        get :result, on: :member
+        get :running, on: :member
+        resources :cells, only: :show
+      end
+    end
   end
 end

@@ -5,3 +5,8 @@
 #
 # use with caution!
 RailsDrivers.loaded << :hud_path_report
+
+Rails.application.config.hud_reports['HudPathReport::Generators::Fy2020::Generator'] = {
+  title: 'Annual PATH Report',
+  helper: 'hud_reports_paths_path',
+}
