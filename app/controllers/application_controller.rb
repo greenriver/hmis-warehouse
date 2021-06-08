@@ -272,7 +272,7 @@ class ApplicationController < ActionController::Base
   helper_method :bypass_2fa_enabled?
 
   def set_hostname
-    @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
+    @op_hostname ||= begin
       `hostname`
     rescue StandardError
       'test-server'

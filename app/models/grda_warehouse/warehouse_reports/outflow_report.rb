@@ -146,7 +146,7 @@ module GrdaWarehouse::WarehouseReports
           with_service_between(start_date: @filter.no_service_after_date, end_date: Date.current).
           distinct.
           pluck(:client_id)
-        without_recent_service = without_recent_service - with_recent_service
+        without_recent_service -= with_recent_service
       end
       without_recent_service.uniq
     end
@@ -221,9 +221,7 @@ module GrdaWarehouse::WarehouseReports
         joins(:organization).
         merge(GrdaWarehouse::Hud::Project.viewable_by(@user))
 
-      scope = scope.where(data_source_id: @filter.data_source_ids) unless @filter.data_source_ids.empty?
-      scope = scope.where(p_t[:id].in(@filter.project_ids)) unless @filter.project_ids.empty?
-      scope = scope.where(o_t[:id].in(@filter.organization_ids)) unless @filter.organization_ids.empty?
+      scope = scope.where(p_t[:id].in(@filter.effective_project_ids)) unless @filter.effective_project_ids.empty?
 
       if @filter.limit_to_vispdats
         scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids)

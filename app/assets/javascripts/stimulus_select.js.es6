@@ -88,12 +88,16 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
       const original_placeholder = $select.attr('placeholder') || 'Please choose'
       const loading_placeholder = 'Loading...'
       $select.data('placeholder', loading_placeholder)
-      $select.data('select2').selection.placeholder.text = loading_placeholder
+      if($select.data('select2').selection.placeholder != undefined) {
+        $select.data('select2').selection.placeholder.text = loading_placeholder
+      }
       $select.trigger('change')
       $.post(url, data, (data) => {
         $select.append(data)
         $select.data('placeholder', original_placeholder)
-        $select.data('select2').selection.placeholder.text = original_placeholder
+        if ($select.data('select2').selection.placeholder != undefined) {
+          $select.data('select2').selection.placeholder.text = original_placeholder
+        }
         $select.trigger('change')
       })
     }

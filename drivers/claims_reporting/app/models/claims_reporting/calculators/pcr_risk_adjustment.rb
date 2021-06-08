@@ -87,7 +87,7 @@ module ClaimsReporting::Calculators
 
     # Build a Hash of various calculated components based on attributes
     # of the Index Health Stay.
-    def process_ihs( # rubocop:disable Metrics/ParameterLists
+    def process_ihs(
       age:, # Integer age
       gender:, # Biological Sex: 'Male' or 'Female' (also accepts 'm' or 'f' or similar variants)
       observation_stay:, # true if the IHS was an 'Observation Stay'

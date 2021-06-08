@@ -10,3 +10,4 @@ module Hl7
     'hl7_'
   end
 end
+HL7 = Hl7
