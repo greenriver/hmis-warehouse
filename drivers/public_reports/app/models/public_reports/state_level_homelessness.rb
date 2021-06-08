@@ -285,7 +285,8 @@ module PublicReports
             data[::HUD.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year)
-            census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop.positive?
+            race_pop = get_us_census_population(race_code: race_code, year: year) || 0
+            census_data[label] = race_pop / full_pop.to_f if full_pop.positive?
           end
 
           scope = homeless_scope.with_service_between(
@@ -387,15 +388,22 @@ module PublicReports
           end_date = date.end_of_quarter
           charts[date.iso8601] = {}
           coc_codes.each do |coc_code|
-            count = scope.with_service_between(
-              start_date: start_date,
-              end_date: end_date,
-            ).in_coc(coc_code: coc_code).count
+            population_overall = population_by_coc[date.year][coc_code]
+            count = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).in_coc(coc_code: coc_code).count
+            else
+              max = [population_overall, 1].compact.max
+              (0..max).to_a.sample
+            end
             count = 10 if count < 10
             # rate per 10,000
-            rate = count / population_by_coc[date.year][coc_code].to_f / 10_000
+            rate = count / population_overall.to_i * 10_000.0
             charts[date.iso8601][coc_code] = {
               count: count,
+              overall_population: population_overall.to_i,
               rate: rate.round(1),
             }
           end

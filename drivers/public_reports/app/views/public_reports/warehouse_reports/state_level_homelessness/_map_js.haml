@@ -89,7 +89,11 @@
     getColor(rate) {
       let division_size = 1 / this.colors.length
       let division = Math.floor(rate / division_size)
-      return this.colors[division]
+      if(division > this.colors.length) {
+        return this.colors[this.colors.length]
+      } else {
+        return this.colors[division]
+      }
     }
 
     bringLayerToFront(layer) {
