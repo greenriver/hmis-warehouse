@@ -1,28 +1,28 @@
 = render 'chart_css'
 - data = JSON.parse(@report.precalculated_data)
 
--# %h3 Homeless Households
--# = number_with_delimiter(data['summary']['homeless_households'])
+%h3 Homeless Households
+= number_with_delimiter(data['summary']['homeless_households'])
 
--# %h3 Total Homeless People in #{data['summary']['year']}
--# = number_with_delimiter(data['summary']['homeless_clients'])
+%h3 Total Homeless People in #{data['summary']['year']}
+= number_with_delimiter(data['summary']['homeless_clients'])
 
--# %h3 Unsheltered
--# - unsheltered_percent = (data['summary']['unsheltered_clients'].to_f / data['summary']['homeless_clients']) * 100 rescue 0
--# = percentage(unsheltered_percent, format: '%1.1f%%')
+%h3 Unsheltered
+- unsheltered_percent = (data['summary']['unsheltered_clients'].to_f / data['summary']['homeless_clients']) * 100 rescue 0
+= percentage(unsheltered_percent, format: '%1.1f%%')
 
 
--# %h3 Total Number of People Experiencing Homelessness
--# - chart_class = 'pit-chart'
--# %div{ class: chart_class }
--# .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
--# = render 'line_chart', chart_class: chart_class, data: data['pit_chart'], category: :population
+%h3 Total Number of People Experiencing Homelessness
+- chart_class = 'pit-chart'
+%div{ class: chart_class }
+.d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
+= render 'line_chart', chart_class: chart_class, data: data['pit_chart'], category: :population
 
--# %h3 Total Number of People Entering and Exiting Homelessness
--# - chart_class = 'inflow-outflow-chart'
--# %div{ class: chart_class }
--# .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
--# = render 'line_chart', chart_class: chart_class, data: data['inflow_outflow'], category: :population
+%h3 Total Number of People Entering and Exiting Homelessness
+- chart_class = 'inflow-outflow-chart'
+%div{ class: chart_class }
+.d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
+= render 'line_chart', chart_class: chart_class, data: data['inflow_outflow'], category: :population
 
 = render 'slider', data: data['quarters']
 %h3 Where is the need?

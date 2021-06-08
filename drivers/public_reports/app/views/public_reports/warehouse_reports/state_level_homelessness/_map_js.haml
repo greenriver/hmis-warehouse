@@ -58,7 +58,8 @@
           const { id, name, cocnum, metric } = props;
           const rate = this.metrics[cocnum].rate
           const count = this.metrics[cocnum].count
-          innerHTML = `<h4>${name} (${cocnum})</h4><div class="rate">${rate} per 10,000 people</div><div class="count">${count} clients</div>`;
+          const population = this.metrics[cocnum].overall_population
+          innerHTML = `<h4>${name} (${cocnum})</h4><div class="rate">${rate} per 10,000 people</div><div class="count">${count.toLocaleString()} clients of ${population.toLocaleString()} people</div>`;
 
           hidden = false;
         }

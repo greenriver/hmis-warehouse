@@ -395,12 +395,12 @@ module PublicReports
                 end_date: end_date,
               ).in_coc(coc_code: coc_code).count
             else
-              max = [population_overall, 1].compact.max
+              max = [population_overall, 1].compact.max / 10_000
               (0..max).to_a.sample
             end
             count = 10 if count < 10
             # rate per 10,000
-            rate = count / population_overall.to_i * 10_000.0
+            rate = count / population_overall.to_f * 10_000.0
             charts[date.iso8601][coc_code] = {
               count: count,
               overall_population: population_overall.to_i,
