@@ -1,6 +1,6 @@
 = simple_form_for @service, as: :service, url: service_scanning_services_path do |f|
   - project_auto_focus = params.dig(:service, :autofocus) == :project_id
-  = f.input :project_id, collection: @service.class.project_options_for_select(user: current_user), selected: @service.project_id, input_html: { autofocus: project_auto_focus }, as: :grouped_select_select, group_method: :last, required: true
+  = f.input :project_id, collection: @service.class.project_options_for_select(user: current_user), selected: @service.project_id, input_html: { autofocus: project_auto_focus }, as: :grouped_select_two, group_method: :last, required: true
   = f.input :slug, collection: @service.class.available_types, input_html: { class: 'jType' }, label: 'Service Provided', required: true, as: :select_two
   .jOtherType
     = f.input :other_type, collection: @service.class.known_other_types, selected: @service.other_type, input_html: { data: { tags: true }}, include_blank: true, hint: 'If you don\'t see the type required, type it in and select it', as: :select_two
