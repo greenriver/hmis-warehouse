@@ -1608,7 +1608,6 @@ CREATE TABLE public.users (
     notify_on_vispdat_completed boolean DEFAULT false,
     notify_on_client_added boolean DEFAULT false,
     notify_on_anomaly_identified boolean DEFAULT false NOT NULL,
-    coc_codes character varying[] DEFAULT '{}'::character varying[],
     email_schedule character varying DEFAULT 'immediate'::character varying NOT NULL,
     active boolean DEFAULT true NOT NULL,
     agency_id integer,
@@ -3031,6 +3030,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210506185609'),
 ('20210506185752'),
 ('20210507151459'),
-('20210518132857');
+('20210518132857'),
+('20210607135335');
 
 
