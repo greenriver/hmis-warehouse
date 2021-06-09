@@ -7,7 +7,6 @@
 module HudPathReport::Fy2020
   class PathClient < ::HudReports::ReportClientBase
     self.table_name = 'hud_report_path_clients'
-    acts_as_paranoid
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
   end

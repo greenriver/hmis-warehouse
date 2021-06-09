@@ -8,6 +8,12 @@
 module HudPathReport::Generators::Fy2020
   class Base < ::HudReports::QuestionBase
     include ArelHelper
+    include CommonQueries
+
+    def initialize(generator = nil, report = nil, options: {})
+      super
+      @filter = HudPathReport::Filters::PathFilter.new.set_from_params(options)
+    end
 
     private def universe
       add_clients unless clients_populated?
@@ -19,6 +25,8 @@ module HudPathReport::Generators::Fy2020
         pending_associations = {}
         batch.each do |client|
           enrollment = last_enrollment(client)
+          next unless enrollment.present?
+
           source_client = enrollment.client
 
           max_disability_date = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }.
@@ -100,10 +108,10 @@ module HudPathReport::Generators::Fy2020
     private def last_enrollment(client)
       scope = client.source_enrollments.
         joins(project: :funders).
-        open_between(start_date: @report.start_date, end_date: @report.end_date).
-        where(ProjectType: [4, 6]). # PATH projects are either SO or services only
-        merge(:GrdaWarehouse::Hud::Funder.funding_source(funder_code: 21)). # PATH projects are PATH funded
+        open_during_range(@report.start_date..@report.end_date).
+        merge(::GrdaWarehouse::Hud::Funder.funding_source(funder_code: 21)). # PATH projects are PATH funded
         order(EntryDate: :desc)
+      scope = scope.with_project_type(@filter.project_type_ids) if @filter.project_type_ids.present?
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope.first
     end
@@ -159,6 +167,10 @@ module HudPathReport::Generators::Fy2020
 
     private def report_client_universe
       HudPathReport::Fy2020::PathClient
+    end
+
+    private def a_t
+      report_client_universe.arel_table
     end
   end
 end

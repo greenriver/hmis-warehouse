@@ -7,11 +7,7 @@
 module HudPathReport::Filters
   class PathFilter < ::Filters::FilterBase
     def default_project_type_codes
-      [4, 6]
-    end
-
-    def available_path_project_types
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select{|k,_| k.in?([:so, :services_only])}.invert
+      [:so, :services_only]
     end
 
     # NOTE: This differs from the base filter class because it includes all projects based on project type, and doesn't include any projects based on CoCCode

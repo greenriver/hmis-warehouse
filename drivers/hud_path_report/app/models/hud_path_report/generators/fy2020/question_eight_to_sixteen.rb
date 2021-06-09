@@ -8,7 +8,7 @@ module HudPathReport::Generators::Fy2020
   class QuestionEightToSixteen < Base
     include ArelHelper
 
-    QUESTION_NUMBER = 'Question 8 to 16'.freeze
+    QUESTION_NUMBER = 'Q8-Q16'.freeze
     QUESTION_TABLE_NUMBER = 'Q8-Q16'.freeze
     QUESTION_TABLE_NUMBERS = [QUESTION_TABLE_NUMBER].freeze
 
@@ -48,8 +48,30 @@ module HudPathReport::Generators::Fy2020
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      # answer = @report.answer(question: table_name, cell: 'B1')
-      # members = universe.universe_members
+      [
+        [active_clients, all_members],
+        [new_and_active_clients, in_street_outreach],
+        [new_and_active_clients, in_services_only],
+        [new_and_active_clients, all_members],
+        [active_and_enrolled_clients, a_t[:date_of_determination].gt(any(a_t[:contacts]))],
+        [active_and_enrolled_clients, a_t[:contacts].not_eq([])],
+        [new_and_active_clients, a_t[:reason_not_enrolled].eq(1)],
+        [new_and_active_clients, a_t[:reason_not_enrolled].eq(3)],
+        [new_and_active_clients, a_t[:enrolled_client].eq(true)],
+        [active_and_enrolled_clients, all_members],
+        [active_and_enrolled_clients, "jsonb_path_exists (#{a_t[:services].to_sql}, '$.* ? (@ == 4)')"]
+      ].each_with_index do |(scope, query), index|
+        answer = @report.answer(question: table_name, cell: 'B' + (index + 2).to_s)
+        members = universe.members.where(scope).where(query)
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
+
+      # B12
+      # answer = @report.answer(question: table_name, cell: 'B2')
+      # candidates = universe.universe_members.where(active_and_enrolled_clients).pluck(:id, a_t[:services]).to_h
+      # candidates.select { |_id, types| types.include?(4) }
+      # members = universe.universe_members.where(id: candidates.keys)
       # answer.add_members(members)
       # answer.update(summary: members.count)
 
