@@ -477,7 +477,7 @@ module ClaimsReporting
         #        :enrolled_days
       ).group_by(&:member_id)
 
-      progress_proc = if Rails.env.development?
+      progress_proc = if ENV['CLAIMS_REPORTING_SHOW_PROGRESS']
         require 'progress_bar'
         pb = ProgressBar.new(medical_claims_by_member_id.size, :counter, :bar, :percentage, :rate, :eta)
         ->(_item, _i, _result) { pb.increment! }
@@ -492,7 +492,7 @@ module ClaimsReporting
         # we can spread the work below across many CPUS by removing
         # the in_threads and running in_processes
         # There is very little I/O so using in_threads wont help much till Ruby 3 Ractor (or other GIL workarounds)
-        in_threads: 1, # this avoids the fork for now.
+        in_processes: 1,
         finish: progress_proc,
       ) do |member_id, claims|
         # we ideally do zero database calls in here
@@ -1287,17 +1287,23 @@ module ClaimsReporting
       # Step 1: Identify enrollees with schizophrenia or bipolar disorder as those who met at least one of the following criteria during the measurement year
       return [] unless schizophrenia_or_bipolar_disorder?(measurement_year_claims)
 
-      # puts "BH_CP_10: MemberRoster#id=#{member.id} -- Found schizophrenia or bipolar disorder"
+      # puts "BH_CP_10: MemberRoster#id=#{member.id} Found schizophrenia or bipolar disorder DX"
+      # puts "BH_CP_10: MemberRoster#id=#{member.id} Checking #{rx_claims.size} Rx Claims"
 
       # Exclude enrollees who met any of the following criteria:
+
       # Enrollees with diabetes.
       if diabetes?(claims, rx_claims)
-        # puts "BH_CP_10: MemberRoster#id=#{member.id} -- Excluded due to diabetes"
+        trace_exclusion do
+          "BH_CP_10: Exclude MemberRoster#id=#{member.id} has diabetes"
+        end
         return []
       end
       # NOT taking antipsychotics
       unless antipsychotic_meds?(claims, rx_claims)
-        # puts "BH_CP_10: MemberRoster#id=#{member.id} -- Excluded due to not taking antipsychotis meds"
+        trace_exclusion do
+          "BH_CP_10: Exclude MemberRoster#id=#{member.id} not taking anti-psychotics"
+        end
         return []
       end
 
@@ -1324,9 +1330,13 @@ module ClaimsReporting
           (e.cp_disenroll_dt - 1.year) .. e.cp_disenroll_dt
         end
       end
+
+      # puts "BH_CP_10: MemberRoster#id=#{member.id}. Checking #{covered_ranges.size} periods"
+
       covered_ranges.each do |required_range|
+        # puts "BH_CP_10: MemberRoster#id=#{member.id}. Checking #{required_range} enrollment period"
         unless continuously_enrolled_cp?(enrollments, required_range, min_days: 122)
-          trace_exclusion { "BH_CP_10: MemberRoster#id=#{member.id}  must be continuously enrolled with a BH CP for at least 122 calendar days. required_mh_range: #{required_mh_range}" }
+          trace_exclusion { "BH_CP_10: MemberRoster#id=#{member.id} must be continuously enrolled with a BH CP for at least 122 calendar days. required_mh_range: #{required_mh_range}" }
           return []
         end
         unless continuously_enrolled_mh?(enrollments, required_range, max_gap: 45)
@@ -1342,7 +1352,7 @@ module ClaimsReporting
             in_set?('HbA1c Tests', c) || c.procedure_code.in?(CPT_GLUCOSE)
           )
         end
-        # puts "BH_CP_10: MemberRoster#id=#{member.id} -- Found diabetes_screening=#{diabetes_screening.inspect}" if diabetes_screening
+        # puts "BH_CP_10: Found MemberRoster#id=#{member.id} diabetes_screening=#{diabetes_screening.present?}"
         row = MeasureRow.new(
           row_type: 'enrollee',
           row_id: "#{member.id}-#{required_range.min}-#{required_range.max}",
@@ -1556,7 +1566,6 @@ module ClaimsReporting
 
       rows
     end
-    memoize :medical_claim_based_rows
 
     # An array of arrays describing a table of details for the measure
     def bh_cp_13_table
