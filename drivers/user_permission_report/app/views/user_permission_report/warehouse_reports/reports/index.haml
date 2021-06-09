@@ -14,11 +14,11 @@
 
 .o-page
   .o-page__header
-    - @prompt = t '.search_prompt'
+    - @prompt = ''
 
     .o-page__controls
       .o-page__search
-        = render 'search_form', tooltip: 'Search on a user\'s first name, last name or email address', prompt: '', aria: { label: 'User Search' }, data: {placement: 'bottom'}
+        = render 'search_form', tooltip: 'Search on a user\'s first name, last name or email address', aria: { label: 'User Search' }, data: {placement: 'bottom'}
 
 .row
   .col-sm-8
