@@ -6,9 +6,9 @@
       .col-sm-3
         = f.input :end_date, as: :date_picker
       .col-sm-3
-        = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false, input_html: {class: 'select2'}
+        = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false, as: :select_two
       .col-sm-3
-        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false, input_html: {class: 'select2'}
+        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false, as: :select_two
         %p.muted
 
     .row
@@ -16,11 +16,11 @@
         = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
       - if can_edit_project_groups?
         .col-sm-6
-          = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user).pluck(:name, :id), placeholder: 'Any Project Group', input_html: {multiple: true, class: 'select2'}, label: 'Project Groups'
+          = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user).pluck(:name, :id), placeholder: 'Any Project Group', input_html: {multiple: true}, label: 'Project Groups', as: :select_two
       .col-sm-6
-        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, placeholder: 'Any Organization', input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, placeholder: 'Any Organization', input_html: {multiple: true }, label: 'Organizations'
       .col-sm-6
-        = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), placeholder: 'Any Data Source', input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
+        = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), placeholder: 'Any Data Source', input_html: {multiple: true}, label: 'Data Sources', as: :select_two
     .row
       .col-sm-3
         %label.control-label
@@ -28,9 +28,9 @@
         %p Full Refresh
         = f.input :directive, as: :hidden, input_html: { value: 2 }
       .col-sm-3
-        = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, input_html: {class: 'select2'}
+        = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, as: :select_two
       .col-sm-3
-        = f.input :version, collection: { 'HMIS 2020' => '2020', 'HMIS CSV 6.x' => '6.11' }, include_blank: false, input_html: {class: 'select2'}
+        = f.input :version, collection: { 'HMIS 2020' => '2020', 'HMIS CSV 6.x' => '6.11' }, include_blank: false, as: :select_two
       - if can_export_anonymous_hmis_data?
         .col-sm-3
           %p

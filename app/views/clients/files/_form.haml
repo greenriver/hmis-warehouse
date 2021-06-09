@@ -55,7 +55,7 @@
         = f.input :consent_form_confirmed, as: :boolean
     .row.jConsentFormCoC
       .col-sm-4
-        = f.input :coc_codes, collection: current_user.coc_codes_for_consent, include_blank: 'All CoCs', input_html: { class: :select2, multiple: true }
+        = f.input :coc_codes, collection: current_user.coc_codes_for_consent, include_blank: 'All CoCs', input_html: { multiple: true }, as: :select_two
     .row.jExpirationDate
       .col-sm-4
         = f.input :expiration_date, as: :date_picker, label: 'Expiration date'

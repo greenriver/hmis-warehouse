@@ -22,7 +22,6 @@
 //= require DataTables/datatables.min
 //= require handlebars.runtime
 //= require select2
-//= require remote_select_load
 //= require bootstrap-datepicker
 //= require Chart.bundle.min
 //= require jquery-ui/widgets/sortable
@@ -44,6 +43,7 @@
 //= require billboard.js/dist/billboard.min
 //= require moment.min.js
 //= require bootstrap-datetimepicker
+//= require stimulus
 //= require promise-polyfill/dist/polyfill.min.js
 
 //////////////////////////
@@ -60,13 +60,11 @@
 //= require files
 //= require selectable_list
 //= require viewable_entities
-//= require select_2
 //= require ./init_stimulus
 //= require cable_ready.cjs.umd
 //= require ./background_render
 //= require_directory ./admin/client_matches
 //= require_directory ./census
-//= require_directory ./filter
 //= require_directory ./maps
 //= require_directory ./reports
 //= require_directory ./rollups
@@ -91,6 +89,7 @@
 //= require_directory ./data_quality_reports
 //= require affix
 //= require list_search
+//= require stimulus_select
 //= require TableWithToggleRows
 //= require role_table
 //= require documentExport.js

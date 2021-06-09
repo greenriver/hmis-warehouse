@@ -19,8 +19,9 @@
 
     = render 'layouts/favicon'
     = csrf_meta_tags
-
-  %body{class: body_classes, data: ({spy: :scroll, target: '.scrollspy'} if content_for(:body_data_scrollspy))}
+  - data = {}
+  - data.merge!({ spy: :scroll, target: '.scrollspy' }) if content_for(:body_data_scrollspy)
+  %body{class: body_classes, data: data}
     = render 'layouts/header_warnings'
 
     %header.o-header--page

@@ -310,34 +310,31 @@ module ProjectScorecard
       ProjectScorecard::ScorecardMailer.scorecard_complete(self).deliver_later
     end
 
-    # TODO: When the SPM is updated, this should be too
     private def percent_returns_to_homelessness_from_spm(project_ids)
-      options = {
-        report_start: start_date,
-        report_end: end_date,
-        project_id: project_ids,
-        project_group_ids: [], # Must be included, but we break it out into project_id
-      }
+      return unless RailsDrivers.loaded.include?(:hud_spm_report)
 
-      report = Reports::SystemPerformance::Fy2019::MeasureTwo.first
-      user = User.find(user_id)
-      spm = ReportResult.create(
-        report: report,
-        user: user,
-        options: options,
-        percent_complete: 0, # start_report looks for this
+      # Generate SPM
+      filter = ::Filters::FilterBase.new(user_id: user_id)
+      filter.set_from_params(
+        {
+          start: start_date,
+          end: end_date,
+          project_ids: project_ids,
+        },
       )
+      questions = [
+        'Measure 2',
+      ]
+      generator = HudSpmReport::Generators::Fy2020::Generator
+      spm = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
+      generator.new(spm).run!(email: false)
 
-      measure_two = ReportGenerators::SystemPerformance::Fy2019::MeasureTwo.new(options) # options are ignored, but required
-      measure_two.run!
-      spm.reload # Get updated values from DB
-
-      number_of_exits = spm.results['two_b7']['value']
-      number_of_returns = spm.results['two_i7']['value']
+      number_of_exits = answer(spm, '2', 'B7')
+      number_of_returns = answer(spm, '2', 'I7')
 
       return nil if number_of_exits.blank? || number_of_exits.zero?
 
-      percentage(number_of_returns / number_of_exits.to_f)
+      return percentage(number_of_returns / number_of_exits.to_f)
     end
 
     private def clients_with_vispdats_fom_hmis(project_ids)

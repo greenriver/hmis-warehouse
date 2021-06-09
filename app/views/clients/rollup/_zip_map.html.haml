@@ -11,10 +11,13 @@
   options = { permanent: true, cluster: false, bounds: bounds }
 - if addresses.any?
   #client__previous-addresses
-  :coffeescript
-    markers = #{markers.to_json.html_safe}
-    options = #{options.to_json.html_safe}
-    map = new App.Maps.MapWithMarkers('client__previous-addresses', markers, options)
+  -# NOTE: to get this to work as a stand-alone (/clients/<id>/rollup/zip_map), it needs the next line, but
+  -# adding it will break the roll-up
+  -# = content_for :page_js do
+  :javascript
+    var markers = #{markers.to_json.html_safe};
+    var options = #{options.to_json.html_safe};
+    var map = new App.Maps.MapWithMarkers('client__previous-addresses', markers, options);
 - else
   .no-data
     No previous addresses

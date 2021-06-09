@@ -328,45 +328,6 @@ module GrdaWarehouse::Tasks
       log(notes) if @dry_run
     end
 
-    # NOTE: Deprecated/ removed from nightly process
-    def remove_clients_without_enrollments!
-      all_clients = GrdaWarehouse::Hud::Client.where(
-        data_source_id: GrdaWarehouse::DataSource.importable.select(:id)
-      ).distinct.pluck(:id)
-      enrolled_clients = GrdaWarehouse::Hud::Client.joins(:enrollments).
-      where(
-        data_source_id: GrdaWarehouse::DataSource.importable.select(:id)
-      ).distinct.pluck(:id)
-      un_enrolled_clients = all_clients - enrolled_clients
-      if un_enrolled_clients.any?
-        deleted_at = Time.now
-        log "Removing #{un_enrolled_clients.size} un enrolled source clients and associated records.  Setting DateDeleted: #{deleted_at}"
-        if ! @dry_run
-          GrdaWarehouse::WarehouseClient.where(source_id: un_enrolled_clients).update_all(deleted_at: deleted_at)
-          hud_classes = [
-            GrdaWarehouse::Hud::Exit,
-            GrdaWarehouse::Hud::EnrollmentCoc,
-            GrdaWarehouse::Hud::Disability,
-            GrdaWarehouse::Hud::HealthAndDv,
-            GrdaWarehouse::Hud::IncomeBenefit,
-            GrdaWarehouse::Hud::EmploymentEducation,
-            GrdaWarehouse::Hud::Assessment,
-            GrdaWarehouse::Hud::CurrentLivingSituation,
-            GrdaWarehouse::Hud::AssessmentQuestion,
-            GrdaWarehouse::Hud::AssessmentResult,
-            GrdaWarehouse::Hud::Event,
-          ]
-          hud_classes.each do |klass|
-            klass.joins(:direct_client).
-              where(Client: {id: un_enrolled_clients}).
-              update_all(DateDeleted: deleted_at, source_hash: nil)
-          end
-
-          GrdaWarehouse::Hud::Client.where(id: un_enrolled_clients).update_all(DateDeleted: deleted_at, source_hash: nil)
-        end
-      end
-    end
-
     def choose_attributes_from_sources dest_attr, source_clients
       dest_attr = choose_best_name(dest_attr, source_clients)
       dest_attr = choose_best_ssn(dest_attr, source_clients)
