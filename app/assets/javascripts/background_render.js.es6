@@ -8,7 +8,7 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
     this.renderIdValue = this.uuid()
 
     // subscribe to the channel and watch for updates from action_cable
-    this.subscription = consumer.subscriptions.create({channel: "BackgroundRenderChannel", id: this.renderIdValue}, {
+    this.subscription = App.cable.subscriptions.create({channel: "BackgroundRenderChannel", id: this.renderIdValue}, {
       connected: () => {
         this.fetch()
       },
@@ -46,7 +46,7 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
   }
 
   disconnect() {
-    consumer.subscriptions.remove(this.subscription)
+    App.cable.subscriptions.remove(this.subscription)
   }
 
 

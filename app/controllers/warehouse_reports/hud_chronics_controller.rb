@@ -9,15 +9,10 @@ module WarehouseReports
     include ArelHelper
     include HudChronic
     include WarehouseReportAuthorization
-    extend BackgroundRenderAction
 
     before_action :load_filter
     before_action :set_sort, except: [:index, :show, :running]
     before_action :set_report, only: [:show, :destroy]
-
-    background_render_action :render_report, RenderHudChronicsReportJob do
-      filter_params.merge(current_user_id: current_user.id)
-    end
 
     def index
       if params[:commit].present?
