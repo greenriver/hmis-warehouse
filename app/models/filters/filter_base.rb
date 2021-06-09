@@ -190,11 +190,11 @@ module Filters
     end
 
     def range
-      self.start .. self.end # rubocop:disable Style/RedundantSelf
+      self.start .. self.end
     end
 
     def as_date_range
-      DateRange.new(start: self.start, end: self.end) # rubocop:disable Style/RedundantSelf
+      DateRange.new(start: self.start, end: self.end)
     end
 
     def first
@@ -228,7 +228,7 @@ module Filters
     end
 
     def length
-      (self.end - self.start).to_i # rubocop:disable Style/RedundantSelf
+      (self.end - self.start).to_i
     rescue StandardError
       0
     end
@@ -597,7 +597,7 @@ module Filters
         'Indefinite Disability'
       when :dv_status
         'DV Status'
-      when :heads_of_household
+      when :heads_of_household, :hoh_only
         'Heads of Household Only?'
       when :limit_to_vispdat
         'Client Limits'
@@ -652,8 +652,8 @@ module Filters
         chosen_indefinite_disabilities
       when :dv_status
         chosen_dv_status
-      when :heads_of_household
-        yes_no(heads_of_household)
+      when :heads_of_household, :hoh_only
+        'Yes' if heads_of_household
       when :limit_to_vispdat
         chosen_vispdat_limits
       end
