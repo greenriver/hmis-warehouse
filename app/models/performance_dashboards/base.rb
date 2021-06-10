@@ -154,7 +154,7 @@ class PerformanceDashboards::Base
     scope = filter_for_ethnicity(scope) # client
     scope = filter_for_veteran_status(scope)  # client
 
-    scope = scope.in_episodes(max_gap: 30) if use_episodes
+    #scope = scope.contiguous_enrollments(max_gap: 30) if use_episodes
 
     # as of last enrollment in episode
     scope = filter_for_destination(scope) #she (last enrollment)
