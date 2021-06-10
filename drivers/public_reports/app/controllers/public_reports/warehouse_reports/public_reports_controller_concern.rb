@@ -81,6 +81,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
         filters: [
           :start,
           :end,
+          :hoh_only,
           coc_codes: [],
           project_types: [],
           project_type_numbers: [],
