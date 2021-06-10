@@ -563,8 +563,6 @@ module PublicReports
             service_scope: shs_scope,
           ).joins(:client)
 
-GrdaWarehouse::Hud::Client.with_races(selected_races)
-
           ch_t = GrdaWarehouse::HudChronic.arel_table
           chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
           chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)

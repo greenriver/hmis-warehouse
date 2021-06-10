@@ -1,12 +1,3 @@
-- active_date = data.keys.first
-%h3= data[active_date]['title']
-.jQuarterChosenDate
-.race-chart-category-first
-  = data[active_date]['categories'].first
-.chart-bar.chart.pt-0{ data: { active_date: data.keys.first }, class: [chart_class, "active_date_#{data.keys.first}"]}
-.race-chart-category-last
-  = data[active_date]['categories'].last
-%div.d-flex.legend-wrapper-horizontal.legend-wrapper{ class: ["#{chart_class}_legend"] }
 :javascript
   (function(){
     var controller;

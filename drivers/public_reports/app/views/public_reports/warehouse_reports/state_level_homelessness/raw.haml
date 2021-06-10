@@ -34,5 +34,6 @@
   = render 'household_type', data: data['household_type']
 
 - chart_class = "race-chart"
-= render 'bar_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Unknown']
-= debug data['homeless_breakdowns']
+= render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Unknown']
+
+= render 'homeless_breakdowns', data: data['homeless_breakdowns']
