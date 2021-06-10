@@ -56,6 +56,7 @@ module PublicReports
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
+      scope = filter_for_head_of_household(scope)
       scope
     end
   end

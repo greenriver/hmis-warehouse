@@ -1,5 +1,5 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Changes to #{@cohort.name}".slice(0,30)) do |sheet|
+wb.add_worksheet(name: "Changes to #{@cohort.sanitized_name}".slice(0,30)) do |sheet|
   sheet.add_row(
     [
       "Changes between #{@range.range}",
