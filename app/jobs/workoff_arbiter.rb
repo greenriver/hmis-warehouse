@@ -44,7 +44,7 @@ class WorkoffArbiter
   end
 
   def needs_worker?
-    metric > CUTOFF && _current_worker_count < MAX_WORKOFF_WORKERS
+    _long_work_pending? || (metric > CUTOFF && _current_worker_count < MAX_WORKOFF_WORKERS)
   end
 
   def add_worker!
@@ -61,11 +61,39 @@ class WorkoffArbiter
       ],
     }
 
-    ecs.run_task(payload)
-    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.pluck(:id).count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
+    _num_workers_to_add.times do
+      ecs.run_task(payload)
+      @notifier.ping("Added a workoff worker. Long jobs pending: #{_long_jobs.count}. Metric was #{metric.round} (#{_dj_scope.pluck(:id).count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
+    end
   end
 
   private
+
+  def _long_work_pending?
+    _long_jobs.any?
+  end
+
+  def _num_workers_to_add
+    if _long_work_pending?
+      [_long_jobs.count, 3].min
+    else
+      1
+    end
+  end
+
+  def _long_jobs
+    @_long_jobs ||=
+      begin
+        # This prevents this code from silently failing to work correctly if we
+        # were to change the queue name in the future
+        queues = Delayed::Worker.queue_attributes.keys
+        long_queue = 'long_running'
+        raise "Incorrect queue: #{long_queue}" unless long_queue.in?(queues)
+
+        Delayed::Job.where(queue: long_queue, locked_by: nil, last_error: nil, failed_at: nil)
+      end
+  end
+
 
   def _queue_length
     _dj_scope.except(:select).count
