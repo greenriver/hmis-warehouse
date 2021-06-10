@@ -44,7 +44,7 @@ class WorkoffArbiter
   end
 
   def needs_worker?
-    metric > CUTOFF && _current_worker_count < MAX_WORKOFF_WORKERS
+    _work_pending? && _current_worker_count < MAX_WORKOFF_WORKERS
   end
 
   def add_worker!
@@ -67,8 +67,8 @@ class WorkoffArbiter
 
   private
 
-  def _queue_length
-    _dj_scope.except(:select).count
+  def _work_pending?
+    _dj_scope.any?
   end
 
   def _current_worker_count
@@ -122,7 +122,8 @@ class WorkoffArbiter
   def _dj_scope
     Delayed::Job.
       select('created_at, priority, queue').
-      where(failed_at: nil, locked_at: nil, locked_by: nil)
+      where(failed_at: nil, locked_at: nil, locked_by: nil).
+      where.not(queue: 'mailers') # never boot a workoff worker just for mail
   end
 
   def _task_family

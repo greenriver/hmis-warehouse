@@ -20,7 +20,8 @@
               = yes_no(report.published?)
               - if report.version_slug.present?
                 (#{report.version_slug})
-            %td.report-parameters.parameter-label= report.filter_object.describe_filter_as_html
+            %td.report-parameters.parameter-label
+              = report.filter_object.describe_filter_as_html
             %td
               .nobr
                 = report&.user&.name
