@@ -44,7 +44,7 @@ class WorkoffArbiter
   end
 
   def needs_worker?
-    _long_work_pending? || (metric > CUTOFF && _current_worker_count < MAX_WORKOFF_WORKERS)
+    _work_pending? && _current_worker_count < MAX_WORKOFF_WORKERS
   end
 
   def add_worker!
@@ -61,42 +61,14 @@ class WorkoffArbiter
       ],
     }
 
-    _num_workers_to_add.times do
-      ecs.run_task(payload)
-      @notifier.ping("Added a workoff worker. Long jobs pending: #{_long_jobs.count}. Metric was #{metric.round} (#{_dj_scope.pluck(:id).count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
-    end
+    ecs.run_task(payload)
+    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.pluck(:id).count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
   end
 
   private
 
-  def _long_work_pending?
-    _long_jobs.any?
-  end
-
-  def _num_workers_to_add
-    if _long_work_pending?
-      [_long_jobs.count, 3].min
-    else
-      1
-    end
-  end
-
-  def _long_jobs
-    @_long_jobs ||=
-      begin
-        # This prevents this code from silently failing to work correctly if we
-        # were to change the queue name in the future
-        queues = Delayed::Worker.queue_attributes.keys
-        long_queue = 'long_running'
-        raise "Incorrect queue: #{long_queue}" unless long_queue.in?(queues)
-
-        Delayed::Job.where(queue: long_queue, locked_by: nil, last_error: nil, failed_at: nil)
-      end
-  end
-
-
-  def _queue_length
-    _dj_scope.except(:select).count
+  def _work_pending?
+    _dj_scope.any?
   end
 
   def _current_worker_count
@@ -150,7 +122,8 @@ class WorkoffArbiter
   def _dj_scope
     Delayed::Job.
       select('created_at, priority, queue').
-      where(failed_at: nil, locked_at: nil, locked_by: nil)
+      where(failed_at: nil, locked_at: nil, locked_by: nil).
+      where.not(queue: 'mailers') # never boot a workoff worker just for mail
   end
 
   def _task_family
