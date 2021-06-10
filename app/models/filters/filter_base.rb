@@ -653,7 +653,7 @@ module Filters
       when :dv_status
         chosen_dv_status
       when :heads_of_household, :hoh_only
-        'Yes' if heads_of_household
+        'Yes' if heads_of_household || hoh_only
       when :limit_to_vispdat
         chosen_vispdat_limits
       end
