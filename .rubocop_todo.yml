@@ -1376,7 +1376,6 @@ Style/TrivialAccessors:
   Exclude:
     - 'app/models/health/base.rb'
     - 'app/models/health/epic_base.rb'
-    - 'app/models/health/tracking_sheet.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
