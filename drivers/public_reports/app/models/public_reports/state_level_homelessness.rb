@@ -71,8 +71,7 @@ module PublicReports
         household_type: household_type,
         race_chart: race_chart,
         need_map: need_map,
-        # population_homeless_maps: population_homeless_maps,
-        # housing_status_breakdowns: housing_status_breakdowns,
+        homeless_breakdowns: homeless_breakdowns,
       }.to_json
     end
 
@@ -257,6 +256,7 @@ module PublicReports
         quarter_dates.each do |date|
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
+
           total = adult_only_household_ids(start_date, end_date).count + adult_and_child_household_ids(start_date, end_date).count + child_only_household_ids(start_date, end_date).count
           charts[date.iso8601] = {
             data: [
@@ -407,6 +407,209 @@ module PublicReports
               rate: rate.round(1),
             }
           end
+        end
+      end
+    end
+
+    private def homeless_breakdowns
+      {
+        household_type: household_type_breakdowns,
+        gender: gender_breakdowns,
+        race: race_breakdowns,
+      }
+    end
+
+    # Breakdowns by Household type, age, and Sheltered/Unsheltered
+    private def household_type_breakdowns
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+
+          shs_scope = GrdaWarehouse::ServiceHistoryService.
+            where(date: start_date..end_date)
+          scope = homeless_scope.with_service_between(
+            start_date: start_date,
+            end_date: end_date,
+            service_scope: shs_scope,
+          )
+          adult_only_scope = scope.where(household_id: adult_only_household_ids(start_date, end_date)).
+            distinct.select(:client_id)
+          adult_and_child_scope = scope.where(household_id: adult_and_child_household_ids(start_date, end_date)).
+            distinct.select(:client_id)
+          child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date)).
+            distinct.select(:client_id)
+          ch_t = GrdaWarehouse::HudChronic.arel_table
+          chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
+          chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
+          charts[date.iso8601] = {
+            data: {
+              'Persons in Households Without Children' => {
+                'Persons Age 18 to 24' => {
+                  sheltered: adult_only_scope.homeless_sheltered.where(age: 18..24).count,
+                  unsheltered: adult_only_scope.homeless_unsheltered.where(age: 18..24).count,
+                  total: adult_only_scope.where(age: 18..24).count,
+                  chronic: chronic_scope.where(client_id: adult_only_scope.where(age: 18..24).select(:client_id)).count,
+                },
+                'Persons over age 24' => {
+                  sheltered: adult_only_scope.homeless_sheltered.where(age: 24..105).count,
+                  unsheltered: adult_only_scope.homeless_unsheltered.where(age: 24..105).count,
+                  total: adult_only_scope.where(age: 24..105).count,
+                  chronic: chronic_scope.where(client_id: adult_only_scope.where(age: 24..105).select(:client_id)).count,
+                },
+              },
+              'Persons in households with at least one child and one adult' => {
+                'Children under 18' => {
+                  sheltered: adult_and_child_scope.homeless_sheltered.where(she_t[:age].lt(18)).count,
+                  unsheltered: adult_and_child_scope.homeless_unsheltered.where(she_t[:age].lt(18)).count,
+                  total: adult_and_child_scope.where(she_t[:age].lt(18)).count,
+                  chronic: chronic_scope.where(client_id: adult_and_child_scope.where(she_t[:age].lt(18)).select(:client_id)).count,
+                },
+                'Persons age 18 to 24' => {
+                  sheltered: adult_and_child_scope.homeless_sheltered.where(age: 18..24).count,
+                  unsheltered: adult_and_child_scope.homeless_unsheltered.where(age: 18..24).count,
+                  total: adult_and_child_scope.where(age: 18..24).count,
+                  chronic: chronic_scope.where(client_id: adult_and_child_scope.where(age: 18..24).select(:client_id)).count,
+                },
+                'Persons over age 24' => {
+                  sheltered: adult_and_child_scope.homeless_sheltered.where(age: 24..105).count,
+                  unsheltered: adult_and_child_scope.homeless_unsheltered.where(age: 24..105).count,
+                  total: adult_and_child_scope.where(age: 24..105).count,
+                  chronic: chronic_scope.where(client_id: adult_and_child_scope.where(age: 24..105).select(:client_id)).count,
+                },
+              },
+              'Persons in households with only children' => {
+                'Children under 18' => {
+                  sheltered: child_only_scope.homeless_sheltered.where(she_t[:age].lt(18)).count,
+                  unsheltered: child_only_scope.homeless_unsheltered.where(she_t[:age].lt(18)).count,
+                  total: child_only_scope.where(she_t[:age].lt(18)).count,
+                  chronic: chronic_scope.where(client_id: child_only_scope.where(she_t[:age].lt(18)).select(:client_id)).count,
+                },
+              },
+            },
+          }
+        end
+      end
+    end
+
+    private def gender_breakdowns
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+
+          shs_scope = GrdaWarehouse::ServiceHistoryService.
+            where(date: start_date..end_date)
+          scope = homeless_scope.with_service_between(
+            start_date: start_date,
+            end_date: end_date,
+            service_scope: shs_scope,
+          ).joins(:client)
+
+          ch_t = GrdaWarehouse::HudChronic.arel_table
+          chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
+          chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
+          charts[date.iso8601] = {
+            data: {
+              'Gender' => {
+                'Female' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.gender_female).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.gender_female).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.gender_female).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.gender_female).select(:client_id)).count,
+                },
+                'Male' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.gender_female).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.gender_female).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.gender_female).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.gender_female).select(:client_id)).count,
+                },
+                'Transgender' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.gender_transgender).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.gender_transgender).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.gender_transgender).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.gender_transgender).select(:client_id)).count,
+                },
+                'Gender non-conforming' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.gender_non_conforming).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.gender_non_conforming).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.gender_non_conforming).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.gender_non_conforming).select(:client_id)).count,
+                },
+                'Unknown' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.gender_unknown).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.gender_unknown).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.gender_unknown).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.gender_unknown).select(:client_id)).count,
+                },
+              },
+            },
+          }
+        end
+      end
+    end
+
+    private def race_breakdowns
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+
+          shs_scope = GrdaWarehouse::ServiceHistoryService.
+            where(date: start_date..end_date)
+          scope = homeless_scope.with_service_between(
+            start_date: start_date,
+            end_date: end_date,
+            service_scope: shs_scope,
+          ).joins(:client)
+
+GrdaWarehouse::Hud::Client.with_races(selected_races)
+
+          ch_t = GrdaWarehouse::HudChronic.arel_table
+          chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
+          chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
+          charts[date.iso8601] = {
+            data: {
+              'Race' => {
+                'American Indian or Alaska Native' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative'])).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative'])).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative'])).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative'])).select(:client_id)).count,
+                },
+                'Asian' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.with_races(['Asian'])).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.with_races(['Asian'])).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.with_races(['Asian'])).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.with_races(['Asian'])).select(:client_id)).count,
+                },
+                'Black or African American' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican'])).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican'])).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican'])).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican'])).select(:client_id)).count,
+                },
+                'Native Hawaiian or Other Pacific Islander' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.with_races(['NativeHIOtherPacific'])).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.with_races(['NativeHIOtherPacific'])).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.with_races(['NativeHIOtherPacific'])).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.with_races(['NativeHIOtherPacific'])).select(:client_id)).count,
+                },
+                'White' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.with_races(['White'])).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.with_races(['White'])).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.with_races(['White'])).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.with_races(['White'])).select(:client_id)).count,
+                },
+                'Multi-Racial' => {
+                  sheltered: scope.homeless_sheltered.merge(GrdaWarehouse::Hud::Client.multi_racial).count,
+                  unsheltered: scope.homeless_unsheltered.merge(GrdaWarehouse::Hud::Client.multi_racial).count,
+                  total: scope.merge(GrdaWarehouse::Hud::Client.multi_racial).count,
+                  chronic: chronic_scope.where(client_id: scope.merge(GrdaWarehouse::Hud::Client.multi_racial).select(:client_id)).count,
+                },
+              },
+            },
+          }
         end
       end
     end

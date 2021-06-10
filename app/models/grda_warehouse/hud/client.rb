@@ -552,6 +552,14 @@ module GrdaWarehouse::Hud
       where(Gender: 4)
     end
 
+    scope :gender_transgender, -> do
+      where(Gender: [2, 3])
+    end
+
+    scope :gender_unknown, -> do
+      where(Gender: [8, 9, 99, nil])
+    end
+
     ####################
     # Callbacks
     ####################
