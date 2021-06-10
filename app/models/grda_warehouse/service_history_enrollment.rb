@@ -398,6 +398,114 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     date
   end
 
+  # Compute "episodes" from the current scope and return a
+  # #read-only ActiveRecord::Relation for each one. An "episode"
+  # is a sequence of enrollments for a client of the same computed_project_type
+  # and with a max_gap (default 30 days) between them.
+
+  # Associations and query methods should continue to work and default
+  # to the last enrollment for join columns. "At start" or "first"
+  # columns like first_date_in_program, housing_status_at_entry come
+  # from the earliest enrollment in the episode. "destination" and similar
+  # come from the last
+  def self.in_episodes(max_gap: 30)
+    ctes = {
+      # enrollments that can be considered as episode part candidates
+      entries: <<~SQL,
+        #{entry.to_sql}
+      SQL
+      n: <<~SQL,
+        SELECT
+            c.id AS c_id,
+            c.first_date_in_program AS c_start,
+            c.last_date_in_program AS c_end,
+            p.id AS p_id,
+            p.last_date_in_program AS p_end,
+            p.first_date_in_program AS p_start
+          FROM
+            entries c
+          LEFT JOIN entries p ON p.client_id = c.client_id
+            AND p.id != c.id
+            -- TODO adjust episode rule?
+            AND c.computed_project_type = p.computed_project_type
+            AND p.last_date_in_program IS NOT NULL
+            AND p.last_date_in_program between(c.first_date_in_program - #{connection.quote max_gap.to_i})
+            AND c.first_date_in_program - 1
+      SQL
+      best_n: <<~SQL,
+        SELECT
+          c_id,
+          c_start,
+          c_end,
+          first_value(p_id) OVER w AS p_id,
+          first_value(p_end) OVER w AS p_end
+        FROM
+          n
+        WINDOW w AS(PARTITION BY c_id ORDER BY p_start, p_end DESC)
+      SQL
+      priors: <<~SQL,
+        SELECT DISTINCT
+          p_id
+        FROM
+          best_n
+        WHERE
+          p_id IS NOT NULL
+      SQL
+      last_enrollments: <<~SQL,
+        SELECT
+          c_id AS episode_id,
+          c_end AS episode_end,
+          0 AS idx,
+          c_id AS enrollment_id,
+          c_start - p_end AS gap,
+          best_n.p_id
+        FROM
+          best_n --  we are a final enrollment, i.e not a prior enrollment in an other pair
+        -- anti-joins are much faster than NOT IN in postgresql :(
+        LEFT JOIN priors n ON best_n.c_id = n.p_id
+        WHERE
+        n.p_id IS NULL
+      SQL
+      episodes: <<~SQL,
+        SELECT
+          *
+        FROM
+          last_enrollments
+        UNION
+        SELECT
+          episodes.episode_id,
+          episodes.episode_end,
+          episodes.idx - 1,
+          p.c_id AS enrollment_id,
+          p.c_start - p_end AS gap,
+          p.p_id
+        FROM
+          episodes
+        JOIN  best_n p
+          on episodes.p_id = p.c_id
+          where idx > -1000 -- recursion limit safety
+      SQL
+      episode_info: <<~SQL,
+        SELECT DISTINCT
+          last_value(enrollment_id) over ew as id,
+          last_value(client_id) over ew AS client_id,
+          first_value(first_date_in_program) over ew AS first_date_in_program,
+          last_value(last_date_in_program) over ew as last_date_in_program,
+          first_value(housing_status_at_entry) over ew as housing_status_at_entry,
+          last_value(computed_project_type) over ew as computed_project_type,
+          last_value(destination) over ew as destination,
+          last_value(data_source_id) over ew as data_source_id,
+          last_value(project_id) over ew as project_id,
+          count(*) over ew as periods
+        FROM
+          episodes e
+        JOIN service_history_enrollments i ON e.enrollment_id = i.id
+        WINDOW ew AS (PARTITION BY episode_id ORDER BY e.idx)
+      SQL
+    }
+    unscoped.with.recursive(**ctes).from('episode_info as service_history_enrollments').readonly
+  end
+
   def self.project_type_column
     if GrdaWarehouse::Config.get(:project_type_override)
       :computed_project_type

@@ -9,7 +9,7 @@ class PerformanceDashboards::Base
   include ActionView::Helpers::NumberHelper
   include Filter::ControlSections
   include Filter::FilterScopes
-
+  attr_reader :use_episodes
   # Initialize dashboard model.
   #
   # @param start_date [Date]
@@ -38,6 +38,8 @@ class PerformanceDashboards::Base
     @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
     @comparison_pattern = filter.comparison_pattern
     @sub_population = valid_sub_population(filter.sub_population)
+
+    @use_episodes = true
   end
 
   attr_reader :start_date, :end_date, :coc_codes, :project_types, :filter
@@ -127,27 +129,39 @@ class PerformanceDashboards::Base
 
   # @return filtered scope
   def report_scope(all_project_types: false)
-    # Report range
     scope = report_scope_source
+
+    # restrict src enrollments
     scope = filter_for_user_access(scope)
-    scope = filter_for_range(scope)
-    scope = filter_for_cocs(scope)
-    scope = filter_for_sub_population(scope)
-    scope = filter_for_household_type(scope)
-    scope = filter_for_head_of_household(scope)
-    scope = filter_for_age(scope)
-    scope = filter_for_gender(scope)
-    scope = filter_for_race(scope)
-    scope = filter_for_ethnicity(scope)
-    scope = filter_for_veteran_status(scope)
+
+    scope = filter_for_data_sources(scope) # data_source_id ()
+    scope = filter_for_cocs(scope)  # project ('')
+    scope = filter_for_organizations(scope) # project -> ...  (any enrollment)
+    scope = filter_for_funders(scope) # project  (any enrollment)
+    scope = filter_for_projects(scope) # project (any enrollment)
+
     scope = filter_for_project_type(scope, all_project_types: all_project_types)
-    scope = filter_for_data_sources(scope)
-    scope = filter_for_organizations(scope)
-    scope = filter_for_projects(scope)
-    scope = filter_for_funders(scope)
-    scope = filter_for_prior_living_situation(scope)
-    scope = filter_for_destination(scope)
-    scope = filter_for_ca_homeless(scope)
+
+    scope = filter_for_range(scope) # she dates
+
+    scope = filter_for_sub_population(scope)
+    scope = filter_for_head_of_household(scope) # head_of_household
+    scope = filter_for_ca_homeless(scope) # coordinate assessment
+    scope = filter_for_household_type(scope)
+    scope = filter_for_age(scope) # client dob (last enrollment)
+    scope = filter_for_gender(scope) # client
+    scope = filter_for_race(scope) # client
+    scope = filter_for_ethnicity(scope) # client
+    scope = filter_for_veteran_status(scope)  # client
+
+    scope = scope.in_episodes(max_gap: 30) if use_episodes
+
+    # as of last enrollment in episode
+    scope = filter_for_destination(scope) #she (last enrollment)
+
+    # first enrollment properties
+    scope = filter_for_prior_living_situation(scope) #she (first enrollment)
+
     scope
   end
 

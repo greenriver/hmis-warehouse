@@ -23,6 +23,14 @@ GIT
       rspec
 
 GIT
+  remote: https://github.com/kmurph73/ctes_in_my_pg.git
+  revision: b04ec6c9e56a9ed63b899052256d89c5cea68945
+  specs:
+    ctes_in_my_pg (0.1.0)
+      activerecord (>= 5.2.0)
+      pg
+
+GIT
   remote: https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
   revision: 777aa53445c34e78d7248d08ca119f00d841bc88
   branch: 5-2-stable
@@ -892,6 +900,7 @@ DEPENDENCIES
   coffee-rails
   combine_pdf
   composite_primary_keys!
+  ctes_in_my_pg!
   curb
   daemons
   delayed_job
