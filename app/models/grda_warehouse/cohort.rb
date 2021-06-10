@@ -108,7 +108,8 @@ module GrdaWarehouse
     end
 
     def sanitized_name
-      name.gsub(/[\/\\]/, '-')
+      # See https://www.keynotesupport.com/excel-basics/worksheet-names-characters-allowed-prohibited.shtml
+      name.gsub(/['\*\/\\\?\[\]\:]/, '-')
     end
 
     def active_scope
@@ -153,14 +154,10 @@ module GrdaWarehouse
     end
 
     # full un-paginated scope for the last `client_search`
-    def client_search_scope
-      @client_search_scope
-    end
+    attr_reader :client_search_scope
 
     # paginated/preloaded scope for the last `client_search`
-    def client_search_result
-      @client_search_result
-    end
+    attr_reader :client_search_result
 
     def self.has_some_cohort_access user
       user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
