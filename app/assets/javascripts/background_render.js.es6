@@ -1,9 +1,10 @@
-App.StimulusApp.register('list-search', class extends Stimulus.Controller {
+App.StimulusApp.register('background-render', class extends Stimulus.Controller {
   static get values() {
     return {renderId: String, url: String, fetchParams: Object}
   }
 
   connect() {
+    console.log('Connected')
     // set a unique id for this render
     this.renderIdValue = this.uuid()
 

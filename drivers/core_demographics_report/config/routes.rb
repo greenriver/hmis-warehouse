@@ -12,6 +12,7 @@ Rails.application.routes.draw do
         get 'section/:partial', on: :collection, to: 'core#section', as: :section
         get :filters, on: :collection
         get :download, on: :collection
+        post :render_section, on: :collection
       end
     end
   end
