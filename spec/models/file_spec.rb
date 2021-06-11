@@ -31,14 +31,13 @@ RSpec.describe File do
 
         IO.copy_stream(file, tempfile)
 
+        tempfile.close
 
         output = MiniMagick::Tool::Identify.new do |cmd|
           cmd << tempfile.path
         end
 
         expect(output).to include('JPEG')
-
-        tempfile.close
       end
     end
   end
