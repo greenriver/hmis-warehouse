@@ -33,6 +33,7 @@ RSpec.describe File do
       Tempfile.new(["mini_magick", '.jpg']).tap do |tempfile|
         tempfile.binmode
 
+        file.chmod file.lstat.mode
         IO.copy_stream(file, tempfile)
 
         # https://github.com/docker/for-linux/issues/1015 work around
