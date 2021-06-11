@@ -22,7 +22,7 @@ RSpec.describe File do
     tmp_path = '/tmp/test_photo.jpg'
     `cp #{test_path} #{tmp_path}`
     src_data = File.open(test_path, 'rb', &:read)
-    dst_data = 'x'+File.open(tmp_path, 'rb', &:read)
+    dst_data = File.open(tmp_path, 'rb', &:read)
 
     expect(dst_data).to eq(src_data)
   end
