@@ -12,6 +12,16 @@ RSpec.describe GrdaWarehouse::SecureFile, type: :model do
   let!(:file) { create :secure_file, recipient_id: recipient.id, sender_id: sender.id }
   let!(:file2) { create :secure_file, recipient_id: recipient2.id, sender_id: sender2.id }
 
+  it 'has a safe place to work' do
+    test_path = Rails.root.join 'spec/fixtures/files/images/test_photo.jpg'
+    tmp_path = '/tmp/test_photo.jpg'
+    `cp #{test_path} #{tmp_path}`
+    src_data = File.open(test_path, 'rb', &:read)
+    dst_data = File.open(tmp_path, 'rb', &:read)
+
+    assert_equal dst_data, src_data
+  end
+
   describe 'secure files have appropriate permissions' do
     it 'senders with no roles can\'t see the file after upload' do
       expect(GrdaWarehouse::SecureFile.visible_by?(sender).count).to eq 0

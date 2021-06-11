@@ -165,6 +165,4 @@ jobs:
           WAREHOUSE_DATABASE_USER: postgres
           WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
         run: |
-          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
-          # bundle exec rspec --color --format p -P "{spec,drivers}/**/*_spec.rb"
-          bundle exec rspec --color --format p spec/models/grda_warehouse/secure_file_spec.rb spec/models/grda_warehouse/ad_hoc_data_source_spec.rb drivers/hmis_csv_twenty_twenty/spec/models/client_processing_spec.rb
+          bundle exec rspec --color --fail-fast --format d spec/models/file_spec.rb spec/models/grda_warehouse/secure_file_spec.rb spec/models/grda_warehouse/ad_hoc_data_source_spec.rb drivers/hmis_csv_twenty_twenty/spec/models/client_processing_spec.rb
