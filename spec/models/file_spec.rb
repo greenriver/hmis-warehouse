@@ -11,13 +11,11 @@ RSpec.describe File do
     end
     expect(output).to include('JPEG')
 
-    File.open(tmp_path, binmode: true) do |file|
+    File.open(test_path, binmode: true) do |file|
       Tempfile.new(["mini_magick", '.jpg']).tap do |tempfile|
         tempfile.binmode
 
         IO.copy_stream(file, tempfile)
-
-        tempfile.close
 
         output = MiniMagick::Tool::Identify.new do |cmd|
           cmd << tempfile.path
@@ -26,6 +24,26 @@ RSpec.describe File do
         expect(output).to include('JPEG')
 
         puts output
+
+        tempfile.close
+      end
+    end
+
+    File.open(tmp_path, binmode: true) do |file|
+      Tempfile.new(["mini_magick", '.jpg']).tap do |tempfile|
+        tempfile.binmode
+
+        IO.copy_stream(file, tempfile)
+
+        output = MiniMagick::Tool::Identify.new do |cmd|
+          cmd << tempfile.path
+        end
+
+        expect(output).to include('JPEG')
+
+        puts output
+
+        tempfile.close
       end
     end
   end
