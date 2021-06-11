@@ -33,12 +33,9 @@ RSpec.describe File do
       Tempfile.new(["mini_magick", '.jpg']).tap do |tempfile|
         tempfile.binmode
 
+        # https://github.com/docker/for-linux/issues/1015 work around
         file.chmod file.lstat.mode
         IO.copy_stream(file, tempfile)
-
-        # https://github.com/docker/for-linux/issues/1015 work around
-        tempfile.close
-        tempfile.chmod tempfile.lstat.mode
 
         output = MiniMagick::Tool::Identify.new do |cmd|
           cmd << tempfile.path
