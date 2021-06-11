@@ -119,11 +119,12 @@ class WorkoffArbiter
   end
 
   # Get all non-failed, non-running jobs
+  # nightly-processing jobs have no queue as of this writing.
   def _dj_scope
     Delayed::Job.
       select('created_at, priority, queue').
       where(failed_at: nil, locked_at: nil, locked_by: nil).
-      where.not(queue: 'mailers') # never boot a workoff worker just for mail
+      where("queue != 'mailers' OR queue IS NULL") # never boot a workoff worker just for mail
   end
 
   def _task_family
