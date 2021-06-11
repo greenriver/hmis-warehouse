@@ -276,7 +276,7 @@ class RollOut
     desired_count = container_count || 1
 
     if desired_count == 0
-      return [0, 0]
+      return [0, 100]
     elsif desired_count == 1
       [100, 200]
     else

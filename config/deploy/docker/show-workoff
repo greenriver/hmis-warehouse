@@ -1,0 +1,14 @@
+
+rm -f tasks.in*
+rm -f tasks
+
+aws-vault exec openpath -- aws ecs list-tasks --cluster=$CLUSTER | jq '.taskArns[]' -r > tasks
+
+# only 100 at a time possible
+split -d -l 100 tasks tasks.in.
+
+aws-vault exec openpath -- aws ecs describe-tasks --tasks $(cat tasks.in.00 | xargs) --cluster=$CLUSTER | jq '.tasks[]' > results.json
+aws-vault exec openpath -- aws ecs describe-tasks --tasks $(cat tasks.in.01 | xargs) --cluster=$CLUSTER | jq '.tasks[]' >> results.json
+
+# could do some fancy jq thing, but this works
+cat results.json | grep taskDefinitionArn | grep workoff
