@@ -130,7 +130,7 @@ jobs:
 
           bundle exec rake assets:precompile
       - name: Show diskspace
-        run: df -sh
+        run: df -h
       - name: Run tests
         env:
           CLIENT: test
