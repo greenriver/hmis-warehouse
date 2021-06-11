@@ -42,8 +42,9 @@ jobs:
         image: redis:alpine
         ports:
           - 6379:6379
-
     steps:
+      - name: Show diskspace
+        run: du -sh
       - name: Set up dependencies
         env:
           DATABASE_APP_DB_TEST: boston_hmis_test
@@ -52,7 +53,6 @@ jobs:
           DATABASE_DB_TEST: boston_cas_test
           REPORTING_DATABASE_DB_TEST: test_boston_reporting
         run: |
-          du -h
           apk add --no-cache \
             nodejs yarn npm \
             tzdata \
@@ -129,7 +129,8 @@ jobs:
           chmod 600 ~/.pgpass
 
           bundle exec rake assets:precompile
-
+      - name: Show diskspace
+        run: du -sh
       - name: Run tests
         env:
           CLIENT: test
@@ -164,7 +165,6 @@ jobs:
           WAREHOUSE_DATABASE_USER: postgres
           WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
         run: |
-          du -h
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
           # bundle exec rspec --color --format p -P "{spec,drivers}/**/*_spec.rb"
           bundle exec rspec --color --format p spec/models/grda_warehouse/secure_file_spec.rb spec/models/grda_warehouse/ad_hoc_data_source_spec.rb drivers/hmis_csv_twenty_twenty/spec/models/client_processing_spec.rb
