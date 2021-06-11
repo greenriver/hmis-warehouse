@@ -99,11 +99,11 @@ class ContainerList
   private
 
   def ensure_profile_and_ip
-    my_ip = `dig +short myip.opendns.com @resolver1.opendns.com`.chomp
+    #my_ip = `dig +short myip.opendns.com @resolver1.opendns.com`.chomp
 
-    raise 'Check you VPN. Your public IP seems incorrect' unless my_ip.match?(/^(54\.85|64.223)/)
+    #raise 'Check you VPN. Your public IP seems incorrect' unless my_ip.match?(/^(54\.85|64.223)/)
 
-    raise 'set AWS_PROFILE' if ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }.nil?
+    #raise 'set AWS_PROFILE' if ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }.nil?
   end
 
   def instances
