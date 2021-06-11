@@ -81,6 +81,19 @@
   }
 }
 
+.warehouse-reports__user-permission {
+  td {
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      margin-bottom: 0.5em;
+    }
+  }
+
+}
+
 .report-hightlight
 {
   background-color: $brand-warning-l;

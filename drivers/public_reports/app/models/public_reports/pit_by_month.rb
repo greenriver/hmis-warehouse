@@ -31,8 +31,13 @@ module PublicReports
     end
 
     private def chart_data
+      client_title = if filter_object.hoh_only
+        'households'
+      else
+        'people'
+      end
       x = ['x']
-      pit_count = ['Average people homeless per day']
+      pit_count = ["Average #{client_title} homeless per day"]
       new_count = ['Average newly homeless per day']
       pit_counts.each do |date, (pit, newly)|
         x << date
@@ -101,6 +106,7 @@ module PublicReports
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
+      scope = filter_for_head_of_household(scope)
       scope
     end
 
@@ -115,6 +121,7 @@ module PublicReports
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
+      scope = filter_for_head_of_household(scope)
       scope
     end
   end

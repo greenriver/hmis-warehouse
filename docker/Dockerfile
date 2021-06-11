@@ -25,7 +25,7 @@ RUN apk add --no-cache \
   git \
   bash \
   freetds-dev \
-  openssh \
+  openssh ctags zsh \
   icu icu-dev \
   curl libcurl curl-dev \
   imagemagick \
