@@ -44,7 +44,7 @@ jobs:
           - 6379:6379
     steps:
       - name: Show diskspace
-        run: du -sh
+        run: sudo df -h
       - name: Set up dependencies
         env:
           DATABASE_APP_DB_TEST: boston_hmis_test
@@ -130,7 +130,7 @@ jobs:
 
           bundle exec rake assets:precompile
       - name: Show diskspace
-        run: du -sh
+        run: sudo df -sh
       - name: Run tests
         env:
           CLIENT: test
