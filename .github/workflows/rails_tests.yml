@@ -18,11 +18,12 @@ jobs:
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
-    container: ruby:2.7.2-slim
+    container: ruby:2.7.3-alpine
     steps:
       - name: Set up dependencies
         run: |
-          apt-get update && apt-get install -y git imagemagick
+          # apt-get update && apt-get install -y git imagemagick
+          apk add git imagemagick
           gem install bundler
 
       - uses: actions/checkout@v2
