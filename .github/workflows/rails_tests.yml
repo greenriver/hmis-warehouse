@@ -19,53 +19,11 @@ jobs:
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
     container: ruby:2.7.2-alpine
-
-    # Service containers to run with job
-    services:
-      postgres:
-        image: postgis/postgis:12-3.1-alpine
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASS: postgres
-          POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      redis:
-        image: redis:alpine
-        ports:
-          - 6379:6379
     steps:
       - name: Set up dependencies
         run: |
-          apk add --no-cache \
-            nodejs yarn npm \
-            tzdata \
-            git \
-            bash \
-            freetds-dev \
-            icu icu-dev \
-            curl libcurl curl-dev \
-            imagemagick \
-            libmagic file-dev file \
-            build-base libxml2-dev libxslt-dev postgresql-dev \
-            wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
-            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-            lftp postgresql tmux postgis geos geos-dev \
-            shared-mime-info
-
-          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-          chmod 600 ~/.pgpass
-
-          npm install
-          gem install bundler --version=2.2.15
+          apk add --no-cache imagemagick
+          gem install bundler
 
       - uses: actions/checkout@v2
 
