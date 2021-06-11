@@ -44,12 +44,6 @@ jobs:
           - 6379:6379
     steps:
       - name: Set up dependencies
-        env:
-          DATABASE_APP_DB_TEST: boston_hmis_test
-          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-          HEALTH_DATABASE_DB_TEST: health_test
-          DATABASE_DB_TEST: boston_cas_test
-          REPORTING_DATABASE_DB_TEST: test_boston_reporting
         run: |
           apk add --no-cache \
             nodejs yarn npm \
@@ -79,86 +73,6 @@ jobs:
         run: |
           bundle config set --local without 'production staging development'
           bundle install --jobs 4 --retry 3
-
-      - name: 'App setup'
+      - name: Run busted test
         run: |
-          cp config/secrets.yml.sample config/secrets.yml
-          mkdir app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
-          cp .rspec.sample .rspec
-
-      - name: Prepare test db
-        env:
-          CLIENT: test
-          DATABASE_ADAPTER: postgresql
-          DATABASE_APP_DB_TEST: boston_hmis_test
-          DATABASE_DB_TEST: boston_cas_test
-          DATABASE_HOST: postgres
-          DATABASE_PASS: postgres
-          DATABASE_USER: postgres
-          DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
-          DEFAULT_FROM: greenriver.testing@mailinator.com
-          ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
-          FQDN: openpath.host
-          HEALTH_DATABASE_ADAPTER: postgresql
-          HEALTH_DATABASE_DB_TEST: health_test
-          HEALTH_DATABASE_HOST: postgres
-          HEALTH_DATABASE_PASS: postgres
-          HEALTH_DATABASE_USER: postgres
-          HEALTH_FROM: greenriver.testing@mailinator.com
-          HOSTNAME: openpath.host
-          PORT: 80
-          RAILS_ENV: test
-          REPORTING_DATABASE_ADAPTER: postgresql
-          REPORTING_DATABASE_DB_TEST: test_boston_reporting
-          REPORTING_DATABASE_HOST: postgres
-          REPORTING_DATABASE_PASS: postgres
-          REPORTING_DATABASE_USER: postgres
-          WAREHOUSE_DATABASE_ADAPTER: postgis
-          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-          WAREHOUSE_DATABASE_HOST: postgres
-          WAREHOUSE_DATABASE_PASS: postgres
-          WAREHOUSE_DATABASE_USER: postgres
-        run: |
-          pg_isready -h postgres -U postgres
-          bin/db_prep
-
-          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-          chmod 600 ~/.pgpass
-
-          bundle exec rake assets:precompile
-      - name: Run tests
-        env:
-          CLIENT: test
-          DATABASE_ADAPTER: postgresql
-          DATABASE_APP_DB_TEST: boston_hmis_test
-          DATABASE_DB_TEST: boston_cas_test
-          DATABASE_HOST: postgres
-          DATABASE_PASS: postgres
-          DATABASE_USER: postgres
-          DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
-          DEFAULT_FROM: greenriver.testing@mailinator.com
-          ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
-          FQDN: openpath.host
-          HEALTH_DATABASE_ADAPTER: postgresql
-          HEALTH_DATABASE_DB_TEST: health_test
-          HEALTH_DATABASE_HOST: postgres
-          HEALTH_DATABASE_PASS: postgres
-          HEALTH_DATABASE_USER: postgres
-          HEALTH_FROM: greenriver.testing@mailinator.com
-          HOSTNAME: openpath.host
-          PORT: 80
-          RAILS_ENV: test
-          REPORTING_DATABASE_ADAPTER: postgresql
-          REPORTING_DATABASE_DB_TEST: test_boston_reporting
-          REPORTING_DATABASE_HOST: postgres
-          REPORTING_DATABASE_PASS: postgres
-          REPORTING_DATABASE_USER: postgres
-          WAREHOUSE_DATABASE_ADAPTER: postgis
-          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-          WAREHOUSE_DATABASE_HOST: postgres
-          WAREHOUSE_DATABASE_PASS: postgres
-          WAREHOUSE_DATABASE_USER: postgres
-          WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
-        run: |
-          bundle exec rspec --color --fail-fast --format d spec/models/file_spec.rb spec/models/grda_warehouse/secure_file_spec.rb spec/models/grda_warehouse/ad_hoc_data_source_spec.rb drivers/hmis_csv_twenty_twenty/spec/models/client_processing_spec.rb
+          bundle exec rspec --color --fail-fast --format d spec/models/file_spec.rb
