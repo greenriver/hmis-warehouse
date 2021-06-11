@@ -1,38 +1,19 @@
-- active_date = data['household_type'].keys.first
-.d-flex
-  .w-30
-    %label.ml-auto.mb-2{ for: 'breakdown-group-trigger' }
-      Choose grouping
-      %br
-      %select#breakdown-group-trigger.jBreakdownGroupTrigger{name: 'breakdown-group-trigger'}
-        %option{value: :household_type} Household Type
-        %option{value: :gender} Gender
-        %option{value: :race} Race
-  .w-30
-    .homeless_breakdown_legend
-  .w-30
-    %p Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.
-
-- data.each do |slug, dates|
-  %div{ class: "#{slug}-charts" }
-    - data[slug][active_date]['data'].each do |category, breakdowns|
-      %h4= category
-      .d-flex
-        .w-30
-          - breakdowns.each do |type, counts|
-            .breakdown-type= type
-
-        .w-30
-          - breakdowns.each do |type, counts|
-            - chart_class = "household_type_#{category.downcase.underscore}_#{type.downcase.underscore}"
-            .chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
-            = debug counts
-        .w-30.d-flex
-          .totals
-          .chronic-chart
-          .chronic-legend
-
-
-
-
-= debug data
+= render 'homeless_row', data: data['adult_only']
+= render 'homeless_row', data: data['adult_and_child']
+= render 'homeless_row', data: data['child_only']
+= render 'homeless_row', data: data['gender']
+= render 'homeless_row', data: data['race']
+-# - active_date = data.first.first.keys.first
+-# .d-flex
+-#   .w-30
+-#     %label.ml-auto.mb-2{ for: 'breakdown-group-trigger' }
+-#       Choose grouping
+-#       %br
+-#       %select#breakdown-group-trigger.jBreakdownGroupTrigger{name: 'breakdown-group-trigger'}
+-#         %option{value: :household_type} Household Type
+-#         %option{value: :gender} Gender
+-#         %option{value: :race} Race
+-#   .w-30
+-#     .homeless_breakdown_legend
+-#   .w-30
+-#     %p Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.

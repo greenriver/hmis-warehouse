@@ -1,0 +1,45 @@
+- section_header = data.keys.first
+%h4= section_header
+
+- groups = ['Sheltered', 'Unsheltered']
+- category = :location_type
+- data.each do |_, section|
+  - section.each do |title, dates|
+    - active_date = dates.keys.first
+    - chart_class = "household_type_#{section_header.downcase.parameterize.underscore}_#{title.downcase.parameterize.underscore}"
+    = debug dates
+    = debug chart_class
+    .chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
+    = render 'bar_js', data: dates, chart_class: chart_class, active_date: active_date, groups: groups, category: category
+-# - active_date = data.first.first.keys.first
+-# - data.each do |slug, dates|
+-#   = debug slug
+-#   = debug dates
+  -# %div{ class: "#{slug}-charts" }
+  -#   - data[slug][active_date]['data'].each do |category, breakdowns|
+  -#     - chronic_count = breakdowns.map{ |_,counts| counts['chronic'] }.sum
+  -#     - total_count = breakdowns.map{ |_,counts| counts['total'] }.sum
+  -#     - chronic_percent = (chronic_count / total_count.to_f * 100).round
+  -#     %h4= category
+  -#     .d-flex
+  -#       .w-30
+  -#         - breakdowns.each do |type, counts|
+  -#           .breakdown-type= type
+
+  -#       .w-30
+  -#         - breakdowns.each do |type, counts|
+  -#           - chart_class = "household_type_#{category.downcase.underscore}_#{type.downcase.underscore}"
+  -#           .chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
+  -#           -# = render 'bar_js', data: data, chart_class: chart_class, active_date: active_date, groups: groups, category: category
+  -#           = debug data[slug][active_date]['chart_data']
+  -#       .w-30.d-flex
+  -#         .totals
+  -#           - breakdowns.each do |_, counts|
+  -#             .total-for-type= counts['total']
+  -#         .chronic-chart
+  -#           = chronic_percent
+  -#         .chronic-legend
+  -#           .percent
+  -#             #{chronic_percent}%
+  -#           .label
+  -#             Chronically Homeless
