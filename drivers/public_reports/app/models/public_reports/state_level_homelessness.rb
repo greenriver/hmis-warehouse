@@ -421,10 +421,35 @@ module PublicReports
       }
     end
 
+    private def homeless_chart_breakdowns(section_title:, charts:, setup:, scope:, date:)
+      ch_t = GrdaWarehouse::HudChronic.arel_table
+      chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
+      chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
+      setup.each do |title, client_scope|
+        chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).select(:client_id)).count
+        chronic_count = 0 if chronic_count < MIN_THRESHOLD
+        sheltered_count = scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count
+        sheltered_count = 0 if sheltered_count < MIN_THRESHOLD
+        unsheltered_count =scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
+        unsheltered_count = 0 if unsheltered_count < MIN_THRESHOLD
+        charts[section_title] ||= {}
+        charts[section_title][title] ||= {}
+        charts[section_title][title][date.iso8601] = {
+          total: total_for(scope.merge(client_scope), nil),
+          chronic: chronic_count,
+          data: [
+            ['Sheltered', sheltered_count],
+            ['Unsheltered', unsheltered_count],
+          ],
+          categories: [ title ],
+        }
+      end
+    end
+
     private def adult_only_household_breakdowns
       setup = {
-        'Persons Age 18 to 24' => { age: 18..24 },
-        'Persons over age 24' => { age: 24..105 },
+        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 18..24),
+        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 24..105),
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -439,34 +464,23 @@ module PublicReports
             service_scope: shs_scope,
           ).joins(:client)
           adult_only_scope = scope.where(household_id: adult_only_household_ids(start_date, end_date))
-          ch_t = GrdaWarehouse::HudChronic.arel_table
-          chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
-          chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
 
-          setup.each do |title, client_scope|
-            charts['Persons in Households Without Children'] ||= {}
-            charts['Persons in Households Without Children'][title] ||= {}
-            charts['Persons in Households Without Children'][title][date.iso8601] = {
-              total: total_for(adult_only_scope.where(client_scope), nil),
-              chronic: chronic_scope.where(client_id: adult_only_scope.where(client_scope).select(:client_id)).count,
-              data: [
-                ['Sheltered', adult_only_scope.homeless_sheltered.where(client_scope).select(:client_id).distinct.count],
-                ['Unsheltered', adult_only_scope.homeless_unsheltered.where(client_scope).select(:client_id).distinct.count],
-              ],
-              categories: [
-                title,
-              ],
-            }
-          end
+          homeless_chart_breakdowns(
+            section_title: 'Persons in Households Without Children',
+            charts: charts,
+            setup: setup,
+            scope: adult_only_scope,
+            date: date,
+          )
         end
       end
     end
 
     private def adult_and_child_household_breakdowns
       setup = {
-        'Children under 18' => { age: 0..17 },
-        'Persons Age 18 to 24' => { age: 18..24 },
-        'Persons over age 24' => { age: 24..105 },
+        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 0..17),
+        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 18..24),
+        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 24..105),
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -481,32 +495,21 @@ module PublicReports
             service_scope: shs_scope,
           ).joins(:client)
           adult_and_child_scope = scope.where(household_id: adult_and_child_household_ids(start_date, end_date))
-          ch_t = GrdaWarehouse::HudChronic.arel_table
-          chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
-          chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
 
-          setup.each do |title, client_scope|
-            charts['Persons in households with at least one child and one adult'] ||= {}
-            charts['Persons in households with at least one child and one adult'][title] ||= {}
-            charts['Persons in households with at least one child and one adult'][title][date.iso8601] = {
-              total: total_for(adult_and_child_scope.where(client_scope), nil),
-              chronic: chronic_scope.where(client_id: adult_and_child_scope.where(client_scope).select(:client_id)).count,
-              data: [
-                ['Sheltered', adult_and_child_scope.homeless_sheltered.where(client_scope).select(:client_id).distinct.count],
-                ['Unsheltered', adult_and_child_scope.homeless_unsheltered.where(client_scope).select(:client_id).distinct.count],
-              ],
-              categories: [
-                title,
-              ],
-            }
-          end
+          homeless_chart_breakdowns(
+            section_title: 'Persons in households with at least one child and one adult',
+            charts: charts,
+            setup: setup,
+            scope: adult_and_child_scope,
+            date: date,
+          )
         end
       end
     end
 
     private def child_only_household_breakdowns
       setup = {
-        'Children under 18' => { age: 0..17 },
+        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 0..17),
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -521,25 +524,13 @@ module PublicReports
             service_scope: shs_scope,
           ).joins(:client)
           child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date))
-          ch_t = GrdaWarehouse::HudChronic.arel_table
-          chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
-          chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
-
-          setup.each do |title, client_scope|
-            charts['Persons in Households Without Children'] ||= {}
-            charts['Persons in Households Without Children'][title] ||= {}
-            charts['Persons in Households Without Children'][title][date.iso8601] = {
-              total: total_for(child_only_scope.where(client_scope), nil),
-              chronic: chronic_scope.where(client_id: child_only_scope.where(client_scope).select(:client_id)).count,
-              data: [
-                ['Sheltered', child_only_scope.homeless_sheltered.where(client_scope).select(:client_id).count],
-                ['Unsheltered', child_only_scope.homeless_unsheltered.where(client_scope).select(:client_id).count],
-              ],
-              categories: [
-                title,
-              ],
-            }
-          end
+          homeless_chart_breakdowns(
+            section_title: 'Persons in Households Without Children',
+            charts: charts,
+            setup: setup,
+            scope: child_only_scope,
+            date: date,
+          )
         end
       end
     end
@@ -565,25 +556,13 @@ module PublicReports
             service_scope: shs_scope,
           ).joins(:client)
 
-          ch_t = GrdaWarehouse::HudChronic.arel_table
-          chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
-          chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
-
-          setup.each do |title, client_scope|
-            charts['Gender'] ||= {}
-            charts['Gender'][title] ||= {}
-            charts['Gender'][title][date.iso8601] = {
-              total: total_for(scope.merge(client_scope), nil),
-              chronic: chronic_scope.where(client_id: scope.merge(client_scope).select(:client_id)).count,
-              data: [
-                ['Sheltered', scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count],
-                ['Unsheltered', scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count],
-              ],
-              categories: [
-                title,
-              ],
-            }
-          end
+          homeless_chart_breakdowns(
+            section_title: 'Gender',
+            charts: charts,
+            setup: setup,
+            scope: scope,
+            date: date,
+          )
         end
       end
     end
@@ -609,25 +588,13 @@ module PublicReports
             end_date: end_date,
             service_scope: shs_scope,
           ).joins(:client)
-
-          ch_t = GrdaWarehouse::HudChronic.arel_table
-          chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
-          chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
-          setup.each do |title, client_scope|
-            charts['Race'] ||= {}
-            charts['Race'][title] ||= {}
-            charts['Race'][title][date.iso8601] = {
-              total: total_for(scope.merge(client_scope), nil),
-              chronic: chronic_scope.where(client_id: scope.merge(client_scope).select(:client_id)).count,
-              data: [
-                ['Sheltered', scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count],
-                ['Unsheltered', scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count],
-              ],
-              categories: [
-                title,
-              ],
-            }
-          end
+          homeless_chart_breakdowns(
+            section_title: 'Race',
+            charts: charts,
+            setup: setup,
+            scope: scope,
+            date: date,
+          )
         end
       end
     end

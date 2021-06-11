@@ -9,19 +9,11 @@
         columns: [],
         type: 'bar',
         groups: [#{groups.to_json.html_safe}],
-        labels: {
-          centered: true,
-          colors: 'white',
-        },
-        stack: {
-          normalize: true
-        },
+        labels:  false,
         order: null,
       },
       bar: {
-        label: {
-          threshold: 0.001,
-        }
+        label: false,
       },
       bindto: {
         element: ".#{chart_class}"
@@ -39,18 +31,19 @@
         }
       },
       size: {
-        height: 120,
+        height: 60,
       },
       tooltip: {
         format: {
           title: function(x) {
             return categories[x];
           },
-          value: d3.format(".0%"),
         },
         order: '',
       },
-      legend: false,
+      legend: {
+        show: false,
+      },
     };
 
     var chart = bb.generate(options);

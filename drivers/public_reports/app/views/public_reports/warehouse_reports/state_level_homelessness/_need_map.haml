@@ -79,7 +79,6 @@
       comparison_map.updateMetrics(comparison_data[selected_date])
     });
     $('.jComparisonMapTrigger').on('change', function(e) {
-      console.log($(this).val())
       comparison_data = data[$(this).val()]
       comparison_map.updateMetrics(comparison_data[selected_date])
     });

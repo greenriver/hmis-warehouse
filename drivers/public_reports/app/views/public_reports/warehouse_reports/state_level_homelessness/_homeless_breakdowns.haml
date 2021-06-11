@@ -1,19 +1,33 @@
-= render 'homeless_row', data: data['adult_only']
-= render 'homeless_row', data: data['adult_and_child']
-= render 'homeless_row', data: data['child_only']
-= render 'homeless_row', data: data['gender']
-= render 'homeless_row', data: data['race']
--# - active_date = data.first.first.keys.first
--# .d-flex
--#   .w-30
--#     %label.ml-auto.mb-2{ for: 'breakdown-group-trigger' }
--#       Choose grouping
--#       %br
--#       %select#breakdown-group-trigger.jBreakdownGroupTrigger{name: 'breakdown-group-trigger'}
--#         %option{value: :household_type} Household Type
--#         %option{value: :gender} Gender
--#         %option{value: :race} Race
--#   .w-30
--#     .homeless_breakdown_legend
--#   .w-30
--#     %p Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.
+.d-flex
+  .w-30
+    %label.ml-auto.mb-2{ for: 'breakdown-group-trigger' }
+      Choose grouping
+      %br
+      %select#breakdown-group-trigger.jBreakdownGroupTrigger{name: 'breakdown-group-trigger'}
+        %option{value: :household_type} Household Type
+        %option{value: :gender} Gender
+        %option{value: :race} Race
+  .w-30
+    .homeless_breakdown_legend
+  .w-30
+    %p Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.
+.jHomelessBreakdownSection.household_type
+  = render 'homeless_row', data: data['adult_only']
+  = render 'homeless_row', data: data['adult_and_child']
+  = render 'homeless_row', data: data['child_only']
+.jHomelessBreakdownSection.gender
+  = render 'homeless_row', data: data['gender']
+.jHomelessBreakdownSection.race
+  = render 'homeless_row', data: data['race']
+
+:javascript
+  $('.jBreakdownGroupTrigger').on('change', function(e) {
+    console.log(e, $('.jHomelessBreakdownSection').hasClass(e))
+  });
+  $('.jQuarters').on('change', function(e) {
+    var index = $(this).val();
+    var selected_date = $(this).data('dates')[index];
+    console.log($('.jHomelessBreakdownRow'), selected_date)
+  });
+  $('.jBreakdownGroupTrigger').trigger('change')
+  $('.jQuarters').trigger('change')
