@@ -36,6 +36,7 @@ RSpec.describe File do
         IO.copy_stream(file, tempfile)
 
         # https://github.com/docker/for-linux/issues/1015 work around
+        tempfile.close
         tempfile.chmod tempfile.lstat.mode
 
         output = MiniMagick::Tool::Identify.new do |cmd|
@@ -45,8 +46,6 @@ RSpec.describe File do
         expect(output).to include('JPEG')
 
         puts output
-
-        tempfile.close
       end
     end
   end
