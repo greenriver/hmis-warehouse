@@ -35,6 +35,9 @@ RSpec.describe File do
 
         IO.copy_stream(file, tempfile)
 
+        # https://github.com/docker/for-linux/issues/1015 work around
+        tempfile.chmod tempfile.lstat.mode
+
         output = MiniMagick::Tool::Identify.new do |cmd|
           cmd << tempfile.path
         end
