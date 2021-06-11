@@ -1,3 +1,4 @@
+ENV['RAILS_ENV'] ||= 'test'
 require_relative '../../config/boot'
 require 'rails/all'
 Bundler.require(*Rails.groups)
@@ -21,7 +22,7 @@ RSpec.describe File do
     expect(dst_type).to eq(src_type)
 
     # image magic does too
-    expect(MiniMagick::Image.open(test_path).mime_type).to eq('image/jpeg')
-    expect(MiniMagick::Image.open(tmp_path).mime_type).to eq('image/jpeg')
+    expect(MiniMagick::Image.new(test_path).mime_type).to eq('image/jpeg')
+    expect(MiniMagick::Image.new(tmp_path).mime_type).to eq('image/jpeg')
   end
 end
