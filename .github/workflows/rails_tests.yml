@@ -127,8 +127,6 @@ jobs:
           chmod 600 ~/.pgpass
 
           bundle exec rake assets:precompile
-      - name: Show diskspace
-        run: df -h
       - name: Run tests
         env:
           CLIENT: test

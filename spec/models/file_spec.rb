@@ -24,5 +24,22 @@ RSpec.describe File do
     # image magic does too
     expect(MiniMagick::Image.new(test_path).mime_type).to eq('image/jpeg')
     expect(MiniMagick::Image.new(tmp_path).mime_type).to eq('image/jpeg')
+
+    File.open(tmp_path, binmode: true) do |file|
+      Tempfile.new(["mini_magick", '.jpg']).tap do |tempfile|
+        tempfile.binmode
+
+        IO.copy_stream(file, tempfile)
+
+
+        output = MiniMagick::Tool::Identify.new do |cmd|
+          cmd << tempfile.path
+        end
+
+        expect(output).to include('JPEG')
+
+        tempfile.close
+      end
+    end
   end
 end
