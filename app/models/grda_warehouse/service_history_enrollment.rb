@@ -433,6 +433,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     # FIXME: this might perform better
     # with some NOT MATERIALIZED hinting
+    # FIXME: this still needs some tests with complex real world data
+    # its safe but its logic may not match expectation
     ctes = {
       # the underlying enrollment entry records
       entries: <<~SQL,
@@ -542,6 +544,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       SQL
     }
 
+    # **** IMPORTANT ***
+    # Very confusingly we alias the grouped_info as the original table name
+    # so that scopes downstream can safely use it without being cleaned up.
+    # Not every caller is disciplined about using #table_name so we cant use an alternate name
     unscoped.with.recursive(**ctes).from('grouped_info as service_history_enrollments').readonly
   end
 

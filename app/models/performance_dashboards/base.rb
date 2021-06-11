@@ -142,8 +142,6 @@ class PerformanceDashboards::Base
 
     scope = filter_for_project_type(scope, all_project_types: all_project_types)
 
-    scope = filter_for_range(scope) # she dates
-
     scope = filter_for_sub_population(scope)
     scope = filter_for_head_of_household(scope) # head_of_household
     scope = filter_for_ca_homeless(scope) # coordinate assessment
@@ -154,7 +152,11 @@ class PerformanceDashboards::Base
     scope = filter_for_ethnicity(scope) # client
     scope = filter_for_veteran_status(scope)  # client
 
-    #scope = scope.contiguous_enrollments(max_gap: 30) if use_episodes
+    # scope = scope.contiguous_enrollments(max_gap: 30) if use_episodes
+
+    # date ranges need to be applied after contiguous_enrollment are
+    # identified (if we are doing that)
+    scope = filter_for_range(scope)
 
     # as of last enrollment in episode
     scope = filter_for_destination(scope) #she (last enrollment)
