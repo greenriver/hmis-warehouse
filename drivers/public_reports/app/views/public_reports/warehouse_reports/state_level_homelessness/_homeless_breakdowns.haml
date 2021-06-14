@@ -21,13 +21,22 @@
   = render 'homeless_row', data: data['race']
 
 :javascript
-  $('.jBreakdownGroupTrigger').on('change', function(e) {
-    console.log(e, $('.jHomelessBreakdownSection').hasClass(e))
-  });
   $('.jQuarters').on('change', function(e) {
     var index = $(this).val();
     var selected_date = $(this).data('dates')[index];
-    console.log($('.jHomelessBreakdownRow'), selected_date)
+    $('.jHomelessBreakdownRow').each(function(e){
+      var chronic_percent = $(this).data('chronics')[selected_date];
+      $(this).find('.jChronicPercent').text(chronic_percent);
+    })
+    $('.jTotalCount').each(function(e){
+      var date = $(this).data('dates')[selected_date];
+      $(this).text(date['total']);
+    })
+  });
+  $('.jBreakdownGroupTrigger').on('change', function(e) {
+    var trigger_value = $(e.target).val();
+    $('.jHomelessBreakdownSection').addClass('hide')
+    $('.jHomelessBreakdownSection').filter(`.${trigger_value}`).removeClass('hide')
+    $('.jQuarters').trigger('change')
   });
   $('.jBreakdownGroupTrigger').trigger('change')
-  $('.jQuarters').trigger('change')

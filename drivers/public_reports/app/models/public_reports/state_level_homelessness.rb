@@ -427,16 +427,33 @@ module PublicReports
       chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
       setup.each do |title, client_scope|
         chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).select(:client_id)).count
-        chronic_count = 0 if chronic_count < MIN_THRESHOLD
         sheltered_count = scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count
-        sheltered_count = 0 if sheltered_count < MIN_THRESHOLD
+        sheltered_count = enforce_min_threshold(sheltered_count)
         unsheltered_count =scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
-        unsheltered_count = 0 if unsheltered_count < MIN_THRESHOLD
-        charts[section_title] ||= {}
-        charts[section_title][title] ||= {}
-        charts[section_title][title][date.iso8601] = {
-          total: total_for(scope.merge(client_scope), nil),
-          chronic: chronic_count,
+        unsheltered_count = enforce_min_threshold(unsheltered_count)
+        charts[section_title] ||= {
+          'sub_sections' => {},
+          'chronic_counts' => {},
+          'total_counts' => {},
+          'chronic_percents' => {},
+        }
+        intermediate_chronic_count ||= 0
+        intermediate_total_count ||= 0
+
+        total_string = total_for(scope.merge(client_scope), nil)
+        total_count = total_string.split(' ').first.to_i # note: this is a string
+
+        intermediate_chronic_count += chronic_count
+        intermediate_total_count += total_count
+
+        charts[section_title]['chronic_counts'][date.iso8601] = intermediate_chronic_count
+        charts[section_title]['chronic_counts'][date.iso8601] = enforce_min_threshold(charts[section_title]['chronic_counts'][date.iso8601])
+        charts[section_title]['total_counts'][date.iso8601] = intermediate_total_count
+        charts[section_title]['chronic_percents'][date.iso8601] ||= 0
+        charts[section_title]['chronic_percents'][date.iso8601] = (intermediate_chronic_count.to_f / intermediate_total_count * 100).round if intermediate_total_count.positive?
+        charts[section_title]['sub_sections'][title] ||= {}
+        charts[section_title]['sub_sections'][title][date.iso8601] = {
+          total: total_string,
           data: [
             ['Sheltered', sheltered_count],
             ['Unsheltered', unsheltered_count],
@@ -444,6 +461,13 @@ module PublicReports
           categories: [ title ],
         }
       end
+    end
+
+    private def enforce_min_threshold(count)
+      return 0 if count.blank? || count.zero?
+      return 10 if count < MIN_THRESHOLD
+
+      count
     end
 
     private def adult_only_household_breakdowns
