@@ -13,9 +13,7 @@ module Health
       @patient_ids = patients.map(&:id)
     end
 
-    private def patient_ids
-      @patient_ids
-    end
+    private attr_reader :patient_ids
 
     def consented_date patient_id
       @consented_dates ||= Health::ParticipationForm.where(patient_id: patient_ids).
@@ -115,6 +113,7 @@ module Health
 
     def aco_name patient_id
       @aco_names ||= Health::AccountableCareOrganization.joins(patient_referrals: :patient).
+        merge(Health::PatientReferral.current).
         merge(Health::Patient.where(id: patient_ids)).
         pluck(hp_t[:id].to_sql, :name).to_h
       @aco_names[patient_id]
