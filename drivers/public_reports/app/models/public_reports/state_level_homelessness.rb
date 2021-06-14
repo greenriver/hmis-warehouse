@@ -310,7 +310,7 @@ module PublicReports
             census_data[label] = 0
             data[::HUD.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
-            full_pop = get_us_census_population(year: year)
+            full_pop = get_us_census_population(year: year) || 0
             race_pop = get_us_census_population(race_code: race_code, year: year) || 0
             census_data[label] = race_pop / full_pop.to_f if full_pop.positive?
           end
