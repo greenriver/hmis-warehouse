@@ -10,6 +10,22 @@ module PublicReports::WarehouseReports
     include ArelHelper
     include PublicReports::WarehouseReports::PublicReportsControllerConcern
 
+    def pit
+      render(layout: 'raw_public_report')
+    end
+
+    def summary
+      render(layout: 'raw_public_report')
+    end
+
+    def map
+      render(layout: 'raw_public_report')
+    end
+
+    def who
+      render(layout: 'raw_public_report')
+    end
+
     private def path_to_report_index
       public_reports_warehouse_reports_state_level_homelessness_index_path
     end

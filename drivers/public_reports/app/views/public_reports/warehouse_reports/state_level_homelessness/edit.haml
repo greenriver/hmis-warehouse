@@ -2,9 +2,11 @@
 - content_for :title, title
 = render 'breadcrumbs'
 %h1.mb-5= title
-
+= render 'beta_warning'
 = render 'public_reports/publish'
 
-%p Once published the following report will be available at: #{@report.generate_publish_url}
-.well
-  %iframe{src: raw_public_reports_warehouse_reports_state_level_homelessness_path(@report), width: '100%', height: 400, frameBorder: 0}
+- @report.sections.each do |section|
+  %p Once published, the following will be available at the url: #{@report.generate_publish_url_for(section)}
+  .well
+    - src = polymorphic_path([section, :public_reports, :warehouse_reports, :state_level_homelessness], pp: :disabled)
+    %iframe{src: src, width: '100%', height: 400, frameBorder: 0}

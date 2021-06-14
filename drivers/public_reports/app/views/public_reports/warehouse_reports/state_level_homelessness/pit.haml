@@ -1,0 +1,14 @@
+= render 'chart_css'
+- data = JSON.parse(@report.precalculated_data)
+
+%h3 Total Number of People Experiencing Homelessness
+- chart_class = 'pit-chart'
+%div{ class: chart_class }
+.d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
+= render 'line_chart', chart_class: chart_class, data: data['pit_chart'], category: :population
+
+%h3 Total Number of People Entering and Exiting Homelessness
+- chart_class = 'inflow-outflow-chart'
+%div{ class: chart_class }
+.d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
+= render 'line_chart', chart_class: chart_class, data: data['inflow_outflow'], category: :population

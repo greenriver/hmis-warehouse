@@ -42,6 +42,32 @@ module PublicReports
       populations.keys
     end
 
+    def generate_publish_url_for(section)
+      publish_url = if ENV['S3_PUBLIC_URL'].present?
+        "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
+      else
+        # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
+        "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}"
+      end
+      publish_url = "#{publish_url}/#{section}"
+      publish_url = "#{publish_url}/#{version_slug}" if version_slug.present?
+      "#{publish_url}/index.html"
+    end
+
+    def generate_embed_code_for(section)
+      "<iframe width='500' height='400' src='#{generate_publish_url_for(section)}' frameborder='0' sandbox><a href='#{generate_publish_url_for(section)}'>#{instance_title} -- #{section.to_s.humanize}</a></iframe>"
+    end
+
+    def sections
+      [
+        :pit,
+        :summary,
+        :map,
+        :who,
+        :raw,
+      ].freeze
+    end
+
     def populations
       {
         youth: _('Youth and Young Adults'),
