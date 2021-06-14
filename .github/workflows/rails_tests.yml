@@ -34,4 +34,5 @@ jobs:
           bundle install --jobs 4 --retry 3
       - name: Run busted test
         run: |
-          bundle exec rspec --color --fail-fast --format d spec/models/file_spec.rb
+          bundle exec rspec --color --fail-fast --format d spec/models/file_spec.rb spec/models/grda_warehouse/secure_file_spec.rb spec/models/grda_warehouse/ad_hoc_data_source_spec.rb drivers/hmis_csv_twenty_twenty/spec/models/client_processing_spec.rb
+
