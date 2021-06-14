@@ -13,7 +13,9 @@ module Health
       @patient_ids = patients.map(&:id)
     end
 
-    private attr_reader :patient_ids
+    private def patient_ids
+      @patient_ids
+    end
 
     def consented_date patient_id
       @consented_dates ||= Health::ParticipationForm.where(patient_id: patient_ids).
