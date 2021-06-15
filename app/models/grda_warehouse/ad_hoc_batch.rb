@@ -66,6 +66,8 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   end
 
   private def csv
+    content ||= file.read
+
     return nil unless content.length > 10
 
     @csv ||= if content_type.in?(['text/plain', 'text/csv', 'application/csv'])
