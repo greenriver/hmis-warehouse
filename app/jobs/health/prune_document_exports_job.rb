@@ -6,7 +6,7 @@
 
 module Health
   class PruneDocumentExportsJob < BaseJob
-    queue_as :default
+    queue_as :long_running
 
     def perform
       Health::DocumentExport.with_advisory_lock(
