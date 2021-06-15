@@ -19,12 +19,60 @@ jobs:
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
     container: ruby:2.7.2-alpine
+
+    # Service containers to run with job
+    services:
+      postgres:
+        image: postgis/postgis:12-3.1-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASS: postgres
+          POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+
     steps:
       - name: Set up dependencies
+        env:
+          DATABASE_APP_DB_TEST: boston_hmis_test
+          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+          HEALTH_DATABASE_DB_TEST: health_test
+          DATABASE_DB_TEST: boston_cas_test
+          REPORTING_DATABASE_DB_TEST: test_boston_reporting
         run: |
-          # apt-get update && apt-get install -y git imagemagick
-          apk add git imagemagick
-          gem install bundler
+          apk add --no-cache \
+            nodejs yarn npm \
+            tzdata \
+            git \
+            bash \
+            freetds-dev \
+            icu icu-dev \
+            curl libcurl curl-dev \
+            imagemagick \
+            libmagic file-dev file \
+            build-base libxml2-dev libxslt-dev postgresql-dev \
+            wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+            lftp postgresql tmux postgis geos geos-dev \
+            shared-mime-info
+
+          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+          chmod 600 ~/.pgpass
+
+          npm install
+          gem install bundler --version=2.2.15
 
       - uses: actions/checkout@v2
 
@@ -32,7 +80,88 @@ jobs:
         run: |
           bundle config set --local without 'production staging development'
           bundle install --jobs 4 --retry 3
-      - name: Run busted test
+
+      - name: 'App setup'
+        run: |
+          cp config/secrets.yml.sample config/secrets.yml
+          mkdir app/assets/stylesheets/theme/styles
+          touch app/assets/stylesheets/theme/styles/_variables.scss
+          cp .rspec.sample .rspec
+
+      - name: Prepare test db
+        env:
+          CLIENT: test
+          DATABASE_ADAPTER: postgresql
+          DATABASE_APP_DB_TEST: boston_hmis_test
+          DATABASE_DB_TEST: boston_cas_test
+          DATABASE_HOST: postgres
+          DATABASE_PASS: postgres
+          DATABASE_USER: postgres
+          DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
+          DEFAULT_FROM: greenriver.testing@mailinator.com
+          ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+          FQDN: openpath.host
+          HEALTH_DATABASE_ADAPTER: postgresql
+          HEALTH_DATABASE_DB_TEST: health_test
+          HEALTH_DATABASE_HOST: postgres
+          HEALTH_DATABASE_PASS: postgres
+          HEALTH_DATABASE_USER: postgres
+          HEALTH_FROM: greenriver.testing@mailinator.com
+          HOSTNAME: openpath.host
+          PORT: 80
+          RAILS_ENV: test
+          REPORTING_DATABASE_ADAPTER: postgresql
+          REPORTING_DATABASE_DB_TEST: test_boston_reporting
+          REPORTING_DATABASE_HOST: postgres
+          REPORTING_DATABASE_PASS: postgres
+          REPORTING_DATABASE_USER: postgres
+          WAREHOUSE_DATABASE_ADAPTER: postgis
+          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+          WAREHOUSE_DATABASE_HOST: postgres
+          WAREHOUSE_DATABASE_PASS: postgres
+          WAREHOUSE_DATABASE_USER: postgres
+        run: |
+          pg_isready -h postgres -U postgres
+          bin/db_prep
+
+          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+          chmod 600 ~/.pgpass
+
+          bundle exec rake assets:precompile
+
+      - name: Run tests
+        env:
+          CLIENT: test
+          DATABASE_ADAPTER: postgresql
+          DATABASE_APP_DB_TEST: boston_hmis_test
+          DATABASE_DB_TEST: boston_cas_test
+          DATABASE_HOST: postgres
+          DATABASE_PASS: postgres
+          DATABASE_USER: postgres
+          DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
+          DEFAULT_FROM: greenriver.testing@mailinator.com
+          ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+          FQDN: openpath.host
+          HEALTH_DATABASE_ADAPTER: postgresql
+          HEALTH_DATABASE_DB_TEST: health_test
+          HEALTH_DATABASE_HOST: postgres
+          HEALTH_DATABASE_PASS: postgres
+          HEALTH_DATABASE_USER: postgres
+          HEALTH_FROM: greenriver.testing@mailinator.com
+          HOSTNAME: openpath.host
+          PORT: 80
+          RAILS_ENV: test
+          REPORTING_DATABASE_ADAPTER: postgresql
+          REPORTING_DATABASE_DB_TEST: test_boston_reporting
+          REPORTING_DATABASE_HOST: postgres
+          REPORTING_DATABASE_PASS: postgres
+          REPORTING_DATABASE_USER: postgres
+          WAREHOUSE_DATABASE_ADAPTER: postgis
+          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+          WAREHOUSE_DATABASE_HOST: postgres
+          WAREHOUSE_DATABASE_PASS: postgres
+          WAREHOUSE_DATABASE_USER: postgres
+          WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
         run: |
           uname -r
           bundle exec rspec --color --fail-fast --format d spec/models/file_spec.rb
@@ -40,4 +169,3 @@ jobs:
             spec/models/grda_warehouse/secure_file_spec.rb \
             spec/models/grda_warehouse/ad_hoc_data_source_spec.rb \
             drivers/hmis_csv_twenty_twenty/spec/models/client_processing_spec.rb
-
