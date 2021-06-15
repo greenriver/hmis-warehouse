@@ -42,8 +42,8 @@ module GrdaWarehouse
     end
 
     def file_exists_and_not_too_large
-      errors.add :file, 'No uploaded file found' if (content&.size || 0) < 100
-      errors.add :file, 'File size should be less than 250 MB' if (content&.size || 0) > 250.megabytes
+      errors.add :file, 'No uploaded file found' if (file&.size || 0) < 100
+      errors.add :file, 'File size should be less than 250 MB' if (file&.size || 0) > 250.megabytes
     end
 
     def as_preview
