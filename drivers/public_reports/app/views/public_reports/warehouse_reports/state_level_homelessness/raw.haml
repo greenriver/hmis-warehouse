@@ -1,16 +1,7 @@
 = render 'chart_css'
 - data = JSON.parse(@report.precalculated_data)
 
-%h3 Homeless Households
-= number_with_delimiter(data['summary']['homeless_households'])
-
-%h3 Total Homeless People in #{data['summary']['year']}
-= number_with_delimiter(data['summary']['homeless_clients'])
-
-%h3 Unsheltered
-- unsheltered_percent = (data['summary']['unsheltered_clients'].to_f / data['summary']['homeless_clients']) * 100 rescue 0
-= percentage(unsheltered_percent, format: '%1.1f%%')
-
+= render 'summary_counts', data: data
 
 %h3 Total Number of People Experiencing Homelessness
 - chart_class = 'pit-chart'

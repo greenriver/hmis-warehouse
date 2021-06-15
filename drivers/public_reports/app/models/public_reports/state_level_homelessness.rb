@@ -58,6 +58,10 @@ module PublicReports
       "<iframe width='500' height='400' src='#{generate_publish_url_for(section)}' frameborder='0' sandbox><a href='#{generate_publish_url_for(section)}'>#{instance_title} -- #{section.to_s.humanize}</a></iframe>"
     end
 
+    def config
+      @config ||= PublicReports::Setting.first
+    end
+
     def sections
       [
         :pit,
