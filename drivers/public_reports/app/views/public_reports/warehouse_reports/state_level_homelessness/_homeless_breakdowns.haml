@@ -27,6 +27,7 @@
     $('.jHomelessBreakdownRow').each(function(e){
       var chronic_percent = $(this).data('chronics')[selected_date];
       $(this).find('.jChronicPercent').text(chronic_percent);
+      $(this).find('.jChronicPercentMeter').css('width', chronic_percent + '%');
     })
     $('.jTotalCount').each(function(e){
       var date = $(this).data('dates')[selected_date];

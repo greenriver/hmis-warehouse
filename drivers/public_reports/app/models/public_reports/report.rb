@@ -54,6 +54,10 @@ module PublicReports
       settings.color_pattern(category).to_json.html_safe
     end
 
+    def chart_color_shades(category = nil)
+      settings.color_shades(category).to_json.html_safe
+    end
+
     def filter_object
       @filter_object ||= ::Filters::FilterBase.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
     end

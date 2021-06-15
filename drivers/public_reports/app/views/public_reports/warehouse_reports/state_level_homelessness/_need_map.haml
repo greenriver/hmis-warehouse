@@ -4,7 +4,7 @@
     .jQuarterChosenDate
     .state-map#all-homeless-map
     .state-map-all-homeless-legend.d-flex
-      - colors = JSON.parse(@report.chart_color_pattern(:population))
+      - colors = JSON.parse(@report.chart_color_shades(:homeless_primary_color))
       - colors.each_with_index do |color, i|
         - division_size = 1.0 / colors.count
         - division_start = i * division_size
@@ -30,7 +30,7 @@
           %option{value: 'veterans_homeless_map'} Veterans
     .state-map#comparison-map
     .state-map-comparison-legend.d-flex
-      - colors = JSON.parse(@report.chart_color_pattern(:population))
+      - colors = JSON.parse(@report.chart_color_shades(:youth_primary_color))
       - colors.each_with_index do |color, i|
         - division_size = 1.0 / colors.count
         - division_start = i * division_size
@@ -52,8 +52,8 @@
   (function() {
     const shapes = #{@report.map_shapes.to_json.html_safe}
     const data = #{data.to_json.html_safe}
-    const homeless_colors = #{@report.chart_color_pattern(:population)}
-    const comparison_colors = #{@report.chart_color_pattern(:population)}
+    const homeless_colors = #{@report.chart_color_shades(:homeless_primary_color)}
+    const comparison_colors = #{@report.chart_color_shades(:youth_primary_color)}
 
     const homeless_data = data.homeless_map
     let selected_date = $('.jQuarters').data('dates')[0];

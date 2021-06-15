@@ -21,6 +21,18 @@ module PublicReports
       end
     end
 
+    def color_shades(category = nil)
+      if category.blank? || ! tintable.include?(category.to_sym)
+        (0..9).to_a.map do |i|
+          shade(i)
+        end.compact
+      else
+        (0..9).to_a.map do |i|
+          shade(i, category)
+        end.compact
+      end
+    end
+
     def default_colors
       [
         '#00c73c',
