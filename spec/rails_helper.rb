@@ -76,8 +76,6 @@ RSpec.configure do |config|
 
   config.include FixpointTestHelpers
 
-  config.include DockerFsFix
-
   config.before(:suite) do
     GrdaWarehouse::Utility.clear!
     Delayed::Job.delete_all

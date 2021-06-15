@@ -1,15 +1,14 @@
-module DockerFsFix
-  module_function def upload(upload)
-    # Rack::Test::UploadedFile uploads are on tmpfs and many consumers
-    # of them also copy to tmpfs. There is a bug here
-    # under docker (https://github.com/docker/for-linux/issues/1015)
-    # that breaks our tests. In dev/prod tmpfs does not appear to have this problem
+# https://github.com/docker/for-linux/issues/1015
 
-    # This workaround can go away when a fix for the above makes it to GitHub Actions
+module FileUtilsPatch
+  def copy_file(dest)
+    FileUtils.touch(path())
+    super
+  end
+end
 
-    if (io = upload.tempfile)
-      io.chmod io.lstat.mode
-    end
-    upload
+module FileUtils
+  class Entry_
+    prepend FileUtilsPatch
   end
 end
