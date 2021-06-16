@@ -5,7 +5,7 @@
 ###
 
 class PruneDocumentExportsJob < BaseJob
-  queue_as :default
+  queue_as :long_running
 
   def perform
     GrdaWarehouse::DocumentExport.with_advisory_lock(
