@@ -1,0 +1,13 @@
+= render 'chart_css'
+- data = JSON.parse(@report.precalculated_data)
+
+%h3 Who is experiencing homelessness?
+= render 'slider', data: data['quarters']
+-# .d-flex
+-#   = render 'location_chart', data: data['location_chart']
+-#   = render 'household_type', data: data['household_type']
+
+-# - chart_class = "race-chart"
+-# = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Unknown']
+
+= render 'homeless_breakdowns', data: data['homeless_breakdowns']
