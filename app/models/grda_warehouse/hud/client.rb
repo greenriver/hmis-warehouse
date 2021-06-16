@@ -254,12 +254,16 @@ module GrdaWarehouse::Hud
 
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
-      s, e, exclude = range.first, range.last, range.exclude_end?   # the exclusion bit's a little pedantic...
+      end_date = if range.exclude_end?
+        sht[:date].lt(range.last)
+      else
+        sht[:date].lteq(range.last)
+      end
       sh  = GrdaWarehouse::ServiceHistoryEnrollment
       sht = sh.arel_table
       joins(:first_service_history).
-        where( sht[:date].gteq s ).
-        where( exclude ? sht[:date].lt(e) : sht[:date].lteq(e) )
+        where(sht[:date].gteq(range.first)).
+        where(end_date)
     end
 
     scope :in_data_source, -> (data_source_id) do
@@ -405,7 +409,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :consent_form_valid, -> do
-      case(release_duration)
+      case release_duration
       when 'One Year', 'Two Years'
         where(
           arel_table[:housing_release_status].matches("%#{full_release_string}").
@@ -552,6 +556,14 @@ module GrdaWarehouse::Hud
       where(Gender: 4)
     end
 
+    scope :gender_transgender, -> do
+      where(Gender: [2, 3])
+    end
+
+    scope :gender_unknown, -> do
+      where(Gender: [8, 9, 99, nil])
+    end
+
     ####################
     # Callbacks
     ####################
@@ -650,7 +662,7 @@ module GrdaWarehouse::Hud
     def cohorts_for_dashboard
       cohort_clients.select do |cc|
         meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
-        cc.active? && cc.cohort&.active? && cc.cohort.show_on_client_dashboard? && ! meta.inactive
+        cc.active? && cc.cohort&.active? && cc.cohort&.show_on_client_dashboard? && ! meta.inactive
       end.map(&:cohort).compact.uniq
     end
 
@@ -1075,9 +1087,7 @@ module GrdaWarehouse::Hud
         return 'None on file'
       end
       if release_duration.in?(['One Year', 'Use Expiration Date'])
-        if ! (consent_form_valid? && consent_confirmed?)
-          return 'Expired'
-        end
+        return 'Expired' unless consent_form_valid? && consent_confirmed?
       end
       return _(housing_release_status)
     end
@@ -1406,12 +1416,12 @@ module GrdaWarehouse::Hud
         api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
         return nil unless api_key.present?
 
-        api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect} rescue nil
+        api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect) rescue nil
         image_data = api.client_image(
           client_id: api_id.id_in_data_source,
           site_id: api_id.site_id_in_data_source
         ) rescue nil
-        (image_data && image_data.length > 0)
+        (image_data && image_data.length > 0) # rubocop:disable Style/ZeroLengthPredicate
       end
 
       set_local_client_image_cache(image_data)
@@ -1429,7 +1439,7 @@ module GrdaWarehouse::Hud
       api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
       return nil unless api_key.present?
 
-      api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect}
+      api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect)
       image_data = api.client_image(
         client_id: api_id.id_in_data_source,
         site_id: api_id.site_id_in_data_source
@@ -1467,7 +1477,7 @@ module GrdaWarehouse::Hud
       client_files.window.where(name: 'Client Headshot Cache').where(updated_at: 1.days.ago..DateTime.tomorrow).limit(1)&.first
     end
 
-    def set_local_client_image_cache(image_data)
+    def set_local_client_image_cache(image_data) # rubocop:disable Naming/AccessorMethodName
       user = ::User.setup_system_user
       self.class.transaction do
         client_files.window.where(name: 'Client Headshot Cache')&.delete_all
@@ -1704,7 +1714,7 @@ module GrdaWarehouse::Hud
         :interested_in_set_asides,
         :rrh_desired,
         :youth_rrh_desired,
-        :neighborhood_interests => [],
+        neighborhood_interests: [],
       ]
     end
 
@@ -1741,7 +1751,7 @@ module GrdaWarehouse::Hud
     end
 
     def destination?
-      source_clients.size > 0
+      source_clients.size.positive?
     end
 
     def source?
@@ -1907,8 +1917,8 @@ module GrdaWarehouse::Hud
       # Explicity search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
-        where = sa[:FirstName].lower.matches("#{first.downcase}%")
-          .and(sa[:LastName].lower.matches("#{last.downcase}%"))
+        where = sa[:FirstName].lower.matches("#{first.downcase}%").
+          and(sa[:LastName].lower.matches("#{last.downcase}%"))
       # Explicitly search for a PersonalID
       elsif alpha_numeric && (text.size == 32 || text.size == 36)
         where = sa[:PersonalID].matches(text.gsub('-', ''))
@@ -1923,8 +1933,8 @@ module GrdaWarehouse::Hud
         query = "%#{text}%"
         alt_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(text).to_s).map(&:name)
         nicks = Nickname.for(text).map(&:name)
-        where = sa[:FirstName].matches(query)
-          .or(sa[:LastName].matches(query))
+        where = sa[:FirstName].matches(query).
+          or(sa[:LastName].matches(query))
         if nicks.any?
           nicks_for_search = nicks.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
           where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(nicks_for_search))
@@ -1972,17 +1982,23 @@ module GrdaWarehouse::Hud
       dob_ids = []
       ssn_ids = []
 
-      first_name_ids = source.where(
-        nf('LOWER', [arel_table[:FirstName]]).eq(first_name.downcase)
-      ).pluck(:id) if first_name.present?
+      if first_name.present?
+        first_name_ids = source.where(
+          nf('LOWER', [arel_table[:FirstName]]).eq(first_name.downcase)
+        ).pluck(:id)
+      end
 
-      last_name_ids = source.where(
-        nf('LOWER', [arel_table[:LastName]]).eq(last_name.downcase)
-      ).pluck(:id) if last_name.present?
+      if last_name.present?
+        last_name_ids = source.where(
+          nf('LOWER', [arel_table[:LastName]]).eq(last_name.downcase)
+        ).pluck(:id)
+      end
 
-      dob_ids = source.where(
-        arel_table[:DOB].eq(dob)
-      ).pluck(:id) if dob.present?
+      if dob.present?
+        dob_ids = source.where(
+          arel_table[:DOB].eq(dob)
+        ).pluck(:id)
+      end
 
       if ssn.length == 9
         ssn_ids = source.where(
@@ -1995,7 +2011,7 @@ module GrdaWarehouse::Hud
       end
 
       all_ids = first_name_ids + last_name_ids + dob_ids + ssn_ids
-      matching_ids = all_ids.each_with_object(Hash.new(0)) { |id, counts| counts[id] += 1 }.select{|_, counts| counts >= 3}&.keys
+      matching_ids = all_ids.each_with_object(Hash.new(0)) { |id, counts| counts[id] += 1 }.select{ |_, counts| counts >= 3 }&.keys
 
       begin
         ids = client_scope.
@@ -2072,7 +2088,7 @@ module GrdaWarehouse::Hud
 
     # those columns that relate to race
     def self.race_fields
-      %w( AmIndAKNative Asian BlackAfAmerican NativeHIOtherPacific White RaceNone )
+      HUD.races.keys
     end
 
     # those race fields which are marked as pertinent to the client
@@ -2208,7 +2224,7 @@ module GrdaWarehouse::Hud
     end
 
     def document_ready?(required_documents)
-      @document_ready ||= document_readiness(required_documents).all?{|m| m.available}
+      @document_ready ||= document_readiness(required_documents).all?(&:available)
     end
 
     # Build a set of potential client matches grouped by criteria
@@ -2236,9 +2252,9 @@ module GrdaWarehouse::Hud
             alt_names_for_search = alt_names.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
             similar_destinations = self.class.destination.where(
               nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
-                and(nf('LOWER', [c_arel[:LastName]]).matches('#{self.LastName.downcase}%')).
+                and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).
               or(nf('LOWER', [c_arel[:LastName]]).in(alt_names_for_search).
-                and(nf('LOWER', [c_arel[:FirstName]]).matches('#{self.FirstName.downcase}%'))
+                and(nf('LOWER', [c_arel[:FirstName]]).matches("#{self.FirstName.downcase}%"))
               )
             ).where.not(id: self.id)
             m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
@@ -2327,7 +2343,7 @@ module GrdaWarehouse::Hud
     # if it's a destination record, all of its sources will move and it will be deleted
     #
     # returns the source client records that moved
-    def merge_from(other_client, reviewed_by:, reviewed_at: , client_match_id: nil)
+    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
       raise 'only works for destination_clients' unless self.destination?
       moved = []
       transaction do
@@ -2499,20 +2515,18 @@ module GrdaWarehouse::Hud
 
     # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
     def most_recent_vispdat_length_homeless_in_days
-      begin
-        vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless ||
-         source_hmis_forms.vispdat.newest_first.
-          map{|m| [m.collected_at, m.vispdat_days_homeless]}&.
-          group_by(&:first)&.
-          first&.
-          last&.
-          map{|m| m.drop(1)}&.
-          flatten&.
-          compact&.
-          max || 0
-      rescue
-        0
-      end
+      vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless ||
+        source_hmis_forms.vispdat.newest_first.
+        map{|m| [m.collected_at, m.vispdat_days_homeless]}&.
+        group_by(&:first)&.
+        first&.
+        last&.
+        map{|m| m.drop(1)}&.
+        flatten&.
+        compact&.
+        max || 0
+    rescue # rubocop:disable Style/RescueStandardError
+      0
     end
 
     # Determine which vi-spdat to use based on dates
@@ -2523,7 +2537,7 @@ module GrdaWarehouse::Hud
       vispdats << [internal.submitted_at, internal] if internal
       vispdats << [external.collected_at, external] if external
       # return the newest vispdat
-      vispdats.sort_by(&:first)&.last.last
+      vispdats.sort_by(&:first)&.last&.last
     end
 
     def most_recent_vispdat_family_vispdat?
@@ -2768,7 +2782,7 @@ module GrdaWarehouse::Hud
         enrollment.income_benefits.limit(1).
           order(InformationDate: :desc).
           pluck(:TotalMonthlyIncome).first
-        end.compact.max || 0
+      end.compact.max || 0
     end
 
     def homeless_dates_for_chronic_in_past_three_years(date: Date.current)
@@ -2927,20 +2941,16 @@ module GrdaWarehouse::Hud
 
     def affiliated_projects_str_for_enrollment enrollment
       project_names = affiliated_projects(enrollment)
-      if project_names.any?
-        "Affiliated with #{project_names.to_sentence}"
-      else
-        nil
-      end
+      return nil unless project_names.any?
+
+      "Affiliated with #{project_names.to_sentence}"
     end
 
     def residential_projects_str_for_enrollment enrollment
       project_names = affiliated_residential_projects(enrollment)
-      if project_names.any?
-        "Affiliated with #{project_names.to_sentence}"
-      else
-        nil
-      end
+      return nil unless project_names.any?
+
+      "Affiliated with #{project_names.to_sentence}"
     end
 
     def program_tooltip_data_for_enrollment enrollment
@@ -2950,7 +2960,7 @@ module GrdaWarehouse::Hud
       #only show tooltip if there are projects to list
       if affiliated_projects_str.present? || residential_projects_str.present?
         title = [affiliated_projects_str, residential_projects_str].compact.join("\n")
-        {toggle: :tooltip, title: "#{title}"}
+        {toggle: :tooltip, title: title}
       else
         {}
       end
@@ -2985,7 +2995,7 @@ module GrdaWarehouse::Hud
         e.service_history_services.select do |s|
           s.homeless == false
         end.map(&:date)
-     end.flatten.compact.uniq
+      end.flatten.compact.uniq
     end
 
     private def homeless_dates enrollments:
@@ -2998,7 +3008,7 @@ module GrdaWarehouse::Hud
           s.record_type == 'service' && s.homeless == true
         end.map(&:date)
       end.flatten.compact.uniq
-   end
+    end
 
     private def adjusted_months_served dates:
       dates.group_by{ |d| [d.year, d.month] }.keys

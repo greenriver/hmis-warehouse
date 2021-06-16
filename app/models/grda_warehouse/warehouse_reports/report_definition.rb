@@ -1012,6 +1012,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: false,
             health: false,
           }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/state_level_homelessness',
+            name: 'State-Level Homelessness Report Generator',
+            description: 'Review and publish the state-level homelessness report for public consumption.',
+            limitable: false,
+            health: false,
+          }
         end
       end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
@@ -1121,6 +1128,7 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'public_reports/warehouse_reports/homeless_count'
         cleanup << 'public_reports/warehouse_reports/homeless_count_comparison'
         cleanup << 'public_reports/warehouse_reports/homeless_populations'
+        cleanup << 'public_reports/warehouse_reports/state_level_homelessness'
       end
       cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
       cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
