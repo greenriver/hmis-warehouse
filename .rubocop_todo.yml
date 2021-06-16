@@ -717,7 +717,6 @@ Naming/AccessorMethodName:
     - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
     - 'app/models/reporting/monthly_reports/base.rb'
-    - 'app/models/user.rb'
 
 # Offense count: 4
 # Cop supports --auto-correct.
