@@ -31,9 +31,12 @@ module GrdaWarehouse
       end
 
       def self.to_meters(geom)
-        #orig = RGeo::Feature.cast(geom, :factory => default_factory)
-        #binding.irb
-        RGeo::Feature.cast(geom, :factory => meters_factory, :project => true)
+        if RGeo::CoordSys::Proj4.supported?
+          RGeo::Feature.cast(geom, :factory => meters_factory, :project => true)
+        else
+          Rails.logger.error "Cannot convert to meters since rgeo was not compiled with proj support. You're computing with degrees now."
+          geom
+        end
       end
     end
   end
