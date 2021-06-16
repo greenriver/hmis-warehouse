@@ -154,6 +154,7 @@ module Filter::FilterScopes
 
     private def filter_for_projects(scope)
       return scope if @filter.project_ids.blank? && @filter.project_group_ids.blank?
+      return scope unless @filter.user.report_filter_visible?(:project_ids)
 
       project_ids = @filter.project_ids || []
       project_groups = GrdaWarehouse::ProjectGroup.find(@filter.project_group_ids)
@@ -166,6 +167,7 @@ module Filter::FilterScopes
 
     private def filter_for_funders(scope)
       return scope if @filter.funder_ids.blank?
+      return scope unless @filter.user.report_filter_visible?(:funder_ids)
 
       project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user).
         where(Funder: @filter.funder_ids).
@@ -176,12 +178,14 @@ module Filter::FilterScopes
 
     private def filter_for_data_sources(scope)
       return scope if @filter.data_source_ids.blank?
+      return scope unless @filter.user.report_filter_visible?(:data_source_ids)
 
       scope.in_data_source(@filter.data_source_ids).joins(:data_source).merge(GrdaWarehouse::DataSource.viewable_by(@filter.user))
     end
 
     private def filter_for_organizations(scope)
       return scope if @filter.organization_ids.blank?
+      return scope unless @filter.user.report_filter_visible?(:organization_ids)
 
       scope.in_organization(@filter.organization_ids).merge(GrdaWarehouse::Hud::Organization.viewable_by(@filter.user))
     end
