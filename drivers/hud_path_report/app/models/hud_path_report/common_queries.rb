@@ -26,12 +26,29 @@ module HudPathReport::CommonQueries
       Arel.sql('1 = 1')
     end
 
+    private def adults
+      a_t[:age].gteq(18)
+    end
+
     def in_street_outreach
       a_t[:project_type].eq(4)
     end
 
     def in_services_only
       a_t[:project_type].eq(6)
+    end
+
+    def stayers
+      a_t[:last_date_in_program].eq(nil).
+        or(a_t[:last_date_in_program].gt(@report.end_date))
+    end
+
+    def leavers
+      a_t[:last_date_in_program].lteq(@report.end_date)
+    end
+
+    def received_service(service)
+    "jsonb_path_exists (#{a_t[:services].to_sql}, '$.* ? (@ == #{service})')"
     end
   end
 end

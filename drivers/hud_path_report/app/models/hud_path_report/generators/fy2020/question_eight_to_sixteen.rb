@@ -16,6 +16,7 @@ module HudPathReport::Generators::Fy2020
       'Persons served during this reporting period:',
       'Count',
     ].freeze
+
     ROW_LABELS = [
       '8. Number of persons contacted by PATH-funded staff this reporting period',
       '9. Number of new persons contacted this reporting period in a PATH Street Outreach project',
@@ -59,21 +60,13 @@ module HudPathReport::Generators::Fy2020
         [new_and_active_clients, a_t[:reason_not_enrolled].eq(3)],
         [new_and_active_clients, a_t[:enrolled_client].eq(true)],
         [active_and_enrolled_clients, all_members],
-        [active_and_enrolled_clients, "jsonb_path_exists (#{a_t[:services].to_sql}, '$.* ? (@ == 4)')"]
+        [active_and_enrolled_clients, received_service(4)]
       ].each_with_index do |(scope, query), index|
         answer = @report.answer(question: table_name, cell: 'B' + (index + 2).to_s)
         members = universe.members.where(scope).where(query)
         answer.add_members(members)
         answer.update(summary: members.count)
       end
-
-      # B12
-      # answer = @report.answer(question: table_name, cell: 'B2')
-      # candidates = universe.universe_members.where(active_and_enrolled_clients).pluck(:id, a_t[:services]).to_h
-      # candidates.select { |_id, types| types.include?(4) }
-      # members = universe.universe_members.where(id: candidates.keys)
-      # answer.add_members(members)
-      # answer.update(summary: members.count)
 
       @report.complete(QUESTION_NUMBER)
     end

@@ -181,7 +181,7 @@ module GrdaWarehouse::Hud
       :LastPermanentStreet,
       :LastPermanentCity,
       :LastPermanentState,
-      LastPermanentZIP
+      :LastPermanentZIP,
     ].freeze
 
     scope :any_address, -> {

@@ -9588,6 +9588,12 @@ CREATE TABLE public.hud_report_path_clients (
     incomes_at_exit jsonb,
     income_from_any_source_report_end integer,
     incomes_at_report_end jsonb,
+    benefits_from_any_source_entry integer,
+    benefits_from_any_source_exit integer,
+    benefits_from_any_source_report_end integer,
+    insurance_from_any_source_entry integer,
+    insurance_from_any_source_exit integer,
+    insurance_from_any_source_report_end integer,
     destination integer,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -20985,6 +20991,13 @@ CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree
 
 
 --
+-- Name: hud_path_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_clients USING btree (report_instance_id, client_id);
+
+
+--
 -- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23323,10 +23336,52 @@ CREATE INDEX index_hud_report_path_clients_on_client_id ON public.hud_report_pat
 
 
 --
+-- Name: index_hud_report_path_clients_on_contacts; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_contacts ON public.hud_report_path_clients USING gin (contacts);
+
+
+--
+-- Name: index_hud_report_path_clients_on_incomes_at_entry; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_incomes_at_entry ON public.hud_report_path_clients USING gin (incomes_at_entry);
+
+
+--
+-- Name: index_hud_report_path_clients_on_incomes_at_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_incomes_at_exit ON public.hud_report_path_clients USING gin (incomes_at_exit);
+
+
+--
+-- Name: index_hud_report_path_clients_on_incomes_at_report_end; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_incomes_at_report_end ON public.hud_report_path_clients USING gin (incomes_at_report_end);
+
+
+--
+-- Name: index_hud_report_path_clients_on_referrals; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_referrals ON public.hud_report_path_clients USING gin (referrals);
+
+
+--
 -- Name: index_hud_report_path_clients_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hud_report_path_clients_on_report_instance_id ON public.hud_report_path_clients USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_path_clients_on_services; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_services ON public.hud_report_path_clients USING gin (services);
 
 
 --

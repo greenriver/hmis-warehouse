@@ -6,6 +6,8 @@ class CreateHudReportPathClients < ActiveRecord::Migration[5.2]
       t.string :first_name
       t.string :last_name
 
+      t.index [:report_instance_id, :client_id], unique: true, name: 'hud_path_client_conflict_columns'
+
       t.integer :age
       t.date :dob
       t.integer :dob_quality
@@ -36,15 +38,29 @@ class CreateHudReportPathClients < ActiveRecord::Migration[5.2]
       t.date :last_date_in_program
 
       t.jsonb :contacts # an array of contact dates
+      t.index :contacts, using: :gin
       t.jsonb :services # a hash of dates to services on that day
+      t.index :services, using: :gin
       t.jsonb :referrals # a hash of dates to referrals and outcomes on that day
+      t.index :referrals, using: :gin
 
       t.integer :income_from_any_source_entry
       t.jsonb :incomes_at_entry
+      t.index :incomes_at_entry, using: :gin
       t.integer :income_from_any_source_exit
       t.jsonb :incomes_at_exit
+      t.index :incomes_at_exit, using: :gin
       t.integer :income_from_any_source_report_end
       t.jsonb :incomes_at_report_end
+      t.index :incomes_at_report_end, using: :gin
+
+      t.integer :benefits_from_any_source_entry
+      t.integer :benefits_from_any_source_exit
+      t.integer :benefits_from_any_source_report_end
+
+      t.integer :insurance_from_any_source_entry
+      t.integer :insurance_from_any_source_exit
+      t.integer :insurance_from_any_source_report_end
 
       t.integer :destination
 

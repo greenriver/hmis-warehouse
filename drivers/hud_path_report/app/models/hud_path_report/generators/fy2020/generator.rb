@@ -21,11 +21,11 @@ module HudPathReport::Generators::Fy2020
     def self.questions
       [
         HudPathReport::Generators::Fy2020::QuestionEightToSixteen,
-        # HudPathReport::Generators::Fy2020::QuestionSeventeen,
-        # HudPathReport::Generators::Fy2020::QuestionEighteen,
-        # HudPathReport::Generators::Fy2020::QuestionNineteenToTwentyfour,
-        # HudPathReport::Generators::Fy2020::QuestionTwentyfive,
-        # HudPathReport::Generators::Fy2020::QuestionTwentsix,
+        HudPathReport::Generators::Fy2020::QuestionSeventeen,
+        HudPathReport::Generators::Fy2020::QuestionEighteen,
+        HudPathReport::Generators::Fy2020::QuestionNineteenToTwentyFour,
+        HudPathReport::Generators::Fy2020::QuestionTwentyFive,
+        HudPathReport::Generators::Fy2020::QuestionTwentySix,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze

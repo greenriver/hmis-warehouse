@@ -9,6 +9,7 @@ module HudPathReport::Generators::Fy2020
   class Base < ::HudReports::QuestionBase
     include ArelHelper
     include CommonQueries
+    include HudReports::Incomes
 
     def initialize(generator = nil, report = nil, options: {})
       super
@@ -77,6 +78,12 @@ module HudPathReport::Generators::Fy2020
             incomes_at_exit: income_sources(enrollment.income_benefits_at_exit),
             income_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.IncomeFromAnySource,
             incomes_at_report_end: income_sources(last_income_in_period(enrollment.income_benefits)),
+            benefits_from_any_source_entry: enrollment.income_benefits_at_entry&.BenefitsFromAnySource,
+            benefits_from_any_source_exit: enrollment.income_benefits_at_exit&.BenefitsFromAnySource,
+            benefits_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.BenefitsFromAnySource,
+            insurance_from_any_source_entry: enrollment.income_benefits_at_entry&.InsuranceFromAnySource,
+            insurance_from_any_source_exit: enrollment.income_benefits_at_exit&.InsuranceFromAnySource,
+            insurance_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.InsuranceFromAnySource,
             destination: enrollment.exit&.Destination,
           )
         end
@@ -121,14 +128,6 @@ module HudPathReport::Generators::Fy2020
         where(ib_t[:InformationDate].lteq(@report.end_date)).
         order(InformationDate: :desc).
         first
-    end
-
-    private def income_sources(income)
-      sources = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map(&:to_s)
-      sources += GrdaWarehouse::Hud::IncomeBenefit::NON_CASH_BENEFIT_TYPES.map(&:to_s)
-      sources += GrdaWarehouse::Hud::IncomeBenefit::INSURANCE_TYPES.map(&:to_s)
-      amounts = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.values.map(&:to_s)
-      income&.attributes&.slice(*(sources + amounts)) || sources.map { |k| [k, 99] }.to_h.merge(amounts.map { |k| [k, nil] }.to_h)
     end
 
     private def active_in_path(enrollment)
