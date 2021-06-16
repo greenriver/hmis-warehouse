@@ -6,7 +6,7 @@
 
 class DocumentExportJob < ApplicationJob
   include DocumentExportJobBehavior
-  queue_as :default
+  queue_as :short_running
 
   protected def export_scope
     GrdaWarehouse::DocumentExport
