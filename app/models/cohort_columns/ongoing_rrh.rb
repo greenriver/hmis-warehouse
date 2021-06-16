@@ -16,8 +16,6 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      return nil unless cohort_client.client.processed_service_history&.cohorts_ongoing_enrollments_rrh
-
       for_display(:cohorts_ongoing_enrollments_rrh)
     end
   end

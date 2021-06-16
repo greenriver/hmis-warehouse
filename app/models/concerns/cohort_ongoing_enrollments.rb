@@ -8,6 +8,8 @@ module CohortOngoingEnrollments
   extend ActiveSupport::Concern
 
   private def for_display(column)
+    return nil unless cohort_client.client.processed_service_history&.public_send(column)
+
     # in the form [['Project Name', 'last date']]
     cohort_client.client.processed_service_history.public_send(column).
       sort do |a, b|
