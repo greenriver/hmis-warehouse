@@ -1,0 +1,16 @@
+- title = @report.instance_title
+- content_for :title, title
+= render 'breadcrumbs'
+%h1.mb-5= title
+= render 'beta_warning'
+= render 'public_reports/re_publish'
+
+.well
+  %iframe{src: public_reports_warehouse_reports_state_level_homelessness_path(@report), width: '100%', height: 400, frameBorder: 0}
+- @report.sections.each do |section|
+  %p The following is available at the url: #{link_to(@report.generate_publish_url_for(section), @report.generate_publish_url_for(section), target: :_blank)} and can be embedded using the following code.
+  %code= @report.generate_embed_code_for(section)
+
+  .well
+    - src = polymorphic_path([section, :public_reports, :warehouse_reports, :state_level_homelessness], pp: :disabled)
+    %iframe{src: src, width: '100%', height: 400, frameBorder: 0}

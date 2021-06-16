@@ -254,12 +254,16 @@ module GrdaWarehouse::Hud
 
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
-      s, e, exclude = range.first, range.last, range.exclude_end? # rubocop:disable Style/ParallelAssignment # the exclusion bit's a little pedantic...
+      end_date = if range.exclude_end?
+        sht[:date].lt(range.last)
+      else
+        sht[:date].lteq(range.last)
+      end
       sh  = GrdaWarehouse::ServiceHistoryEnrollment
       sht = sh.arel_table
       joins(:first_service_history).
-        where(sht[:date].gteq(s)).
-        where(exclude ? sht[:date].lt(e) : sht[:date].lteq(e))
+        where(sht[:date].gteq(range.first)).
+        where(end_date)
     end
 
     scope :in_data_source, -> (data_source_id) do
@@ -550,6 +554,14 @@ module GrdaWarehouse::Hud
 
     scope :gender_non_conforming, -> do
       where(Gender: 4)
+    end
+
+    scope :gender_transgender, -> do
+      where(Gender: [2, 3])
+    end
+
+    scope :gender_unknown, -> do
+      where(Gender: [8, 9, 99, nil])
     end
 
     ####################
@@ -1075,9 +1087,7 @@ module GrdaWarehouse::Hud
         return 'None on file'
       end
       if release_duration.in?(['One Year', 'Use Expiration Date'])
-        unless consent_form_valid? && consent_confirmed?
-          return 'Expired'
-        end
+        return 'Expired' unless consent_form_valid? && consent_confirmed?
       end
       return _(housing_release_status)
     end
@@ -2008,7 +2018,7 @@ module GrdaWarehouse::Hud
       end
 
       all_ids = first_name_ids + last_name_ids + dob_ids + ssn_ids
-      matching_ids = all_ids.each_with_object(Hash.new(0)) { |id, counts| counts[id] += 1 }.select{|_, counts| counts >= 3}&.keys
+      matching_ids = all_ids.each_with_object(Hash.new(0)) { |id, counts| counts[id] += 1 }.select{ |_, counts| counts >= 3 }&.keys
 
       begin
         ids = client_scope.
@@ -2522,7 +2532,7 @@ module GrdaWarehouse::Hud
         flatten&.
         compact&.
         max || 0
-    rescue Exception => e
+    rescue # rubocop:disable Style/RescueStandardError
       0
     end
 
