@@ -1077,7 +1077,9 @@ CREATE TABLE public.roles (
     can_view_cached_client_enrollments boolean DEFAULT false,
     can_search_all_clients boolean DEFAULT false,
     can_import_project_groups boolean DEFAULT false,
-    can_view_client_locations boolean DEFAULT false
+    can_view_client_locations boolean DEFAULT false,
+    _report boolean DEFAULT false,
+    can_view_project_related_filters boolean DEFAULT false
 );
 
 
@@ -3019,6 +3021,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210506185752'),
 ('20210507151459'),
 ('20210518132857'),
-('20210607135335');
+('20210607135335'),
+('20210616141644'),
+('20210616142134');
 
 
