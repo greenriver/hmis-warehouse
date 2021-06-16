@@ -33,11 +33,10 @@ class CohortsController < ApplicationController
     @cohort = cohort_source.new
     @cohorts = @search.result.active.reorder(sort_string)
     @inactive_cohorts = @search.result.inactive.reorder(sort_string)
-    @modal_size = :xl
   end
 
   def show
-    @modal_size = :lg
+    @modal_size = :xl
     params[:population] ||= :active
     load_cohort_names
     @cohort = cohort_scope.find(cohort_id)
