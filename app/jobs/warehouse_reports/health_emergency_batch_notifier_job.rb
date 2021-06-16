@@ -6,7 +6,7 @@
 
 module WarehouseReports
   class HealthEmergencyBatchNotifierJob < BaseJob
-    queue_as :short_running
+    queue_as :long_running
 
     def perform
       advisory_lock_name = 'he_batch_notifications'

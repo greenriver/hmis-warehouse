@@ -1239,9 +1239,6 @@ Style/RescueStandardError:
 # AllowedMethods: present?, blank?, presence, try, try!
 Style/SafeNavigation:
   Exclude:
-    - 'app/models/grda_warehouse/confidence/days_homeless.rb'
-    - 'app/models/grda_warehouse/confidence/source_enrollments.rb'
-    - 'app/models/grda_warehouse/confidence/source_exits.rb'
     - 'app/models/grda_warehouse/eto_api_config.rb'
     - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
     - 'app/models/grda_warehouse/user_client.rb'
