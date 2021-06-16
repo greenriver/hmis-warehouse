@@ -4397,7 +4397,42 @@ CREATE TABLE public.cohort_clients (
     user_date_7 character varying,
     user_date_8 character varying,
     user_date_9 character varying,
-    user_date_10 character varying
+    user_date_10 character varying,
+    user_select_11 character varying,
+    user_select_12 character varying,
+    user_select_13 character varying,
+    user_select_14 character varying,
+    user_select_15 character varying,
+    user_select_16 character varying,
+    user_select_17 character varying,
+    user_select_18 character varying,
+    user_select_19 character varying,
+    user_select_20 character varying,
+    user_select_21 character varying,
+    user_select_22 character varying,
+    user_select_23 character varying,
+    user_select_24 character varying,
+    user_select_25 character varying,
+    user_select_26 character varying,
+    user_select_27 character varying,
+    user_select_28 character varying,
+    user_select_29 character varying,
+    user_select_30 character varying,
+    user_boolean_16 boolean,
+    user_boolean_17 boolean,
+    user_boolean_18 boolean,
+    user_boolean_19 boolean,
+    user_boolean_20 boolean,
+    user_boolean_21 boolean,
+    user_boolean_22 boolean,
+    user_boolean_23 boolean,
+    user_boolean_24 boolean,
+    user_boolean_25 boolean,
+    user_boolean_26 boolean,
+    user_boolean_27 boolean,
+    user_boolean_28 boolean,
+    user_boolean_29 boolean,
+    user_boolean_30 boolean
 );
 
 
@@ -30167,6 +30202,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210601173704'),
 ('20210603121547'),
 ('20210615131534'),
-('20210616181054');
+('20210616181054'),
+('20210616193735');
 
 
