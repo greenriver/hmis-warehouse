@@ -1824,8 +1824,15 @@ module GrdaWarehouse::Hud
     end
 
     def last_homeless_visits include_confidential_names: false
-      service_history_enrollments.homeless.ongoing.
+      last_seen_in_type(:homeless, include_confidential_names: false)
+    end
+
+    def last_seen_in_type(type, include_confidential_names: false)
+      return nil unless type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys + [:homeless])
+
+      service_history_enrollments.ongoing.
         joins(:service_history_services, :project).
+        merge(GrdaWarehouse::Hud::Project.public_send(type)).
         group(:project_name, p_t[:confidential]).
         maximum("#{GrdaWarehouse::ServiceHistoryService.quoted_table_name}.date").
         map do |(project_name, confidential), date|
@@ -2960,7 +2967,10 @@ module GrdaWarehouse::Hud
       #only show tooltip if there are projects to list
       if affiliated_projects_str.present? || residential_projects_str.present?
         title = [affiliated_projects_str, residential_projects_str].compact.join("\n")
-        {toggle: :tooltip, title: title}
+        {
+          toggle: :tooltip,
+          title: title,
+        }
       else
         {}
       end
