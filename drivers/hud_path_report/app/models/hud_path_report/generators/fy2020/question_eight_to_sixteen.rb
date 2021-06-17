@@ -54,19 +54,42 @@ module HudPathReport::Generators::Fy2020
         [new_and_active_clients, in_street_outreach],
         [new_and_active_clients, in_services_only],
         [new_and_active_clients, all_members],
-        [active_and_enrolled_clients, a_t[:date_of_determination].gt(any(a_t[:contacts]))],
-        [active_and_enrolled_clients, a_t[:contacts].not_eq([])],
+        nil, # These are contact counts, done below
+        nil,
         [new_and_active_clients, a_t[:reason_not_enrolled].eq(1)],
         [new_and_active_clients, a_t[:reason_not_enrolled].eq(3)],
         [new_and_active_clients, a_t[:enrolled_client].eq(true)],
         [active_and_enrolled_clients, all_members],
         [active_and_enrolled_clients, received_service(4)]
       ].each_with_index do |(scope, query), index|
+        next if scope.nil?
+
         answer = @report.answer(question: table_name, cell: 'B' + (index + 2).to_s)
         members = universe.members.where(scope).where(query)
         answer.add_members(members)
         answer.update(summary: members.count)
       end
+
+      # Contacts before date of determination
+      answer = @report.answer(question: table_name, cell: 'B6')
+      members = universe.members.where(active_and_enrolled_clients).where(a_t[:date_of_determination].gt(any(a_t[:contacts])))
+      count = 0
+      members.each do |member|
+        date_of_determination = member.universe_membership.date_of_determination
+        count += member.universe_membership.contacts.select { |contact| contact <= date_of_determination }.count
+      end
+      answer.add_members(members)
+      answer.update(summary: count)
+
+      # Contacts in reporting period
+      answer = @report.answer(question: table_name, cell: 'B7')
+      members = universe.members.where(active_and_enrolled_clients).where( a_t[:contacts].not_eq([]))
+      count = 0
+      members.each do |member|
+        count += member.universe_membership.contacts.count
+      end
+      answer.add_members(members)
+      answer.update(summary: count)
 
       @report.complete(QUESTION_NUMBER)
     end

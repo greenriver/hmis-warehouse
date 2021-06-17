@@ -1,0 +1,3 @@
+ProjectID,OrganizationID,ProjectName,ProjectCommonName,OperatingStartDate,OperatingEndDate,ContinuumProject,ProjectType,HousingType,ResidentialAffiliation,TrackingMethod,HMISParticipatingProject,TargetPopulation,PITCount,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+SO,O-1,Street Outreach,SO,2000-01-01,,1,4,,,,1,,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
+SERVICES,O-1, Services,SERVICES,2000-01-01,,1,6,,0,,1,,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT

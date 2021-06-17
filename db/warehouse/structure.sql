@@ -9550,6 +9550,7 @@ ALTER SEQUENCE public.hud_report_instances_id_seq OWNED BY public.hud_report_ins
 CREATE TABLE public.hud_report_path_clients (
     id bigint NOT NULL,
     client_id bigint,
+    data_source_id bigint,
     report_instance_id bigint,
     first_name character varying,
     last_name character varying,
@@ -9579,7 +9580,7 @@ CREATE TABLE public.hud_report_path_clients (
     project_type integer,
     first_date_in_program date,
     last_date_in_program date,
-    contacts jsonb,
+    contacts date[],
     services jsonb,
     referrals jsonb,
     income_from_any_source_entry integer,
@@ -20994,7 +20995,7 @@ CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree
 -- Name: hud_path_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_clients USING btree (report_instance_id, client_id);
+CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_clients USING btree (report_instance_id, data_source_id, client_id);
 
 
 --
@@ -23336,10 +23337,10 @@ CREATE INDEX index_hud_report_path_clients_on_client_id ON public.hud_report_pat
 
 
 --
--- Name: index_hud_report_path_clients_on_contacts; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hud_report_path_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hud_report_path_clients_on_contacts ON public.hud_report_path_clients USING gin (contacts);
+CREATE INDEX index_hud_report_path_clients_on_data_source_id ON public.hud_report_path_clients USING btree (data_source_id);
 
 
 --

@@ -2,11 +2,12 @@ class CreateHudReportPathClients < ActiveRecord::Migration[5.2]
   def change
     create_table :hud_report_path_clients do |t|
       t.references :client
+      t.references :data_source
       t.references :report_instance
       t.string :first_name
       t.string :last_name
 
-      t.index [:report_instance_id, :client_id], unique: true, name: 'hud_path_client_conflict_columns'
+      t.index [:report_instance_id, :data_source_id, :client_id], unique: true, name: 'hud_path_client_conflict_columns'
 
       t.integer :age
       t.date :dob
@@ -37,8 +38,7 @@ class CreateHudReportPathClients < ActiveRecord::Migration[5.2]
       t.date :first_date_in_program
       t.date :last_date_in_program
 
-      t.jsonb :contacts # an array of contact dates
-      t.index :contacts, using: :gin
+      t.date :contacts, array: true
       t.jsonb :services # a hash of dates to services on that day
       t.index :services, using: :gin
       t.jsonb :referrals # a hash of dates to referrals and outcomes on that day

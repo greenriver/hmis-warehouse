@@ -36,10 +36,11 @@ module HudPathReport::Generators::Fy2020
 
           max_health_and_dv_date = enrollment.health_and_dvs.select { |d| d.InformationDate <= @report.end_date }.
             map(&:InformationDate).max
-          health_and_dv_latest = enrollment.health_and_dvs.select { |d| d.InformationDate == max_health_and_dv_date }
+          health_and_dv_latest = enrollment.health_and_dvs.detect { |d| d.InformationDate == max_health_and_dv_date }
 
           pending_associations[client] = report_client_universe.new(
             client_id: source_client.id,
+            data_source_id: source_client.data_source_id,
             report_instance_id: @report.id,
             first_name: source_client.FirstName,
             last_name: source_client.LastName,
@@ -66,7 +67,7 @@ module HudPathReport::Generators::Fy2020
             enrolled_client: enrolled_in_path(enrollment),
             date_of_determination: enrollment.DateOfPATHStatus,
             reason_not_enrolled: enrollment.ReasonNotEnrolled,
-            project_type: enrollment.ProjectType,
+            project_type: enrollment.project.ProjectType,
             first_date_in_program: enrollment.EntryDate,
             last_date_in_program: enrollment.exit&.ExitDate,
             contacts: path_contact_dates(enrollment),
@@ -132,7 +133,7 @@ module HudPathReport::Generators::Fy2020
 
     private def active_in_path(enrollment)
       return true if enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).exists?
-      return true if enrollment.DateOfEngagement.between?(@report.start_date, @report.end_date)
+      return true if enrollment.DateOfEngagement&.between?(@report.start_date, @report.end_date)
       return true if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(@report.start_date, @report.end_date)
       return true if enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).exists?
 
@@ -141,15 +142,15 @@ module HudPathReport::Generators::Fy2020
 
     private def enrolled_in_path(enrollment)
       return false unless enrollment.ClientEnrolledInPATH == 1
-      return false unless enrollment.DateOfPATHStatus.between(enrollment.EntryDate, @report.end_date)
+      return false unless enrollment.DateOfPATHStatus.between?(enrollment.EntryDate, @report.end_date)
 
       enrollment.exit&.ExitDate.nil? || enrollment.DateOfPATHStatus <= enrollment.exit.ExitDate
     end
 
     private def path_contact_dates(enrollment)
       contacts = enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:InformationDate)
-      contacts += enrollment.DateOfEngagement unless contacts.include?(enrollment.DateOfEngagement)
-      contacts += enrollment.DateOfPATHStatus if enrollment.ClientEnrolledInPATH == 1 && ! contacts.include?(enrollment.DateOfPATHStatus)
+      contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && ! contacts.include?(enrollment.DateOfEngagement)
+      contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && ! contacts.include?(enrollment.DateOfPATHStatus)
       service_dates = enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided) - contacts
       contacts + service_dates
     end
