@@ -113,9 +113,12 @@ class ApplicationController < ActionController::Base
   end
 
   def possibly_reset_fast_gettext_cache
-    Rails.cache.fetch("translations_refreshed_at_for_#{set_hostname}", expires_in: 15.minutes) do
+    key_for_host = "translation-fresh-at-for-#{set_hostname}"
+    last_change = Rails.cache.read('translation-fresh-at') || Time.current
+    last_loaded_for_host = Rails.cache.read(key_for_host)
+    if last_loaded_for_host.blank? || last_change > last_loaded_for_host
       FastGettext.cache.reload!
-      Time.current
+      Rails.cache.write(key_for_host, Time.current)
     end
   end
 

@@ -369,7 +369,7 @@ class User < ApplicationRecord
     @access_group ||= AccessGroup.for_user(self).first_or_initialize
   end
 
-  def set_viewables(viewables)
+  def set_viewables(viewables) # rubocop:disable Naming/AccessorMethodName
     return unless persisted?
 
     access_group.set_viewables(viewables)
@@ -413,6 +413,23 @@ class User < ApplicationRecord
   def coc_codes_for_consent
     # return coc_codes if coc_codes.present?
     ConsentLimit.available_coc_codes
+  end
+
+  def report_filter_visible?(key)
+    return true if can_view_project_related_filters?
+
+    project_related = [
+      :project_ids,
+      :organization_ids,
+      :data_source_ids,
+      :funder_ids,
+      :projects,
+      :organizations,
+      :data_sources,
+      :funding_sources,
+    ].freeze
+
+    ! project_related.include?(key.to_sym)
   end
 
   # def health_agency
