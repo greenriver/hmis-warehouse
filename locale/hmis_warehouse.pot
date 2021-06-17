@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-13 17:46+0000\n"
-"PO-Revision-Date: 2021-05-13 17:46+0000\n"
+"POT-Creation-Date: 2021-06-16 19:44+0000\n"
+"PO-Revision-Date: 2021-06-16 19:44+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3522,9 +3522,6 @@ msgstr ""
 msgid "Full HAN Release on File"
 msgstr ""
 
-msgid "Fully signed data sharing agreement"
-msgstr ""
-
 msgid "Gender"
 msgstr ""
 
@@ -3820,9 +3817,6 @@ msgid "VA Eligible"
 msgstr ""
 
 msgid "VASH Eligible"
-msgstr ""
-
-msgid "View All Imports"
 msgstr ""
 
 msgid "View Report"
