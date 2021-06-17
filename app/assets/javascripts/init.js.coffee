@@ -43,3 +43,5 @@ $ ->
   $('body').on 'click', '.jClickToCopy', ->
     App.util.copyToClipboard $('div.tooltip:visible .pid')
 window.CableReady = window.CableReady.default
+window.CableReady.DOMOperations.alert = (operation) =>
+  window.alert(operation.message)

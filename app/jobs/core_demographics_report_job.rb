@@ -1,7 +1,8 @@
 class CoreDemographicsReportJob < BackgroundRenderJob
 
   def render_html(partial:, filter:, user_id:)
-    @filter = Filters::FilterBase.new(user_id: user_id).set_from_params(filter[:filters])
+    current_user = User.find(user_id)
+    @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filter).with_indifferent_access[:filters])
     @comparison_filter = @filter.to_comparison
     set_report
     @section = @report.class.available_section_types.detect do |m|
@@ -12,7 +13,7 @@ class CoreDemographicsReportJob < BackgroundRenderJob
     raise 'Rollup not in allowlist' unless @section.present?
 
     @section = @report.section_subpath + @section
-    CoreDemographicsReport::WarehouseReports::CoreController.render(partial: @section, assigns: {report: @report, section: @section, comparison: @comparison, comparison_filter: @comparison_filter, filter: @filter})
+    CoreDemographicsReport::WarehouseReports::CoreController.render(partial: @section, assigns: {report: @report, section: @section, comparison: @comparison, comparison_filter: @comparison_filter, filter: @filter}, locals: { current_user: current_user })
 
   end
 

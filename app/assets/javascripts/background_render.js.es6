@@ -4,7 +4,7 @@ App.StimulusApp.register('background-render', class extends Stimulus.Controller 
   }
 
   connect() {
-    console.log('Connected')
+    // console.log('Connected')
     // set a unique id for this render
     this.renderIdValue = this.uuid()
 
@@ -31,7 +31,7 @@ App.StimulusApp.register('background-render', class extends Stimulus.Controller 
     // send an ajax request to kick off the render job
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    const body = _.cloneDeep(this.fetchParamsValue)
+    const body = this.fetchParamsValue
     body.render_id = this.renderIdValue
 
     fetch(this.urlValue, {
