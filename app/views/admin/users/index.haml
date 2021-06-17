@@ -48,6 +48,11 @@
                 - if user.agency
                   .user__agency
                     %em.text-muted= user.agency.name
+                - else
+                  .text-danger.user__agency{ data: { toggle: :tooltip, title: 'Lack of agency may prevent login, password reset, and account deletion. Edit the account to set the agency.' }}
+                    %i.icon-warning
+                    %em
+                      = link_to 'Agency not assigned!', edit_admin_user_path(id: user), class: 'text-danger'
               %td
                 - user.roles.each do |r|
                   .mb-1= r.name

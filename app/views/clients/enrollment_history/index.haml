@@ -13,6 +13,10 @@
 - @histories.each do |history|
   - @days_homeless = history.days_homeless
   %h2 Residential Enrollments
-  = render 'clients/enrollment_table', enrollments: history.residential.map(&:with_indifferent_access), include_links: true
+  - enrollments = history.residential
+  - enrollments = JSON.parse(enrollments) if enrollments.is_a?(String)
+  = render 'clients/enrollment_table', enrollments: enrollments.map(&:with_indifferent_access), include_links: true
   %h2 Other Enrollments
-  = render 'clients/enrollment_table', enrollments: history.other.map(&:with_indifferent_access), include_links: true
+  - enrollments = history.other
+  - enrollments = JSON.parse(enrollments) if enrollments.is_a?(String)
+  = render 'clients/enrollment_table', enrollments: enrollments.map(&:with_indifferent_access), include_links: true
