@@ -11,17 +11,21 @@ module WarehouseReports::ClientDetails
     include SubpopulationHistoryScope
     include ClientDetailReports
     include Filter::FilterScopes
+    extend BackgroundRenderAction
 
-    before_action :set_limited, only: [:index]
+    before_action :set_limited, only: [:index, :render_section]
     before_action :set_filter
 
-    def index
-      @enrollments = active_client_service_history
-      @clients = GrdaWarehouse::Hud::Client.where(id: @enrollments.keys).preload(:source_clients).index_by(&:id)
+    background_render_action :render_section, ::BackgroundRender::CoreDemographicsReportJob do
+      {partial: params.require(:partial).underscore, filter: @filter.for_params.to_json, user_id: current_user.id}
+    end
 
+    def index
       respond_to do |format|
         format.html {}
         format.xlsx do
+          @enrollments = active_client_service_history
+          @clients = GrdaWarehouse::Hud::Client.where(id: @enrollments.keys).preload(:source_clients).index_by(&:id)
           require_can_view_clients!
         end
       end
