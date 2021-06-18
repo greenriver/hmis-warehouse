@@ -66,11 +66,11 @@ module HudPathReport::Generators::Fy2020
     end
 
     def received_referral(referral)
-      "jsonb_path_exists (#{a_t[:referrals].to_sql}, '$.*[?(@[0]== #{referral})]')"
+      "jsonb_path_exists (#{a_t[:referrals].to_sql}, '$.*?(@[0]== #{referral})')"
     end
 
     def service_from_referral(referral)
-      "jsonb_path_exists (#{a_t[:referrals].to_sql}, '$.*[?(@[0]== #{referral} && @[1] == 1)]')"
+      "jsonb_path_exists (#{a_t[:referrals].to_sql}, '$.*?(@[0]== #{referral} && @[1] == 1)')"
     end
   end
 end
