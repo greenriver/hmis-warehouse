@@ -6,11 +6,8 @@
 
 module WarehouseReports::ClientDetails
   class ActivesController < ApplicationController
-    include ArelHelper
     include WarehouseReportAuthorization
-    include SubpopulationHistoryScope
     include ClientDetailReports
-    include Filter::FilterScopes
     extend BackgroundRenderAction
 
     before_action :set_limited, only: [:index]

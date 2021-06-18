@@ -17,7 +17,11 @@ module CoreDemographicsReport::WarehouseReports
     before_action :set_pdf_export
 
     background_render_action :render_section, ::BackgroundRender::CoreDemographicsReportJob do
-      {partial: params.require(:partial).underscore, filter: @filter.for_params.to_json, user_id: current_user.id}
+      {
+        partial: params.require(:partial).underscore,
+        filters: @filter.for_params[:filters].to_json,
+        user_id: current_user.id,
+      }
     end
 
     def index
