@@ -165,6 +165,8 @@ module Filter::FilterScopes
         project_ids += group.projects.pluck(:id)
       end
 
+      return scope if project_ids.blank?
+
       scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
     end
 
