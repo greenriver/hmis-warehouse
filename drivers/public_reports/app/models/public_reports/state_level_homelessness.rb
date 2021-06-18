@@ -467,7 +467,7 @@ module PublicReports
         intermediate_total_count ||= 0
 
         total_string = total_for(scope.merge(client_scope), nil)
-        total_count = total_string.split(' ').first.to_i # note: this is a string
+        total_count = scope.merge(client_scope).distinct.select(:client_id).count
 
         intermediate_chronic_count += chronic_count
         intermediate_total_count += total_count
@@ -709,6 +709,7 @@ module PublicReports
 
     private def total_for(scope, population)
       count = scope.select(:client_id).distinct.count
+      count = 10 if count.positive? && count < 10
 
       word = case population
       when :veterans
