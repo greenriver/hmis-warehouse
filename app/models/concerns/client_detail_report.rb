@@ -5,29 +5,28 @@
 ###
 
 module ClientDetailReport
+  extend ActiveSupport::Concern
   included do
-    include Filter::FilterScopes
-
-    def self.history_scope(scope, sub_population)
+    def history_scope(scope, sub_population)
       scope.public_send(sub_populations[sub_population])
     end
 
-    def self.sub_populations
+    def sub_populations
       Rails.application.config.sub_populations[:history_scopes] || {}
     end
 
-    def self.add_sub_population(key, scope)
+    def add_sub_population(key, scope)
       sub_populations[key] = scope
       Rails.application.config.sub_populations[:history_scopes] = sub_populations
     end
 
-    def self.service_history_source(user)
-      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).
+    def service_history_source(user)
+      @service_history_source ||= GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(user))
     end
 
-    def self.report_scope_source
-      GrdaWarehouse::ServiceHistoryEnrollment
+    def report_scope_source
+      @report_scope_source ||= GrdaWarehouse::ServiceHistoryEnrollment
     end
   end
 end

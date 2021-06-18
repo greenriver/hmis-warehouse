@@ -13,7 +13,19 @@ class BackgroundRender::CoreDemographicsReportJob < BackgroundRenderJob
     raise 'Rollup not in allowlist' unless @section.present?
 
     @section = @report.section_subpath + @section
-    CoreDemographicsReport::WarehouseReports::CoreController.render(partial: @section, assigns: {report: @report, section: @section, comparison: @comparison, comparison_filter: @comparison_filter, filter: @filter}, locals: { current_user: current_user })
+    CoreDemographicsReport::WarehouseReports::CoreController.render(
+      partial: @section,
+      assigns: {
+        report: @report,
+        section: @section,
+        comparison: @comparison,
+        comparison_filter: @comparison_filter,
+        filter: @filter,
+      },
+      locals: {
+        current_user: current_user,
+      },
+    )
 
   end
 
@@ -29,5 +41,4 @@ class BackgroundRender::CoreDemographicsReportJob < BackgroundRenderJob
   private def report_class
     CoreDemographicsReport::Core
   end
-
 end
