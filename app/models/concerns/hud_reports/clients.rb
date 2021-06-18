@@ -88,7 +88,18 @@ module HudReports::Clients
       enrollment_date = enrollment.first_date_in_program
       return nil if assessment_date.nil?
 
-      anniversary_date = Date.new(report_end_date.year, enrollment_date.month, enrollment_date.day)
+      begin
+        anniversary_date = Date.new(report_end_date.year, enrollment_date.month, enrollment_date.day)
+      rescue Date::Error
+        # If a client was enrolled on 2/29 of a leap year, non-leap years will throw invalid date
+        # Make the anniversary fall on the last day of Feb to be consistent with Date.new(...) + 1.year
+        if enrollment_date.month == 2 && enrollment_date.day == 29
+          anniversary_date = Date.new(report_end_date.year, 2, 28)
+        else
+          return nil
+        end
+      end
+
       anniversary_date -= 1.year if anniversary_date > report_end_date
       return nil if anniversary_date < enrollment_date
 
