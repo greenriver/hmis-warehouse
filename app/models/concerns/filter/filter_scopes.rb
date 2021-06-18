@@ -154,10 +154,13 @@ module Filter::FilterScopes
 
     private def filter_for_projects(scope)
       return scope if @filter.project_ids.blank? && @filter.project_group_ids.blank?
-      return scope unless @filter.user.report_filter_visible?(:project_ids)
 
-      project_ids = @filter.project_ids || []
-      project_groups = GrdaWarehouse::ProjectGroup.find(@filter.project_group_ids)
+      project_ids = if @filter.user.report_filter_visible?(:project_ids)
+        @filter.project_ids || []
+      else
+        []
+      end
+      project_groups = GrdaWarehouse::ProjectGroup.where(id: @filter.project_group_ids)
       project_groups.each do |group|
         project_ids += group.projects.pluck(:id)
       end

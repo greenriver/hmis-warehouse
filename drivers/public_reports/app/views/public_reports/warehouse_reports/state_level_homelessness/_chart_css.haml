@@ -281,10 +281,31 @@
   .w-100 {
     width: 100%;
   }
+  /* Map */
   .state-map {
     min-height: 450px;
     min-width: 450px;
   }
+  .leaflet-container {
+    background-color: transparent;
+  }
+  .l-info {
+    max-width: 300px;
+    min-width: 200px;
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    pointer-events: none;
+  }
+  .l-info h4 {
+    font-size: 1.2rem;
+    margin: 0 0 5px;
+    color: #777;
+  }
+  /* End map */
   .chronic-legend {
     text-align: center;
     padding: 0 2em;

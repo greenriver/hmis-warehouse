@@ -915,7 +915,7 @@ module GrdaWarehouse::WarehouseReports
         }
       end
       if RailsDrivers.loaded.include?(:user_permission_report)
-        r_list['Operational'] << {
+        r_list['Audit'] << {
           url: 'user_permission_report/warehouse_reports/reports',
           name: 'User Permission Report',
           description: 'Summary of active users and their functional permissions',
