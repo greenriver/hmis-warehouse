@@ -42,14 +42,14 @@ RSpec.shared_context 'path context', shared_context: :metadata do
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
     warehouse = GrdaWarehouseBase.connection
 
-    # if Fixpoint.exists? :hud_hmis_export_app
-    #   restore_fixpoint :hud_hmis_export_app
-    #   restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    # else
+    if Fixpoint.exists? :hud_hmis_export_app
+      restore_fixpoint :hud_hmis_export_app
+      restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+    else
       setup(default_setup_path)
-    #   store_fixpoint :hud_hmis_export_app
-    #   store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    # end
+      store_fixpoint :hud_hmis_export_app
+      store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+    end
   end
 
   def setup(file_path)

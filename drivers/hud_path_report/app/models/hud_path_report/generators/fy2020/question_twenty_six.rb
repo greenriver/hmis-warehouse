@@ -56,6 +56,7 @@ module HudPathReport::Generators::Fy2020
 
       row_number = 2
       sections.each do |section_label, contents|
+        sum = 0
         contents.each_with_index do |(label, query), index|
           answer = @report.answer(question: table_name, cell: 'A' + row_number.to_s)
           if index.zero?
@@ -69,9 +70,15 @@ module HudPathReport::Generators::Fy2020
 
           if query.present?
             answer = @report.answer(question: table_name, cell: 'C' + row_number.to_s)
-            members = universe.members.where(active_and_enrolled_clients).where(query)
-            answer.add_members(members)
-            answer.update(summary: members.count)
+            if query == :total
+              answer.update(summary: sum)
+            else
+              members = universe.members.where(active_and_enrolled_clients).where(query)
+              answer.add_members(members)
+              count = members.count
+              sum += count
+              answer.update(summary: count)
+            end
           end
           row_number += 1
         end
@@ -87,7 +94,7 @@ module HudPathReport::Generators::Fy2020
         a_t[:gender].eq(k),
       ]
     end.to_h
-    h['Total'] = Arel.sql('1=1')
+    h['Total'] = :total
     h.freeze
   end
 
@@ -103,7 +110,7 @@ module HudPathReport::Generators::Fy2020
       "Client doesn't know" => a_t[:dob_quality].eq(8),
       'Client refused' => a_t[:dob_quality].eq(9),
       'Data not collected' => a_t[:dob_quality].not_in([8, 9]).and(a_t[:dob_quality].eq(99).or(a_t[:dob_quality].eq(nil)).or(a_t[:age].lt(0)).or(a_t[:age].eq(nil))),
-      'Total' => Arel.sql('1=1'), # include everyone
+      'Total' => :total
     }.freeze
   end
 
@@ -118,7 +125,7 @@ module HudPathReport::Generators::Fy2020
     [8, 9, 99].each do |v|
       h[HUD.race_none(v)] = a_t[:race_none].eq(v)
     end
-    h['Total'] = Arel.sql('1=1')
+    h['Total'] = nil
     h.freeze
   end
 
@@ -129,7 +136,7 @@ module HudPathReport::Generators::Fy2020
           a_t[:ethnicity].eq(k),
         ]
       end.to_h
-      h['Total'] = Arel.sql('1=1')
+      h['Total'] = :total
       h.freeze
     end
 
@@ -140,7 +147,7 @@ module HudPathReport::Generators::Fy2020
         "Client doesn't know" => adults.and(a_t[:veteran].eq(8)),
         'Client refused' => adults.and(a_t[:veteran].eq(9)),
         'Data not collected' => adults.and(a_t[:veteran].eq(99)),
-        'Total' => adults,
+        'Total' => :total,
       }.freeze
     end
 
@@ -149,7 +156,7 @@ module HudPathReport::Generators::Fy2020
         'Co-occurring substance use disorder' => a_t[:substance_use_disorder].in([1, 2, 3]),
         'No co-occurring substance use disorder' => a_t[:substance_use_disorder].eq(0),
         'Unknown' => a_t[:substance_use_disorder].in([8, 9, 99]),
-        'Total' => Arel.sql('1=1'),
+        'Total' => :total,
       }
     end
 
@@ -160,7 +167,7 @@ module HudPathReport::Generators::Fy2020
         "Client doesn't know" => a_t[:soar].eq(8),
         'Client refused' => a_t[:soar].eq(9),
         'Data not collected' => a_t[:soar].eq(99),
-        'Total' => Arel.sql('1=1'),
+        'Total' => :total,
       }
     end
 
@@ -183,7 +190,7 @@ module HudPathReport::Generators::Fy2020
           ]
         end
       end.to_h
-      h['Total'] = Arel.sql('1=1')
+      h['Total'] = :total
       h.freeze
     end
 
@@ -194,7 +201,7 @@ module HudPathReport::Generators::Fy2020
           a_t[:prior_living_situation].in([1, 16]).and(a_t[:length_of_stay].eq(v)),
         ]
       end.to_h
-      h['Total'] = a_t[:prior_living_situation].in([1, 16])
+      h['Total'] = :total
       h.freeze
     end
 
@@ -203,7 +210,7 @@ module HudPathReport::Generators::Fy2020
         'Yes' => a_t[:chronically_homeless].eq('yes'),
         'No' => a_t[:chronically_homeless].eq('no'),
         'Unknown' => a_t[:chronically_homeless].not_in(['yes', 'no']),
-        'Total' => Arel.sql('1=1'),
+        'Total' => :total,
       }
     end
 
@@ -214,7 +221,7 @@ module HudPathReport::Generators::Fy2020
         "Client doesn't know" => adults.and(a_t[:domestic_violence].eq(8)),
         'Client refused' => adults.and(a_t[:domestic_violence].eq(9)),
         'Data not collected' => adults.and(a_t[:domestic_violence].eq(99)),
-        'Total' => adults,
+        'Total' => :total,
       }.freeze
     end
   end
