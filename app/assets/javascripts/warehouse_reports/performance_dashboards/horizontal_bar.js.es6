@@ -163,7 +163,6 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
     const bucket = this.options.sub_keys[bucket_title];
     const report = 'report';
     if (__guard__(this.chart.data()[1], (x) => x.id) === d.id) {
-      console.log(this.options.date_ranges.comparison.start_date);
       this.link_params.filters.start_date = this.options.date_ranges.comparison.start_date;
       this.link_params.filters.start = this.options.date_ranges.comparison.start_date;
       this.link_params.filters.end_date = this.options.date_ranges.comparison.end_date;
