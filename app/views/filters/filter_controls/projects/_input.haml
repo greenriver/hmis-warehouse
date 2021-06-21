@@ -1,1 +1,2 @@
-= f.input :project_ids, label: control.label, collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
+- if report_filter_visible?(:project_ids, current_user)
+  = f.input :project_ids, label: control.label, collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false

@@ -1,0 +1,4 @@
+= render 'chart_css'
+- data = JSON.parse(@report.precalculated_data)
+
+= render 'summary_counts', data: data

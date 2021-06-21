@@ -34,20 +34,21 @@ module GrdaWarehouse::Confidence
       notifier = self.new.notifier
       message = "Generating confidence for source exits"
       Rails.logger.info message
-      notifier.ping message if notifier
+      notifier&.ping message
       if should_start_a_new_batch? || force_create
         message = "Setting up a new batch..."
         Rails.logger.info message
-        notifier.ping message if notifier
+        notifier&.ping message
         create_batch!()
         message = "... batch setup complete"
         Rails.logger.info message
-        notifier.ping message if notifier
+        notifier&.ping message
       end
       queued.distinct.pluck(:resource_id).each_slice(250) do |batch|
         Delayed::Job.enqueue(
           ::Confidence::SourceExitsJob.new(client_ids: batch),
-          queue: :long_running
+          queue: :long_running,
+          priority: 10,
         )
       end
     end

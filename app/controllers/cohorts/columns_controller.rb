@@ -11,6 +11,7 @@ module Cohorts
     before_action :set_cohort
 
     def edit
+      @modal_size = :lg
       @column_state = @cohort.column_state&.presence || cohort_source.default_visible_columns
     end
 
