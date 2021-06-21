@@ -846,6 +846,7 @@ Rails.application.routes.draw do
     get :operational
     get :cache_status
     get :details
+    get :actioncable
   end
   root 'root#index'
 end
