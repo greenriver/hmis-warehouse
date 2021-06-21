@@ -18,7 +18,7 @@
   %ul
     %li Project Groups are used in some reporting contexts to run project-based reports against multiple related projects.
     %li Access to a project group does not imply access to the projects within the group, projects must still be assigned to users to grant access.
-- if @project_groups.any?
+- if @project_groups.exists?
   .card
     %table.table.table-striped.mb-0
       %thead
