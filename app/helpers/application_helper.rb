@@ -327,4 +327,8 @@ module ApplicationHelper
 
     format(format, value.round(2))
   end
+
+  def report_filter_visible?(key, user)
+    user.report_filter_visible?(key)
+  end
 end

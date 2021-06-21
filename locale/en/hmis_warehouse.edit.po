@@ -3521,9 +3521,6 @@ msgstr ""
 msgid "Full HAN Release on File"
 msgstr ""
 
-msgid "Fully signed data sharing agreement"
-msgstr ""
-
 msgid "Gender"
 msgstr ""
 
@@ -3819,9 +3816,6 @@ msgid "VA Eligible"
 msgstr ""
 
 msgid "VASH Eligible"
-msgstr ""
-
-msgid "View All Imports"
 msgstr ""
 
 msgid "View Report"

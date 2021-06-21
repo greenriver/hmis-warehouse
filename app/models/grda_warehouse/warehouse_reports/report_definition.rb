@@ -915,7 +915,7 @@ module GrdaWarehouse::WarehouseReports
         }
       end
       if RailsDrivers.loaded.include?(:user_permission_report)
-        r_list['Operational'] << {
+        r_list['Audit'] << {
           url: 'user_permission_report/warehouse_reports/reports',
           name: 'User Permission Report',
           description: 'Summary of active users and their functional permissions',
@@ -1009,6 +1009,13 @@ module GrdaWarehouse::WarehouseReports
             url: 'public_reports/warehouse_reports/homeless_populations',
             name: 'Homeless Populations Report Generator',
             description: 'Use this to review and publish the homeless population report for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/state_level_homelessness',
+            name: 'State-Level Homelessness Report Generator',
+            description: 'Review and publish the state-level homelessness report for public consumption.',
             limitable: false,
             health: false,
           }
@@ -1121,6 +1128,7 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'public_reports/warehouse_reports/homeless_count'
         cleanup << 'public_reports/warehouse_reports/homeless_count_comparison'
         cleanup << 'public_reports/warehouse_reports/homeless_populations'
+        cleanup << 'public_reports/warehouse_reports/state_level_homelessness'
       end
       cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
       cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
