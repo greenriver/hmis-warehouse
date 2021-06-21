@@ -9,7 +9,7 @@ Rails.application.configure do
   # since you don't have to restart the web server when you make code changes.
   config.cache_classes = false
 
-  config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "ws://#{ENV['FQDN']}:49160/cable" }
+  config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
   config.action_cable.allowed_request_origins = [ /.+/ ]
 
   # Do not eager load code on boot.
