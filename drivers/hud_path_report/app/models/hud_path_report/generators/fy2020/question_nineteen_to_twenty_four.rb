@@ -216,8 +216,7 @@ module HudPathReport::Generators::Fy2020
     end
 
     def jsonb_test(column, key, value)
-      "#{column} @> '{\"#{key}\": #{value}'"
+      "#{column} @> '{\"#{key}\": #{value}}'"
     end
-
   end
 end
