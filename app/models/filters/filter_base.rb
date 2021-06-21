@@ -154,6 +154,43 @@ module Filters
       }
     end
 
+    def known_params
+      [
+        :on,
+        :start,
+        :end,
+        :comparison_pattern,
+        :household_type,
+        :hoh_only,
+        :sub_population,
+        :chronic_status,
+        :coordinated_assessment_living_situation_homeless,
+        :coc_code,
+        :limit_to_vispdat,
+        coc_codes: [],
+        project_types: [],
+        project_type_codes: [],
+        project_type_numbers: [],
+        veteran_statuses: [],
+        age_ranges: [],
+        genders: [],
+        races: [],
+        ethnicities: [],
+        data_source_ids: [],
+        organization_ids: [],
+        project_ids: [],
+        funder_ids: [],
+        project_group_ids: [],
+        disability_summary_ids: [],
+        destination_ids: [],
+        disabilities: [],
+        indefinite_disabilities: [],
+        dv_status: [],
+        prior_living_situation_ids: [],
+        length_of_times: [],
+      ]
+    end
+
     def selected_params_for_display(single_date: false)
       {}.tap do |opts|
         if single_date
