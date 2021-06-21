@@ -366,6 +366,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         last_exit_destination: client.last_exit_destination,
         last_cas_match_date: client.cas_reports.maximum(:match_started_at),
         lgbtq_from_hmis: client.sexual_orientation_from_hmis,
+        cohorts_ongoing_enrollments_es: client.last_seen_in_type(:es),
+        cohorts_ongoing_enrollments_sh: client.last_seen_in_type(:sh),
+        cohorts_ongoing_enrollments_th: client.last_seen_in_type(:th),
+        cohorts_ongoing_enrollments_so: client.last_seen_in_type(:so),
+        cohorts_ongoing_enrollments_psh: client.last_seen_in_type(:psh),
+        cohorts_ongoing_enrollments_rrh: client.last_seen_in_type(:rrh),
       }
     end
 

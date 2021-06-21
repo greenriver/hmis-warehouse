@@ -3,12 +3,20 @@
     %h3 Program Makeup
   .rrh__exiting_pre-placement.chunk.pr-4.mr-4
     - content_for :panel_collapse_content, flush: true do
-      .percentExitingPrePlacementChart.mb-2
-      .percentExitingPrePlacementChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
-      %p.mb-4.text-center.description
-        Percentage of clients exiting #{_('pre-placement')} to #{_('stabilization')} out of those who exited #{_('pre-placement')}.
-    = render 'common/panel_collapse', id: 'percentExitingPrePlacementChart', title: "Percentage Exiting #{_('Pre-Placement')} to #{_('Stabilization')}", default_open: 'yes'
+      .row
+        .col-sm-9.rrh__time.chunk
+          .percentExitingPrePlacementChart.mb-2
+          .percentExitingPrePlacementChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
+          %p.mb-4.text-center.description
+            Percentage of clients exiting #{_('pre-placement')} to #{_('stabilization')} out of those who exited #{_('pre-placement')}.
+        .col-sm-3.metric.text-center.rrh__time.chunk
+          %h4.title Percent Exiting #{_('Pre-Placement')} to #{_('Stabilization')} for the Reporting Period
+          .metric
 
+            - numerator = @report.entering_stabilization.distinct.select(:client_id).count
+            - denominator = @report.exiting_pre_placement.distinct.select(:client_id).count
+            = percentage(numerator.to_f / denominator * 100, format: '%1.0f%%')
+    = render 'common/panel_collapse', id: 'percentExitingPrePlacementChart', title: "Percentage Exiting #{_('Pre-Placement')} to #{_('Stabilization')}", default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .percentInStabilizationChart.mb-2
       .percentInStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}

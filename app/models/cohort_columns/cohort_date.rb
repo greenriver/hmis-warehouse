@@ -32,7 +32,7 @@ module CohortColumns
     end
 
     def display_read_only(_user)
-      value(cohort_client)&.to_date&.to_s
+      value(cohort_client)&.to_date&.to_s rescue value(cohort_client).to_s
     end
   end
 end

@@ -914,6 +914,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:user_permission_report)
+        r_list['Audit'] << {
+          url: 'user_permission_report/warehouse_reports/reports',
+          name: 'User Permission Report',
+          description: 'Summary of active users and their functional permissions',
+          limitable: false,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:disability_summary)
         r_list['Operational'] << {
           url: 'disability_summary/warehouse_reports/disability_summary',
@@ -1000,6 +1009,13 @@ module GrdaWarehouse::WarehouseReports
             url: 'public_reports/warehouse_reports/homeless_populations',
             name: 'Homeless Populations Report Generator',
             description: 'Use this to review and publish the homeless population report for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/state_level_homelessness',
+            name: 'State-Level Homelessness Report Generator',
+            description: 'Review and publish the state-level homelessness report for public consumption.',
             limitable: false,
             health: false,
           }
@@ -1101,6 +1117,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
       cleanup << 'destination_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:destination_report)
       cleanup << 'data_source_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:data_source_report)
+      cleanup << 'user_permission_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:user_permission_report)
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       unless RailsDrivers.loaded.include?(:public_reports)
@@ -1111,6 +1128,7 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'public_reports/warehouse_reports/homeless_count'
         cleanup << 'public_reports/warehouse_reports/homeless_count_comparison'
         cleanup << 'public_reports/warehouse_reports/homeless_populations'
+        cleanup << 'public_reports/warehouse_reports/state_level_homelessness'
       end
       cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
       cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)

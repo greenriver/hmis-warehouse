@@ -4297,7 +4297,42 @@ CREATE TABLE public.cohort_clients (
     user_date_7 character varying,
     user_date_8 character varying,
     user_date_9 character varying,
-    user_date_10 character varying
+    user_date_10 character varying,
+    user_select_11 character varying,
+    user_select_12 character varying,
+    user_select_13 character varying,
+    user_select_14 character varying,
+    user_select_15 character varying,
+    user_select_16 character varying,
+    user_select_17 character varying,
+    user_select_18 character varying,
+    user_select_19 character varying,
+    user_select_20 character varying,
+    user_select_21 character varying,
+    user_select_22 character varying,
+    user_select_23 character varying,
+    user_select_24 character varying,
+    user_select_25 character varying,
+    user_select_26 character varying,
+    user_select_27 character varying,
+    user_select_28 character varying,
+    user_select_29 character varying,
+    user_select_30 character varying,
+    user_boolean_16 boolean,
+    user_boolean_17 boolean,
+    user_boolean_18 boolean,
+    user_boolean_19 boolean,
+    user_boolean_20 boolean,
+    user_boolean_21 boolean,
+    user_boolean_22 boolean,
+    user_boolean_23 boolean,
+    user_boolean_24 boolean,
+    user_boolean_25 boolean,
+    user_boolean_26 boolean,
+    user_boolean_27 boolean,
+    user_boolean_28 boolean,
+    user_boolean_29 boolean,
+    user_boolean_30 boolean
 );
 
 
@@ -11217,7 +11252,14 @@ CREATE TABLE public.public_report_settings (
     location_type_color_5 character varying,
     location_type_color_6 character varying,
     location_type_color_7 character varying,
-    location_type_color_8 character varying
+    location_type_color_8 character varying,
+    summary_color character varying,
+    homeless_primary_color character varying,
+    youth_primary_color character varying,
+    adults_only_primary_color character varying,
+    adults_with_children_primary_color character varying,
+    children_only_primary_color character varying,
+    veterans_primary_color character varying
 );
 
 
@@ -14486,7 +14528,13 @@ CREATE TABLE public.warehouse_clients_processed (
     last_exit_destination character varying,
     last_cas_match_date timestamp without time zone,
     days_homeless_plus_overrides integer,
-    lgbtq_from_hmis character varying
+    lgbtq_from_hmis character varying,
+    cohorts_ongoing_enrollments_es jsonb,
+    cohorts_ongoing_enrollments_sh jsonb,
+    cohorts_ongoing_enrollments_th jsonb,
+    cohorts_ongoing_enrollments_so jsonb,
+    cohorts_ongoing_enrollments_psh jsonb,
+    cohorts_ongoing_enrollments_rrh jsonb
 );
 
 
@@ -29216,6 +29264,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210601173704'),
 ('20210603121547'),
 ('20210603143037'),
-('20210604155334');
+('20210604155334'),
+('20210615131534'),
+('20210616181054'),
+('20210616193735');
 
 

@@ -19,6 +19,7 @@ module Admin
           @text.save
         end
         FastGettext.expire_cache_for(@text.translation_key.key)
+        Rails.cache.write('translation-fresh-at', Time.current)
       rescue Exception
         error = true
         render status: 500, json: 'Unable to save translation', layout: false

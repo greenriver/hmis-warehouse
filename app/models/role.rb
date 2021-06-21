@@ -602,6 +602,13 @@ class Role < ApplicationRecord
           'Reporting',
         ],
       },
+      can_view_project_related_filters: {
+        description: 'Ability to specify filters of project, organization, funding source and data sources.  Most single CoC installations will want this enabled for anyone with reporting access.',
+        administrative: false,
+        categories: [
+          'Reporting',
+        ],
+      },
       # Removed 11/24/2019 -- no longer in use
       # can_view_project_data_quality_client_details: {
       #   description: 'Drill-down access to client level details on project data quality reports',

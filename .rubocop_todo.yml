@@ -41,7 +41,6 @@ Layout/ArrayAlignment:
 # SupportedStylesAlignWith: either, start_of_block, start_of_line
 Layout/BlockAlignment:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -79,7 +78,6 @@ Layout/CommentIndentation:
 Layout/DefEndAlignment:
   Exclude:
     - 'app/models/grda_warehouse/hmis_form.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/health/aco_performance.rb'
     - 'app/models/report.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
@@ -93,7 +91,6 @@ Layout/DefEndAlignment:
 # SupportedStyles: leading, trailing
 Layout/DotPosition:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
     - 'app/models/grda_warehouse/shape/coc.rb'
     - 'app/models/grda_warehouse/shape/zip_code.rb'
@@ -363,7 +360,6 @@ Layout/SpaceAroundKeyword:
   Exclude:
     - 'app/models/glacier/restore.rb'
     - 'app/models/glacier/utils.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/reporting/monthly_reports/base.rb'
 
@@ -387,7 +383,6 @@ Layout/SpaceBeforeBlockBraces:
 Layout/SpaceBeforeComma:
   Exclude:
     - 'app/models/grda_warehouse/cohort_column_option.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/export.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/export.rb'
@@ -454,7 +449,6 @@ Layout/SpaceInsideParens:
 # Cop supports --auto-correct.
 Layout/SpaceInsidePercentLiteralDelimiters:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
 
 # Offense count: 2
@@ -566,7 +560,6 @@ Lint/IneffectiveAccessModifier:
 # Cop supports --auto-correct.
 Lint/InterpolationCheck:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
 
 # Offense count: 4
 Lint/NonLocalExitFromIterator:
@@ -615,7 +608,6 @@ Lint/RedundantStringCoercion:
 # AllowedMethods: present?, blank?, presence, try, try!, in?
 Lint/SafeNavigationChain:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/health/patient.rb'
     - 'app/models/unique_name.rb'
 
@@ -626,7 +618,6 @@ Lint/SafeNavigationChain:
 Lint/SafeNavigationConsistency:
   Exclude:
     - 'app/models/grda_warehouse/hmis_form.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
 
 # Offense count: 1
 Lint/SelfAssignment:
@@ -710,13 +701,11 @@ Metrics/PerceivedComplexity:
 Naming/AccessorMethodName:
   Exclude:
     - 'app/models/grda_warehouse/hmis_form.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
     - 'app/models/reporting/monthly_reports/base.rb'
-    - 'app/models/user.rb'
 
 # Offense count: 4
 # Cop supports --auto-correct.
@@ -890,7 +879,6 @@ Style/EmptyElse:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
     - 'app/models/grda_warehouse/fake_data.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/health/member_status_report.rb'
     - 'app/models/health/patient.rb'
 
@@ -917,7 +905,6 @@ Style/EmptyLiteral:
 Style/FormatString:
   Exclude:
     - 'app/models/glacier/chunker.rb'
-    - 'app/models/grda_warehouse/tasks/hmis_csv_validator.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/base.rb'
     - 'app/models/similarity_metric/experiment/float_formatter.rb'
     - 'app/models/similarity_metric/experiment/integer_formatter.rb'
@@ -941,7 +928,6 @@ Style/GuardClause:
 # SupportedStyles: ruby19, hash_rockets, no_mixed_keys, ruby19_no_mixed_keys
 Style/HashSyntax:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/shape/spatial_ref_sys.rb'
     - 'app/models/reports/ahar/fy2016/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
@@ -1026,7 +1012,6 @@ Style/MinMax:
 # Cop supports --auto-correct.
 Style/MultilineIfModifier:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
 
 # Offense count: 8
 # Cop supports --auto-correct.
@@ -1060,7 +1045,6 @@ Style/NegatedIf:
   Exclude:
     - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/hmis/assessment.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -1080,7 +1064,6 @@ Style/NegatedIf:
 Style/NestedParenthesizedCalls:
   Exclude:
     - 'app/models/grda_warehouse/data_source.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
     - 'app/models/grda_warehouse/hud/service.rb'
@@ -1122,7 +1105,6 @@ Style/NumericPredicate:
 # Cop supports --auto-correct.
 Style/ParallelAssignment:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/experiment.rb'
@@ -1144,7 +1126,6 @@ Style/ParenthesesAroundCondition:
 # Configuration parameters: PreferredDelimiters.
 Style/PercentLiteralDelimiters:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
@@ -1157,7 +1138,6 @@ Style/RedundantBegin:
   Exclude:
     - 'app/models/glacier/archive_runner.rb'
     - 'app/models/glacier/runner.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/tasks/service_history/base.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/importers/hmis_six_one_one/base.rb'
@@ -1174,7 +1154,6 @@ Style/RedundantCondition:
 Style/RedundantInterpolation:
   Exclude:
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/importers/hmis_auto_detect/base.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
@@ -1241,7 +1220,6 @@ Style/RescueStandardError:
   Exclude:
     - 'app/models/glacier/tester.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/non_hmis_upload.rb'
     - 'app/models/grda_warehouse/upload.rb'
     - 'app/models/grda_warehouse/vispdat/base.rb'
@@ -1255,9 +1233,6 @@ Style/RescueStandardError:
 # AllowedMethods: present?, blank?, presence, try, try!
 Style/SafeNavigation:
   Exclude:
-    - 'app/models/grda_warehouse/confidence/days_homeless.rb'
-    - 'app/models/grda_warehouse/confidence/source_enrollments.rb'
-    - 'app/models/grda_warehouse/confidence/source_exits.rb'
     - 'app/models/grda_warehouse/eto_api_config.rb'
     - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
     - 'app/models/grda_warehouse/user_client.rb'
@@ -1319,7 +1294,6 @@ Style/SymbolProc:
     - 'app/models/aws_s3.rb'
     - 'app/models/grda_warehouse/available_file_tag.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/health/agency.rb'
     - 'app/models/health/epic_team_member.rb'
     - 'app/models/health/patient.rb'
@@ -1369,10 +1343,8 @@ Style/TrailingUnderscoreVariable:
 # AllowedMethods: to_ary, to_a, to_c, to_enum, to_h, to_hash, to_i, to_int, to_io, to_open, to_path, to_proc, to_r, to_regexp, to_str, to_s, to_sym
 Style/TrivialAccessors:
   Exclude:
-    - 'app/models/grda_warehouse/cohort.rb'
     - 'app/models/health/base.rb'
     - 'app/models/health/epic_base.rb'
-    - 'app/models/health/tracking_sheet.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
@@ -1396,7 +1368,6 @@ Style/WhileUntilModifier:
 # SupportedStyles: percent, brackets
 Style/WordArray:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
@@ -1415,7 +1386,6 @@ Style/YodaCondition:
 # Cop supports --auto-correct.
 Style/ZeroLengthPredicate:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/tasks/push_clients_to_cas.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'

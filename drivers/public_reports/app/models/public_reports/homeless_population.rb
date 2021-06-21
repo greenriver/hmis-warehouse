@@ -51,7 +51,7 @@ module PublicReports
     private def push_to_s3
       bucket = s3_bucket
       populations.keys.each do |population|
-        prefix = File.join(public_s3_directory, population.to_s)
+        prefix = File.join(public_s3_directory, version_slug.to_s, population.to_s)
         section_html = html_section(population)
 
         key = File.join(prefix, 'index.html')
@@ -83,8 +83,11 @@ module PublicReports
         # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
         "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}"
       end
-      publish_url = "#{publish_url}/#{population}"
-      publish_url = "#{publish_url}/#{version_slug}" if version_slug.present?
+      publish_url = if version_slug.present?
+        "#{publish_url}/#{version_slug}/#{population}"
+      else
+        "#{publish_url}/#{population}"
+      end
       "#{publish_url}/index.html"
     end
 
