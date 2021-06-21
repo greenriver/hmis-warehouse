@@ -1,6 +1,6 @@
 # https://github.com/docker/for-linux/issues/1015
 
-# puts "Patching https://github.com/docker/for-linux/issues/1015"
+puts "Patching https://github.com/docker/for-linux/issues/1015"
 module FileUtilsPatch
   def copy_file(dest)
     FileUtils.touch(path())
@@ -9,7 +9,7 @@ module FileUtilsPatch
 end
 
 module FileUtils
-  class Entry_ # rubocop:disable Naming/ClassAndModuleCamelCase
+  class Entry_
     prepend FileUtilsPatch
   end
 end
