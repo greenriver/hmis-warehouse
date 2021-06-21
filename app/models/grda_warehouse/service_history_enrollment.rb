@@ -398,6 +398,159 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     date
   end
 
+  # Compute "episodes" from the current scope and return a
+  # #read-only ActiveRecord::Relation for each one. An "episode"
+  # is a sequence of enrollments for a client of the same computed_project_type
+  # and with a max_gap (default 30 days) between them.
+
+  # Associations and query methods should continue to work and default
+  # to the last enrollment for join columns. "At start" or "first"
+  # columns like first_date_in_program, housing_status_at_entry come
+  # from the earliest enrollment in the episode. "destination" and similar
+  # come from the last
+  #
+  # The resulting Relation will have a extra column 'segments' with
+  # a count of the number of enrollments that make up the group
+  def self.contiguous_enrollments(max_gap: 30)
+
+    # the goal of the complex CTE logic below
+    # is to produce a table that looks like ServiceHistoryEnrollment
+    # but has each contiguous_enrollment rolled up into a single row
+    # We will generally use the most recent enrollment for
+    # the column values but will special case some columns  to come
+    # from the first/earliest enrollment
+    she_columns = column_names.map do |name|
+      quoted_name = connection.quote_column_name name
+
+      if name.in? ['id']
+        'last_value(enrollment_id) over ew as id'
+      elsif name.in? ['first_date_in_program', 'housing_status_at_entry']
+        "first_value(#{quoted_name}) over ew as #{quoted_name}"
+      else
+        "last_value(#{quoted_name}) over ew as #{quoted_name}"
+      end
+    end
+
+    # FIXME: this might perform better
+    # with some NOT MATERIALIZED hinting
+    # FIXME: this still needs some tests with complex real world data
+    # its safe but its logic may not match expectation
+    ctes = {
+      # the underlying enrollment entry records
+      entries: <<~SQL,
+        #{entry.to_sql}
+      SQL
+
+      # neighbouring enrollments. a "c" current enrollment and a "p" prior
+      # enrollment that is of a compatible type to make and episode and within
+      # and allowable gap. If no prior can be found then tha enrollment is its own
+      # episode so we use left join
+      # we will throw out a lot of these records in best_n below so keep this LEADING
+      # Note: that p.last_date_in_program needs to be less c.first_date_in_program
+      # to avoid creating loops on pairs of enrollments of the same type occuring
+      # at exactly the same time
+      n: <<~SQL,
+        SELECT
+            c.id AS c_id,
+            c.first_date_in_program AS c_start,
+            c.last_date_in_program AS c_end,
+            p.id AS p_id,
+            p.last_date_in_program AS p_end,
+            p.first_date_in_program AS p_start
+          FROM
+            entries c
+          LEFT JOIN entries p ON p.client_id = c.client_id
+            AND p.id != c.id
+            -- TODO adjust episode rule?
+            AND c.computed_project_type = p.computed_project_type
+            AND p.last_date_in_program IS NOT NULL
+            AND p.last_date_in_program between(c.first_date_in_program - #{connection.quote max_gap.to_i})
+            AND c.first_date_in_program - 1
+      SQL
+
+      # best neighbors. There can be more than one prior enrollment with the time window.
+      # we want one that is as close to the current enrollment and starts as early as possible:
+      #   |.......cccccccc <- the current pair candidate with 7 day gap allowance
+      #        pp  <- some short enrollments
+      #     pp
+      #     ppppp  <- choose this one since it is the most efficent way to make a chain
+      best_n: <<~SQL,
+        SELECT
+          c_id,
+          c_start,
+          c_end,
+          first_value(p_id) OVER w AS p_id,
+          first_value(p_end) OVER w AS p_end
+        FROM
+          n
+        WINDOW w AS(PARTITION BY c_id ORDER BY p_start, p_end DESC)
+      SQL
+
+      # enrollments that are not the last in each contiguous
+      priors: <<~SQL,
+        SELECT DISTINCT
+          p_id
+        FROM
+          best_n
+        WHERE
+          p_id IS NOT NULL
+      SQL
+
+      # enrollments that are the last in each contiguous
+      last_enrollments: <<~SQL,
+        SELECT
+          c_id AS episode_id,
+          c_end AS episode_end,
+          0 AS idx,
+          c_id AS enrollment_id,
+          c_start - p_end AS gap,
+          best_n.p_id
+        FROM
+          best_n --  we are a final enrollment, i.e not a prior enrollment in an other pair
+        -- anti-joins are much faster than NOT IN in postgresql :(
+        LEFT JOIN priors n ON best_n.c_id = n.p_id
+        WHERE
+        n.p_id IS NULL
+      SQL
+
+      # recurse from last_enrollments through each chain of priors
+      # to create contiguous enrollments
+      ce: <<~SQL,
+        SELECT
+          *
+        FROM
+          last_enrollments
+        UNION
+        SELECT
+          ce.episode_id,
+          ce.episode_end,
+          ce.idx - 1,
+          p.c_id AS enrollment_id,
+          p.c_start - p_end AS gap,
+          p.p_id
+        FROM
+          ce
+        JOIN best_n p
+          on ce.p_id = p.c_id
+          where idx > -1000 -- recursion limit safety
+      SQL
+
+      # no plug in the info we need to look like service_history_enrollments
+      grouped_info: <<~SQL,
+        SELECT DISTINCT #{she_columns.join ','}, count(*) over ew as segments
+        FROM ce
+        JOIN service_history_enrollments i ON ce.enrollment_id = i.id
+        WINDOW ew AS (PARTITION BY episode_id ORDER BY ce.idx)
+      SQL
+    }
+
+    # **** IMPORTANT ***
+    # Very confusingly we alias the grouped_info as the original table name
+    # so that scopes downstream can safely use it without being cleaned up.
+    # Not every caller is disciplined about using #table_name so we cant use an alternate name
+    unscoped.with.recursive(**ctes).from('grouped_info as service_history_enrollments').readonly
+  end
+
   def self.project_type_column
     if GrdaWarehouse::Config.get(:project_type_override)
       :computed_project_type

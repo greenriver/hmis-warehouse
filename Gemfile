@@ -264,3 +264,5 @@ group :production, :development, :staging do
 end
 
 gem "business_time", "~> 0.10.0"
+
+gem 'ctes_in_my_pg', github: 'kmurph73/ctes_in_my_pg'
