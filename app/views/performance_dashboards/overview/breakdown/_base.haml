@@ -48,6 +48,10 @@
         - note_content += '</ul></div></div>'
       - note_content += '</p>'
       %span.icon-info{data: {toggle: :popover, title: 'Note', placement: :bottom, trigger: :focus, content: note_content, html: :true }}
+      - breakdown_notes ||= false
+      - if breakdown_notes
+        .perf-overview-breakdown-notes
+          = breakdown_notes
     = render 'performance_dashboards/overview/universe_selection'
   .col-md-4
     - if @report.include_comparison?
