@@ -22,7 +22,6 @@ module HudPathReport
     def show
       respond_to do |format|
         format.html do
-          @show_recent = params[:id].to_i.positive?
           @questions = generator.questions.keys
           @contents = @report&.completed_questions
           @path_for_running = running_hud_reports_paths_path(link_params.except('action', 'controller'))
@@ -41,6 +40,12 @@ module HudPathReport
       @path_for_running = running_hud_reports_paths_path(link_params.except('action', 'controller'))
     end
 
+    def history
+      @questions = generator.questions.keys
+      @contents = @report&.completed_questions
+      @path_for_running = running_hud_reports_paths_path(link_params.except('action', 'controller'))
+    end
+
     def new
     end
 
@@ -48,7 +53,7 @@ module HudPathReport
       if @filter.valid?
         @report = report_source.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
         generator.new(@report).queue
-        redirect_to hud_reports_path_path(0)
+        redirect_to history_hud_reports_paths_path
       else
         render :new
       end
@@ -57,7 +62,7 @@ module HudPathReport
     def destroy
       @report.destroy
       flash[:notice] = 'Report removed'
-      redirect_to hud_reports_path_path(0)
+      redirect_to history_hud_reports_paths_paths
     end
   end
 end
