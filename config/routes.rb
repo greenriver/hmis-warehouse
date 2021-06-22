@@ -790,6 +790,7 @@ Rails.application.routes.draw do
     resources :configs, only: [:index] do
       patch :update, on: :collection
     end
+    resources :sessions, only: [:index, :destroy]
     resources :data_quality_grades, only: [:index]
     resources :consent_limits, except: [:show]
     resources :missing_grades, only: [:create, :update, :destroy]

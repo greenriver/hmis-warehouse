@@ -1,0 +1,29 @@
+- title = "Manage User Sessions"
+- content_for :title, title
+
+%h1= content_for :title
+= render :partial => 'menus/admin_tabs'
+
+.card.admin-manage-session
+  %table.table.table-fixed.table-striped
+    %thead
+      %th Name
+      %th Last Login
+      %th Last Location
+      %th Last Activity
+      %th
+        %i.icon-info{data: { toggle: :tooltip, title: 'Subject to updates based on last activity'}}
+        Scheduled Expiration
+      %th Force Logout
+    %tbody
+      - @users.each do |user|
+        %tr
+          %td= link_to_if can_edit_users?, user.name, edit_admin_user_path(user)
+          %td= user.current_sign_in_at
+          %td= user.login_activities.last.location_description
+          %td= user.last_activity_at
+          %td= user.last_activity_at + user.timeout_in
+          %td
+            = link_to admin_session_path(user),  method: :delete, data: {confirm: "Would you really like to end the session for #{user.name}?"}, class: 'btn btn-sm btn-danger mb-2 text-nowrap' do
+              %i.icon-cross
+              End Session
