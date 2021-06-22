@@ -6,7 +6,9 @@ RSpec.describe AutoEncodingCsv, type: :model do
   encodings = [
     'UTF-8',
     'UTF-8-bom',
+    'UTF-16LE',
     'Windows-1252',
+    # 'macRoman', Not enough data for charlock holmes to guess right
   ].each do |encoding|
     it "Autodetect #{encoding}" do
       path = "#{file_fixture_path}/importers/encodings/#{encoding}.csv"

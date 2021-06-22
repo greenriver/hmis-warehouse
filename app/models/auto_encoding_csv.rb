@@ -2,25 +2,39 @@ require 'csv'
 require 'charlock_holmes'
 
 class AutoEncodingCsv < CSV
+  UTF8_BOM = "\xEF\xBB\xBF".b.freeze
+  UTF16LE_BOM = "\xFF\xFE".b.freeze
+  UTF16BE_BOM = "\xFE\xFF".b.freeze
+
   class << self
     def open(filename, mode="r", **options)
       options ||= {}
 
       if mode.start_with?('r') && options[:encoding].nil?
-        detection_data = File.read(filename)
-        res = CharlockHolmes::EncodingDetector.detect(detection_data)
-        if res && res[:ruby_encoding]
-          guessed_encoding = res[:ruby_encoding]
-          if ['UTF-8','UTF-16LE','UTF-16BE','UTF-16'].include?(guessed_encoding.upcase)
-            bom_found = detection_data.start_with? "\ufeff"
-            guessed_encoding = "bom|#{guessed_encoding}" if bom_found
-          end
-          #data.set_encoding guessed_encoding if data.external_encoding != guessed_encoding
+        # a Unicode BOM is a strong signal
+        magic = File.read(filename, 3, mode: 'rb')
+        guessed_encoding = if magic.first(3) == UTF8_BOM
+           'bom|UTF-8'
+        elsif magic.first(2) == UTF16LE_BOM
+           'bom|UTF-16LE'
+        elsif magic.first(2) == UTF16BE_BOM
+           'bom|UTF-16BE'
         end
-        options[:encoding] = guessed_encoding
+
+        # no BOM we have to try for a statistical match
+        unless guessed_encoding
+          File.open(filename, mode: 'rb') do |io|
+            res = CharlockHolmes::EncodingDetector.detect(io.read)
+            guessed_encoding = res[:ruby_encoding] if res
+          end
+        end
+
+        options[:encoding] = guessed_encoding if guessed_encoding
+
+        $stdout.puts "#{filename} #{options}"
       end
 
-      super(filename, mode, **options)
+      super filename, mode, **options
     end
   end
 end
