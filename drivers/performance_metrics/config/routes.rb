@@ -5,13 +5,10 @@
 ###
 
 BostonHmis::Application.routes.draw do
-  namespace :performance_metric do
+  namespace :performance_metrics do
     namespace :warehouse_reports do
-      resources :reports, only: [:index] do
-        get :details, on: :collection
-        get 'section/:partial', on: :collection, to: 'report#section', as: :section
-        get :filters, on: :collection
-        get :download, on: :collection
+      resources :reports, only: [:index, :show, :destroy] do
+        get :details, on: :member
       end
     end
   end

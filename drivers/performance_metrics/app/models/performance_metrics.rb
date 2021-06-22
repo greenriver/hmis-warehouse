@@ -1,5 +1,5 @@
 module PerformanceMetrics
   def self.table_name_prefix
-    'performance_metric_'
+    'performance_metrics_'
   end
 end

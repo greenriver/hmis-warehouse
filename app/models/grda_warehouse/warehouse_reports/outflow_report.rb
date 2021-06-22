@@ -7,6 +7,7 @@
 module GrdaWarehouse::WarehouseReports
   class OutflowReport
     include ArelHelper
+    include Filter::FilterScopes
 
     def initialize(filter, user)
       @filter = filter
@@ -217,28 +218,23 @@ module GrdaWarehouse::WarehouseReports
 
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         send(sub_population).
-        joins(:project).
-        joins(:organization).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(@user))
+        joins(:organization)
+
+      scope = filter_for_user_access(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_ethnicity(scope)
+      # NOTE: this is not exposed on the page, but is potentially called from the Performance Metrics reprot
+      scope = filter_for_ca_homeless(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_veteran_status(scope)
 
       scope = scope.where(p_t[:id].in(@filter.effective_project_ids)) unless @filter.effective_project_ids.empty?
 
       if @filter.limit_to_vispdats
         scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids)
       end
-      if @filter.ethnicities.present?
-        scope = scope.joins(:client).where(c_t[:Ethnicity].in(@filter.ethnicities))
-      end
-      race_filter = nil
-      @filter.races.each do |race|
-        if race_filter
-          race_filter = race_filter.or(c_t[race].eq(1))
-        else
-          race_filter = c_t[race].eq(1)
-        end
-      end
-      scope = scope.joins(:client).where(race_filter) if race_filter.present?
-      scope = scope.joins(:client).where(c_t[:Gender].in(@filter.genders)) if @filter.genders.present?
 
       if @filter.require_homeless_enrollment
         homeless_clients = GrdaWarehouse::ServiceHistoryEnrollment.

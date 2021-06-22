@@ -115,6 +115,7 @@ module Filters
       self.ph = filters.dig(:ph).in?(['1', 'true', true])
       self
     end
+    alias update set_from_params
 
     def for_params
       {
@@ -153,6 +154,7 @@ module Filters
         },
       }
     end
+    alias to_h for_params
 
     def known_params
       [

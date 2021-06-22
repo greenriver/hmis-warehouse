@@ -932,6 +932,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:performance_metrics)
+        r_list['Performance'] << {
+          url: 'performance_metrics/warehouse_reports/reports',
+          name: 'Performance Metrics',
+          description: 'Various high-level metrics for selected universe',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:text_message)
         r_list['Operational'] << {
           url: 'text_message/warehouse_reports/queue',
@@ -1119,6 +1128,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'data_source_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:data_source_report)
       cleanup << 'user_permission_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:user_permission_report)
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
+      cleanup << 'performance_metrics/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:performance_metrics)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       unless RailsDrivers.loaded.include?(:public_reports)
         cleanup << 'public_reports/warehouse_reports/point_in_time'

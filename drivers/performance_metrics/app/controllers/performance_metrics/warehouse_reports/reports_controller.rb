@@ -11,39 +11,69 @@ module PerformanceMetrics::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_view_clients, only: [:detail]
-    before_action :set_report, only: [:show, :destroy]
+    before_action :require_can_access_some_version_of_clients!, only: [:details]
+    before_action :set_report, only: [:show, :destroy, :details]
     before_action :set_pdf_export
 
     def index
-      respond_to do |format|
-        format.html {}
-        format.xlsx do
-          filename = "#{_('Performance Metrics')} - #{Time.current.to_s(:db)}.xlsx"
-          headers['Content-Disposition'] = "attachment; filename=#{filename}"
-        end
-      end
+      @reports = report_scope.ordered.
+        page(params[:page]).per(25)
+      # @filter = filter_class.new(user_id: current_user.id)
+      # @filter.set_from_params(filter_params) if filter_params.present?
+      @report = report_class.new(user_id: current_user.id)
+      @report.filter = @filter
+      # Make sure the form will work
+      filters
+    end
+
+    def create
+      @report = report_class.new(
+        user_id: current_user.id,
+        report_date_range: @filter.date_range_words,
+        comparison_date_range: @filter.comparison_range_words,
+      )
+      @report.filter = @filter
+      @report.save
+      ::WarehouseReports::GenericReportJob.perform_later(
+        user_id: current_user.id,
+        report_class: @report.class.name,
+        report_id: @report.id,
+      )
+      respond_with(@report, location: performance_metrics_warehouse_reports_reports_path)
+    end
+
+    def destroy
+      @report.destroy
+      respond_with(@report, location: performance_metrics_warehouse_reports_reports_path)
     end
 
     def details
-      @key = params[:key]
-      @sub_key = params[:sub_key]
+      @key = params[:key].to_sym
+      @comparison = params[:comparison] == 'true'
+      @report = @report.to_comparison if @comparison
+      @filter = @filter.to_comparison if @comparison
       respond_to do |format|
         format.html {}
-        format.xlsx do
-          filename = "#{_('Performance Metrics')} Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
-          headers['Content-Disposition'] = "attachment; filename=#{filename}"
-        end
+        format.xlsx {}
       end
     end
 
+    def breakdown
+      @breakdown ||= params[:breakdown]&.to_sym || :none
+    end
+    helper_method :breakdown
+
     private def set_report
-      @report = report_class.new(@filter)
+      @report = report_class.find(params[:id].to_i)
       if @report.include_comparison?
-        @comparison = report_class.new(@comparison_filter)
+        @comparison = @report.to_comparison
       else
         @comparison = @report
       end
+    end
+
+    private def report_scope
+      report_class.visible_to(current_user)
     end
 
     private def report_class
@@ -65,6 +95,10 @@ module PerformanceMetrics::WarehouseReports
 
     private def pdf_export_source
       PerformanceMetrics::DocumentExports::ReportExport
+    end
+
+    private def flash_interpolation_options
+      { resource_name: @report.title }
     end
   end
 end

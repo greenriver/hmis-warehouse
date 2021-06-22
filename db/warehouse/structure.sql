@@ -10742,6 +10742,76 @@ ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.i
 
 
 --
+-- Name: performance_metrics_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.performance_metrics_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    current_period_enrollments jsonb,
+    current_period_exit_date date,
+    current_period_exit_project_name character varying,
+    current_period_return_date date,
+    current_period_return_project_name character varying,
+    current_period_move_in_date date,
+    current_period_move_in_project character varying,
+    current_period_days_in_es integer,
+    current_period_days_in_rrh integer,
+    current_period_days_in_psh integer,
+    current_period_income_at_start integer,
+    current_period_income_at_end integer,
+    current_period_employment_income_at_start integer,
+    current_period_employment_income_at_end integer,
+    current_period_non_employment_income_at_start integer,
+    current_period_non_employment_income_at_end integer,
+    current_period_first_time boolean,
+    current_period_reentering boolean,
+    current_period_caper_id bigint,
+    prior_period_enrollments jsonb,
+    prior_period_exit_date date,
+    prior_period_exit_project_name character varying,
+    prior_period_return_date date,
+    prior_period_return_project_name character varying,
+    prior_period_move_in_date date,
+    prior_period_move_in_project character varying,
+    prior_period_days_in_es integer,
+    prior_period_days_in_rrh integer,
+    prior_period_days_in_psh integer,
+    prior_period_income_at_start integer,
+    prior_period_income_at_end integer,
+    prior_period_employment_income_at_start integer,
+    prior_period_employment_income_at_end integer,
+    prior_period_non_employment_income_at_start integer,
+    prior_period_non_employment_income_at_end integer,
+    prior_period_first_time boolean,
+    prior_period_reentering boolean,
+    prior_period_caper_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: performance_metrics_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.performance_metrics_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: performance_metrics_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.performance_metrics_clients_id_seq OWNED BY public.performance_metrics_clients.id;
+
+
+--
 -- Name: project_data_quality; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15520,6 +15590,13 @@ ALTER TABLE ONLY public.non_hmis_uploads ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: performance_metrics_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.performance_metrics_clients ALTER COLUMN id SET DEFAULT nextval('public.performance_metrics_clients_id_seq'::regclass);
+
+
+--
 -- Name: project_data_quality id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -17696,6 +17773,14 @@ ALTER TABLE ONLY public.nightly_census_by_projects
 
 ALTER TABLE ONLY public.non_hmis_uploads
     ADD CONSTRAINT non_hmis_uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: performance_metrics_clients performance_metrics_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.performance_metrics_clients
+    ADD CONSTRAINT performance_metrics_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -23577,6 +23662,48 @@ CREATE INDEX index_new_service_history_on_first_date_in_program ON public.new_se
 --
 
 CREATE INDEX index_non_hmis_uploads_on_deleted_at ON public.non_hmis_uploads USING btree (deleted_at);
+
+
+--
+-- Name: index_performance_metrics_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_performance_metrics_clients_on_client_id ON public.performance_metrics_clients USING btree (client_id);
+
+
+--
+-- Name: index_performance_metrics_clients_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_performance_metrics_clients_on_created_at ON public.performance_metrics_clients USING btree (created_at);
+
+
+--
+-- Name: index_performance_metrics_clients_on_current_period_caper_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_performance_metrics_clients_on_current_period_caper_id ON public.performance_metrics_clients USING btree (current_period_caper_id);
+
+
+--
+-- Name: index_performance_metrics_clients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_performance_metrics_clients_on_deleted_at ON public.performance_metrics_clients USING btree (deleted_at);
+
+
+--
+-- Name: index_performance_metrics_clients_on_prior_period_caper_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_performance_metrics_clients_on_prior_period_caper_id ON public.performance_metrics_clients USING btree (prior_period_caper_id);
+
+
+--
+-- Name: index_performance_metrics_clients_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performance_metrics_clients USING btree (updated_at);
 
 
 --
@@ -30203,6 +30330,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210603121547'),
 ('20210615131534'),
 ('20210616181054'),
-('20210616193735');
+('20210616193735'),
+('20210622171720');
 
 
