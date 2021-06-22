@@ -14,6 +14,7 @@ module PerformanceDashboard::Overview::Enrolled
   include PerformanceDashboard::Overview::Enrolled::Ethnicity
   include PerformanceDashboard::Overview::Enrolled::ProjectType
   include PerformanceDashboard::Overview::Enrolled::Coc
+  include PerformanceDashboard::Overview::Enrolled::LotHomeless
 
   def enrolled
     open_enrollments.distinct
@@ -43,6 +44,8 @@ module PerformanceDashboard::Overview::Enrolled
       enrolled_by_project_type_details(options)
     elsif options[:coc]
       enrolled_by_coc_details(options)
+    elsif options[:lot_homeless]
+      enrolled_by_lot_homeless_details(options)
     end
   end
 

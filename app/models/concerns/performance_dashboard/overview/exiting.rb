@@ -14,6 +14,7 @@ module PerformanceDashboard::Overview::Exiting
   include PerformanceDashboard::Overview::Exiting::Ethnicity
   include PerformanceDashboard::Overview::Exiting::ProjectType
   include PerformanceDashboard::Overview::Exiting::Coc
+  include PerformanceDashboard::Overview::Exiting::LotHomeless
 
   def exiting
     exits.distinct
@@ -43,6 +44,8 @@ module PerformanceDashboard::Overview::Exiting
       exiting_by_project_type_details(options)
     elsif options[:coc]
       exiting_by_coc_details(options)
+    elsif options[:lot_homeless]
+      exiting_by_lot_homeless_details(options)
     end
   end
 

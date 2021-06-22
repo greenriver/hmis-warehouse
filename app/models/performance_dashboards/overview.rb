@@ -17,6 +17,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Enrolled
   include PerformanceDashboard::Overview::ProjectType
   include PerformanceDashboard::Overview::Coc
+  include PerformanceDashboard::Overview::LotHomeless
 
   def self.url
     'performance_dashboards/overview'
@@ -47,6 +48,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       'by_race',
       'by_veteran',
       'by_project_type',
+      'by_lot_homeless',
     ]
     # Only show CoC tab if the site is setup to show it
     chart_types << 'by_coc' if GrdaWarehouse::Config.get(:multi_coc_installation)
@@ -138,6 +140,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       race: 'By Race',
       ethnicity: 'By Ethnicity',
       project_type: 'By Project Type',
+      lot_homeless: 'By LOT Homeless',
     }
 
     # Only show CoC tab if the site is setup to show it
