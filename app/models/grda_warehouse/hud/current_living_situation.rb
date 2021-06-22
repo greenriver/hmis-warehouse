@@ -23,8 +23,7 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
 
     scope :between, ->(start_date:, end_date:) do
-      at = arel_table
-      where(at[:InformationDate].gteq(start_date).and(at[:InformationDate].lteq(end_date)))
+      where(arel_table[:InformationDate].between(start_date..end_date))
     end
 
   end

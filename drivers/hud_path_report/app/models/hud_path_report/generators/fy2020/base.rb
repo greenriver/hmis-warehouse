@@ -162,7 +162,7 @@ module HudPathReport::Generators::Fy2020
 
     private def path_referrals(enrollment)
       enrollment.services.path_referral.between(start_date: @report.start_date, end_date: @report.end_date).
-        group(:DateProvided).pluck(:DateProvided, Arel.sql(array_agg(array(s_t[:TypeProvided], s_t[:ReferralOutcome])).to_sql)).to_h
+        group(:DateProvided).pluck(:DateProvided, Arel.sql(array_agg(sql_array(s_t[:TypeProvided], s_t[:ReferralOutcome])).to_sql)).to_h
     end
 
     private def report_client_universe

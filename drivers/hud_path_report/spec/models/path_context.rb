@@ -21,7 +21,7 @@ RSpec.shared_context 'path context', shared_context: :metadata do
   def default_filter
     so_project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'SO').id
     services_project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'SERVICES').id
-    HudDataQualityReport::Filters::DqFilter.new(shared_filter.merge(project_ids: [so_project_id, services_project_id]))
+    HudDataQualityReport::Filters::PathFilter.new(shared_filter.merge(project_ids: [so_project_id, services_project_id]))
   end
 
 

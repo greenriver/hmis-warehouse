@@ -86,7 +86,7 @@ module ArelHelper
       nf 'ARRAY_AGG', args
     end
 
-    def array(*args)
+    def sql_array(*args)
       elements = args.map(&:to_sql)
       lit("ARRAY [#{elements.join(', ')}]")
     end

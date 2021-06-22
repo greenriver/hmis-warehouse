@@ -30,7 +30,7 @@ module HudPathReport
         format.zip do
           exporter = ::HudReports::ZipExporter.new(@report)
           date = Date.current.strftime('%Y-%m-%d')
-          send_data exporter.export!, filename: "dq-#{date}.zip"
+          send_data exporter.export!, filename: "path-#{date}.zip"
         end
       end
     end

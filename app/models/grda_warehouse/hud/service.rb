@@ -34,19 +34,18 @@ module GrdaWarehouse::Hud
       st2.table_alias = 'st2'
       where(
         st2.project(Arel.star).
-          where( st2[:data_source_id].eq st1[:data_source_id] ).
-          where( st2[:PersonalID].eq st1[:PersonalID] ).
-          where( st2[:RecordType].eq st1[:RecordType] ).
-          where( st2[:EnrollmentID].eq st1[:EnrollmentID] ).
-          where( st2[:DateProvided].eq st1[:DateProvided] ).
-          where( st2[:id].gt st1[:id] ).
+          where(st2[:data_source_id].eq(st1[:data_source_id])).
+          where(st2[:PersonalID].eq(st1[:PersonalID])).
+          where(st2[:RecordType].eq(st1[:RecordType])).
+          where(st2[:EnrollmentID].eq(st1[:EnrollmentID])).
+          where(st2[:DateProvided].eq(st1[:DateProvided])).
+          where(st2[:id].gt(st1[:id])).
           exists.not
       )
     }
 
     scope :between, ->(start_date:, end_date:) do
-      at = arel_table
-      where(at[:DateProvided].gteq(start_date).and(at[:DateProvided].lteq(end_date)))
+      where(arel_table[:DateProvided].between(start_date..end_date))
     end
 
     def self.related_item_keys
