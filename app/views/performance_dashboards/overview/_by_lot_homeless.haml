@@ -1,0 +1,24 @@
+- breakdown = 'By LOT Homeless'
+- breakdown_notes = 'Days homeless includes all homeless stays for clients, regardless of your access to that data. Days are always calculated given the most recent data available and will not adjust for report range.'
+- sub_keys = @report.lot_homeless_bucket_titles.invert
+- options = {lot_homeless: :true}
+- bar_size = 100
+- chart_class_slug = 'by-lot_homeless'
+
+- columns = [@report.enrolled_by_lot_homeless_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.enrolled_by_lot_homeless_data_for_chart[:columns]
+- categories = @report.enrolled_by_lot_homeless_data_for_chart[:categories]
+= render 'performance_dashboards/overview/breakdown/enrolled', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, bar_size: bar_size, chart_class_slug: chart_class_slug, breakdown_notes: breakdown_notes
+
+- columns = [@report.entering_by_lot_homeless_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.entering_by_lot_homeless_data_for_chart[:columns]
+- categories = @report.entering_by_lot_homeless_data_for_chart[:categories]
+= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, bar_size: bar_size, chart_class_slug: chart_class_slug, breakdown_notes: breakdown_notes
+
+- columns = [@report.exiting_by_lot_homeless_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.exiting_by_lot_homeless_data_for_chart[:columns]
+- categories = @report.exiting_by_lot_homeless_data_for_chart[:categories]
+= render 'performance_dashboards/overview/breakdown/exiting', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, bar_size: bar_size, chart_class_slug: chart_class_slug, breakdown_notes: breakdown_notes

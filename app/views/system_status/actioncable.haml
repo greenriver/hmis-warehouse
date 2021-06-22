@@ -1,0 +1,12 @@
+%div
+  Data should show below.
+  %br
+  Run this command in a rails console:
+  %pre=@cmd
+  %div{data: {actioncable: 'here'}}
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      window.App.initTestChannel();
+    });

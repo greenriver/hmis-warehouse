@@ -5,8 +5,6 @@
 = render 'beta_warning'
 = render 'public_reports/re_publish'
 
-.well
-  %iframe{src: public_reports_warehouse_reports_state_level_homelessness_path(@report), width: '100%', height: 400, frameBorder: 0}
 - @report.sections.each do |section|
   %p The following is available at the url: #{link_to(@report.generate_publish_url_for(section), @report.generate_publish_url_for(section), target: :_blank)} and can be embedded using the following code.
   %code= @report.generate_embed_code_for(section)
