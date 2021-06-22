@@ -94,6 +94,7 @@ class WorkoffArbiter
 
       # { -5 => 1, ... }
       raw_priorities.zip(normalized_priorities).to_h.tap do |p|
+        p.default = 0.5
         Rails.logger.debug "Queue attributes: #{Delayed::Worker.queue_attributes}"
         Rails.logger.debug "Normalized priority values (lower priority values are more important.): #{p.inspect}"
       end

@@ -1,10 +1,18 @@
 development:
-  adapter: async
+  adapter: redis
+  url: <%= "redis://#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
+  channel_prefix: hmis_development
 
 test:
   adapter: async
 
+staging:
+  adapter: redis
+  url: <%= "rediss://#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
+  channel_prefix: hmis_staging
+
 production:
   adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" } %>
+  url: <%= "rediss://#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
   channel_prefix: hmis_production
+

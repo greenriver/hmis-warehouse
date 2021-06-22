@@ -32,6 +32,48 @@ module PublicReports
       public_reports_warehouse_reports_state_level_homelessness_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
+    def publish!(content)
+      unless published?
+        # This should:
+        # 1. Take the contents of html and push it up to S3
+        # 2. Populate the published_url field
+        # 3. Populate the embed_code field
+        self.class.transaction do
+          unpublish_similar
+          update(
+            html: content,
+            published_url: generate_publish_url, # NOTE this isn't used in this report
+            embed_code: generate_embed_code, # NOTE this isn't used in this report
+            state: :published,
+          )
+        end
+      end
+      push_to_s3
+    end
+
+    # Override default push to s3 to enable multiple files
+    private def push_to_s3
+      bucket = s3_bucket
+      sections.each do |section|
+        prefix = File.join(public_s3_directory, version_slug.to_s, section.to_s)
+        section_html = html_section(section)
+
+        key = File.join(prefix, 'index.html')
+
+        resp = s3_client.put_object(
+          acl: 'public-read',
+          bucket: bucket,
+          key: key,
+          body: section_html,
+        )
+        if resp.etag
+          Rails.logger.info 'Successfully uploaded report file to s3'
+        else
+          Rails.logger.info 'Unable to upload report file'
+        end
+      end
+    end
+
     def run_and_save!
       start_report
       pre_calculate_data
@@ -39,7 +81,7 @@ module PublicReports
     end
 
     def view_template
-      populations.keys
+      sections
     end
 
     def generate_publish_url_for(section)
@@ -49,8 +91,11 @@ module PublicReports
         # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
         "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}"
       end
-      publish_url = "#{publish_url}/#{section}"
-      publish_url = "#{publish_url}/#{version_slug}" if version_slug.present?
+      publish_url = if version_slug.present?
+        "#{publish_url}/#{version_slug}/#{section}"
+      else
+        "#{publish_url}/#{section}"
+      end
       "#{publish_url}/index.html"
     end
 
@@ -467,7 +512,7 @@ module PublicReports
         intermediate_total_count ||= 0
 
         total_string = total_for(scope.merge(client_scope), nil)
-        total_count = total_string.split(' ').first.to_i # note: this is a string
+        total_count = scope.merge(client_scope).distinct.select(:client_id).count
 
         intermediate_chronic_count += chronic_count
         intermediate_total_count += total_count
@@ -709,6 +754,7 @@ module PublicReports
 
     private def total_for(scope, population)
       count = scope.select(:client_id).distinct.count
+      count = 10 if count.positive? && count < 10
 
       word = case population
       when :veterans

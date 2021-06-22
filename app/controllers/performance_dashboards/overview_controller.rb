@@ -47,6 +47,7 @@ module PerformanceDashboards
           :ethnicity,
           :project_type,
           :coc,
+          :lot_homeless,
           :breakdown,
           :coordinated_assessment_living_situation_homeless,
         ],

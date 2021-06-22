@@ -304,7 +304,9 @@ Rails.application.routes.draw do
     namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
-      resources :actives, only: [:index]
+      resources :actives, only: [:index] do
+        post :render_section, on: :collection
+      end
       resources :last_permanent_zips, only: [:index]
     end
     resources :re_entry, only: [:index]
@@ -844,6 +846,7 @@ Rails.application.routes.draw do
     get :operational
     get :cache_status
     get :details
+    get :actioncable
   end
   root 'root#index'
 end

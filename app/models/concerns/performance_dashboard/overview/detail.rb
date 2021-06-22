@@ -76,6 +76,8 @@ module PerformanceDashboard::Overview::Detail
         title += " #{project_type_bucket_titles[sub_key.to_i]}"
       elsif options[:coc].present?
         title += " #{coc_bucket_titles[sub_key.to_s]}"
+      elsif options[:lot_homeless].present?
+        title += " #{lot_homeless_bucket_titles[sub_key.to_sym]}"
       end
     end
     title += " #{key.titleize} #{breakdown}"
@@ -108,6 +110,7 @@ module PerformanceDashboard::Overview::Detail
     end
     columns['Ethnicity'] = c_t[:Ethnicity] if options[:ethnicity]
     columns['Project Type'] = she_t[project_type_col] if options[:project_type]
+    columns['Days Homeless Last Three Years'] = wcp_t[:days_homeless_last_three_years] if options[:lot_homeless]
     columns['CoC'] = ec_t[:CoCCode] if options[:coc]
     columns
   end
