@@ -7,6 +7,27 @@
 require 'rails_helper'
 
 RSpec.describe HmisCsvTwentyTwenty, type: :model do
+  describe 'When handling source files' do
+    before(:all) do
+      HmisCsvTwentyTwenty::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+      @delete_later = []
+      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+    end
+
+    it 'can import files with bom|UTF-8 encoding' do
+      file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bom_test'
+      import(file_path, @data_source)
+    end
+
+    after(:all) do
+      # Because we are only running the import once, we have to do our own DB and file cleanup
+      HmisCsvTwentyTwenty::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+      cleanup_files
+    end
+  end
+
   describe 'When importing enrollments' do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
