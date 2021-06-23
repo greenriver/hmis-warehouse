@@ -154,7 +154,10 @@ module Filters
         },
       }
     end
-    alias to_h for_params
+
+    def to_h
+      for_params[:filters]
+    end
 
     def known_params
       [

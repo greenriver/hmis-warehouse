@@ -1,0 +1,9 @@
+- # this only exists for errors in the index form
+- title = _('Performance Metrics')
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-5= title
+
+= render 'form'
+= debug @report.errors

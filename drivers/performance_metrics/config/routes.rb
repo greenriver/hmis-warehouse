@@ -7,7 +7,7 @@
 BostonHmis::Application.routes.draw do
   namespace :performance_metrics do
     namespace :warehouse_reports do
-      resources :reports, only: [:index, :show, :destroy] do
+      resources :reports, only: [:index, :create, :show, :destroy] do
         get :details, on: :member
       end
     end

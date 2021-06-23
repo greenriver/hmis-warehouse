@@ -13,9 +13,6 @@ module PerformanceMetrics
     include ActionView::Helpers::NumberHelper
     include ArelHelper
 
-    attr_accessor :start_date, :end_date
-    validates_presence_of :start_date, :end_date
-
     acts_as_paranoid
 
     belongs_to :user
@@ -77,7 +74,7 @@ module PerformanceMetrics
     end
 
     def filter=(filter_object)
-      self.options = filter_object.for_params
+      self.options = filter_object.to_h
       # force reset the filter cache
       @filter = nil
       filter
@@ -86,16 +83,19 @@ module PerformanceMetrics
     def filter
       @filter ||= begin
         f = ::Filters::FilterBase.new(user_id: user_id)
-        f.set_from_params(options['filters'].with_indifferent_access) if options.try(:[], 'filters')
+        f.update(options.with_indifferent_access) if options.present?
         f
       end
     end
 
-    def to_comparison
+    private def to_comparison
       @original_filter = @filter
       @filter = filter.to_comparison
     end
 
+    private def to_report_period
+      @filter = @original_filter
+    end
 
     def comparison_pattern
       @comparison_pattern ||= filter.comparison_pattern
@@ -154,7 +154,7 @@ module PerformanceMetrics
     end
 
     # @return filtered scope
-    def report_scope(all_project_types: false)
+    def report_scope
       # Report range
       scope = report_scope_source
       scope = filter_for_user_access(scope)
@@ -168,12 +168,16 @@ module PerformanceMetrics
       scope = filter_for_race(scope)
       scope = filter_for_ethnicity(scope)
       scope = filter_for_veteran_status(scope)
-      scope = filter_for_project_type(scope, all_project_types: all_project_types)
+      scope = filter_for_project_type(scope)
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
       scope = filter_for_funders(scope)
       scope = filter_for_ca_homeless(scope)
+    end
+
+    def enrollment_scope
+      report_scope.preload(enrollment: :income_benefits)
     end
 
     def report_scope_source
@@ -197,19 +201,74 @@ module PerformanceMetrics
     end
 
     private def create_universe
+      report_clients = {}
+      add_clients(report_clients)
+      if include_comparison?
+        to_comparison
+        add_clients(report_clients)
+        to_report_period
+      end
+    end
+
+    private def add_clients(report_clients)
+      caper_report = run_caper
+      caper_clients = answer_clients(caper_report, 'Q16', 'D14')
+      adult_leaver_count = answer(caper_report, 'Q5a', 'B6')
+
+      spm_report = run_spm
+      spm_clients = answer_clients(spm_report, '2', 'J7')
+      exited_spm_clients = answer(spm_report, '2', 'B7')
+
+      rrh_report = run_rrh
+      rrh_clients = rrh_report.support_for(
+        :time_in_stabilization,
+        {
+          selected_project: 'All',
+          start_date: filter.start,
+          end_date: filter.end,
+        },
+      ).to_h.index_by{ |m| m['Warehouse ID'] }
+
+      psh_report = run_psh
+      psh_clients = run_psh.support_for(
+        :time_in_stabilization,
+        {
+          selected_project: 'All',
+          start_date: filter.start,
+          end_date: filter.end,
+        },
+      ).to_h.index_by{ |m| m['Warehouse ID'] }
+
+      # TODO: inflow
+
+      outflow_report = run_outflow
+      # TODO: from outflow_report
+      outflow_count
+      moved_to_housing_count
+      inactive_count
+
       enrollment_scope.find_in_batches do |batch|
-        report_clients = {}
         batch.each do |processed_enrollment|
-          # disabilities = processed_enrollment.enrollment.disabilities
-          # mental_health = disabilities.chronically_disabled.mental.exists?
-          # substance_use_disorder = disabilities.chronically_disabled.substance.exists?
+          caper_client = caper_clients[processed_enrollment.client_id]
+          spm_client = spm_clients[processed_enrollment.client_id]
+          rrh_client = rrh_clients[processed_enrollment.client_id]
+          psh_client = psh_clients[processed_enrollment.client_id]
+          # Only looking at income for leavers
+          earned_income_at_start = caper_client.income_sources_at_start['EarnedAmount'] || 0
+          earned_income_at_exit = caper_client.income_sources_at_exit['EarnedAmount'] || 0
+          other_income_at_start = caper_client.income_total_at_start - earned_income_at_start
+          other_income_at_exit = caper_client.income_total_at_exit - earned_income_at_exit
 
-          # health_and_dvs = processed_enrollment.enrollment.health_and_dvs
-          # domestic_violence = health_and_dvs.currently_fleeing.exists?
+          days_in_es = spm_client&.m1a_es_sh_th_days
 
-          # income_benefits = processed_enrollment.enrollment.income_benefits
-          # income_at_start = income_benefits.at_entry.with_earned_income.pluck(:EarnedAmount).compact.max # Should be only one
-          # income_at_exit = income_benefits.at_exit.with_earned_income.pluck(:EarnedAmount).compact.max # Should be only one
+          housed_date = rrh_client['Date Housed']
+          exit_date = rrh_client['Housing Exit']
+          days_in_rrh = (exit_date - housed_date).to_i
+
+          housed_date = psh_client['Date Housed']
+          exit_date = psh_client['Housing Exit']
+          days_in_psh = (exit_date - housed_date).to_i
+
 
           # client = processed_enrollment.client
           # nights_in_shelter = processed_enrollment.service_history_services.
@@ -254,5 +313,65 @@ module PerformanceMetrics
       end
     end
 
+    private def run_caper
+      # Run CAPER Q5 to get Q5a B6 (adult leavers) for the denominator
+      # Looking for CAPER Q16 D14 to identify leavers who had income at exit (we'll only take those with an increase as the numerator)
+      questions = [
+        'Question 5',
+        'Question 16',
+      ]
+      caper_filter = HudApr::Filters::AprFilter.new(user_id: filter.user_id).update(filter.to_h)
+      generator = HudApr::Generators::Caper::Fy2020::Generator
+      caper_report = HudReports::ReportInstance.from_filter(caper_filter, generator.title, build_for_questions: questions)
+      generator.new(caper_report).run!(email: false)
+      caper_report
+    end
+
+    private def answer(report, table, cell)
+      report.answer(question: table, cell: cell).summary
+    end
+
+    private def answer_clients(report, table, cell)
+      report.answer(question: table, cell: cell).universe_members.
+        map(&:universe_membership).
+        index_by(&:client_id)
+    end
+
+    private def run_spm
+      # Looking for SPM Measure 1A E3
+      # Looking for SPM Measure 2 J7 (total returns to homelessness within 2 years)
+      questions = [
+        'Measure 1',
+        'Measure 2',
+      ]
+      spm_filter = HudApr::Filters::SpmFilter.new(user_id: filter.user_id).update(filter.to_h)
+      generator = HudSpmReport::Generators::Fy2020::Generator
+      spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
+      generator.new(spm_report).run!(email: false)
+      spm_report
+    end
+
+    private def run_rrh
+      rrh_filter = WarehouseReport::Outcomes::OutcomesFilter.new(user_id: filter.user_id)
+      rrh_filter.update(filter.to_h)
+      rrh_filter.project_type_numbers = [13]
+      WarehouseReport::Outcomes::RrhReport.new(rrh_filter)
+    end
+
+    private def run_outflow
+      outflow_filter = ::Filters::OutflowReport.new(user_id: filter.user_id)
+      outflow_filter.update(filter.to_h)
+      GrdaWarehouse::WarehouseReports::OutflowReport.new(outflow_filter, filter.user)
+    end
+
+    # private def outflow_clients(report)
+    #   enrollment_scope = report.entries_scope.
+    #     residential.
+    #     joins(:client).
+    #     preload(:client).
+    #     order(c_t[:LastName], c_t[:FirstName])
+    #   key = report.metrics.keys.detect { |key| key.to_s == params[:key] }
+    #   enrollments = enrollment_scope.where(client_id: report.send(key)).group_by(&:client_id)
+    # end
   end
 end

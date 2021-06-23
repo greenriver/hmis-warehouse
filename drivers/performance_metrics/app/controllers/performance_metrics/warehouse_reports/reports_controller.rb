@@ -29,8 +29,6 @@ module PerformanceMetrics::WarehouseReports
     def create
       @report = report_class.new(
         user_id: current_user.id,
-        report_date_range: @filter.date_range_words,
-        comparison_date_range: @filter.comparison_range_words,
       )
       @report.filter = @filter
       @report.save
@@ -39,7 +37,10 @@ module PerformanceMetrics::WarehouseReports
         report_class: @report.class.name,
         report_id: @report.id,
       )
+      # Make sure the form will work
+      filters
       respond_with(@report, location: performance_metrics_warehouse_reports_reports_path)
+
     end
 
     def destroy

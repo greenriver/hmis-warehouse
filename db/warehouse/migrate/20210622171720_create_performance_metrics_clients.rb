@@ -22,6 +22,7 @@ class CreatePerformanceMetricsClients < ActiveRecord::Migration[5.2]
       t.boolean :current_period_first_time
       t.boolean :current_period_reentering
       t.references :current_period_caper
+      t.references :current_period_spm
 
       t.jsonb :prior_period_enrollments
       t.date :prior_period_exit_date
@@ -42,6 +43,7 @@ class CreatePerformanceMetricsClients < ActiveRecord::Migration[5.2]
       t.boolean :prior_period_first_time
       t.boolean :prior_period_reentering
       t.references :prior_period_caper
+      t.references :prior_period_spm
 
       t.timestamps index: true, null: false
       t.datetime :deleted_at, index: true
