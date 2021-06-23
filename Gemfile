@@ -241,7 +241,7 @@ end
 
 group :test do
   gem 'capybara'
-  gem 'fixpoints', git: 'https://github.com/greenriver/fixpoints.git', branch: 'master'
+  gem 'fixpoints'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'
