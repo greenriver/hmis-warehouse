@@ -26,6 +26,10 @@ class AutoEncodingCsv < CSV
         end
       end
 
+      # CharlockHolmes for some reason has flagged legit UTF-8 files
+      # we've seen in the wild as UTF-32BE which is almost certainly wrong.
+      guessed_encoding = nil if guessed_encoding == 'UTF-32BE'
+
       Rails.logger.debug do
         "AutoEncodingCsv.detect_encoding #{filename} => #{guessed_encoding}"
       end
