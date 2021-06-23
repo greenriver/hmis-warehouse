@@ -1,0 +1,2 @@
+spec/fixtures/files/importers/encodings/*.csv binary
+drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bom_test/source/*.csv binary
