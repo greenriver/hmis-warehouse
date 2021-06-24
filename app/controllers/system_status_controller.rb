@@ -133,4 +133,9 @@ class SystemStatusController < ApplicationController
 
     render json: payload, status: status
   end
+
+  def actioncable
+    @cmd = "ActionCable.server.broadcast('test', message: 'Hello world')"
+    render
+  end
 end

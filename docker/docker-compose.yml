@@ -73,6 +73,8 @@ services:
     stdin_open: true
     tty: true
     command: bundle exec rails server -b 0.0.0.0
+    ports:
+      - "3000"
     expose:
       - 3000
     environment:
