@@ -1630,7 +1630,9 @@ CREATE TABLE public.users (
     provider_raw_info json,
     uuid character varying,
     receive_account_request_notifications boolean DEFAULT false,
-    provider_set_at timestamp without time zone
+    provider_set_at timestamp without time zone,
+    exclude_from_directory boolean DEFAULT false,
+    exclude_phone_from_directory boolean DEFAULT false
 );
 
 
@@ -3034,6 +3036,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210518132857'),
 ('20210607135335'),
 ('20210616141644'),
-('20210616142134');
+('20210616142134'),
+('20210617140852'),
+('20210618123018');
 
 

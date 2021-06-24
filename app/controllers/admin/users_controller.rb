@@ -114,7 +114,7 @@ module Admin
     end
 
     private def adding_admin?
-      @adming_admin ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
+      @adming_admin ||= begin
         adming_admin = false
         existing_roles = @user.user_roles
         unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
@@ -144,6 +144,8 @@ module Admin
         :email,
         :phone,
         :agency_id,
+        :exclude_from_directory,
+        :exclude_phone_from_directory,
         :receive_file_upload_notifications,
         :notify_on_vispdat_completed,
         :notify_on_client_added,
