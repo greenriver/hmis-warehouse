@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module WarehouseReports
-  class HmisTwentyTwentyExportJob < BaseJob
-    include ArelHelper
+module HmisCsvTwentyTwenty
+  class ExportJob < ::BaseJob
+    include ::ArelHelper
 
     queue_as :long_running
 
@@ -22,6 +22,7 @@ module WarehouseReports
         include_deleted: options[:include_deleted],
         faked_pii: options[:faked_pii],
         user_id: options[:user_id],
+        version: options[:version],
       ).export!
 
       if (recurring_hmis_export = recurring_hmis_export(options))
@@ -43,7 +44,7 @@ module WarehouseReports
       recurring_hmis_export = options[:recurring_hmis_export_id]
       return nil if recurring_hmis_export.zero?
 
-      GrdaWarehouse::RecurringHmisExport.find(recurring_hmis_export)
+      ::GrdaWarehouse::RecurringHmisExport.find(recurring_hmis_export)
     end
   end
 end

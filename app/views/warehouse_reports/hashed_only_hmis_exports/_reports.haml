@@ -2,6 +2,7 @@
   %tr{class: 'jIncompleteReport'}
     %td= run_at
     %td= report.user&.name
+    %td= report.version
     %td= render 'spinner'
     %td= render 'parameters', report: report
     %td
@@ -11,6 +12,8 @@
       = report.created_at
     %td
       = report.user&.name
+    %td
+      = report.version
     %td
       = link_to warehouse_reports_hashed_only_hmis_export_url(report) do
         Download

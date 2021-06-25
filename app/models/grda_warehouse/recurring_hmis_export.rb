@@ -32,15 +32,7 @@ module GrdaWarehouse
     def run
       filter = ::Filters::HmisExport.new(filter_hash)
       filter.adjust_reporting_period
-      case filter.version
-      when '6.11'
-        raise '6.11 export functionality has been removed. This job should be deleted'
-      when '2020'
-        ::WarehouseReports::HmisTwentyTwentyExportJob.perform_later(filter.options_for_hmis_export(2020).as_json, report_url: nil)
-      else
-        # default to the current version
-        ::WarehouseReports::HmisTwentyTwentyExportJob.perform_later(filter.options_for_hmis_export(2020).as_json, report_url: nil)
-      end
+      filter.schedule_job(report_url: nil)
     end
 
     def s3_present?

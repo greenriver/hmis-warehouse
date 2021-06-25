@@ -23,6 +23,7 @@ module Exporters::HmisTwentyTwenty
       faked_pii: false,
       include_deleted: false,
       user_id: nil,
+      version: '2020',
       faked_environment: :development,
       file_path: 'var/hmis_export',
       logger: Rails.logger,
@@ -43,6 +44,7 @@ module Exporters::HmisTwentyTwenty
       rescue StandardError
         User.find(user_id)
       end
+      @version = version
       @include_deleted = include_deleted
       @faked_environment = faked_environment
     end
@@ -396,6 +398,7 @@ module Exporters::HmisTwentyTwenty
         faked_pii: @faked_pii,
         project_ids: @projects,
         include_deleted: @include_deleted,
+        version: @version,
       }
       options[:export_id] = Digest::MD5.hexdigest(options.to_s)[0..31]
 

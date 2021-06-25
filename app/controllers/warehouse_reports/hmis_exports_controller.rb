@@ -16,16 +16,17 @@ module WarehouseReports
       @filter = ::Filters::HmisExport.new(user_id: current_user.id)
       @all_project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).pluck(:ProjectName)
     end
-
     def running
     end
 
     def set_jobs
-      @job_reports = Delayed::Job.jobs_for_class(['HmisTwentyTwentyExportJob']).order(run_at: :desc).map do |job|
+      @job_reports = Delayed::Job.jobs_for_class(::Filters::HmisExport.job_classes).order(run_at: :desc).map do |job|
         parameters = YAML.load(job.handler).job_data['arguments'].first # rubocop:disable Security/YAMLLoad
         parameters.delete('_aj_symbol_keys')
+        parameters.delete('_aj_globalid')
         parameters['project_ids'] = parameters.delete('projects')
         report = GrdaWarehouse::HmisExport.new(parameters)
+
         [job.run_at, report]
       end
     end
@@ -49,12 +50,8 @@ module WarehouseReports
           flash[:error] = 'Invalid S3 Configuration'
           render :index
         else
-          case @filter.version
-          when '2020'
-            WarehouseReports::HmisTwentyTwentyExportJob.perform_later(@filter.options_for_hmis_export(2020).as_json, report_url: warehouse_reports_hmis_exports_url)
-          else
-            raise "#{@filter.version} export functionality is not available at this time"
-          end
+          @filter.schedule_job(report_url: warehouse_reports_hmis_exports_url)
+
           redirect_to warehouse_reports_hmis_exports_path
         end
       else

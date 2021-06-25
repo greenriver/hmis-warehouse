@@ -47,23 +47,54 @@ module Filters
       end
     end
 
-    def options_for_hmis_export(export_version)
-      case export_version
-      when :six_one_one, 2020
-        {
-          start_date: start_date,
-          end_date: end_date,
-          projects: effective_project_ids,
-          period_type: period_type,
-          directive: directive,
-          hash_status: hash_status,
-          include_deleted: include_deleted,
-          faked_pii: faked_pii,
-          user_id: user_id,
+    # Add to the list of available HMIS exports
+    # like so available_versions << Filters::HmisExport::Version.new('HMIS 2022', '2020', DriverNamespace::ExportJob)
+    ExporterVersion = Struct.new(:label, :version_str, :job_class)
+    def self.register_version(label, version_str, job_class)
+      available_versions << ExporterVersion.new(label, version_str, job_class)
+    end
 
-          recurring_hmis_export_id: recurring_hmis_export_id,
-        }
-      end
+    def self.available_versions
+      # this needs to be something that is not reloaded
+      Rails.application.config.hmis_exporters ||= []
+    end
+
+    def self.job_classes
+      available_versions.map(&:job_class).uniq + ['HmisTwentyTwentyExportJob'] # old exporter used before ::Filters::HmisExport.available_versions
+    end
+
+    def self.options_for_version
+      available_versions.map{|v| [v.label, v.version_str]}
+    end
+
+    def schedule_job(report_url:)
+      table = Rails.application.config.hmis_exporters || []
+
+      job_class = if version.present?
+        table.index_by(&:version_str)[version.to_s]
+                  else
+        table.first
+      end&.job_class
+
+      raise "Unable to find an HMIS Exporter for #{job_class}. Available: #{self.class.options_for_version} " unless job_class
+
+      job_class.constantize.perform_later(options_for_job, report_url: report_url)
+    end
+
+    private def options_for_job
+      {
+        version: version,
+        start_date: start_date.iso8601,
+        end_date: end_date.iso8601,
+        projects: effective_project_ids,
+        period_type: period_type,
+        directive: directive,
+        hash_status: hash_status,
+        include_deleted: include_deleted,
+        faked_pii: faked_pii,
+        user_id: user_id,
+        recurring_hmis_export_id: recurring_hmis_export_id,
+      }
     end
 
     def effective_project_ids
