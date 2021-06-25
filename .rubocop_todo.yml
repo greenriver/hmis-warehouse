@@ -2936,7 +2936,6 @@ Style/InverseMethods:
 # SupportedStyles: call, braces
 Style/LambdaCall:
   Exclude:
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/fake_data.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
@@ -3118,7 +3117,6 @@ Style/NegatedIf:
 # AllowedMethods: be, be_a, be_an, be_between, be_falsey, be_kind_of, be_instance_of, be_truthy, be_within, eq, eql, end_with, include, match, raise_error, respond_to, start_with
 Style/NestedParenthesizedCalls:
   Exclude:
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
