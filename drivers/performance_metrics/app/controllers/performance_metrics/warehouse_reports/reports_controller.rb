@@ -82,6 +82,8 @@ module PerformanceMetrics::WarehouseReports
     end
 
     def filter_params
+      return { filters: { comparison_pattern: :prior_year, sub_population: :clients }} unless params[:filters].present?
+
       params.permit(filters: @filter.known_params)
     end
     helper_method :filter_params

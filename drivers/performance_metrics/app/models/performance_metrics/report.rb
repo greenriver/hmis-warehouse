@@ -35,26 +35,6 @@ module PerformanceMetrics
     def run_and_save!
       start
       create_universe
-      comparison_periods.each do |period|
-        report_labels.values.each do |sections|
-          sections.values.each do |row_scope|
-            # project_columns.values.each do |column_scope|
-            #   cell_name = "#{row_scope}_#{column_scope}"
-            #   next if blank_cells.include?(cell_name)
-
-            #   cell = report_cells.create(name: cell_name)
-            #   if row_scope == :total_units_of_shelter_service
-            #     cell.summary = report_client_scope.where(send(column_scope)).sum(a_t[:nights_in_shelter])
-            #   else
-            #     cell_scope = send(row_scope).where(send(column_scope))
-            #     cell.add_members(cell_scope)
-            #     cell.summary = cell_scope.count
-            #   end
-            #   cell.save!
-            # end
-          end
-        end
-      end
       complete
     end
 
@@ -177,7 +157,7 @@ module PerformanceMetrics
     end
 
     def enrollment_scope
-      report_scope.preload(enrollment: :income_benefits)
+      report_scope.preload(:client, enrollment: :income_benefits)
     end
 
     def report_scope_source
@@ -202,15 +182,15 @@ module PerformanceMetrics
 
     private def create_universe
       report_clients = {}
-      add_clients(report_clients)
+      add_clients(report_clients, period: :current)
       if include_comparison?
         to_comparison
-        add_clients(report_clients)
+        add_clients(report_clients, period: :prior)
         to_report_period
       end
     end
 
-    private def add_clients(report_clients)
+    private def add_clients(report_clients, period:)
       caper_report = run_caper
       caper_clients = answer_clients(caper_report, 'Q16', 'D14')
       adult_leaver_count = answer(caper_report, 'Q5a', 'B6')
@@ -239,20 +219,23 @@ module PerformanceMetrics
         },
       ).to_h.index_by{ |m| m['Warehouse ID'] }
 
-      # TODO: inflow
+      inflow_report = run_inflow
+      entry_client_ids = inflow_report.first_time_clients.pluck(:client_id)
+      re_entry_client_ids = inflow_report.re_entry_clients.pluck(:client_id)
 
       outflow_report = run_outflow
-      # TODO: from outflow_report
-      outflow_count
-      moved_to_housing_count
-      inactive_count
+      outflow_client_ids = outflow_report.client_outflow
+      moved_to_housing_client_ids = outflow_report.hoh_exits_to_ph
+      inactive_client_ids = outflow_client_ids - moved_to_housing_client_ids
 
       enrollment_scope.find_in_batches do |batch|
         batch.each do |processed_enrollment|
-          caper_client = caper_clients[processed_enrollment.client_id]
-          spm_client = spm_clients[processed_enrollment.client_id]
-          rrh_client = rrh_clients[processed_enrollment.client_id]
-          psh_client = psh_clients[processed_enrollment.client_id]
+          client = processed_enrollment.client
+          client_id = processed_enrollment.client_id
+          caper_client = caper_clients[client_id]
+          spm_client = spm_clients[client_id]
+          rrh_client = rrh_clients[client_id]
+          psh_client = psh_clients[client_id]
           # Only looking at income for leavers
           earned_income_at_start = caper_client.income_sources_at_start['EarnedAmount'] || 0
           earned_income_at_exit = caper_client.income_sources_at_exit['EarnedAmount'] || 0
@@ -269,46 +252,36 @@ module PerformanceMetrics
           exit_date = psh_client['Housing Exit']
           days_in_psh = (exit_date - housed_date).to_i
 
+          first_time = client_id.in?(entry_client_ids)
+          reentering = client_id.in?(re_entry_client_ids)
 
-          # client = processed_enrollment.client
-          # nights_in_shelter = processed_enrollment.service_history_services.
-          #   service_between(start_date: @start_date, end_date: @end_date).
-          #   bed_night.
-          #   count
+          in_outflow = client_id.in?(outflow_client_ids)
+          entering_housing = client_id.in?(moved_to_housing_client_ids)
+          inactive = client_id.in?(inactive_client_ids)
 
-          # household_id = processed_enrollment.household_id || "#{processed_enrollment.enrollment_group_id}*hh"
-          # head_of_household = if processed_enrollment.household_id
-          #   processed_enrollment.head_of_household?
-          # else
-          #   true
-          # end
+          existing_client = report_clients[processed_enrollment.client] || Client.new
+          new_client = Client.new(
+            client_id: existing_client[:client_id] || client_id,
+            "#{period}_period_age" => existing_client[:age] || client.age_on(filter.start),
+            "#{period}_period_earned_income_at_start" => earned_income_at_start,
+            "#{period}_period_earned_income_at_exit" => earned_income_at_exit,
+            "#{period}_period_other_income_at_start" => other_income_at_start,
+            "#{period}_period_other_income_at_exit" => other_income_at_exit,
+            "#{period}_period_days_in_es" => days_in_es,
+            "#{period}_period_days_in_rrh" => days_in_rrh,
+            "#{period}_period_days_in_psh" => days_in_psh,
+            "#{period}_period_first_time" => first_time,
+            "#{period}_period_reentering" => reentering,
+            "#{period}_period_in_outflow" => in_outflow,
+            "#{period}_period_entering_housing" => entering_housing,
+            "#{period}_period_inactive" => inactive,
+            "#{period}_period_caper" => caper_report.id,
+            "#{period}_period_spm" => spm_report.id,
+          )
 
-          # existing_client = report_clients[processed_enrollment.client] || HapClient.new
-          # new_client = HapClient.new(
-          #   client_id: existing_client[:client_id] || processed_enrollment.client_id,
-          #   age: existing_client[:age] || client.age,
-          #   emancipated: false,
-          #   head_of_household: existing_client[:head_of_household] || head_of_household,
-          #   household_ids: (Array.wrap(existing_client[:household_ids]) << household_id).uniq,
-          #   project_types: (Array.wrap(existing_client[:project_types]) << processed_enrollment.project_type).uniq,
-          #   veteran: existing_client[:veteran] || processed_enrollment.client.veteran?,
-          #   mental_health: existing_client[:mental_health] || mental_health,
-          #   substance_use_disorder: existing_client[:substance_use_disorder] || substance_use_disorder,
-          #   domestic_violence: existing_client[:domestic_violence] || domestic_violence,
-          #   income_at_start: [existing_client[:income_at_start], income_at_start].compact.max,
-          #   income_at_exit: [existing_client[:income_at_exit], income_at_exit].compact.max,
-          #   homeless: existing_client[:homeless] || client.service_history_enrollments.homeless.open_between(start_date: @start_date, end_date: @end_date).exists?,
-          #   nights_in_shelter: [existing_client[:nights_in_shelter], nights_in_shelter].compact.sum,
-          # )
-          # new_client[:head_of_household_for] = if head_of_household
-          #   (Array.wrap(existing_client[:head_of_household_for])) << household_id
-          # else
-          #   existing_client[:head_of_household_for] || []
-          # end
-
-          # report_clients[client] = new_client
+          report_clients[client] = new_client
         end
-        HapClient.import(report_clients.values)
+        Client.import(report_clients.values)
         universe.add_universe_members(report_clients)
       end
     end
@@ -344,7 +317,7 @@ module PerformanceMetrics
         'Measure 1',
         'Measure 2',
       ]
-      spm_filter = HudApr::Filters::SpmFilter.new(user_id: filter.user_id).update(filter.to_h)
+      spm_filter = HudSpmReport::Filters::SpmFilter.new(user_id: filter.user_id).update(filter.to_h)
       generator = HudSpmReport::Generators::Fy2020::Generator
       spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
       generator.new(spm_report).run!(email: false)
@@ -358,10 +331,29 @@ module PerformanceMetrics
       WarehouseReport::Outcomes::RrhReport.new(rrh_filter)
     end
 
+    private def run_psh
+      psh_filter = WarehouseReport::Outcomes::OutcomesFilter.new(user_id: filter.user_id)
+      psh_filter.update(filter.to_h)
+      psh_filter.project_type_numbers = [3, 9, 10]
+      WarehouseReport::Outcomes::PshReport.new(psh_filter)
+    end
+
     private def run_outflow
       outflow_filter = ::Filters::OutflowReport.new(user_id: filter.user_id)
       outflow_filter.update(filter.to_h)
       GrdaWarehouse::WarehouseReports::OutflowReport.new(outflow_filter, filter.user)
+    end
+
+    private def run_inflow
+      inflow_filter = ::Filters::FilterBase.new(
+        user_id: filter.user_id,
+        enforce_one_year_range: false
+      )
+      inflow_filter.update(filter.to_h)
+      report = Reporting::MonthlyReports::Base.class_for(inflow_filter.sub_population).new(
+        user: inflow_filter.user,
+        filter: inflow_filter,
+      )
     end
 
     # private def outflow_clients(report)

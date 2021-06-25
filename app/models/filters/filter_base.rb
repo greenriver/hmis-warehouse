@@ -642,6 +642,7 @@ module Filters
       when :heads_of_household, :hoh_only
         'Heads of Household Only?'
       when :limit_to_vispdat
+        value = nil if limit_to_vispdat == :all_clients
         'Client Limits'
       end
 
