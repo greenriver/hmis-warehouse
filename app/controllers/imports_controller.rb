@@ -78,7 +78,17 @@ class ImportsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_import
-    @import = import_scope.find(params[:id].to_i)
+
+      @import = import_scope.find(params.require(:id))
+    rescue ActiveRecord::SubclassNotFound
+      # Importers are optional driver components now
+      # so we fallback to loading as the generic log interface
+      type_col = import_scope.inheritance_column
+      import_scope.inheritance_column = :_disabled
+      @import = import_scope.find(params.require(:id))
+      import_scope.inheritance_column = :type
+
+
   end
 
   # Only allow a trusted parameter "white list" through.

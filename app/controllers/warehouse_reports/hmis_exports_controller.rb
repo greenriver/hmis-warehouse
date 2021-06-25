@@ -50,10 +50,10 @@ module WarehouseReports
           render :index
         else
           case @filter.version
-          when '6.11'
-            WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
           when '2020'
             WarehouseReports::HmisTwentyTwentyExportJob.perform_later(@filter.options_for_hmis_export(2020).as_json, report_url: warehouse_reports_hmis_exports_url)
+          else
+            raise "#{@filter.version} export functionality is not available at this time"
           end
           redirect_to warehouse_reports_hmis_exports_path
         end

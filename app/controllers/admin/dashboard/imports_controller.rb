@@ -8,11 +8,13 @@ module Admin::Dashboard
   class ImportsController < ApplicationController
     before_action :require_can_view_imports!
     def index
+      GrdaWarehouse::ImportLog.inheritance_column = :_disabled
       @imports = data_source_scope.map do |d|
         GrdaWarehouse::ImportLog.where(data_source_id: d.id).
           diet.
           order(id: :desc).first_or_initialize
       end
+      GrdaWarehouse::ImportLog.inheritance_column = :typer
 
       @duplicates = GrdaWarehouse::IdentifyDuplicatesLog.last
       @service_history = GrdaWarehouse::GenerateServiceHistoryLog.last

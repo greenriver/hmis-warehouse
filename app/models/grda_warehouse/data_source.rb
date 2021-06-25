@@ -17,7 +17,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
 
-  has_many :import_logs
+  has_many :import_logs, class_name: 'GrdaWarehouse::ImportLog'
   has_many :services, class_name: 'GrdaWarehouse::Hud::Service', inverse_of: :data_source
   has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', inverse_of: :data_source
   has_many :exits, class_name: 'GrdaWarehouse::Hud::Exit', inverse_of: :data_source
