@@ -434,7 +434,6 @@ Layout/EmptyLinesAroundAccessModifier:
 # Cop supports --auto-correct.
 Layout/EmptyLinesAroundArguments:
   Exclude:
-    - 'app/models/grda_warehouse/recurring_hmis_export.rb'
 
 # Offense count: 21
 # Cop supports --auto-correct.
@@ -2568,7 +2567,6 @@ Naming/RescuedExceptionsVariableName:
 # SupportedStyles: snake_case, camelCase
 Naming/VariableName:
   Exclude:
-    - 'app/models/grda_warehouse/recurring_hmis_export.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/reporting/rrh_report.rb'
 
