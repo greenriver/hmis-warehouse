@@ -26,6 +26,10 @@ module PerformanceMetrics::WarehouseReports
       filters
     end
 
+    def show
+
+    end
+
     def create
       @report = report_class.new(
         user_id: current_user.id,
@@ -51,8 +55,6 @@ module PerformanceMetrics::WarehouseReports
     def details
       @key = params[:key].to_sym
       @comparison = params[:comparison] == 'true'
-      @report = @report.to_comparison if @comparison
-      @filter = @filter.to_comparison if @comparison
       respond_to do |format|
         format.html {}
         format.xlsx {}
@@ -66,11 +68,6 @@ module PerformanceMetrics::WarehouseReports
 
     private def set_report
       @report = report_class.find(params[:id].to_i)
-      if @report.include_comparison?
-        @comparison = @report.to_comparison
-      else
-        @comparison = @report
-      end
     end
 
     private def report_scope

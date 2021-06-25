@@ -38,6 +38,12 @@ module PerformanceMetrics
       complete
     end
 
+    # Sections
+    def clients_served
+      clients.where
+    end
+
+
     private def comparison_periods
       @comparison_periods ||= begin
         periods = [filter.range]
@@ -262,6 +268,8 @@ module PerformanceMetrics
           existing_client = report_clients[processed_enrollment.client] || Client.new
           new_client = Client.new(
             client_id: existing_client[:client_id] || client_id,
+            report_id: id,
+            "include_in_#{period}_period" => true,
             "#{period}_period_age" => existing_client[:age] || client.age_on(filter.start),
             "#{period}_period_earned_income_at_start" => earned_income_at_start,
             "#{period}_period_earned_income_at_exit" => earned_income_at_exit,
@@ -281,12 +289,14 @@ module PerformanceMetrics
 
           report_clients[client] = new_client
         end
+
         Client.import(report_clients.values)
         universe.add_universe_members(report_clients)
       end
     end
 
     private def run_caper
+      puts 'Running CAPER'
       # Run CAPER Q5 to get Q5a B6 (adult leavers) for the denominator
       # Looking for CAPER Q16 D14 to identify leavers who had income at exit (we'll only take those with an increase as the numerator)
       questions = [
@@ -311,6 +321,7 @@ module PerformanceMetrics
     end
 
     private def run_spm
+      puts 'Running SPM'
       # Looking for SPM Measure 1A E3
       # Looking for SPM Measure 2 J7 (total returns to homelessness within 2 years)
       questions = [

@@ -2,7 +2,9 @@ class CreatePerformanceMetricsClients < ActiveRecord::Migration[5.2]
   def change
     create_table :performance_metrics_clients do |t|
       t.references :client
+      t.references :report
 
+      t.boolean :include_in_current_period
       t.integer :current_period_age
       t.integer :current_period_earned_income_at_start
       t.integer :current_period_earned_income_at_exit
@@ -19,6 +21,7 @@ class CreatePerformanceMetricsClients < ActiveRecord::Migration[5.2]
       t.references :current_period_caper
       t.references :current_period_spm
 
+      t.boolean :include_in_prior_period
       t.integer :prior_period_age
       t.integer :prior_period_earned_income_at_start
       t.integer :prior_period_earned_income_at_exit

@@ -7,6 +7,7 @@
 module HudReports
   class GeneratorBase
     include ArelHelper
+    include Filter::FilterScopes
     include Rails.application.routes.url_helpers
 
     PENDING = 'pending'.freeze
@@ -48,6 +49,18 @@ module HudReports
 
       scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_coc(coc_code: @report.coc_codes)) if @report.coc_codes.present?
       scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project(@report.project_ids)) if @report.project_ids.present?
+
+      @filter = self.class.filter_class.new(user_id: @report.user_id).update(@report.options)
+      she_scope = GrdaWarehouse::ServiceHistoryEnrollment.all
+      she_scope = filter_for_veteran_status(she_scope)
+      she_scope = filter_for_household_type(she_scope)
+      she_scope = filter_for_head_of_household(she_scope)
+      she_scope = filter_for_age(she_scope)
+      she_scope = filter_for_gender(she_scope)
+      she_scope = filter_for_race(she_scope)
+      she_scope = filter_for_ethnicity(she_scope)
+      she_scope = filter_for_sub_population(she_scope)
+      scope.merge(she_scope)
 
       scope.select(:id)
     end

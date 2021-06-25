@@ -9649,6 +9649,83 @@ ALTER SEQUENCE public.hud_report_instances_id_seq OWNED BY public.hud_report_ins
 
 
 --
+-- Name: hud_report_path_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_path_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    data_source_id bigint,
+    report_instance_id bigint,
+    first_name character varying,
+    last_name character varying,
+    age integer,
+    dob date,
+    dob_quality integer,
+    gender integer,
+    am_ind_ak_native integer,
+    asian integer,
+    black_af_american integer,
+    native_hi_other_pacific integer,
+    white integer,
+    race_none integer,
+    ethnicity integer,
+    veteran integer,
+    substance_use_disorder integer,
+    soar integer,
+    prior_living_situation integer,
+    length_of_stay integer,
+    chronically_homeless character varying,
+    domestic_violence integer,
+    active_client boolean,
+    new_client boolean,
+    enrolled_client boolean,
+    date_of_determination date,
+    reason_not_enrolled integer,
+    project_type integer,
+    first_date_in_program date,
+    last_date_in_program date,
+    contacts date[],
+    services jsonb,
+    referrals jsonb,
+    income_from_any_source_entry integer,
+    incomes_at_entry jsonb,
+    income_from_any_source_exit integer,
+    incomes_at_exit jsonb,
+    income_from_any_source_report_end integer,
+    incomes_at_report_end jsonb,
+    benefits_from_any_source_entry integer,
+    benefits_from_any_source_exit integer,
+    benefits_from_any_source_report_end integer,
+    insurance_from_any_source_entry integer,
+    insurance_from_any_source_exit integer,
+    insurance_from_any_source_report_end integer,
+    destination integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: hud_report_path_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_path_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_path_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_path_clients_id_seq OWNED BY public.hud_report_path_clients.id;
+
+
+--
 -- Name: hud_report_spm_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -10748,44 +10825,39 @@ ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.i
 CREATE TABLE public.performance_metrics_clients (
     id bigint NOT NULL,
     client_id bigint,
-    current_period_enrollments jsonb,
-    current_period_exit_date date,
-    current_period_exit_project_name character varying,
-    current_period_return_date date,
-    current_period_return_project_name character varying,
-    current_period_move_in_date date,
-    current_period_move_in_project character varying,
+    report_id bigint,
+    include_in_current_period boolean,
+    current_period_age integer,
+    current_period_earned_income_at_start integer,
+    current_period_earned_income_at_exit integer,
+    current_period_other_income_at_start integer,
+    current_period_other_income_at_exit integer,
     current_period_days_in_es integer,
     current_period_days_in_rrh integer,
     current_period_days_in_psh integer,
-    current_period_income_at_start integer,
-    current_period_income_at_end integer,
-    current_period_employment_income_at_start integer,
-    current_period_employment_income_at_end integer,
-    current_period_non_employment_income_at_start integer,
-    current_period_non_employment_income_at_end integer,
     current_period_first_time boolean,
     current_period_reentering boolean,
+    current_period_in_outflow boolean,
+    current_period_entering_housing boolean,
+    current_period_inactive boolean,
     current_period_caper_id bigint,
-    prior_period_enrollments jsonb,
-    prior_period_exit_date date,
-    prior_period_exit_project_name character varying,
-    prior_period_return_date date,
-    prior_period_return_project_name character varying,
-    prior_period_move_in_date date,
-    prior_period_move_in_project character varying,
+    current_period_spm_id bigint,
+    include_in_prior_period boolean,
+    prior_period_age integer,
+    prior_period_earned_income_at_start integer,
+    prior_period_earned_income_at_exit integer,
+    prior_period_other_income_at_start integer,
+    prior_period_other_income_at_exit integer,
     prior_period_days_in_es integer,
     prior_period_days_in_rrh integer,
     prior_period_days_in_psh integer,
-    prior_period_income_at_start integer,
-    prior_period_income_at_end integer,
-    prior_period_employment_income_at_start integer,
-    prior_period_employment_income_at_end integer,
-    prior_period_non_employment_income_at_start integer,
-    prior_period_non_employment_income_at_end integer,
     prior_period_first_time boolean,
     prior_period_reentering boolean,
+    prior_period_in_outflow boolean,
+    prior_period_entering_housing boolean,
+    prior_period_inactive boolean,
     prior_period_caper_id bigint,
+    prior_period_spm_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -15429,6 +15501,13 @@ ALTER TABLE ONLY public.hud_report_instances ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hud_report_path_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_path_clients ALTER COLUMN id SET DEFAULT nextval('public.hud_report_path_clients_id_seq'::regclass);
+
+
+--
 -- Name: hud_report_spm_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -17592,6 +17671,14 @@ ALTER TABLE ONLY public.hud_report_instances
 
 
 --
+-- Name: hud_report_path_clients hud_report_path_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_path_clients
+    ADD CONSTRAINT hud_report_path_clients_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hud_report_spm_clients hud_report_spm_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18387,6 +18474,13 @@ CREATE INDEX client_first_name ON public."Client" USING btree ("FirstName");
 
 
 --
+-- Name: client_id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree (client_id);
+
+
+--
 -- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -18552,6 +18646,13 @@ CREATE INDEX enrollment_date_updated ON public."Enrollment" USING btree ("DateUp
 --
 
 CREATE INDEX enrollment_export_id ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: entrydate_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX entrydate_ret_index ON public.recent_report_enrollments USING btree ("EntryDate");
 
 
 --
@@ -21082,6 +21183,20 @@ CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree
 
 
 --
+-- Name: hud_path_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_clients USING btree (report_instance_id, data_source_id, client_id);
+
+
+--
+-- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
+
+
+--
 -- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23406,6 +23521,62 @@ CREATE INDEX index_hud_report_instances_on_user_id ON public.hud_report_instance
 
 
 --
+-- Name: index_hud_report_path_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_client_id ON public.hud_report_path_clients USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_path_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_data_source_id ON public.hud_report_path_clients USING btree (data_source_id);
+
+
+--
+-- Name: index_hud_report_path_clients_on_incomes_at_entry; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_incomes_at_entry ON public.hud_report_path_clients USING gin (incomes_at_entry);
+
+
+--
+-- Name: index_hud_report_path_clients_on_incomes_at_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_incomes_at_exit ON public.hud_report_path_clients USING gin (incomes_at_exit);
+
+
+--
+-- Name: index_hud_report_path_clients_on_incomes_at_report_end; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_incomes_at_report_end ON public.hud_report_path_clients USING gin (incomes_at_report_end);
+
+
+--
+-- Name: index_hud_report_path_clients_on_referrals; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_referrals ON public.hud_report_path_clients USING gin (referrals);
+
+
+--
+-- Name: index_hud_report_path_clients_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_report_instance_id ON public.hud_report_path_clients USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_path_clients_on_services; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_path_clients_on_services ON public.hud_report_path_clients USING gin (services);
+
+
+--
 -- Name: index_hud_report_universe_members_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23686,6 +23857,13 @@ CREATE INDEX index_performance_metrics_clients_on_current_period_caper_id ON pub
 
 
 --
+-- Name: index_performance_metrics_clients_on_current_period_spm_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_performance_metrics_clients_on_current_period_spm_id ON public.performance_metrics_clients USING btree (current_period_spm_id);
+
+
+--
 -- Name: index_performance_metrics_clients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23697,6 +23875,20 @@ CREATE INDEX index_performance_metrics_clients_on_deleted_at ON public.performan
 --
 
 CREATE INDEX index_performance_metrics_clients_on_prior_period_caper_id ON public.performance_metrics_clients USING btree (prior_period_caper_id);
+
+
+--
+-- Name: index_performance_metrics_clients_on_prior_period_spm_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_performance_metrics_clients_on_prior_period_spm_id ON public.performance_metrics_clients USING btree (prior_period_spm_id);
+
+
+--
+-- Name: index_performance_metrics_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_performance_metrics_clients_on_report_id ON public.performance_metrics_clients USING btree (report_id);
 
 
 --
@@ -30328,6 +30520,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210601135719'),
 ('20210601173704'),
 ('20210603121547'),
+('20210604155334'),
 ('20210615131534'),
 ('20210616181054'),
 ('20210616193735'),

@@ -18,6 +18,10 @@ module HudApr::Generators::Caper::Fy2020
       hud_reports_caper_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
+    def self.filter_class
+      HudApr::Filters::AprFilter
+    end
+
     def self.questions
       [
         HudApr::Generators::Caper::Fy2020::QuestionFour, # Project Identifiers in HMIS

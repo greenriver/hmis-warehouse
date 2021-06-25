@@ -196,6 +196,8 @@ module Filter::FilterScopes
     end
 
     private def filter_for_sub_population(scope)
+      return scope unless @filter.sub_population.present?
+
       scope.public_send(@filter.sub_population)
     end
 

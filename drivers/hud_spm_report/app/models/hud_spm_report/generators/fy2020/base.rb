@@ -13,6 +13,7 @@
 
 module HudSpmReport::Generators::Fy2020
   class Base < ::HudReports::QuestionBase
+    include Filter::FilterScopes
     include ArelHelper
 
     delegate :client_scope, to: :@generator
@@ -27,6 +28,10 @@ module HudSpmReport::Generators::Fy2020
 
     def she_household_column
       self.class.she_household_column
+    end
+
+    def self.filter_class
+      HudSpmReport::Filters::SpmFilter
     end
 
     LOOKBACK_STOP_DATE = Date.iso8601('2012-10-01').freeze
@@ -219,6 +224,14 @@ module HudSpmReport::Generators::Fy2020
       if (project_ids = filter.effective_project_ids).any?
         scope = scope.joins(:project).where(p_t[:id].in(project_ids))
       end
+      scope = filter_for_veteran_status(scope)
+      scope = filter_for_household_type(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
+      scope = filter_for_sub_population(scope)
       scope
     end
 
@@ -1347,7 +1360,7 @@ module HudSpmReport::Generators::Fy2020
         # Move new start date back based on contiguous homelessness before the start date above
         new_client_start_date = client_start_date.to_date
         days_before_client_start_date.reverse_each do |d|
-          if d.to_date == new_client_start_date.to_date - 1.day # rubocop:disable Style/GuardClause
+          if d.to_date == new_client_start_date.to_date - 1.day
             new_client_start_date = d.to_date
           else
             # Non-contiguous
@@ -1498,7 +1511,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def in_stop_project_on?(night, date, stop_project_types, consider_move_in_dates)
-      if consider_move_in_dates && PH.include?(night[:project_type]) # rubocop:disable Style/GuardClause
+      if consider_move_in_dates && PH.include?(night[:project_type])
         return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].present? && night[:MoveInDate] <= date))
       else
         return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))
