@@ -21,17 +21,20 @@ module HmisCsvFixtures
     tmp_path = File.join(file_path, data_source.id.to_s)
     FileUtils.cp_r(source_file_path, tmp_path)
 
-    impoter_class = if version == '6.11'
-      Importers::HMISSixOneOne::Base
+    importer = if version == '6.11'
+      Importers::HMISSixOneOne::Bases.new(
+        file_path: file_path,
+        data_source_id: data_source.id
+      )
     elsif version == '2020'
-      Importers::HmisTwentyTwenty::Base
+      HmisCsvTwentyTwenty::Loader::Loader.new(
+        file_path: tmp_path,
+        data_source_id: data_source.id
+      )
     else
       raise "Unsupported CSV version #{version}"
     end
-    impoter_class.new(
-      file_path: file_path,
-      data_source_id: data_source.id
-    ).import!
+    importer.import!
 
     if run_jobs
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
@@ -39,8 +42,8 @@ module HmisCsvFixtures
       GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
       AccessGroup.maintain_system_groups
 
-      Delayed::Worker.new.work_off(2)
     end
+    Delayed::Worker.new.work_off
   ensure
     FileUtils.rm_rf(tmp_path) if tmp_path
 

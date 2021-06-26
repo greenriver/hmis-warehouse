@@ -67,10 +67,9 @@ module HmisCsvTwentyTwenty::Loader
       begin
         ensure_file_naming
         @export = load_export_file
-        export_valid = export_file_valid?
-        return unless export_valid
+        return complete_load(status: :failed, err: 'Unable to find a valid Export.csv') unless export_file_valid?
 
-        load_source_files! if export_valid
+        load_source_files!
         complete_load(status: :loaded)
       rescue StandardError => e
         complete_load(status: :failed, err: e)
@@ -80,7 +79,13 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     def import!
+      # run the load step if we havent yet
+      load! unless @loader_log.status.to_s.in? ['failed', 'loaded']
+
+
       return unless @loader_log.successfully_loaded?
+
+      # puts summary_as_log_str(@loader_log.summary)
 
       @importer = HmisCsvTwentyTwenty::Importer::Importer.new(
         loader_id: @loader_log.id,
@@ -90,7 +95,10 @@ module HmisCsvTwentyTwenty::Loader
         deidentified: @deidentified,
       )
 
-      @importer.import!
+      res = @importer.import!
+      # puts summary_as_log_str(@importer.importer_log.summary)
+
+      res
     end
 
     def importer_log
@@ -302,9 +310,11 @@ module HmisCsvTwentyTwenty::Loader
         add_error(file_path: file_path, message: 'No header row found', line: 1)
         return
       end
+
       if header_invalid?(source_headers, klass)
-        add_error(file_path: file_path, message: "Header invalid: \n#{source_headers}; \nexpected a subset of: \n#{klass.hud_csv_headers.map(&:to_s)}", line: 1)
-        return
+        expected_headers = klass.hud_csv_headers.map(&:to_s)
+        unexpected_headers = source_headers - expected_headers
+        add_error(file_path: file_path, message: "Found unexpected header columns: \n#{unexpected_headers.join(',')}; \nExpected: \n#{klass.hud_csv_headers.map(&:to_s).join(',')}", line: 1)
       end
 
       indexed_headers = klass.hud_csv_headers.map do |k|
