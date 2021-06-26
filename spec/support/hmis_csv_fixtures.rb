@@ -15,29 +15,23 @@ module HmisCsvFixtures
     @data_source = data_source
     source_file_path = File.join(file_path, 'source')
 
-    # duplicate the fixture file since the import is
+    # duplicate the fixture folder since the import is
     # expecting "#{file_path}/#{data_source.id}" and to be able
     # to tamper with its contents
-    @importer_tmp_folders ||= []
     tmp_path = File.join(file_path, data_source.id.to_s)
     FileUtils.cp_r(source_file_path, tmp_path)
-    @importer_tmp_folders << tmp_path unless tmp_path == source_file_path
 
-    if version == '6.11'
-      Importers::HMISSixOneOne::Base.new(
-        file_path: file_path,
-        data_source_id: data_source.id,
-        remove_files: false
-      ).import!
+    impoter_class = if version == '6.11'
+      Importers::HMISSixOneOne::Base
     elsif version == '2020'
-      Importers::HmisTwentyTwenty::Base.new(
-        file_path: file_path,
-        data_source_id: data_source.id,
-        remove_files: false
-      ).import!
+      Importers::HmisTwentyTwenty::Base
     else
       raise "Unsupported CSV version #{version}"
     end
+    impoter_class.new(
+      file_path: file_path,
+      data_source_id: data_source.id
+    ).import!
 
     if run_jobs
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
@@ -47,13 +41,13 @@ module HmisCsvFixtures
 
       Delayed::Worker.new.work_off(2)
     end
+  ensure
+    FileUtils.rm_rf(tmp_path) if tmp_path
 
     nil # no useful return
   end
 
   def cleanup_hmis_csv_fixtures
-    @importer_tmp_folders&.each do |path|
-      FileUtils.rm_rf(path)
-    end
+    # currently a no-op
   end
 end
