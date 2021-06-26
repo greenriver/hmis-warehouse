@@ -96,7 +96,7 @@ module HmisCsvTwentyTwenty::Loader
       )
 
       res = @importer.import!
-      # puts summary_as_log_str(@importer.importer_log.summary)
+      # puts summary_as_log_str(importer_log.summary)
 
       res
     end
@@ -105,9 +105,9 @@ module HmisCsvTwentyTwenty::Loader
       @importer&.importer_log
     end
 
-    def load_export_file
+    private def load_export_file
       begin
-        @export ||= export_source.load_from_csv(
+        @export ||= importable_files['Export.csv'].load_from_csv(
           file_path: @file_path,
           data_source_id: data_source.id,
         )
@@ -119,7 +119,7 @@ module HmisCsvTwentyTwenty::Loader
       @export
     end
 
-    def header_valid?(line, klass)
+    private def header_valid?(line, klass)
       return false unless line.present?
 
       incoming_headers = line&.map(&:to_s)
@@ -130,11 +130,11 @@ module HmisCsvTwentyTwenty::Loader
       hud_headers.sort == incoming_headers.sort
     end
 
-    def header_invalid?(headers, klass)
+    private def header_invalid?(headers, klass)
       ! header_valid?(headers, klass)
     end
 
-    def export_id_addition
+    private def export_id_addition
       @export_id_addition ||= @range.start.strftime('%Y%m%d')
     end
 
@@ -150,7 +150,7 @@ module HmisCsvTwentyTwenty::Loader
     #   row
     # end
 
-    def expand(file_path:)
+    private def expand(file_path:)
       Rails.logger.info "Expanding #{file_path}"
       Zip::File.open(file_path) do |zipped_file|
         zipped_file.each do |entry|
@@ -161,11 +161,11 @@ module HmisCsvTwentyTwenty::Loader
       FileUtils.rm(file_path)
     end
 
-    def encoding_detector
+    private def encoding_detector
       @encoding_detector ||= CharlockHolmes::EncodingDetector.new
     end
 
-    def load_source_files!
+    private def load_source_files!
       @loader_log.update(status: :loading)
 
       importable_files.each do |file_name, klass|
@@ -206,7 +206,7 @@ module HmisCsvTwentyTwenty::Loader
       final_characters
     end
 
-    def load_source_file_pg(read_from:, klass:, original_file_path:)
+    private def load_source_file_pg(read_from:, klass:, original_file_path:)
       raise 'data_source.id must be set' unless data_source.id.present?
       raise '@loader_log.id must be set' unless @loader_log.id.present?
       raise '@loaded_at must be set' unless @loaded_at.present?
@@ -220,7 +220,14 @@ module HmisCsvTwentyTwenty::Loader
 
       meta_data = [data_source.id, @loader_log.id, @loaded_at]
 
-      header_row = CSV.parse_line(read_from, headers: false, liberal_parsing: true)
+
+      # get expected
+
+      header_row = CSV.parse_line(
+        read_from,
+        liberal_parsing: true,
+        strip: true
+      )
       copy_cols = clean_header_row(header_row, klass, file_name)
       return unless copy_cols
 
@@ -242,7 +249,11 @@ module HmisCsvTwentyTwenty::Loader
         pg_result = pg_conn.copy_data copy_sql do
           read_from.rewind
           begin
-            parser = CSV.new(read_from, headers: false, liberal_parsing: true)
+            parser = CSV.new(
+              read_from,
+              headers: false,
+              liberal_parsing: true
+            )
             parser.each do |row|
               # There were excess columns, probably due to an unquoted comma
               if row.size > expect_col_count
@@ -305,7 +316,7 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     # Headers need to match our style
-    def clean_header_row(source_headers, klass, file_path)
+    private def clean_header_row(source_headers, klass, file_path)
       if source_headers.none?
         add_error(file_path: file_path, message: 'No header row found', line: 1)
         return
@@ -330,20 +341,12 @@ module HmisCsvTwentyTwenty::Loader
       self.class.importable_files
     end
 
-    def self.export_source
-      importable_files['Export.csv']
-    end
-
-    def export_source
-      self.class.export_source
-    end
-
-    def remove_import_files
+    private def remove_import_files
       Rails.logger.info "Removing #{@file_path}"
       FileUtils.rm_rf(@file_path) if File.directory?(@file_path)
     end
 
-    def build_loader_log(data_source:)
+    private def build_loader_log(data_source:)
       HmisCsvTwentyTwenty::Loader::LoaderLog.create!(
         data_source_id: data_source.id,
         started_at: Time.current,
@@ -351,7 +354,7 @@ module HmisCsvTwentyTwenty::Loader
       )
     end
 
-    def export_file_valid?
+    private def export_file_valid?
       if @export.blank?
         log('Exiting, failed to find a valid Export record')
         return false
@@ -387,16 +390,16 @@ module HmisCsvTwentyTwenty::Loader
       end
     end
 
-    def log_ids
+    private def log_ids
       { data_source_id: data_source.id, loader_id: @loader_log.id }
     end
 
-    def start_load
+    private def start_load
       @loaded_at = Time.current
       log("Starting load for #{hash_as_log_str log_ids}.")
     end
 
-    def complete_load(status:, err: nil)
+    private def complete_load(status:, err: nil)
       elapsed = Time.current - @loaded_at
       @loader_log.update(
         completed_at: Time.current,
@@ -407,7 +410,7 @@ module HmisCsvTwentyTwenty::Loader
       log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
     end
 
-    def setup_summary(file)
+    private def setup_summary(file)
       @loader_log.summary ||= {}
       @loader_log.summary[file] ||= {
         'total_lines' => 0,
@@ -416,7 +419,7 @@ module HmisCsvTwentyTwenty::Loader
       }
     end
 
-    def add_error(file_path:, message:, line:)
+    private def add_error(file_path:, message:, line:)
       file = File.basename(file_path)
       @loader_log.load_errors.create(
         file_name: file,
