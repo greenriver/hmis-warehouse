@@ -3,15 +3,12 @@ require 'rails_helper'
 RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
   describe 'When importing enrollments' do
     before(:all) do
-      @delete_later = []
-      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_files'
-      import(file_path, @data_source)
+      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_files', version: '6.11', run_jobs: false
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       GrdaWarehouse::Utility.clear!
-      cleanup_files
+      cleanup_hmis_csv_fixtures
     end
 
     it 'the database will have three clients' do
@@ -55,11 +52,10 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
     describe 'when importing updated enrollment data' do
       before(:all) do
-        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_change_files'
-        import(file_path, @data_source)
+        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_change_files', version: '6.11', run_jobs: false
       end
       after(:all) do
-        cleanup_files
+        cleanup_hmis_csv_fixtures
       end
 
       it 'it doesn\'t import enrollments that changed but have an earlier modification date' do
@@ -76,15 +72,12 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
   describe 'When importing enrollments with deletes' do
     before(:all) do
-      @delete_later = []
-      data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_with_deletes_test_files'
-      import(file_path, data_source)
+      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_with_deletes_test_files', version: '6.11', run_jobs: false
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       GrdaWarehouse::Utility.clear!
-      cleanup_files
+      cleanup_hmis_csv_fixtures
     end
 
     it 'the database will have two clients' do
@@ -157,15 +150,12 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
   describe 'When importing projects' do
     before(:all) do
-      @delete_later = []
-      data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_test_files'
-      import(file_path, data_source)
+      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_test_files', version: '6.11', run_jobs: false
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       GrdaWarehouse::Utility.clear!
-      cleanup_files
+      cleanup_hmis_csv_fixtures
     end
 
     it 'the database will have five projects' do
@@ -216,17 +206,13 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
   describe 'When importing enrollments with restores' do
     before(:all) do
-      @delete_later = []
-      data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_initial_files'
-      import(file_path, data_source)
-      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_update_files'
-      import(file_path, data_source)
+      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_initial_files', version: '6.11', run_jobs: false
+      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_update_files', version: '6.11', run_jobs: false
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       GrdaWarehouse::Utility.clear!
-      cleanup_files
+      cleanup_hmis_csv_fixtures
     end
 
     it 'has two enrollments' do
@@ -257,15 +243,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
 
     describe 'with both projects' do
-      # This is a before instead of a before(:all) because we can't reference 'let's in a before(:all)
       before(:all) do
-        @delete_later = []
-        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_both_projects_files'
-        import(file_path, @data_source)
+        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_both_projects_files', data_source: @data_source, version: '6.11', run_jobs: false
       end
       after(:all) do
-        # Because we are only running the import once, we have to do our own DB and file cleanup
-        cleanup_files
+        cleanup_hmis_csv_fixtures
       end
 
       it 'restores and updates the deleted geography record' do
@@ -288,13 +270,10 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
     describe 'with project 1' do
       before(:all) do
-        @delete_later = []
-        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files'
-        import(file_path, @data_source)
+        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files', version: '6.11', run_jobs: false
       end
       after(:all) do
-        # Because we are only running the import once, we have to do our own DB and file cleanup
-        cleanup_files
+        cleanup_hmis_csv_fixtures
       end
 
       it 'restores and updates the deleted geography record' do
@@ -330,15 +309,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
 
     describe 'with project 1' do
-      # This is a before instead of a before(:all) because we can't reference 'let's in a before(:all)
       before do
-        @delete_later = []
-        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files'
-        import(file_path, @data_source)
+        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files', data_source: @data_source, version: '6.11', run_jobs: false
       end
       after do
-        # Because we are only running the import once, we have to do our own DB and file cleanup
-        cleanup_files
+        cleanup_hmis_csv_fixtures
       end
 
       it "it doesn't restore the geography record" do
@@ -361,37 +336,16 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
 
     describe 'with project 1' do
-      # This is a before instead of a before(:all) because we can't reference 'let's in a before(:all)
       before do
-        @delete_later = []
-        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files'
-        import(file_path, @data_source)
+        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files', data_source: @data_source, version: '6.11', run_jobs: false
       end
       after do
-        # Because we are only running the import once, we have to do our own DB and file cleanup
-        cleanup_files
+        cleanup_hmis_csv_fixtures
       end
 
       it 'it restores the geography record' do
         expect(GrdaWarehouse::Hud::Geography.only_deleted.count).to eq(0)
       end
-    end
-  end
-
-  def import(file_path, data_source)
-    source_file_path = File.join(file_path, 'source')
-    import_path = File.join(file_path, data_source.id.to_s)
-    # duplicate the fixture file as it gets manipulated
-    FileUtils.cp_r(source_file_path, import_path)
-    @delete_later << import_path unless import_path == source_file_path
-
-    importer = Importers::HMISSixOneOne::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
-    importer.import!
-  end
-
-  def cleanup_files
-    @delete_later.each do |path|
-      FileUtils.rm_rf(path)
     end
   end
 end
