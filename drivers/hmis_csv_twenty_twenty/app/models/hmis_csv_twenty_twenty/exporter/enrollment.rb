@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse::Export::HmisTwentyTwenty
+module HmisCsvTwentyTwenty::Exporter
   class Enrollment < GrdaWarehouse::Import::HmisTwentyTwenty::Enrollment
     include ::Export::HmisTwentyTwenty::Shared
     setup_hud_column_access( GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '2020') )

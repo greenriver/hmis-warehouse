@@ -6,7 +6,7 @@
 
 require 'zip'
 require 'csv'
-module Exporters::HmisTwentyTwenty
+module HmisCsvTwentyTwenty::Exporter
   class Base
     include NotifierConfig
     include ArelHelper

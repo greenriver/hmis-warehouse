@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse::Export::HmisTwentyTwenty
-  class AssessmentResult < GrdaWarehouse::Import::HmisTwentyTwenty::AssessmentResult
+module HmisCsvTwentyTwenty::Exporter
+  class AssessmentQuestion < GrdaWarehouse::Import::HmisTwentyTwenty::AssessmentQuestion
     include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::AssessmentResult.hud_csv_headers(version: '2020') )
+    setup_hud_column_access( GrdaWarehouse::Hud::AssessmentQuestion.hud_csv_headers(version: '2020') )
 
-    self.hud_key = :AssessmentResultID
+    self.hud_key = :AssessmentQuestionID
 
      # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

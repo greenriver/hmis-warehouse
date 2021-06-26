@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse::Export::HmisTwentyTwenty
+module HmisCsvTwentyTwenty::Exporter
   class Export < GrdaWarehouse::Import::HmisTwentyTwenty::Export
     include ::Export::HmisTwentyTwenty::Shared
     attr_accessor :path
@@ -14,25 +14,6 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     def initialize(path:)
       super
       @path = path
-    end
-
-    def self.available_period_types
-      {
-        3 => 'Reporting period',
-      }.freeze
-    end
-
-    def self.available_directives
-      {
-        2 => 'Full refresh',
-      }.freeze
-    end
-
-    def self.available_hash_stati
-      {
-        1 => 'Unhashed',
-        4 => 'SHA-256 (RHY)',
-      }.freeze
     end
 
     def export!

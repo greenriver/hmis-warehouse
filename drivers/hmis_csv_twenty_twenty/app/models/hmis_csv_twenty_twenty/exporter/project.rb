@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse::Export::HmisTwentyTwenty
+module HmisCsvTwentyTwenty::Exporter
   class Project < GrdaWarehouse::Import::HmisTwentyTwenty::Project
     include ::Export::HmisTwentyTwenty::Shared
 
