@@ -13,7 +13,7 @@ RSpec.shared_context '2020 single-enrollment tests', shared_context: :metadata d
     describe 'when exporting enrollments' do
       before(:each) do
         exporter.export_enrollments
-        @enrollment_class = GrdaWarehouse::Export::HmisTwentyTwenty::Enrollment
+        @enrollment_class = HmisCsvTwentyTwenty::Exporter::Enrollment
       end
       it 'enrollment scope should find one enrollment' do
         expect(exporter.enrollment_scope.count).to eq 1
@@ -38,7 +38,7 @@ RSpec.shared_context '2020 single-enrollment tests', shared_context: :metadata d
     describe 'when exporting clients' do
       before(:each) do
         exporter.export_clients
-        @client_class = GrdaWarehouse::Export::HmisTwentyTwenty::Client
+        @client_class = HmisCsvTwentyTwenty::Exporter::Client
       end
       it 'client scope should find one client' do
         expect(exporter.client_scope.count).to eq 1

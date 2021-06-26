@@ -1,19 +1,19 @@
 require 'rails_helper'
-require 'models/exporters/hmis_twenty_twenty/project_setup'
-require 'models/exporters/hmis_twenty_twenty/enrollment_dates_setup'
-require 'models/exporters/hmis_twenty_twenty/multi_enrollment_tests'
+require_relative './project_setup'
+require_relative './enrollment_dates_setup'
+require_relative './multi_enrollment_tests'
 
 def project_test_type
   'enrollment date-based'
 end
 
-RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
+RSpec.describe HmisCsvTwentyTwenty::Exporter::Base, type: :model do
   include_context '2020 project setup'
   include_context '2020 enrollment dates setup'
 
   let(:involved_project_ids) { projects.map(&:id) }
   let(:exporter) do
-    Exporters::HmisTwentyTwenty::Base.new(
+    HmisCsvTwentyTwenty::Exporter::Base.new(
       start_date: 3.weeks.ago.to_date,
       end_date: 1.weeks.ago.to_date,
       projects: involved_project_ids,

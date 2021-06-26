@@ -12,7 +12,7 @@ module HmisCsvTwentyTwenty
 
     def perform(options, report_url: warehouse_reports_hmis_exports_url)
       options = options.with_indifferent_access
-      report = Exporters::HmisTwentyTwenty::Base.new(
+      report = HmisCsvTwentyTwenty::Exporter::Base.new(
         start_date: options[:start_date],
         end_date: options[:end_date],
         projects: options[:projects],

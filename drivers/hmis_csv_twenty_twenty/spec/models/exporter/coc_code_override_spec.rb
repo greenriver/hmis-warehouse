@@ -1,13 +1,13 @@
 require 'rails_helper'
-require 'models/exporters/hmis_twenty_twenty/coc_code_override_setup'
-require 'models/exporters/hmis_twenty_twenty/coc_code_override_tests'
-require 'models/exporters/hmis_twenty_twenty/project_id_override_tests'
+require_relative './coc_code_override_setup'
+require_relative './coc_code_override_tests'
+require_relative './project_id_override_tests'
 
-RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
+RSpec.describe HmisCsvTwentyTwenty::Exporter::Base, type: :model do
   include_context '2020 coc code override setup'
 
   let(:enrollment_exporter) do
-    Exporters::HmisTwentyTwenty::Base.new(
+    HmisCsvTwentyTwenty::Exporter::Base.new(
       start_date: 1.week.ago.to_date,
       end_date: Date.current,
       projects: [projects.first.id],
@@ -18,7 +18,7 @@ RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
   end
 
   let(:project_exporter) do
-    Exporters::HmisTwentyTwenty::Base.new(
+    HmisCsvTwentyTwenty::Exporter::Base.new(
       start_date: 1.week.ago.to_date,
       end_date: Date.current,
       projects: projects.map(&:id),

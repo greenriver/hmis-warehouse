@@ -14,22 +14,23 @@ module HmisCsvTwentyTwenty::Exporter
     attr_accessor :logger, :notifier_config, :file_path, :export
 
     def initialize( # rubocop:disable  Metrics/ParameterLists
+      version: '2020',
+      user_id:,
       start_date:,
       end_date:,
       projects:,
-      period_type: 3,
-      directive: 2,
-      hash_status: 1,
+      period_type: nil,
+      directive: nil,
+      hash_status: nil,
       faked_pii: false,
       include_deleted: false,
-      user_id: nil,
-      version: '2020',
       faked_environment: :development,
       file_path: 'var/hmis_export',
       logger: Rails.logger,
       debug: true
     )
       setup_notifier('HMIS Exporter 2020')
+      @version = version
       @file_path = "#{file_path}/#{Time.now.to_f}"
       @logger = logger
       @debug = debug
@@ -39,12 +40,7 @@ module HmisCsvTwentyTwenty::Exporter
       @directive = directive.presence || 2
       @hash_status = hash_status.presence || 1
       @faked_pii = faked_pii
-      @user = begin
-        current_user
-      rescue StandardError
-        User.find(user_id)
-      end
-      @version = version
+      @user = User.find(user_id)
       @include_deleted = include_deleted
       @faked_environment = faked_environment
     end
@@ -464,7 +460,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.affiliation_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Affiliation
+      HmisCsvTwentyTwenty::Exporter::Affiliation
     end
 
     def affiliation_source
@@ -472,7 +468,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.client_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Client
+      HmisCsvTwentyTwenty::Exporter::Client
     end
 
     def client_source
@@ -480,7 +476,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.disability_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Disability
+      HmisCsvTwentyTwenty::Exporter::Disability
     end
 
     def disability_source
@@ -488,7 +484,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.employment_education_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::EmploymentEducation
+      HmisCsvTwentyTwenty::Exporter::EmploymentEducation
     end
 
     def employment_education_source
@@ -496,7 +492,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.enrollment_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Enrollment
+      HmisCsvTwentyTwenty::Exporter::Enrollment
     end
 
     def enrollment_source
@@ -504,7 +500,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.enrollment_coc_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::EnrollmentCoc
+      HmisCsvTwentyTwenty::Exporter::EnrollmentCoc
     end
 
     def enrollment_coc_source
@@ -512,7 +508,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.exit_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Exit
+      HmisCsvTwentyTwenty::Exporter::Exit
     end
 
     def exit_source
@@ -520,7 +516,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.export_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Export
+      HmisCsvTwentyTwenty::Exporter::Export
     end
 
     def export_source
@@ -528,7 +524,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.funder_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Funder
+      HmisCsvTwentyTwenty::Exporter::Funder
     end
 
     def funder_source
@@ -536,7 +532,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.health_and_dv_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::HealthAndDv
+      HmisCsvTwentyTwenty::Exporter::HealthAndDv
     end
 
     def health_and_dv_source
@@ -544,7 +540,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.income_benefits_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::IncomeBenefit
+      HmisCsvTwentyTwenty::Exporter::IncomeBenefit
     end
 
     def income_benefits_source
@@ -552,7 +548,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.inventory_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Inventory
+      HmisCsvTwentyTwenty::Exporter::Inventory
     end
 
     def inventory_source
@@ -560,7 +556,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.organization_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Organization
+      HmisCsvTwentyTwenty::Exporter::Organization
     end
 
     def organization_source
@@ -568,7 +564,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.project_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Project
+      HmisCsvTwentyTwenty::Exporter::Project
     end
 
     def project_source
@@ -576,7 +572,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.project_coc_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::ProjectCoc
+      HmisCsvTwentyTwenty::Exporter::ProjectCoc
     end
 
     def project_coc_source
@@ -584,7 +580,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.service_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Service
+      HmisCsvTwentyTwenty::Exporter::Service
     end
 
     def service_source
@@ -592,7 +588,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.current_living_situation_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::CurrentLivingSituation
+      HmisCsvTwentyTwenty::Exporter::CurrentLivingSituation
     end
 
     def current_living_situation_source
@@ -600,7 +596,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.assessment_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Assessment
+      HmisCsvTwentyTwenty::Exporter::Assessment
     end
 
     def assessment_source
@@ -608,7 +604,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.assessment_question_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentQuestion
+      HmisCsvTwentyTwenty::Exporter::AssessmentQuestion
     end
 
     def assessment_question_source
@@ -616,7 +612,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.assessment_result_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentResult
+      HmisCsvTwentyTwenty::Exporter::AssessmentResult
     end
 
     def assessment_result_source
@@ -624,7 +620,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.event_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::Event
+      HmisCsvTwentyTwenty::Exporter::Event
     end
 
     def event_source
@@ -632,7 +628,7 @@ module HmisCsvTwentyTwenty::Exporter
     end
 
     def self.user_source
-      GrdaWarehouse::Export::HmisTwentyTwenty::User
+      HmisCsvTwentyTwenty::Exporter::User
     end
 
     def user_source

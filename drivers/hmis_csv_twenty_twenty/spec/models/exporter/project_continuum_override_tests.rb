@@ -22,7 +22,7 @@ RSpec.shared_context '2020 project continuum override tests', shared_context: :m
         projects[5].update(ContinuumProject: 1, hud_continuum_funded: false)
 
         exporter.export_projects
-        @project_class = GrdaWarehouse::Export::HmisTwentyTwenty::Project
+        @project_class = HmisCsvTwentyTwenty::Exporter::Project
       end
       it 'creates a CSV file' do
         expect(File.exist?(csv_file_path(@project_class))).to be true

@@ -13,7 +13,7 @@ RSpec.shared_context '2020 single-project tests', shared_context: :metadata do
     describe 'when exporting projects' do
       before(:each) do
         exporter.export_projects
-        @project_class = GrdaWarehouse::Export::HmisTwentyTwenty::Project
+        @project_class = HmisCsvTwentyTwenty::Exporter::Project
       end
       it 'project scope should find one project' do
         expect(exporter.project_scope.count).to eq 1

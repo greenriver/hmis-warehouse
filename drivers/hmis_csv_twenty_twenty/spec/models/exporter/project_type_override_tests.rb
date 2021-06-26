@@ -16,7 +16,7 @@ RSpec.shared_context '2020 project type override tests', shared_context: :metada
     describe 'when exporting enrollments' do
       before(:each) do
         enrollment_exporter.export_enrollments
-        @enrollment_class = GrdaWarehouse::Export::HmisTwentyTwenty::Enrollment
+        @enrollment_class = HmisCsvTwentyTwenty::Exporter::Enrollment
       end
       it 'enrollment scope should find one enrollment' do
         expect(enrollment_exporter.enrollment_scope.count).to eq 1
@@ -62,7 +62,7 @@ RSpec.shared_context '2020 project type override tests', shared_context: :metada
       @project_es.update(TrackingMethod: 3)
 
       project_exporter.export_projects
-      @project_class = GrdaWarehouse::Export::HmisTwentyTwenty::Project
+      @project_class = HmisCsvTwentyTwenty::Exporter::Project
     end
 
     after(:each) do

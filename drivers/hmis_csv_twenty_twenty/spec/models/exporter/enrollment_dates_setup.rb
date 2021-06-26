@@ -62,62 +62,62 @@ RSpec.shared_context '2020 enrollment dates setup', shared_context: :metadata do
     TESTS ||= [
       {
         list: :disabilities,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Disability,
+        klass: HmisCsvTwentyTwenty::Exporter::Disability,
         export_method: :export_disabilities,
       },
       {
         list: :enrollment_cocs,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::EnrollmentCoc,
+        klass: HmisCsvTwentyTwenty::Exporter::EnrollmentCoc,
         export_method: :export_enrollment_cocs,
       },
       {
         list: :employment_educations,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::EmploymentEducation,
+        klass: HmisCsvTwentyTwenty::Exporter::EmploymentEducation,
         export_method: :export_employment_educations,
       },
       {
         list: :health_and_dvs,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::HealthAndDv,
+        klass: HmisCsvTwentyTwenty::Exporter::HealthAndDv,
         export_method: :export_health_and_dvs,
       },
       {
         list: :income_benefits,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::IncomeBenefit,
+        klass: HmisCsvTwentyTwenty::Exporter::IncomeBenefit,
         export_method: :export_income_benefits,
       },
       {
         list: :services,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Service,
+        klass: HmisCsvTwentyTwenty::Exporter::Service,
         export_method: :export_services,
       },
       {
         list: :exits,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Exit,
+        klass: HmisCsvTwentyTwenty::Exporter::Exit,
         export_method: :export_exits,
       },
       {
         list: :assessments,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Assessment,
+        klass: HmisCsvTwentyTwenty::Exporter::Assessment,
         export_method: :export_assessments,
       },
       {
         list: :assessment_questions,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentQuestion,
+        klass: HmisCsvTwentyTwenty::Exporter::AssessmentQuestion,
         export_method: :export_assessment_questions,
       },
       {
         list: :assessment_results,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentResult,
+        klass: HmisCsvTwentyTwenty::Exporter::AssessmentResult,
         export_method: :export_assessment_results,
       },
       {
         list: :events,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Event,
+        klass: HmisCsvTwentyTwenty::Exporter::Event,
         export_method: :export_events,
       },
       {
         list: :current_living_situations,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::CurrentLivingSituation,
+        klass: HmisCsvTwentyTwenty::Exporter::CurrentLivingSituation,
         export_method: :export_current_living_situations,
       },
     ].freeze

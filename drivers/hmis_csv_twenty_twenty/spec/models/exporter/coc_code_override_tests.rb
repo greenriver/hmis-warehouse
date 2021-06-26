@@ -16,15 +16,15 @@ RSpec.shared_context '2020 coc code override tests', shared_context: :metadata d
     {
       enrollment_cocs: {
         export_method: :export_enrollment_cocs,
-        export_class: GrdaWarehouse::Export::HmisTwentyTwenty::EnrollmentCoc,
+        export_class: HmisCsvTwentyTwenty::Exporter::EnrollmentCoc,
       },
       inventories: {
         export_method: :export_inventories,
-        export_class: GrdaWarehouse::Export::HmisTwentyTwenty::Inventory,
+        export_class: HmisCsvTwentyTwenty::Exporter::Inventory,
       },
       project_cocs: {
         export_method: :export_project_cocs,
-        export_class: GrdaWarehouse::Export::HmisTwentyTwenty::ProjectCoc,
+        export_class: HmisCsvTwentyTwenty::Exporter::ProjectCoc,
       },
     }.each do |k, options|
       describe "when exporting #{k}" do
@@ -53,11 +53,11 @@ RSpec.shared_context '2020 coc code override tests', shared_context: :metadata d
       {
         enrollment_cocs: {
           export_method: :export_enrollment_cocs,
-          export_class: GrdaWarehouse::Export::HmisTwentyTwenty::EnrollmentCoc,
+          export_class: HmisCsvTwentyTwenty::Exporter::EnrollmentCoc,
         },
         inventories: {
           export_method: :export_inventories,
-          export_class: GrdaWarehouse::Export::HmisTwentyTwenty::Inventory,
+          export_class: HmisCsvTwentyTwenty::Exporter::Inventory,
         },
       }.each do |k, options|
         describe "when exporting #{k}" do

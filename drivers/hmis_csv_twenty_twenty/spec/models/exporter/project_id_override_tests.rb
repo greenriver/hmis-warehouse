@@ -16,7 +16,7 @@ RSpec.shared_context '2020 project id override tests', shared_context: :metadata
     {
       enrollment_cocs: {
         export_method: :export_enrollment_cocs,
-        export_class: GrdaWarehouse::Export::HmisTwentyTwenty::EnrollmentCoc,
+        export_class: HmisCsvTwentyTwenty::Exporter::EnrollmentCoc,
       },
     }.each do |k, options|
       describe "when exporting #{k}" do
@@ -46,7 +46,7 @@ RSpec.shared_context '2020 project id override tests', shared_context: :metadata
       {
         enrollment_cocs: {
           export_method: :export_enrollment_cocs,
-          export_class: GrdaWarehouse::Export::HmisTwentyTwenty::EnrollmentCoc,
+          export_class: HmisCsvTwentyTwenty::Exporter::EnrollmentCoc,
         },
       }.each do |k, options|
         describe "when exporting #{k}" do

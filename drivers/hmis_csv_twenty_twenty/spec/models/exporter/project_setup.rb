@@ -40,27 +40,27 @@ RSpec.shared_context '2020 project setup', shared_context: :metadata do
     TESTS ||= [
       {
         list: :organizations,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Organization,
+        klass: HmisCsvTwentyTwenty::Exporter::Organization,
         export_method: :export_organizations,
       },
       {
         list: :inventories,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Inventory,
+        klass: HmisCsvTwentyTwenty::Exporter::Inventory,
         export_method: :export_inventories,
       },
       {
         list: :affiliations,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Affiliation,
+        klass: HmisCsvTwentyTwenty::Exporter::Affiliation,
         export_method: :export_affiliations,
       },
       {
         list: :project_cocs,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::ProjectCoc,
+        klass: HmisCsvTwentyTwenty::Exporter::ProjectCoc,
         export_method: :export_project_cocs,
       },
       {
         list: :funders,
-        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Funder,
+        klass: HmisCsvTwentyTwenty::Exporter::Funder,
         export_method: :export_funders,
       },
     ].freeze

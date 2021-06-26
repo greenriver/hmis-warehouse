@@ -16,7 +16,7 @@ RSpec.shared_context '2020 project coc zip override tests', shared_context: :met
     describe 'Project CoC records' do
       before(:each) do
         enrollment_exporter.export_project_cocs
-        @export_class = GrdaWarehouse::Export::HmisTwentyTwenty::ProjectCoc
+        @export_class = HmisCsvTwentyTwenty::Exporter::ProjectCoc
       end
       it 'adds one row to the ProjectCoC CSV file' do
         csv = CSV.read(csv_file_path(enrollment_exporter, @export_class), headers: true)
@@ -31,7 +31,7 @@ RSpec.shared_context '2020 project coc zip override tests', shared_context: :met
     describe 'when override is present' do
       before(:each) do
         @zip = '05301'
-        @export_class = GrdaWarehouse::Export::HmisTwentyTwenty::ProjectCoc
+        @export_class = HmisCsvTwentyTwenty::Exporter::ProjectCoc
         GrdaWarehouse::Hud::ProjectCoc.update_all(zip_override: @zip)
         enrollment_exporter.export_project_cocs
       end

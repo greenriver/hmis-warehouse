@@ -1,13 +1,19 @@
 ## HmisCsvTwentyTwenty README
 
+### Exporter Module
+
+Exporting logic for HMIS CSV files in the 2020 HUD format.
+
+`HmisCsvTwentyTwenty::Exporter::Base.new(....).export!` will export a specified date range for specifed projects
+
+### Importer Modules
+
 Importing and processing logic for HMIS CSV files in the 2020 HUD format.
 
 This will:
 1. import and normalize the CSVs into a data lake
 2. run necessary ETL to bring them into a structured, validated set of tables
 3. bring any changes into the warehouse proper
-
-### Modules
 
 #### HmisCsvTwentyTwenty::Loader
 

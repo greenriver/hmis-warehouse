@@ -17,8 +17,8 @@ RSpec.shared_context '2020 HMIS Participating Project override tests', shared_co
       before(:each) do
         enrollment_exporter.export_enrollments
         enrollment_exporter.export_projects
-        @enrollment_class = GrdaWarehouse::Export::HmisTwentyTwenty::Enrollment
-        @project_class = GrdaWarehouse::Export::HmisTwentyTwenty::Project
+        @enrollment_class = HmisCsvTwentyTwenty::Exporter::Enrollment
+        @project_class = HmisCsvTwentyTwenty::Exporter::Project
       end
       it 'enrollment scope should find one enrollment' do
         expect(enrollment_exporter.enrollment_scope.count).to eq 1
@@ -60,7 +60,7 @@ RSpec.shared_context '2020 HMIS Participating Project override tests', shared_co
       @project_2.update(hmis_participating_project_override: nil)
 
       project_exporter.export_projects
-      @project_class = GrdaWarehouse::Export::HmisTwentyTwenty::Project
+      @project_class = HmisCsvTwentyTwenty::Exporter::Project
     end
 
     after(:each) do

@@ -30,7 +30,7 @@ RSpec.shared_context '2020 multi-enrollment tests', shared_context: :metadata do
         # puts enrollments.map{|m| [m.ProjectID, m.EnrollmentID, m.EntryDate]}.inspect
         # puts exits.map{|m| [ m.EnrollmentID, m.ExitDate]}.inspect
         exporter.export_enrollments
-        @enrollment_class = GrdaWarehouse::Export::HmisTwentyTwenty::Enrollment
+        @enrollment_class = HmisCsvTwentyTwenty::Exporter::Enrollment
       end
       it 'enrollment scope should find three enrollments' do
         expect(exporter.enrollment_scope.count).to eq 3
@@ -56,7 +56,7 @@ RSpec.shared_context '2020 multi-enrollment tests', shared_context: :metadata do
     describe 'when exporting clients' do
       before(:each) do
         exporter.export_clients
-        @client_class = GrdaWarehouse::Export::HmisTwentyTwenty::Client
+        @client_class = HmisCsvTwentyTwenty::Exporter::Client
       end
       it 'client scope should find three clients' do
         expect(exporter.client_scope.count).to eq 3
