@@ -1,1 +1,1 @@
-= f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), required: false, input_html: { multiple: true, class: ['select2-id-when-selected'] }, label: control.label, as: :select_two
+= f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), required: false, input_html: { multiple: true, class: ['select2-id-when-selected'], placeholder: 'Any CoC' }, label: control.label, as: :select_two, placeholder: 'Any CoC'

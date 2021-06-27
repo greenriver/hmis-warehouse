@@ -32,6 +32,10 @@ module HudSpmReport::Generators::Fy2020
       end.to_h.freeze
     end
 
+    def self.filter_class
+      HudSpmReport::Filters::SpmFilter
+    end
+
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || questions.keys.first
     end

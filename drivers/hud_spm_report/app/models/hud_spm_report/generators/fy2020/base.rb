@@ -30,10 +30,6 @@ module HudSpmReport::Generators::Fy2020
       self.class.she_household_column
     end
 
-    def self.filter_class
-      HudSpmReport::Filters::SpmFilter
-    end
-
     LOOKBACK_STOP_DATE = Date.iso8601('2012-10-01').freeze
 
     ES = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es).flatten(1).freeze
@@ -221,9 +217,9 @@ module HudSpmReport::Generators::Fy2020
 
     # Add report filters to the scope
     private def add_filters(scope)
-      if (project_ids = filter.effective_project_ids).any?
-        scope = scope.joins(:project).where(p_t[:id].in(project_ids))
-      end
+      project_ids = filter.effective_project_ids
+      scope = scope.joins(:project).where(p_t[:id].in(project_ids)) if project_ids.any?
+
       scope = filter_for_veteran_status(scope)
       scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)

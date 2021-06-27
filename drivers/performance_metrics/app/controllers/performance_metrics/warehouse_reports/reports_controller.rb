@@ -79,9 +79,19 @@ module PerformanceMetrics::WarehouseReports
     end
 
     def filter_params
-      return { filters: { comparison_pattern: :prior_year, sub_population: :clients }} unless params[:filters].present?
+      # because some of the sub-reports require coc_codes, we need to make sure those are set, even
+      # if we can't set them manually (non-multi-coc installation)
+      site_coc_codes = GrdaWarehouse::Config.get(:site_coc_codes).presence&.split(/,\s*/)
+      default_options = {
+        comparison_pattern: :prior_year,
+        sub_population: :clients,
+        coc_codes: site_coc_codes,
+      }
+      return { filters: default_options } unless params[:filters].present?
 
-      params.permit(filters: @filter.known_params)
+      filters = params.permit(filters: @filter.known_params)
+      filters[:coc_codes] ||= site_coc_codes
+      filters
     end
     helper_method :filter_params
 
