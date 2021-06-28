@@ -13,6 +13,7 @@ class CreatePerformanceMetricsClients < ActiveRecord::Migration[5.2]
       t.integer :current_period_days_in_es
       t.integer :current_period_days_in_rrh
       t.integer :current_period_days_in_psh
+      t.integer :current_period_days_to_return
       t.boolean :current_period_first_time
       t.boolean :current_period_reentering
       t.boolean :current_period_in_outflow
@@ -30,6 +31,7 @@ class CreatePerformanceMetricsClients < ActiveRecord::Migration[5.2]
       t.integer :prior_period_days_in_es
       t.integer :prior_period_days_in_rrh
       t.integer :prior_period_days_in_psh
+      t.integer :prior_period_days_to_return
       t.boolean :prior_period_first_time
       t.boolean :prior_period_reentering
       t.boolean :prior_period_in_outflow

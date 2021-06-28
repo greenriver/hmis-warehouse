@@ -64,14 +64,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       where(project_id: project_ids)
     end
 
-    scope :for_project_types, ->(project_types) do
-      return all unless project_types.present?
+    scope :for_project_types, ->(project_types_ids) do
+      return all unless project_types_ids.present?
 
-      project_type_codes = []
-      project_types.each do |type|
-        project_type_codes += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.try(:[], type.to_sym)
-      end
-      where(project_type: project_type_codes)
+      where(project_type: project_types_ids)
     end
 
     scope :heads_of_household, -> do
@@ -209,7 +205,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
         in_months(filter.range).
         for_organizations(filter.organization_ids).
         for_projects(filter.project_ids).
-        for_project_types(filter.project_type_codes).
+        for_project_types(filter.project_type_ids).
         filtered(filter)
     end
 

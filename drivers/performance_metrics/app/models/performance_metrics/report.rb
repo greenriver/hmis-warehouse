@@ -197,12 +197,12 @@ module PerformanceMetrics
 
     private def add_clients(report_clients, period:)
       caper_report = run_caper
+      # Q16 D14 is Total Adults - Income at Exit for Leavers
       caper_clients = answer_clients(caper_report, 'Q16', 'D14')
-      # adult_leaver_count = answer(caper_report, 'Q5a', 'B6')
 
       spm_report = run_spm
-      spm_clients = answer_clients(spm_report, '2', 'J7')
-      # exited_spm_clients = answer(spm_report, '2', 'B7')
+      # M2 I7 is TOTAL Returns to Homeless - Number of Returns in 2 Years
+      spm_clients = answer_clients(spm_report, '2', 'I7')
 
       rrh_clients = run_rrh.support_for(
         :time_in_stabilization,
@@ -243,6 +243,7 @@ module PerformanceMetrics
           days_in_es = nil
           days_in_rrh = nil
           days_in_psh = nil
+          days_to_return = nil
 
           client_id = processed_enrollment.client_id
           caper_client = caper_clients[client_id]
@@ -257,7 +258,10 @@ module PerformanceMetrics
             other_income_at_exit = caper_client.income_total_at_exit - earned_income_at_exit
           end
 
-          days_in_es = spm_client&.m1a_es_sh_th_days if spm_client
+          if spm_client
+            days_in_es = spm_client.m1a_es_sh_th_days
+            days_to_return = spm_client.m2_reentry_days
+          end
 
           if rrh_client
             housed_date = rrh_client['Date Housed']
@@ -289,6 +293,7 @@ module PerformanceMetrics
             "#{period}_period_other_income_at_start" => other_income_at_start,
             "#{period}_period_other_income_at_exit" => other_income_at_exit,
             "#{period}_period_days_in_es" => days_in_es,
+            "#{period}_period_days_to_return" => days_to_return,
             "#{period}_period_days_in_rrh" => days_in_rrh,
             "#{period}_period_days_in_psh" => days_in_psh,
             "#{period}_period_first_time" => first_time,
@@ -379,21 +384,13 @@ module PerformanceMetrics
         user_id: filter.user_id,
         enforce_one_year_range: false,
       )
+      # FIXME: need to send symbolic project_types in addition to numeric
+      # filter[:project_type_codes] =
       inflow_filter.update(filter.to_h)
       Reporting::MonthlyReports::Base.class_for(inflow_filter.sub_population).new(
         user: inflow_filter.user,
         filter: inflow_filter,
       )
     end
-
-    # private def outflow_clients(report)
-    #   enrollment_scope = report.entries_scope.
-    #     residential.
-    #     joins(:client).
-    #     preload(:client).
-    #     order(c_t[:LastName], c_t[:FirstName])
-    #   key = report.metrics.keys.detect { |key| key.to_s == params[:key] }
-    #   enrollments = enrollment_scope.where(client_id: report.send(key)).group_by(&:client_id)
-    # end
   end
 end
