@@ -1,0 +1,94 @@
+.row
+  .col-6
+    = f.input 'name', as: :string, disabled: true, label: 'YYA Name (goes by)', input_html: {value: @client.name}
+  .col-6
+    = f.input :pronouns, label: 'YYA Pronouns'
+.row
+  .col-6
+    = f.input 'name', as: :string, disabled: true, label: 'YYA Legal Name', input_html: {value: @client.name}
+  .col-6
+    = f.input :planned_on, as: :date_picker, label: 'Date'
+.row
+  .col-6
+    = f.input :staff_name
+  .col-6
+    = f.input :location
+
+.c-card__header.c-card__header--external
+  %h2.section-expander-block__header Housing Plan
+
+.c-card__content.c-card__content
+  = f.input :chosen_resolution, as: :radio_buttons, collection: @housing_resolution_plan.resolutions, label: 'Which housing resolution did the YYA choose?'
+  = f.input :temporary_resolution, as: :radio_buttons, collection: @housing_resolution_plan.yes_no, label: 'Is this a temporary resolution (less than 3 months?)'
+  = f.input :plan_description, as: :text, label: 'Describe the plan below'
+  = f.input :action_steps, as: :text, label: 'Action steps that the YYA will take (including timing)'
+  = f.input :backup_plan, as: :text, label: 'Backup plan (if applicable)'
+
+%section
+
+.c-card__header.c-card__header--external
+  %h2.section-expander-block__header Following up
+
+.c-card__content.c-card__content
+  = f.input :next_checkin, as: :date_picker, label: 'Date of next check-in with staff'
+  = f.input :how_to_contact, label: 'How the staff will get in touch with me'
+
+%section
+
+= f.input :psc_attempted, as: :radio_buttons, collection: @housing_resolution_plan.yes_no, label: 'Was a Problem Solving conversation attempted with the this YYA?', input_html: { class: 'jPscAttempted' }
+.jPscNotAttemptedReason
+  = f.input :psc_why_not, label: 'Why not?'
+= f.input :resolution_achieved, as: :radio_buttons, collection: @housing_resolution_plan.yes_no, label: 'Did the YYA achieve a housing resolution outside of shelter or waitlist?', input_html: { class: 'jResolutionAchieved' }
+.jResolutionNotAchievedReason
+  = f.input :resolution_why_not, label: 'Why not?'
+= f.input :problem_solving_point, as: :radio_buttons, collection: @housing_resolution_plan.points_in_time, label: 'At what point in time was Problem Solving for this YYA conducted?'
+
+.c-card__content.c-card__content
+  = f.input :housing_crisis_causes, as: :check_boxes, collection: @housing_resolution_plan.possible_crisis_causes, label: 'Housing crisis brought on by', input_html: { class: 'jHousingCrisisCauses' }
+  .jHousingCrisisCausesOther
+    = f.input :housing_crisis_cause_other, label: 'Other reasons'
+
+  %p What factors are working in this YYA's favor to resolve this housing crisis?
+
+  = f.input :factor_employment_income, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @housing_resolution_plan.factor_score, label: 'Employment / Income'
+  = f.input :factor_family_supports, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @housing_resolution_plan.factor_score, label: 'Family supports'
+  = f.input :factor_social_supports, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @housing_resolution_plan.factor_score, label: 'Social supports'
+  = f.input :factor_life_skills, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @housing_resolution_plan.factor_score, label: 'Life skills'
+
+%section
+
+= content_for :page_js do
+  :javascript
+    $('.jPscAttempted').on('change', function(e){
+      if($('.jPscAttempted').is(':checked') && $('.jPscAttempted:checked').val().includes('No')){
+        $('.jPscNotAttemptedReason').show();
+      } else {
+        $('.jPscNotAttemptedReason').hide();
+      }
+      });
+    $('.jPscAttempted').trigger('change');
+
+    $('.jResolutionAchieved').on('change', function(e){
+      if($('.jResolutionAchieved').is(':checked') && $('.jResolutionAchieved:checked').val().includes('No')){
+        $('.jResolutionNotAchievedReason').show();
+      } else {
+        $('.jResolutionNotAchievedReason').hide();
+      }
+      });
+    $('.jResolutionAchieved').trigger('change');
+
+    $('.jHousingCrisisCauses').on('change', function(e){
+      var includes_other = false;
+      if($('.jHousingCrisisCauses').is(':checked')){
+        $.each(
+          $('.jHousingCrisisCauses:checked'), function(){
+            includes_other = includes_other || $(this).val().includes('Other');
+          });
+      }
+      if(includes_other){
+        $('.jHousingCrisisCausesOther').show();
+      } else {
+        $('.jHousingCrisisCausesOther').hide();
+      }
+    });
+    $('.jHousingCrisisCauses').trigger('change');

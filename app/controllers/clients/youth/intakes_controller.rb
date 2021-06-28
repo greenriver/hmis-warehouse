@@ -34,6 +34,12 @@ module Clients::Youth
       @follow_ups = @client.youth_follow_ups.
         merge(GrdaWarehouse::Youth::YouthFollowUp.visible_by?(current_user)).
         order(contacted_on: :desc, created_at: :desc)
+      @housing_resolution_plans = @client.housing_resolution_plans.
+        merge(GrdaWarehouse::Youth::HousingResolutionPlan.visible_by?(current_user)).
+        order(planned_on: :desc, created_at: :desc)
+      @psc_feedback_surveys = @client.psc_feedback_surveys.
+        merge(GrdaWarehouse::Youth::PscFeedbackSurvey.visible_by?(current_user)).
+        order(conversation_on: :desc, created_at: :desc)
 
       @referral = @client.youth_referrals.build(referred_on: Date.current)
       @assistance = @client.direct_financial_assistances.build(provided_on: Date.current)
