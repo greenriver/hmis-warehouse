@@ -158,6 +158,7 @@ module Filters
     def to_h
       for_params[:filters]
     end
+    alias inspect to_h
 
     def known_params
       [
@@ -232,11 +233,11 @@ module Filters
     end
 
     def range
-      self.start .. self.end
+      start .. self.end
     end
 
     def as_date_range
-      DateRange.new(start: self.start, end: self.end)
+      DateRange.new(start: start, end: self.end)
     end
 
     def first
@@ -270,7 +271,7 @@ module Filters
     end
 
     def length
-      (self.end - self.start).to_i
+      (self.end - start).to_i
     rescue StandardError
       0
     end

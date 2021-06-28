@@ -43,7 +43,6 @@ module PerformanceMetrics
       clients.where
     end
 
-
     private def comparison_periods
       @comparison_periods ||= begin
         periods = [filter.range]
@@ -159,7 +158,7 @@ module PerformanceMetrics
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
       scope = filter_for_funders(scope)
-      scope = filter_for_ca_homeless(scope)
+      filter_for_ca_homeless(scope)
     end
 
     def enrollment_scope
@@ -189,33 +188,31 @@ module PerformanceMetrics
     private def create_universe
       report_clients = {}
       add_clients(report_clients, period: :current)
-      if include_comparison?
-        to_comparison
-        add_clients(report_clients, period: :prior)
-        to_report_period
-      end
+      return unless include_comparison?
+
+      to_comparison
+      add_clients(report_clients, period: :prior)
+      to_report_period
     end
 
     private def add_clients(report_clients, period:)
       caper_report = run_caper
       caper_clients = answer_clients(caper_report, 'Q16', 'D14')
-      adult_leaver_count = answer(caper_report, 'Q5a', 'B6')
+      # adult_leaver_count = answer(caper_report, 'Q5a', 'B6')
 
       spm_report = run_spm
       spm_clients = answer_clients(spm_report, '2', 'J7')
-      exited_spm_clients = answer(spm_report, '2', 'B7')
+      # exited_spm_clients = answer(spm_report, '2', 'B7')
 
-      rrh_report = run_rrh
-      rrh_clients = rrh_report.support_for(
+      rrh_clients = run_rrh.support_for(
         :time_in_stabilization,
         {
           selected_project: 'All',
           start_date: filter.start,
           end_date: filter.end,
         },
-      ).to_h.index_by{ |m| m['Warehouse ID'] }
+      ).to_h.index_by { |m| m['Warehouse ID'] }
 
-      psh_report = run_psh
       psh_clients = run_psh.support_for(
         :time_in_stabilization,
         {
@@ -223,7 +220,7 @@ module PerformanceMetrics
           start_date: filter.start,
           end_date: filter.end,
         },
-      ).to_h.index_by{ |m| m['Warehouse ID'] }
+      ).to_h.index_by { |m| m['Warehouse ID'] }
 
       inflow_report = run_inflow
       entry_client_ids = inflow_report.first_time_clients.pluck(:client_id)
@@ -237,26 +234,42 @@ module PerformanceMetrics
       enrollment_scope.find_in_batches do |batch|
         batch.each do |processed_enrollment|
           client = processed_enrollment.client
+          next unless client
+
+          earned_income_at_start = nil
+          earned_income_at_exit = nil
+          other_income_at_start = nil
+          other_income_at_exit = nil
+          days_in_es = nil
+          days_in_rrh = nil
+          days_in_psh = nil
+
           client_id = processed_enrollment.client_id
           caper_client = caper_clients[client_id]
           spm_client = spm_clients[client_id]
           rrh_client = rrh_clients[client_id]
           psh_client = psh_clients[client_id]
           # Only looking at income for leavers
-          earned_income_at_start = caper_client.income_sources_at_start['EarnedAmount'] || 0
-          earned_income_at_exit = caper_client.income_sources_at_exit['EarnedAmount'] || 0
-          other_income_at_start = caper_client.income_total_at_start - earned_income_at_start
-          other_income_at_exit = caper_client.income_total_at_exit - earned_income_at_exit
+          if caper_client
+            earned_income_at_start = caper_client.income_sources_at_start['EarnedAmount'] || 0
+            earned_income_at_exit = caper_client.income_sources_at_exit['EarnedAmount'] || 0
+            other_income_at_start = caper_client.income_total_at_start - earned_income_at_start
+            other_income_at_exit = caper_client.income_total_at_exit - earned_income_at_exit
+          end
 
-          days_in_es = spm_client&.m1a_es_sh_th_days
+          days_in_es = spm_client&.m1a_es_sh_th_days if spm_client
 
-          housed_date = rrh_client['Date Housed']
-          exit_date = rrh_client['Housing Exit']
-          days_in_rrh = (exit_date - housed_date).to_i
+          if rrh_client
+            housed_date = rrh_client['Date Housed']
+            exit_date = rrh_client['Housing Exit']
+            days_in_rrh = (exit_date - housed_date).to_i
+          end
 
-          housed_date = psh_client['Date Housed']
-          exit_date = psh_client['Housing Exit']
-          days_in_psh = (exit_date - housed_date).to_i
+          if psh_client
+            housed_date = psh_client['Date Housed']
+            exit_date = psh_client['Housing Exit']
+            days_in_psh = (exit_date - housed_date).to_i
+          end
 
           first_time = client_id.in?(entry_client_ids)
           reentering = client_id.in?(re_entry_client_ids)
@@ -283,20 +296,26 @@ module PerformanceMetrics
             "#{period}_period_in_outflow" => in_outflow,
             "#{period}_period_entering_housing" => entering_housing,
             "#{period}_period_inactive" => inactive,
-            "#{period}_period_caper" => caper_report.id,
-            "#{period}_period_spm" => spm_report.id,
+            "#{period}_period_caper_id" => caper_report.id,
+            "#{period}_period_spm_id" => spm_report.id,
           )
 
           report_clients[client] = new_client
         end
 
-        Client.import(report_clients.values)
+        Client.import(
+          report_clients.values,
+          on_duplicate_key_update: {
+            conflict_target: [:id],
+            columns: Client.attribute_names.map(&:to_sym),
+          },
+        )
         universe.add_universe_members(report_clients)
       end
     end
 
     private def run_caper
-      puts 'Running CAPER'
+      # puts 'Running CAPER'
       # Run CAPER Q5 to get Q5a B6 (adult leavers) for the denominator
       # Looking for CAPER Q16 D14 to identify leavers who had income at exit (we'll only take those with an increase as the numerator)
       questions = [
@@ -321,7 +340,7 @@ module PerformanceMetrics
     end
 
     private def run_spm
-      puts 'Running SPM'
+      # puts 'Running SPM'
       # Looking for SPM Measure 1A E3
       # Looking for SPM Measure 2 J7 (total returns to homelessness within 2 years)
       questions = [
@@ -358,10 +377,10 @@ module PerformanceMetrics
     private def run_inflow
       inflow_filter = ::Filters::FilterBase.new(
         user_id: filter.user_id,
-        enforce_one_year_range: false
+        enforce_one_year_range: false,
       )
       inflow_filter.update(filter.to_h)
-      report = Reporting::MonthlyReports::Base.class_for(inflow_filter.sub_population).new(
+      Reporting::MonthlyReports::Base.class_for(inflow_filter.sub_population).new(
         user: inflow_filter.user,
         filter: inflow_filter,
       )
