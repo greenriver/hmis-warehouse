@@ -21,6 +21,12 @@
       .row
         .col-sm-10
           = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, include_blank: true, as: :select_two, required: true
+      .row
+        .col-sm-10
+          = f.input :exclude_from_directory
+      .row
+        .col-sm-10
+          = f.input :exclude_phone_from_directory
       - if @user.two_factor_enabled?
         .row
           .col-sm-8

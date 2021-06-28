@@ -923,6 +923,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:user_directory_report)
+        r_list['Operational'] << {
+          url: 'user_directory_report/warehouse_reports/users/warehouse',
+          name: 'User Directory Report',
+          description: 'List of users by name, email, phone and agency',
+          limitable: false,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:disability_summary)
         r_list['Operational'] << {
           url: 'disability_summary/warehouse_reports/disability_summary',
@@ -1127,6 +1136,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'destination_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:destination_report)
       cleanup << 'data_source_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:data_source_report)
       cleanup << 'user_permission_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:user_permission_report)
+      cleanup << 'user_directory_report/warehouse_reports/users/warehouse' unless RailsDrivers.loaded.include?(:user_directory_report)
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'performance_metrics/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:performance_metrics)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)

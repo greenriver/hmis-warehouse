@@ -40,6 +40,7 @@ module HudApr::Generators::Shared::Fy2020
         approximate_move_in_dates = {}
         enrollments_by_client_id.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
+
           hh_id = get_hh_id(last_service_history_enrollment)
           date = [
             @report.start_date,
@@ -254,7 +255,18 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def clients_with_enrollments(batch)
-      enrollment_scope.where(client_id: batch.map(&:id)).group_by(&:client_id)
+      enrollment_scope.
+        where(client_id: batch.map(&:id)).
+        group_by(&:client_id).
+        reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
+    end
+
+    private def nbn_with_no_service?(enrollment)
+      enrollment.project_tracking_method == 3 &&
+        ! enrollment.service_history_services.
+          bed_night.
+          service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
+          exists?
     end
 
     private def enrollment_scope

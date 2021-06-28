@@ -1,0 +1,5 @@
+:ruby
+  fetch_params ||= nil
+
+%div{data: {controller: "background-render", background_render_url_value: url, background_render_fetch_params_value: fetch_params.to_json}}
+  = yield

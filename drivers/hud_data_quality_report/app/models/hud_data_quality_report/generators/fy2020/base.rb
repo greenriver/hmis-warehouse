@@ -235,7 +235,10 @@ module HudDataQualityReport::Generators::Fy2020
     end
 
     private def clients_with_enrollments(batch)
-      enrollment_scope.where(client_id: batch.map(&:id)).group_by(&:client_id)
+      enrollment_scope.
+        where(client_id: batch.map(&:id)).
+        reject { |shs| shs.project_type == 4 && shs.enrollment.DateOfEngagement >= report_end_date }.
+        group_by(&:client_id)
     end
 
     private def enrollment_scope

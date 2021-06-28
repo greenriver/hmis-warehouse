@@ -102,6 +102,10 @@ class User < ApplicationRecord
 
   scope :not_system, -> { where.not(first_name: 'System') }
 
+  scope :in_directory, -> do
+    active.not_system.where(exclude_from_directory: false)
+  end
+
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
   # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
 
@@ -203,6 +207,16 @@ class User < ApplicationRecord
 
   def name_with_email
     "#{name} <#{email}>"
+  end
+
+  def agency_name
+    if agency.present?
+      agency&.name
+    end
+  end
+
+  def phone_for_directory
+    phone unless exclude_phone_from_directory
   end
 
   def two_factor_label

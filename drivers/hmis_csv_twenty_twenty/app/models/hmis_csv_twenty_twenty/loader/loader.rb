@@ -35,7 +35,7 @@ module HmisCsvTwentyTwenty::Loader
     # debug: log progress to the logger
     # remove_files: The directory will be removed after calling #load!
     # deidentified: Passed to HmisCsvTwentyTwenty::Importer::Importer when #import! is called
-    def initialize( # rubocop:disable Metrics/ParameterLists
+    def initialize(
       data_source_id:,
       file_path: File.join('tmp', 'hmis_import'),
       logger: Rails.logger,
@@ -160,24 +160,11 @@ module HmisCsvTwentyTwenty::Loader
     def load_source_files!
       @loader_log.update(status: :loading)
 
-      use_encoding_detector = true # Cost:~4s for spec/fixtures/files/importers/hmis_twenty_twenty/hud_sample/source
-
       importable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)
         next unless File.file?(source_file_path)
 
-        # Look at the file to see if we can determine the encoding
-        file_mode = if use_encoding_detector && encoding_detector
-          file_encoding = encoding_detector.detect(File.read(source_file_path)).try(:[], :encoding)
-          if file_encoding == 'UTF-32BE'
-            'r'
-          else
-            "r:#{file_encoding}:utf-8"
-          end
-        else
-          'r'
-        end
-        File.open(source_file_path, file_mode) do |file|
+        File.open(source_file_path, 'r', encoding: AutoEncodingCsv.detect_encoding(source_file_path)) do |file|
           if bad_line_endings?(file)
             copy_length = file.stat.size - 2
             begin
