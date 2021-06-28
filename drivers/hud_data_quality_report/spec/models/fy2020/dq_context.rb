@@ -4,17 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.configure do |config| # rubocop:disable Lint/UnusedBlockArgument
+RSpec.configure do
   RSpec.configuration.fixpoints_path = 'drivers/hud_data_quality_report/spec/fixpoints'
 end
 
 RSpec.shared_context 'dq context', shared_context: :metadata do
   def shared_filter
+    user = User.setup_system_user
     {
       start: Date.parse('2019-01-01'),
       end: Date.parse('2019-12-31'),
       coc_codes: ['XX-500'],
-      user_id: 0,
+      user_id: user.id,
     }.freeze
   end
 
