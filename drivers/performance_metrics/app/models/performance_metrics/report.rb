@@ -230,8 +230,10 @@ module PerformanceMetrics
       caper_clients = answer_clients(caper_report, 'Q16', 'D14')
 
       spm_report = run_spm
-      # M2 I7 is TOTAL Returns to Homeless - Number of Returns in 2 Years
-      spm_clients = answer_clients(spm_report, '2', 'I7')
+      # M2 B7 is TOTAL Returns to Homeless - Number of Returns in 2 Years
+      spm_returners = answer_clients(spm_report, '2', 'B7')
+      # M2 I7 is Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)
+      spm_leavers = answer_clients(spm_report, '2', 'I7')
 
       rrh_clients = run_rrh.support_for(
         :time_in_stabilization,
@@ -276,20 +278,23 @@ module PerformanceMetrics
 
           client_id = processed_enrollment.client_id
           caper_client = caper_clients[client_id]
-          spm_client = spm_clients[client_id]
+          spm_returner = spm_returners[client_id]
           rrh_client = rrh_clients[client_id]
           psh_client = psh_clients[client_id]
           # Only looking at income for leavers
+          caper_leaver = false
           if caper_client
             earned_income_at_start = caper_client.income_sources_at_start['EarnedAmount'] || 0
             earned_income_at_exit = caper_client.income_sources_at_exit['EarnedAmount'] || 0
             other_income_at_start = caper_client.income_total_at_start - earned_income_at_start
             other_income_at_exit = caper_client.income_total_at_exit - earned_income_at_exit
+            caper_leaver = true
           end
 
-          if spm_client
-            days_in_es = spm_client.m1a_es_sh_th_days
-            days_to_return = spm_client.m2_reentry_days
+          spm_leaver = spm_leavers.keys.include?(client_id)
+          if spm_returner
+            days_in_es = spm_returner.m1a_es_sh_th_days
+            days_to_return = spm_returner.m2_reentry_days
           end
 
           if rrh_client
@@ -321,8 +326,10 @@ module PerformanceMetrics
             "#{period}_period_earned_income_at_exit" => earned_income_at_exit,
             "#{period}_period_other_income_at_start" => other_income_at_start,
             "#{period}_period_other_income_at_exit" => other_income_at_exit,
+            "#{period}_caper_leaver" => caper_leaver,
             "#{period}_period_days_in_es" => days_in_es,
             "#{period}_period_days_to_return" => days_to_return,
+            "#{period}_period_spm_leaver" => spm_leaver,
             "#{period}_period_days_in_rrh" => days_in_rrh,
             "#{period}_period_days_in_psh" => days_in_psh,
             "#{period}_period_first_time" => first_time,
