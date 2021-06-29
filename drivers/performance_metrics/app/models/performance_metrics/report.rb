@@ -74,11 +74,11 @@ module PerformanceMetrics
       @entering_housing ||= begin
         entering = []
         entering << {
-          'Current Period' => clients.entering_housing(:current),
+          'Current Period' => clients.entering_housing(:current).count,
         }
         if include_comparison?
           entering << {
-            'Prior Period' => clients.entering_housing(:prior),
+            'Prior Period' => clients.entering_housing(:prior).count,
           }
         end
         entering
@@ -121,6 +121,96 @@ module PerformanceMetrics
             },
           }
         end
+      end
+    end
+
+    def average_stay_length
+      @average_stay_length ||= begin
+        stay_lengths = []
+        period = :current
+        es = clients.with_es_stay(period)
+        es_count = es.count
+        es_length = es.sum("#{period}_period_days_in_es")
+        es_average = 0
+        es_average = ((es_length / 30.to_f) / es_count).round if es_count.positive?
+
+        rrh = clients.with_rrh_stay(period)
+        rrh_count = rrh.count
+        rrh_length = rrh.sum("#{period}_period_days_in_rrh")
+        rrh_average = 0
+        rrh_average = ((rrh_length / 30.to_f) / rrh_count).round if rrh_count.positive?
+
+        psh = clients.with_psh_stay(period)
+        psh_count = psh.count
+        psh_length = psh.sum("#{period}_period_days_in_psh")
+        psh_average = 0
+        psh_average = ((psh_length / 30.to_f) / psh_count).round if psh_count.positive?
+        stay_lengths << {
+          'Current Period' => {
+            'Emergency Shelter' => es_average,
+            'Rapid Rehousing' => rrh_average,
+            'PSH' => psh_average,
+          },
+        }
+        if include_comparison?
+          period = :prior
+          es = clients.with_es_stay(period)
+          es_count = es.count
+          es_length = es.sum("#{period}_period_days_in_es")
+          es_average = 0
+          es_average = ((es_length / 30.to_f) / es_count).round if es_count.positive?
+
+          rrh = clients.with_rrh_stay(period)
+          rrh_count = rrh.count
+          rrh_length = rrh.sum("#{period}_period_days_in_rrh")
+          rrh_average = 0
+          rrh_average = ((rrh_length / 30.to_f) / rrh_count).round if rrh_count.positive?
+
+          psh = clients.with_psh_stay(period)
+          psh_count = psh.count
+          psh_length = psh.sum("#{period}_period_days_in_psh")
+          psh_average = 0
+          psh_average = ((psh_length / 30.to_f) / psh_count).round if psh_count.positive?
+          stay_lengths << {
+            'Prior Period' => {
+              'Emergency Shelter' => es_average,
+              'Rapid Rehousing' => rrh_average,
+              'PSH' => psh_average,
+            },
+          }
+        end
+        stay_lengths
+      end
+    end
+
+    def inflow_outflow
+      @inflow_outflow ||= begin
+        flows = []
+        period = :current
+        flows << {
+          'Current Period' => {
+            'Inflow' => clients.in_inflow(period).count,
+            'Outflow' => clients.in_outflow(period).count,
+            'First Time' => clients.first_time(period).count,
+            'Re-entering' => clients.reentering(period).count,
+            'Entered Housing' => clients.entered_housing(period).count,
+            'Inactive' => clients.inactive(period).count,
+          },
+        }
+        if include_comparison?
+          period = :prior
+          flows << {
+            'Prior Period' => {
+              'Inflow' => clients.in_inflow(period).count,
+              'Outflow' => clients.in_outflow(period).count,
+              'First Time' => clients.first_time(period).count,
+              'Re-entering' => clients.reentering(period).count,
+              'Entered Housing' => clients.entered_housing(period).count,
+              'Inactive' => clients.inactive(period).count,
+            },
+          }
+        end
+        flows
       end
     end
     # End Sections
@@ -441,7 +531,12 @@ module PerformanceMetrics
         'Measure 1',
         'Measure 2',
       ]
-      spm_filter = HudSpmReport::Filters::SpmFilter.new(user_id: filter.user_id).update(filter.to_h)
+      # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
+      # so that the returns calculation will work.
+      options = filter.to_h
+      options[:project_type_codes] ||= []
+      options[:project_type_codes] += [:es, :so, :sh, :th]
+      spm_filter = HudSpmReport::Filters::SpmFilter.new(user_id: filter.user_id).update(options)
       generator = HudSpmReport::Generators::Fy2020::Generator
       spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
       generator.new(spm_report).run!(email: false)
