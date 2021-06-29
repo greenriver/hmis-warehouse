@@ -40,8 +40,37 @@ module PerformanceMetrics
 
     # Sections
     def clients_served
-      clients.where
+      @clients_served ||= begin
+        columns = []
+        columns << ['Current Period', clients.served(:current).count]
+        columns << ['Prior Period', clients.served(:prior).count] if include_comparison?
+        columns
+      end
     end
+
+    def returns
+      @returns ||= begin
+        outflow_count = clients.in_outflow(:current).count
+        returned_count = clients.returned_in_two_years(:current).count
+        returns = {
+          'Current Period' => [
+            ['Returned to Homelessness Within 2 Years', returned_count],
+            ['Did not return', outflow_count - returned_count],
+          ],
+        }
+        if include_comparison?
+          outflow_count = clients.in_outflow(:prior).count
+          returned_count = clients.returned_in_two_years(:prior).count
+          returns['Prior Period'] = [
+            ['Returned to Homelessness Within 2 Years', returned_count],
+            ['Did not return', outflow_count - returned_count],
+          ]
+        end
+        returns
+      end
+    end
+
+    # End Sections
 
     private def comparison_periods
       @comparison_periods ||= begin
