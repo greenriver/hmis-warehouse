@@ -35,6 +35,12 @@ module ClaimsReporting
 
       @enrollment_roster = cohort[:scope]
 
+      # For engaged_history, count only claims for members who were engaged for the number of days specified, but count all claims for each member regardless of when they occurred. Each member category is mutually exclusive (members can only be in one column per report run)
+      # Pre-engagement only includes patients who never became engaged.
+
+      # For selected_period, count only members where their claims fell within the number of days post engagement.  Members can be counted in multiple columns.
+      # Pre-engaged only includes patients who never became engaged, and limits claims to those occurring before engagement (this doesn't mean anything since the patient never became engaged).
+      # NOTE: Pre-engaged is identical for both cohort types.
       if filter.cohort_type == :engaged_history
         @medical_claims = ClaimsReporting::MedicalClaim.joins(:member_roster).
           where(member_id: @enrollment_roster.select(:member_id))
