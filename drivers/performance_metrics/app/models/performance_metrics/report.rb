@@ -70,6 +70,59 @@ module PerformanceMetrics
       end
     end
 
+    def entering_housing
+      @entering_housing ||= begin
+        entering = []
+        entering << {
+          'Current Period' => clients.entering_housing(:current),
+        }
+        if include_comparison?
+          entering << {
+            'Prior Period' => clients.entering_housing(:prior),
+          }
+        end
+        entering
+      end
+    end
+
+    def income
+      @income ||= begin
+        incomes = []
+        with_earned_income_at_start = clients.with_earned_income_at_start(:current).count
+        with_increased_earned_income = clients.with_increased_earned_income(:current).count
+        percentage_earned_change = 0
+        percentage_earned_change = (with_increased_earned_income / with_earned_income_at_start.to_f * 100).round if with_earned_income_at_start.positive?
+
+        with_other_income_at_start = clients.with_other_income_at_start(:current).count
+        with_increased_other_income = clients.with_increased_other_income(:current).count
+        percentage_other_change = 0
+        percentage_other_change = (with_increased_other_income / with_other_income_at_start.to_f * 100).round if with_other_income_at_start.positive?
+
+        incomes << {
+          'Current Period' => {
+            'Employment Income' => percentage_earned_change,
+            'Non-Employment Income' => percentage_other_change,
+          },
+        }
+        if include_comparison?
+          with_earned_income_at_start = clients.with_earned_income_at_start(:prior).count
+          with_increased_earned_income = clients.with_increased_earned_income(:prior).count
+          percentage_earned_change = 0
+          percentage_earned_change = (with_increased_earned_income / with_earned_income_at_start.to_f * 100).round if with_earned_income_at_start.positive?
+
+          with_other_income_at_start = clients.with_other_income_at_start(:prior).count
+          with_increased_other_income = clients.with_increased_other_income(:prior).count
+          percentage_other_change = 0
+          percentage_other_change = (with_increased_other_income / with_other_income_at_start.to_f * 100).round if with_other_income_at_start.positive?
+          incomes << {
+            'Current Period' => {
+              'Employment Income' => percentage_earned_change,
+              'Non-Employment Income' => percentage_other_change,
+            },
+          }
+        end
+      end
+    end
     # End Sections
 
     private def comparison_periods
