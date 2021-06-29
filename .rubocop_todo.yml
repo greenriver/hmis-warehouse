@@ -2259,7 +2259,6 @@ Lint/UnusedBlockArgument:
 Lint/UnusedMethodArgument:
   Exclude:
     - 'lib/rds_sql_server/hmis_sql_server.rb'
-    - 'app/jobs/background_render_job.rb'
     - 'app/models/cohort_columns/ongoing_es.rb'
     - 'app/models/cohort_columns/ongoing_psh.rb'
     - 'app/models/cohort_columns/ongoing_rrh.rb'
@@ -3570,7 +3569,6 @@ Style/StringLiterals:
   Exclude:
     - 'app/channels/application_cable/connection.rb'
     - 'app/channels/test_channel.rb'
-    - 'app/jobs/background_render_job.rb'
     - 'app/models/agency.rb'
     - 'app/models/auto_encoding_csv.rb'
     - 'app/models/cas/user.rb'
