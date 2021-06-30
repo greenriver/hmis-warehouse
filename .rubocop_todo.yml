@@ -1541,7 +1541,6 @@ Layout/SpaceInLambdaLiteral:
     - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/hud/enrollment_coc.rb'
     - 'app/models/grda_warehouse/hud/funder.rb'
-    - 'app/models/grda_warehouse/hud/inventory.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
     - 'app/models/grda_warehouse/hud/site.rb'
@@ -2017,7 +2016,6 @@ Lint/BinaryOperatorWithIdenticalOperands:
 # Cop supports --auto-correct.
 Lint/BooleanSymbol:
   Exclude:
-    - 'app/models/grda_warehouse/hud/inventory.rb'
 
 # Offense count: 2
 # Configuration parameters: DebuggerReceivers, DebuggerMethods.
@@ -3315,7 +3313,6 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/hud/funder.rb'
     - 'app/models/grda_warehouse/hud/geography.rb'
-    - 'app/models/grda_warehouse/hud/inventory.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
     - 'app/models/grda_warehouse/hud/project_coc.rb'
@@ -3544,7 +3541,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/hud/funder.rb'
-    - 'app/models/grda_warehouse/hud/inventory.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
     - 'app/models/grda_warehouse/hud/project_coc.rb'
@@ -3726,7 +3722,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/hud/funder.rb'
-    - 'app/models/grda_warehouse/hud/inventory.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
     - 'app/models/grda_warehouse/hud/project_coc.rb'
