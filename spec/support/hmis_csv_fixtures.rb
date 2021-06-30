@@ -35,19 +35,21 @@ module HmisCsvFixtures
       raise "Unsupported CSV version #{version}"
     end
     importer.import!
+    FileUtils.rm_rf(tmp_path) if tmp_path
 
     if run_jobs
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      # 2020 always runs this so we dont need to do it twice
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run! unless version == '2020'
+
+
       GrdaWarehouse::Tasks::ProjectCleanup.new.run!
       GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
       AccessGroup.maintain_system_groups
 
     end
     Delayed::Worker.new.work_off
-  ensure
-    FileUtils.rm_rf(tmp_path) if tmp_path
 
-    nil # no useful return
+    importer.importer_log # this is a HmisCsvTwentyTwenty::ImportLog record of what happened
   end
 
   def cleanup_hmis_csv_fixtures
