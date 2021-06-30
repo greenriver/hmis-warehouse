@@ -255,7 +255,8 @@ module HmisCsvTwentyTwenty::Loader
             parser = CSV.new(
               read_from,
               headers: false,
-              liberal_parsing: true
+              liberal_parsing: true,
+              skip_blanks: true
             )
             parser.each do |row|
               values = if mapping_status == :mapped
