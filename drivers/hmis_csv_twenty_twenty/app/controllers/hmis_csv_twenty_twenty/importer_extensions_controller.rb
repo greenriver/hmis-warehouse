@@ -37,6 +37,7 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
       HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc,
       HmisCsvTwentyTwenty::HmisCsvCleanup::MoveInOutsideEnrollment,
       HmisCsvTwentyTwenty::HmisCsvCleanup::PrependProjectId,
+      HmisCsvTwentyTwenty::HmisCsvCleanup::PrependOrganizationId,
       HmisCsvTwentyTwenty::Aggregated::CombineEnrollments,
       HmisCsvTwentyTwenty::HmisCsvCleanup::DeleteEmptyEnrollments,
     ].sort_by(&:associated_model).
