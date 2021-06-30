@@ -23,6 +23,7 @@ module ProjectScorecard
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
     belongs_to :user, class_name: 'User'
     belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
+    belongs_to :spm, class_name: 'HudReports::ReportInstance', optional: true
 
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
@@ -314,12 +315,13 @@ module ProjectScorecard
       return unless RailsDrivers.loaded.include?(:hud_spm_report)
 
       # Generate SPM
-      filter = ::Filters::FilterBase.new(user_id: user_id)
+      filter = ::HudSpmReport::Filters::SpmFilter.new(user_id: user_id)
       filter.set_from_params(
         {
           start: start_date,
           end: end_date,
           project_ids: project_ids,
+          project_type_codes: [:es, :so, :sh, :th], # All homeless types are required for returns
         },
       )
       questions = [
@@ -328,6 +330,8 @@ module ProjectScorecard
       generator = HudSpmReport::Generators::Fy2020::Generator
       spm = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
       generator.new(spm).run!(email: false)
+
+      update(spm_id: spm.id) # Record the SPM instance for use in the front end
 
       number_of_exits = answer(spm, '2', 'B7')
       number_of_returns = answer(spm, '2', 'I7')
