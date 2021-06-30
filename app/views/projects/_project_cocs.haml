@@ -1,8 +1,12 @@
-
-%h2 Project CoC Records
+.d-flex.justify-content-between.mb-2
+  %h2 Project CoC Records
+  - if RailsDrivers.loaded.include?(:manual_hmis_data)  
+    = link_to new_manual_hmis_data_project_project_coc_path(@project), data: {loads_in_pjax_modal: true}, class: 'btn btn-sm btn-secondary' do
+      %i.icon-plus
+      Add Manual Project CoC Record
 .card.mb-4
   - if project_cocs.count > 0
-    %table.table.table-sm.table-hover
+    %table.table.table-sm.table-hover.table-striped
       %thead
         %tr
           %th
@@ -16,7 +20,7 @@
         - project_cocs.all.each do |p_coc|
           %tr
             %td
-              - if can_see_raw_hmis_data?
+              - if can_see_raw_hmis_data? && !p_coc.manual_entry?
                 = link_to 'HMIS', hmi_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
             %td= p_coc.ProjectCoCID
             %td
@@ -49,8 +53,16 @@
                   = HUD.geography_type p_coc.geography_type_override
             %td
               - if can_edit_projects?
-                = link_to edit_project_coc_path(p_coc), class: ['btn', 'btn-sm', 'btn-secondary'] do
-                  %i.icon-pencil
-                  Edit
+                - unless p_coc.manual_entry?
+                  = link_to edit_project_coc_path(p_coc), class: 'btn btn-sm btn-secondary mr-2 mb-1', data: {loads_in_pjax_modal: true} do
+                    %i.icon-pencil
+                    Edit
+                - if p_coc.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)
+                  = link_to edit_manual_hmis_data_project_coc_path(p_coc), class: 'btn btn-sm btn-secondary mr-2 mb-1', data: {loads_in_pjax_modal: true} do
+                    %i.icon-pencil
+                    Edit
+                  = link_to manual_hmis_data_project_coc_path(p_coc), method: :delete, class: 'btn btn-sm btn-secondary btn-danger mb-1', data: {confirm: 'Do you really want to remove this manually entered Inventory'}  do
+                    %i.icon-cross
+                    Remove
   - else
     %h4.text-center No sites
