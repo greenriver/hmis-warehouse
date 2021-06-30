@@ -16,7 +16,7 @@ module WarehouseReports
         preload(:ce_assessments).
         joins(:ce_assessments).
         merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active.visible_by?(current_user)).
-        viewable_by(current_user)
+        destination_visible_to(current_user)
 
       @clients = sort_clients(@clients, @column, @direction)
 
