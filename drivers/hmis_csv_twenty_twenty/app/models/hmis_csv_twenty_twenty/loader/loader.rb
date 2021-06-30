@@ -21,18 +21,13 @@ module HmisCsvTwentyTwenty::Loader
     include TsqlImport
     include NotifierConfig
     include HmisTwentyTwenty
-    # The HMIS spec limits the field to 50 characters
-    # EXPORT_ID_FIELD_WIDTH = 50
-    # SELECT_BATCH_SIZE = 10_000
-    # INSERT_BATCH_SIZE = 5_000
-
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :loader_log
 
     # Prepare a loader for HmisCsvTwentyTwenty CSVs
     # in the directory `file_path`
-    # and attribute the data to data_source_id a GrdaWarehouse::DataSource#id .
+    # and attribute the data to data_source_id a GrdaWarehouse::DataSource#id.
     #
-    # debug: log progress to the logger
+    # debug: no longer used
     # remove_files: The directory will be removed after calling #load!
     # deidentified: Passed to HmisCsvTwentyTwenty::Importer::Importer when #import! is called
     def initialize(
@@ -218,30 +213,38 @@ module HmisCsvTwentyTwenty::Loader
         "Loading #{base_name} into #{klass.table_name} #{hash_as_log_str(loader_id: @loader_log.id)}"
       end
 
-      meta_data = [data_source.id, @loader_log.id, @loaded_at]
-
-
-      # get expected
+      meta_data_names = ['data_source_id', 'loader_id', 'loaded_at']
+      meta_data = [data_source.id, @loader_log.id, @loaded_at.iso8601]
 
       header_row = CSV.parse_line(
         read_from,
         liberal_parsing: true,
         strip: true
       )
-      copy_cols = clean_header_row(header_row, klass, file_name)
-      return unless copy_cols
+      # we are transforming the incoming CSV
+      # to have only the columns we expect
+      # in a known order
+      mapping_status, col_mapping = *clean_header_row(header_row, klass, file_name)
 
-      col_list = copy_cols.map { |c| klass.connection.quote_column_name c }.join(',')
+      if mapping_status == :ok
+        pg_cols = col_mapping + meta_data_names
+      elsif mapping_status == :mapped
+        extra_cols = header_row - header_row.values_at(*col_mapping.values)
+        pg_cols = col_mapping.keys + meta_data_names
+      else
+        return # cannot continue clean_header_row logged its reason
+      end
+
+      col_list = pg_cols.map { |c| klass.connection.quote_column_name c }.join(',')
+      expect_col_count = pg_cols.size
       copy_sql = <<~SQL.strip
         COPY #{klass.quoted_table_name} (#{col_list})
         FROM STDIN
         WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER ',', NULL '')
       SQL
-      # logger.debug { "   #{copy_sql}" }
 
       lines_loaded = nil
       total_lines = nil
-      expect_col_count = copy_cols.size - meta_data.size
       row_errors = []
       # SLOW_CHECK; klass.connection.transaction do
       bm = Benchmark.measure do
@@ -255,15 +258,22 @@ module HmisCsvTwentyTwenty::Loader
               liberal_parsing: true
             )
             parser.each do |row|
+              values = if mapping_status == :mapped
+                row.values_at(*col_mapping.values)
+              else
+                row
+              end
+              values += (parser.lineno == 1 ? meta_data_names : meta_data)
+
               # There were excess columns, probably due to an unquoted comma
-              if row.size > expect_col_count
+              if values.size > expect_col_count
                 row_errors << {
                   file_name: base_name,
                   message: 'Too many columns found',
                   details: "Line number: #{parser.lineno}",
                   source: row.to_csv,
                 }
-              elsif row.size < expect_col_count
+              elsif values.size < expect_col_count
                 row_errors << {
                   file_name: base_name,
                   message: 'Too few columns found',
@@ -271,7 +281,8 @@ module HmisCsvTwentyTwenty::Loader
                   source: row.to_csv,
                 }
               else
-                pg_conn.put_copy_data (row + meta_data).to_csv
+                csv_data = values.to_csv
+                pg_conn.put_copy_data csv_data
               end
             end
           ensure
@@ -315,8 +326,52 @@ module HmisCsvTwentyTwenty::Loader
       add_error(file_path: original_file_path, message: e.message, line: lines_loaded)
     end
 
-    # Headers need to match our style
+    # Deal with incoming CSV that:
+    # - has extra columns,
+    # - is in the wrong order
+    # - uses different capitalization
+    # returns a mapping from the expected name
+    # to the column index (zero-based) in the source
+    #
+    # ```ruby
+    # status, mapping = clean_header_row(source_csv_headers, ....)
+    # db_columns = mapping.keys
+    # CVS.foreach(...) do |row|
+    #   db_values = row.values_at(*db_columns.values)
+    #   ...
+    # end
+    # ```
     private def clean_header_row(source_headers, klass, file_path)
+      if source_headers.none?
+        add_error(file_path: file_path, message: 'No header row found', line: 1)
+        return [:missing]
+      end
+
+      valid_headers = source_headers.map(&HEADER_NORMALIZER) == klass.hud_csv_headers.map(&HEADER_NORMALIZER)
+
+      return [:ok, klass.hud_csv_headers.map(&:to_s)] if valid_headers
+
+      mapping = {}
+      missing_cols = []
+      klass.hud_csv_headers(version: '2020').each do |expected_col|
+        if (col_idx = source_headers.find_index{|csv_col| expected_col.to_s.downcase.strip == csv_col.to_s.downcase.strip})
+          mapping[expected_col.to_s] = col_idx
+        else
+          missing_cols << expected_col
+        end
+      end
+      if missing_cols.present?
+        add_error(file_path: file_path, message: "Header row missing expected columns: #{missing_cols.join ','}", line: 1)
+        return [:missing_col, mapping]
+      end
+      #puts "#{file_path} #{mapping.inspect}"
+      add_error(file_path: file_path, message: "Header row incorrect, used mapping: #{mapping.inspect}", line: 1)
+      return [:mapped, mapping]
+    end
+    HEADER_NORMALIZER = ->(s) { s.to_s.downcase}
+
+    # Headers need to match our style
+    private def old_clean_header_row(source_headers, klass, file_path)
       if source_headers.none?
         add_error(file_path: file_path, message: 'No header row found', line: 1)
         return
@@ -420,15 +475,15 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     private def add_error(file_path:, message:, line:)
-      file = File.basename(file_path)
+      file_name = File.basename(file_path)
       @loader_log.load_errors.create(
-        file_name: file,
-        message: "Error in #{file}",
+        file_name: file_name,
+        message: "Error in #{file_name}",
         details: message,
         source: line,
       )
       log(message)
-      @loader_log.summary[file]['total_errors'] += 1
+      @loader_log.summary[file_name]['total_errors'] += 1
     end
   end
 end

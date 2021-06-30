@@ -71,7 +71,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
   end
 
   def cleanup_files
-    @delete_later.each do |path|
+    @delete_later&.each do |path|
       FileUtils.rm_rf(path)
     end
   end
