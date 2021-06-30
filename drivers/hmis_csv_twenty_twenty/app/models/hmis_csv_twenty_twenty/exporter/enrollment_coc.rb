@@ -25,7 +25,7 @@ module HmisCsvTwentyTwenty::Exporter
       if row[:HouseholdID].blank?
         row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{id_of_enrollment}")
       else
-        row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{(row[:HouseholdID])}")
+        row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{row[:HouseholdID]}")
       end
 
       row[:CoCCode] = enrollment_coc_from_project_coc(row[:ProjectID], data_source_id) if row[:CoCCode].blank?

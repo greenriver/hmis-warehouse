@@ -42,8 +42,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |data_source_id, project_coc_id, hud_coc_code|
           if hud_coc_code.present?
             [[data_source_id, project_coc_id], hud_coc_code]
-          else
-            nil
           end
         end.compact.to_h
       @coc_code_overrides[[data_source_id, project_coc_id]]
@@ -55,8 +53,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |data_source_id, project_coc_id, geography_type_override|
           if geography_type_override.present?
             [[data_source_id, project_coc_id], geography_type_override]
-          else
-            nil
           end
         end.compact.to_h
       @geography_type_overrides[[data_source_id, project_coc_id]]
@@ -68,8 +64,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |data_source_id, project_coc_id, geocode_override|
           if geocode_override.present?
             [[data_source_id, project_coc_id], geocode_override]
-          else
-            nil
           end
         end.compact.to_h
       @geocode_overrides[[data_source_id, project_coc_id]]
@@ -81,8 +75,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |data_source_id, project_coc_id, zip_override|
           if zip_override.present?
             [[data_source_id, project_coc_id], zip_override]
-          else
-            nil
           end
         end.compact.to_h
       @zip_overrides[[data_source_id, project_coc_id]]

@@ -35,8 +35,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |ds_id, i_id, coc_code_override|
           if coc_code_override.present?
             [[ds_id, i_id], coc_code_override]
-          else
-            nil
           end
         end.compact.to_h
       @coc_code_overrides[[data_source_id, inventory_id]]
@@ -48,8 +46,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |ds_id, i_id, inventory_start_date_override|
           if inventory_start_date_override.present?
             [[ds_id, i_id], inventory_start_date_override]
-          else
-            nil
           end
         end.compact.to_h
       @inventory_start_date_overrides[[data_source_id, inventory_id]]
@@ -61,8 +57,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |ds_id, i_id, inventory_end_date_override|
           if inventory_end_date_override.present?
             [[ds_id, i_id], inventory_end_date_override]
-          else
-            nil
           end
         end.compact.to_h
       @inventory_end_date_overrides[[data_source_id, inventory_id]]

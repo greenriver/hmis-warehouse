@@ -44,7 +44,7 @@ module HmisCsvTwentyTwenty::Exporter
       if row[:HouseholdID].blank?
         row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{id_of_enrollment}")
       else
-        row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{(row[:HouseholdID])}")
+        row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{row[:HouseholdID]}")
       end
 
       # Only use the first 5 of the zip

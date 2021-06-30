@@ -87,8 +87,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |ds_id, p_id, tracking_method_override|
           if tracking_method_override.present?
             [[ds_id, p_id], tracking_method_override]
-          else
-            nil
           end
         end.compact.to_h
       @tracking_method_overrides[[data_source_id, project_id]]
@@ -100,8 +98,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |ds_id, p_id, target_population_override|
           if target_population_override.present?
             [[ds_id, p_id], target_population_override]
-          else
-            nil
           end
         end.compact.to_h
       @target_population_overrides[[data_source_id, project_id]]
@@ -113,8 +109,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |ds_id, p_id, housing_type_override|
           if housing_type_override.present?
             [[ds_id, p_id], housing_type_override]
-          else
-            nil
           end
         end.compact.to_h
       @housing_type_overrides[[data_source_id, project_id]]
@@ -130,8 +124,6 @@ module HmisCsvTwentyTwenty::Exporter
               override = 1
             end
             [[ds_id, p_id], override]
-          else
-            nil
           end
         end.compact.to_h
       return @continuum_project_overrides[[data_source_id, project_id]]
@@ -152,8 +144,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |ds_id, p_id, operating_start_date_override|
           if operating_start_date_override.present?
             [[ds_id, p_id], operating_start_date_override]
-          else
-            nil
           end
         end.compact.to_h
       @operating_start_date_overrides[[data_source_id, project_id]]
@@ -165,8 +155,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |ds_id, p_id, operating_end_date_override|
           if operating_end_date_override.present?
             [[ds_id, p_id], operating_end_date_override]
-          else
-            nil
           end
         end.compact.to_h
       @operating_end_date_overrides[[data_source_id, project_id]]
@@ -184,8 +172,6 @@ module HmisCsvTwentyTwenty::Exporter
         map do |data_source_id, project_id, computed_project_type|
           if computed_project_type.present?
             [[data_source_id, project_id], computed_project_type]
-          else
-            nil
           end
         end.compact.to_h
     end
