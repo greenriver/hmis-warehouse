@@ -11,19 +11,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      @delete_later = []
-      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data'
-      travel_to Time.local(2020, 1, 1) do
-        import(file_path, @data_source)
-      end
-    end
-
-    after(:all) do
-      # Because we are only running the import once, we have to do our own DB and file cleanup
-      HmisCsvTwentyTwenty::Utility.clear!
-      GrdaWarehouse::Utility.clear!
-      cleanup_files
+      import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data', version: '2020', run_jobs: false
     end
 
     it 'the database will have the correct number of source clients' do
@@ -66,11 +54,8 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      @delete_later = []
-      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data'
       travel_to Time.local(2021, 1, 1) do
-        import(file_path, @data_source)
+        import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data', version: '2020', run_jobs: false
       end
     end
 
@@ -78,7 +63,6 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      cleanup_files
     end
 
     it 'client DOBs appear correctly' do
@@ -107,11 +91,8 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      @delete_later = []
-      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data'
       travel_to Time.local(2017, 12, 30) do
-        import(file_path, @data_source)
+        import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data', version: '2020', run_jobs: false
       end
     end
 
@@ -119,7 +100,6 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      cleanup_files
     end
 
     it 'client DOBs appear correctly' do
@@ -142,29 +122,6 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       expect(client.DateUpdated.strftime('%Y-%m-%d %H:%M:%S')).to eq('2016-07-14 09:59:00')
       client = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: 6812)
       expect(client.DateUpdated.strftime('%Y-%m-%d %H:%M:%S')).to eq('1919-04-28 05:17:00')
-    end
-  end
-
-  def import(file_path, data_source)
-    source_file_path = File.join(file_path, 'source')
-    import_path = File.join(file_path, data_source.id.to_s)
-    # duplicate the fixture file as it gets manipulated
-    FileUtils.cp_r(source_file_path, import_path)
-    @delete_later << import_path unless import_path == source_file_path
-
-    loader = HmisCsvTwentyTwenty::Loader::Loader.new(
-      file_path: import_path,
-      data_source_id: data_source.id,
-      remove_files: false,
-    )
-    loader.load!
-    loader.import!
-    Delayed::Worker.new.work_off(2)
-  end
-
-  def cleanup_files
-    @delete_later.each do |path|
-      FileUtils.rm_rf(path)
     end
   end
 end

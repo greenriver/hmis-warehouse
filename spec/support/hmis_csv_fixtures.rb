@@ -1,7 +1,7 @@
 module HmisCsvFixtures
   def import_hmis_csv_fixture(
     file_path,
-    data_source:,
+    data_source: nil,
     version: '2020',
     run_jobs: true,
     allowed_projects: nil,
