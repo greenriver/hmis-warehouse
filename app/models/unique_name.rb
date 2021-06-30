@@ -5,17 +5,19 @@
 ###
 
 class UniqueName < ApplicationRecord
-
   def self.update!
     Rails.logger.info 'Updating the unique names table'
 
     # Build double metaphone representations for all names in the database
-    names = GrdaWarehouse::Hud::Client.source.select('FirstName').distinct.pluck('FirstName')&.map{ |n| n&.downcase || ''} + GrdaWarehouse::Hud::Client.source.select('LastName').distinct.pluck('LastName')&.map{ |n| n&.downcase || ''}
-    names.uniq.each do |name|
+    existing_names = UniqueName.pluck(:name)
+    all_names = GrdaWarehouse::Hud::Client.source.distinct.pluck('FirstName').map { |n| n.to_s.downcase } +
+      GrdaWarehouse::Hud::Client.source.distinct.pluck('LastName').map { |n| n.to_s.downcase }
+    new_names = all_names - existing_names
+    name_objects = []
+    new_names.uniq.each do |name|
       double_metaphone = Text::Metaphone.double_metaphone(name)
-      un = UniqueName.where(name: name).first_or_create
-      un.double_metaphone = double_metaphone
-      un.save
+      name_objects << UniqueName.new(name: name, double_metaphone: double_metaphone)
     end
+    UniqueName.import name_objects
   end
 end

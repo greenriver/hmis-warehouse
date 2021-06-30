@@ -744,7 +744,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/similarity_metric/social_security_number.rb'
     - 'app/models/talentlms/facade.rb'
     - 'app/models/token.rb'
-    - 'app/models/unique_name.rb'
     - 'app/models/warehouse_report.rb'
     - 'app/models/weather.rb'
     - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
@@ -1498,7 +1497,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/similarity_metric/experiment/range_formatter.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/similarity_metric/initializer.rb'
-    - 'app/models/unique_name.rb'
     - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
 
 # Offense count: 37
@@ -1743,7 +1741,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/role.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/talentlms/config.rb'
-    - 'app/models/unique_name.rb'
     - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
 
 # Offense count: 543
@@ -2134,7 +2131,6 @@ Lint/RedundantStringCoercion:
 Lint/SafeNavigationChain:
   Exclude:
     - 'app/models/health/patient.rb'
-    - 'app/models/unique_name.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
