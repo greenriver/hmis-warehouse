@@ -33,7 +33,8 @@ module WarehouseReports
     private def sort_clients(clients, column, direction)
       case column
       when 'assessment_date'
-        clients.order(created_at: direction)
+        a_t = GrdaWarehouse::CoordinatedEntryAssessment::Base.arel_table
+        clients.order(a_t[:created_at].to_sql => direction)
       when 'last_name'
         clients.order(last_name: direction, first_name: direction)
       else
