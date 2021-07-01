@@ -10,8 +10,8 @@ class UniqueName < ApplicationRecord
 
     # Build double metaphone representations for all names in the database
     existing_names = UniqueName.pluck(:name)
-    all_names = GrdaWarehouse::Hud::Client.source.distinct.pluck('FirstName').map { |n| n.to_s.downcase } +
-      GrdaWarehouse::Hud::Client.source.distinct.pluck('LastName').map { |n| n.to_s.downcase }
+    all_names = GrdaWarehouse::Hud::Client.source.distinct.where.not(FirstName: [nil, '']).pluck('FirstName').map(&:downcase) +
+      GrdaWarehouse::Hud::Client.source.distinct.where.not(LastName: [nil, '']).pluck('LastName').map(&:downcase)
     new_names = all_names - existing_names
     name_objects = []
     new_names.uniq.each do |name|
