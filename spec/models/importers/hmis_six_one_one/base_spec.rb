@@ -3,11 +3,11 @@ require 'rails_helper'
 RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
   describe 'When importing enrollments' do
     before(:all) do
+      GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_files', version: '6.11', run_jobs: false
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
-      GrdaWarehouse::Utility.clear!
       cleanup_hmis_csv_fixtures
     end
 
