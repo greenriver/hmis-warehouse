@@ -15,6 +15,8 @@ class UniqueName < ApplicationRecord
     new_names = all_names - existing_names
     name_objects = []
     new_names.uniq.each do |name|
+      next unless name.present?
+
       double_metaphone = Text::Metaphone.double_metaphone(name)
       name_objects << UniqueName.new(name: name, double_metaphone: double_metaphone)
     end
