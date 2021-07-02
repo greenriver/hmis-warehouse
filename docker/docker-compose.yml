@@ -95,6 +95,8 @@ services:
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
     volumes:
       - dbdata:/var/lib/postgresql/data
+    ports:
+      - 55000:5432
     expose:
       - 5432
 
