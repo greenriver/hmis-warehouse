@@ -44,7 +44,7 @@ RSpec.describe 'Prepend Organization IDs', type: :model do
       expect(GrdaWarehouse::Hud::Organization.count).to eq(1)
     end
 
-    it 'Organization Name is (PROJECT) Test Organization' do
+    it 'has Organization ID prepended' do
       expect(GrdaWarehouse::Hud::Organization.first.OrganizationName).to eq('(ORG-ID) Test Org')
     end
   end
