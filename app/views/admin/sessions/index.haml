@@ -2,10 +2,10 @@
 - content_for :title, title
 
 %h1= content_for :title
-= render :partial => 'menus/admin_tabs'
+= render partial: 'menus/admin_tabs'
 
 .card.admin-manage-session
-  %table.table.table-fixed.table-striped
+  %table.table.table-fixed.table-striped.mb-0
     %thead
       %th Name
       %th Last Login
