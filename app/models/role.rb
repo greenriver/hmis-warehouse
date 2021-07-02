@@ -38,6 +38,7 @@ class Role < ApplicationRecord
       :can_edit_users,
       :can_edit_anything_super_user, # deprecated
       :can_manage_config,
+      :can_manage_sessions,
       :can_edit_access_groups,
     ]
   end
@@ -350,6 +351,13 @@ class Role < ApplicationRecord
       },
       can_manage_config: {
         description: 'Administrative ability to fundamentally change the way various items are calculated and to disable/enable modules',
+        administrative: true,
+        categories: [
+          'Administration',
+        ],
+      },
+      can_manage_sessions: {
+        description: 'If granted, the user can see a list of active sessions and can cancel any session',
         administrative: true,
         categories: [
           'Administration',
