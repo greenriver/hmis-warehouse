@@ -582,7 +582,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/warehouse_reports/youth/inactive_intake.rb'
     - 'app/models/health/agency.rb'
     - 'app/models/health/agency_patient_referral.rb'
-    - 'app/models/health/agency_performance.rb'
     - 'app/models/health/agency_user.rb'
     - 'app/models/health/agency_user_saver.rb'
     - 'app/models/health/backup_plan.rb'
@@ -744,7 +743,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/similarity_metric/social_security_number.rb'
     - 'app/models/talentlms/facade.rb'
     - 'app/models/token.rb'
-    - 'app/models/unique_name.rb'
     - 'app/models/warehouse_report.rb'
     - 'app/models/weather.rb'
     - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
@@ -1432,7 +1430,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/agency.rb'
-    - 'app/models/health/agency_performance.rb'
     - 'app/models/health/careplan.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/claims/view_model.rb'
@@ -1498,7 +1495,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/similarity_metric/experiment/range_formatter.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/similarity_metric/initializer.rb'
-    - 'app/models/unique_name.rb'
     - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
 
 # Offense count: 37
@@ -1743,7 +1739,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/role.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/talentlms/config.rb'
-    - 'app/models/unique_name.rb'
     - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
 
 # Offense count: 543
@@ -2134,7 +2129,6 @@ Lint/RedundantStringCoercion:
 Lint/SafeNavigationChain:
   Exclude:
     - 'app/models/health/patient.rb'
-    - 'app/models/unique_name.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -2259,7 +2253,6 @@ Lint/UnusedBlockArgument:
 Lint/UnusedMethodArgument:
   Exclude:
     - 'lib/rds_sql_server/hmis_sql_server.rb'
-    - 'app/jobs/background_render_job.rb'
     - 'app/models/cohort_columns/ongoing_es.rb'
     - 'app/models/cohort_columns/ongoing_psh.rb'
     - 'app/models/cohort_columns/ongoing_rrh.rb'
@@ -2373,7 +2366,6 @@ Lint/UselessAssignment:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/health/agency_performance.rb'
     - 'app/models/health/agency_user_saver.rb'
     - 'app/models/health/careplan_saver.rb'
     - 'app/models/health/claim.rb'
@@ -2481,7 +2473,6 @@ Naming/MemoizedInstanceVariableName:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/aco_performance.rb'
-    - 'app/models/health/agency_performance.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/patient.rb'
@@ -2891,7 +2882,6 @@ Style/IfUnlessModifier:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
-    - 'app/models/health/agency_performance.rb'
     - 'app/models/health/cha_saver.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'
@@ -3569,7 +3559,6 @@ Style/StringLiterals:
   Exclude:
     - 'app/channels/application_cable/connection.rb'
     - 'app/channels/test_channel.rb'
-    - 'app/jobs/background_render_job.rb'
     - 'app/models/agency.rb'
     - 'app/models/auto_encoding_csv.rb'
     - 'app/models/cas/user.rb'
@@ -3817,7 +3806,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/warehouse_reports/time_homeless_for_exit.rb'
     - 'app/models/grda_warehouse/warehouse_reports/youth/follow_ups_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/youth/inactive_intake.rb'
-    - 'app/models/health/agency_performance.rb'
     - 'app/models/health/cha_saver.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'

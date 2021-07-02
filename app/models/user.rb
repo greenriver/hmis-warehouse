@@ -106,6 +106,11 @@ class User < ApplicationRecord
     active.not_system.where(exclude_from_directory: false)
   end
 
+  scope :has_recent_activity, -> do
+    where(last_activity_at: timeout_in.ago..Time.current).
+    where.not(unique_session_id: nil)
+  end
+
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
   # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
 
