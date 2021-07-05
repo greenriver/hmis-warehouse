@@ -17,6 +17,8 @@ enrollment_header = [
   'CP_SL',
   'Enrollment_Start_Date',
   'Start_Reason_Desc',
+  'Disenrollment_Date',
+  'Stop_Reason_Desc',
   'Record_Status',
   'Record_Update_Date',
   'Export_Date',

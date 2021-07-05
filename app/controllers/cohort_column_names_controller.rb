@@ -30,6 +30,8 @@ class CohortColumnNamesController < ApplicationController
         translation.text = proposed_translation
       end
       existing_translation.update_attribute(:text, proposed_translation) if existing_translation != proposed_translation
+      FastGettext.expire_cache_for(key)
+      Rails.cache.write('translation-fresh-at', Time.current)
     end
   end
 

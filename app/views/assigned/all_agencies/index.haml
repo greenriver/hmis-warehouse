@@ -6,7 +6,7 @@
 = simple_form_for :filter, url: assigned_all_agencies_path, method: :get do |f|
   .row.mb-4
     .col-4
-      = f.input :agency_id, collection: Agency.order(:name), selected: @selection, label: "Agency", input_html: { class: :select2}, include_blank: false
+      = f.input :agency_id, collection: Agency.order(:name), selected: @selection, label: "Agency", as: :select_two, include_blank: false
       = f.button :submit, value: 'Update View'
 
 - agency_name = nil

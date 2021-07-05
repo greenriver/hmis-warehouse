@@ -27,6 +27,9 @@ default: &default
 <%= ENV['RAILS_ENV'] %>_cas:
   <<: *default
   database: <%= ENV['DATABASE_CAS_DB'] %>
+  <% if ENV['DATABASE_CAS_PORT'] %>
+  port: <%= ENV['DATABASE_CAS_PORT'] %>
+  <% end %>
   <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
   sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
   sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem

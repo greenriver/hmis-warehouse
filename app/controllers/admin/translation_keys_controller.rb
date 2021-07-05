@@ -58,6 +58,8 @@ module Admin
 
     def update
       if @translation_key.update(translation_key_params)
+        FastGettext.expire_cache_for(@translation_key.key)
+        Rails.cache.write('translation-fresh-at', Time.current)
         flash[:notice] = 'Saved!'
         redirect_to @translation_key
       else

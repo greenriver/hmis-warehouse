@@ -73,6 +73,8 @@ services:
     stdin_open: true
     tty: true
     command: bundle exec rails server -b 0.0.0.0
+    ports:
+      - "3000"
     expose:
       - 3000
     environment:
@@ -93,7 +95,7 @@ services:
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
     volumes:
       - dbdata:/var/lib/postgresql/data
-    ports:
+    expose:
       - 5432
 
   redis:
@@ -101,7 +103,7 @@ services:
     image: redis:alpine
     volumes:
       - redis:/data
-    ports:
+    expose:
       - 6379
 
   mailhog:

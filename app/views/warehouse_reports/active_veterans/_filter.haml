@@ -4,7 +4,7 @@
       .col-sm-6
         = render 'warehouse_reports/date_range_filters', f:f
       .col-sm-6
-        = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2', data: {placeholder: 'Project Type'} }
+        = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, data: {placeholder: 'Project Type'} }, as: :select_two
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Run Report', data: { disable_with: 'running...' }

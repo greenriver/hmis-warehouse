@@ -12,7 +12,7 @@
   = f.input :weight
   = f.input :note
   = f.input :document_ready, label: 'Required for document ready?', input_html: { class: :jDocumentReady }
-  = f.input :required_for, collection: GrdaWarehouse::AvailableFileTag.available_required_for_options, include_blank: 'Everyone', input_html: { class: [:select2, :jDocumentReadyDependent] }
+  = f.input :required_for, collection: GrdaWarehouse::AvailableFileTag.available_required_for_options, include_blank: 'Everyone', input_html: { class: [:jDocumentReadyDependent] }, as: :select_two
   = f.input :notification_trigger, label: 'Should this generate a notification?'
   = f.input :verified_homeless_history, label: 'Does this constitute a verified homeless history?'
   = f.input :consent_form, label: 'Does this constitute a consent form?', input_html: { class: :jConsentForm }

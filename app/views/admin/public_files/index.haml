@@ -23,7 +23,7 @@
   .col-sm-4
     %h4 Upload
     = simple_form_for @file, url: admin_public_files_path do |f|
-      = f.input :name, collection: @file.class.known_locations.invert, label: false, input_html: {class: :select2}
+      = f.input :name, collection: @file.class.known_locations.invert, label: false, as: :select_two
       = f.input :file, label: false
       = f.button :submit, value: 'Upload File'
 

@@ -38,6 +38,7 @@ class Role < ApplicationRecord
       :can_edit_users,
       :can_edit_anything_super_user, # deprecated
       :can_manage_config,
+      :can_manage_sessions,
       :can_edit_access_groups,
     ]
   end
@@ -355,6 +356,13 @@ class Role < ApplicationRecord
           'Administration',
         ],
       },
+      can_manage_sessions: {
+        description: 'If granted, the user can see a list of active sessions and can cancel any session',
+        administrative: true,
+        categories: [
+          'Administration',
+        ],
+      },
       # Deprecated TODO: remove references, then remove permission
       can_edit_dq_grades: {
         description: '[DEPRECATED] Management interface for setup of data quality grading scheme',
@@ -598,6 +606,13 @@ class Role < ApplicationRecord
       can_administer_assigned_reports: {
         description: 'Ability to view and delete reports assigned to other users',
         administrative: true,
+        categories: [
+          'Reporting',
+        ],
+      },
+      can_view_project_related_filters: {
+        description: 'Ability to specify filters of project, organization, funding source and data sources.  Most single CoC installations will want this enabled for anyone with reporting access.',
+        administrative: false,
         categories: [
           'Reporting',
         ],

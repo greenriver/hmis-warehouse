@@ -6,9 +6,9 @@
       .col-sm-4
         = f.input :pit_date, input_html: {name: 'report_result[options][pit_date]', value: default_pit_date}, as: :date_picker, label: 'PIT date'
       .col-sm-4
-        = f.input :chronic_date, collection: GrdaWarehouse::HudChronic.distinct.order(date: :desc).pluck(:date), input_html: {name: 'report_result[options][chronic_date]', value: default_chronic_date, class: 'select2'}
+        = f.input :chronic_date, collection: GrdaWarehouse::HudChronic.distinct.order(date: :desc).pluck(:date), input_html: {name: 'report_result[options][chronic_date]', value: default_chronic_date}, as: :select_two
       .col-sm-4
-        = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user).pluck(:CoCCode).uniq, include_blank: false, input_html: {name: 'report_result[options][coc_codes][]', multiple: :multiple, class: 'select2'}
+        = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user).pluck(:CoCCode).uniq, include_blank: false, input_html: {name: 'report_result[options][coc_codes][]', multiple: :multiple}, as: :select_two
     .row.mb-2
       .col-sm-6
         = f.input :project_ids,  as: :grouped_select_two, group_method: :last, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), input_html: {name: 'report_result[options][project_ids][]', multiple: true}, include_blank: true, label: 'Projects', required: false

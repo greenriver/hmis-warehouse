@@ -2,7 +2,7 @@
   .jEquipmentForm
     .row
       .col-sm-8
-        = f.input :item, collection: @equipment.class.available_items, input_html: {class: :select2, style: 'width: 100%;'}
+        = f.input :item, collection: @equipment.class.available_items, input_html: {style: 'width: 100%;'}, as: :select_two
     .row
       .col-sm-8
         = f.input :provider
@@ -31,7 +31,6 @@
 
 = content_for :page_js do
   :javascript
-    $('select').select2();
     $('.jClose').on('click', function(e) {
       e.preventDefault();
     });

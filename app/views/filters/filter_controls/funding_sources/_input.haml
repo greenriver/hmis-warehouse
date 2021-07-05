@@ -1,1 +1,2 @@
-= f.input :funder_ids, collection: @filter.funder_options_for_select(user: current_user), input_html: {multiple: true, class: 'select2'}, label: control.label
+- if report_filter_visible?(:funder_ids, current_user)
+  = f.input :funder_ids, collection: @filter.funder_options_for_select(user: current_user), input_html: {multiple: true}, label: control.label, as: :select_two

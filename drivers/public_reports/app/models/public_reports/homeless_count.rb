@@ -9,11 +9,11 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Homeless Count Generator')
+      _('Number Homeless Report Generator')
     end
 
     def instance_title
-      _('Homeless Count Report')
+      _('Number Homeless Report')
     end
 
     private def public_s3_directory
@@ -56,6 +56,7 @@ module PublicReports
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
+      scope = filter_for_head_of_household(scope)
       scope
     end
   end

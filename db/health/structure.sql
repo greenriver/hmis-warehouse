@@ -3059,7 +3059,7 @@ CREATE TABLE public.hl7_value_set_codes (
     value_set_oid character varying NOT NULL,
     value_set_version character varying,
     code_system character varying NOT NULL,
-    code_system_oid character varying NOT NULL,
+    code_system_oid character varying,
     code_system_version character varying,
     code character varying NOT NULL,
     definition character varying,
@@ -6030,6 +6030,13 @@ CREATE INDEX hl_value_set_code ON public.hl7_value_set_codes USING btree (code, 
 
 
 --
+-- Name: hl_value_set_code_uniq_by_code_system_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hl_value_set_code_uniq_by_code_system_code ON public.hl7_value_set_codes USING btree (value_set_oid, code_system, code);
+
+
+--
 -- Name: hl_value_set_code_uniq_by_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6370,20 +6377,6 @@ CREATE INDEX index_encounter_records_on_encounter_report_id ON public.encounter_
 --
 
 CREATE INDEX index_encounter_reports_on_user_id ON public.encounter_reports USING btree (user_id);
-
-
---
--- Name: index_epic_case_notes_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_epic_case_notes_on_patient_id ON public.epic_case_notes USING btree (patient_id);
-
-
---
--- Name: index_epic_goals_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_epic_goals_on_patient_id ON public.epic_goals USING btree (patient_id);
 
 
 --
@@ -7206,6 +7199,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210419174757'),
 ('20210422161421'),
 ('20210510185734'),
-('20210511143037');
+('20210511143037'),
+('20210607182656');
 
 
