@@ -4432,7 +4432,8 @@ CREATE TABLE public.cohort_clients (
     user_boolean_27 boolean,
     user_boolean_28 boolean,
     user_boolean_29 boolean,
-    user_boolean_30 boolean
+    user_boolean_30 boolean,
+    date_added_to_cohort date
 );
 
 
@@ -18302,6 +18303,13 @@ CREATE INDEX client_first_name ON public."Client" USING btree ("FirstName");
 
 
 --
+-- Name: client_id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree (client_id);
+
+
+--
 -- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -18467,6 +18475,13 @@ CREATE INDEX enrollment_date_updated ON public."Enrollment" USING btree ("DateUp
 --
 
 CREATE INDEX enrollment_export_id ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: entrydate_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX entrydate_ret_index ON public.recent_report_enrollments USING btree ("EntryDate");
 
 
 --
@@ -20994,6 +21009,13 @@ CREATE INDEX "hmis_csv_validations-ONiu" ON public.hmis_csv_import_validations U
 --
 
 CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree (household_id);
+
+
+--
+-- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
 
 
 --
@@ -30196,6 +30218,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210603121547'),
 ('20210615131534'),
 ('20210616181054'),
-('20210616193735');
+('20210616193735'),
+('20210702143811'),
+('20210702144442');
 
 
