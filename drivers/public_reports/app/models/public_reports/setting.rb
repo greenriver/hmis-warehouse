@@ -21,6 +21,18 @@ module PublicReports
       end
     end
 
+    def color_shades(category = nil)
+      if category.blank? || ! tintable.include?(category.to_sym)
+        (0..9).to_a.map do |i|
+          shade(i)
+        end.compact
+      else
+        (0..9).to_a.map do |i|
+          shade(i, category)
+        end.compact
+      end
+    end
+
     def default_colors
       [
         '#00c73c',
@@ -42,6 +54,60 @@ module PublicReports
       self["#{category}_color_#{number}"].presence || default_colors[number % default_colors.count]
     end
 
+    def shade(number = 0, category = nil)
+      hex_color = if category.blank? || ! tintable.include?(category.to_sym) || self[category].blank?
+        default_colors[number % default_colors.count]
+      else
+        self[category]
+      end
+      lighten(hex_color, number * 0.1)
+    end
+
+    # Amount is between 0 and 1, closer to 0 darkens more
+    def darken(hex_color, amount = 0.4)
+      rgb = rgb_from_hex(hex_color)
+      rgb[0] = (rgb[0].to_i * amount).round
+      rgb[1] = (rgb[1].to_i * amount).round
+      rgb[2] = (rgb[2].to_i * amount).round
+      format('#%02x%02x%02x', *rgb)
+    end
+
+    # Amount is between 0 and 1, closer to 1 lightens more
+    def lighten(hex_color, amount = 0.6)
+      rgb = rgb_from_hex(hex_color)
+      rgb[0] = [(rgb[0].to_i + 255 * amount).round, 255].min
+      rgb[1] = [(rgb[1].to_i + 255 * amount).round, 255].min
+      rgb[2] = [(rgb[2].to_i + 255 * amount).round, 255].min
+      format('#%02x%02x%02x', *rgb)
+    end
+
+    # Useful for text on a colored background
+    def contrasting_color(hex_color)
+      color = hex_color.gsub('#','')
+      convert_to_brightness_value(color) > 382.5 ? darken(color) : lighten(color)
+    end
+
+    private def convert_to_brightness_value(hex)
+      rgb_from_hex(hex).sum
+    end
+
+    private def rgb_from_hex(hex)
+      hex = hex.gsub('#','')
+      hex.scan(/../).map(&:hex)
+    end
+
+    def tintable
+      [
+        :summary_color,
+        :homeless_primary_color,
+        :youth_primary_color,
+        :adults_only_primary_color,
+        :adults_with_children_primary_color,
+        :children_only_primary_color,
+        :veterans_primary_color,
+      ].freeze
+    end
+
     def num_colors
       (0..16).to_a
     end
@@ -54,6 +120,7 @@ module PublicReports
         :race,
         :time,
         :housing_type,
+        :location_type,
         :population,
       ]
     end

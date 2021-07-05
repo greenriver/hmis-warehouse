@@ -115,6 +115,7 @@ module Health
 
     def aco_name patient_id
       @aco_names ||= Health::AccountableCareOrganization.joins(patient_referrals: :patient).
+        merge(Health::PatientReferral.current).
         merge(Health::Patient.where(id: patient_ids)).
         pluck(hp_t[:id].to_sql, :name).to_h
       @aco_names[patient_id]

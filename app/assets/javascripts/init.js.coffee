@@ -1,7 +1,5 @@
 #= require namespace
 App.init = ->
-  App.select2.init()
-  App.remoteSelectLoad.init()
   $('abbr').tooltip();
   $('body').tooltip({
     selector: '[data-toggle="tooltip"]'
@@ -44,3 +42,6 @@ $ ->
   # setup click copies
   $('body').on 'click', '.jClickToCopy', ->
     App.util.copyToClipboard $('div.tooltip:visible .pid')
+window.CableReady = window.CableReady.default
+window.CableReady.DOMOperations.alert = (operation) =>
+  window.alert(operation.message)

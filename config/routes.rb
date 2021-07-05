@@ -304,7 +304,9 @@ Rails.application.routes.draw do
     namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
-      resources :actives, only: [:index]
+      resources :actives, only: [:index] do
+        post :render_section, on: :collection
+      end
       resources :last_permanent_zips, only: [:index]
     end
     resources :re_entry, only: [:index]
@@ -610,7 +612,7 @@ Rails.application.routes.draw do
   resources :organizations, only: [:destroy] do
     resources :contacts, except: [:show], controller: 'organizations/contacts'
   end
-  resources :projects, only: [:index, :edit, :show, :update, :destroy] do
+  resources :projects, only: [:edit, :show, :update, :destroy] do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show] do
       get :support, on: :member
@@ -788,6 +790,7 @@ Rails.application.routes.draw do
     resources :configs, only: [:index] do
       patch :update, on: :collection
     end
+    resources :sessions, only: [:index, :destroy]
     resources :data_quality_grades, only: [:index]
     resources :consent_limits, except: [:show]
     resources :missing_grades, only: [:create, :update, :destroy]
@@ -836,6 +839,7 @@ Rails.application.routes.draw do
       get :client_dashboard
       get :buttons
       get :pagination
+      get :stimulus_select
     end
   end
 
@@ -843,6 +847,7 @@ Rails.application.routes.draw do
     get :operational
     get :cache_status
     get :details
+    get :actioncable
   end
   root 'root#index'
 end

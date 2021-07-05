@@ -5,7 +5,7 @@
     = simple_form_for @referral, as: :entity, url: polymorphic_path(youth_referrals_path_generator) do |f|
       - if has_some_edit_access_to_youth_intakes? # && @intakes.ongoing.exists?
         .youth-intake__add-referral.m-3
-          = f.input :referred_to, collection: @referral.available_referrals, input_html: {class: [:select2, :jOtherTrigger] }
+          = f.input :referred_to, collection: @referral.available_referrals, input_html: {class: [:jOtherTrigger] }, as: :select_two
           .jOther.hidden
             = f.input :other
           .d-flex

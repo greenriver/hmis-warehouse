@@ -118,7 +118,7 @@ gem 'htmlentities'
 # gem 'jquery-datatables-rails'
 # gem 'bootstrap4-datetime-picker-rails'
 gem 'bootstrap3-datetimepicker-rails', '~> 4.17.42'
-gem 'stimulusjs-rails', '~> 1.1.1'
+# gem 'stimulusjs-rails', '~> 1.1.1'
 
 # ETO API related
 gem 'rest-client', '~> 2.0'
@@ -241,7 +241,7 @@ end
 
 group :test do
   gem 'capybara'
-  gem 'fixpoints', git: 'https://github.com/greenriver/fixpoints.git', branch: 'master'
+  gem 'fixpoints'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'
@@ -264,3 +264,5 @@ group :production, :development, :staging do
 end
 
 gem "business_time", "~> 0.10.0"
+
+gem "cable_ready", "~> 4.5"

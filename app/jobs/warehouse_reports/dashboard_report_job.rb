@@ -9,8 +9,6 @@ module WarehouseReports
     include ArelHelper
     queue_as :long_running
 
-    queue_as :dashboard_active_report
-
     def perform(report_type, sub_population)
       klass = GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym][sub_population.to_sym]
       klass.constantize.new.run_and_save!

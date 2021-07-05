@@ -6,7 +6,7 @@
     = wicked_pdf_javascript_include_tag 'application'
     %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
 
-  %body
+  %body{data: { controller: 'stimulus-select' }}
     - @show_census = true
     - chart_options = { size: { height: 300, width: 1200 } }
     %section.d-flex.align-items-start

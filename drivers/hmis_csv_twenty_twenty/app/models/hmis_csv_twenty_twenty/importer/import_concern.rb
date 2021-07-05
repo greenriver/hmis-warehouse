@@ -42,7 +42,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     # Override as necessary
-    def self.clean_row_for_import(row, deidentified:) # rubocop:disable  Lint/UnusedMethodArgument
+    def self.clean_row_for_import(row, deidentified:)
       row
     end
 
@@ -51,7 +51,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     def self.upsert_column_names(version: '2020')
-      super(version: version) - [:pending_date_deleted, :processed_as, :demographic_dirty]
+      super(version: version) - [:processed_as, :demographic_dirty]
     end
 
     def self.upsert?

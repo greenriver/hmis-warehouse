@@ -112,12 +112,14 @@ class ApplicationController < ActionController::Base
     super
   end
 
-  cattr_accessor :refresh_translations_after
   def possibly_reset_fast_gettext_cache
-    return unless refresh_translations_after.blank? || Time.current > refresh_translations_after
-
-    FastGettext.cache.reload!
-    ApplicationController.refresh_translations_after = Time.current + 4.hours
+    key_for_host = "translation-fresh-at-for-#{set_hostname}"
+    last_change = Rails.cache.read('translation-fresh-at') || Time.current
+    last_loaded_for_host = Rails.cache.read(key_for_host)
+    if last_loaded_for_host.blank? || last_change > last_loaded_for_host
+      FastGettext.cache.reload!
+      Rails.cache.write(key_for_host, Time.current)
+    end
   end
 
   def _basic_auth
@@ -273,7 +275,7 @@ class ApplicationController < ActionController::Base
   helper_method :bypass_2fa_enabled?
 
   def set_hostname
-    @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
+    @op_hostname ||= begin
       `hostname`
     rescue StandardError
       'test-server'

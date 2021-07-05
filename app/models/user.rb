@@ -102,6 +102,15 @@ class User < ApplicationRecord
 
   scope :not_system, -> { where.not(first_name: 'System') }
 
+  scope :in_directory, -> do
+    active.not_system.where(exclude_from_directory: false)
+  end
+
+  scope :has_recent_activity, -> do
+    where(last_activity_at: timeout_in.ago..Time.current).
+    where.not(unique_session_id: nil)
+  end
+
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
   # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
 
@@ -203,6 +212,16 @@ class User < ApplicationRecord
 
   def name_with_email
     "#{name} <#{email}>"
+  end
+
+  def agency_name
+    if agency.present?
+      agency&.name
+    end
+  end
+
+  def phone_for_directory
+    phone unless exclude_phone_from_directory
   end
 
   def two_factor_label
@@ -369,7 +388,7 @@ class User < ApplicationRecord
     @access_group ||= AccessGroup.for_user(self).first_or_initialize
   end
 
-  def set_viewables(viewables)
+  def set_viewables(viewables) # rubocop:disable Naming/AccessorMethodName
     return unless persisted?
 
     access_group.set_viewables(viewables)
@@ -413,6 +432,23 @@ class User < ApplicationRecord
   def coc_codes_for_consent
     # return coc_codes if coc_codes.present?
     ConsentLimit.available_coc_codes
+  end
+
+  def report_filter_visible?(key)
+    return true if can_view_project_related_filters?
+
+    project_related = [
+      :project_ids,
+      :organization_ids,
+      :data_source_ids,
+      :funder_ids,
+      :projects,
+      :organizations,
+      :data_sources,
+      :funding_sources,
+    ].freeze
+
+    ! project_related.include?(key.to_sym)
   end
 
   # def health_agency

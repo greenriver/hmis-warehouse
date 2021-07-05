@@ -27,6 +27,10 @@ PreCommit:
   RuboCop:
     enabled: true
     on_warn: fail # Treat all warnings as failures
+  CustomScript:
+    enabled: true
+    description: Update Rubocop TODO
+    required_executable: './bin/update_rubocop_todo.rb'
   # CoffeeLint:
   #   enabled: true
   #   required_executable: 'npm'

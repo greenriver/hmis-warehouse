@@ -83,20 +83,30 @@ module ClaimsReporting
       SQL
     end
 
-    def matches_icd10cm?(regexp)
-      (icd_version || '10') == '10' && dx_codes.any? { |code| regexp.match?(code) }
+    def matches_icd10cm?(regexp, dx1_only = false)
+      return false unless (icd_version || '10') == '10'
+
+      dx1_only ? regexp.match?(dx_1) : dx_codes.any? { |code| regexp.match?(code) }
     end
 
-    def matches_icd9cm?(regexp)
-      icd_version == '9' && dx_codes.any? { |code| regexp.match?(code) }
+    def matches_icd9cm?(regexp, dx1_only = false)
+      return false unless icd_version == 9
+
+      dx1_only ? regexp.match?(dx_1) : dx_codes.any? { |code| regexp.match?(code) }
     end
 
     def matches_icd10pcs?(regexp)
-      (icd_version || '10') == '10' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
+      ((icd_version || '10') == '10') && surgical_procedure_codes.any? { |code| regexp.match?(code) }
     end
 
     def matches_icd9pcs?(regexp)
       icd_version == '9' && surgical_procedure_codes.any? { |code| regexp.match?(code) }
+    end
+
+    def followup_period(n_days)
+      return unless discharge_date
+
+      discharge_date .. n_days.days.after(discharge_date)
     end
 
     # Calculates and updates the cumulative enrolled and engaged days as of each claims service_start_date.
@@ -115,7 +125,7 @@ module ClaimsReporting
         member_ids.each_with_index do |member_id, idx|
           logger.info { "MedicalClaim.maintain_engaged_days!: Processing member #{idx + 1}/#{member_ids.length}." }
           enrollments = MemberEnrollmentRoster.where(member_id: member_id).select(
-            :span_start_date, :span_end_date
+            :member_id, :span_start_date, :span_end_date
           ).sort_by(&:span_start_date)
 
           logger.debug { "MedicalClaim.maintain_engaged_days!: Found #{enrollments.length} enrollment spans" }
@@ -205,8 +215,22 @@ module ClaimsReporting
       { members: members, updates: updates }
     end
 
+    def stay_date_range
+      return nil unless admit_date
+
+      admit_date .. discharge_date
+    end
+
     def engaged?
       completed_treatment_plan?
+    end
+
+    def dead_upon_arrival?
+      dx_1 == 'R99'
+    end
+
+    def discharged_due_to_death?
+      patient_status == '20' # UB-04 FL 17 Patient Discharge Status
     end
 
     # Qualifying Activity: BH CP Treatment Plan Complete

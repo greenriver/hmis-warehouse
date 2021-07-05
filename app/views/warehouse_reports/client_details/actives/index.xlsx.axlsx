@@ -16,7 +16,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
     'Destination',
     'Ethnicity',
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }, style: title)
-  @enrollments.each do |client_id, enrollments|
+  @report.enrollments.each do |client_id, enrollments|
     enrollments.each do |enrollment|
       length_of_stay = if enrollment[:last_date_in_program]
         enrollment[:last_date_in_program] - enrollment[:first_date_in_program]

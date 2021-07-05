@@ -10,10 +10,12 @@ module ClaimsReporting
 
     validates :source_url, presence: true
 
-    URI.scheme_list['SFTP'] ||=  URI::Generic
-    URI.scheme_list['FILE'] ||=  URI::Generic
-
     def source_url_parsed
+      # URI.schema_list for some reason doest
+      # have file or sftp registered
+      URI.scheme_list['SFTP'] ||=  URI::Generic
+      URI.scheme_list['FILE'] ||=  URI::Generic
+
       @source_url_parsed ||= begin
                                URI.parse(source_url)
                              rescue StandardError

@@ -55,14 +55,15 @@ module Importing
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
         GrdaWarehouse::ClientMatch.auto_process!
         @notifier.ping('Duplicates identified') if @send_notifications
+
+        # We will need this twice
+        dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
+
         # this keeps the computed project type columns in sync, previously
         # this was done with a coalesce query, but it ended up being too slow
         # on large data operations, and any other project data cleanup
         GrdaWarehouse::Tasks::ProjectCleanup.new.run!
         @notifier.ping('Projects cleaned') if @send_notifications
-        # Sometimes client data changes in such a way as to leave behind stub
-        # clients with no enrollments, this clears those out.
-        # GrdaWarehouse::Tasks::ClientCleanup.new.remove_clients_without_enrollments! unless active_imports?
 
         # This fixes any unused destination clients that can
         # bungle up the service history generation, among other things
@@ -77,7 +78,6 @@ module Importing
 
         @notifier.ping('Service history generated') if @send_notifications
         # Fix anyone who received a new exit or entry added prior to the last year
-        dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: dest_clients).run!
         @notifier.ping('Full sanity check complete') if @send_notifications
         # Rebuild residential first dates
@@ -134,7 +134,6 @@ module Importing
         # and then re-checks itself.
         # For now we are checking all destination clients.  This should catch any old
         # entries or exits that were added or removed.
-        dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: dest_clients).run!
         @notifier.ping('Sanity checked') if @send_notifications
 

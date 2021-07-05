@@ -61,20 +61,23 @@
 .c-list-search__filtration-nav-wrapper {
   position: sticky;
   top: 0;
-  ul {
-    @include list-unstyled;
+  .list-search__button-wrapper {
     padding: 10px 5px 5px;
   }
-  li {
+  button {
+    display: block;
     padding: space(2) calc(#{space(4)} - 5px);
+    background: none;
+    border: none;
     border-radius: $border-radius;
     margin-top: -5px;
-    cursor: pointer;
+    text-align: left;
+    width: 100%;
     &:hover,
     &:focus {
       color: $link-color;
     }
-    &.active {
+    &[aria-pressed=true] {
       color: $white;
       background: $brand-primary;
       font-weight: bold;
