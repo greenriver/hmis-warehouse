@@ -256,6 +256,18 @@ SimpleForm.setup do |config|
     end
   end
 
+  # Likert scale inputs
+  config.wrappers :horizontal_likert_collection, item_wrapper_class: 'form-check form-check-inline mr-4', item_label_class: 'form-check-label', tag: 'div', class: 'form-group', error_class: 'form-group-invalid', valid_class: 'form-group-valid' do |b|
+    b.use :html5
+    b.optional :readonly
+    b.use :label, class: 'form-label'
+    b.wrapper :grid_wrapper, tag: 'div', class: 'likert-input' do |ba|
+      ba.use :input, class: 'form-check-input', error_class: 'is-invalid', valid_class: ''
+      ba.use :full_error, wrap_with: { tag: 'div', class: 'invalid-feedback d-block' }
+      ba.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
+    end
+  end
+
   # horizontal file input
   config.wrappers :horizontal_file, tag: 'div', class: 'form-group row', error_class: 'form-group-invalid', valid_class: 'form-group-valid' do |b|
     b.use :html5

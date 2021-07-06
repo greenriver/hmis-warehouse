@@ -32,3 +32,8 @@
                 - if has_some_edit_access_to_youth_intakes?
                   = link_to polymorphic_path(direct_financial_assistance_path_generator, id: dfa.id), method: :delete, data: {confirm: 'Deleting this financial assistance will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
                     %i.icon-cross
+          %tr
+            %th
+            %th Total
+            %th= number_to_currency(@dfa_sum, precision: 0)
+            %th

@@ -14,7 +14,7 @@ module HmisCsvTwentyTwenty::Importer
 
     has_one :destination_record, **hud_assoc(:ProjectCoCID, 'ProjectCoc')
 
-    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
+    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
       return none unless project_ids.present?
 
       warehouse_class.joins(:project).
