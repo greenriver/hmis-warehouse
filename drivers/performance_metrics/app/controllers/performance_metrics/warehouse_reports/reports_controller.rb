@@ -27,7 +27,6 @@ module PerformanceMetrics::WarehouseReports
     end
 
     def show
-
     end
 
     def create
@@ -44,7 +43,6 @@ module PerformanceMetrics::WarehouseReports
       # Make sure the form will work
       filters
       respond_with(@report, location: performance_metrics_warehouse_reports_reports_path)
-
     end
 
     def destroy
@@ -54,7 +52,11 @@ module PerformanceMetrics::WarehouseReports
 
     def details
       @key = params[:key].to_sym
-      @comparison = params[:comparison] == 'true'
+      @sub_key = params[:sub_key].to_sym
+      @comparion = params[:index] == '1'
+      @headers = PerformanceMetrics::Client.column_names.map do |col|
+        [col, PerformanceMetrics::Client.human_attribute_name(col)]
+      end.to_h
       respond_to do |format|
         format.html {}
         format.xlsx {}
@@ -110,5 +112,12 @@ module PerformanceMetrics::WarehouseReports
     private def flash_interpolation_options
       { resource_name: @report.title }
     end
+
+    def formatted_cell(cell)
+      return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
+
+      cell
+    end
+    helper_method :formatted_cell
   end
 end

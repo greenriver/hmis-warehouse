@@ -215,7 +215,7 @@ module PerformanceMetrics
     end
     # End Sections
 
-    private def comparison_periods
+    def comparison_periods
       @comparison_periods ||= begin
         periods = [filter.range]
         periods << filter.to_comparison.range if include_comparison?
@@ -308,6 +308,119 @@ module PerformanceMetrics
 
     def include_comparison?
       comparison_pattern != :no_comparison_period
+    end
+
+    private def available_support
+      {
+        clients_served: {
+          title: _('Clients Served'),
+          clients_served: {
+            scope: :served,
+            title: '',
+          },
+        },
+        returns: {
+          title: _('Returns to Homelessness'),
+          in_outflow: {
+            scope: :in_outflow,
+            title: 'All Exits',
+          },
+          returned_in_two_years: {
+            scope: :returned_in_two_years,
+            title: 'Returned to Homelessness Within 2 Years',
+          },
+        },
+        entering_housing: {
+          title: _('Clients moving into permanant housing'),
+          entering_housing: {
+            scope: :entering_housing,
+            title: '',
+          },
+        },
+        income: {
+          title: _('Percentage of clients with increased income'),
+          with_increased_earned_income: {
+            scope: :with_increased_earned_income,
+            title: 'Employment Income',
+          },
+          with_increased_other_income: {
+            scope: :with_increased_other_income,
+            title: 'Non-Employment Income',
+          },
+        },
+        average_stay_length: {
+          title: _('Average length of stay'),
+          with_es_stay: {
+            scope: :with_es_stay,
+            title: 'Emergency Shelter',
+          },
+          with_rrh_stay: {
+            scope: :with_rrh_stay,
+            title: 'Rapid Rehousing',
+          },
+          with_psh_stay: {
+            scope: :with_psh_stay,
+            title: 'PSH',
+          },
+        },
+        inflow_outflow: {
+          title: _('Inflow / Outflow'),
+          in_inflow: {
+            scope: :in_inflow,
+            title: 'Inflow',
+          },
+          in_outflow: {
+            scope: :in_outflow,
+            title: 'Outflow',
+          },
+          first_time: {
+            scope: :first_time,
+            title: 'First Time',
+          },
+          reentering: {
+            scope: :reentering,
+            title: 'Re-entering',
+          },
+          entered_housing: {
+            scope: :entered_housing,
+            title: 'Entered Housing',
+          },
+          inactive: {
+            scope: :inactive,
+            title: 'Inactive',
+          },
+        },
+      }.freeze
+    end
+
+    def support_title(key)
+      support = available_support[key.to_sym]
+      return unless support
+
+      support[:title]
+    end
+
+    def detail_scope(key, sub_key, comparison)
+      support = available_support[key.to_sym]
+      return clients.none unless support
+
+      sub_support = support[sub_key.to_sym]
+      return unless sub_support
+
+      period = :current
+      period = :prior if comparison
+
+      clients.send(sub_support[:scope], period)
+    end
+
+    def header_for(key, sub_key)
+      support = available_support[key.to_sym]
+      return unless support
+
+      sub_support = support[sub_key.to_sym]
+      return unless sub_support
+
+      sub_support[:title]
     end
 
     # @return filtered scope

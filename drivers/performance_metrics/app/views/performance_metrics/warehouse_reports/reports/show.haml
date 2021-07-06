@@ -1,6 +1,11 @@
 = render 'breadcrumbs'
 
-= debug @report.clients_served
+%h3= @report.support_title(:clients_served)
+- @report.comparison_periods.each.with_index do |range, i|
+  - label, count = @report.clients_served[i]
+  = label
+  = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: :clients_served, sub_key: :clients_served, index: i) do
+    = count
 = debug @report.returns
 = debug @report.entering_housing
 = debug @report.income
