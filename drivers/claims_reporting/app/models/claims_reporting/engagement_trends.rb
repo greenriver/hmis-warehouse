@@ -216,7 +216,7 @@ module ClaimsReporting
           scope: cohort_scope(0..0),
           day_range: (0..0),
           title: 'Pre-engaged',
-          tooltip: 'This category includes the time prior to engagement for anyone in the Engaged categories, plus all time for anyone who has yet to engage.',
+          tooltip: 'Patients not yet engaged.',
         },
         engaged_6_months: {
           scope: cohort_scope(1..182),
@@ -258,7 +258,7 @@ module ClaimsReporting
           scope: cohort_scope(0..0),
           day_range: (0..0),
           title: 'Pre-engaged',
-          tooltip: 'This category includes the time prior to engagement for anyone in the Engaged categories, plus all time for anyone who has yet to engage.',
+          tooltip: 'Claims for unengaged patients.',
         },
         engaged_6_months: {
           scope: cohort_scope(1..Float::INFINITY),

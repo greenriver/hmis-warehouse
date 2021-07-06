@@ -16,7 +16,7 @@ module WarehouseReports
         preload(:ce_assessments).
         joins(:ce_assessments).
         merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active.visible_by?(current_user)).
-        viewable_by(current_user)
+        destination_visible_to(current_user)
 
       @clients = sort_clients(@clients, @column, @direction)
 
@@ -33,7 +33,8 @@ module WarehouseReports
     private def sort_clients(clients, column, direction)
       case column
       when 'assessment_date'
-        clients.order(created_at: direction)
+        a_t = GrdaWarehouse::CoordinatedEntryAssessment::Base.arel_table
+        clients.order(a_t[:created_at].to_sql => direction)
       when 'last_name'
         clients.order(last_name: direction, first_name: direction)
       else
