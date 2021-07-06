@@ -1,0 +1,25 @@
+wb = xlsx_package.workbook
+
+wb.add_worksheet(name: "User Permissions") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  data_cell = sheet.styles.add_style(alignment: { horizontal: :left, vertical: :top, wrap_text: true })
+
+  sheet.add_row([
+    'Name',
+    'Email',
+    'Roles',
+    'Access Groups',
+    *@group_associations.keys.map{|ga| ga.to_s.humanize.titleize}
+  ], style: title)
+
+  @users.each do |user|
+    row = [
+      user.name,
+      user.email,
+      user.roles.map{|r| r.name}.join(', '),
+      user.access_groups.filter{|g| g.general?}.map{|g| g.name}.join(', '),
+      *@group_associations.keys.map{|ga| associated_items(user, ga)[:names].join(', ')}
+    ]
+    sheet.add_row(row, style: data_cell)
+  end
+end

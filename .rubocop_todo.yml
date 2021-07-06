@@ -270,7 +270,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/similarity_metric/experiment.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/two_factors_memorized_device.rb'
-    - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
 
 # Offense count: 166
 # Cop supports --auto-correct.
@@ -417,6 +416,7 @@ Layout/EmptyLines:
     - 'app/models/role.rb'
     - 'app/models/talentlms/config.rb'
     - 'app/models/user.rb'
+    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
@@ -741,7 +741,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/token.rb'
     - 'app/models/warehouse_report.rb'
     - 'app/models/weather.rb'
-    - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
 
 # Offense count: 39
 # Cop supports --auto-correct.
@@ -1482,7 +1481,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/similarity_metric/experiment/range_formatter.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/similarity_metric/initializer.rb'
-    - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
 
 # Offense count: 37
 # Cop supports --auto-correct.
@@ -1724,7 +1722,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/role.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/talentlms/config.rb'
-    - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
 
 # Offense count: 543
 # Cop supports --auto-correct.
@@ -2376,7 +2373,6 @@ Lint/UselessAssignment:
     - 'app/models/similarity_metric/experiment.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
     - 'app/models/talentlms/config.rb'
-    - 'app/models/user.rb'
     - 'drivers/claims_reporting/app/models/claims_reporting/dx_ccsr_classifier.rb'
     - 'spec/models/auto_encoding_csv_spec.rb'
 
@@ -2769,6 +2765,7 @@ Style/GuardClause:
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/talentlms/config.rb'
     - 'app/models/user.rb'
+    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 6
 # Cop supports --auto-correct.
@@ -2905,9 +2902,7 @@ Style/IfUnlessModifier:
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
     - 'app/models/similarity_metric/initializer.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
-    - 'app/models/user.rb'
     - 'drivers/user_directory_report/app/controllers/user_directory_report/warehouse_reports/users_controller.rb'
-    - 'drivers/user_permission_report/app/controllers/user_permission_report/warehouse_reports/reports_controller.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
@@ -3227,7 +3222,6 @@ Style/NumericPredicate:
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
     - 'app/models/similarity_metric/veteran_status.rb'
-    - 'app/models/user.rb'
 
 # Offense count: 6
 # Cop supports --auto-correct.
