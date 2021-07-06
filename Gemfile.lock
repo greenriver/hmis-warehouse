@@ -14,15 +14,6 @@ GIT
       activerecord (~> 5.2.4.2)
 
 GIT
-  remote: https://github.com/greenriver/fixpoints.git
-  revision: 3a1e1916511aa2f60bb4422d5cccabd6f1a96b71
-  branch: master
-  specs:
-    fixpoints (0.2.2)
-      activerecord (>= 5.0.0)
-      rspec
-
-GIT
   remote: https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
   revision: 777aa53445c34e78d7248d08ca119f00d841bc88
   branch: 5-2-stable
@@ -354,6 +345,9 @@ GEM
       rake
     ffi-geos (2.1.0)
       ffi (>= 1.0.0)
+    fixpoints (0.2.5)
+      activerecord (>= 5.0.0)
+      rspec
     flamegraph (0.9.5)
     formatador (0.2.5)
     geocoder (1.6.4)
@@ -916,7 +910,7 @@ DEPENDENCIES
   faker (>= 1.7.2)
   fast_gettext
   ffi-geos
-  fixpoints!
+  fixpoints
   flamegraph
   get_process_mem
   gettext (>= 3.0.2)

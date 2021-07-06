@@ -42,6 +42,7 @@ module Clients::Youth
         :referred_on,
         :referred_to,
         :other,
+        :notes,
       )
     end
 

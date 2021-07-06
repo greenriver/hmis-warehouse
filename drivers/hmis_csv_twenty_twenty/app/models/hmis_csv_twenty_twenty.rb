@@ -7,9 +7,9 @@
 module HmisCsvTwentyTwenty
   def self.matches(file_path)
     # FIXME: Check all the file headers instead of just this one file
-    expected_project_header = HmisCsvTwentyTwenty::Loader::Project.hmis_structure(version: '2020').keys.map { |m| m.to_s.downcase }.sort
-    project_file_header = CSV.parse_line(File.open("#{file_path}/Project.csv", &:readline).downcase).sort
-    expected_project_header == project_file_header
+    expected_cols =  HmisCsvTwentyTwenty::Loader::Project.hmis_structure(version: '2020').keys
+    actual_cols = AutoEncodingCsv.read("#{file_path}/Project.csv", headers: true).headers
+    expected_cols.map { |m| m.to_s.downcase }.sort == actual_cols.map { |m| m.to_s.downcase }.sort
   end
 
   def self.import!(file_path, data_source_id, upload, deidentified:)

@@ -1,0 +1,4 @@
+= content_for :modal_title, 'Problem Solving Conversation Feedback Survey'
+= simple_form_for @psc_feedback_survey, url: polymorphic_path(psc_feedback_surveys_path_generator) do |f|
+  = render 'form', f: f
+  = f.submit 'Save', class: 'btn btn-primary'
