@@ -164,7 +164,7 @@ module HmisCsvTwentyTwenty::Loader
         source_file_path = File.join(@file_path, file_name)
         next unless File.file?(source_file_path)
 
-        # Look at the file to see if we can determine the encoding
+        use_encoding_detector = true
         file_mode = if use_encoding_detector && encoding_detector
           file_encoding = encoding_detector.detect(File.read(source_file_path)).try(:[], :encoding)
           if file_encoding == 'UTF-32BE'
@@ -175,8 +175,8 @@ module HmisCsvTwentyTwenty::Loader
         else
           'r'
         end
-        File.open(source_file_path, file_mode) do |file|
-          # File.open(source_file_path, 'r', encoding: AutoEncodingCsv.detect_encoding(source_file_path)) do |file|
+
+        File.open(source_file_path, 'r', encoding: AutoEncodingCsv.detect_encoding(source_file_path)) do |file|
           if bad_line_endings?(file)
             copy_length = file.stat.size - 2
             begin
