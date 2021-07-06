@@ -170,7 +170,6 @@ module Health
     end
 
     def signature_request_url(email)
-      return nil if email.blank?
       return nil unless email.match(EMAIL_REGEX)
       return nil if signed_by?(email)
 
@@ -263,6 +262,7 @@ module Health
     end
 
     private def _signature_id_for(email)
+      return nil if email.blank?
       return nil if hs_initial_response.nil?
 
       sig = Array.wrap(hs_initial_response['signatures']).find { |r| opt_data(r).dig('signer_email_address')&.downcase == email.downcase }
