@@ -15,7 +15,7 @@ module CohortColumns
     end
 
     def default_value(_client_id)
-      Date.today
+      Date.current
     end
   end
 end
