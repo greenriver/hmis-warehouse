@@ -21,18 +21,16 @@ class Users::InvitationsController < Devise::InvitationsController
 
   # POST /resource/invitation
   def create
-    if creating_admin?
-      unless current_user.valid_password?(confirmation_params[:confirmation_password])
-        flash[:error] = 'User not updated. Incorrect password'
-        @user = User.new
-        render :confirm
-        return
-      end
+    if creating_admin? && current_user.confirm_password_for_admin_actions? && !current_user.valid_password?(confirmation_params[:confirmation_password])
+      flash[:error] = 'User not updated. Incorrect password'
+      @user = User.new
+      render :confirm
+      return
     end
 
     @user = User.with_deleted.find_by_email(invite_params[:email]).restore if User.with_deleted.find_by_email(invite_params[:email]).present?
     @user = User.invite!(invite_params, current_user)
-    @user&.set_viewables viewable_params
+    @user&.set_viewables(viewable_params.to_h.map { |k, a| [k.to_sym, a] }.to_h)
 
     if resource.errors.empty?
       set_flash_message :notice, :send_instructions, email: resource.email if is_flashing_format? && resource.invitation_sent_at
@@ -86,6 +84,7 @@ class Users::InvitationsController < Devise::InvitationsController
       projects: [],
       reports: [],
       cohorts: [],
+      project_groups: [],
     )
   end
 

@@ -1,0 +1,5 @@
+%h1 Style Guides
+%ul
+  - guide_routes.each do |key, value|
+    %li= link_to(value, polymorphic_path([key, :style_guide]))
+  %li= link_to('Stimulus Select in a Modal', stimulus_select_style_guide_path, data: { loads_in_ajax_modal: true })

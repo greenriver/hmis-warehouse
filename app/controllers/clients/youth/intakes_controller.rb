@@ -27,12 +27,19 @@ module Clients::Youth
       @direct_financial_assistances = @client.direct_financial_assistances.
         merge(GrdaWarehouse::Youth::DirectFinancialAssistance.visible_by?(current_user)).
         order(provided_on: :desc, created_at: :desc)
+      @dfa_sum = @client.direct_financial_assistances.sum(:amount)
       @youth_referrals = @client.youth_referrals.
         merge(GrdaWarehouse::Youth::YouthReferral.visible_by?(current_user)).
         order(referred_on: :desc, created_at: :desc)
       @follow_ups = @client.youth_follow_ups.
         merge(GrdaWarehouse::Youth::YouthFollowUp.visible_by?(current_user)).
         order(contacted_on: :desc, created_at: :desc)
+      @housing_resolution_plans = @client.housing_resolution_plans.
+        merge(GrdaWarehouse::Youth::HousingResolutionPlan.visible_by?(current_user)).
+        order(planned_on: :desc, created_at: :desc)
+      @psc_feedback_surveys = @client.psc_feedback_surveys.
+        merge(GrdaWarehouse::Youth::PscFeedbackSurvey.visible_by?(current_user)).
+        order(conversation_on: :desc, created_at: :desc)
 
       @referral = @client.youth_referrals.build(referred_on: Date.current)
       @assistance = @client.direct_financial_assistances.build(provided_on: Date.current)
@@ -74,7 +81,7 @@ module Clients::Youth
     end
 
     def remove_all_youth_data
-      @client = searchable_client_scope.find(params[:client_id].to_i)
+      @client = destination_searchable_client_scope.find(params[:client_id].to_i)
       if @client.present?
         @client.youth_intakes.destroy_all
         @client.case_managements.destroy_all
@@ -118,7 +125,7 @@ module Clients::Youth
     end
 
     def set_client
-      @client = searchable_client_scope.find(params[:client_id].to_i)
+      @client = destination_searchable_client_scope.find(params[:client_id].to_i)
     end
 
     private def intake_source

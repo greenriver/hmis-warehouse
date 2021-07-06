@@ -14,10 +14,10 @@
         = f.input :hoh, as: :boolean, label: 'Heads-of-household only', wrapper_html: {class: 'mb-4'}, input_html: {checked: @hoh_only}
       .col-sm-5
         Limit by population
-        = f.input :actives_population, collection: available_sub_populations, selected: @actives.try(:[], :actives_population), input_html: { class: :select2, placeholder: 'All Clients', multiple: true }, hint: 'Multiple selections combine scopes. For example: "Adult only Households" who are also "Veterans"', label: 'Sub-Population'
+        = f.input :actives_population, collection: available_sub_populations, selected: @actives.try(:[], :actives_population), input_html: { placeholder: 'All Clients', multiple: true }, hint: 'Multiple selections combine scopes. For example: "Adult only Households" who are also "Veterans"', label: 'Sub-Population', as: :select_two
       .col-sm-3
         Limit by Age
-        = f.input :age_ranges, collection: GrdaWarehouse::ServiceHistoryEnrollment.available_age_ranges, selected: @actives.try(:[], :age_ranges), input_html: { class: :select2, placeholder: 'Any age', multiple: true }
+        = f.input :age_ranges, collection: GrdaWarehouse::ServiceHistoryEnrollment.available_age_ranges, selected: @actives.try(:[], :age_ranges), input_html: { placeholder: 'Any age', multiple: true }, as: :select_two
     .row.mt-4
       .col-sm-8
         %p

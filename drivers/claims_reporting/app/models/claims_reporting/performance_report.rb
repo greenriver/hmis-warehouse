@@ -154,26 +154,6 @@ module ClaimsReporting
     end
     memoize :aco_options
 
-    # Mental Health Diagnosis Category –
-    # The mental health diagnosis category represents a group of conditions
-    # classified by mental health and substance abuse categories included
-    # in the Clinical Classification Software (CCS) available at
-    # https://www.hcup-us.ahrq.gov/toolssoftware/ccs/ccsfactsheet.jsp.
-    #
-    attr_accessor :mental_health_diagnosis_category
-
-    def mental_health_diagnosis_category_options
-      {
-        sch: 'Schizophrenia',
-        pbd: 'Psychoses/Bipolar Disorders',
-        das: 'Depression/Anxiety/Stress Reactions',
-        pid: 'Personality/Impulse Disorder',
-        sia: 'Suicidal Ideation/Attempt',
-        sud: 'Substance Abuse Disorder',
-        other_bh: 'Other',
-      }.invert.to_a
-    end
-
     # Medical Diagnosis Category – The medical diagnosis category represents a group of conditions
     # classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS).
     # Every member is categorized as having a medical diagnosis based on the claims they
@@ -221,53 +201,20 @@ module ClaimsReporting
     # is_pp_denom
 
     DETAIL_COLS = {
-      member_count: {
-        label: _('member_count'),
-      },
-      # paid_amount_sum: 'paid_amount_sum',
-      annual_admits_per_mille: {
-        label: _('Annual Admissions per 1,000'),
-        units: 'admits',
-      },
-      avg_length_of_stay: {
-        label: _('Length of Stay'),
-        units: 'days',
-      },
-      utilization_per_mille: {
-        label: _('Annual Utilization per 1,000'),
-        units: lambda { |_row| 'days/cases/procedures/visits/scripts/etc' },
-      },
-      # pct_of_cohorit_with_utilization: {
-      #   label: _('% of Selected Cohort with Utilization'),
-      # },
-      # avg_cost_per_service: {
-      #   label: _('Average Cost per Service (Paid $)'),
-      # },
-      # cohort_per_member_month_spend: {
-      #   label: _('Selected Cohort PMPM (Paid $)'),
-      # },
-      # pct_of_pop_spend_cohort: {
-      #   label: _('Cohort Spend as a % of Total Population Spend'),
-      # },
-      # pct_of_service_sepend_cohort: {
-      #   label: _('Selected Cohort Spend as a % of Service Line Population Spend'),
-      # },
-      pct_of_admissions_acs: {
-        label: _('Percent of Admissions that are Ambulatory Care Sensitive'),
-        note: '¹',
-      },
-      # pct_of_cost_acs: {
-      #   label: _('Percent of Admission Cost that is Ambulatory Care Sensitive'),
-      #   note: '¹',
-      # },
-      pct_of_visits_perventable: {
-        label: _('Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable'),
-        note: '²',
-      },
-      pct_of_cost_perventable: {
-        label: _('Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable'),
-        note: '²',
-      },
+      count: '#&nbsp;Claims'.html_safe,
+      n_members: 'Distinct Members'.html_safe,
+      annual_admits_per_mille: 'Annual Admissions per 1,000', # admits
+      avg_length_of_stay: 'Length of Stay in days', # days
+      utilization_per_mille: 'Annual Utilization per 1,000', # days/cases/procedures/visits/scripts/etc
+      # pct_of_cohorit_with_utilization: '% of Selected Cohort with Utilization',
+      # avg_cost_per_service: 'Average Cost per Service (Paid $)',
+      # cohort_per_member_month_spend: 'Selected Cohort PMPM (Paid $)',
+      # pct_of_pop_spend_cohort: 'Cohort Spend as a % of Total Population Spend',
+      # pct_of_service_sepend_cohort: 'Selected Cohort Spend as a % of Service Line Population Spend',
+      pct_of_admissions_acs: 'Percent of Admissions that are Ambulatory Care Sensitive',
+      # pct_of_cost_acs: 'Percent of Admission Cost that is Ambulatory Care Sensitive',
+      pct_of_visits_perventable: 'Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable',
+      pct_of_cost_perventable: 'Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable',
     }.freeze
 
     def detail_cols
@@ -393,42 +340,25 @@ module ClaimsReporting
       'TODO'
     end
 
-    include ActionView::Helpers::NumberHelper
-    private def format_d(value, precision: 1)
-      return if value.blank?
-
-      too_small = precision.zero? ? 1 : 10**-precision
-      value = value.to_d
-      return "<#{number_with_precision too_small, precision: precision}" if value.positive? && value < too_small
-
-      number_with_precision value, precision: precision, strip_insignificant_zeros: true, delimiter: ','
+    private def formatter
+      ClaimsReporting::Formatter.new
     end
-
-    private def format_i(value, precision: 0)
-      format_d value, precision: precision
-    end
-
-    private def format_pct(value, precision: 1)
-      too_small = 10**-precision
-      return "<#{number_to_percentage too_small, precision: precision}" if value.to_d.positive? && value.to_d < too_small
-
-      number_to_percentage value, precision: precision, strip_insignificant_zeros: true
-    end
+    memoize :formatter
 
     def formatted_value(fld, row)
       val = row[fld.to_s]
       if val.blank?
         val
       elsif fld.in?([:paid_amount_sum, :avg_cost_per_service, :cohort_per_member_month_spend])
-        number_to_currency val
+        formatter.number_to_currency val
       elsif fld.to_s =~ /pct_of/
-        format_pct val, precision: 2
+        formatter.format_pct val, precision: 2
       elsif (number = begin
                       val.to_d
                     rescue StandardError
                       nil
                     end)
-        format_d number, precision: 2
+        formatter.format_d number, precision: 2
       else
         val
       end
@@ -436,37 +366,17 @@ module ClaimsReporting
 
     def summary_rows
       [
-        ['Selected Members', "#{format_i selected_members} (#{format_pct percent_members_selected, precision: 1} of members)"],
-        ['Average Age', format_d(average_age)],
-        ['Member Months', format_d(member_months)],
-        ['Average $PMPM', number_to_currency(average_per_member_per_month_spend)],
-        ['Average Raw DxCG Score', format_d(average_raw_dxcg_score)],
-        # ['Normalized DxCG Score', format_d(normalized_dxcg_score)],
-        ['Normalized DxCG Score', 'N/A'],
-        ['% Female', format_pct(pct_female)],
-        ['% with Psychoses/Bipolar/Schizophrenia', 'N/A'],
-        # ['% with Psychoses/Bipolar/Schizophrenia', format_pct(pct_with_pbd)],
-        ['% with Depression/Anxiety/Stress Disorders', 'N/A'],
-        # ['% with Depression/Anxiety/Stress Disorders', format_pct(pct_with_das)],
+        ['Selected Members', "#{formatter.format_i selected_members} (#{formatter.format_pct percent_members_selected, precision: 1} of members)"],
+        ['Average Age', formatter.format_d(average_age)],
+        ['Member Months', formatter.format_d(member_months)],
+        ['Average $PMPM', formatter.number_to_currency(average_per_member_per_month_spend)],
+        ['Average MassHealth Risk Score', formatter.format_d(average_raw_dxcg_score)],
+        ['Normalized DxCG Score', formatter.format_d(normalized_dxcg_score)],
+        ['% Female', formatter.format_pct(pct_female)],
+        #        ['% with Psychoses/Bipolar/Schizophrenia', formatter.format_pct(pct_with_pbd)],
+        #        ['% with Depression/Anxiety/Stress Disorders', formatter.format_pct(pct_with_das)],
       ]
     end
-
-    DETAIL_COLS = {
-      count: '#&nbsp;Claims'.html_safe,
-      n_members: 'Distinct Members'.html_safe,
-      annual_admits_per_mille: 'Annual Admissions per 1,000', # admits
-      avg_length_of_stay: 'Length of Stay in days', # days
-      utilization_per_mille: 'Annual Utilization per 1,000', # days/cases/procedures/visits/scripts/etc
-      # pct_of_cohorit_with_utilization: '% of Selected Cohort with Utilization',
-      # avg_cost_per_service: 'Average Cost per Service (Paid $)',
-      # cohort_per_member_month_spend: 'Selected Cohort PMPM (Paid $)',
-      # pct_of_pop_spend_cohort: 'Cohort Spend as a % of Total Population Spend',
-      # pct_of_service_sepend_cohort: 'Selected Cohort Spend as a % of Service Line Population Spend',
-      pct_of_admissions_acs: 'Percent of Admissions that are Ambulatory Care Sensitive',
-      # pct_of_cost_acs: 'Percent of Admission Cost that is Ambulatory Care Sensitive',
-      pct_of_visits_perventable: 'Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable',
-      pct_of_cost_perventable: 'Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable',
-    }.freeze
 
     def engagement_span
       # from the Milliman prototype -- mix max stay in days
@@ -487,7 +397,7 @@ module ClaimsReporting
       sql_member_count = %[COUNT(DISTINCT #{sql_member_id})::numeric]
 
       utilization_per_mille = Arel.sql(
-        %[ROUND(count(*)+1000/(#{sql_member_count}/#{report_days}))],
+        %[ROUND(count(*)*1000/(#{sql_member_count}/#{report_days}))],
       ).as('utilization_per_mille')
 
       annual_admits_per_mille = Arel.sql(

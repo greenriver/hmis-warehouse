@@ -44,12 +44,12 @@ module Health
     delegate :signed?, to: :signature_request, allow_nil: true
 
     scope :signed, -> do
-      where.not(signed_by: '[]').
-      joins(:signature_request).merge(Health::SignatureRequest.complete)
+      where("signed_by != '[]'").
+      joins(signature_request: :careplan).merge(Health::SignatureRequest.complete)
     end
 
     scope :unsigned, -> do
-      where(signed_by: '[]')
+      where("signed_by = '[]'")
     end
 
     scope :with_document, -> do
@@ -167,10 +167,6 @@ module Health
 
       user = User.setup_system_user
       Health::CareplanSaver.new(careplan: careplan, user: user, create_qa: true).update
-
-      UpdateHealthFileFromHelloSignJob.
-        set(wait: 30.seconds). # Wait for PDF to be ready
-        perform_later(self.id)
     end
 
     def signature_request_url(email)
@@ -305,5 +301,16 @@ module Health
       json&.dig('data') || json
     end
 
+    def self.process_unfetched_signed_documents
+      un_fetched_document.signed.find_each.with_index do |doc, i|
+        # Make sure everything we need exists -- signable is polymorphic, so we can't join on it
+        next unless doc.signable&.patient&.client&.present?
+
+        # Hello Sign has a rate limit of 25 requests per minute.
+        # Throw some sand in the system before we enqueue the next so we don't hit it.
+        wait = i + 1 * 10.seconds
+        UpdateHealthFileFromHelloSignJob.set(wait: wait).perform_later(doc.id)
+      end
+    end
   end
 end

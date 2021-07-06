@@ -257,10 +257,10 @@ module GrdaWarehouse::WarehouseReports::Youth
     def five_n
       @five_n ||= begin
         result = {}
-        available_types = GrdaWarehouse::Youth::DirectFinancialAssistance.new.available_types - [ 'Other']
+        report_types = GrdaWarehouse::Youth::DirectFinancialAssistance.new.report_types
         groups = received_flex_funds_scope.pluck(:type_provided, :client_id).group_by(&:first)
         groups.each do |group, items|
-          next if available_types.include?(group)
+          next if report_types.include?(group)
 
           result[group] = items.map(&:last)
         end
@@ -558,7 +558,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def follow_up_from_homelessness
-      follow_occured_during_range.initial_action_homeless
+      follow_occured_during_range.initial_action_housed
     end
 
     def follow_up_two_a

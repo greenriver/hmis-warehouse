@@ -29,7 +29,9 @@ class WorkoffArbiter
   AGE_SCALE = 300.0
 
   # How many workoff workers can we have in total
-  MAX_WORKOFF_WORKERS = 10
+  # Once the memory analyzer is fully in production, we could track this in
+  # dynamodb and make it different for each installation.
+  MAX_WORKOFF_WORKERS = 6
 
   # This is the abstraction that provides EC2 instances as needed to run the
   # workoff job
@@ -42,7 +44,7 @@ class WorkoffArbiter
   end
 
   def needs_worker?
-    metric > CUTOFF && _current_worker_count < MAX_WORKOFF_WORKERS
+    _work_pending? && _current_worker_count < MAX_WORKOFF_WORKERS
   end
 
   def add_worker!
@@ -60,11 +62,14 @@ class WorkoffArbiter
     }
 
     ecs.run_task(payload)
-
-    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
+    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.pluck(:id).count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
   end
 
   private
+
+  def _work_pending?
+    _dj_scope.any?
+  end
 
   def _current_worker_count
     payload = {
@@ -89,6 +94,7 @@ class WorkoffArbiter
 
       # { -5 => 1, ... }
       raw_priorities.zip(normalized_priorities).to_h.tap do |p|
+        p.default = 0.5
         Rails.logger.debug "Queue attributes: #{Delayed::Worker.queue_attributes}"
         Rails.logger.debug "Normalized priority values (lower priority values are more important.): #{p.inspect}"
       end
@@ -114,15 +120,16 @@ class WorkoffArbiter
   end
 
   # Get all non-failed, non-running jobs
+  # nightly-processing jobs have no queue as of this writing.
   def _dj_scope
     Delayed::Job.
       select('created_at, priority, queue').
-      where(failed_at: nil, locked_at: nil, locked_by: nil)
+      where(failed_at: nil, locked_at: nil, locked_by: nil).
+      where("queue != 'mailers' OR queue IS NULL") # never boot a workoff worker just for mail
   end
 
-
   def _task_family
-    _task_definition.split(%r{/}).last.split(/:/).first
+    _task_definition.split(/\//).last.split(/:/).first
   end
 
   def _task_definition

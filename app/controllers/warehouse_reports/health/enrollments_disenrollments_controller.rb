@@ -59,7 +59,7 @@ module WarehouseReports::Health
     helper_method :months_for_select
 
     def available_acos
-      @available_acos ||= Health::AccountableCareOrganization.where.not(e_d_file_prefix: nil)
+      @available_acos ||= Health::AccountableCareOrganization.active.where.not(e_d_file_prefix: [nil, ''])
     end
     helper_method :available_acos
 

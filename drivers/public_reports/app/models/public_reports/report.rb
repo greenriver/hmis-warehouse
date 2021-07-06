@@ -10,6 +10,8 @@ module PublicReports
     include Rails.application.routes.url_helpers
     include S3Toolset
     include Filter::FilterScopes
+    include ArelHelper
+    include Reporting::Status
     belongs_to :user
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?
@@ -21,45 +23,43 @@ module PublicReports
       select(attribute_names - ['html', 'precalculated_data'])
     end
 
-    def self.published
-      where.not(published_url: nil).first
+    def self.published(version_slug)
+      where(version_slug: version_slug).where.not(published_url: nil).first
     end
 
     def publish_warning
-      previously_published = self.class.published
-      return unless previously_published.present?
+      previously_published = self.class.published(version_slug)
+      return nil if previously_published.blank? || previously_published.id == id
 
-      "Publishing this version of the #{instance_title} will remove any previously published version regardless of who published it.  The currently published version is from #{self.class.published.completed_at.to_date}.  Are you sure you want to un-publish the previous version and publish this version?"
+      "Publishing this version of the #{instance_title} will remove any similar previously published version regardless of who published it.  The currently published version is from #{previously_published.completed_at.to_date}.  Are you sure you want to un-publish the previous version and publish this version?"
+    end
+
+    # Override as necessary
+    def generate_publish_url
+      publish_url = if ENV['S3_PUBLIC_URL'].present?
+        "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
+      else
+        # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
+        "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}"
+      end
+      publish_url = "#{publish_url}/#{version_slug}" if version_slug.present?
+      "#{publish_url}/index.html"
     end
 
     def settings
       @settings ||= PublicReports::Setting.first_or_create
     end
 
-    def chart_color_pattern
-      settings.color_pattern.to_json.html_safe
+    def chart_color_pattern(category = nil)
+      settings.color_pattern(category).to_json.html_safe
     end
 
-    def status
-      if started_at.blank?
-        "Queued at #{created_at}"
-      elsif started_at.present? && completed_at.blank?
-        if started_at < 24.hours.ago
-          'Failed'
-        else
-          "Running since #{started_at}"
-        end
-      elsif completed?
-        'Complete'
-      end
-    end
-
-    def completed?
-      completed_at.present?
+    def chart_color_shades(category = nil)
+      settings.color_shades(category).to_json.html_safe
     end
 
     def filter_object
-      @filter_object ||= ::Filters::FilterBase.new.set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
+      @filter_object ||= ::Filters::FilterBase.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
     end
 
     def published?
@@ -77,16 +77,35 @@ module PublicReports
       # 1. Take the contents of html and push it up to S3
       # 2. Populate the published_url field
       # 3. Populate the embed_code field
-      self.class.transaction do
-        unpublish_similar
-        update(
-          html: content,
-          published_url: generate_publish_url,
-          embed_code: generate_embed_code,
-          state: :published,
-        )
+      unless published?
+        self.class.transaction do
+          unpublish_similar
+          update(
+            html: content,
+            published_url: generate_publish_url,
+            embed_code: generate_embed_code,
+            state: :published,
+          )
+        end
       end
       push_to_s3
+    end
+
+    def view_template
+      :raw
+    end
+
+    def html_section_start(section)
+      "<!-- SECTION START #{section} -->"
+    end
+
+    def html_section_end(section)
+      "<!-- SECTION END #{section} -->"
+    end
+
+    # return only the "page" for a given section
+    def html_section(section)
+      html[/(#{html_section_start(section)}.*?#{html_section_end(section)})/m, 1]
     end
 
     private def generate_embed_code
@@ -94,7 +113,15 @@ module PublicReports
     end
 
     private def unpublish_similar
-      self.class.update_all(type: type, published_url: nil, embed_code: nil, state: 'pre-calculated')
+      self.class.
+        where(version_slug: version_slug).
+        update_all(
+          type: type,
+          published_url: nil,
+          embed_code: nil,
+          html: nil,
+          state: 'pre-calculated',
+        )
     end
 
     def font_path

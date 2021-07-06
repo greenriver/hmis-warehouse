@@ -10,6 +10,8 @@ BostonHmis::Application.routes.draw do
     namespace :warehouse_reports do
       resources :reconciliation, only: [:index, :create]
       resources :performance, only: [:index, :create]
+      resources :engagement_trends, only: [:index, :show, :destroy, :create]
+      resources :quality_measures, only: [:index, :show, :destroy, :create]
     end
   end
 end

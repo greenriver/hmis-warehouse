@@ -13,6 +13,8 @@ module Youth::Intake
     has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
     has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
     has_many :youth_follow_ups, class_name: 'GrdaWarehouse::Youth::YouthFollowUp', inverse_of: :client
+    has_many :housing_resolution_plans, class_name: 'GrdaWarehouse::Youth::HousingResolutionPlan', inverse_of: :client
+    has_many :psc_feedback_surveys, class_name: 'GrdaWarehouse::Youth::PscFeedbackSurvey', inverse_of: :client
 
     def youth_follow_up_due?
       youth_follow_ups.due.exists?

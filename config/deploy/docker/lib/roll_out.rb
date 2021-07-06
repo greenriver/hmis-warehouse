@@ -27,6 +27,7 @@ class RollOut
   attr_accessor :task_definition
   attr_accessor :task_role
   attr_accessor :web_options
+  attr_accessor :only_check_ram
 
   # FIXME: cpu shares as parameter
   # FIXME: log level as parameter
@@ -43,11 +44,8 @@ class RollOut
 
   NOT_SPOT = 'not-spot'
 
-  SPOT_CAPACITY_PROVIDER_NAME = WorkoffArbiter::SPOT_CAPACITY_PROVIDER_NAME
-
   def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:)
-    self.aws_profile         = ENV.fetch('AWS_PROFILE')
-    self.cluster             = ENV.fetch('AWS_CLUSTER') { self.aws_profile }
+    self.cluster             = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
     self.image_base          = image_base
     self.secrets_arn         = secrets_arn
     self.target_group_arn    = target_group_arn
@@ -57,6 +55,7 @@ class RollOut
     self.dj_options          = dj_options
     self.web_options         = web_options
     self.status_uri          = URI("https://#{fqdn}/system_status/details")
+    self.only_check_ram      = false
 
     if task_role.nil? || task_role.match(/^\s*$/)
       puts "\n[WARN] task role was not set. The containers will use the role of the entire instance\n\n"
@@ -120,9 +119,17 @@ class RollOut
 
     register_cron_job_worker!
 
-    mark_spot_instances!
-
     run_deploy_tasks!
+
+    deploy_web!
+
+    dj_options.each do |dj_options|
+      deploy_dj!(dj_options)
+    end
+  end
+
+  def check_ram!
+    self.only_check_ram = true
 
     deploy_web!
 
@@ -172,94 +179,6 @@ class RollOut
     )
   end
 
-  # * spot instance ECS instances need to have an attribute that tells us they
-  #   are backed by spot instances so placement contraints can work.
-  #
-  # * You can't add an attribute to an EC2 instance (just ECS instances).
-  #   Attributes are purely an ECS concept
-  #
-  # So we need this code to mark all the ECS instances as EC2-spot-instance backed.
-  #
-  # FIXME: Much later, I've learned you can set this in the cloudinit user
-  # data, so if we have a launch template for spots and one for non-spots, we
-  # can do it there.
-  #
-  def mark_spot_instances!
-    # Get all the ECS container instances
-    container_instance_arns = ecs.list_container_instances(
-      cluster: cluster,
-    ).container_instance_arns
-
-    # Get the details of them
-    container_instances =
-      ecs.describe_container_instances(
-        cluster: cluster,
-        container_instances: container_instance_arns
-      ).flat_map do |set|
-        set.container_instances
-      end
-
-    skips = ecs.
-      list_attributes(target_type: 'container-instance', cluster: self.cluster, attribute_name: 'capacity-provider.name').
-      map(&:attributes).
-      flat_map { |x| x.map(&:target_id) }
-
-    # for each EC2 instance...
-    ec2.describe_instances.each do |set|
-      set.reservations.each do |reservation|
-        reservation.instances.each do |instance|
-
-          # find its matching ECS container instance
-          container_instance = container_instances.find do |ci|
-            ci.ec2_instance_id == instance.instance_id
-          end
-
-          # skip EC2 instances not in this cluster
-          next unless container_instance
-
-          # Skip the capacity provider provided instances
-          next if skips.include?( container_instance.container_instance_arn )
-
-          # non-spots have a nil, so this...
-          spotness = instance.instance_lifecycle || NOT_SPOT
-
-          puts "[INFO] Making attribute for #{instance.instance_id} as instance_lifecycle=#{spotness}"
-
-          # Finally, upsert the attribute
-          ecs.put_attributes({
-            cluster: cluster,
-            attributes: [
-              {
-                name: "instance-lifecycle",
-                value: spotness,
-                target_type: "container-instance",
-                target_id: container_instance.container_instance_arn
-              },
-              {
-                name: "capacity-provider.name",
-                value: "legacy",
-                target_type: "container-instance",
-                target_id: container_instance.container_instance_arn
-              },
-            ],
-          })
-        end
-      end
-    end
-  end
-
-  def self.mark_spot_instances!
-    new(
-      image_base: nil,
-      target_group_name: nil,
-      target_group_arn: nil,
-      secrets_arn: nil,
-      execution_role: nil,
-      task_role: nil,
-      web_options: {},
-    ).mark_spot_instances!
-  end
-
   def register_workoff_worker!
     name = target_group_name + '-workoff'
 
@@ -298,6 +217,8 @@ class RollOut
       name: name,
     )
 
+    return if self.only_check_ram
+
     lb = [{
       target_group_arn: target_group_arn,
       container_name: name,
@@ -307,6 +228,7 @@ class RollOut
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
     _start_service!(
+      capacity_provider: _spot_capacity_provider_name,
       name: name,
       load_balancers: lb,
       desired_count: web_options['container_count'] || 1,
@@ -335,10 +257,13 @@ class RollOut
       environment: environment
     )
 
+    return if self.only_check_ram
+
     minimum, maximum = _get_min_max_from_desired(dj_options['container_count'])
 
     _start_service!(
       name: name,
+      capacity_provider: _on_demand_capacity_provider_name,
       desired_count: dj_options['container_count'] || 1,
       maximum_percent: maximum,
       minimum_healthy_percent: minimum,
@@ -351,7 +276,7 @@ class RollOut
     desired_count = container_count || 1
 
     if desired_count == 0
-      return [0, 0]
+      return [0, 100]
     elsif desired_count == 1
       [100, 200]
     else
@@ -402,9 +327,11 @@ class RollOut
     ma = MemoryAnalyzer.new
     ma.cluster_name         = self.cluster
     ma.task_definition_name = name
-    ma.scheduled_hard_limit = hard_mem_limit_mb
-    ma.scheduled_soft_limit = soft_mem_limit_mb
+    ma.bootstrapped_hard_limit_mb = hard_mem_limit_mb
+    ma.bootstrapped_soft_limit_mb = soft_mem_limit_mb
     ma.run!
+
+    return if self.only_check_ram
 
     container_definition = {
       name: name,
@@ -412,10 +339,10 @@ class RollOut
       cpu: cpu_shares,
 
       # Hard limit
-      memory: hard_mem_limit_mb,
+      memory: (ma.use_memory_analyzer? ? ma.recommended_hard_limit_mb : hard_mem_limit_mb),
 
       # Soft limit
-      memory_reservation: soft_mem_limit_mb,
+      memory_reservation: (ma.use_memory_analyzer? ? ma.recommended_soft_limit_mb : soft_mem_limit_mb),
 
       port_mappings: ports,
       essential: true,
@@ -437,6 +364,9 @@ class RollOut
       },
     }
 
+    puts "[INFO] hard RAM limit: #{container_definition[:memory]}"
+    puts "[INFO] soft RAM limit: #{container_definition[:memory_reservation]}"
+
     if !command.nil?
       container_definition[:command] = command
     end
@@ -448,8 +378,6 @@ class RollOut
 
       # This is the role that the ECS agent and Docker daemon can assume
       execution_role_arn: execution_role,
-
-      placement_constraints: _placement_constraints(name),
     }
 
     # This is the role that the service/task can assume
@@ -466,45 +394,12 @@ class RollOut
     @_capacity_providers ||= ecs.describe_clusters(clusters: [self.cluster]).clusters.first.capacity_providers
   end
 
-  # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-constraints.html
-  def _placement_constraints(name)
-    [].tap do |pc|
-      # Distinct Instance is problematic if you have limited resources.
-      # pc << { type: 'distinctInstance' }
-      # puts "[INFO][CONST] constraining #{name} to distinct EC2 instances"
+  def _spot_capacity_provider_name
+    _capacity_providers.find { |cp| cp.match(/spot/) }
+  end
 
-      # Only delayed job daemons need to be on non-spot
-      if name.match?(/-dj-/)
-        puts "[INFO][CONST] Constraining #{name} to non-spot-instances (on-demand)"
-
-        pc << {
-          type: 'memberOf',
-          expression: "attribute:instance-lifecycle == #{NOT_SPOT}",
-        }
-      end
-
-      # In the interim before switching everything over to capacity providers, we only allow workoff workers
-      # and deploy tasks to use capacity providers.
-      # FIXME: Eventually, we will remove this if-statement and replace with
-      # running DJ services with the on-demand, non-default capacity provider
-      # strategy. We need
-      #   1) for our RIs to expire
-      #   2) make the spot instance capacity provider the default one
-      #   3) redeploy everything
-      #   4) spin down the (at this point) defunct auto-scaling group to no instances
-
-      if !name.match?(/workoff/) && !name.match?(/deploy-tasks/)
-        puts "[INFO][CONST] Not constraining #{name} based on spot/non-spot"
-        pc << {
-          type: 'memberOf',
-          expression: "attribute:capacity-provider.name != on-demand-capacity-provider",
-        }
-        pc << {
-          type: 'memberOf',
-          expression: "attribute:capacity-provider.name != spot-capacity-provider",
-        }
-      end
-    end
+  def _on_demand_capacity_provider_name
+    _capacity_providers.find { |cp| cp.match(/on-demand/) }
   end
 
   # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html
@@ -543,11 +438,11 @@ class RollOut
       task_definition: task_definition,
     }
 
-    if _capacity_providers.length > 0 && _capacity_providers.include?(SPOT_CAPACITY_PROVIDER_NAME)
-      puts "[INFO] Using spot capacity provider: #{SPOT_CAPACITY_PROVIDER_NAME}"
+    if _capacity_providers.length > 0
+      puts "[INFO] Using spot capacity provider: #{_spot_capacity_provider_name}"
       run_task_payload[:capacity_provider_strategy] = [
         {
-          capacity_provider: SPOT_CAPACITY_PROVIDER_NAME,
+          capacity_provider: _spot_capacity_provider_name,
           weight: 1,
           base: 1,
         },
@@ -658,13 +553,18 @@ class RollOut
           puts "[WARN] exiting"
           exit
         elsif response.downcase.match(/v/)
-          resp = cwl.get_log_events({
-            log_group_name: target_group_name,
-            log_stream_name: log_stream_name,
-            start_from_head: true,
-          })
-          resp.events.each do |event|
-            puts "[TASK] #{event.message}"
+          begin
+            resp = cwl.get_log_events({
+              log_group_name: target_group_name,
+              log_stream_name: log_stream_name,
+              start_from_head: true,
+            })
+            resp.events.each do |event|
+              puts "[TASK] #{event.message}"
+            end
+          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
+            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found"
+            sleep 30
           end
         else
           puts "[INFO] Waiting 30 seconds since we didn't understand your response"
@@ -722,7 +622,7 @@ class RollOut
     end
   end
 
-  def _start_service!(load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0)
+  def _start_service!(capacity_provider:, load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0)
     services = ecs.list_services({
       cluster: cluster,
     })
@@ -742,7 +642,14 @@ class RollOut
         service: name,
         desired_count: desired_count,
         task_definition: task_definition,
-        # placement_constraints: placement_constraints,
+        force_new_deployment: true, # Just needed in the interim until we're fully onto capacity providers
+        capacity_provider_strategy: [
+          {
+            capacity_provider: capacity_provider,
+            weight: 1,
+            base: 1,
+          },
+        ],
         placement_strategy: _placement_strategy,
         deployment_configuration: {
           maximum_percent: maximum_percent,
@@ -762,6 +669,13 @@ class RollOut
         service_name: name,
         desired_count: desired_count,
         task_definition: task_definition,
+        capacity_provider_strategy: [
+          {
+            capacity_provider: capacity_provider,
+            weight: 1,
+            base: 1,
+          },
+        ],
         deployment_configuration: {
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,

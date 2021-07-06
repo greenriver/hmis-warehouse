@@ -6,10 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2020
   class QuestionFive < Base
-    include ArelHelper
-
     QUESTION_NUMBER = 'Question 5'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q5a'].freeze
 
     TABLE_HEADER = [].freeze
     ROW_LABELS = [
@@ -30,10 +27,6 @@ module HudApr::Generators::Shared::Fy2020
       'Number of child and unknown-age heads of household',
       'Heads of households and adult stayers in the project 365 days or more',
     ].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def q5_validations
       table_name = 'Q5a'
@@ -92,6 +85,7 @@ module HudApr::Generators::Shared::Fy2020
           clause: stayers_clause,
         },
         # Number of adult stayers
+        # must match Q16-C14
         {
           cell: 'B9',
           clause: stayers_clause.

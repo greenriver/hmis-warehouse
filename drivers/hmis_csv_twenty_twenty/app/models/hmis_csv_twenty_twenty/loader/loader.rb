@@ -35,7 +35,7 @@ module HmisCsvTwentyTwenty::Loader
     # debug: log progress to the logger
     # remove_files: The directory will be removed after calling #load!
     # deidentified: Passed to HmisCsvTwentyTwenty::Importer::Importer when #import! is called
-    def initialize( # rubocop:disable Metrics/ParameterLists
+    def initialize(
       data_source_id:,
       file_path: File.join('tmp', 'hmis_import'),
       logger: Rails.logger,
@@ -160,35 +160,47 @@ module HmisCsvTwentyTwenty::Loader
     def load_source_files!
       @loader_log.update(status: :loading)
 
-      use_encoding_detector = true # Cost:~4s for spec/fixtures/files/importers/hmis_twenty_twenty/hud_sample/source
-
       importable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)
         next unless File.file?(source_file_path)
 
-        # Look at the file to see if we can determine the encoding
-        file_mode = if use_encoding_detector && encoding_detector
-          file_encoding = encoding_detector.detect(File.read(source_file_path)).try(:[], :encoding)
-          if file_encoding == 'UTF-32BE'
-            'r'
+        File.open(source_file_path, 'r', encoding: AutoEncodingCsv.detect_encoding(source_file_path)) do |file|
+          if bad_line_endings?(file)
+            copy_length = file.stat.size - 2
+            begin
+              tmp_file = ::Tempfile.new(file_name)
+              File.copy_stream(file, tmp_file, copy_length, 0)
+              tmp_file.write("\n")
+              File.open(tmp_file.path, file_mode) do |tmp_file_io|
+                load_source_file_pg(read_from: tmp_file_io, klass: klass, original_file_path: source_file_path)
+              end
+            ensure
+              tmp_file.close
+              tmp_file.unlink
+            end
           else
-            "r:#{file_encoding}:utf-8"
+            load_source_file_pg(read_from: file, klass: klass, original_file_path: source_file_path)
           end
-        else
-          'r'
-        end
-        File.open(source_file_path, file_mode) do |file|
-          load_source_file_pg(read_from: file, klass: klass)
         end
       end
     end
 
-    def load_source_file_pg(read_from:, klass:)
+    private def bad_line_endings?(file)
+      return false if file.stat.size < 10
+
+      position = file.pos
+      file.seek(file.stat.size - 2)
+      final_characters = file.read == "\r\n"
+      file.seek(position)
+      final_characters
+    end
+
+    def load_source_file_pg(read_from:, klass:, original_file_path:)
       raise 'data_source.id must be set' unless data_source.id.present?
       raise '@loader_log.id must be set' unless @loader_log.id.present?
       raise '@loaded_at must be set' unless @loaded_at.present?
 
-      file_name = read_from.path
+      file_name = original_file_path
       base_name = File.basename(file_name)
 
       logger.debug do
@@ -278,7 +290,7 @@ module HmisCsvTwentyTwenty::Loader
         end
       end
     rescue PG::Error => e
-      add_error(file_path: read_from.path, message: e.message, line: lines_loaded)
+      add_error(file_path: original_file_path, message: e.message, line: lines_loaded)
     end
 
     # Headers need to match our style

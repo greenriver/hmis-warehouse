@@ -48,6 +48,26 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  private def resource_name
+    :user
+  end
+  helper_method :resource_name
+
+  private def resource_class
+    User
+  end
+  helper_method :resource_class
+
+  def resource
+    @user = User.new
+  end
+  helper_method :resource
+
+  def devise_mapping
+    @devise_mapping ||= Devise.mappings[:user]
+  end
+  helper_method :devise_mapping
+
   # Send any exceptions on production to slack
   def set_notification
     request.env['exception_notifier.exception_data'] = { 'server' => request.env['SERVER_NAME'] }
@@ -92,12 +112,14 @@ class ApplicationController < ActionController::Base
     super
   end
 
-  cattr_accessor :refresh_translations_after
   def possibly_reset_fast_gettext_cache
-    return unless refresh_translations_after.blank? || Time.current > refresh_translations_after
-
-    FastGettext.cache.reload!
-    ApplicationController.refresh_translations_after = Time.current + 4.hours
+    key_for_host = "translation-fresh-at-for-#{set_hostname}"
+    last_change = Rails.cache.read('translation-fresh-at') || Time.current
+    last_loaded_for_host = Rails.cache.read(key_for_host)
+    if last_loaded_for_host.blank? || last_change > last_loaded_for_host
+      FastGettext.cache.reload!
+      Rails.cache.write(key_for_host, Time.current)
+    end
   end
 
   def _basic_auth
@@ -161,6 +183,15 @@ class ApplicationController < ActionController::Base
       last_url
     else
       current_user.my_root_path
+    end
+  end
+
+  def after_sign_out_path_for(_scope)
+    if (user = request.env['last_user'])
+      url = user.idp_signout_url(post_logout_redirect_uri: root_url)
+      return url if url.present?
+    else
+      root_url
     end
   end
 
@@ -244,7 +275,7 @@ class ApplicationController < ActionController::Base
   helper_method :bypass_2fa_enabled?
 
   def set_hostname
-    @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
+    @op_hostname ||= begin
       `hostname`
     rescue StandardError
       'test-server'

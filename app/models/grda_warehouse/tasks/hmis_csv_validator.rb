@@ -26,14 +26,19 @@ module GrdaWarehouse::Tasks
         unique_keys = []
         export_ids = Set.new
         klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
-        ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter).each do |row|
-          unique_keys << row[klass.hud_key.to_s.downcase]
-          export_ids << row['exportid']
-          self.export_id ||= row['exportid'] if filename == 'Export.csv'
-          validate(filename, klass, row)
+        if File.exist?(file_path)
+          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter).each do |row|
+            unique_keys << row[klass.hud_key.to_s.downcase]
+            export_ids << row['exportid']
+            self.export_id ||= row['exportid'] if filename == 'Export.csv'
+            validate(filename, klass, row)
+          end
+        else
+          puts "File not found: #{file_path}"
+          Rails.logger.error "File not found: #{file_path}"
         end
 
-        add_error(filename, klass.hud_key.to_s, 'Duplicate unique keys found') if duplicate_keys?(unique_keys)
+        add_error(filename, klass.hud_key.to_s, "#{unique_keys.length - unique_keys.uniq.length} Duplicate unique keys found") if duplicate_keys?(unique_keys)
         add_error(filename, 'ExportID', 'Incorrect ExportIDs', export_ids.uniq) if incorrect_export_ids?(export_ids)
       end
     end
@@ -140,7 +145,7 @@ module GrdaWarehouse::Tasks
     private def money_check(value)
       return true unless value.present?
 
-      value.to_f.round(2).to_s == value.to_s || value.to_i.to_s == value.to_s
+      format('%.2f', value.to_f) == value.to_s || value.to_i.to_s == value.to_s
     end
 
     private def length_check(value, length)

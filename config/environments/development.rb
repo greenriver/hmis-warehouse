@@ -9,6 +9,9 @@ Rails.application.configure do
   # since you don't have to restart the web server when you make code changes.
   config.cache_classes = false
 
+  config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
+  config.action_cable.allowed_request_origins = [ /.+/ ]
+
   # Do not eager load code on boot.
   config.eager_load = false
 
@@ -52,11 +55,13 @@ Rails.application.configure do
         port: smtp_port,
       }
     end
+    puts "Using stmp #{ENV['SMTP_SERVER']} for mail delivery"
   else
     # Don't care if the mailer can't send.
     config.action_mailer.raise_delivery_errors = false
 
     config.action_mailer.delivery_method = ENV.fetch("DEV_MAILER") { :file }.to_sym
+    puts "Using #{config.action_mailer.delivery_method} for mail delivery"
   end
 
   config.action_mailer.perform_caching = false
@@ -99,6 +104,16 @@ Rails.application.configure do
 
   # Web console from outside of docker
   config.web_console.whitelisted_ips = ['172.16.0.0/12', '192.168.0.0/16']
+
+  console do
+    if ENV['CONSOLE'] == 'pry'
+      require 'pry-rails'
+      config.console = Pry
+    else
+      require 'irb'
+      config.console = IRB
+    end
+  end
 
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}

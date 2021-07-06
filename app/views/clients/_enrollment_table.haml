@@ -1,5 +1,10 @@
 - if enrollments.any?
   - any_homeless = enrollments.any?{ |e| e[:homeless] }
+  - total = enrollments.first[:total_enrollment_count]
+  - visible = enrollments.first[:visible_enrollment_count]
+  - if visible && total > visible
+    %p.text-right.mt-2.mr-2
+      %em Showing #{pluralize(visible, 'enrollment')} of #{pluralize(total, 'total enrollment')}
   %table.table
     %thead
       %tr
@@ -94,25 +99,26 @@
         %td.num-cell
           = e[:months_served].size
         %td
-          - if e[:household].present?
-            - e[:household].each do |c|
-              - tooltip = ''
-              - if c['head_of_household']
-                - tooltip += 'Head of Household<br />'
-              - tooltip += "Entry: #{c['first_date_in_program']}<br />"
-              - if c['move_in_date']
-                - tooltip += "Move-in-Date: #{c['move_in_date']}<br />"
-              - if c['last_date_in_program']
-                - tooltip += "Exit: #{c['last_date_in_program']}<br />"
-              .mb-0{data: { toggle: :tooltip, title: tooltip, html: 'true' }}
-                = link_to client_path(c['client_id']), class: 'd-block' do
-                  #{c['FirstName']} #{c['LastName']}
-                  - if c['head_of_household']
-                    %i.icon-user
-                  %br
-                  Age:
-                  = c['age']
-              %br
+          .client__enrollment--household
+            - if e[:household].present?
+              - e[:household].each do |c|
+                - tooltip = ''
+                - if c['head_of_household']
+                  - tooltip += 'Head of Household<br />'
+                - tooltip += "Entry: #{c['first_date_in_program']}<br />"
+                - if c['move_in_date']
+                  - tooltip += "Move-in-Date: #{c['move_in_date']}<br />"
+                - if c['last_date_in_program']
+                  - tooltip += "Exit: #{c['last_date_in_program']}<br />"
+                .mb-0{data: { toggle: :tooltip, title: tooltip, html: 'true' }}
+                  = link_to client_path(c['client_id']), class: 'd-block' do
+                    #{c['FirstName']} #{c['LastName']}
+                    - if c['head_of_household']
+                      %i.icon-user
+                    %br
+                    Age:
+                    = c['age']
+                %br
         - if @client.hmis_source_visible_by?(current_user)
           %td
             - if e[:hmis_id]

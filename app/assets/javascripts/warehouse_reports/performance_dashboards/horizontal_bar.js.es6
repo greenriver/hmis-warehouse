@@ -164,10 +164,14 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
     const report = 'report';
     if (__guard__(this.chart.data()[1], (x) => x.id) === d.id) {
       this.link_params.filters.start_date = this.options.date_ranges.comparison.start_date;
+      this.link_params.filters.start = this.options.date_ranges.comparison.start_date;
       this.link_params.filters.end_date = this.options.date_ranges.comparison.end_date;
+      this.link_params.filters.end = this.options.date_ranges.comparison.end_date;
     } else {
       this.link_params.filters.start_date = this.options.date_ranges.report.start_date;
+      this.link_params.filters.start = this.options.date_ranges.report.start_date;
       this.link_params.filters.end_date = this.options.date_ranges.report.end_date;
+      this.link_params.filters.end = this.options.date_ranges.report.end_date;
     }
     // If we clicked on a point, send us to the list of associated clients
     this.link_params.filters.report = report;

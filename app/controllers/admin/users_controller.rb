@@ -34,7 +34,6 @@ module Admin
     end
 
     def edit
-      @agencies = Agency.order(:name)
       @user.set_initial_two_factor_secret!
       @group = @user.access_group
     end
@@ -50,7 +49,6 @@ module Admin
     end
 
     def confirm
-      @agencies = Agency.order(:name)
       update unless adding_admin?
     end
 
@@ -66,11 +64,12 @@ module Admin
     end
 
     def update
-      if adding_admin? && !current_user.valid_password?(confirmation_params[:confirmation_password])
+      if adding_admin? && current_user.confirm_password_for_admin_actions? && !current_user.valid_password?(confirmation_params[:confirmation_password])
         flash[:error] = 'User not updated. Incorrect password'
         render :confirm
         return
       end
+
       existing_health_roles = @user.roles.health.to_a
       begin
         User.transaction do
@@ -115,7 +114,7 @@ module Admin
     end
 
     private def adding_admin?
-      @adming_admin ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
+      @adming_admin ||= begin
         adming_admin = false
         existing_roles = @user.user_roles
         unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
@@ -145,6 +144,8 @@ module Admin
         :email,
         :phone,
         :agency_id,
+        :exclude_from_directory,
+        :exclude_phone_from_directory,
         :receive_file_upload_notifications,
         :notify_on_vispdat_completed,
         :notify_on_client_added,
@@ -189,6 +190,8 @@ module Admin
 
     private def set_user
       @user = user_scope.find(params[:id].to_i)
+
+      @agencies = Agency.order(:name)
     end
   end
 end

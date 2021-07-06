@@ -41,13 +41,21 @@ module WarehouseReports
 
       reports['ProjectPassFail::ProjectPassFail'] = ProjectPassFail::ProjectPassFail if RailsDrivers.loaded.include?(:project_pass_fail)
       reports['ProjectScorecard::Report'] = ProjectScorecard::Report if RailsDrivers.loaded.include?(:project_scorecard)
-      reports['PublicReports::PointInTime'] = PublicReports::PointInTime if RailsDrivers.loaded.include?(:public_reports)
-      reports['PublicReports::PitByMonth'] = PublicReports::PitByMonth if RailsDrivers.loaded.include?(:public_reports)
-      reports['PublicReports::NumberHoused'] = PublicReports::NumberHoused if RailsDrivers.loaded.include?(:public_reports)
-      reports['PublicReports::HomelessCount'] = PublicReports::HomelessCount if RailsDrivers.loaded.include?(:public_reports)
-      reports['PublicReports::HomelessCountComparison'] = PublicReports::HomelessCountComparison if RailsDrivers.loaded.include?(:public_reports)
+      if RailsDrivers.loaded.include?(:public_reports)
+        reports['PublicReports::PointInTime'] = PublicReports::PointInTime
+        reports['PublicReports::PitByMonth'] = PublicReports::PitByMonth
+        reports['PublicReports::NumberHoused'] = PublicReports::NumberHoused
+        reports['PublicReports::HomelessCount'] = PublicReports::HomelessCount
+        reports['PublicReports::HomelessCountComparison'] = PublicReports::HomelessCountComparison
+        reports['PublicReports::HomelessPopulation'] = PublicReports::HomelessPopulation
+        reports['PublicReports::StateLevelHomelessness'] = PublicReports::StateLevelHomelessness
+      end
       reports['IncomeBenefitsReport::Report'] = IncomeBenefitsReport::Report if RailsDrivers.loaded.include?(:income_benefits_report)
-
+      if RailsDrivers.loaded.include?(:claims_reporting)
+        reports['ClaimsReporting::EngagementTrends'] = ClaimsReporting::EngagementTrends
+        reports['ClaimsReporting::QualityMeasures'] = ClaimsReporting::QualityMeasures
+      end
+      reports['HapReport::Report'] = HapReport::Report if RailsDrivers.loaded.include?(:hap_report)
       reports
     end
   end

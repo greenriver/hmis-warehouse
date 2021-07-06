@@ -1,5 +1,5 @@
-= cache(['clients', 'disability_types', @client, controller_path], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
-  - items = @client.source_enrollment_disabilities.joins( enrollment: :client ).sorted_entry_date_information_date.group_by{|d| [d.enrollment, d.InformationDate]}
+= cache(['clients', 'disability_types', @client, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+  - items = @client.source_enrollment_disabilities.joins( enrollment: :client ).merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user)).sorted_entry_date_information_date.group_by{|d| [d.enrollment, d.InformationDate]}
   - if items.any?
     %div
       %table.table
@@ -44,10 +44,13 @@
               %td.date-cell= information_date
               - aggregated.each do |symptom, result|
                 %td
-                  = lighten_no(yes_no(result.response) || result.response)
-                  - if result.response && result.indefinite
-                    .light.text-small
-                      Indefinite & Impairs
+                  - if symptom == :hiv && ! can_view_hiv_status?
+                    [redacted]
+                  - else
+                    = lighten_no(yes_no(result.response) || result.response)
+                    - if result.response && result.indefinite
+                      .light.text-small
+                        Indefinite & Impairs
 
   - else
     .no-data

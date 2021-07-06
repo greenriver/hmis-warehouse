@@ -7,7 +7,7 @@
   - content_for :filters_col_full do
     .row
       .col-sm-4
-        = f.input :attribute, collection: attributes, selected: @attribute_name, input_html: { class: :select2 }
+        = f.input :attribute, collection: attributes, selected: @attribute_name, as: :select_two
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Update View'
@@ -25,7 +25,7 @@
   %tbody
     - @clients.each do |client|
       %tr
-        %td= link_to_if can_view_clients_or_window?, client.name, appropriate_client_path(client)
+        %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
         %td= dob_or_age client.DOB
         %td= ssn client.SSN
         %td= HUD.gender(client.Gender)

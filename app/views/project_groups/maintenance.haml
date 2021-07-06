@@ -1,0 +1,39 @@
+= content_for :crumbs do
+  = link_to project_groups_path do
+    « Project Groups
+- title = 'Project Group Maintenance'
+= content_for(:title, title)
+%h1= content_for :title
+- if @errors.present?
+  .alert.alert-danger
+    %h3.mb-0 The following projects were not found and failed to import:
+  .card.mb-4
+    %table.table.table-striped.mb-0
+      %thead
+        %th ProjectGroupName
+        %th ProjectName
+        %th ProjectID
+        %th data_source_id
+      %tbody
+        - @errors.each do |row|
+          %tr
+            - row.each_value do |cell|
+              %td= cell
+%p You can use this page to maintain project groups by uploading an Excel file.  Any project groups in the file that do not exist will be created, and all project groups included in the file will be updated to only contain the projects included in the file.  The file should be an xlsx file and the format is as follows:
+.card.mb-2
+  %table.table.table-striped.mb-0
+    %thead
+      %th ProjectGroupName
+      %th ProjectName
+      %th ProjectID
+      %th data_source_id
+    %tbody
+      %td Sample Project Group
+      %td Sample Project Name
+      %td 100
+      %td 5
+%p Project Groups will be matched on name, ProjectID will be matched against a project in the specified data source, ProjectName is ignored.  All projects attached to any included Project Groups will be replaced with those included in the file. Only the first tab in the spreadsheet will be processed.  If you do not know the data_source_id, it can be found on the specific data source page linked from here: #{link_to 'data sources', data_sources_path}.
+
+= simple_form_for :import, url: import_project_groups_path do |f|
+  = f.input :file, label: 'Project Group List', as: :file
+  = f.button :submit, 'Upload', data: { disable_with: 'Uploading...' }

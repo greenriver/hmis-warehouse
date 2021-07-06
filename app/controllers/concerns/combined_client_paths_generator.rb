@@ -32,6 +32,11 @@ module CombinedClientPathsGenerator
     end
     helper_method :careplans_path_generator
 
+    def qas_path_generator
+      health_path_generator + [:qualifying_activities]
+    end
+    helper_method :qas_path_generator
+
     def careplan_path_generator
       health_path_generator + [:careplan]
     end
@@ -146,6 +151,26 @@ module CombinedClientPathsGenerator
       client_path_generator + [:youth_follow_ups]
     end
     helper_method :youth_follow_ups_path_generator
+
+    def housing_resolution_plan_path_generator
+      client_path_generator + [:housing_resolution_plan]
+    end
+    helper_method :housing_resolution_plan_path_generator
+
+    def housing_resolution_plans_path_generator
+      client_path_generator + [:housing_resolution_plans]
+    end
+    helper_method :housing_resolution_plans_path_generator
+
+    def psc_feedback_survey_path_generator
+      client_path_generator + [:psc_feedback_survey]
+    end
+    helper_method :psc_feedback_survey_path_generator
+
+    def psc_feedback_surveys_path_generator
+      client_path_generator + [:psc_feedback_surveys]
+    end
+    helper_method :psc_feedback_surveys_path_generator
 
     def self_sufficiency_matrix_forms_path_generator
       health_path_generator + [:self_sufficiency_matrix_forms]

@@ -21,8 +21,9 @@ FROM ruby:2.7.2-alpine AS code
 
 RUN mkdir -p /app \
     /app/app/assets /app/tmp/pids /app/lib/assets /app/vendor/assets \
-    /app/public /app/locale /app/var /app/shape_files/CoC \
-    /app/shape_files/zip_codes.census.2018
+    /app/public /app/locale /app/var  \
+    /app/shape_files/CoC /app/shape_files/zip_codes.census.2018 \
+    /app/shape_files/block_groups /app/shape_files/states /app/shape_files/counties
 
 WORKDIR /app
 
@@ -38,6 +39,9 @@ COPY config/deploy/docker/assets/dotenv.temporary ./.env
 COPY shape_files/sync.from.s3 ./shape_files
 COPY shape_files/CoC/make.inserts ./shape_files/CoC
 COPY shape_files/zip_codes.census.2018/make.inserts ./shape_files/zip_codes.census.2018
+COPY shape_files/counties/make.inserts ./shape_files/counties
+COPY shape_files/states/make.inserts ./shape_files/states
+COPY shape_files/block_groups/make.inserts ./shape_files/block_groups
 
 # Get self-signed cert
 RUN mkdir -p /puma_keys
@@ -91,7 +95,7 @@ RUN apk add --no-cache \
     build-base libxml2-dev libxslt-dev postgresql-dev \
     wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
     chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-    lftp postgresql tmux postgis geos geos-dev \
+    lftp postgresql tmux postgis geos geos-dev proj-dev \
     shared-mime-info \
   && rm -rf /var/cache/apk/* \
   && gem install bundler --version=2.2.6 \

@@ -9,7 +9,7 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Homeless Count Comparison Generator')
+      _('Percent Homeless Comparison Report Generator')
     end
 
     def instance_title
@@ -21,18 +21,7 @@ module PublicReports
     end
 
     def url
-      public_reports_warehouse_reports_homeless_count_index_url(host: ENV.fetch('FQDN'))
-    end
-
-    def generate_publish_url
-      # TODO: This is the standard S3 public access, it will need to be updated
-      # when moved to CloudFront
-      if ENV['S3_PUBLIC_URL'].present?
-        "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
-      else
-        # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
-        "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}/index.html"
-      end
+      public_reports_warehouse_reports_homeless_count_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     def run_and_save!

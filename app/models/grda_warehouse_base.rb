@@ -30,7 +30,6 @@ class GrdaWarehouseBase < ActiveRecord::Base
       'db/seeds' => ['db/warehouse/seeds'],
       'config/database' => ['config/database_warehouse.yml'],
     }
-    ENV['SCHEMA'] = 'db/warehouse/schema.rb'
     # set config variables for custom database
     new_config.each do |path, value|
       Rails.application.config.paths[path] = value

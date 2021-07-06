@@ -6,9 +6,9 @@
 
 class DataSourcesController < ApplicationController
   before_action :require_can_edit_projects!, only: [:update]
-  before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy]
+  before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy, :edit, :update]
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
-  before_action :set_data_source, only: [:show, :update, :destroy]
+  before_action :set_data_source, only: [:show, :edit, :update, :destroy]
 
   def index
     # search
@@ -51,21 +51,34 @@ class DataSourcesController < ApplicationController
     end
   end
 
+  def edit
+  end
+
   def update
     error = false
     begin
       GrdaWarehouse::Hud::Project.transaction do
+        name = data_source_params[:name]
+        short_name = data_source_params[:short_name]
         visible_in_window = data_source_params[:visible_in_window] || false
         import_paused = data_source_params[:import_paused] || false
         source_id = data_source_params[:source_id]
         munged_personal_id = data_source_params[:munged_personal_id] || false
         service_scannable = data_source_params[:service_scannable] || false
+        authoritative = data_source_params[:authoritative] || false
+        authoritative_type = data_source_params[:authoritative_type]
+        after_create_path = data_source_params[:after_create_path]
         changes = {
+          name: name,
+          short_name: short_name,
           visible_in_window: visible_in_window,
           import_paused: import_paused,
-          source_id: source_id,
           munged_personal_id: munged_personal_id,
           service_scannable: service_scannable,
+          source_id: source_id,
+          authoritative: authoritative,
+          authoritative_type: authoritative_type,
+          after_create_path: after_create_path,
         }
         @data_source.update!(changes)
       end
@@ -92,6 +105,11 @@ class DataSourcesController < ApplicationController
   private def data_source_params
     params.require(:grda_warehouse_data_source).
       permit(
+        :name,
+        :short_name,
+        :authoritative,
+        :authoritative_type,
+        :after_create_path,
         :visible_in_window,
         :import_paused,
         :source_id,

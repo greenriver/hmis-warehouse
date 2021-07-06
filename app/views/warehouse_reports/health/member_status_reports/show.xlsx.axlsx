@@ -1,8 +1,21 @@
 wb = xlsx_package.workbook
 if params[:summary].present?
-  wb.add_worksheet(name: 'Outreach') do |sheet|
+  wb.add_worksheet(name: 'OUTREACH') do |sheet|
     title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-    sheet.add_row(['Sender', 'Sent_Row_Num', 'Sent_Column_Num', 'Sent_Export_Time_Stamp', 'Receiver', 'Received_Row_Num', 'Received_Column_Num', 'Received_Export_Time_Stamp'], :style => title)
+    text = sheet.styles.add_style(format_code: '@')
+
+    row = [
+      'Sender',
+      'Sent_Row_Num',
+      'Sent_Column_Num',
+      'Sent_Export_Time_Stamp',
+      'Receiver',
+      'Received_Row_Num',
+      'Received_Column_Num',
+      'Received_Export_Time_Stamp',
+    ]
+    sheet.add_row(row, style: title)
+
     receiver = @report.receiver.presence || @sender.receiver_name
     row = [
       @sender.short_name,
@@ -11,12 +24,15 @@ if params[:summary].present?
       @report.effective_date.strftime('%Y%m%d'),
       receiver,
     ]
-    sheet.add_row(row, types: [:string] * row.length)
+    sheet.add_row(row, style: text)
   end
 else
-  wb.add_worksheet(name: 'Outreach') do |sheet|
+  wb.add_worksheet(name: 'OUTREACH') do |sheet|
     title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-    sheet.add_row(Health::MemberStatusReport.spreadsheet_columns.values, :style => title)
+    text = sheet.styles.add_style(format_code: '@')
+
+    sheet.add_row(Health::MemberStatusReport.spreadsheet_columns.values, style: title)
+
     @patients.each do |patient|
       row = []
       Health::MemberStatusReport.spreadsheet_columns.keys.each do |k|
@@ -29,7 +45,7 @@ else
           row << value
         end
       end
-      sheet.add_row(row, types: [:string] * row.length)
+      sheet.add_row(row, types: [:string] * row.length, style: text)
     end
   end
 end

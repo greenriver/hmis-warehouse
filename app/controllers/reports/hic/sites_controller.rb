@@ -7,9 +7,9 @@
 module Reports
   class Hic::SitesController < Hic::BaseController
     def show
+      # NOTE No longer included post 2020
       @sites = GrdaWarehouse::Hud::Geography.joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
-        merge(GrdaWarehouse::Hud::Project.with_hud_project_type(PROJECT_TYPES)).
+        merge(project_scope).
         distinct
       respond_to do |format|
         format.html

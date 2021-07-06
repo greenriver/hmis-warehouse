@@ -85,18 +85,20 @@ module GrdaWarehouse::WarehouseReports
       chart_end_date = @filter.end.end_of_month
       months = (chart_start_date.to_date..chart_end_date.to_date).map { |m| m.strftime('%b %Y') }.uniq
 
-      clients_to_ph = exits_scope(start_date: chart_start_date, end_date: chart_end_date).
+      hoh_to_ph = exits_scope(start_date: chart_start_date, end_date: chart_end_date).
+        heads_of_households.
         where(destination: HUD.permanent_destinations).
         distinct.
         select(:client_id, :last_date_in_program).
         index_by(&:client_id).values.
         group_by{ |x| x.last_date_in_program.end_of_month }
 
-      clients_to_ph_count = {}
-      months.each { |month| clients_to_ph_count[month] = 0 }
-      clients_to_ph_count.merge!(clients_to_ph.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
+      hoh_to_ph_count = {}
+      months.each { |month| hoh_to_ph_count[month] = 0 }
+      hoh_to_ph_count.merge!(hoh_to_ph.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
 
-      clients_to_stabilization = housed_scope.
+      hoh_to_stabilization = housed_scope.
+        heads_of_households.
         where(project_type: [3, 9, 10, 13]). # PSH or RRH
         entering_stabilization(start_date: chart_start_date, end_date: chart_end_date).
         distinct.
@@ -104,16 +106,25 @@ module GrdaWarehouse::WarehouseReports
         index_by(&:client_id).values.
         group_by{ |x| x.housed_date.end_of_month }
 
-      clients_to_stabilization_count = {}
-      months.each { |month| clients_to_stabilization_count[month] = 0 }
-      clients_to_stabilization_count.merge!(clients_to_stabilization.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
+      hoh_to_stabilization_count = {}
+      months.each { |month| hoh_to_stabilization_count[month] = 0 }
+      hoh_to_stabilization_count.merge!(hoh_to_stabilization.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
+
+      hoh_exits_to_ph = (hoh_to_ph.keys | hoh_to_stabilization.keys).map do |month|
+        [month, (Array.wrap(hoh_to_ph[month]).compact + Array.wrap(hoh_to_stabilization[month]).compact).uniq(&:client_id)]
+      end.to_h
+
+      hoh_exits_to_ph_count = {}
+      months.each { |month| hoh_exits_to_ph_count[month] = 0 }
+      hoh_exits_to_ph_count.merge!(hoh_exits_to_ph.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
 
       {
         labels: [:x] + months,
         data: [
           [:x] + months,
-          [metrics[:clients_to_ph]] + clients_to_ph_count.values,
-          [metrics[:clients_to_stabilization]]  + clients_to_stabilization_count.values,
+          [metrics[:hoh_to_ph]] + hoh_to_ph_count.values,
+          [metrics[:hoh_to_stabilization]] + hoh_to_stabilization_count.values,
+          [metrics[:hoh_exits_to_ph]] + hoh_exits_to_ph_count.values,
         ],
       }
     end
@@ -135,7 +146,7 @@ module GrdaWarehouse::WarehouseReports
           with_service_between(start_date: @filter.no_service_after_date, end_date: Date.current).
           distinct.
           pluck(:client_id)
-        without_recent_service = without_recent_service - with_recent_service
+        without_recent_service -= with_recent_service
       end
       without_recent_service.uniq
     end
@@ -210,9 +221,7 @@ module GrdaWarehouse::WarehouseReports
         joins(:organization).
         merge(GrdaWarehouse::Hud::Project.viewable_by(@user))
 
-      scope = scope.where(data_source_id: @filter.data_source_ids) unless @filter.data_source_ids.empty?
-      scope = scope.where(p_t[:id].in(@filter.project_ids)) unless @filter.project_ids.empty?
-      scope = scope.where(o_t[:id].in(@filter.organization_ids)) unless @filter.organization_ids.empty?
+      scope = scope.where(p_t[:id].in(@filter.effective_project_ids)) unless @filter.effective_project_ids.empty?
 
       if @filter.limit_to_vispdats
         scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids)

@@ -18,7 +18,11 @@ default: &default
 
 <%= ENV['RAILS_ENV'] %>:
   <<: *default
+<% if (url=ENV['HEALTH_DATABASE_URL']).present? %>
+  url: <%= url %>
+<% else %>
   database: <%= ENV['HEALTH_DATABASE_DB'] %>
+<% end %>
 
 
 # Warning: The database defined as "test" will be erased and

@@ -33,14 +33,9 @@ module Health
     scope :recent, -> { order(signature_on: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
     scope :valid, -> do
-      parent_ids = Health::ParticipationFormFile.where.not(parent_id: nil).select(:parent_id).to_sql
-
-      where(
-        arel_table[:location].not_in([:nil, '']).
-        or(
-          arel_table[:id].in(lit(parent_ids))
-        )
-      )
+      parent_ids = Health::ParticipationFormFile.where.not(parent_id: nil).select(:parent_id)
+      where.not(location: [nil, '']).
+        or(where(id: parent_ids))
     end
 
     scope :unsigned, -> do

@@ -84,14 +84,14 @@ module HUD
     end
   end
 
-  def race(field, reverse = false)
-    map = races
+  def race(field, reverse = false, multi_racial: false)
+    map = races(multi_racial: multi_racial)
     _translate map, field, reverse
   end
 
   # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
-  def races
-    {
+  def races(multi_racial: false)
+    race_list = {
       'AmIndAKNative' => 'American Indian or Alaska Native', # 1
       'Asian' => 'Asian', # 2
       'BlackAfAmerican' => 'Black or African American', # 3
@@ -99,6 +99,8 @@ module HUD
       'White' => 'White', # 5
       'RaceNone' => 'None', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
     }
+    race_list['MultiRacial'] = 'Multi-Racial' if multi_racial
+    race_list
   end
 
   # for translating straight from a controlled vocabulary list identifier and integer

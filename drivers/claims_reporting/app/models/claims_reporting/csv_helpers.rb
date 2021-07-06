@@ -33,16 +33,14 @@ module ClaimsReporting::CsvHelpers
         replace_all: replace_all,
       }
       bm = log_timing "import_csv_data(#{filename}, replace_all: #{replace_all}" do
-        transaction do
-          if replace_all
-            # skip the temp table
-            connection.truncate(table_name)
-            res.merge! copy_data_into io, filename, table_name # go right in the model table
-          else
-            with_temp_table(table_name) do |tmp_table_name|
-              res.merge! copy_data_into io, filename, tmp_table_name
-              res.merge! upsert_from tmp_table_name
-            end
+        if replace_all
+          # skip the temp table
+          connection.truncate(table_name)
+          res.merge! copy_data_into io, filename, table_name # go right in the model table
+        else
+          with_temp_table(table_name) do |tmp_table_name|
+            res.merge! copy_data_into io, filename, tmp_table_name
+            res.merge! upsert_from tmp_table_name
           end
         end
         # we potentially changed a large percentage of the data in this table
@@ -66,6 +64,7 @@ module ClaimsReporting::CsvHelpers
       lines_read = 0
       records_read = nil
       actual_cols = CSV.parse_line(io, col_sep: '|')
+      io.rewind
       extra_cols = actual_cols - csv_cols
       raise "#{filename} contains unexpected columns: #{extra_cols}" if extra_cols.any?
 
@@ -83,7 +82,7 @@ module ClaimsReporting::CsvHelpers
         pg_result = pg_conn.copy_data copy_sql do
           io.each_line do |line|
             lines_read += 1
-            pg_conn.put_copy_data(line)
+            pg_conn.put_copy_data(line.encode!('UTF-8', 'UTF-8', undef: :replace, invalid: :replace)) or raise 'put_copy_data failed'
           end
         end
         records_read = pg_result.cmd_tuples
@@ -101,7 +100,7 @@ module ClaimsReporting::CsvHelpers
 
       results = {}
       log_timing "upsert_from(#{tmp_table_name}) => #{table_name}" do
-        col_sep = ",\n"
+        col_sep = ','
         col_list = csv_cols.join(col_sep)
         updates = (csv_cols - conflict_target).map do |col|
           quote_col = connection.quote_column_name(col)
@@ -109,7 +108,8 @@ module ClaimsReporting::CsvHelpers
         end
         sql = <<~SQL
           INSERT INTO #{quoted_table_name} (#{col_list})
-          SELECT \n#{col_list} \nFROM #{connection.quote_table_name tmp_table_name}
+          SELECT #{col_list}
+          FROM #{connection.quote_table_name tmp_table_name}
           ON CONFLICT (#{conflict_target.join(',')})
           DO UPDATE SET #{updates.join(col_sep)}
         SQL
@@ -183,6 +183,9 @@ module ClaimsReporting::CsvHelpers
       end
     ensure
       msg = "#{self}: #{str} finished in #{bm.to_s.strip}"
+
+      msg += " #{(res.to_f / bm.real).round}/sec" if res.is_a?(Numeric)
+
       logger.info { msg }
       res
     end

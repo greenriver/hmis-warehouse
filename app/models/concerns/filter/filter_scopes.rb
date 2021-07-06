@@ -97,7 +97,24 @@ module Filter::FilterScopes
       race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
       race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
 
+      # Include anyone who has more than one race listed, anded with any previous alternatives
+      race_scope ||= scope
+      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if keys.include?('MultiRacial')
+
       scope.merge(race_scope)
+    end
+
+    private def multi_racial_clients
+      # Looking at all races with responses of 1, where we have a sum > 1
+      columns = [
+        c_t[:AmIndAKNative],
+        c_t[:Asian],
+        c_t[:BlackAfAmerican],
+        c_t[:NativeHIOtherPacific],
+        c_t[:White],
+      ]
+      report_scope_source.joins(:client).
+        where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
     end
 
     private def add_alternative(scope, alternative)
@@ -138,17 +155,24 @@ module Filter::FilterScopes
     private def filter_for_projects(scope)
       return scope if @filter.project_ids.blank? && @filter.project_group_ids.blank?
 
-      project_ids = @filter.project_ids || []
-      project_groups = GrdaWarehouse::ProjectGroup.find(@filter.project_group_ids)
+      project_ids = if @filter.user.report_filter_visible?(:project_ids)
+        @filter.project_ids || []
+      else
+        []
+      end
+      project_groups = GrdaWarehouse::ProjectGroup.where(id: @filter.project_group_ids)
       project_groups.each do |group|
         project_ids += group.projects.pluck(:id)
       end
+
+      return scope if project_ids.blank?
 
       scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
     end
 
     private def filter_for_funders(scope)
       return scope if @filter.funder_ids.blank?
+      return scope unless @filter.user.report_filter_visible?(:funder_ids)
 
       project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user).
         where(Funder: @filter.funder_ids).
@@ -159,12 +183,14 @@ module Filter::FilterScopes
 
     private def filter_for_data_sources(scope)
       return scope if @filter.data_source_ids.blank?
+      return scope unless @filter.user.report_filter_visible?(:data_source_ids)
 
       scope.in_data_source(@filter.data_source_ids).joins(:data_source).merge(GrdaWarehouse::DataSource.viewable_by(@filter.user))
     end
 
     private def filter_for_organizations(scope)
       return scope if @filter.organization_ids.blank?
+      return scope unless @filter.user.report_filter_visible?(:organization_ids)
 
       scope.in_organization(@filter.organization_ids).merge(GrdaWarehouse::Hud::Organization.viewable_by(@filter.user))
     end

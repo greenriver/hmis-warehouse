@@ -8,7 +8,7 @@ module Assigned
   class ClientsController < ApplicationController
     include ClientPathGenerator
 
-    before_action :require_can_view_clients_or_window!
+    before_action :require_can_view_clients!
     before_action :set_user
 
     def index

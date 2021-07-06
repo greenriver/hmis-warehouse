@@ -6,6 +6,8 @@
   = render 'menus/admin_dashboard'
   = render 'menus/accounts'
   = render 'menus/help'
+  - if Rails.env.development?
+    = render 'menus/style_guide'
 
   %a.js-back-to-top.o-menu__to-top.o-menu__link{ href:'#' }
     Back to Top

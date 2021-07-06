@@ -2,9 +2,9 @@
   - content_for :filters_col_full do
     .row
       .col-sm-4
-        = f.input :aco, collection: Health::AccountableCareOrganization.active, selected: @aco, include_blank: '', label: 'ACO name', input_html: { class: :select2 }
+        = f.input :aco, collection: Health::AccountableCareOrganization.active, selected: @aco, include_blank: '', label: 'ACO name', as: :select_two
       .col-sm-4
-        = f.input :year, label: 'Report Period', collection: report_periods, selected: @report_year, input_html: { class: :select2 }
+        = f.input :year, label: 'Report Period', collection: report_periods, selected: @report_year, as: :select_two
 
   - content_for :filter_actions do
     = f.submit 'Update Report', class: 'btn btn-primary mt-no-label'

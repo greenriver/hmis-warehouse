@@ -6,22 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2020
   class QuestionNine < Base
-    include ArelHelper
-
     QUESTION_NUMBER = 'Question 9'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q9a', 'Q9b'].freeze
-
-    HEADER_ROW = [
-      'Number of Persons Contacted',
-      'All Persons Contacted',
-      'First contact - NOT staying on the Streets, ES, or SH',
-      'First contact - WAS staying on Streets, ES, or SH',
-      'First contact - Worker unable to determine',
-    ].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def a_t
       @a_t ||= report_client_universe.arel_table
@@ -34,7 +19,8 @@ module HudApr::Generators::Shared::Fy2020
     private def q9a_contacted
       table_name = 'Q9a'
 
-      adults_and_hohs = universe.members.where(adult_or_hoh_clause)
+      adults_and_hohs = universe.members.where(adult_or_hoh_clause).
+        where(a_t[:project_type].in([1, 4]))
       contacted_ids = adults_and_hohs.joins(apr_client: :hud_report_apr_living_situations).
         where(
           ls_t[:information_date].between(@report.start_date..@report.end_date).
@@ -44,29 +30,38 @@ module HudApr::Generators::Shared::Fy2020
         ).
         pluck(a_t[:id])
 
-      populate_table(table_name, 6, 'Contacted', contacted_ids)
+      populate_table(table_name, 6, 'Contacted', 'Times', contacted_ids)
     end
 
     private def q9b_engaged(contact_counts)
       table_name = 'Q9b'
 
-      adults_and_hohs = universe.members.where(adult_or_hoh_clause)
+      adults_and_hohs = universe.members.where(adult_or_hoh_clause).
+        where(a_t[:project_type].in([1, 4]))
       engaged_ids = adults_and_hohs.where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)).pluck(a_t[:id])
 
-      engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids, summary_row: 'Rate of Engagement')
+      engaged_counts = populate_table(table_name, 7, 'Engaged', 'Contacts', engaged_ids, summary_row: 'Rate of Engagement')
       engaged_counts.each do |col, count|
         ratio = percentage(count / contact_counts[col].to_f)
         @report.answer(question: table_name, cell: "#{col}7").update(summary: ratio)
       end
     end
 
-    private def populate_table(table_name, table_rows, label, client_ids, summary_row: nil)
+    private def populate_table(table_name, table_rows, counted_label, buckets_label, client_ids, summary_row: nil)
+      header_row = [
+        "Number of Persons #{counted_label}",
+        'All Persons Contacted',
+        'First contact - NOT staying on the Streets, ES, or SH',
+        'First contact - WAS staying on Streets, ES, or SH',
+        'First contact - Worker unable to determine',
+      ]
+
       buckets = {
         2 => ['Once', (1..1)],
-        3 => ['2-5 Times', (2..5)],
-        4 => ['6-9 Times', (6..9)],
-        5 => ['10+ Times', (10..)],
-        6 => ["Total Persons #{label}", (1..)],
+        3 => ["2-5 #{buckets_label}", (2..5)],
+        4 => ["6-9 #{buckets_label}", (6..9)],
+        5 => ["10+ #{buckets_label}", (10..)],
+        6 => ["Total Persons #{counted_label}", (1..)],
       }
 
       row_labels = buckets.values.map(&:first)
@@ -74,7 +69,7 @@ module HudApr::Generators::Shared::Fy2020
       last_row = {}
 
       metadata = {
-        header_row: HEADER_ROW,
+        header_row: header_row,
         row_labels: row_labels,
         first_column: 'B',
         last_column: 'E',

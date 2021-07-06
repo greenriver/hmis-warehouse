@@ -27,7 +27,7 @@ module Reporting
     end
 
     private def source_data_scope(ids)
-      GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: [:project, :organization]).
+      GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: [:project, :organization, :client]).
         homeless.
         # in_project_type([1,2,4,8]).
         where(client_id: ids).
@@ -43,6 +43,8 @@ module Reporting
         # in batches because the number of service records is.
         # It is safe to batch by client because this only cares about the client level detail
         client_ids.each_slice(5_000) do |ids|
+          cache_client = GrdaWarehouse::Hud::Client.new
+          client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
           data = source_data(ids)
           last_day = data.first
 
@@ -57,6 +59,7 @@ module Reporting
               day[:length_of_stay] = length_of_stay
               day[:start_date] = start_date
               day[:end_date] = end_date
+              day[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: day[:client_id])
 
               stays << day
 
@@ -91,11 +94,14 @@ module Reporting
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
         project_id: p_t[:id],
+        hmis_project_id: p_t[:ProjectID],
         destination: she_t[:destination],
         project_name: she_t[:project_name],
         organization_id: o_t[:id],
         unaccompanied_youth: she_t[:unaccompanied_youth],
         parenting_youth: she_t[:parenting_youth],
+        ethnicity: c_t[:Ethnicity],
+        gender: c_t[:Gender],
       }.freeze
     end
 

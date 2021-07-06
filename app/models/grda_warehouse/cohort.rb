@@ -108,7 +108,8 @@ module GrdaWarehouse
     end
 
     def sanitized_name
-      name.gsub(/[\/\\]/, '-')
+      # See https://www.keynotesupport.com/excel-basics/worksheet-names-characters-allowed-prohibited.shtml
+      name.gsub(/['\*\/\\\?\[\]\:]/, '-')
     end
 
     def active_scope
@@ -153,14 +154,10 @@ module GrdaWarehouse
     end
 
     # full un-paginated scope for the last `client_search`
-    def client_search_scope
-      @client_search_scope
-    end
+    attr_reader :client_search_scope
 
     # paginated/preloaded scope for the last `client_search`
-    def client_search_result
-      @client_search_result
-    end
+    attr_reader :client_search_result
 
     def self.has_some_cohort_access user
       user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
@@ -199,7 +196,7 @@ module GrdaWarehouse
       ]
     end
 
-    def self.available_columns
+    def self.available_columns # rubocop:disable Metrics/AbcSize
       [
         ::CohortColumns::LastName.new(),
         ::CohortColumns::FirstName.new(),
@@ -207,6 +204,7 @@ module GrdaWarehouse
         ::CohortColumns::Age.new(),
         ::CohortColumns::Gender.new(),
         ::CohortColumns::Ssn.new(),
+        ::CohortColumns::ClientId.new(),
         ::CohortColumns::CalculatedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new(),
@@ -261,6 +259,12 @@ module GrdaWarehouse
         ::CohortColumns::RelatedUsers.new(),
         ::CohortColumns::Active.new(),
         ::CohortColumns::LastHomelessVisit.new(),
+        ::CohortColumns::OngoingEs.new(),
+        ::CohortColumns::OngoingSo.new(),
+        ::CohortColumns::OngoingSh.new(),
+        ::CohortColumns::OngoingTh.new(),
+        ::CohortColumns::OngoingRrh.new(),
+        ::CohortColumns::OngoingPsh.new(),
         ::CohortColumns::NewLeaseReferral.new(),
         ::CohortColumns::VulnerabilityRank.new(),
         ::CohortColumns::ActiveCohorts.new(),
@@ -296,6 +300,7 @@ module GrdaWarehouse
         ::CohortColumns::VispdatScoreManual.new(),
         ::CohortColumns::DaysOnCohort.new(),
         ::CohortColumns::CasVashEligible.new(),
+        ::CohortColumns::DateAddedToCohort.new(),
         ::CohortColumns::PreviousRemovalReason.new(),
         ::CohortColumns::HealthPrioritized.new(),
         ::CohortColumns::UserString1.new(),
@@ -321,6 +326,21 @@ module GrdaWarehouse
         ::CohortColumns::UserBoolean13.new(),
         ::CohortColumns::UserBoolean14.new(),
         ::CohortColumns::UserBoolean15.new(),
+        ::CohortColumns::UserBoolean16.new(),
+        ::CohortColumns::UserBoolean17.new(),
+        ::CohortColumns::UserBoolean18.new(),
+        ::CohortColumns::UserBoolean19.new(),
+        ::CohortColumns::UserBoolean20.new(),
+        ::CohortColumns::UserBoolean21.new(),
+        ::CohortColumns::UserBoolean22.new(),
+        ::CohortColumns::UserBoolean23.new(),
+        ::CohortColumns::UserBoolean24.new(),
+        ::CohortColumns::UserBoolean25.new(),
+        ::CohortColumns::UserBoolean26.new(),
+        ::CohortColumns::UserBoolean27.new(),
+        ::CohortColumns::UserBoolean28.new(),
+        ::CohortColumns::UserBoolean29.new(),
+        ::CohortColumns::UserBoolean30.new(),
         ::CohortColumns::UserSelect1.new(),
         ::CohortColumns::UserSelect2.new(),
         ::CohortColumns::UserSelect3.new(),
@@ -331,6 +351,26 @@ module GrdaWarehouse
         ::CohortColumns::UserSelect8.new(),
         ::CohortColumns::UserSelect9.new(),
         ::CohortColumns::UserSelect10.new(),
+        ::CohortColumns::UserSelect11.new(),
+        ::CohortColumns::UserSelect12.new(),
+        ::CohortColumns::UserSelect13.new(),
+        ::CohortColumns::UserSelect14.new(),
+        ::CohortColumns::UserSelect15.new(),
+        ::CohortColumns::UserSelect16.new(),
+        ::CohortColumns::UserSelect17.new(),
+        ::CohortColumns::UserSelect18.new(),
+        ::CohortColumns::UserSelect19.new(),
+        ::CohortColumns::UserSelect20.new(),
+        ::CohortColumns::UserSelect21.new(),
+        ::CohortColumns::UserSelect22.new(),
+        ::CohortColumns::UserSelect23.new(),
+        ::CohortColumns::UserSelect24.new(),
+        ::CohortColumns::UserSelect25.new(),
+        ::CohortColumns::UserSelect26.new(),
+        ::CohortColumns::UserSelect27.new(),
+        ::CohortColumns::UserSelect28.new(),
+        ::CohortColumns::UserSelect28.new(),
+        ::CohortColumns::UserSelect30.new(),
         ::CohortColumns::UserDate1.new(),
         ::CohortColumns::UserDate2.new(),
         ::CohortColumns::UserDate3.new(),

@@ -34,7 +34,7 @@ module HudDataQualityReport::Generators::Fy2020
         approximate_move_in_dates = {}
         enrollments_by_client_id.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
-          hh_id = last_service_history_enrollment.household_id
+          hh_id = get_hh_id(last_service_history_enrollment)
           date = [
             @report.start_date,
             last_service_history_enrollment.first_date_in_program,
@@ -136,9 +136,9 @@ module HudDataQualityReport::Generators::Fy2020
             hiv_aids_exit: disabilities_at_exit.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids: disabilities.detect(&:hiv?).present?,
-            household_id: last_service_history_enrollment.household_id,
+            household_id: get_hh_id(last_service_history_enrollment),
             household_members: household_member_data(last_service_history_enrollment),
-            household_type: household_types[last_service_history_enrollment.household_id],
+            household_type: household_types[get_hh_id(last_service_history_enrollment)],
             housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment,
             income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
             income_date_at_exit: income_at_exit&.InformationDate,
@@ -233,7 +233,10 @@ module HudDataQualityReport::Generators::Fy2020
     end
 
     private def clients_with_enrollments(batch)
-      enrollment_scope.where(client_id: batch.map(&:id)).group_by(&:client_id)
+      enrollment_scope.
+        where(client_id: batch.map(&:id)).
+        reject { |shs| shs.project_type == 4 && shs.enrollment.DateOfEngagement >= report_end_date }.
+        group_by(&:client_id)
     end
 
     private def enrollment_scope

@@ -32,8 +32,6 @@ class CronInstaller
       scheduled_task = ScheduledTask.new(params)
       scheduled_task.run!
 
-      puts "[INFO] -----------------------"
-
       entry_number += 1
     end
   end
@@ -114,9 +112,7 @@ class CronInstaller
         hour
       end
 
-    "cron(#{minute}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})".tap do |expression|
-      puts "[INFO] cron expression is #{expression}"
-    end
+    "cron(#{minute}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
   end
 
   def get_command(line)

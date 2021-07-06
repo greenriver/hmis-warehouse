@@ -9,6 +9,7 @@ def setup_fake_user
 
     # Add a user.  This should not be added in production
     unless Rails.env =~ /production|staging/
+      agency = Agency.where(name: 'Sample Agency').first_or_create
       initial_password = Faker::Internet.password(min_length: 16)
       user = User.new
       user.email = 'noreply@example.com'
@@ -17,6 +18,7 @@ def setup_fake_user
       user.password = user.password_confirmation = initial_password
       user.confirmed_at = Time.now
       user.roles = [admin, dnd_staff]
+      user.agency_id = agency.id
       user.save!
       puts "Created initial admin email: #{user.email}  password: #{user.password}"
     end
@@ -270,10 +272,13 @@ def maintain_lookups
 end
 
 def install_shapes
-  if GrdaWarehouse::Shape::ZipCode.none? || GrdaWarehouse::Shape::CoC.none?
+  if GrdaWarehouse::Shape::Installer.any_needed?
     begin
       Rake::Task['grda_warehouse:get_shapes'].invoke
-    rescue Exception
+    rescue Exception => e
+      Rails.logger.tagged('shapes') do
+        Rails.logger.fatal "Could not run shape importer: #{e.message}"
+      end
     end
   end
 end

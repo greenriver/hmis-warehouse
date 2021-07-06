@@ -38,6 +38,7 @@ class Role < ApplicationRecord
       :can_edit_users,
       :can_edit_anything_super_user, # deprecated
       :can_manage_config,
+      :can_manage_sessions,
       :can_edit_access_groups,
     ]
   end
@@ -78,8 +79,9 @@ class Role < ApplicationRecord
 
   def self.permissions_with_descriptions
     {
+      # Deprecated, this is now covered by visible_to
       can_edit_anything_super_user: {
-        description: 'This permission grants access to all data sources, organizations and projects, regardless of assignment. This should only be given to administrator level users.',
+        description: '[DEPRECATED] This permission grants access to all data sources, organizations and projects, regardless of assignment. This should only be given to administrator level users.',
         administrative: true,
         categories: [
           'Administration',
@@ -88,8 +90,8 @@ class Role < ApplicationRecord
         ],
       },
       can_view_clients: {
-        description: 'Allows access to the non-window view of clients. This should only be given to administrator level users.',
-        administrative: true,
+        description: 'Allows access to view client details based on client data source and enrollments via user\'s access.',
+        administrative: false,
         categories: [
           'Client Access',
         ],
@@ -97,6 +99,20 @@ class Role < ApplicationRecord
       can_edit_clients: {
         description: 'Provides the ability to merge clients and make other edits. This should only be given to administrator level users.',
         administrative: true,
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_full_client_dashboard: {
+        description: 'Given access to a client\'s enrollments, user is able to see all sections of a client dashboard',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_limited_client_dashboard: {
+        description: 'Given access to a client\'s enrollments, user is able to see some sections of a client dashboard',
+        administrative: false,
         categories: [
           'Client Access',
         ],
@@ -109,7 +125,7 @@ class Role < ApplicationRecord
         ],
       },
       can_view_census_details: {
-        description: 'Ability to "drill down" on census reports and see who was where on a given day',
+        description: '[DEPRECATED] Ability to "drill down" on census reports and see who was where on a given day',
         administrative: true,
         categories: [
           'Reporting',
@@ -213,6 +229,13 @@ class Role < ApplicationRecord
           'Data Sources & Inventory',
         ],
       },
+      can_import_project_groups: {
+        description: 'Import groupings of projects, this process is un-aware of user project-group associations',
+        administrative: true,
+        categories: [
+          'Data Sources & Inventory',
+        ],
+      },
       can_edit_project_groups: {
         description: 'Setup groupings of projects, mostly for reporting',
         administrative: true,
@@ -241,6 +264,13 @@ class Role < ApplicationRecord
           'Data Sources & Inventory',
         ],
       },
+      can_search_all_clients: {
+        description: 'Given access to a client search, via can search window or can use strict search, allow the user to see the search results for all clients, regardless of if they can see other demographic data',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_use_strict_search: {
         description: 'Access to the client search screen that requires more exact matching. Assigning "Can Search Window" or "Can View Clients" will take precedence and grant additional access',
         administrative: false,
@@ -255,8 +285,16 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
+      can_view_cached_client_enrollments: {
+        description: 'Ability to see all enrollments for a client as cached in the history log of client enrollments.  There is no limit imposed on these cached views.',
+        administrative: true,
+        categories: [
+          'Client Access',
+        ],
+      },
+      # Deprecated, this is replaced by can view clients
       can_view_client_window: {
-        description: 'Ability to drill into the client data from window search results, limited to items available in the window',
+        description: '[DEPRECATED] Ability to drill into the client data',
         administrative: false,
         categories: [
           'Client Access',
@@ -318,9 +356,16 @@ class Role < ApplicationRecord
           'Administration',
         ],
       },
+      can_manage_sessions: {
+        description: 'If granted, the user can see a list of active sessions and can cancel any session',
+        administrative: true,
+        categories: [
+          'Administration',
+        ],
+      },
       # Deprecated TODO: remove references, then remove permission
       can_edit_dq_grades: {
-        description: 'Management interface for setup of data quality grading scheme',
+        description: '[DEPRECATED] Management interface for setup of data quality grading scheme',
         administrative: true,
         categories: [
           'Administration',
@@ -412,6 +457,13 @@ class Role < ApplicationRecord
       },
       can_view_client_history_calendar: {
         description: 'Access to the calendar view of client enrollments',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
+      can_view_client_locations: {
+        description: 'Access to the map view of client locations',
         administrative: false,
         categories: [
           'Client Extras',
@@ -558,6 +610,13 @@ class Role < ApplicationRecord
           'Reporting',
         ],
       },
+      can_view_project_related_filters: {
+        description: 'Ability to specify filters of project, organization, funding source and data sources.  Most single CoC installations will want this enabled for anyone with reporting access.',
+        administrative: false,
+        categories: [
+          'Reporting',
+        ],
+      },
       # Removed 11/24/2019 -- no longer in use
       # can_view_project_data_quality_client_details: {
       #   description: 'Drill-down access to client level details on project data quality reports',
@@ -582,8 +641,9 @@ class Role < ApplicationRecord
           'Administration',
         ],
       },
+      # Deprecated, this is now covered by visible_to
       can_see_clients_in_window_for_assigned_data_sources: {
-        description: 'This allows a user to see clients in the window where the data source may not be visible in the window.  It is an override that should only be given to users who work at the assigned data source, organization, project.  It must be used in conjunction with assignments on the user edit page.',
+        description: '[DEPRECATED] This allows a user to see clients in the window where the data source may not be visible in the window.  It is an override that should only be given to users who work at the assigned data source, organization, project.  It must be used in conjunction with assignments on the user edit page.',
         administrative: false,
         categories: [
           'Client Access',
@@ -645,8 +705,9 @@ class Role < ApplicationRecord
           'Administration',
         ],
       },
+      # Deprecated, this is now covered by visible_to
       can_view_clients_with_roi_in_own_coc: {
-        description: 'This permission grants access to clients who have a release of information that includes a CoC assigned to the user, or an ROI with no CoC specified',
+        description: '[DEPRECATED] This permission grants access to clients who have a release of information that includes a CoC assigned to the user, or an ROI with no CoC specified',
         administrative: false,
         categories: [
           'Client Access',
@@ -953,6 +1014,14 @@ class Role < ApplicationRecord
         ActiveRecord::Migration.add_column :roles, permission, :boolean, default: false
       end
     end
+  end
+
+  def add(users)
+    self.users = (self.users + Array.wrap(users)).uniq
+  end
+
+  def remove(users)
+    self.users = (self.users - Array.wrap(users))
   end
 
 end

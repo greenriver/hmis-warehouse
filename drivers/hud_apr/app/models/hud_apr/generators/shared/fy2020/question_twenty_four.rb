@@ -7,11 +7,6 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionTwentyFour < Base
     QUESTION_NUMBER = 'Question 24'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q24'].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def q24_destination
       table_name = 'Q24'
@@ -34,7 +29,10 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(population_clause).where(assessment_clause)
+          members = universe.members.
+            where(population_clause).
+            where(assessment_clause).
+            where(a_t[:project_type].eq(12)) # Only prevention project enrollments are counted
           value = members.count
 
           answer.add_members(members)

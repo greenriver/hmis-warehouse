@@ -115,6 +115,7 @@ module Health
 
     def aco_name patient_id
       @aco_names ||= Health::AccountableCareOrganization.joins(patient_referrals: :patient).
+        merge(Health::PatientReferral.current).
         merge(Health::Patient.where(id: patient_ids)).
         pluck(hp_t[:id].to_sql, :name).to_h
       @aco_names[patient_id]
@@ -122,7 +123,7 @@ module Health
 
     def care_coordinator patient_id
       @patient_coordinator_lookup ||= Health::Patient.pluck(:id, :care_coordinator_id).to_h
-      @care_coordinators ||= User.where(id: @patient_coordinator_lookup.values).
+      @care_coordinators ||= User.diet.where(id: @patient_coordinator_lookup.values).
         distinct.map{ |m| [m.id, m.name] }.to_h
 
       @care_coordinators[@patient_coordinator_lookup[patient_id]]

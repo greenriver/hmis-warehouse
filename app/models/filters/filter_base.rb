@@ -54,6 +54,7 @@ module Filters
     attribute :dv_status, Array, default: []
     attribute :chronic_status, Boolean, default: false
     attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
+    attribute :limit_to_vispdat, Symbol, default: :all_clients
 
     validates_presence_of :start, :end
 
@@ -71,7 +72,7 @@ module Filters
       ]
     end
 
-    def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName
+    def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName, Metrics/AbcSize
       return self unless filters.present?
 
       self.on = filters.dig(:on)&.to_date || default_on
@@ -81,8 +82,8 @@ module Filters
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
-      self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
-      self.coc_code = filters.dig(:coc_code) if available_coc_codes.include?(filters.dig(:coc_code))
+      self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || user.coc_codes
+      self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
       self.household_type = filters.dig(:household_type)&.to_sym
       self.heads_of_household = self.hoh_only = filters.dig(:hoh_only).in?(['1', 'true', true])
       self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject { |type| type.blank? }.presence
@@ -95,7 +96,7 @@ module Filters
       self.age_ranges = filters.dig(:age_ranges)&.reject(&:blank?)&.map { |range| range.to_sym }
       self.genders = filters.dig(:genders)&.reject(&:blank?)&.map { |gender| gender.to_i }
       self.sub_population = filters.dig(:sub_population)&.to_sym
-      self.races = filters.dig(:races)&.select { |race| HUD.races.keys.include?(race) }
+      self.races = filters.dig(:races)&.select { |race| HUD.races(multi_racial: true).keys.include?(race) }
       self.ethnicities = filters.dig(:ethnicities)&.reject(&:blank?)&.map { |ethnicity| ethnicity.to_i }
       self.project_group_ids = filters.dig(:project_group_ids)&.reject(&:blank?)&.map { |group| group.to_i }
       self.prior_living_situation_ids = filters.dig(:prior_living_situation_ids)&.reject(&:blank?)&.map { |m| m.to_i }
@@ -108,7 +109,10 @@ module Filters
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map { |m| m.to_i }
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true])
+      vispdat_limit = filters.dig(:limit_to_vispdat)&.to_sym
+      self.limit_to_vispdat = vispdat_limit if available_vispdat_limits.values.include?(vispdat_limit)
       ensure_dates_work if valid?
+      self.ph = filters.dig(:ph).in?(['1', 'true', true])
       self
     end
 
@@ -145,6 +149,7 @@ module Filters
           dv_status: dv_status,
           chronic_status: chronic_status,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
+          limit_to_vispdat: limit_to_vispdat,
         },
       }
     end
@@ -180,15 +185,16 @@ module Filters
         opts['DV Status'] = chosen_dv_status if dv_status.any?
         opts['Chronically Homeless'] = 'Yes' if chronic_status
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
+        opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
       end
     end
 
     def range
-      self.start .. self.end # rubocop:disable Style/RedundantSelf
+      self.start .. self.end
     end
 
     def as_date_range
-      DateRange.new(start: self.start, end: self.end) # rubocop:disable Style/RedundantSelf
+      DateRange.new(start: self.start, end: self.end)
     end
 
     def first
@@ -222,7 +228,7 @@ module Filters
     end
 
     def length
-      (self.end - self.start).to_i # rubocop:disable Style/RedundantSelf
+      (self.end - self.start).to_i
     rescue StandardError
       0
     end
@@ -422,6 +428,18 @@ module Filters
       ::HUD.project_types.invert
     end
 
+    def available_vispdat_limits
+      {
+        'All clients' => :all_clients,
+        'Only clients with VI-SPDATs' => :with_vispdat,
+        'Only clients without VI-SPDATs' => :without_vispdat,
+      }
+    end
+
+    def chosen_vispdat_limits
+      available_vispdat_limits.invert[limit_to_vispdat]
+    end
+
     def project_type_ids
       ids = GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
         *project_type_codes.reject(&:blank?).map(&:to_sym),
@@ -465,7 +483,14 @@ module Filters
     end
 
     def available_coc_codes
-      GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
+      @available_coc_codes ||= begin
+        cocs = GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
+
+        # If a user has coc code limits assigned, enforce them
+        cocs &= user&.coc_codes if user&.coc_codes.present?
+
+        cocs
+      end
     end
 
     # disallow selection > 1 year, and reverse dates
@@ -572,8 +597,10 @@ module Filters
         'Indefinite Disability'
       when :dv_status
         'DV Status'
-      when :heads_of_household
+      when :heads_of_household, :hoh_only
         'Heads of Household Only?'
+      when :limit_to_vispdat
+        'Client Limits'
       end
 
       return unless value.present?
@@ -625,8 +652,10 @@ module Filters
         chosen_indefinite_disabilities
       when :dv_status
         chosen_dv_status
-      when :heads_of_household
-        yes_no(heads_of_household)
+      when :heads_of_household, :hoh_only
+        'Yes' if heads_of_household || hoh_only
+      when :limit_to_vispdat
+        chosen_vispdat_limits
       end
     end
 
@@ -642,7 +671,7 @@ module Filters
 
     def chosen_races
       races.map do |race|
-        HUD.race(race)
+        HUD.race(race, multi_racial: true)
       end
     end
 

@@ -36,7 +36,7 @@ class CohortsController < ApplicationController
   end
 
   def show
-    @modal_size = :lg
+    @modal_size = :xl
     params[:population] ||= :active
     load_cohort_names
     @cohort = cohort_scope.find(cohort_id)
@@ -139,7 +139,7 @@ class CohortsController < ApplicationController
   end
 
   def set_assessment_types
-    @assessment_types ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
+    @assessment_types ||= begin
       types = []
       if can_view_vspdat?
         types += [
@@ -183,7 +183,7 @@ class CohortsController < ApplicationController
   end
 
   def load_cohort_names
-    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name). # rubocop:disable Naming/MemoizedInstanceVariableName
+    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
       map do |id, name, short_name|
       [id, short_name.presence || name]
     end.to_h

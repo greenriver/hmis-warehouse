@@ -28,7 +28,7 @@
               - if current_user.can_edit_clients?
                 - link = polymorphic_path(client_path_generator, id: client.warehouse_client_source.destination_id)
               - else
-                - link = client.destination_client.window_link_for?(current_user)
+                - link = client.destination_client.appropriate_path_for?(current_user)
               = link_to link do
                 = client.full_name
             %td
@@ -57,12 +57,12 @@
         = f.input :SSN,  input_html: {maxlength: 11, class: 'jSSN'}, label: 'SSN'
     .row
       .col-sm-6
-        = f.input :Gender, collection: HUD::genders.invert, input_html: { class: :select2 }
+        = f.input :Gender, collection: HUD::genders.invert, as: :select_two
       .col-sm-3
-        = f.input :VeteranStatus, collection: HUD::no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status', input_html: { class: :select2 }
+        = f.input :VeteranStatus, collection: HUD::no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status', as: :select_two
       - if GrdaWarehouse::DataSource.authoritative.count > 1
         .col-sm-3
-          = f.input :data_source_id, collection: GrdaWarehouse::DataSource.authoritative, include_blank: false, label: 'Create client in Data Source', input_html: { class: :select2 }
+          = f.input :data_source_id, collection: GrdaWarehouse::DataSource.authoritative, include_blank: false, label: 'Create client in Data Source', as: :select_two
     .form-actions
       - if @bypass_search
         = f.input :bypass_search, as: :hidden, input_html: {value: 1}

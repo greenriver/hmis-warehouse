@@ -7,7 +7,7 @@
 module WarehouseReports::Health
   class AcoPerformanceController < ApplicationController
     include ArelHelper
-    include WindowClientPathGenerator
+    include ClientPathGenerator
     include WarehouseReportAuthorization
 
     before_action :require_can_view_aggregate_health!

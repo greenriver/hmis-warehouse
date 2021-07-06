@@ -1,5 +1,6 @@
+- btn_class ||= nil
 - @showing_sign_in_form = true
-= f.input :email, required: false, autofocus: true
-= f.input :password, required: false, input_html: { autocomplete: :off }
+= f.input :email, required: false, autofocus: true, input_html: { autocomplete: :username }
+= f.input :password, required: false, input_html: { autocomplete: 'current-password' }
 .form-actions
-  = f.button :submit, 'Sign In'
+  = f.button :submit, 'Sign In', class: btn_class

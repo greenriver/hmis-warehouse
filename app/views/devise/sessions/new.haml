@@ -1,5 +1,16 @@
 .well.mx-auto(style='max-width: 340px')
-  %h1 Sign In
-  = simple_form_for(resource, as: resource_name, url: session_path(resource_name), wrapper: :vertical_form_hint_first) do |f|
-    = render '/devise/sessions/sign_in_fields', f: f
-  = render "devise/shared/links"
+  - if devise_mapping.omniauthable? && !params[:local]
+    .mt-4.mb-4
+      - resource_class.omniauth_providers.each do |provider|
+        = button_to "Sign in with #{provider.upcase}", omniauth_authorize_path(resource_name, provider), class: 'btn btn-primary btn-block text-center'
+    %details{open: (resource.email.present? || request.post?)}
+      %summary Sign in with a password
+      = simple_form_for(resource, as: resource_name, url: session_path(resource_name), wrapper: :vertical_form_hint_first) do |f|
+        = render '/devise/sessions/sign_in_fields', f: f, btn_class: 'btn btn-secondary'
+      = render "devise/shared/links"
+  - else
+    %h1 Sign In
+    = simple_form_for(resource, as: resource_name, url: session_path(resource_name), wrapper: :vertical_form_hint_first) do |f|
+      = render '/devise/sessions/sign_in_fields', f: f
+    = render "devise/shared/links"
+

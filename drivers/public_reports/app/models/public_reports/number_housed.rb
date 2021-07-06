@@ -9,7 +9,7 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Number Housed Generator')
+      _('Number Housed Report Generator')
     end
 
     def instance_title
@@ -21,18 +21,7 @@ module PublicReports
     end
 
     def url
-      public_reports_warehouse_reports_number_housed_index_url(host: ENV.fetch('FQDN'))
-    end
-
-    def generate_publish_url
-      # TODO: This is the standard S3 public access, it will need to be updated
-      # when moved to CloudFront
-      if ENV['S3_PUBLIC_URL'].present?
-        "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
-      else
-        # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
-        "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}/index.html"
-      end
+      public_reports_warehouse_reports_number_housed_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
     def run_and_save!
@@ -59,7 +48,7 @@ module PublicReports
     end
 
     def filter_object
-      @filter_object ||= ::Filters::OutflowReport.new.set_from_params(filter['filters'].merge(enforce_one_year_range: false, sub_population: :clients).with_indifferent_access)
+      @filter_object ||= ::Filters::OutflowReport.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false, sub_population: :clients).with_indifferent_access)
     end
   end
 end

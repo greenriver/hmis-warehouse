@@ -17,6 +17,8 @@ enrollment_header = [
   'CP_SL',
   'Enrollment_Start_Date',
   'Start_Reason_Desc',
+  'Disenrollment_Date',
+  'Stop_Reason_Desc',
   'Record_Status',
   'Record_Update_Date',
   'Export_Date',
@@ -24,6 +26,7 @@ enrollment_header = [
 
 wb.add_worksheet(name: 'ENROLLMENT') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  text = sheet.styles.add_style(format_code: '@')
 
   sheet.add_row(enrollment_header, style: title)
   # Contains no data
@@ -55,9 +58,10 @@ disenrollment_header = [
 
 wb.add_worksheet(name: 'DISENROLLMENT') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  text = sheet.styles.add_style(format_code: '@')
 
   sheet.add_row(disenrollment_header, style: title)
   @report.disenrollments.each do |row|
-    sheet.add_row(row, types: [:string] * disenrollment_header.length)
+    sheet.add_row(row, types: [:string] * disenrollment_header.length, style: text)
   end
 end

@@ -10,6 +10,11 @@ namespace :health do
     Importing::RunHealthImportJob.new.perform
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
     Health::Tasks::CalculateValidUnpayableQas.new.run!
+    Health::StatusDate.new.maintain
+  end
+
+  task hourly: [:environment, "log:info_to_stdout"] do
+    Health::SignableDocument.process_unfetched_signed_documents
   end
 
   desc "Enrollments and Eligibility"
@@ -217,10 +222,10 @@ namespace :health do
 
       desc "Conditionally load the database schema"
       task :conditional_load, [] => [:environment] do |t, args|
-        if HealthBase.connection.tables.length == 0
-          Rake::Task['health:db:schema:load'].invoke
-        else
+        if HealthBase.connection.table_exists?(:schema_migrations)
           puts "Refusing to load the health database schema since there are tables present. This is not an error."
+        else
+          Rake::Task['health:db:schema:load'].invoke
         end
       end
     end
@@ -236,10 +241,10 @@ namespace :health do
 
       desc "Conditionally load the database structure"
       task :conditional_load, [] => [:environment] do |t, args|
-        if HealthBase.connection.tables.length == 0
-          HealthBase.connection.execute(File.read('db/health/structure.sql'))
-        else
+        if HealthBase.connection.table_exists?(:schema_migrations)
           puts "Refusing to load the health database structure since there are tables present. This is not an error."
+        else
+          HealthBase.connection.execute(File.read('db/health/structure.sql'))
         end
       end
     end

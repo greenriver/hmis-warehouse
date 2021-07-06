@@ -1,11 +1,10 @@
 %h1
   Send invitation
 .well
-  %p
-    By assigning the role
-    %b= @admin_role_name
-    to this account, you are granting the user administrative privileges. To confirm this, please
-    enter your password below.
+  .alert.alert-warning
+    %p
+      %i.icon-warning
+      By assigning the role <b>#{@admin_role_name}</b> to this account, you are granting the user administrative privileges.
 
   = simple_form_for @user, url: user_invitation_path do |f|
     = f.error_notification
@@ -23,8 +22,9 @@
       - else
         = f.hidden_field key, value: value
 
-    .form-inputs
-      = f.input "confirmation_password", as: :password
+    - if current_user.confirm_password_for_admin_actions?
+      .form-inputs
+        = f.input "confirmation_password", as: :password, label: 'Confirm your password to grant administrative privileges'
 
     .form-actions
       = f.button :submit, t("devise.invitations.new.submit_button"), class: 'btn btn-primary'

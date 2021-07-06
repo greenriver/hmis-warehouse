@@ -13,14 +13,14 @@
 
     .row
       .col
-        = f.input :acos, collection: available_acos, selected: @acos, input_html: {class: :select2, multiple: true}, label: 'ACO/MCOs to include'
+        = f.input :acos, collection: available_acos, selected: @acos, input_html: {multiple: true}, label: 'ACO/MCOs to include', as: :select_two
     .row
       .col
-        = f.input :start_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @start_month, input_html: {class: :select2}, label: 'From the start of'
+        = f.input :start_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @start_month, as: :select_two, label: 'From the start of'
       .col
-        = f.input :end_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @end_month, input_html: {class: :select2}, label: 'To the end of'
+        = f.input :end_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @end_month, as: :select_two, label: 'To the end of'
       .col
-        = f.input :effective_date, as: :date_picker, input_html: { value: @effective_date }
+        = f.input :effective_date, as: :date_picker, input_html: { value: @effective_date }, label: 'Export Date'
 
     .row
       .col

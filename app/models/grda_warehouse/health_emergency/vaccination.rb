@@ -32,6 +32,10 @@ module GrdaWarehouse::HealthEmergency
       where(created_at: range)
     end
 
+    scope :vaccinated_within_range, -> (range=Date.current..Date.current) do
+      where(vaccinated_on: range)
+    end
+
     scope :unsent, -> do
       where(follow_up_notification_sent_at: nil)
     end

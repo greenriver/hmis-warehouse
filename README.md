@@ -37,9 +37,9 @@ The application uses [postgres](https://www.postgresql.org/) for application dat
 
 We've developed locally on OSX using [homebrew](http://brew.sh/) and deployed to Ubuntu 16.04 using `apt` for dependencies.
 
-## Third-party Service Dependencies
+## Third-party Available Integrations
 
-- Amazon Web Services provides cloud hosting services. Configured via various env variables.  Services used outside of hosting are S3 and Glacier.
+- Amazon Web Services provides cloud hosting services. Configured via various env variables.  Services used outside of hosting are SNS, SES, S3, and Glacier.
   Terms: https://aws.amazon.com/service-terms/
 
 - ETO API and QaaWS - HMIS and ancillary data can be fetched via various endpoints.  OpenPath accesses Social Solutions ETO in a variety of ways, custom configured for each installation. [https://www.socialsolutions.com/software/eto/]
@@ -50,6 +50,16 @@ We've developed locally on OSX using [homebrew](http://brew.sh/) and deployed to
 - NOAA Weather - Weather for individual dates and one location per installation are fetched on-demand from NOAA [https://www.ncdc.noaa.gov/cdo-web/webservices/v2]
 
 - Exceptions can be sent to a slack channel. Configuration is done via env `EXCEPTION_WEBHOOK*`
+
+- MassHealth - X12 data transfer via api, configurable per installation
+
+- HelloSign - for signing of health careplans electronically. [https://www.hellosign.com/terms]
+
+- OKTA - for single sign-on. [https://www.okta.com]
+
+- US Census - for comparing HMIS and population data. [https://www.census.gov/data/developers/about/terms-of-service.html]
+
+- Talent LMS - for training. [https://www.talentlms.com/terms]
 
 ### Developer Prerequisites
 

@@ -10,6 +10,9 @@ require_relative '../lib/util/id_protector'
 module BostonHmis
   class Application < Rails::Application
     config.load_defaults 5.2
+    # ActionCable
+    config.action_cable.mount_path = "/cable"
+    config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
 
     # FIXME Suppress the Rails 5 belongs_to requirement
     Rails.application.config.active_record.belongs_to_required_by_default = false
@@ -32,7 +35,7 @@ module BostonHmis
 
     config.action_controller.include_all_helpers = false
 
-    config.active_record.schema_format = ENV.fetch('SCHEMA_FORMAT') { 'ruby' }.to_sym
+    config.active_record.schema_format = ENV.fetch('SCHEMA_FORMAT') { 'sql' }.to_sym
 
     config.active_job.queue_adapter = :delayed_job
 

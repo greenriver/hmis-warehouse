@@ -17,7 +17,7 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
         template.content_tag(:em, 'Blank', label_html_options)
       end
     else
-      data = { provide: 'datepicker' }
+      data = { provide: 'datepicker', 'date-today-highlight' => true }
       data = {} if input_html_options[:disabled]
       template.content_tag :div, class: 'input-group date datepicker', data: data do
         input = super(wrapper_options)

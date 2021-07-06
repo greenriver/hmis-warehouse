@@ -17,4 +17,4 @@
     .col-sm-4
       = f.input :parent2_ssn, label: "SSN"
     .col-sm-4
-      = f.input :parent2_language_answer, collection: @vispdat.class.language_options, label: "Language", input_html: { class: 'select2' }
+      = f.input :parent2_language_answer, collection: @vispdat.class.language_options, label: "Language", as: :select_two

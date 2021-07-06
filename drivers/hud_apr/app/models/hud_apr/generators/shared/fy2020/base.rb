@@ -6,6 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2020
   class Base < ::HudReports::QuestionBase
+    include ArelHelper
     include HudReports::Util
     include HudReports::Clients
     include HudReports::Ages
@@ -39,7 +40,8 @@ module HudApr::Generators::Shared::Fy2020
         approximate_move_in_dates = {}
         enrollments_by_client_id.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
-          hh_id = last_service_history_enrollment.household_id
+
+          hh_id = get_hh_id(last_service_history_enrollment)
           date = [
             @report.start_date,
             last_service_history_enrollment.first_date_in_program,
@@ -64,7 +66,7 @@ module HudApr::Generators::Shared::Fy2020
           client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
           exit_date = last_service_history_enrollment.last_date_in_program
-          exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date < @report.end_date
+          exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
           income_at_annual_assessment = annual_assessment(enrollment)
@@ -111,6 +113,7 @@ module HudApr::Generators::Shared::Fy2020
             chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
             chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
+            chronically_homeless_detail: last_service_history_enrollment.enrollment.chronically_homeless_at_start,
             currently_fleeing: health_and_dv&.CurrentlyFleeing,
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
@@ -141,9 +144,9 @@ module HudApr::Generators::Shared::Fy2020
             hiv_aids_exit: disabilities_at_exit.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids: disabilities.detect(&:hiv?).present?,
-            household_id: last_service_history_enrollment.household_id,
+            household_id: get_hh_id(last_service_history_enrollment),
             household_members: household_member_data(last_service_history_enrollment),
-            household_type: household_types[last_service_history_enrollment.household_id],
+            household_type: household_types[get_hh_id(last_service_history_enrollment)],
             housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment,
             income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
             income_date_at_exit: income_at_exit&.InformationDate,
@@ -250,7 +253,18 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def clients_with_enrollments(batch)
-      enrollment_scope.where(client_id: batch.map(&:id)).group_by(&:client_id)
+      enrollment_scope.
+        where(client_id: batch.map(&:id)).
+        group_by(&:client_id).
+        reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
+    end
+
+    private def nbn_with_no_service?(enrollment)
+      enrollment.project_tracking_method == 3 &&
+        ! enrollment.service_history_services.
+          bed_night.
+          service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
+          exists?
     end
 
     private def enrollment_scope

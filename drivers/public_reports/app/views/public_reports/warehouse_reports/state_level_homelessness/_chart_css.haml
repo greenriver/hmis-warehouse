@@ -1,0 +1,351 @@
+:css
+  .hide {
+    display: none;
+  }
+  /* CHARTS */
+  .chart-pit, .chart-hoh-pit {
+    min-height: 240px;
+    max-height: 240px;
+  }
+  .chart-donut.chart {
+    width: 240px;
+    min-width: 240px;
+    min-height: 240px;
+    max-height: 240px;
+  }
+  .chart-bar.chart {
+
+  }
+  .bb-axis-y path, .bb-axis-x path {
+    stroke: #cccccc;
+  }
+  .legend-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .legend-wrapper-vertical {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    align-content: center;
+  }
+  .legend-wrapper-vertical .chart-legend-item-prs1 {
+    display: flex;
+    width: 100%;
+    margin-right: 2rem;
+    margin-bottom: 0.5rem;
+    align-content: flex-end;
+  }
+  .legend-wrapper-horizontal .chart-legend-item-prs1 {
+    display: flex;
+    width: 40%;
+    margin-right: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .chart-legend-item-prs1 .chart-legend-item-swatch-prs1 {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.8rem;
+  }
+  .household-size-chart {
+    font-size: 6em;
+    text-align: center;
+  }
+  .chart-donut .bb-chart-arcs-title {
+    font-size: 1rem;
+  }
+  .race-chart-category-first {
+    margin-bottom: -1.25em;
+    font-weight: 500;
+    font-size: 0.8em;
+  }
+  .race-chart-category-last {
+    margin-top: -3em;
+    margin-bottom: 0.75em;
+    font-weight: 500;
+    font-size: 0.8em;
+  }
+  /* END CHARTS */
+
+  /* SLIDER */
+  input[type=range].jQuarters {
+    width: 100%;
+    margin: 2px 0;
+    background-color: transparent;
+    -webkit-appearance: none;
+    border-radius: 50px;
+  }
+  input[type=range].jQuarters:focus {
+    outline: none;
+  }
+  input[type=range].jQuarters::-webkit-slider-runnable-track {
+    background: #e7eef4;
+    border: 1px solid #cccccc;
+    width: 100%;
+    height: 16px;
+    border-radius: 50px;
+    cursor: pointer;
+  }
+  input[type=range].jQuarters::-webkit-slider-thumb {
+    margin-top: -3px;
+    width: 20px;
+    height: 20px;
+    background: #11427d;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  input[type=range].jQuarters:focus::-webkit-slider-runnable-track {
+    background: #ffffff;
+  }
+  input[type=range].jQuarters::-moz-range-track {
+    background: #e7eef4;
+    border: 1px solid #cccccc;
+    width: 100%;
+    height: 16px;
+    cursor: pointer;
+  }
+  input[type=range].jQuarters::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #11427d;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+  }
+  input[type=range].jQuarters::-ms-track {
+    background: transparent;
+    border-color: transparent;
+    border-width: 2px 0;
+    color: transparent;
+    width: 100%;
+    height: 16px;
+    cursor: pointer;
+  }
+  input[type=range].jQuarters::-ms-fill-lower {
+    background: #c1d3e2;
+    border: 1px solid #cccccc;
+  }
+  input[type=range].jQuarters::-ms-fill-upper {
+    background: #e7eef4;
+    border: 1px solid #cccccc;
+  }
+  input[type=range].jQuarters::-ms-thumb {
+    width: 20px;
+    height: 20px;
+    background: #11427d;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 0px;
+    /*Needed to keep the Edge thumb centred*/
+  }
+  input[type=range].jQuarters:focus::-ms-fill-lower {
+    background: #e7eef4;
+  }
+  input[type=range].jQuarters:focus::-ms-fill-upper {
+    background: #ffffff;
+  }
+
+  input.jQuarters {
+    -webkit-appearance: none;
+    bottom: -10px;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 50px;
+  }
+  input.jQuarters:focus {
+    outline: 0;
+  }
+  input.jQuarters::-moz-focus-outer {
+    border: 0;
+  }
+  input.jQuarters::-webkit-slider-thumb {
+    border: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -7.5px;
+  }
+
+  input.jQuarters::-moz-range-thumb {
+    border: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+  }
+  input.jQuarters::-ms-thumb {
+    border: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    height: 5px;
+  }
+  input.jQuarters::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 5px;
+    cursor: pointer;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0), 0px 0px 1px rgba(13, 13, 13, 0);
+    background: indigo;
+    border-radius: 20px;
+    border: 0;
+  }
+
+  input.jQuarters::-moz-range-track {
+    width: 100%;
+    height: 5px;
+    cursor: pointer;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0), 0px 0px 1px rgba(13, 13, 13, 0);
+    border-radius: 20px;
+    border: 0;
+  }
+
+  input.jQuarters::-ms-track {
+    width: 100%;
+    height: 5px;
+    cursor: pointer;
+    background: transparent;
+    border-color: transparent;
+    color: transparent;
+  }
+  input.jQuarters::-ms-fill-lower,
+  input.jQuarters::-ms-fill-upper {
+    border: 0;
+    border-radius: 40px;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0), 0px 0px 1px rgba(13, 13, 13, 0);
+  }
+  .range__tick {
+    fill: #a0a0a0;
+  }
+  .range__tick:first-child {
+    -webkit-transform: translateX(2px);
+    -moz-transform: translateX(2px);
+    -ms-transform: translateX(2px);
+    -o-transform: translateX(2px);
+    transform: translateX(2px);
+  }
+  .range__tick:last-child {
+    -webkit-transform: translateX(-3px);
+    -moz-transform: translateX(-3px);
+    -ms-transform: translateX(-3px);
+    -o-transform: translateX(-3px);
+    transform: translateX(-3px);
+  }
+  .range__field {
+    border: 0;
+  }
+  /*TODO: Use one of the selectors from https://stackoverflow.com/a/20541859/7077589 and figure out
+  how to remove the vertical space around the range input in IE*/
+  @supports (-ms-ime-align:auto) {
+    /* Pre-Chromium Edge only styles, selector taken from hhttps://stackoverflow.com/a/32202953/7077589 */
+    input[type=range].jQuarters {
+      margin: 0;
+      /*Edge starts the margin from the thumb, not the track as other browsers do*/
+    }
+  }
+  .range__tick.first {
+    transform: translate(10px, 0);
+  }
+  .range__tick.last {
+    transform: translate(-10px, 0);
+  }
+  .range__point.last {
+    margin-left: -100%;
+  }
+
+  /* END SLIDER */
+  .w-30 {
+    width: 30%;
+    margin-right: 3%;
+  }
+  .w-50 {
+    width: 45%;
+    margin-right: 5%;
+  }
+  .w-70 {
+    width: 65%;
+    margin-right: 5%;
+  }
+  .w-100 {
+    width: 100%;
+  }
+  /* Map */
+  .state-map {
+    min-height: 450px;
+    min-width: 450px;
+  }
+  .leaflet-container {
+    background-color: transparent;
+  }
+  .l-info {
+    max-width: 300px;
+    min-width: 200px;
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    pointer-events: none;
+  }
+  .l-info h4 {
+    font-size: 1.2rem;
+    margin: 0 0 5px;
+    color: #777;
+  }
+  /* End map */
+  .chronic-legend {
+    text-align: center;
+    padding: 0 2em;
+  }
+  .summary-count .count {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #{@report.settings.shade(0, :summary_color)};
+  }
+  .summary-count h3.title {
+    font-size: 1rem;
+  }
+  .light {
+    color: #CCCCCC;
+  }
+  .chronic-chart {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+  .meter {
+    position: absolute;
+    overflow: hidden;
+    height: 18px;
+    width: 100px;
+  }
+  .meter .fas {
+    position: absolute;
+    top: 0;
+    height: 18px;
+  }
+  .meter .background {
+    top: 0;
+    left: 0;
+    position: absolute;
+    height: 18px;
+  }
+  .meter .foreground {
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    position: absolute;
+    height: 18px;
+  }

@@ -6,7 +6,7 @@
       = render 'reports/ahar/fy2017/base_form', f: f
       
       .col-sm-4
-        = f.input :project_id, input_html: {class: 'select2'}, collection: Reports::Ahar::Fy2017::ByProject.available_projects_for_filtering
+        = f.input :project_id, collection: Reports::Ahar::Fy2017::ByProject.available_projects_for_filtering, as: :select_two
     %hr
     .row
       .col-sm-12.mb-2

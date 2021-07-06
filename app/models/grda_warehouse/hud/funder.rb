@@ -16,10 +16,10 @@ module GrdaWarehouse::Hud
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: :true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: true
     belongs_to :data_source
 
-    scope :open_between, -> (start_date:, end_date: ) do
+    scope :open_between, -> (start_date:, end_date:) do
       at = arel_table
 
       closed_within_range = at[:StartDate].gt(start_date).
@@ -41,6 +41,14 @@ module GrdaWarehouse::Hud
           or(f_t[:StartDate].eq(nil))
         )
       )
+    end
+
+    scope :funding_source, ->(funder_code: nil, other: nil) do
+      if other.present?
+        where(Funder: funder_code, OtherFunder: other)
+      else
+        where(Funder: funder_code)
+      end
     end
 
     scope :viewable_by, -> (user) do
@@ -82,12 +90,31 @@ module GrdaWarehouse::Hud
       attributes = self.hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:FunderID)] = :id
+      attributes[attributes.index(:ProjectID)] = 'project.id'
 
       CSV.generate(headers: true) do |csv|
         csv << headers
 
         scope.each do |i|
-          csv << attributes.map{ |attr| i.send(attr) }
+          csv << attributes.map do |attr|
+            attr = attr.to_s
+            v = if attr.include?('.')
+              obj, meth = attr.split('.')
+              i.send(obj).send(meth)
+            elsif attr == 'GrantID' && i.GrantID.blank?
+              'Unknown'
+            elsif attr == 'OtherFunder' && i.OtherFunder.present?
+              i.OtherFunder[0...50]
+            else
+              i.send(attr)
+            end
+            if v.is_a? Date
+              v = v.strftime("%Y-%m-%d")
+            elsif v.is_a? Time
+              v = v.to_formatted_s(:db)
+            end
+            v
+          end
         end
       end
     end

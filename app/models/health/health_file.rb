@@ -44,6 +44,16 @@ module Health
       signature.present? && signature > client.patient.enrollment_start_date || signature.blank? && created_at > client.patient.enrollment_start_date
     end
 
+    def valid_for_contributing_enrollment
+      return nil unless client.patient
+
+      client.patient.contributed_enrollment_ranges.each do |range|
+        return true if range.cover?(signature)
+      end
+
+      return false
+    end
+
     def set_calculated!(user_id, client_id)
       self.user_id = user_id
       self.client_id = client_id

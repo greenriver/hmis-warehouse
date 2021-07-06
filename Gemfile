@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-
 gem 'rails', '~>5.2.4'
 gem 'rails_drivers'
 
@@ -26,6 +25,8 @@ gem 'active_record_extended', '~> 1.4.0'
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
 
+gem 'census_api', github: 'greenriver/census_api'
+
 # spatial manipulations
 gem 'activerecord-postgis-adapter'
 gem 'ffi-geos'
@@ -33,7 +34,7 @@ gem 'rgeo'
 gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 
-# gem 'active_record_distinct_on'
+gem 'active_record_distinct_on'
 gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
@@ -69,6 +70,10 @@ gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
+
+gem 'omniauth-oauth2'
+gem 'omniauth-rails_csrf_protection'
+
 gem 'pretender'
 gem 'rqrcode-rails3'
 gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
@@ -113,7 +118,7 @@ gem 'htmlentities'
 # gem 'jquery-datatables-rails'
 # gem 'bootstrap4-datetime-picker-rails'
 gem 'bootstrap3-datetimepicker-rails', '~> 4.17.42'
-gem 'stimulusjs-rails', '~> 1.1.1'
+# gem 'stimulusjs-rails', '~> 1.1.1'
 
 # ETO API related
 gem 'rest-client', '~> 2.0'
@@ -145,7 +150,7 @@ gem 'progress_bar', require: false
 gem 'slack-notifier'
 gem 'exception_notification'
 
-gem 'puma', '~> 3.12.6'
+gem 'puma', '~> 4.3.8'
 
 gem 'dotenv-rails'
 
@@ -186,6 +191,8 @@ gem 'ajax_modal_rails', '~> 1.0'
 gem 'browser'
 gem 'ansi'
 
+gem 'parallel'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -210,6 +217,7 @@ group :development do
   gem 'capistrano-rails', require: false
   gem 'rails-erd', require: false
   gem 'web-console'
+  gem 'aws-sdk-dynamodb', require: false
   # gem 'quiet_assets'
 
   gem 'list_matcher', require: false # for the forms:desmush rake task
@@ -233,7 +241,7 @@ end
 
 group :test do
   gem 'capybara'
-  gem 'fixpoints', git: 'https://github.com/greenriver/fixpoints.git', branch: 'master'
+  gem 'fixpoints'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'
@@ -254,3 +262,7 @@ end
 group :production, :development, :staging do
   gem 'tiny_tds'
 end
+
+gem "business_time", "~> 0.10.0"
+
+gem "cable_ready", "~> 4.5"

@@ -7,11 +7,6 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionTwentySix < Base
     QUESTION_NUMBER = 'Question 26'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q26a', 'Q26b', 'Q26c', 'Q26d', 'Q26e', 'Q26f', 'Q26g', 'Q26h'].freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     private def q26a_chronic_households
       table_name = 'Q26a'
@@ -27,6 +22,7 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      relevant_clients = universe.members.where(a_t[:project_type].in([1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14]))
       q26_populations.values.each_with_index do |population_clause, col_index|
         households = Set.new
         ch_categories.values.each_with_index do |ch_clause, row_index|
@@ -35,11 +31,14 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          household_ids = universe.members.where(population_clause).
+          household_ids = relevant_clients.where(population_clause).
             where(ch_clause).
             distinct.pluck(a_t[:household_id])
-          # ignore previously counted households
-          household_ids -= households.to_a
+          # ignore previously counted households, except for the last line (total)
+          if row_index < ch_categories.size - 1
+            household_ids -= households.to_a
+            households += household_ids
+          end
           members = universe.members.where(hoh_clause).where(a_t[:household_id].in(household_ids))
 
           value = members.count
@@ -332,10 +331,10 @@ module HudApr::Generators::Shared::Fy2020
 
     private def ch_categories
       {
-        'Chronically Homeless' => a_t[:chronically_homeless].eq(true),
-        'Not Chronically Homeless' => a_t[:chronically_homeless].eq(false),
-        'Client Doesn’t Know/Client Refused' => a_t[:prior_living_situation].in([8, 9]),
-        'Data Not Collected' => a_t[:prior_living_situation].eq(99),
+        'Chronically Homeless' => a_t[:chronically_homeless_detail].eq('yes'),
+        'Not Chronically Homeless' => a_t[:chronically_homeless_detail].eq('no'),
+        'Client Doesn’t Know/Client Refused' => a_t[:chronically_homeless_detail].eq('dk_or_r'),
+        'Data Not Collected' => a_t[:chronically_homeless_detail].eq('missing'),
         'Total' => Arel.sql('1=1'),
       }.freeze
     end

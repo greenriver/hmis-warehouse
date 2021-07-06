@@ -28,9 +28,11 @@ docker-compose.override.yml
 !/.gitignore
 !/.overcommit.yml
 !/.rubocop.yml
+!/.rubocop_todo.yml
 !/.github
 !/.env.test
 !/.eslintrc.js
+!/.rspec.sample
 
 # Ignore operational files
 package.box
@@ -109,9 +111,18 @@ shape_files/**/*
 !/shape_files/CoC
 !/shape_files/CoC/README.md
 !/shape_files/CoC/make.inserts
+!/shape_files/states
+!/shape_files/states/README.md
+!/shape_files/states/make.inserts
+!/shape_files/counties
+!/shape_files/counties/README.md
+!/shape_files/counties/make.inserts
 !/shape_files/zip_codes.census.2018
 !/shape_files/zip_codes.census.2018/README.md
 !/shape_files/zip_codes.census.2018/make.inserts
 
 # vendor cache folder
 /vendor/cache
+
+# Claims Reporting Reference data
+config/claims_reporting/*

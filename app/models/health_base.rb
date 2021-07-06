@@ -49,7 +49,6 @@ class HealthBase < ActiveRecord::Base
       'db/seeds' => ['db/health/seeds'],
       'config/database' => ['config/database_health.yml'],
     }
-    ENV['SCHEMA'] = 'db/health/schema.rb'
     # set config variables for custom database
     new_config.each do |path, value|
       Rails.application.config.paths[path] = value
