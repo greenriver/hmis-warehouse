@@ -45,8 +45,8 @@ module GrdaWarehouse::Youth
       end
     end
 
-    def available_types
-      @available_types ||= [
+    def report_types
+      @report_types ||= [
         'Move-in costs',
         'Rent',
         'Rent arrears',
@@ -61,6 +61,33 @@ module GrdaWarehouse::Youth
         'Medical costs',
         'Cell phone costs',
         'Food / Groceries (including our drop-in food pantries)',
+      ]
+    end
+
+    def available_types
+      @available_types ||= [
+        'Move-in costs',
+        'Moving expenses',
+        'Rent',
+        'Rent arrears',
+        'Utilities',
+        'Emergency Shelter Night Owl Stay',
+        'Emergency Shelter Hotel',
+        'Transportation-related costs',
+        'Transportation/relocation assistance',
+        'Education-related costs',
+        'Legal costs',
+        'Child care',
+        'Work-related costs',
+        'Medical costs',
+        'Cell phone costs',
+        'Food / Groceries (including our drop-in food pantries)',
+        'Deposits',
+        'Car repairs',
+        'Securing IDs',
+        'Background checks',
+        'Furniture assistance for alternate housing',
+        'Pet boarding',
       ].sort + ['Other']
     end
   end

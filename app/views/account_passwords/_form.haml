@@ -3,10 +3,10 @@
     = simple_form_for @user, url: account_password_path do |f|
       = f.error_notification
       .form-inputs
-        = f.input :current_password, required: true, hint: 'Your current password is required to confirm your identity'
+        = f.input :current_password, required: true, hint: 'Your current password is required to confirm your identity', input_html: { autocomplete: 'current-password' }
         = render 'users/password_rules'
-        = f.input :password, required: true, label: 'New password'
-        = f.input :password_confirmation, required: true
+        = f.input :password, required: true, label: 'New password', input_html: { autocomplete: 'new-password' }
+        = f.input :password_confirmation, required: true, input_html: { autocomplete: 'new-password' }
 
       .form-actions
         = f.button :submit, value: 'Update Password', class: 'btn btn-primary'
