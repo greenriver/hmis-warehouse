@@ -20,10 +20,12 @@ module Filters
       scores.invert
     end
 
+    # engaged_history - patients engaged for the date range
+    # selected_period - patients with a minimum engagement length of the start of the range
     def available_cohort_types
       {
-        'Patients engaged for time period, all claims post engagement' => :engaged_history,
-        'Longitudinal, claims falling within engaged time period' => :selected_period,
+        'Patients engaged for time period' => :engaged_history,
+        'Longitudinal, claims occuring within time period' => :selected_period,
       }
     end
 

@@ -10,8 +10,12 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Date Added to Cohort'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
-    def value(cohort_client)
-      cohort_client.created_at.to_date
+    def default_value?
+      true
+    end
+
+    def default_value(_client_id)
+      Date.today
     end
   end
 end

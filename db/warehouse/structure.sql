@@ -4432,7 +4432,8 @@ CREATE TABLE public.cohort_clients (
     user_boolean_27 boolean,
     user_boolean_28 boolean,
     user_boolean_29 boolean,
-    user_boolean_30 boolean
+    user_boolean_30 boolean,
+    date_added_to_cohort date
 );
 
 
@@ -9149,6 +9150,61 @@ ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_c
 
 
 --
+-- Name: housing_resolution_plans; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.housing_resolution_plans (
+    id bigint NOT NULL,
+    client_id bigint,
+    user_id bigint,
+    pronouns character varying,
+    planned_on date,
+    staff_name character varying,
+    location character varying,
+    chosen_resolution character varying,
+    temporary_resolution character varying,
+    plan_description character varying,
+    action_steps character varying,
+    backup_plan character varying,
+    next_checkin date,
+    how_to_contact character varying,
+    psc_attempted character varying,
+    psc_why_not character varying,
+    resolution_achieved character varying,
+    resolution_why_not character varying,
+    problem_solving_point character varying,
+    housing_crisis_causes jsonb,
+    housing_crisis_cause_other character varying,
+    factor_employment_income character varying,
+    factor_family_supports character varying,
+    factor_social_supports character varying,
+    factor_life_skills character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: housing_resolution_plans_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.housing_resolution_plans_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: housing_resolution_plans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.housing_resolution_plans_id_seq OWNED BY public.housing_resolution_plans.id;
+
+
+--
 -- Name: hud_chronics; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -10819,76 +10875,6 @@ ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.i
 
 
 --
--- Name: performance_metrics_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.performance_metrics_clients (
-    id bigint NOT NULL,
-    client_id bigint,
-    current_period_enrollments jsonb,
-    current_period_exit_date date,
-    current_period_exit_project_name character varying,
-    current_period_return_date date,
-    current_period_return_project_name character varying,
-    current_period_move_in_date date,
-    current_period_move_in_project character varying,
-    current_period_days_in_es integer,
-    current_period_days_in_rrh integer,
-    current_period_days_in_psh integer,
-    current_period_income_at_start integer,
-    current_period_income_at_end integer,
-    current_period_employment_income_at_start integer,
-    current_period_employment_income_at_end integer,
-    current_period_non_employment_income_at_start integer,
-    current_period_non_employment_income_at_end integer,
-    current_period_first_time boolean,
-    current_period_reentering boolean,
-    current_period_caper_id bigint,
-    prior_period_enrollments jsonb,
-    prior_period_exit_date date,
-    prior_period_exit_project_name character varying,
-    prior_period_return_date date,
-    prior_period_return_project_name character varying,
-    prior_period_move_in_date date,
-    prior_period_move_in_project character varying,
-    prior_period_days_in_es integer,
-    prior_period_days_in_rrh integer,
-    prior_period_days_in_psh integer,
-    prior_period_income_at_start integer,
-    prior_period_income_at_end integer,
-    prior_period_employment_income_at_start integer,
-    prior_period_employment_income_at_end integer,
-    prior_period_non_employment_income_at_start integer,
-    prior_period_non_employment_income_at_end integer,
-    prior_period_first_time boolean,
-    prior_period_reentering boolean,
-    prior_period_caper_id bigint,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: performance_metrics_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.performance_metrics_clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: performance_metrics_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.performance_metrics_clients_id_seq OWNED BY public.performance_metrics_clients.id;
-
-
---
 -- Name: project_data_quality; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -11238,6 +11224,52 @@ CREATE SEQUENCE public.project_scorecard_reports_id_seq
 --
 
 ALTER SEQUENCE public.project_scorecard_reports_id_seq OWNED BY public.project_scorecard_reports.id;
+
+
+--
+-- Name: psc_feedback_surveys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.psc_feedback_surveys (
+    id bigint NOT NULL,
+    client_id bigint,
+    user_id bigint,
+    conversation_on date,
+    location character varying,
+    listened_to_me character varying,
+    cared_about_me character varying,
+    knowledgeable character varying,
+    i_was_included character varying,
+    i_decided character varying,
+    supporting_my_needs character varying,
+    sensitive_to_culture character varying,
+    would_return character varying,
+    more_calm_and_control character varying,
+    satisfied character varying,
+    comments character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: psc_feedback_surveys_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.psc_feedback_surveys_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: psc_feedback_surveys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.psc_feedback_surveys_id_seq OWNED BY public.psc_feedback_surveys.id;
 
 
 --
@@ -13330,6 +13362,76 @@ ALTER SEQUENCE public.simple_report_universe_members_id_seq OWNED BY public.simp
 
 
 --
+-- Name: synthetic_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_assessments (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_assessments_id_seq OWNED BY public.synthetic_assessments.id;
+
+
+--
+-- Name: synthetic_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_events (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_events_id_seq OWNED BY public.synthetic_events.id;
+
+
+--
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14369,7 +14471,8 @@ CREATE TABLE public.youth_referrals (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    imported boolean DEFAULT false
+    imported boolean DEFAULT false,
+    notes character varying
 );
 
 
@@ -15450,6 +15553,13 @@ ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: housing_resolution_plans id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.housing_resolution_plans ALTER COLUMN id SET DEFAULT nextval('public.housing_resolution_plans_id_seq'::regclass);
+
+
+--
 -- Name: hud_chronics id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -15674,13 +15784,6 @@ ALTER TABLE ONLY public.non_hmis_uploads ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- Name: performance_metrics_clients id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.performance_metrics_clients ALTER COLUMN id SET DEFAULT nextval('public.performance_metrics_clients_id_seq'::regclass);
-
-
---
 -- Name: project_data_quality id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -15727,6 +15830,13 @@ ALTER TABLE ONLY public.project_project_groups ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.project_scorecard_reports ALTER COLUMN id SET DEFAULT nextval('public.project_scorecard_reports_id_seq'::regclass);
+
+
+--
+-- Name: psc_feedback_surveys id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.psc_feedback_surveys ALTER COLUMN id SET DEFAULT nextval('public.psc_feedback_surveys_id_seq'::regclass);
 
 
 --
@@ -16217,6 +16327,20 @@ ALTER TABLE ONLY public.simple_report_instances ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.simple_report_universe_members ALTER COLUMN id SET DEFAULT nextval('public.simple_report_universe_members_id_seq'::regclass);
+
+
+--
+-- Name: synthetic_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_assessments ALTER COLUMN id SET DEFAULT nextval('public.synthetic_assessments_id_seq'::regclass);
+
+
+--
+-- Name: synthetic_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_events ALTER COLUMN id SET DEFAULT nextval('public.synthetic_events_id_seq'::regclass);
 
 
 --
@@ -17612,6 +17736,14 @@ ALTER TABLE ONLY public.hmis_staff_x_clients
 
 
 --
+-- Name: housing_resolution_plans housing_resolution_plans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.housing_resolution_plans
+    ADD CONSTRAINT housing_resolution_plans_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hud_chronics hud_chronics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -17868,14 +18000,6 @@ ALTER TABLE ONLY public.non_hmis_uploads
 
 
 --
--- Name: performance_metrics_clients performance_metrics_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.performance_metrics_clients
-    ADD CONSTRAINT performance_metrics_clients_pkey PRIMARY KEY (id);
-
-
---
 -- Name: project_data_quality project_data_quality_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -17929,6 +18053,14 @@ ALTER TABLE ONLY public.project_project_groups
 
 ALTER TABLE ONLY public.project_scorecard_reports
     ADD CONSTRAINT project_scorecard_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: psc_feedback_surveys psc_feedback_surveys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.psc_feedback_surveys
+    ADD CONSTRAINT psc_feedback_surveys_pkey PRIMARY KEY (id);
 
 
 --
@@ -18081,6 +18213,22 @@ ALTER TABLE ONLY public.simple_report_instances
 
 ALTER TABLE ONLY public.simple_report_universe_members
     ADD CONSTRAINT simple_report_universe_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_assessments synthetic_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_assessments
+    ADD CONSTRAINT synthetic_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_events synthetic_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_events
+    ADD CONSTRAINT synthetic_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -23477,6 +23625,20 @@ CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_c
 
 
 --
+-- Name: index_housing_resolution_plans_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_housing_resolution_plans_on_client_id ON public.housing_resolution_plans USING btree (client_id);
+
+
+--
+-- Name: index_housing_resolution_plans_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_housing_resolution_plans_on_user_id ON public.housing_resolution_plans USING btree (user_id);
+
+
+--
 -- Name: index_hud_apr_client_liv_sit; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23841,48 +24003,6 @@ CREATE INDEX index_non_hmis_uploads_on_deleted_at ON public.non_hmis_uploads USI
 
 
 --
--- Name: index_performance_metrics_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_client_id ON public.performance_metrics_clients USING btree (client_id);
-
-
---
--- Name: index_performance_metrics_clients_on_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_created_at ON public.performance_metrics_clients USING btree (created_at);
-
-
---
--- Name: index_performance_metrics_clients_on_current_period_caper_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_current_period_caper_id ON public.performance_metrics_clients USING btree (current_period_caper_id);
-
-
---
--- Name: index_performance_metrics_clients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_deleted_at ON public.performance_metrics_clients USING btree (deleted_at);
-
-
---
--- Name: index_performance_metrics_clients_on_prior_period_caper_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_prior_period_caper_id ON public.performance_metrics_clients USING btree (prior_period_caper_id);
-
-
---
--- Name: index_performance_metrics_clients_on_updated_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performance_metrics_clients USING btree (updated_at);
-
-
---
 -- Name: index_proj_proj_id_org_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -24027,6 +24147,20 @@ CREATE INDEX index_project_scorecard_reports_on_project_id ON public.project_sco
 --
 
 CREATE INDEX index_project_scorecard_reports_on_user_id ON public.project_scorecard_reports USING btree (user_id);
+
+
+--
+-- Name: index_psc_feedback_surveys_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_psc_feedback_surveys_on_client_id ON public.psc_feedback_surveys USING btree (client_id);
+
+
+--
+-- Name: index_psc_feedback_surveys_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_psc_feedback_surveys_on_user_id ON public.psc_feedback_surveys USING btree (user_id);
 
 
 --
@@ -27439,6 +27573,48 @@ CREATE UNIQUE INDEX index_staff_x_client_s_id_c_id_r_id ON public.hmis_staff_x_c
 
 
 --
+-- Name: index_synthetic_assessments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_client_id ON public.synthetic_assessments USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_assessments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_enrollment_id ON public.synthetic_assessments USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_assessments_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_source_type_and_source_id ON public.synthetic_assessments USING btree (source_type, source_id);
+
+
+--
+-- Name: index_synthetic_events_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_client_id ON public.synthetic_events USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_events_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_events_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_source_type_and_source_id ON public.synthetic_events USING btree (source_type, source_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28024,13 +28200,6 @@ CREATE UNIQUE INDEX taggings_idx ON public.taggings USING btree (tag_id, taggabl
 --
 
 CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_type, tagger_id, context);
-
-
---
--- Name: test_shs; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
 
 
 --
@@ -30484,6 +30653,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210312200044'),
 ('20210325202706'),
 ('20210330124825'),
+('20210413143040'),
 ('20210422191627'),
 ('20210426165914'),
 ('20210427184522'),
@@ -30504,10 +30674,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210601135719'),
 ('20210601173704'),
 ('20210603121547'),
+('20210603143037'),
 ('20210604155334'),
 ('20210615131534'),
 ('20210616181054'),
 ('20210616193735'),
-('20210622171720');
+('20210623184626'),
+('20210623184729'),
+('20210623195645'),
+('20210702143811'),
+('20210702144442');
 
 

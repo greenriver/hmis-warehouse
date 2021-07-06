@@ -1,0 +1,23 @@
+- if @users.any?
+  .d-flex
+    %p= page_entries_info @users, entry_name: _('user')
+    %p.ml-auto= paginate @users
+  .card.warehouse-reports__user-directory
+    %table.table.table-fixed.table-striped
+      %thead
+        %tr
+          %th Name
+          %th Email
+          %th Phone
+          %th Agency
+      %tbody
+        - @users.each do |user|
+          %tr
+            %td= link_to_if can_edit_users? && @user_source == 'warehouse', user.name, edit_admin_user_path(user)
+            %td= user.email
+            %td= user.phone_for_directory
+            %td= user.agency_name
+  %p= paginate @users
+- else
+  %p.none-found
+    No users found.

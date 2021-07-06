@@ -1,0 +1,4 @@
+= content_for :modal_title, 'Housing Resolution Plan'
+= simple_form_for @housing_resolution_plan, url: polymorphic_path(housing_resolution_plan_path_generator) do |f|
+  = render 'form', f: f
+  = f.submit 'Save', class: 'btn btn-primary'

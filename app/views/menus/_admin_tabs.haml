@@ -45,3 +45,6 @@
     - if can_manage_assessments? && GrdaWarehouse::Config.get(:eto_api_available)
       %li.nav-item{role: 'presentation', class: ('active' if controller_name == "assessments")}
         = link_to 'TouchPoints', admin_eto_api_assessments_path, class: 'nav-link'
+    - if can_manage_sessions?
+      %li.nav-item{role: 'presentation', class: ('active' if controller_name == "sessions")}
+        = link_to 'Sessions', admin_sessions_path, class: 'nav-link'

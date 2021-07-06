@@ -27,6 +27,17 @@ FactoryBot.define do
     end
   end
 
+  factory :prepend_organization_ids, class: 'GrdaWarehouse::DataSource' do
+    name { 'Prepend Organization Ids' }
+    short_name { 'OrganizationID' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Organization': ['HmisCsvTwentyTwenty::HmisCsvCleanup::PrependOrganizationId'],
+      }
+    end
+  end
+
   factory :force_valid_enrollment_cocs, class: 'GrdaWarehouse::DataSource' do
     name { 'Force Valid CoCs' }
     short_name { 'CoCCode' }
