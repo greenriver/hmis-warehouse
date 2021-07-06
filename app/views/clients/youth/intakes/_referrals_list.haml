@@ -8,6 +8,7 @@
           = f.input :referred_to, collection: @referral.available_referrals, input_html: {class: [:jOtherTrigger] }, as: :select_two
           .jOther.hidden
             = f.input :other
+          = f.input :notes
           .d-flex
             = f.input :referred_on, as: :date_picker, label: 'On'
             %button.btn.btn-primary.ml-2.mt-no-label.mb-auto
@@ -23,7 +24,10 @@
           - @youth_referrals.ordered.each do |referral|
             %tr
               %td.nobr= referral.referred_on
-              %td= referral.referred_to
+              %td
+                = referral.referred_to
+                %br
+                %small= referral.notes
               %td
                 - if has_some_edit_access_to_youth_intakes?
                   = link_to polymorphic_path(youth_referral_path_generator, id: referral.id), method: :delete, data: {confirm: 'Deleting this referral will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do

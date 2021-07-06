@@ -257,10 +257,10 @@ module GrdaWarehouse::WarehouseReports::Youth
     def five_n
       @five_n ||= begin
         result = {}
-        available_types = GrdaWarehouse::Youth::DirectFinancialAssistance.new.available_types - [ 'Other']
+        report_types = GrdaWarehouse::Youth::DirectFinancialAssistance.new.report_types
         groups = received_flex_funds_scope.pluck(:type_provided, :client_id).group_by(&:first)
         groups.each do |group, items|
-          next if available_types.include?(group)
+          next if report_types.include?(group)
 
           result[group] = items.map(&:last)
         end

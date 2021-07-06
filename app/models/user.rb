@@ -108,7 +108,7 @@ class User < ApplicationRecord
 
   scope :has_recent_activity, -> do
     where(last_activity_at: timeout_in.ago..Time.current).
-    where.not(unique_session_id: nil)
+      where.not(unique_session_id: nil)
   end
 
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
