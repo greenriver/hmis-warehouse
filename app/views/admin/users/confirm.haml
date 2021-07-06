@@ -25,7 +25,7 @@
         = f.hidden_field key, value: value
 
     - if current_user.confirm_password_for_admin_actions?
-      = f.input "confirmation_password", as: :password, label: 'Confirm your password to grant administrative privileges'
+      = f.input "confirmation_password", as: :password, label: 'Confirm your password to grant administrative privileges', input_html: { autocomplete: 'current-password' }
 
     .form-actions.mt-4
       = f.button :submit, class: 'btn btn-primary'
