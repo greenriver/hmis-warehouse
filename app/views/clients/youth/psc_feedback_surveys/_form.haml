@@ -24,15 +24,15 @@
         %path{:d => "M16 32c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16zM16 3c7.18 0 13 5.82 13 13s-5.82 13-13 13-13-5.82-13-13 5.82-13 13-13zM8 10c0-1.105 0.895-2 2-2s2 0.895 2 2c0 1.105-0.895 2-2 2s-2-0.895-2-2zM20 10c0-1.105 0.895-2 2-2s2 0.895 2 2c0 1.105-0.895 2-2 2s-2-0.895-2-2zM22.003 19.602l2.573 1.544c-1.749 2.908-4.935 4.855-8.576 4.855s-6.827-1.946-8.576-4.855l2.573-1.544c1.224 2.036 3.454 3.398 6.003 3.398s4.779-1.362 6.003-3.398z"}
 
 .c-card__content.c-card__content
-  = f.input :listened_to_me, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'The person I met listened to my story'
-  = f.input :cared_about_me, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'The person I met cared about my safety and well-being'
-  = f.input :knowledgeable, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'The person I mean was knowledgeable about available resources'
-  = f.input :i_was_included, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'I was actively included in all planning'
-  = f.input :i_decided, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'I got to decide what next step was right for me'
-  = f.input :supporting_my_needs, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'The person I met is doing a good job supporting my needs'
-  = f.input :sensitive_to_culture, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'All staff I meat today were sensitive to my cultural background'
-  = f.input :would_return, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'If I needed support in the future, I would come back here'
-  = f.input :more_calm_and_control, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'This experience helped me feel more calm and and in control of my situation'
-  = f.input :satisfied, as: :radio_buttons, wrapper: :horizontal_collection_inline, collection: @psc_feedback_survey.ratings, label: 'Overall, I was satisfied with this experience'
+  = f.input :listened_to_me, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'The person I met listened to my story'
+  = f.input :cared_about_me, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'The person I met cared about my safety and well-being'
+  = f.input :knowledgeable, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'The person I mean was knowledgeable about available resources'
+  = f.input :i_was_included, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'I was actively included in all planning'
+  = f.input :i_decided, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'I got to decide what next step was right for me'
+  = f.input :supporting_my_needs, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'The person I met is doing a good job supporting my needs'
+  = f.input :sensitive_to_culture, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'All staff I meat today were sensitive to my cultural background'
+  = f.input :would_return, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'If I needed support in the future, I would come back here'
+  = f.input :more_calm_and_control, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'This experience helped me feel more calm and and in control of my situation'
+  = f.input :satisfied, as: :radio_buttons, wrapper: :horizontal_likert_collection, collection: @psc_feedback_survey.ratings, label: 'Overall, I was satisfied with this experience'
 
 = f.input :comments, as: :text, label: 'Do you have any other comments you would like to share?'

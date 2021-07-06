@@ -2,7 +2,7 @@
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header Problem Solving Conversation Feedback Surveys
     - if has_some_edit_access_to_youth_intakes?
-      = link_to polymorphic_path([:new] + psc_feedback_survey_path_generator), class: 'btn btn-secondary btn-sm ml-auto' do
+      = link_to polymorphic_path([:new] + psc_feedback_survey_path_generator), class: 'btn btn-secondary btn-sm ml-auto', data: {loads_in_ajax_modal: true} do
         %i.icon-plus
         Add Feedback Survey
   .c-card__content.c-card__content--flush
@@ -16,7 +16,7 @@
           - @psc_feedback_surveys.each do |survey|
             %tr
               %td.nobr
-                = link_to polymorphic_path([:edit] + psc_feedback_survey_path_generator, id: survey.id), data: {loads_in_pjax_modal: true} do
+                = link_to polymorphic_path([:edit] + psc_feedback_survey_path_generator, id: survey.id), data: {loads_in_ajax_modal: true} do
                   = survey.conversation_on
               %td
                 - if has_some_edit_access_to_youth_intakes?

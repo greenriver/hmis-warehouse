@@ -16,10 +16,12 @@ module Clients::Youth
     before_action :set_housing_resolution_plan, only: [:edit, :update, :destroy]
 
     def new
+      @modal_size = :xl
       @housing_resolution_plan = housing_resolution_plan_source.new(
         planned_on: Date.current,
         staff_name: current_user.name,
       )
+      @housing_resolution_plan.pronouns ||= @client.housing_resolution_plans.last&.pronouns
     end
 
     def create
@@ -29,6 +31,7 @@ module Clients::Youth
     end
 
     def edit
+      @modal_size = :xl
     end
 
     def update

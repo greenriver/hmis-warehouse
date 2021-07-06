@@ -16,6 +16,7 @@ module Clients::Youth
     before_action :set_psc_feedback_survey, only: [:edit, :update, :destroy]
 
     def new
+      @modal_size = :xl
       @psc_feedback_survey = psc_feedback_survey_source.new(conversation_on: Date.current)
     end
 
