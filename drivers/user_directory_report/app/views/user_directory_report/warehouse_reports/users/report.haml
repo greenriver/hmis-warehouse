@@ -19,7 +19,7 @@
     %li.nav-item{role: :presentation}
       = link_to 'Warehouse Users', warehouse_user_directory_report_warehouse_reports_users_path(link_params.permit(:q, :utf8)), class: nav_link_classes('warehouse', @user_source)
     %li.nav-item{role: :presentation}
-      = link_to 'Cas Users', cas_user_directory_report_warehouse_reports_users_path(link_params.permit(:q, :utf8)), class: nav_link_classes('cas', @user_source)
+      = link_to 'CAS Users', cas_user_directory_report_warehouse_reports_users_path(link_params.permit(:q, :utf8)), class: nav_link_classes('cas', @user_source)
 
 #report-contents
   = render 'listing'

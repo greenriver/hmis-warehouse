@@ -485,6 +485,8 @@ Rails.application.routes.draw do
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
     resources :youth_referrals, only: [:create, :destroy], controller: 'clients/youth/referrals'
     resources :youth_follow_ups, except: [:index], controller: 'clients/youth/follow_ups'
+    resources :housing_resolution_plans, except: [:index], controller: 'clients/youth/housing_resolution_plans'
+    resources :psc_feedback_surveys, except: [:index], controller: 'clients/youth/psc_feedback_surveys'
 
     resources :files, controller: 'clients/files', except: [:edit] do
       get :preview, on: :member
