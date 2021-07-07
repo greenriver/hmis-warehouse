@@ -170,6 +170,7 @@ module HmisCsvTwentyTwenty::Loader
           if bad_line_endings?(file)
             copy_length = file.stat.size - 2
             begin
+              logger.debug "Correcting bad line ending in #{source_file_path}"
               tmp_file = ::Tempfile.new(file_name)
               File.copy_stream(file, tmp_file, copy_length, 0)
               tmp_file.write("\n")
