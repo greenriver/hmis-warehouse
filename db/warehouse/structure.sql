@@ -4652,7 +4652,9 @@ CREATE TABLE public.configs (
     pf_show_additional_timeliness boolean DEFAULT false NOT NULL,
     cas_sync_months integer DEFAULT 3,
     send_sms_for_covid_reminders boolean DEFAULT false NOT NULL,
-    bypass_2fa_duration integer DEFAULT 0 NOT NULL
+    bypass_2fa_duration integer DEFAULT 0 NOT NULL,
+    enable_system_cohorts boolean DEFAULT false,
+    currently_homeless_cohort boolean DEFAULT false
 );
 
 
@@ -10875,79 +10877,6 @@ ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.i
 
 
 --
--- Name: performance_metrics_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.performance_metrics_clients (
-    id bigint NOT NULL,
-    client_id bigint,
-    report_id bigint,
-    include_in_current_period boolean,
-    current_period_age integer,
-    current_period_earned_income_at_start integer,
-    current_period_earned_income_at_exit integer,
-    current_period_other_income_at_start integer,
-    current_period_other_income_at_exit integer,
-    current_caper_leaver boolean,
-    current_period_days_in_es integer,
-    current_period_days_in_rrh integer,
-    current_period_days_in_psh integer,
-    current_period_days_to_return integer,
-    current_period_spm_leaver boolean,
-    current_period_first_time boolean,
-    current_period_reentering boolean,
-    current_period_in_outflow boolean,
-    current_period_entering_housing boolean,
-    current_period_inactive boolean,
-    current_period_caper_id bigint,
-    current_period_spm_id bigint,
-    include_in_prior_period boolean,
-    prior_period_age integer,
-    prior_period_earned_income_at_start integer,
-    prior_period_earned_income_at_exit integer,
-    prior_period_other_income_at_start integer,
-    prior_period_other_income_at_exit integer,
-    prior_caper_leaver boolean,
-    prior_period_days_in_es integer,
-    prior_period_days_in_rrh integer,
-    prior_period_days_in_psh integer,
-    prior_period_days_to_return integer,
-    prior_period_spm_leaver boolean,
-    prior_period_first_time boolean,
-    prior_period_reentering boolean,
-    prior_period_in_outflow boolean,
-    prior_period_entering_housing boolean,
-    prior_period_inactive boolean,
-    prior_period_caper_id bigint,
-    prior_period_spm_id bigint,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    first_name character varying,
-    last_name character varying
-);
-
-
---
--- Name: performance_metrics_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.performance_metrics_clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: performance_metrics_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.performance_metrics_clients_id_seq OWNED BY public.performance_metrics_clients.id;
-
-
---
 -- Name: project_data_quality; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13435,6 +13364,41 @@ ALTER SEQUENCE public.simple_report_universe_members_id_seq OWNED BY public.simp
 
 
 --
+-- Name: synthetic_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_assessments (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_assessments_id_seq OWNED BY public.synthetic_assessments.id;
+
+
+--
 -- Name: synthetic_events; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15822,13 +15786,6 @@ ALTER TABLE ONLY public.non_hmis_uploads ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- Name: performance_metrics_clients id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.performance_metrics_clients ALTER COLUMN id SET DEFAULT nextval('public.performance_metrics_clients_id_seq'::regclass);
-
-
---
 -- Name: project_data_quality id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16372,6 +16329,13 @@ ALTER TABLE ONLY public.simple_report_instances ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.simple_report_universe_members ALTER COLUMN id SET DEFAULT nextval('public.simple_report_universe_members_id_seq'::regclass);
+
+
+--
+-- Name: synthetic_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_assessments ALTER COLUMN id SET DEFAULT nextval('public.synthetic_assessments_id_seq'::regclass);
 
 
 --
@@ -18038,14 +18002,6 @@ ALTER TABLE ONLY public.non_hmis_uploads
 
 
 --
--- Name: performance_metrics_clients performance_metrics_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.performance_metrics_clients
-    ADD CONSTRAINT performance_metrics_clients_pkey PRIMARY KEY (id);
-
-
---
 -- Name: project_data_quality project_data_quality_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18259,6 +18215,14 @@ ALTER TABLE ONLY public.simple_report_instances
 
 ALTER TABLE ONLY public.simple_report_universe_members
     ADD CONSTRAINT simple_report_universe_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_assessments synthetic_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_assessments
+    ADD CONSTRAINT synthetic_assessments_pkey PRIMARY KEY (id);
 
 
 --
@@ -24041,69 +24005,6 @@ CREATE INDEX index_non_hmis_uploads_on_deleted_at ON public.non_hmis_uploads USI
 
 
 --
--- Name: index_performance_metrics_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_client_id ON public.performance_metrics_clients USING btree (client_id);
-
-
---
--- Name: index_performance_metrics_clients_on_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_created_at ON public.performance_metrics_clients USING btree (created_at);
-
-
---
--- Name: index_performance_metrics_clients_on_current_period_caper_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_current_period_caper_id ON public.performance_metrics_clients USING btree (current_period_caper_id);
-
-
---
--- Name: index_performance_metrics_clients_on_current_period_spm_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_current_period_spm_id ON public.performance_metrics_clients USING btree (current_period_spm_id);
-
-
---
--- Name: index_performance_metrics_clients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_deleted_at ON public.performance_metrics_clients USING btree (deleted_at);
-
-
---
--- Name: index_performance_metrics_clients_on_prior_period_caper_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_prior_period_caper_id ON public.performance_metrics_clients USING btree (prior_period_caper_id);
-
-
---
--- Name: index_performance_metrics_clients_on_prior_period_spm_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_prior_period_spm_id ON public.performance_metrics_clients USING btree (prior_period_spm_id);
-
-
---
--- Name: index_performance_metrics_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_report_id ON public.performance_metrics_clients USING btree (report_id);
-
-
---
--- Name: index_performance_metrics_clients_on_updated_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performance_metrics_clients USING btree (updated_at);
-
-
---
 -- Name: index_proj_proj_id_org_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27674,6 +27575,27 @@ CREATE UNIQUE INDEX index_staff_x_client_s_id_c_id_r_id ON public.hmis_staff_x_c
 
 
 --
+-- Name: index_synthetic_assessments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_client_id ON public.synthetic_assessments USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_assessments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_enrollment_id ON public.synthetic_assessments USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_assessments_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_source_type_and_source_id ON public.synthetic_assessments USING btree (source_type, source_id);
+
+
+--
 -- Name: index_synthetic_events_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28280,13 +28202,6 @@ CREATE UNIQUE INDEX taggings_idx ON public.taggings USING btree (tag_id, taggabl
 --
 
 CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_type, tagger_id, context);
-
-
---
--- Name: test_shs; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
 
 
 --
@@ -30740,6 +30655,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210312200044'),
 ('20210325202706'),
 ('20210330124825'),
+('20210413143040'),
 ('20210422191627'),
 ('20210426165914'),
 ('20210427184522'),
@@ -30765,12 +30681,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210615131534'),
 ('20210616181054'),
 ('20210616193735'),
-('20210622171720'),
 ('20210623184626'),
 ('20210623184729'),
 ('20210623195645'),
 ('20210702143811'),
 ('20210702144442'),
-('20210707122337');
+('20210707190613');
 
 

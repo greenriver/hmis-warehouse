@@ -81,6 +81,8 @@ module Admin
         :cas_sync_months,
         :send_sms_for_covid_reminders,
         :bypass_2fa_duration,
+        :enable_system_cohorts,
+        :currently_homeless_cohort,
         client_details: [],
       )
     end
