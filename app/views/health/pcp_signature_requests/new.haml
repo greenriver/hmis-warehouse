@@ -17,7 +17,7 @@
   .row
     .col-sm-8
       = f.input :team_member_id, collection: @available_team_members, selected: @careplan.provider_id, required: true, label: 'Primary Care Physician', input_html: {style: 'width: 100%;'}, as: :select_two
-  = link_to polymorphic_path([:new] + team_member_path_generator, {client_id: @client.id}), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true} do
+  = link_to polymorphic_path([:new] + team_member_path_generator, {client_id: @client.id}), class: 'btn btn-sm btn-secondary', data: {loads_in_ajax_modal: true} do
     %span.icon-plus
     Add Team Member
   .d-flex
