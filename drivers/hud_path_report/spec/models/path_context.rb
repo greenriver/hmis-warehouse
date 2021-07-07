@@ -5,7 +5,7 @@
 ###
 
 RSpec.configure do |config|
-  config.fixpoints_path = 'drivers/hud_path_report/spec/fixpoints'
+  config.fixpoints_path = 'drivers/hud_path_report/spec/fixpoints' # Doesn't seem to work in CI?
 end
 
 RSpec.shared_context 'path context', shared_context: :metadata do
@@ -41,13 +41,13 @@ RSpec.shared_context 'path context', shared_context: :metadata do
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
     warehouse = GrdaWarehouseBase.connection
 
-    if Fixpoint.exists? :hud_hmis_export_app
-      restore_fixpoint :hud_hmis_export_app
-      restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+    if Fixpoint.exists? :path_hmis_export_app
+      restore_fixpoint :path_hmis_export_app
+      restore_fixpoint :path_hmis_export_warehouse, connection: warehouse
     else
       setup(default_setup_path)
-      store_fixpoint :hud_hmis_export_app
-      store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+      store_fixpoint :path_hmis_export_app
+      store_fixpoint :path_hmis_export_warehouse, connection: warehouse
     end
   end
 
