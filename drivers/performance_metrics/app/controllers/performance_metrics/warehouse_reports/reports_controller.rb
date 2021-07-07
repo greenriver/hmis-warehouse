@@ -53,10 +53,8 @@ module PerformanceMetrics::WarehouseReports
     def details
       @key = params[:key].to_sym
       @sub_key = params[:sub_key].to_sym
-      @comparion = params[:index] == '1'
-      @headers = PerformanceMetrics::Client.column_names.map do |col|
-        [col, PerformanceMetrics::Client.human_attribute_name(col)]
-      end.to_h
+      @comparison = params[:index] == '1'
+      @headers = PerformanceMetrics::Client.detail_headers
       respond_to do |format|
         format.html {}
         format.xlsx {}

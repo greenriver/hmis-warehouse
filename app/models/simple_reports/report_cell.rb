@@ -50,13 +50,23 @@ module SimpleReports
     end
 
     private def new_member(warehouse_client:, universe_client:)
-      UniverseMember.new(
-        report_cell: self,
-        client_id: warehouse_client.id,
-        first_name: warehouse_client.first_name,
-        last_name: warehouse_client.last_name,
-        universe_membership: universe_client,
-      )
+      # Support keying on client_id for efficiency
+      # but maintain backwards compatability with using client record for HAP report
+      if warehouse_client.is_a?(Integer)
+        UniverseMember.new(
+          report_cell: self,
+          client_id: warehouse_client,
+          universe_membership: universe_client,
+        )
+      else
+        UniverseMember.new(
+          report_cell: self,
+          client_id: warehouse_client.id,
+          first_name: warehouse_client.first_name,
+          last_name: warehouse_client.last_name,
+          universe_membership: universe_client,
+        )
+      end
     end
 
     private def copy_member(member)

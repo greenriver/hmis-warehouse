@@ -50,20 +50,20 @@ module PerformanceMetrics
 
     def returns
       @returns ||= begin
-        outflow_count = clients.in_outflow(:current).count
+        no_return_count = clients.did_not_return_in_two_years(:current).count
         returned_count = clients.returned_in_two_years(:current).count
         returns = {
           'Current Period' => [
             ['Returned to Homelessness Within 2 Years', returned_count],
-            ['Did not return', outflow_count - returned_count],
+            ['Did not return', no_return_count],
           ],
         }
         if include_comparison?
-          outflow_count = clients.in_outflow(:prior).count
+          no_return_count = clients.did_not_return_in_two_years(:prior).count
           returned_count = clients.returned_in_two_years(:prior).count
           returns['Prior Period'] = [
             ['Returned to Homelessness Within 2 Years', returned_count],
-            ['Did not return', outflow_count - returned_count],
+            ['Did not return', no_return_count],
           ]
         end
         returns
@@ -73,13 +73,15 @@ module PerformanceMetrics
     def entering_housing
       @entering_housing ||= begin
         entering = []
-        entering << {
-          'Current Period' => clients.entering_housing(:current).count,
-        }
+        entering << [
+          'Current Period',
+          clients.entering_housing(:current).count,
+        ]
         if include_comparison?
-          entering << {
-            'Prior Period' => clients.entering_housing(:prior).count,
-          }
+          entering << [
+            'Prior Period',
+            clients.entering_housing(:prior).count,
+          ]
         end
         entering
       end
@@ -98,12 +100,12 @@ module PerformanceMetrics
         percentage_other_change = 0
         percentage_other_change = (with_increased_other_income / with_other_income_at_start.to_f * 100).round if with_other_income_at_start.positive?
 
-        incomes << {
-          'Current Period' => {
-            'Employment Income' => percentage_earned_change,
-            'Non-Employment Income' => percentage_other_change,
-          },
-        }
+        incomes << [
+          'Current Period', [
+            ['Employment Income', percentage_earned_change],
+            ['Non-Employment Income', percentage_other_change],
+          ]
+        ]
         if include_comparison?
           with_earned_income_at_start = clients.with_earned_income_at_start(:prior).count
           with_increased_earned_income = clients.with_increased_earned_income(:prior).count
@@ -114,12 +116,12 @@ module PerformanceMetrics
           with_increased_other_income = clients.with_increased_other_income(:prior).count
           percentage_other_change = 0
           percentage_other_change = (with_increased_other_income / with_other_income_at_start.to_f * 100).round if with_other_income_at_start.positive?
-          incomes << {
-            'Current Period' => {
-              'Employment Income' => percentage_earned_change,
-              'Non-Employment Income' => percentage_other_change,
-            },
-          }
+          incomes << [
+            'Current Period', [
+              ['Employment Income', percentage_earned_change],
+              ['Non-Employment Income', percentage_other_change],
+            ]
+          ]
         end
       end
     end
@@ -145,13 +147,13 @@ module PerformanceMetrics
         psh_length = psh.sum("#{period}_period_days_in_psh")
         psh_average = 0
         psh_average = ((psh_length / 30.to_f) / psh_count).round if psh_count.positive?
-        stay_lengths << {
-          'Current Period' => {
-            'Emergency Shelter' => es_average,
-            'Rapid Rehousing' => rrh_average,
-            'PSH' => psh_average,
-          },
-        }
+        stay_lengths << [
+          'Current Period', [
+            ['Emergency Shelter', es_average],
+            ['Rapid Rehousing', rrh_average],
+            ['PSH', psh_average],
+          ]
+        ]
         if include_comparison?
           period = :prior
           es = clients.with_es_stay(period)
@@ -171,13 +173,13 @@ module PerformanceMetrics
           psh_length = psh.sum("#{period}_period_days_in_psh")
           psh_average = 0
           psh_average = ((psh_length / 30.to_f) / psh_count).round if psh_count.positive?
-          stay_lengths << {
-            'Prior Period' => {
-              'Emergency Shelter' => es_average,
-              'Rapid Rehousing' => rrh_average,
-              'PSH' => psh_average,
-            },
-          }
+          stay_lengths << [
+            'Prior Period', [
+              ['Emergency Shelter', es_average],
+              ['Rapid Rehousing', rrh_average],
+              ['PSH', psh_average],
+            ]
+          ]
         end
         stay_lengths
       end
@@ -187,28 +189,28 @@ module PerformanceMetrics
       @inflow_outflow ||= begin
         flows = []
         period = :current
-        flows << {
-          'Current Period' => {
-            'Inflow' => clients.in_inflow(period).count,
-            'Outflow' => clients.in_outflow(period).count,
-            'First Time' => clients.first_time(period).count,
-            'Re-entering' => clients.reentering(period).count,
-            'Entered Housing' => clients.entered_housing(period).count,
-            'Inactive' => clients.inactive(period).count,
-          },
-        }
+        flows << [
+          'Current Period', [
+            ['Inflow', clients.in_inflow(period).count],
+            ['Outflow', clients.in_outflow(period).count],
+            ['First Time', clients.first_time(period).count],
+            ['Re-entering', clients.reentering(period).count],
+            ['Entered Housing', clients.entered_housing(period).count],
+            ['Inactive', clients.inactive(period).count],
+          ]
+        ]
         if include_comparison?
           period = :prior
-          flows << {
-            'Prior Period' => {
-              'Inflow' => clients.in_inflow(period).count,
-              'Outflow' => clients.in_outflow(period).count,
-              'First Time' => clients.first_time(period).count,
-              'Re-entering' => clients.reentering(period).count,
-              'Entered Housing' => clients.entered_housing(period).count,
-              'Inactive' => clients.inactive(period).count,
-            },
-          }
+          flows << [
+            'Prior Period', [
+              ['Inflow', clients.in_inflow(period).count],
+              ['Outflow', clients.in_outflow(period).count],
+              ['First Time', clients.first_time(period).count],
+              ['Re-entering', clients.reentering(period).count],
+              ['Entered Housing', clients.entered_housing(period).count],
+              ['Inactive', clients.inactive(period).count],
+            ]
+          ]
         end
         flows
       end
@@ -322,8 +324,8 @@ module PerformanceMetrics
         returns: {
           title: _('Returns to Homelessness'),
           in_outflow: {
-            scope: :in_outflow,
-            title: 'All Exits',
+            scope: :did_not_return_in_two_years,
+            title: 'Did Not Return Within 2 Years',
           },
           returned_in_two_years: {
             scope: :returned_in_two_years,
@@ -485,12 +487,6 @@ module PerformanceMetrics
       # Q16 D14 is Total Adults - Income at Exit for Leavers
       caper_clients = answer_clients(caper_report, 'Q16', 'D14')
 
-      spm_report = run_spm
-      # M2 B7 is TOTAL Returns to Homeless - Number of Returns in 2 Years
-      spm_returners = answer_clients(spm_report, '2', 'B7')
-      # M2 I7 is Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)
-      spm_leavers = answer_clients(spm_report, '2', 'I7')
-
       rrh_clients = run_rrh.support_for(
         :time_in_stabilization,
         {
@@ -527,14 +523,11 @@ module PerformanceMetrics
           earned_income_at_exit = nil
           other_income_at_start = nil
           other_income_at_exit = nil
-          days_in_es = nil
           days_in_rrh = nil
           days_in_psh = nil
-          days_to_return = nil
 
           client_id = processed_enrollment.client_id
           caper_client = caper_clients[client_id]
-          spm_returner = spm_returners[client_id]
           rrh_client = rrh_clients[client_id]
           psh_client = psh_clients[client_id]
           # Only looking at income for leavers
@@ -545,12 +538,6 @@ module PerformanceMetrics
             other_income_at_start = caper_client.income_total_at_start - earned_income_at_start
             other_income_at_exit = caper_client.income_total_at_exit - earned_income_at_exit
             caper_leaver = true
-          end
-
-          spm_leaver = spm_leavers.keys.include?(client_id)
-          if spm_returner
-            days_in_es = spm_returner.m1a_es_sh_th_days
-            days_to_return = spm_returner.m2_reentry_days
           end
 
           if rrh_client
@@ -572,20 +559,19 @@ module PerformanceMetrics
           entering_housing = client_id.in?(moved_to_housing_client_ids)
           inactive = client_id.in?(inactive_client_ids)
 
-          existing_client = report_clients[processed_enrollment.client] || Client.new
-          new_client = Client.new(
-            client_id: existing_client[:client_id] || client_id,
+          report_client = report_clients[client_id] || Client.new
+          report_client.assign_attributes(
+            client_id: client_id,
+            first_name: client.FirstName,
+            last_name: client.LastName,
             report_id: id,
             "include_in_#{period}_period" => true,
-            "#{period}_period_age" => existing_client[:age] || client.age_on(filter.start),
+            "#{period}_period_age" => client.age_on(filter.start),
             "#{period}_period_earned_income_at_start" => earned_income_at_start,
             "#{period}_period_earned_income_at_exit" => earned_income_at_exit,
             "#{period}_period_other_income_at_start" => other_income_at_start,
             "#{period}_period_other_income_at_exit" => other_income_at_exit,
             "#{period}_caper_leaver" => caper_leaver,
-            "#{period}_period_days_in_es" => days_in_es,
-            "#{period}_period_days_to_return" => days_to_return,
-            "#{period}_period_spm_leaver" => spm_leaver,
             "#{period}_period_days_in_rrh" => days_in_rrh,
             "#{period}_period_days_in_psh" => days_in_psh,
             "#{period}_period_first_time" => first_time,
@@ -594,10 +580,38 @@ module PerformanceMetrics
             "#{period}_period_entering_housing" => entering_housing,
             "#{period}_period_inactive" => inactive,
             "#{period}_period_caper_id" => caper_report.id,
+          )
+          report_clients[client_id] = report_client
+        end
+
+        # NOTE: SPM has a 2 year look-back so they may not be in the enrolled clients
+        spm_report = run_spm
+        # M2 B7 is TOTAL Returns to Homeless - Number of Returns in 2 Years
+        spm_returners = answer_clients(spm_report, '2', 'I7')
+        # M2 I7 is Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)
+        spm_leavers = answer_clients(spm_report, '2', 'B7')
+        spm_leavers.each do |client_id, spm_client|
+          days_in_es = nil
+          days_to_return = nil
+
+          spm_returner = spm_returners[client_id]
+          spm_leaver = spm_leavers.keys.include?(client_id)
+          if spm_returner
+            days_in_es = spm_returner.m1a_es_sh_th_days
+            days_to_return = spm_returner.m2_reentry_days
+          end
+          report_client = report_clients[client_id] || Client.new
+          report_client.assign_attributes(
+            client_id: client_id,
+            first_name: spm_client.first_name,
+            last_name: spm_client.last_name,
+            report_id: id,
+            "#{period}_period_days_in_es" => days_in_es,
+            "#{period}_period_days_to_return" => days_to_return,
+            "#{period}_period_spm_leaver" => spm_leaver,
             "#{period}_period_spm_id" => spm_report.id,
           )
-
-          report_clients[client] = new_client
+          report_clients[client_id] = report_client
         end
 
         Client.import(

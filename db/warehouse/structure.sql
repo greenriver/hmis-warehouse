@@ -10922,7 +10922,9 @@ CREATE TABLE public.performance_metrics_clients (
     prior_period_spm_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    first_name character varying,
+    last_name character varying
 );
 
 
@@ -30696,6 +30698,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623184729'),
 ('20210623195645'),
 ('20210702143811'),
-('20210702144442');
+('20210702144442'),
+('20210707122337');
 
 

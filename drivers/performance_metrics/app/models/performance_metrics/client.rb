@@ -15,7 +15,14 @@ module PerformanceMetrics
     end
 
     scope :returned_in_two_years, ->(period) do
-      served(period).where("#{period}_period_days_to_return" => 1..731)
+      spm_leaver(period).where("#{period}_period_days_to_return" => 1..731)
+    end
+
+    scope :did_not_return_in_two_years, ->(period) do
+      spm_leaver(period).where(
+        arel_table["#{period}_period_days_to_return"].gt(731).
+        or(arel_table["#{period}_period_days_to_return"].eq(nil)),
+      )
     end
 
     scope :caper_leaver, ->(period) do
@@ -23,7 +30,7 @@ module PerformanceMetrics
     end
 
     scope :spm_leaver, ->(period) do
-      served(period).where("#{period}_period_spm_leaver" => true)
+      where("#{period}_period_spm_leaver" => true)
     end
 
     scope :entering_housing, ->(period) do
@@ -80,6 +87,58 @@ module PerformanceMetrics
 
     scope :inactive, ->(period) do
       served(period).where("#{period}_period_inactive" => true)
+    end
+
+    def self.detail_headers
+      cols = [
+        'client_id',
+        'first_name',
+        'last_name',
+        'include_in_current_period',
+        'current_period_age',
+        'current_period_earned_income_at_start',
+        'current_period_earned_income_at_exit',
+        'current_period_other_income_at_start',
+        'current_period_other_income_at_exit',
+        'current_caper_leaver',
+        'current_period_days_in_es',
+        'current_period_days_in_rrh',
+        'current_period_days_in_psh',
+        'current_period_days_to_return',
+        'current_period_spm_leaver',
+        'current_period_first_time',
+        'current_period_reentering',
+        'current_period_in_outflow',
+        'current_period_entering_housing',
+        'current_period_inactive',
+        'current_period_caper_id',
+        'current_period_spm_id',
+        'include_in_prior_period',
+        'prior_period_age',
+        'prior_period_earned_income_at_start',
+        'prior_period_earned_income_at_exit',
+        'prior_period_other_income_at_start',
+        'prior_period_other_income_at_exit',
+        'prior_caper_leaver',
+        'prior_period_days_in_es',
+        'prior_period_days_in_rrh',
+        'prior_period_days_in_psh',
+        'prior_period_days_to_return',
+        'prior_period_spm_leaver',
+        'prior_period_first_time',
+        'prior_period_reentering',
+        'prior_period_in_outflow',
+        'prior_period_entering_housing',
+        'prior_period_inactive',
+        'prior_period_caper_id',
+        'prior_period_spm_id',
+      ].freeze
+      cols.map do |col|
+        [
+          col,
+          PerformanceMetrics::Client.human_attribute_name(col),
+        ]
+      end.to_h
     end
   end
 end
