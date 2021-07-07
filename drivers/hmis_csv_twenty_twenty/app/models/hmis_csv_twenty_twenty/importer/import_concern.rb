@@ -42,7 +42,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     # Override as necessary
-    def self.clean_row_for_import(row, deidentified:)
+    def self.clean_row_for_import(row, deidentified:) # rubocop:disable Lint/UnusedMethodArgument
       row
     end
 
