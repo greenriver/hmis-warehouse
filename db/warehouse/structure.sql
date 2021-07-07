@@ -10922,7 +10922,9 @@ CREATE TABLE public.performance_metrics_clients (
     prior_period_spm_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    first_name character varying,
+    last_name character varying
 );
 
 
@@ -13430,6 +13432,41 @@ CREATE SEQUENCE public.simple_report_universe_members_id_seq
 --
 
 ALTER SEQUENCE public.simple_report_universe_members_id_seq OWNED BY public.simple_report_universe_members.id;
+
+
+--
+-- Name: synthetic_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_events (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_events_id_seq OWNED BY public.synthetic_events.id;
 
 
 --
@@ -16338,6 +16375,13 @@ ALTER TABLE ONLY public.simple_report_universe_members ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: synthetic_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_events ALTER COLUMN id SET DEFAULT nextval('public.synthetic_events_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -18215,6 +18259,14 @@ ALTER TABLE ONLY public.simple_report_instances
 
 ALTER TABLE ONLY public.simple_report_universe_members
     ADD CONSTRAINT simple_report_universe_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_events synthetic_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_events
+    ADD CONSTRAINT synthetic_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -27622,6 +27674,27 @@ CREATE UNIQUE INDEX index_staff_x_client_s_id_c_id_r_id ON public.hmis_staff_x_c
 
 
 --
+-- Name: index_synthetic_events_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_client_id ON public.synthetic_events USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_events_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_events_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_source_type_and_source_id ON public.synthetic_events USING btree (source_type, source_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -30687,6 +30760,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210601135719'),
 ('20210601173704'),
 ('20210603121547'),
+('20210603143037'),
 ('20210604155334'),
 ('20210615131534'),
 ('20210616181054'),
@@ -30696,6 +30770,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623184729'),
 ('20210623195645'),
 ('20210702143811'),
-('20210702144442');
+('20210702144442'),
+('20210707122337');
 
 
