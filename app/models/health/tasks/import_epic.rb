@@ -32,17 +32,21 @@ module Health::Tasks
 
     def run!
       @configs ||= YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
-      @configs.each do |_, config|
-        @config = config
-        ds = Health::DataSource.find_by(name: config['data_source_name'])
-        @data_source_id = ds.id
-        fetch_files unless @load_locally
-        import_files
-        update_consent
-        sync_epic_pilot_patients
-        update_housing_statuses
-        return change_counts
-      end
+      @configs.map do |config_name, config|
+        if config['host'].present? && config['path'].present? &&  config['destination'].present?
+          @config = config
+          ds = Health::DataSource.find_by(name: config['data_source_name'])
+          @data_source_id = ds.id
+          fetch_files unless @load_locally
+          import_files
+          update_consent
+          sync_epic_pilot_patients
+          update_housing_statuses
+        else
+          notify "Warning: ImportEpic SFTP #{config_name} host, path, destination must all be set"
+        end
+        change_counts
+      end.first
     end
 
     def import(klass:, file:)
@@ -91,6 +95,7 @@ module Health::Tasks
     end
 
     def import_files
+      logger.info 'ImportEpic: import_files'
       Health.models_by_health_filename.each do |file, klass|
         import(klass: klass, file: file)
       end
@@ -149,6 +154,7 @@ module Health::Tasks
     end
 
     def fetch_files
+      logger.info 'ImportEpic: fetch_files'
       sftp = Net::SFTP.start(
         @config['host'],
         @config['username'],

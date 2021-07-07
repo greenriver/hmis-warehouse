@@ -1744,7 +1744,7 @@ module ClaimsReporting
       )
     end
 
-    private def trace_set_match!(vs_name, claim, code_type)
+    private def trace_set_match!(vs_name, claim, code_type) # rubocop:disable Lint/UnusedMethodArgument
       # puts "in_set? #{vs_name} matched #{code_type} for Claim#id=#{claim.id}"
       true
     end
