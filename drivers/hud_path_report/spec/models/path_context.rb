@@ -5,7 +5,7 @@
 ###
 
 RSpec.configure do |config|
-  RSpec.configuration.fixpoints_path = 'drivers/hud_path_report/spec/fixpoints'
+  config.fixpoints_path = 'drivers/hud_path_report/spec/fixpoints'
 end
 
 RSpec.shared_context 'path context', shared_context: :metadata do
@@ -24,7 +24,6 @@ RSpec.shared_context 'path context', shared_context: :metadata do
     HudPathReport::Filters::PathFilter.new(shared_filter.merge(project_ids: [so_project_id, services_project_id]))
   end
 
-
   def run(filter, question_name)
     generator = HudPathReport::Generators::Fy2020::Generator
     generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: [question_name])).run!
@@ -42,14 +41,14 @@ RSpec.shared_context 'path context', shared_context: :metadata do
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
     warehouse = GrdaWarehouseBase.connection
 
-    # if Fixpoint.exists? :hud_hmis_export_app
-    #   restore_fixpoint :hud_hmis_export_app
-    #   restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    # else
+    if Fixpoint.exists? :hud_hmis_export_app
+      restore_fixpoint :hud_hmis_export_app
+      restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+    else
       setup(default_setup_path)
-      # store_fixpoint :hud_hmis_export_app
-      # store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    # end
+      store_fixpoint :hud_hmis_export_app
+      store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+    end
   end
 
   def setup(file_path)
