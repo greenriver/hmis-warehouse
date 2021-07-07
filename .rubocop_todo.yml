@@ -300,7 +300,6 @@ Layout/EmptyLineBetweenDefs:
     - 'app/models/health/epic_qualifying_activity.rb'
     - 'app/models/health/goal/base.rb'
     - 'app/models/health/premium_payment.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/signature_request.rb'
     - 'app/models/health/signature_requests/aco_signature_request.rb'
     - 'app/models/health/signature_requests/patient_signature_request.rb'
@@ -386,7 +385,6 @@ Layout/EmptyLines:
     - 'app/models/health/release_saver.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
     - 'app/models/health/service_saver.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/team/member.rb'
     - 'app/models/hud_reports/report_instance.rb'
     - 'app/models/importers/hmis_twenty_twenty/base.rb'
@@ -837,7 +835,6 @@ Layout/ExtraSpacing:
     - 'app/models/grda_warehouse/warehouse_reports/youth/export.rb'
     - 'app/models/grda_warehouse_base.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
@@ -866,7 +863,6 @@ Layout/FirstArgumentIndentation:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/eligibility_inquiry.rb'
     - 'app/models/health/patient.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
@@ -1154,7 +1150,6 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/health/patient.rb'
     - 'app/models/health/release_form.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/signature_request.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
@@ -1300,7 +1295,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
     - 'app/models/health/agency_user_saver.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/tracing/case.rb'
     - 'app/models/health_base.rb'
     - 'app/models/message.rb'
@@ -1362,7 +1356,6 @@ Layout/SpaceAroundOperators:
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'
     - 'app/models/health/patient.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/hud_reports/report_cell.rb'
     - 'app/models/hud_reports/report_instance.rb'
@@ -1610,7 +1603,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/youth/homeless_youth_report.rb'
     - 'app/models/health/exporter/health_exporter.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/soap/mass_health.rb'
     - 'app/models/importers/hmis_six_one_one/base.rb'
     - 'app/models/importers/hmis_twenty_twenty/base.rb'
@@ -1697,7 +1689,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/health/qualifying_activity.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
@@ -2079,7 +2070,6 @@ Lint/DuplicateMethods:
 # Offense count: 1
 Lint/IneffectiveAccessModifier:
   Exclude:
-    - 'app/models/health/signable_document.rb'
 
 # Offense count: 4
 Lint/NonLocalExitFromIterator:
@@ -2477,7 +2467,6 @@ Naming/MemoizedInstanceVariableName:
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/patient.rb'
     - 'app/models/health/premium_payment.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/lsa/fy2018/base.rb'
@@ -2622,7 +2611,6 @@ Style/AndOr:
 # IgnoredMethods: lambda, proc, it
 Style/BlockDelimiters:
   Exclude:
-    - 'app/models/health/signable_document.rb'
     - 'app/models/report.rb'
 
 # Offense count: 5
@@ -2893,7 +2881,6 @@ Style/IfUnlessModifier:
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/release_form.rb'
     - 'app/models/health/sdh_case_management_note.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/soap/mass_health.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
@@ -3078,7 +3065,6 @@ Style/MutableConstant:
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/soap/mass_health.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
@@ -3123,7 +3109,6 @@ Style/NegatedIf:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/cha_saver.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
@@ -3418,7 +3403,6 @@ Style/RedundantSelf:
     - 'app/models/health/patient_referral.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/team/member.rb'
     - 'app/models/health_base.rb'
     - 'app/models/report_generators/pit/fy2018/base.rb'
@@ -3667,7 +3651,6 @@ Style/StringLiterals:
     - 'app/models/health/release_form.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/ssm_export.rb'
     - 'app/models/health/status_date.rb'
     - 'app/models/health/tasks/import_epic.rb'
@@ -3826,7 +3809,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/health/release_saver.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
     - 'app/models/health/service_saver.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/ssm_export.rb'
     - 'app/models/health/ssm_saver.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
@@ -3961,7 +3943,6 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/health/patient.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/soap/file_list.rb'
     - 'app/models/health/tracing/case.rb'
     - 'app/models/health/tracing/contact.rb'
