@@ -20,6 +20,18 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       import(file_path, @data_source)
     end
 
+    it 'can import files with bad line endings' do
+      allow(Rails.logger).to receive(:debug).and_return nil
+      # the files in this import have a incorrect (but seen in the wild) "\r\n" as
+      # part of their final line while most lines end in "\n"
+      file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_ending'
+      import(file_path, @data_source)
+
+      # icky -- testing for side effects
+      expect(Rails.logger).to have_received(:debug).with(/Correcting bad line ending.*Export.csv/)
+      expect(Rails.logger).to have_received(:debug).with(/Correcting bad line ending.*Project.csv/)
+    end
+
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       HmisCsvTwentyTwenty::Utility.clear!
@@ -403,6 +415,8 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     loader.load!
     loader.import!
     Delayed::Worker.new.work_off(2)
+
+    assert loader.loader_log.successfully_loaded?
   end
 
   def cleanup_files
