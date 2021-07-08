@@ -82,6 +82,7 @@ module Admin
         :cas_sync_months,
         :send_sms_for_covid_reminders,
         :bypass_2fa_duration,
+        :enable_youth_hrp,
         client_details: [],
       )
     end
