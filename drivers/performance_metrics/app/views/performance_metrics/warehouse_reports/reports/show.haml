@@ -1,88 +1,14 @@
 = render 'breadcrumbs'
-
-- key = :clients_served
-%h3= @report.support_title(key)
-- @report.comparison_periods.each.with_index do |range, i|
-  - label, count = @report.send(key)[i]
-  = label
-  .d-flex
-    .count.mr-2
-      = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: key, index: i) do
-        = count
-    .range= range
-
-- key = :returns
-%h3= @report.support_title(key)
-- @report.comparison_periods.each.with_index do |range, i|
-  - data = @report.send(key).to_a[i]
-  = data.first
-  - data.last.each do |label, count|
-    - sub_key = :returned_in_two_years
-    - sub_key = :in_outflow if label == 'Did not return'
-    .d-flex
-      .label= label
-      .count.mr-2
-        = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: sub_key, index: i) do
-          = count
-      .range= range
-
-- key = :entering_housing
-%h3= @report.support_title(key)
-- @report.comparison_periods.each.with_index do |range, i|
-  - label, count = @report.send(key)[i]
-  = label
-  .d-flex
-    .count.mr-2
-      = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: key, index: i) do
-        = count
-    .range= range
-
-- key = :income
-%h3= @report.support_title(key)
-- @report.comparison_periods.each.with_index do |range, i|
-  - data = @report.send(key).to_a[i]
-  = data.first
-  - data.last.each do |label, count|
-    - sub_key = :with_increased_earned_income if label == 'Employment Income'
-    - sub_key = :with_increased_other_income if label == 'Non-Employment Income'
-    .d-flex
-      .label= label
-      .count.mr-2
-        = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: sub_key, index: i) do
-          = count
-      .range= range
-
-- key = :average_stay_length
-%h3= @report.support_title(key)
-- @report.comparison_periods.each.with_index do |range, i|
-  - data = @report.send(key).to_a[i]
-  = data.first
-  - data.last.each do |label, count|
-    - sub_key = :with_es_stay if label == 'Emergency Shelter'
-    - sub_key = :with_rrh_stay if label == 'Rapid Rehousing'
-    - sub_key = :with_psh_stay if label == 'PSH'
-    .d-flex
-      .label= label
-      .count.mr-2
-        = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: sub_key, index: i) do
-          = count
-      .range= range
-
-- key = :inflow_outflow
-%h3= @report.support_title(key)
-- @report.comparison_periods.each.with_index do |range, i|
-  - data = @report.send(key).to_a[i]
-  = data.first
-  - data.last.each do |label, count|
-    - sub_key = :in_inflow if label == 'Inflow'
-    - sub_key = :in_outflow if label == 'Outflow'
-    - sub_key = :first_time if label == 'First Time'
-    - sub_key = :reentering if label == 'Re-entering'
-    - sub_key = :entered_housing if label == 'Entered Housing'
-    - sub_key = :inactive if label == 'Inactive'
-    .d-flex
-      .label= label
-      .count.mr-2
-        = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: sub_key, index: i) do
-          = count
-      .range= range
+= render 'beta_warning'
+.well
+  = render 'clients_served'
+.well
+  = render 'returns'
+.well
+  = render 'entering_housing'
+.well
+  = render 'income'
+.well
+  = render 'average_stay_length'
+.well
+  = render 'inflow_outflow'

@@ -1,0 +1,16 @@
+- key = :income
+%h3= @report.support_title(key)
+.row
+  - @report.comparison_periods.each.with_index do |range, i|
+    .col
+      - data = @report.send(key).to_a[i]
+      %h4= data.first
+      %p= range.to_s.gsub('..', ' to ')
+      - data.last.each do |label, count|
+        - sub_key = :with_increased_earned_income if label == 'Employment Income'
+        - sub_key = :with_increased_other_income if label == 'Non-Employment Income'
+        .d-flex
+          .label= label
+          .count.mr-2
+            = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: sub_key, index: i) do
+              #{count}%

@@ -42,8 +42,8 @@ module PerformanceMetrics
     def clients_served
       @clients_served ||= begin
         columns = []
-        columns << ['Current Period', clients.served(:current).count]
         columns << ['Prior Period', clients.served(:prior).count] if include_comparison?
+        columns << ['Current Period', clients.served(:current).count]
         columns
       end
     end
@@ -52,20 +52,25 @@ module PerformanceMetrics
       @returns ||= begin
         no_return_count = clients.did_not_return_in_two_years(:current).count
         returned_count = clients.returned_in_two_years(:current).count
-        returns = {
-          'Current Period' => [
-            ['Returned to Homelessness Within 2 Years', returned_count],
-            ['Did not return', no_return_count],
-          ],
-        }
+        returns = []
         if include_comparison?
           no_return_count = clients.did_not_return_in_two_years(:prior).count
           returned_count = clients.returned_in_two_years(:prior).count
-          returns['Prior Period'] = [
-            ['Returned to Homelessness Within 2 Years', returned_count],
-            ['Did not return', no_return_count],
+          returns << [
+            'Prior Period',
+            [
+              ['Returned to Homelessness Within 2 Years', returned_count],
+              ['Did not return', no_return_count],
+            ],
           ]
         end
+        returns << [
+          'Current Period',
+          [
+            ['Returned to Homelessness Within 2 Years', returned_count],
+            ['Did not return', no_return_count],
+          ],
+        ]
         returns
       end
     end
@@ -73,16 +78,16 @@ module PerformanceMetrics
     def entering_housing
       @entering_housing ||= begin
         entering = []
-        entering << [
-          'Current Period',
-          clients.entering_housing(:current).count,
-        ]
         if include_comparison?
           entering << [
             'Prior Period',
             clients.entering_housing(:prior).count,
           ]
         end
+        entering << [
+          'Current Period',
+          clients.entering_housing(:current).count,
+        ]
         entering
       end
     end
@@ -90,22 +95,6 @@ module PerformanceMetrics
     def income
       @income ||= begin
         incomes = []
-        with_earned_income_at_start = clients.with_earned_income_at_start(:current).count
-        with_increased_earned_income = clients.with_increased_earned_income(:current).count
-        percentage_earned_change = 0
-        percentage_earned_change = (with_increased_earned_income / with_earned_income_at_start.to_f * 100).round if with_earned_income_at_start.positive?
-
-        with_other_income_at_start = clients.with_other_income_at_start(:current).count
-        with_increased_other_income = clients.with_increased_other_income(:current).count
-        percentage_other_change = 0
-        percentage_other_change = (with_increased_other_income / with_other_income_at_start.to_f * 100).round if with_other_income_at_start.positive?
-
-        incomes << [
-          'Current Period', [
-            ['Employment Income', percentage_earned_change],
-            ['Non-Employment Income', percentage_other_change],
-          ]
-        ]
         if include_comparison?
           with_earned_income_at_start = clients.with_earned_income_at_start(:prior).count
           with_increased_earned_income = clients.with_increased_earned_income(:prior).count
@@ -123,37 +112,28 @@ module PerformanceMetrics
             ]
           ]
         end
+        with_earned_income_at_start = clients.with_earned_income_at_start(:current).count
+        with_increased_earned_income = clients.with_increased_earned_income(:current).count
+        percentage_earned_change = 0
+        percentage_earned_change = (with_increased_earned_income / with_earned_income_at_start.to_f * 100).round if with_earned_income_at_start.positive?
+
+        with_other_income_at_start = clients.with_other_income_at_start(:current).count
+        with_increased_other_income = clients.with_increased_other_income(:current).count
+        percentage_other_change = 0
+        percentage_other_change = (with_increased_other_income / with_other_income_at_start.to_f * 100).round if with_other_income_at_start.positive?
+
+        incomes << [
+          'Current Period', [
+            ['Employment Income', percentage_earned_change],
+            ['Non-Employment Income', percentage_other_change],
+          ]
+        ]
       end
     end
 
     def average_stay_length
       @average_stay_length ||= begin
         stay_lengths = []
-        period = :current
-        es = clients.with_es_stay(period)
-        es_count = es.count
-        es_length = es.sum("#{period}_period_days_in_es")
-        es_average = 0
-        es_average = ((es_length / 30.to_f) / es_count).round if es_count.positive?
-
-        rrh = clients.with_rrh_stay(period)
-        rrh_count = rrh.count
-        rrh_length = rrh.sum("#{period}_period_days_in_rrh")
-        rrh_average = 0
-        rrh_average = ((rrh_length / 30.to_f) / rrh_count).round if rrh_count.positive?
-
-        psh = clients.with_psh_stay(period)
-        psh_count = psh.count
-        psh_length = psh.sum("#{period}_period_days_in_psh")
-        psh_average = 0
-        psh_average = ((psh_length / 30.to_f) / psh_count).round if psh_count.positive?
-        stay_lengths << [
-          'Current Period', [
-            ['Emergency Shelter', es_average],
-            ['Rapid Rehousing', rrh_average],
-            ['PSH', psh_average],
-          ]
-        ]
         if include_comparison?
           period = :prior
           es = clients.with_es_stay(period)
@@ -181,6 +161,31 @@ module PerformanceMetrics
             ]
           ]
         end
+        period = :current
+        es = clients.with_es_stay(period)
+        es_count = es.count
+        es_length = es.sum("#{period}_period_days_in_es")
+        es_average = 0
+        es_average = ((es_length / 30.to_f) / es_count).round if es_count.positive?
+
+        rrh = clients.with_rrh_stay(period)
+        rrh_count = rrh.count
+        rrh_length = rrh.sum("#{period}_period_days_in_rrh")
+        rrh_average = 0
+        rrh_average = ((rrh_length / 30.to_f) / rrh_count).round if rrh_count.positive?
+
+        psh = clients.with_psh_stay(period)
+        psh_count = psh.count
+        psh_length = psh.sum("#{period}_period_days_in_psh")
+        psh_average = 0
+        psh_average = ((psh_length / 30.to_f) / psh_count).round if psh_count.positive?
+        stay_lengths << [
+          'Current Period', [
+            ['Emergency Shelter', es_average],
+            ['Rapid Rehousing', rrh_average],
+            ['PSH', psh_average],
+          ]
+        ]
         stay_lengths
       end
     end
@@ -189,16 +194,6 @@ module PerformanceMetrics
       @inflow_outflow ||= begin
         flows = []
         period = :current
-        flows << [
-          'Current Period', [
-            ['Inflow', clients.in_inflow(period).count],
-            ['Outflow', clients.in_outflow(period).count],
-            ['First Time', clients.first_time(period).count],
-            ['Re-entering', clients.reentering(period).count],
-            ['Entered Housing', clients.entered_housing(period).count],
-            ['Inactive', clients.inactive(period).count],
-          ]
-        ]
         if include_comparison?
           period = :prior
           flows << [
@@ -212,6 +207,17 @@ module PerformanceMetrics
             ]
           ]
         end
+        flows << [
+          'Current Period', [
+            ['Inflow', clients.in_inflow(period).count],
+            ['Outflow', clients.in_outflow(period).count],
+            ['First Time', clients.first_time(period).count],
+            ['Re-entering', clients.reentering(period).count],
+            ['Entered Housing', clients.entered_housing(period).count],
+            ['Inactive', clients.inactive(period).count],
+          ]
+        ]
+
         flows
       end
     end
@@ -219,8 +225,9 @@ module PerformanceMetrics
 
     def comparison_periods
       @comparison_periods ||= begin
-        periods = [filter.range]
+        periods = []
         periods << filter.to_comparison.range if include_comparison?
+        periods << filter.range
       end
     end
 

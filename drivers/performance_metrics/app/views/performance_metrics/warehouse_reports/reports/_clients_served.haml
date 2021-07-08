@@ -1,0 +1,36 @@
+- key = :clients_served
+- chart_id = "#{key}_chart"
+%h3= @report.support_title(key)
+
+%div{ id: chart_id }
+= content_for :page_js do
+  :javascript
+    var chart = bb.generate({
+      data: {
+        columns: #{@report.send(key).to_json.html_safe},
+        type: "bar", // for ESM specify as: bar()
+      },
+      bar: {
+        width: {
+          ratio: 0.5
+        },
+        padding: 5
+      },
+      tooltip: {
+        format: {
+          title: function(x) { return "#{@report.support_title(key)}" },
+        },
+      },
+      bindto: "##{chart_id}"
+    });
+
+.row
+  - @report.comparison_periods.each.with_index do |range, i|
+    - label, count = @report.send(key)[i]
+    .col
+      %h4= label
+      %p= range.to_s.gsub('..', ' to ')
+      .d-flex
+        .count.mr-2
+          = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: key, index: i) do
+            = count
