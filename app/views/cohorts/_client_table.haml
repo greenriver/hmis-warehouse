@@ -16,8 +16,9 @@
   .cohort-client__table.ag-theme-balham.datatable{class: size}
 
   .text-right.mt-4
-    = simple_form_for :cc, url: pre_bulk_destroy_cohort_cohort_clients_path(cohort_id: @cohort.id), method: :post, html: {class: :jBulkDelete} do |f|
-      = f.input :cohort_client_ids, as: :hidden, input_html: {class: :cohort_client_ids}
-      = button_tag(type: 'submit', class: "btn btn-danger btn-sm") do
-        %i.icon-cross
-        Delete Selected Clients
+    - unless @cohort.system_cohort
+      = simple_form_for :cc, url: pre_bulk_destroy_cohort_cohort_clients_path(cohort_id: @cohort.id), method: :post, html: {class: :jBulkDelete} do |f|
+        = f.input :cohort_client_ids, as: :hidden, input_html: {class: :cohort_client_ids}
+        = button_tag(type: 'submit', class: "btn btn-danger btn-sm") do
+          %i.icon-cross
+          Delete Selected Clients

@@ -4526,7 +4526,8 @@ CREATE TABLE public.cohorts (
     threshold_label_4 character varying,
     threshold_row_5 integer,
     threshold_color_5 character varying,
-    threshold_label_5 character varying
+    threshold_label_5 character varying,
+    system_cohort boolean DEFAULT false
 );
 
 
@@ -30686,6 +30687,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623195645'),
 ('20210702143811'),
 ('20210702144442'),
-('20210707190613');
+('20210707190613'),
+('20210707193633');
 
 

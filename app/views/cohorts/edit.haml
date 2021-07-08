@@ -2,7 +2,7 @@
 - content_for :modal_title, title
 
 = simple_form_for @cohort, url: cohort_path(@cohort) do |f|
-  = f.input :name
+  = f.input :name, disabled: @cohort.system_cohort
   = f.input :short_name, input_html: {maxlength: 8, style: 'width: 8em;'}
   = f.input :effective_date, as: :date_picker
   = f.input :days_of_inactivity, label: 'How many days of client inactivity should trigger a warning?'
@@ -29,9 +29,10 @@
         .col= f.input "threshold_label_#{i}", label: 'Label'
   .row
     .col-sm-6
-      = link_to cohort_path(@cohort), method: :delete, data: {confirm: "Are you sure you want to delete cohort \"#{@cohort.name}\"?"}, class: 'btn btn-danger' do
-        %i.icon-cross
-        Delete Cohort
+      - unless @cohort.system_cohort
+        = link_to cohort_path(@cohort), method: :delete, data: {confirm: "Are you sure you want to delete cohort \"#{@cohort.name}\"?"}, class: 'btn btn-danger' do
+          %i.icon-cross
+          Delete Cohort
     .col-sm-6.text-right
       = f.submit value: 'Update Cohort', class: 'btn btn-primary'
 
