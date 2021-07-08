@@ -118,7 +118,7 @@ module ClaimsReporting
       # and then sync over any content we cant find. Ugly
       # race conditions exist if these are interleaved
       HealthBase.with_advisory_lock('import_all_from_health_sftp') do
-        logger.info { "ClaimsReporting::Importer#import_all_from_health_sftp" }
+        logger.info { 'ClaimsReporting::Importer#import_all_from_health_sftp' }
         results = check_sftp(
           naming_convention: naming_convention,
           root_path: root_path,
@@ -248,6 +248,14 @@ module ClaimsReporting
     rescue StandardError => e
       record_complete(successful: false, status_message: e.message)
       raise
+    end
+
+    def pending
+      check_sftp.reject do |r|
+        r[:last_successful_import_id].present?
+      end.map do |info|
+        File.basename(info[:path])
+      end
     end
 
     private def run_post_import_hook(file_filter)

@@ -18,12 +18,7 @@
         %tr
           %th Pending files
           %td
-            :ruby
-              pending = ClaimsReporting::Importer.new.check_sftp(
-                root_path: '/prod/MassHealth Claims Data'
-              ).reject do |r|
-                r[:last_successful_import_id].present?
-              end.map{ |info| File.basename(info[:path]) }
+            - pending = ClaimsReporting::Importer.new.pending
             - if pending.none?
               %em None found
             - else
