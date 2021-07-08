@@ -9,13 +9,27 @@ module ClaimsReporting
     attr_accessor :logger
 
     def self.default_credentials
-      YAML.safe_load(ERB.new(File.read(Rails.root.join('config/health_sftp.yml'))).result)[Rails.env]['ONE']
+      YAML.safe_load(ERB.new(File.read(Rails.root.join('config/health_sftp.yml'))).result)[Rails.env]['ONE'].with_indifferent_access
+    end
+
+    def self.default_path
+      GrdaWarehouse::Config.get(:health_claims_data_path)
+    end
+
+    def self.polling_enabled?
+      default_credentials[:host].present? && default_path.present?
+    end
+
+    def self.nightly!
+      return unless polling_enabled?
+
+      new.import_all_from_health_sftp
     end
 
     def self.clear!
       raise 'Disabled' unless Rails.env.development? || Rails.env.test?
 
-      HealthBase.logger.warn { "#{self}.clear! truncating/clearing all tables" }
+      Rails.logger.warn { "#{self}.clear! truncating/clearing all tables" }
       [MemberRoster, MemberEnrollmentRoster, MedicalClaim, RxClaim].each do |klass|
         klass.connection.truncate(klass.table_name)
       end
@@ -23,15 +37,16 @@ module ClaimsReporting
     end
 
     def initialize
-      @logger = HealthBase.logger
+      @logger = Rails.logger
     end
 
     DEFAULT_NAMING_CONVENTION = /(?<prefix>.*)_?(?<m>[a-z]{3})_(?<y>\d{4})\.zip\Z/i.freeze
 
     private def using_sftp(credentials)
       credentials ||= self.class.default_credentials
+      host = credentials.fetch('host').presence or raise "'host:' must be provided or set via ENV['HEALTH_SFTP_HOST']"
       Net::SFTP.start(
-        credentials['host'],
+        host,
         credentials['username'],
         password: credentials['password'],
         auth_methods: ['publickey', 'password'],
@@ -47,10 +62,11 @@ module ClaimsReporting
     # in the file name. See naming_convention
     def check_sftp(
       naming_convention: DEFAULT_NAMING_CONVENTION,
-      root_path: '',
+      root_path: nil,
       show_import_status: true,
       credentials: self.class.default_credentials
     )
+      root_path ||= self.class.default_path
       results = []
       using_sftp(credentials) do |sftp|
         sftp.dir.glob(root_path, '*.zip').each do |remote_file|
@@ -58,7 +74,7 @@ module ClaimsReporting
           next unless md
 
           results << {
-            path: root_path + '/' + remote_file.name,
+            path: File.join(root_path, remote_file.name),
             prefix: md[:prefix],
             month: md[:m],
             year: md[:y],
@@ -77,7 +93,7 @@ module ClaimsReporting
           zip_path = r[:path]
           r[:last_successful_import_id] = ClaimsReporting::Import.where(
             source_url: sftp_url(credentials['host'], zip_path),
-            successful: [true, nil],
+            successful: true,
           ).order(updated_at: :desc).limit(1).pluck(:id).first
         end
       end
@@ -87,30 +103,35 @@ module ClaimsReporting
       end
     end
 
+    # check_sftp and find any files we haven't successfully imported
+    # in the past. Currently matches on the sftp url of the file
+    # to save on downloads but could also check #content_hash if
+    # files being changed is a problem
     def import_all_from_health_sftp(
-      root_path: '',
+      root_path: nil,
       naming_convention: DEFAULT_NAMING_CONVENTION,
       credentials: self.class.default_credentials,
       redo_past_imports: false
     )
       # Allow only one in progress call per DB.
-      # We will be read from our db, then an external SFTP
+      # We will be reading from our db, then an external SFTP
       # and then sync over any content we cant find. Ugly
       # race conditions exist if these are interleaved
       HealthBase.with_advisory_lock('import_all_from_health_sftp') do
+        logger.info { 'ClaimsReporting::Importer#import_all_from_health_sftp' }
         results = check_sftp(
           naming_convention: naming_convention,
           root_path: root_path,
           show_import_status: true,
           credentials: credentials,
         )
-        results.map do |r|
-          if r[:last_successful_import_id].present? && redo_past_imports
-            logger.debug { "Skipping #{r}" }
-            r
-          else
-            @import = nil
+        results.select do |r|
+          if redo_past_imports || r[:last_successful_import_id].blank?
+            @import = nil # paranoia, reset this since we are looping
             import_from_health_sftp(r[:path], credentials: credentials)
+          else
+            logger.debug { "Skipping #{r}" }
+            false
           end
         end
       end
@@ -227,6 +248,14 @@ module ClaimsReporting
     rescue StandardError => e
       record_complete(successful: false, status_message: e.message)
       raise
+    end
+
+    def pending
+      check_sftp.reject do |r|
+        r[:last_successful_import_id].present?
+      end.map do |info|
+        File.basename(info[:path])
+      end
     end
 
     private def run_post_import_hook(file_filter)

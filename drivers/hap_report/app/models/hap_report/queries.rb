@@ -67,7 +67,7 @@ module HapReport::Queries
     # An individual emancipated minor falls into this category, and will be subsequently counted as an adult in A2
     def households_with_children
       @households_with_children ||= households.
-        select { |_, v| v.any? { |client| client[:age] < 18 } }.
+        select { |_, v| v.any? { |client| client[:age].present? && client[:age] < 18 } }.
         map { |_, v| v.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@households_with_children)
@@ -75,7 +75,7 @@ module HapReport::Queries
 
     def only_head_of_households_with_children
       @head_of_households_with_children ||= households.
-        select { |_, v| v.any? { |client| client[:age] < 18 } }.
+        select { |_, v| v.any? { |client| client[:age].present? && client[:age] < 18 } }.
         map { |_, v| v.select { |client| client[:head] }.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@head_of_households_with_children)
@@ -83,7 +83,7 @@ module HapReport::Queries
 
     def adult_only_households
       @adult_only_households ||= households.
-        select { |_, v| v.all? { |client| client[:age] >= 18 } }.
+        select { |_, v| v.all? { |client| client[:age].present? && client[:age] >= 18 } }.
         map { |_, v| v.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@adult_only_households)
@@ -91,7 +91,7 @@ module HapReport::Queries
 
     def only_head_of_adult_only_households
       @head_of_adult_only_households ||= households.
-        select { |_, v| v.all? { |client| client[:age] >= 18 } }.
+        select { |_, v| v.all? { |client| client[:age].present? && client[:age] >= 18 } }.
         map { |_, v| v.select { |client| client[:head] }.map { |client| client[:client_id] } }.
         flatten
       a_t[:id].in(@head_of_adult_only_households)

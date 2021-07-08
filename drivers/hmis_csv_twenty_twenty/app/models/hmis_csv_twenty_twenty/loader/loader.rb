@@ -164,26 +164,17 @@ module HmisCsvTwentyTwenty::Loader
         source_file_path = File.join(@file_path, file_name)
         next unless File.file?(source_file_path)
 
-        use_encoding_detector = true
-        file_mode = if use_encoding_detector && encoding_detector
-          file_encoding = encoding_detector.detect(File.read(source_file_path)).try(:[], :encoding)
-          if file_encoding == 'UTF-32BE'
-            'r'
-          else
-            "r:#{file_encoding}:utf-8"
-          end
-        else
-          'r'
-        end
+        encoding = AutoEncodingCsv.detect_encoding(source_file_path)
+        File.open(source_file_path, 'r', encoding: encoding) do |file|
 
-        File.open(source_file_path, 'r', encoding: AutoEncodingCsv.detect_encoding(source_file_path)) do |file|
           if bad_line_endings?(file)
             copy_length = file.stat.size - 2
             begin
+              logger.debug "Correcting bad line ending in #{source_file_path}"
               tmp_file = ::Tempfile.new(file_name)
               File.copy_stream(file, tmp_file, copy_length, 0)
               tmp_file.write("\n")
-              File.open(tmp_file.path, file_mode) do |tmp_file_io|
+              File.open(tmp_file.path, 'r', encoding: encoding) do |tmp_file_io|
                 load_source_file_pg(read_from: tmp_file_io, klass: klass, original_file_path: source_file_path)
               end
             ensure
