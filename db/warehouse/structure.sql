@@ -4527,7 +4527,8 @@ CREATE TABLE public.cohorts (
     threshold_row_5 integer,
     threshold_color_5 character varying,
     threshold_label_5 character varying,
-    system_cohort boolean DEFAULT false
+    system_cohort boolean DEFAULT false,
+    type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying
 );
 
 
