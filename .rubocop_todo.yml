@@ -153,7 +153,6 @@ Layout/DotPosition:
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/health/patient.rb'
     - 'app/models/health/patient_referral.rb'
-    - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
 
 # Offense count: 6
@@ -418,7 +417,6 @@ Layout/EmptyLines:
     - 'app/models/role.rb'
     - 'app/models/talentlms/config.rb'
     - 'app/models/user.rb'
-    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
@@ -908,7 +906,6 @@ Layout/FirstHashElementIndentation:
     - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/role.rb'
-    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
     - 'drivers/claims_reporting/app/models/hl7/value_set_code.rb'
 
 # Offense count: 264
@@ -1076,7 +1073,6 @@ Layout/LeadingCommentSpace:
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'bin/containers/list'
     - 'bin/containers/ssh'
-    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 33
 # Cop supports --auto-correct.
@@ -1211,7 +1207,6 @@ Layout/SpaceAfterComma:
     - 'app/models/health/careplan.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/team/member.rb'
@@ -1438,7 +1433,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/health/patient_referral.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
-    - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
@@ -1573,7 +1567,6 @@ Layout/SpaceInLambdaLiteral:
     - 'app/models/health/patient_referral.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/status_date.rb'
     - 'app/models/message.rb'
     - 'app/models/nickname.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
@@ -1689,6 +1682,7 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/health/qualifying_activity.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
+    - 'app/models/health/signable_document.rb'
     - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
@@ -1936,7 +1930,6 @@ Layout/SpaceInsideParens:
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/similarity_metric/name_data_quality.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
-    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 4
 # Cop supports --auto-correct.
@@ -2153,7 +2146,6 @@ Lint/ShadowingOuterLocalVariable:
     - 'app/models/health/claim.rb'
     - 'app/models/health/patient.rb'
     - 'app/models/health/premium_payment.rb'
-    - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/importers/hmis_six_one_one/base.rb'
     - 'app/models/importers/hmis_twenty_twenty/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
@@ -2191,7 +2183,6 @@ Lint/UnreachableCode:
 # IgnoredPatterns: (?-mix:(exactly|at_least|at_most)\(\d+\)\.times)
 Lint/UnreachableLoop:
   Exclude:
-    - 'app/models/health/tasks/import_epic.rb'
 
 # Offense count: 93
 # Cop supports --auto-correct.
@@ -2302,7 +2293,6 @@ Lint/UnusedMethodArgument:
     - 'app/models/health/patient.rb'
     - 'app/models/health/problem.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/vaccination.rb'
     - 'app/models/health/visit.rb'
     - 'app/models/report.rb'
@@ -2311,7 +2301,6 @@ Lint/UnusedMethodArgument:
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
     - 'app/models/similarity_metric/base.rb'
     - 'app/models/user_role.rb'
-    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/affiliation.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/client.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/export.rb'
@@ -2578,7 +2567,6 @@ Security/YAMLLoad:
   Exclude:
     - 'app/models/application_record.rb'
     - 'app/models/grda_warehouse_base.rb'
-    - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health_base.rb'
@@ -2645,7 +2633,6 @@ Style/ColonMethodCall:
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/importers/hmis_six_one_one/sftp.rb'
@@ -2782,7 +2769,6 @@ Style/GuardClause:
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/talentlms/config.rb'
     - 'app/models/user.rb'
-    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 6
 # Cop supports --auto-correct.
@@ -3093,7 +3079,6 @@ Style/MutableConstant:
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/similarity_metric/social_security_number.rb'
-    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 20
 # Cop supports --auto-correct.
@@ -3109,6 +3094,7 @@ Style/NegatedIf:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/cha_saver.rb'
+    - 'app/models/health/signable_document.rb'
     - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
@@ -3652,8 +3638,6 @@ Style/StringLiterals:
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
     - 'app/models/health/ssm_export.rb'
-    - 'app/models/health/status_date.rb'
-    - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/team.rb'

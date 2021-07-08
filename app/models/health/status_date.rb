@@ -47,7 +47,6 @@ module Health
               enrolled: enrolled,
             }
           end
-          puts "FOUND DATES"
           self.class.transaction do
             self.class.where(patient_id: patient_id).delete_all
             self.class.import(dates)
