@@ -14,8 +14,12 @@ module CohortColumns
       'Client presented as an individual in the most recent enrollment'
     end
 
+    def renderer
+      'html'
+    end
+
     def value(cohort_client) # OK
-      cohort_client.individual
+      checkmark_or_x(cohort_client.individual)
     end
   end
 end
