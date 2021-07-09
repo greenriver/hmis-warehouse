@@ -8,7 +8,7 @@
 module HudPathReport::Generators::Fy2020
   class Base < ::HudReports::QuestionBase
     include ArelHelper
-    include CommonQueries
+    include HudPathReport::CommonQueries
     include HudReports::Incomes
 
     def initialize(generator = nil, report = nil, options: {})
