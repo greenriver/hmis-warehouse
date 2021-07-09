@@ -489,7 +489,7 @@ module GrdaWarehouse
 
     private def individual(client)
       most_recent_enrollment = client.service_history_enrollments.homeless.order(date: :desc).first
-      most_recent_enrollment.presented_as_individual
+      most_recent_enrollment&.presented_as_individual
     end
 
     private def related_users(client)
