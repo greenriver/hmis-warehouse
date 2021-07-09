@@ -37,6 +37,8 @@ class WorkoffArbiter
   # workoff job
   SPOT_CAPACITY_PROVIDER_NAME = 'spot-capacity-provider'.freeze
 
+  NOTIFICATION_THRESHOLD = 2
+
   def initialize
     self.class.include NotifierConfig
 
@@ -62,7 +64,8 @@ class WorkoffArbiter
     }
 
     ecs.run_task(payload)
-    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{_dj_scope.pluck(:id).count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).")
+    job_count = _dj_scope.pluck(:id).count
+    @notifier.ping("Added a workoff worker. Metric was #{metric.round} (#{job_count} jobs enqueued) with #{_current_worker_count} workers right now (this might include the just-created one).") if job_count > NOTIFICATION_THRESHOLD
   end
 
   private

@@ -15,21 +15,22 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
   def fetch(field_name:, real_value:)
     field_name = field_name.to_s # the JSONification turns these into strings
     return real_value unless fake_patterns[field_name.to_sym].present?
-    if fake_value = map.try(:[], field_name).try(:[], real_value)
-      return fake_value
-    else
-      fake_value = fake_patterns[field_name.to_sym].call(real_value)
-      add_fake_value(
-        field_name: field_name,
-        real_value: real_value,
-        fake_value: fake_value
-      )
-    end
-    return fake_value
+
+    fake_value = map.try(:[], field_name).try(:[], real_value)
+    return fake_value if fake_value
+
+    fake_value = fake_patterns[field_name.to_sym].call(real_value)
+    add_fake_value(
+      field_name: field_name,
+      real_value: real_value,
+      fake_value: fake_value,
+    )
+    fake_value
   end
 
   def add_fake_value(field_name:, real_value:, fake_value:)
     return unless real_value.present?
+
     field_name = field_name.to_s
     self[:map] ||= {}
     self[:map][field_name] ||= {}
@@ -38,9 +39,9 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
 
   def fake_patterns
     @fake_patterns ||= {
-      FirstName: ->(value) { fake_name(type: :first) },
-      LastName: ->(value) { fake_name(type: :last) },
-      SSN: ->(value) { fake_ssn(value).to_s[0,9] if value.present?},
+      FirstName: ->(_value) { fake_name(type: :first) },
+      LastName: ->(_value) { fake_name(type: :last) },
+      SSN: ->(value) { fake_ssn(value).to_s[0, 9] if value.present? },
       DOB: ->(value) {
         value = value&.to_date
         if value.present? && value.is_a?(Date)
@@ -52,7 +53,14 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       },
       PersonalID: ->(value) { Digest::MD5.hexdigest(value&.to_s) },
       UserID: ->(_value) { Faker::Internet.user_name(specifier: 5..8) },
-      CoCCode: ->(_value) { HUD.cocs.keys.sample },
+      CoCCode: ->(_value) do
+        rc = ENV['RELEVANT_COC_STATE']
+        if rc
+          HUD.cocs.keys.select { |c| c.starts_with?(rc) }.sample
+        else
+          HUD.cocs.keys.sample
+        end
+      end,
       ProjectName: ->(_value) { fake_location },
       ProjectCommonName: ->(_value) { fake_location },
       OrganizationName: ->(_value) { fake_location },
@@ -69,14 +77,14 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       LastPermanentCity: ->(_value) { Faker::Address.city },
       LastPermanentState: ->(_value) { Faker::Address.state_abbr },
       LastPermanentZIP: ->(_value) { Faker::Address.zip },
-      OtherDestination: ->(value) { if value.present? then Faker::Hipster.sentence(word_count: 3) else nil end },
-      OtherDisposition: ->(value) { if value.present? then Faker::Hipster.sentence(word_count: 2) else nil end },
-      OtherInsuranceIdentify: ->(value) { if value.present? then Faker::TvShows::TwinPeaks.location + ' Health' else nil end},
-      OtherIncomeSourceIdentify: ->(value) { if value.present? then Faker::TvShows::TwinPeaks.location else nil end },
-      OtherBenefitsSourceIdentify: ->(value) { if value.present? then Faker::TvShows::TwinPeaks.location else nil end },
-      OtherTypeProvided: ->(value) { if value.present? then Faker::TvShows::TwinPeaks.location else nil end },
-      Address1: ->(value) { if value.present? then Faker::Address.street_address else nil end },
-      Address2: ->(value) { if value.present? then Faker::Address.street_address else nil end },
+      OtherDestination: ->(value) { Faker::Hipster.sentence(word_count: 3) if value.present? },
+      OtherDisposition: ->(value) { Faker::Hipster.sentence(word_count: 2) if value.present? },
+      OtherInsuranceIdentify: ->(value) { Faker::TvShows::TwinPeaks.location + ' Health' if value.present? },
+      OtherIncomeSourceIdentify: ->(value) { Faker::TvShows::TwinPeaks.location if value.present? },
+      OtherBenefitsSourceIdentify: ->(value) { Faker::TvShows::TwinPeaks.location if value.present? },
+      OtherTypeProvided: ->(value) { Faker::TvShows::TwinPeaks.location if value.present? },
+      Address1: ->(value) { Faker::Address.street_address if value.present? },
+      Address2: ->(value) { Faker::Address.street_address if value.present? },
       UserFirstName: ->(_value) { fake_name(type: :first) },
       UserLastName: ->(_value) { fake_name(type: :last) },
       UserEmail: ->(_value) { Faker::Internet.safe_email },
@@ -104,13 +112,12 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       # make a different, but also fake, SSN
       v = value
       @randos ||= [
-        *(1..10).map{ -> { rand(0..9).to_s * rand(3..9) } },  # mostly of this sort (why not)
-        *(1..5).map{ -> { '123456789'[0...rand(4..9)] } },    # then a lot of these
-        -> {'078051120'}                                      # and one of these
+        *(1..10).map { -> { rand(0..9).to_s * rand(3..9) } },  # mostly of this sort (why not)
+        *(1..5).map { -> { '123456789'[0...rand(4..9)] } },    # then a lot of these
+        -> { '078051120' },                                     # and one of these
       ]
-      while v == value
-        v = @randos.sample.()
-      end
+
+      v = @randos.sample.call while v == value
       v
     else
       Faker::Number.number(digits: 9)
