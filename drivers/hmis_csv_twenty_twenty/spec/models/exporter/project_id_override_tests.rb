@@ -77,5 +77,5 @@ RSpec.shared_context '2020 project id override tests', shared_context: :metadata
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context '2020 coc code override tests', include_shared: true
+  rspec.include_context '2020 project id override tests', include_shared: true
 end
