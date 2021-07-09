@@ -4433,7 +4433,8 @@ CREATE TABLE public.cohort_clients (
     user_boolean_28 boolean,
     user_boolean_29 boolean,
     user_boolean_30 boolean,
-    date_added_to_cohort date
+    date_added_to_cohort date,
+    individual boolean
 );
 
 
@@ -30689,6 +30690,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210702143811'),
 ('20210702144442'),
 ('20210707190613'),
-('20210707193633');
+('20210707193633'),
+('20210708192452');
 
 

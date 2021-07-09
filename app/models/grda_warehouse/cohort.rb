@@ -29,8 +29,13 @@ module GrdaWarehouse
     attr_accessor :client_ids, :user_ids
 
     scope :active, -> do
+      where(active_cohort: true)
+    end
+
+    scope :active_user, -> do
       where(active_cohort: true, system_cohort: false)
     end
+
     scope :inactive, -> do
       where(active_cohort: false, system_cohort: false)
     end
@@ -232,6 +237,7 @@ module GrdaWarehouse
         ::CohortColumns::HousedDate.new,
         ::CohortColumns::Destination.new,
         ::CohortColumns::SubPopulation.new,
+        ::CohortColumns::Individual.new,
         ::CohortColumns::StFrancisHouse.new,
         ::CohortColumns::LastGroupReviewDate.new,
         ::CohortColumns::LastDateApproached.new,
@@ -446,6 +452,7 @@ module GrdaWarehouse
           disability_verification_date: disability_verification_date(cc.client),
           missing_documents: missing_documents(cc.client),
           days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
+          individual: individual(cc.client),
         }
         cc.update(data)
       end
@@ -478,6 +485,11 @@ module GrdaWarehouse
         pluck(:ExitDate, :Destination).map do |exit_date, destination|
           "#{exit_date} to #{HUD.destination(destination)}"
         end.join('; ')
+    end
+
+    private def individual(client)
+      most_recent_enrollment = client.service_history_enrollments.homeless.order(date: :desc).first
+      most_recent_enrollment.presented_as_individual
     end
 
     private def related_users(client)
