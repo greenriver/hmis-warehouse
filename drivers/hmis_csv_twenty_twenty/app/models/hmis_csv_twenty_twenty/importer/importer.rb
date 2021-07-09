@@ -553,11 +553,13 @@ module HmisCsvTwentyTwenty::Importer
         and #{warehouse_table_name}.source_hash = #{klass.quoted_table_name}.source_hash
       SQL
 
-      unchanged_count = klass.existing_destination_data(
+      unchanged_count = klass.involved_warehouse_scope(
         data_source_id: data_source.id,
         project_ids: involved_project_ids,
         date_range: date_range,
-      ).joins(join_warehouse_and_import).
+      ).
+        with_deleted.
+        joins(join_warehouse_and_import).
         where(klass.arel_table[:importer_log_id].eq(importer_log.id)).
         count
       note_processed(file_name, unchanged_count, 'unchanged')
