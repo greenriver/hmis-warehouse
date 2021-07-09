@@ -78,7 +78,7 @@ namespace :reports do
       'Reports::SystemPerformance::Fy2019::MeasureSix',
       'Reports::SystemPerformance::Fy2019::MeasureSeven',
     ]
-    if Date.current > '2021-07s-01'.to_date || Rails.env.development? || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
+    if Date.current > '2021-07-01'.to_date || Rails.env.development? || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
       removed += spm_2019
     end
     Report.where(type: removed).update_all(enabled: false)
