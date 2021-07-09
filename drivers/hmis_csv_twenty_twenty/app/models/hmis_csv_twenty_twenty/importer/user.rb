@@ -14,7 +14,7 @@ module HmisCsvTwentyTwenty::Importer
 
     has_one :destination_record, **hud_assoc(:UserID, 'User')
 
-    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
+    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
       warehouse_class.where(data_source_id: data_source_id)
     end
 
@@ -23,7 +23,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     # Don't ever mark these for deletion
-    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
+    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:)
     end
 
     def self.hmis_validations

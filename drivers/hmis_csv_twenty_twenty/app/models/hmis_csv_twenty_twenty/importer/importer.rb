@@ -330,6 +330,7 @@ module HmisCsvTwentyTwenty::Importer
           project_ids: involved_project_ids,
           date_range: date_range,
           pending_date_deleted: Date.current,
+          importer_log_id: @importer_log.id,
         )
       end
     end
@@ -543,24 +544,23 @@ module HmisCsvTwentyTwenty::Importer
       # We always bring over Exports
       return if klass.hud_key == :ExportID
 
-      existing = klass.existing_destination_data(
+      warehouse_table_name = klass.warehouse_class.quoted_table_name
+      import_table_name = klass.quoted_table_name
+      join_warehouse_and_import = <<-SQL.squish
+        inner join #{klass.quoted_table_name}
+        on #{warehouse_table_name}.data_source_id = #{klass.quoted_table_name}.data_source_id
+        and #{warehouse_table_name}.#{klass.connection.quote_column_name(klass.hud_key)} = #{import_table_name}.#{klass.connection.quote_column_name(klass.hud_key)}
+        and #{warehouse_table_name}.source_hash = #{klass.quoted_table_name}.source_hash
+      SQL
+
+      unchanged_count = klass.existing_destination_data(
         data_source_id: data_source.id,
         project_ids: involved_project_ids,
         date_range: date_range,
-      ).where.not(DateUpdated: nil). # A bad import can sometimes cause this
-        pluck(klass.hud_key, :source_hash)
-      incoming = klass.should_import.where(importer_log_id: @importer_log.id).
-        pluck(klass.hud_key, :source_hash)
-      unchanged = (existing & incoming).map(&:first)
-      unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
-        query = klass.warehouse_class.where(
-          data_source_id: data_source.id,
-          klass.hud_key => batch,
-        )
-        query = query.with_deleted if klass.warehouse_class.paranoid?
-        query.update_all(pending_date_deleted: nil)
-        note_processed(file_name, batch.count, 'unchanged')
-      end
+      ).joins(join_warehouse_and_import).
+        where(klass.arel_table[:importer_log_id].eq(importer_log.id)).
+        count
+      note_processed(file_name, unchanged_count, 'unchanged')
     end
 
     # Having already excluded unchanged records, compare DateUpdated,

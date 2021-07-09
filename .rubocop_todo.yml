@@ -2307,14 +2307,11 @@ Lint/UnusedMethodArgument:
     - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/affiliation.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/client.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/export.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/funder.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/import_concern.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/inventory.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/organization.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/project.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/project_coc.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/user.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.

@@ -42,7 +42,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     # Override as necessary
-    def self.clean_row_for_import(row, deidentified:)
+    def self.clean_row_for_import(row, deidentified:) # rubocop:disable Lint/UnusedMethodArgument
       row
     end
 
@@ -97,13 +97,30 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     # Override as necessary
-    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
+    # TODO: don't mark any unchanged as dead
+    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:)
       involved_warehouse_scope(
         data_source_id: data_source_id,
         project_ids: project_ids,
         date_range: date_range,
       ).with_deleted.
+        joins(Arel.sql(left_join_non_matching_import_to_warehouse_sql)).
+        where(
+          arel_table[:importer_log_id].eq(importer_log_id).
+            or(arel_table[:importer_log_id].eq(nil)),
+        ).
         update_all(pending_date_deleted: pending_date_deleted)
+    end
+
+    def self.left_join_non_matching_import_to_warehouse_sql
+      warehouse_table_name = warehouse_class.quoted_table_name
+      import_table_name = quoted_table_name
+      <<-SQL.squish
+        left outer join #{import_table_name}
+        on #{warehouse_table_name}.data_source_id = #{import_table_name}.data_source_id
+        and #{warehouse_table_name}.#{connection.quote_column_name(hud_key)} = #{import_table_name}.#{connection.quote_column_name(hud_key)}
+        and #{warehouse_table_name}.source_hash != #{import_table_name}.source_hash
+      SQL
     end
 
     def self.new_data(data_source_id:, project_ids:, date_range:, importer_log_id:)
