@@ -24,8 +24,8 @@
   .card.warehouse-reports__user-permission
     %table.table.table-striped
       %thead
-        %th Name
-        %th Email
+        %th User
+        %th
         %th Roles
         %th Access Groups
         - @group_associations.keys.each do |ga|
@@ -36,10 +36,10 @@
             %td
               = link_to_if can_edit_users?, user.name, edit_admin_user_path(user)
               %br
+              = user.email
+            %td
               = link_to user_permission_report_warehouse_reports_user_path(user), data: {loads_in_pjax_modal: true}, class: 'btn btn-xs btn-primary btn-muted btn-hmis' do
                 View Details
-            %td
-              = user.email
             %td
               - if user.roles.count == Role.count
                 All Roles
