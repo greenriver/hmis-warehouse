@@ -165,8 +165,8 @@ module HmisCsvTwentyTwenty::Loader
         next unless File.file?(source_file_path)
 
         encoding = AutoEncodingCsv.detect_encoding(source_file_path)
-
         File.open(source_file_path, 'r', encoding: encoding) do |file|
+
           if bad_line_endings?(file)
             copy_length = file.stat.size - 2
             begin

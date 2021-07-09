@@ -1,0 +1,32 @@
+- content_for :modal_title, "Full Permissions for #{@user.name}"
+
+.warehouse-reports__user-permission__profile
+  .mb-4
+    %h2 Roles
+    .warehouse-reports__user-permission__profile-roles
+      - if @user.roles.any?
+        %ul
+        - @user.roles.pluck(:name).each do |name|
+          %li= name
+      - else
+        No Roles
+  .mb-4
+    %h2 Access Groups
+    .warehouse-reports__user-permission__profile-access-groups
+      - if @user.access_groups.general.any?
+        %ul
+          - @user.access_groups.general.pluck(:name).each do |name|
+            %li= name
+      - else
+        No Access Groups
+  - @group_associations.keys.each do |key|
+    .mb-4
+      %h2= key.to_s.humanize.titleize 
+      .warehouse-reports__user-permission__profile-association
+        - associated_items = @user.access_groups.map { |ag| ag.public_send(key) }.flatten.uniq.map(&:name)
+        - if associated_items.any?
+          %ul
+            - associated_items.each do |item|
+              %li= item
+        - else
+          = "No #{key.to_s.humanize.titleize}"
