@@ -29,6 +29,7 @@ module HudPathReport::Generators::Fy2020
           next unless enrollment.present?
 
           source_client = enrollment.client
+          next unless source_client
 
           max_disability_date = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }.
             map(&:InformationDate).max
