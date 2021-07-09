@@ -289,6 +289,9 @@ module HmisCsvTwentyTwenty::Importer
       # Add Export row
       log_timing :add_export_row
 
+      # Count any records that are unchanged
+      log_timing :note_unchanged
+
       # Add any records we don't have
       log_timing :add_new_data
 
@@ -416,10 +419,15 @@ module HmisCsvTwentyTwenty::Importer
       ]
     end
 
+    def note_unchanged
+      importable_files.each do |file_name, klass|
+        mark_unchanged(klass, file_name)
+      end
+    end
+
     def process_existing
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
-        mark_unchanged(klass, file_name)
         mark_incoming_older(klass, file_name)
         apply_updates(klass, file_name)
       end
