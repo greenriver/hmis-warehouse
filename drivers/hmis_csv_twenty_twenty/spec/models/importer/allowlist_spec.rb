@@ -21,7 +21,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
         version: 'AutoDetect',
         data_source: @data_source,
         run_jobs: false,
-        allowed_projects: true
+        allowed_projects: true,
       )
     end
 
@@ -44,12 +44,16 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
           version: 'AutoDetect',
           data_source: @data_source,
           run_jobs: false,
-          allowed_projects: true
+          allowed_projects: true,
         )
       end
 
       it 'it doesn\'t add additional clients' do
         expect(GrdaWarehouse::Hud::Client.source.count).to eq(2)
+      end
+
+      it 'the database will not include third client' do
+        expect(GrdaWarehouse::Hud::Client.source.pluck(:PersonalID)).not_to include('C-3')
       end
     end
   end # end describe enrollments
