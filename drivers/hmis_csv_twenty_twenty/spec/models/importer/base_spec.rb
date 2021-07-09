@@ -11,13 +11,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      @delete_later = []
-      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
     end
 
     it 'can import files with bom|UTF-8 encoding' do
       file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bom_test'
-      import(file_path, @data_source)
+      import_hmis_csv_fixture(file_path, version: '2020', run_jobs: false)
     end
 
     it 'can import files with bad line endings' do
@@ -25,18 +23,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       # the files in this import have a incorrect (but seen in the wild) "\r\n" as
       # part of their final line while most lines end in "\n"
       file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_ending'
-      import(file_path, @data_source)
+      import_hmis_csv_fixture(file_path, version: '2020', run_jobs: false)
 
       # icky -- testing for side effects
       expect(Rails.logger).to have_received(:debug).with(/Correcting bad line ending.*Export.csv/)
       expect(Rails.logger).to have_received(:debug).with(/Correcting bad line ending.*Project.csv/)
-    end
-
-    after(:all) do
-      # Because we are only running the import once, we have to do our own DB and file cleanup
-      HmisCsvTwentyTwenty::Utility.clear!
-      GrdaWarehouse::Utility.clear!
-      cleanup_files
     end
   end
 
@@ -286,13 +277,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      @data_source = GrdaWarehouse::DataSource.where(name: 'Green River', short_name: 'GR', source_type: :sftp).first_or_create
 
       import_hmis_csv_fixture(
         'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_test_with_restores_initial_files',
         version: '2020',
-        data_source: @data_source,
-        run_jobs: false
+        run_jobs: false,
       )
     end
 
@@ -331,9 +320,8 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       before(:all) do
         import_hmis_csv_fixture(
           'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_test_with_restores_update_files',
-          data_source: @data_source,
           version: '2020',
-          run_jobs: false
+          run_jobs: false,
         )
       end
 
@@ -346,7 +334,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       end
 
       it 'has two clients' do
-        expect(GrdaWarehouse::Hud::Client.count).to eq(2)
+        expect(GrdaWarehouse::Hud::Client.source.count).to eq(2)
       end
 
       it 'has no deleted clients' do

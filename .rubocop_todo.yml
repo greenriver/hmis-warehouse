@@ -1044,7 +1044,6 @@ Layout/IndentationWidth:
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
-    - 'drivers/hmis_csv_twenty_twenty/spec/models/hmis_auto_detect_spec.rb'
 
 # Offense count: 62
 # Cop supports --auto-correct.
@@ -3850,7 +3849,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/reports/system_performance/fy2019/base.rb'
     - 'app/models/similarity_metric/base.rb'
     - 'app/models/user_role.rb'
-    - 'drivers/hmis_csv_twenty_twenty/spec/models/hmis_auto_detect_spec.rb'
 
 # Offense count: 97
 # Cop supports --auto-correct.
@@ -3895,7 +3893,6 @@ Style/TrailingCommaInArrayLiteral:
     - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
     - 'app/models/reporting/monthly_reports/base.rb'
-    - 'drivers/hmis_csv_twenty_twenty/spec/models/hmis_auto_detect_spec.rb'
 
 # Offense count: 296
 # Cop supports --auto-correct.

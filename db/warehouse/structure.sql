@@ -5147,7 +5147,8 @@ CREATE TABLE public.exports (
     content_type character varying,
     content bytea,
     file character varying,
-    delayed_job_id integer
+    delayed_job_id integer,
+    version character varying
 );
 
 
@@ -10922,9 +10923,7 @@ CREATE TABLE public.performance_metrics_clients (
     prior_period_spm_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    first_name character varying,
-    last_name character varying
+    deleted_at timestamp without time zone
 );
 
 
@@ -30769,8 +30768,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623184626'),
 ('20210623184729'),
 ('20210623195645'),
+('20210625231326'),
 ('20210702143811'),
-('20210702144442'),
-('20210707122337');
+('20210702144442');
 
 
