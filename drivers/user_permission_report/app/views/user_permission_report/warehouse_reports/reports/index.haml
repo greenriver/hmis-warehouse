@@ -11,6 +11,7 @@
         = render 'search_form', tooltip: 'Search on a user\'s first name, last name or email address', aria: { label: 'User Search' }, data: {placement: 'bottom'}
 
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
+      %i.icon-file-excel.icon-lg
       Download Excel
 
 .row
