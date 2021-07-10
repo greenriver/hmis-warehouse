@@ -1,0 +1,19 @@
+class AddSourceHashIndexesToHmisTables < ActiveRecord::Migration[5.2]
+  def change
+    HmisCsvTwentyTwenty::Importer::Importer.importable_files.each do |_, source_klass|
+      next if source_klass.hud_key == :ExportID
+
+      klass = source_klass
+      table_name = klass.table_name
+      columns = [:source_hash, klass.hud_key, :data_source_id]
+      name = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + Digest::MD5.hexdigest(columns.to_s)[0..5]
+      add_index klass.table_name, columns, name: name
+
+      klass = source_klass.warehouse_class
+      table_name = klass.table_name
+      columns = [:source_hash, klass.hud_key, :data_source_id]
+      name = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + Digest::MD5.hexdigest(columns.to_s)[0..5]
+      add_index klass.table_name, columns, name: name
+    end
+  end
+end
