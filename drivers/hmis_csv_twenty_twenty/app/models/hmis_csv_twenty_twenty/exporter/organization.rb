@@ -6,8 +6,8 @@
 
 module HmisCsvTwentyTwenty::Exporter
   class Organization < GrdaWarehouse::Import::HmisTwentyTwenty::Organization
-    include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2020') )
+    include ::HmisCsvTwentyTwenty::Exporter::Shared
+    setup_hud_column_access(GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2020'))
 
     self.hud_key = :OrganizationID
 
@@ -23,18 +23,18 @@ module HmisCsvTwentyTwenty::Exporter
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
     def project_exits_for_organization project_scope
       project_scope.where(
         p_t[:OrganizationID].eq(self.class.arel_table[:OrganizationID]).
-        and(p_t[:data_source_id].eq(self.class.arel_table[:data_source_id]))
+        and(p_t[:data_source_id].eq(self.class.arel_table[:data_source_id])),
       ).arel.exists
     end
 
-    def apply_overrides row, data_source_id:
+    def apply_overrides row, data_source_id: # rubocop:disable Lint/UnusedMethodArgument
       row[:VictimServicesProvider] = 99 if row[:VictimServicesProvider].blank?
 
       return row

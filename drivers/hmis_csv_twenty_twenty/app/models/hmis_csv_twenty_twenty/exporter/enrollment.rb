@@ -6,8 +6,8 @@
 
 module HmisCsvTwentyTwenty::Exporter
   class Enrollment < GrdaWarehouse::Import::HmisTwentyTwenty::Enrollment
-    include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '2020') )
+    include ::HmisCsvTwentyTwenty::Exporter::Shared
+    setup_hud_column_access(GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '2020'))
 
     self.hud_key = :EnrollmentID
 
@@ -16,7 +16,7 @@ module HmisCsvTwentyTwenty::Exporter
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments
 
-    def export! enrollment_scope:, project_scope:, path:, export:
+    def export! enrollment_scope:, project_scope:, path:, export: # rubocop:disable Lint/UnusedMethodArgument
       case export.period_type
       when 3
         export_scope = enrollment_scope
@@ -28,7 +28,7 @@ module HmisCsvTwentyTwenty::Exporter
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
@@ -54,11 +54,8 @@ module HmisCsvTwentyTwenty::Exporter
       # is the EntryDate if we don't have a MoveInDate.
       # Usually we won't have a MoveInDate because it isn't required
       # if the project type isn't PH
-      if project_type_overridden_to_psh?(row[:ProjectID], data_source_id)
-        row[:MoveInDate] = row[:MoveInDate].presence || row[:EntryDate]
-      end
+      row[:MoveInDate] = row[:MoveInDate].presence || row[:EntryDate] if project_type_overridden_to_psh?(row[:ProjectID], data_source_id)
       return row
     end
-
   end
 end

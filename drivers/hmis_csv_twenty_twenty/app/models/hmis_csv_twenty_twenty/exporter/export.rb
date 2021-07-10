@@ -6,10 +6,10 @@
 
 module HmisCsvTwentyTwenty::Exporter
   class Export < GrdaWarehouse::Import::HmisTwentyTwenty::Export
-    include ::Export::HmisTwentyTwenty::Shared
+    include ::HmisCsvTwentyTwenty::Exporter::Shared
     attr_accessor :path
     self.hud_key = :ExportID
-    setup_hud_column_access( GrdaWarehouse::Hud::Export.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Export.hud_csv_headers(version: '2020'))
 
     def initialize(path:)
       super
@@ -19,10 +19,9 @@ module HmisCsvTwentyTwenty::Exporter
     def export!
       export_path = File.join(@path, self.class.file_name)
       CSV.open(export_path, 'wb') do |csv|
-        csv << self.hud_csv_headers
-        csv << self.attributes.slice(*hud_csv_headers.map(&:to_s)).values
+        csv << hud_csv_headers
+        csv << attributes.slice(*hud_csv_headers.map(&:to_s)).values
       end
     end
-
   end
 end
