@@ -24,6 +24,7 @@ RSpec.shared_context '2020 coc code override setup', shared_context: :metadata d
   let!(:enrollments) do
     create_list(:hud_enrollment, 5, data_source_id: data_source.id, EntryDate: 2.weeks.ago) do |enrollment, i|
       enrollment.PersonalID = clients[i].PersonalID
+      enrollment.ProjectID = projects[i].ProjectID
     end
   end
   let!(:enrollment_cocs) do
