@@ -21,7 +21,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureOne, type: :m
   describe 'measure one example' do
     before(:all) do
       GrdaWarehouse::Utility.clear!
-      import_hmis_csv_fixture 'spec/fixtures/files/system_performance/measure_one'
+      import_hmis_csv_fixture('spec/fixtures/files/system_performance/measure_one')
     end
 
     after(:all) do
@@ -60,7 +60,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureOne, type: :m
 
   describe 'measure one additional tests' do
     before(:all) do
-      import_hmis_csv_fixture 'spec/fixtures/files/system_performance/measure_one_additional'
+      import_hmis_csv_fixture('spec/fixtures/files/system_performance/measure_one_additional')
     end
 
     after(:all) do

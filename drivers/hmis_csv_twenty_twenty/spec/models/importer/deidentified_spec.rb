@@ -17,7 +17,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
         data_source: @data_source,
         version: '2020',
         deidentified: true,
-        run_jobs: false
+        run_jobs: false,
       )
     end
 
@@ -52,7 +52,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
           data_source: @data_source,
           version: '2020',
           deidentified: true,
-          run_jobs: false
+          run_jobs: false,
         )
       end
 

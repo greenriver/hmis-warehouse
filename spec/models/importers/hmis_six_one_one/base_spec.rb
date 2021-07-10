@@ -4,7 +4,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
   describe 'When importing enrollments' do
     before(:all) do
       GrdaWarehouse::Utility.clear!
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_files', version: '6.11', run_jobs: false
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_files',
+        version: '6.11',
+        run_jobs: false,
+      )
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -52,7 +56,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
     describe 'when importing updated enrollment data' do
       before(:all) do
-        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_change_files', version: '6.11', run_jobs: false
+        import_hmis_csv_fixture(
+          'spec/fixtures/files/importers/hmis_six_on_one/enrollment_change_files',
+          version: '6.11',
+          run_jobs: false,
+        )
       end
       after(:all) do
         cleanup_hmis_csv_fixtures
@@ -72,7 +80,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
   describe 'When importing enrollments with deletes' do
     before(:all) do
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_with_deletes_test_files', version: '6.11', run_jobs: false
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_six_on_one/enrollment_with_deletes_test_files',
+        version: '6.11',
+        run_jobs: false,
+      )
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -150,7 +162,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
   describe 'When importing projects' do
     before(:all) do
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_test_files', version: '6.11', run_jobs: false
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_six_on_one/project_test_files',
+        version: '6.11',
+        run_jobs: false,
+      )
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -206,8 +222,16 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
   describe 'When importing enrollments with restores' do
     before(:all) do
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_initial_files', version: '6.11', run_jobs: false
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_update_files', version: '6.11', run_jobs: false
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_initial_files',
+        version: '6.11',
+        run_jobs: false,
+      )
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_update_files',
+        version: '6.11',
+        run_jobs: false,
+      )
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -244,7 +268,12 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
     describe 'with both projects' do
       before(:all) do
-        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_both_projects_files', data_source: @data_source, version: '6.11', run_jobs: false
+        import_hmis_csv_fixture(
+          'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_both_projects_files',
+          data_source: @data_source,
+          version: '6.11',
+          run_jobs: false,
+        )
       end
       after(:all) do
         cleanup_hmis_csv_fixtures
@@ -270,7 +299,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
     describe 'with project 1' do
       before(:all) do
-        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files', version: '6.11', run_jobs: false
+        import_hmis_csv_fixture(
+          'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files',
+          version: '6.11',
+          run_jobs: false,
+        )
       end
       after(:all) do
         cleanup_hmis_csv_fixtures
@@ -310,7 +343,12 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
     describe 'with project 1' do
       before do
-        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files', data_source: @data_source, version: '6.11', run_jobs: false
+        import_hmis_csv_fixture(
+          'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files',
+          data_source: @data_source,
+          version: '6.11',
+          run_jobs: false,
+        )
       end
       after do
         cleanup_hmis_csv_fixtures
@@ -337,7 +375,12 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
     describe 'with project 1' do
       before do
-        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files', data_source: @data_source, version: '6.11', run_jobs: false
+        import_hmis_csv_fixture(
+          'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files',
+          data_source: @data_source,
+          version: '6.11',
+          run_jobs: false,
+        )
       end
       after do
         cleanup_hmis_csv_fixtures

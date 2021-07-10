@@ -336,7 +336,6 @@ Layout/EmptyLines:
     - 'app/models/grda_warehouse/cohort.rb'
     - 'app/models/grda_warehouse/confidence/base.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/disability.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/enrollment_coc.rb'
@@ -1190,7 +1189,6 @@ Layout/SpaceAfterColon:
 Layout/SpaceAfterComma:
   Exclude:
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/fake_data.rb'
     - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/hud/disability.rb'
@@ -2476,7 +2474,6 @@ Naming/MethodName:
 # AllowedNames: at, by, db, id, in, io, ip, of, on, os, pp, to
 Naming/MethodParameterName:
   Exclude:
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
@@ -2513,7 +2510,6 @@ Naming/PredicateName:
   Exclude:
     - 'spec/**/*'
     - 'app/models/grda_warehouse/cohort.rb'
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
@@ -2718,7 +2714,6 @@ Style/GuardClause:
     - 'app/models/grda_warehouse/cohort_client_change.rb'
     - 'app/models/grda_warehouse/combined_cohort_client_change.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/fake_data.rb'
     - 'app/models/grda_warehouse/hmis/staff.rb'
     - 'app/models/grda_warehouse/hud/client.rb'
@@ -2830,7 +2825,6 @@ Style/IfUnlessModifier:
     - 'app/models/grda_warehouse/cohort_client_change.rb'
     - 'app/models/grda_warehouse/combined_cohort_client_change.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/enrollment.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/enrollment.rb'
@@ -3550,7 +3544,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/config.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/individual.rb'
     - 'app/models/grda_warehouse/dashboard_export_report.rb'
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
     - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
@@ -3721,7 +3714,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/confidence/days_homeless.rb'
     - 'app/models/grda_warehouse/confidence/source_enrollments.rb'
     - 'app/models/grda_warehouse/confidence/source_exits.rb'
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/enrollment.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/exit.rb'

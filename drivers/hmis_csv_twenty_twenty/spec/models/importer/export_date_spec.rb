@@ -18,7 +18,7 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
         'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/export_date_fixtures/date_updated_initial',
         version: '2020',
         data_source: @data_source,
-        run_jobs: false
+        run_jobs: false,
       )
     end
 
@@ -34,7 +34,7 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
           'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/export_date_fixtures/date_updated_older',
           version: '2020',
           data_source: @data_source,
-          run_jobs: false
+          run_jobs: false,
         )
       end
 
@@ -51,7 +51,7 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
           'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/export_date_fixtures/date_updated_same_day',
           version: '2020',
           data_source: @data_source,
-          run_jobs: false
+          run_jobs: false,
         )
       end
 
@@ -68,7 +68,7 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
           'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/export_date_fixtures/date_updated_newer',
           version: '2020',
           data_source: @data_source,
-          run_jobs: false
+          run_jobs: false,
         )
       end
 
