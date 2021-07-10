@@ -23,7 +23,8 @@ RSpec.shared_context '2020 coc code override setup', shared_context: :metadata d
   let!(:inventories) { create_list :hud_inventory, 5, CoCCode: 'XX-501', data_source_id: data_source.id }
   let!(:enrollments) do
     create_list(:hud_enrollment, 5, data_source_id: data_source.id, EntryDate: 2.weeks.ago) do |enrollment, i|
-      enrollment.PersonalID = clients[i].PersonalID
+      c_ids = GrdaWarehouse::Hud::Client.source.pluck(:id)
+      enrollment.PersonalID = c_ids[i]
       enrollment.ProjectID = projects[i].ProjectID
     end
   end
