@@ -164,4 +164,5 @@ jobs:
           WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
         run: |
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
-          bundle exec rspec --color --format p -P "{spec,drivers}/**/*_spec.rb"
+          # NOTE: putting drivers first because of some factory bot drift
+          bundle exec rspec --color --format p -P "{drivers,spec}/**/*_spec.rb"
