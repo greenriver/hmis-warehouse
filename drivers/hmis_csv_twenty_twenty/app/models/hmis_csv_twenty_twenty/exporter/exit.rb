@@ -6,18 +6,17 @@
 
 module HmisCsvTwentyTwenty::Exporter
   class Exit < GrdaWarehouse::Import::HmisTwentyTwenty::Exit
-    include ::Export::HmisTwentyTwenty::Shared
+    include ::HmisCsvTwentyTwenty::Exporter::Shared
 
-    setup_hud_column_access( GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '2020'))
 
     self.hud_key = :ExitID
 
-     # Setup an association to enrollment that allows us to pull the records even if the
+    # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
 
-
-    def export! enrollment_scope:, project_scope:, path:, export:
+    def export! enrollment_scope:, project_scope:, path:, export: # rubocop:disable Lint/UnusedMethodArgument
       case export.period_type
       when 3
         export_scope = self.class.where(id: enrollment_scope.select(ex_t[:id]))
@@ -28,9 +27,9 @@ module HmisCsvTwentyTwenty::Exporter
       end
 
       if export.include_deleted || export.period_type == 1
-        join_tables = {enrollment_with_deleted: [{client_with_deleted: :warehouse_client_source}]}
+        join_tables = { enrollment_with_deleted: [{ client_with_deleted: :warehouse_client_source }] }
       else
-        join_tables = {enrollment: [:project, {client: :warehouse_client_source}]}
+        join_tables = { enrollment: [:project, { client: :warehouse_client_source }] }
       end
 
       if columns_to_pluck.include?(:ProjectID)
@@ -47,11 +46,11 @@ module HmisCsvTwentyTwenty::Exporter
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
-    def apply_overrides row, data_source_id:
+    def apply_overrides row, data_source_id: # rubocop:disable Lint/UnusedMethodArgument
       row[:Destination] = 99 if row[:Destination].blank?
       row[:OtherDestination] = row[:OtherDestination][0..49] if row[:OtherDestination].present?
 
@@ -68,7 +67,7 @@ module HmisCsvTwentyTwenty::Exporter
           ORDER BY #{ex_t[:DateUpdated].desc.to_sql}
         ) as row_number
       SQL
-      ids = export_scope.pluck(:id, Arel.sql(window)).select{|_, row_number| row_number == 1}.map(&:first)
+      export_scope.pluck(:id, Arel.sql(window)).select { |_, row_number| row_number == 1 }.map(&:first)
     end
   end
 end

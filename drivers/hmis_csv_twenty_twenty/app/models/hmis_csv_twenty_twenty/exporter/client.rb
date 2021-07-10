@@ -6,15 +6,14 @@
 
 module HmisCsvTwentyTwenty::Exporter
   class Client < GrdaWarehouse::Import::HmisTwentyTwenty::Client
-    include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::Client.hud_csv_headers(version: '2020') )
+    include ::HmisCsvTwentyTwenty::Exporter::Shared
+    setup_hud_column_access(GrdaWarehouse::Hud::Client.hud_csv_headers(version: '2020'))
 
     self.hud_key = :PersonalID
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
     has_many :enrollments_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:PersonalID, :data_source_id], foreign_key: [:PersonalID, :data_source_id]
-
 
     def export! client_scope:, path:, export:
       case export.period_type
@@ -28,11 +27,11 @@ module HmisCsvTwentyTwenty::Exporter
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
-    def apply_overrides row, data_source_id:
+    def apply_overrides row, data_source_id: # rubocop:disable Lint/UnusedMethodArgument
       row[:FirstName] = row[:FirstName][0...50] if row[:FirstName]
       row[:MiddleName] = row[:MiddleName][0...50] if row[:MiddleName]
       row[:LastName] = row[:LastName][0...50] if row[:LastName]
@@ -50,14 +49,14 @@ module HmisCsvTwentyTwenty::Exporter
     def post_process_export_file export_path
       dirty_clients = CSV.read(export_path, headers: true)
       clean_clients = []
-      dirty_clients.group_by{|row| row['PersonalID']}.each do |_, source_clients|
+      dirty_clients.group_by { |row| row['PersonalID'] }.each do |_, source_clients|
         # If there's only one of this client, we'll use it
         if source_clients.count == 1
           clean_clients << source_clients.first
         else
           # sort with newest on-top
           # loop through, replacing only if the particular value is better
-          source_clients.sort_by!{|row| row['DateUpdated']}.reverse!
+          source_clients.sort_by! { |row| row['DateUpdated'] }.reverse!
           clean_client = source_clients.first
           source_clients.drop(1).each do |row|
             # Name
@@ -82,11 +81,11 @@ module HmisCsvTwentyTwenty::Exporter
           clean_clients << clean_client
         end
       end
-      CSV.open(export_path, 'wb', {force_quotes: true}) do |csv|
-        return unless clean_clients.any?
+      CSV.open(export_path, 'wb', { force_quotes: true }) do |csv|
+        break unless clean_clients.any?
 
         csv << clean_clients.first.headers
-        clean_clients.each{|row| csv << row}
+        clean_clients.each { |row| csv << row }
       end
     end
   end
