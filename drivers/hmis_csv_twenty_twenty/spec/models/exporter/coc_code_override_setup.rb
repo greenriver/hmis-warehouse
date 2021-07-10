@@ -1,4 +1,5 @@
 RSpec.shared_context '2020 coc code override setup', shared_context: :metadata do
+  FactoryBot.reload
   let!(:data_source) { create :source_data_source, id: 2 }
   let!(:clients) { create_list :hud_client, 5, data_source_id: data_source.id }
   let!(:destination_data_source) { create :grda_warehouse_data_source }
