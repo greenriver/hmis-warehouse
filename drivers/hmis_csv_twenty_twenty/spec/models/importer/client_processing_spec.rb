@@ -11,7 +11,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing', version: '2020', run_jobs: false
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing',
+        version: '2020',
+        run_jobs: false,
+      )
     end
 
     it 'the database will have the expected number of source clients' do
@@ -34,7 +38,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       before(:all) do
         # Force an update
         GrdaWarehouse::Hud::Client.source.update(source_hash: nil)
-        import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing', version: '2020', run_jobs: false
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing',
+          version: '2020',
+          run_jobs: false,
+        )
       end
 
       it 'all clients have a non-nil source_hash' do
@@ -47,7 +55,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
 
       describe 'when re-importing and the source hash doesn\'t match' do
         before(:all) do
-          import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing', version: '2020', run_jobs: false
+          import_hmis_csv_fixture(
+            'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing',
+            version: '2020',
+            run_jobs: false,
+          )
         end
 
         it 'all clients have a non-nil source_hash' do
@@ -61,7 +73,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
 
         describe 'when re-importing with changed enrollment' do
           before(:all) do
-            import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing_2', version: '2020', run_jobs: false
+            import_hmis_csv_fixture(
+              'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/client_processing_2',
+              version: '2020',
+              run_jobs: false,
+            )
           end
 
           it 'all clients have a non-nil source_hash' do

@@ -11,7 +11,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data', version: '2020', run_jobs: false
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data',
+        version: '2020',
+        run_jobs: false,
+      )
     end
 
     it 'the database will have the correct number of source clients' do
@@ -55,7 +59,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
       travel_to Time.local(2021, 1, 1) do
-        import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data', version: '2020', run_jobs: false
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data',
+          version: '2020',
+          run_jobs: false,
+        )
       end
     end
 
@@ -92,7 +100,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
       travel_to Time.local(2017, 12, 30) do
-        import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data', version: '2020', run_jobs: false
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data',
+          version: '2020',
+          run_jobs: false,
+        )
       end
     end
 

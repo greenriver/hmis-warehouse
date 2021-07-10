@@ -5,7 +5,10 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
   # NOTE: The date range of the report is limited and will not include everyone in the import file
   describe 'project data quality V4' do
     before(:all) do
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/project_data_quality_v4', version: '6.11'
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_twenty_twenty/project_data_quality_v4',
+        version: '6.11',
+      )
     end
     after(:all) do
       cleanup_hmis_csv_fixtures

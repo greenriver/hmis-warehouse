@@ -17,7 +17,7 @@ RSpec.describe 'Validate import files', type: :model do
       'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/validation_files',
       data_source: data_source,
       version: '2020',
-      run_jobs: false
+      run_jobs: false,
     )
   end
 

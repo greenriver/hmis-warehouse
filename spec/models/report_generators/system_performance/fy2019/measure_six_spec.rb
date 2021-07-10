@@ -21,7 +21,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureSix, type: :m
   let(:measure) { ReportGenerators::SystemPerformance::Fy2019::MeasureSix.new({}) }
 
   before(:all) do
-    import_hmis_csv_fixture 'spec/fixtures/files/system_performance/measure_six'
+    import_hmis_csv_fixture('spec/fixtures/files/system_performance/measure_six')
   end
 
   after(:all) do

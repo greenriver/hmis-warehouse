@@ -12,7 +12,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     GrdaWarehouse::Utility.clear!
 
     travel_to Time.local(2020, 1, 1) do
-      @loader = import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/loader_errors', version: '2020', run_jobs: false
+      @loader = import_hmis_csv_fixture(
+        'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/loader_errors',
+        version: '2020',
+        run_jobs: false,
+      )
     end
 
     @client_rows = 134
