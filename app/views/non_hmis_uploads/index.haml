@@ -28,9 +28,5 @@
               %td= upload.created_at
               %td
                 = upload.import_time
-                - if upload.import_log_id.present?
-                  = link_to upload.import_time, import_path(id: upload.import_log_id)
-                - else
-                  = upload.import_time
 
 %p= paginate @uploads
