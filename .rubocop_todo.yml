@@ -2900,7 +2900,6 @@ Style/InverseMethods:
 Style/LambdaCall:
   Exclude:
     - 'app/models/grda_warehouse/fake_data.rb'
-    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
     - 'app/models/similarity_metric/experiment.rb'
