@@ -5,7 +5,11 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
     before(:all) do
       GrdaWarehouse::Utility.clear!
       travel_to Time.zone.local(2020, 1, 1) do
-        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/bad_data', version: '2020', run_jobs: false
+        import_hmis_csv_fixture(
+          'spec/fixtures/files/importers/hmis_twenty_twenty/bad_data',
+          version: '2020',
+          run_jobs: false,
+        )
       end
     end
     after(:all) do
@@ -42,7 +46,11 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
     before(:all) do
       GrdaWarehouse::Utility.clear!
       travel_to Time.zone.local(2021, 1, 1) do
-        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/bad_data', version: '2020', run_jobs: false
+        import_hmis_csv_fixture(
+          'spec/fixtures/files/importers/hmis_twenty_twenty/bad_data',
+          version: '2020',
+          run_jobs: false,
+        )
       end
     end
     after(:all) do
@@ -66,7 +74,11 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
     before(:all) do
       GrdaWarehouse::Utility.clear!
       travel_to Time.zone.local(2018, 1, 1) do
-        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/bad_data', version: '2020', run_jobs: false
+        import_hmis_csv_fixture(
+          'spec/fixtures/files/importers/hmis_twenty_twenty/bad_data',
+          version: '2020',
+          run_jobs: false,
+        )
       end
     end
     after(:all) do

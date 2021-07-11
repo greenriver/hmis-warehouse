@@ -6,7 +6,7 @@
 
 require 'csv'
 require 'soundex'
-module Export::HmisTwentyTwenty::Shared
+module HmisCsvTwentyTwenty::Exporter::Shared
   extend ActiveSupport::Concern
   included do
     include NotifierConfig

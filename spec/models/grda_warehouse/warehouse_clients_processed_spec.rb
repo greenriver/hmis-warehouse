@@ -2,7 +2,10 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::WarehouseClientsProcessed, type: :model do
   before(:all) do
-    import_hmis_csv_fixture 'spec/fixtures/files/service_history/materialized', version: '6.11'
+    import_hmis_csv_fixture(
+      'spec/fixtures/files/service_history/materialized',
+      version: '6.11',
+    )
 
     # Add includes_verified_days_homeless override
     GrdaWarehouse::Hud::Project.find_by(ProjectName: 'Services Only').update(include_in_days_homeless_override: true)

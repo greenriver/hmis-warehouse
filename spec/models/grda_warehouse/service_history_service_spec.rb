@@ -2,7 +2,10 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   before(:all) do
-    import_hmis_csv_fixture 'spec/fixtures/files/service_history/tracking_methods', version: '6.11'
+    import_hmis_csv_fixture(
+      'spec/fixtures/files/service_history/tracking_methods',
+      version: '6.11',
+    )
   end
   after(:all) do
     GrdaWarehouse::Utility.clear!

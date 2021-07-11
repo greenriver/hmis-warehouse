@@ -68,7 +68,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         has_access_to_data_source_through_viewable_entities(user, q, qc),
         has_access_to_data_source_through_organizations(user, q, qc),
         has_access_to_data_source_through_projects(user, q, qc),
-      ].join(' OR ')
+      ].join(' OR '),
     )
   end
 
@@ -164,13 +164,13 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     }
   end
 
-  def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
+  def self.has_access_to_data_source_through_viewable_entities(user, q, qc) # rubocop:disable  Naming/PredicateName,Naming/MethodParameterName
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
     group_ids = user.access_groups.pluck(:id)
     group_id_query = if group_ids.empty?
-      "0=1"
+      '0=1'
     else
       "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
     end
@@ -195,7 +195,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  def self.has_access_to_data_source_through_organizations(user, q, qc)
+  def self.has_access_to_data_source_through_organizations(user, q, qc) # rubocop:disable  Naming/PredicateName,Naming/MethodParameterName
     data_source_table  = quoted_table_name
     viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -231,18 +231,17 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  def self.has_access_to_data_source_through_projects(user, q, qc)
+  def self.has_access_to_data_source_through_projects(user, q, qc) # rubocop:disable  Naming/PredicateName,Naming/MethodParameterName
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
     group_ids = user.access_groups.pluck(:id)
     group_id_query = if group_ids.empty?
-      "0=1"
+      '0=1'
     else
       "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
     end
-
 
     <<-SQL.squish
 
@@ -283,9 +282,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return none unless text.present?
 
     query = "%#{text}%"
-    where(
-      arel_table[:name].matches(query)
-    )
+    where(arel_table[:name].matches(query))
   end
 
   def self.data_spans_by_id
@@ -310,7 +307,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]])).each do |ds, date|
           next unless spans_by_id[ds]
 
-          spans_by_id[ds][:end_date] = date if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
+          spans_by_id[ds][:end_date] = date if spans_by_id[ds].try(:[], :end_date).blank? || date > spans_by_id[ds][:end_date]
         end
       spans_by_id.each do |ds, dates|
         next unless spans_by_id[ds]
@@ -331,10 +328,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def data_span
     return unless enrollments.any?
+    return unless id.present?
 
-    if id.present?
-      self.class.data_spans_by_id[id]
-    end
+    self.class.data_spans_by_id[id]
   end
 
   def unprocessed_enrollment_count
@@ -395,7 +391,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     "/tmp/uploaded#{file_path}"
   end
 
-  def has_data?
+  def has_data? # rubocop:disable  Naming/PredicateName
     exports.any?
   end
 
@@ -421,7 +417,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   private def maintain_system_group
-    AccessGroup.delayed_system_group_maintenance(group: :data_sources)
+    if Rails.env.test?
+      AccessGroup.maintain_system_groups(group: :data_sources)
+    else
+      AccessGroup.delayed_system_group_maintenance(group: :data_sources)
+    end
   end
 
   class << self

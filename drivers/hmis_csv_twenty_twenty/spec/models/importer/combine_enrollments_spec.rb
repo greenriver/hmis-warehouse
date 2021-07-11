@@ -18,7 +18,7 @@ RSpec.describe 'Combine Enrollments', type: :model do
       'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/combine_enrollments',
       data_source: data_source,
       version: '2020',
-      run_jobs: false
+      run_jobs: false,
     )
   end
 

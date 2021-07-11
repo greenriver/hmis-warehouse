@@ -4,7 +4,11 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
   describe 'When importing enrollments' do
     before(:all) do
       GrdaWarehouse::Utility.clear!
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_files', version: '2020', run_jobs: false
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_files',
+        version: '2020',
+        run_jobs: false,
+      )
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -72,7 +76,11 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
     end
     describe 'when importing updated enrollment data' do
       before(:all) do
-        import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_change_files', version: '2020', run_jobs: false
+        import_hmis_csv_fixture(
+          'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_change_files',
+          version: '2020',
+          run_jobs: false,
+        )
       end
       after(:all) do
         cleanup_hmis_csv_fixtures
@@ -92,7 +100,11 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
 
   describe 'When importing enrollments with deletes' do
     before(:all) do
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_with_deletes_test_files', version: '2020', run_jobs: false
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_with_deletes_test_files',
+        version: '2020',
+        run_jobs: false,
+      )
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -170,7 +182,11 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
 
   describe 'When importing projects' do
     before(:all) do
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/project_test_files', version: '2020', run_jobs: false
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_twenty_twenty/project_test_files',
+        version: '2020',
+        run_jobs: false,
+      )
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -223,8 +239,16 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
 
   describe 'When importing enrollments with restores' do
     before(:all) do
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_with_restores_initial_files', version: '2020', run_jobs: false
-      import_hmis_csv_fixture 'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_with_restores_update_files', version: '2020', run_jobs: false
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_with_restores_initial_files',
+        version: '2020',
+        run_jobs: false,
+      )
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_with_restores_update_files',
+        version: '2020',
+        run_jobs: false,
+      )
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup

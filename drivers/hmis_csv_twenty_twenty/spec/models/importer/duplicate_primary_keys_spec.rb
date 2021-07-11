@@ -14,7 +14,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       import_hmis_csv_fixture(
         'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/duplicate_primary_keys',
         version: '2020',
-        run_jobs: false
+        run_jobs: false,
       )
     end
 

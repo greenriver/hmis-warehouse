@@ -6,15 +6,14 @@
 
 module HmisCsvTwentyTwenty::Exporter
   class EnrollmentCoc < GrdaWarehouse::Import::HmisTwentyTwenty::EnrollmentCoc
-    include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::EnrollmentCoc.hud_csv_headers(version: '2020') )
+    include ::HmisCsvTwentyTwenty::Exporter::Shared
+    setup_hud_column_access(GrdaWarehouse::Hud::EnrollmentCoc.hud_csv_headers(version: '2020'))
 
     self.hud_key = :EnrollmentCoCID
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
-
 
     # HouseholdID is required, but often not provided, send some sane defaults
     # Also unique the HouseholdID to a data source

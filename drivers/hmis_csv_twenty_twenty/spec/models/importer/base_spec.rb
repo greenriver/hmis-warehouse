@@ -35,7 +35,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_test_files', version: '2020', run_jobs: true
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_test_files',
+        version: '2020',
+        run_jobs: true,
+      )
     end
 
     it 'the database will have three source clients' do
@@ -117,7 +121,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
 
     describe 'when importing updated enrollment data' do
       before(:all) do
-        import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_change_files', version: '2020', run_jobs: false
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_change_files',
+          version: '2020',
+          run_jobs: false,
+        )
       end
 
       it 'it doesn\'t import enrollments that changed but have an earlier modification date' do
@@ -138,7 +146,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_with_deletes_test_files', version: '2020', run_jobs: false
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_with_deletes_test_files',
+        version: '2020',
+        run_jobs: false,
+      )
     end
 
     it 'the database will have two clients' do
@@ -221,7 +233,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      import_hmis_csv_fixture 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/project_test_files', version: '2020', run_jobs: false
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/project_test_files',
+        version: '2020',
+        run_jobs: false,
+      )
     end
 
     it 'the database will have five projects' do

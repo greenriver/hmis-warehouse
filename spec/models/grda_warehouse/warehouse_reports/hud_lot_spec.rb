@@ -4,7 +4,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::HudLot, type: :model do
   let(:filter) { Filters::DateRange.new(start: '2017-01-01'.to_date, end: '2019-12-31'.to_date) }
 
   before(:all) do
-    import_hmis_csv_fixture 'spec/fixtures/files/hud_lot/enrollments'
+    import_hmis_csv_fixture('spec/fixtures/files/hud_lot/enrollments')
   end
 
   after(:all) do

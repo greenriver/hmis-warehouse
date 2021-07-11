@@ -52,7 +52,7 @@ RSpec.describe 'Delete empty SO enrollments', type: :model do
       'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/delete_empty_enrollments',
       data_source: data_source,
       version: '2020',
-      run_jobs: false
+      run_jobs: false,
     )
   end
 end

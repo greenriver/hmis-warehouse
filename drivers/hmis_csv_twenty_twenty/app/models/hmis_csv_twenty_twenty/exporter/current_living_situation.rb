@@ -6,16 +6,16 @@
 
 module HmisCsvTwentyTwenty::Exporter
   class CurrentLivingSituation < GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation
-    include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::CurrentLivingSituation.hud_csv_headers(version: '2020') )
+    include ::HmisCsvTwentyTwenty::Exporter::Shared
+    setup_hud_column_access(GrdaWarehouse::Hud::CurrentLivingSituation.hud_csv_headers(version: '2020'))
 
     self.hud_key = :CurrentLivingSitID
 
-     # Setup an association to enrollment that allows us to pull the records even if the
+    # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
 
-    def apply_overrides row, data_source_id:
+    def apply_overrides row, data_source_id: # rubocop:disable Lint/UnusedMethodArgument
       row[:VerifiedBy] = row[:VerifiedBy][0...50] if row[:VerifiedBy]
 
       row

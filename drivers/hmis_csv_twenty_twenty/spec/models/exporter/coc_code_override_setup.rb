@@ -1,7 +1,19 @@
 RSpec.shared_context '2020 coc code override setup', shared_context: :metadata do
+  FactoryBot.reload
   let!(:data_source) { create :source_data_source, id: 2 }
-  let!(:clients) { create_list :hud_client, 5, data_source_id: data_source.id }
   let!(:destination_data_source) { create :grda_warehouse_data_source }
+  let!(:user) { create :user }
+  let!(:clients) do
+    [].tap do |c|
+      5.times do |i|
+        c << create(
+          :hud_client,
+          data_source_id: data_source.id,
+          PersonalID: (i + 1).to_s,
+        )
+      end
+    end
+  end
   let!(:destination_clients) do
     clients.map do |client|
       attributes = client.attributes
@@ -16,12 +28,74 @@ RSpec.shared_context '2020 coc code override setup', shared_context: :metadata d
       )
     end
   end
-  let!(:user) { create :user }
-  let!(:projects) { create_list :hud_project, 5, data_source_id: data_source.id, ProjectType: 1, act_as_project_type: 13, computed_project_type: 13 }
-  let!(:project_cocs) { create_list :hud_project_coc, 5, CoCCode: 'XX-500', data_source_id: data_source.id }
-  let!(:inventories) { create_list :hud_inventory, 5, CoCCode: 'XX-501', data_source_id: data_source.id }
-  let!(:enrollments) { create_list :hud_enrollment, 5, data_source_id: data_source.id, EntryDate: 2.weeks.ago }
-  let!(:enrollment_cocs) { create_list :hud_enrollment_coc, 5, InformationDate: 2.months.ago, CoCCode: 'XX-502', data_source_id: data_source.id }
+
+  let!(:projects) do
+    [].tap do |project|
+      5.times do |i|
+        project << create(
+          :hud_project,
+          ProjectID: (i + 1).to_s,
+          data_source_id: data_source.id,
+          ProjectType: 1,
+          act_as_project_type: 13,
+          computed_project_type: 13,
+        )
+      end
+    end
+  end
+  let!(:project_cocs) do
+    [].tap do |pc|
+      5.times do |i|
+        pc << create(
+          :hud_project_coc,
+          data_source_id: data_source.id,
+          CoCCode: 'XX-500',
+          ProjectID: (i + 1).to_s,
+        )
+      end
+    end
+  end
+  let!(:inventories) do
+    [].tap do |inventory|
+      5.times do |i|
+        inventory << create(
+          :hud_inventory,
+          data_source_id: data_source.id,
+          CoCCode: 'XX-501',
+          ProjectID: (i + 1).to_s,
+        )
+      end
+    end
+  end
+  let!(:enrollments) do
+    [].tap do |e|
+      5.times do |i|
+        e << create(
+          :hud_enrollment,
+          data_source_id: data_source.id,
+          EntryDate: 2.weeks.ago,
+          PersonalID: (i + 1).to_s,
+          ProjectID: (i + 1).to_s,
+          EnrollmentID: (i + 1).to_s,
+        )
+      end
+    end
+  end
+  let!(:enrollment_cocs) do
+    [].tap do |e|
+      5.times do |i|
+        e << create(
+          :hud_enrollment_coc,
+          data_source_id: data_source.id,
+          InformationDate: 2.months.ago,
+          CoCCode: 'XX-502',
+          EnrollmentID: (i + 1).to_s,
+          PersonalID: (i + 1).to_s,
+          ProjectID: (i + 1).to_s,
+        )
+      end
+    end
+  end
 
   def csv_file_path(exporter, klass)
     File.join(exporter.file_path, klass.file_name)
