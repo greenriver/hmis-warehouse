@@ -76,10 +76,6 @@ module ManualHmisData
       inventory_source.hmis_structure
     end
 
-    private def required_fields(field_hash)
-      field_hash.filter { |_k, v| v[:null] == false }
-    end
-
     private def field_exclusions
       [
         :InventoryID,
@@ -92,7 +88,7 @@ module ManualHmisData
     end
 
     private def processed_form_fields
-      required_fields(base_fields).
+      base_fields.
         reject { |k, _v| field_exclusions.include?(k) }.
         map do |k, v|
           html_input = {}

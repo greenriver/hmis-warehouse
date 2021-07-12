@@ -76,23 +76,20 @@ module ManualHmisData
       funder_source.hmis_structure
     end
 
-    private def required_fields(field_hash)
-      field_hash.filter { |_k, v| v[:null] == false }
-    end
-
     private def field_exclusions
       [
         :FunderID,
         :ProjectID,
         :DateCreated,
         :DateUpdated,
+        :DateDeleted,
         :UserID,
         :ExportID,
       ]
     end
 
     private def processed_form_fields
-      required_fields(base_fields).
+      base_fields.
         reject { |k, _v| field_exclusions.include?(k) }.
         map do |k, v|
           html_input = {}
@@ -109,6 +106,12 @@ module ManualHmisData
         Funder: {
           type: :select_two,
           collection: HUD.funding_sources.invert,
+        },
+        StartDate: {
+          type: :date_picker,
+        },
+        EndDate: {
+          type: :date_picker,
         },
       }
     end
