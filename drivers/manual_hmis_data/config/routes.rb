@@ -7,8 +7,9 @@
 BostonHmis::Application.routes.draw do
   namespace :manual_hmis_data do
     resources :projects, only: [:none] do
-      resources :inventories, shallow: true, except: [:index, :show]
       resources :funders, shallow: true, except: [:index, :show]
+      resources :inventories, shallow: true, except: [:index, :show]
+      resources :project_cocs, shallow: true, except: [:index, :show]
     end
   end
 end
