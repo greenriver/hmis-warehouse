@@ -18,10 +18,7 @@ module PerformanceMetrics::WarehouseReports
     def index
       @reports = report_scope.ordered.
         page(params[:page]).per(25)
-      # @filter = filter_class.new(user_id: current_user.id)
-      # @filter.set_from_params(filter_params) if filter_params.present?
       @report = report_class.new(user_id: current_user.id)
-      @report.filter = @filter
       # Make sure the form will work
       filters
     end

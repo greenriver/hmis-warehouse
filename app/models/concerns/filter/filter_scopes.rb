@@ -145,13 +145,9 @@ module Filter::FilterScopes
       return scope if all_project_types
 
       # Make this backwards compatible with a pre-set set of project_types.
-      p_type_ids = @project_types.presence || @filter.project_type_ids
+      p_types = @project_types.presence || @filter.project_type_ids
+      p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless
 
-      p_types = if @filter.coordinated_assessment_living_situation_homeless
-        p_type_ids + GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca]
-      else
-        p_type_ids
-      end
       scope.in_project_type(p_types)
     end
 
