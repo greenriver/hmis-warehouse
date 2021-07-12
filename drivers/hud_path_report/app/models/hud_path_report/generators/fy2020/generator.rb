@@ -34,5 +34,9 @@ module HudPathReport::Generators::Fy2020
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 8 to 16'
     end
+
+    def self.filter_class
+      ::HudPathReport::Filters::PathFilter
+    end
   end
 end
