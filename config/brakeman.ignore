@@ -167,7 +167,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/jobs/warehouse_reports/dashboard_report_job.rb",
-      "line": 16,
+      "line": 14,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym][sub_population.to_sym].constantize",
       "render_path": null,
@@ -243,6 +243,46 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "19b0be47dc59be902eb1e0500e9fba29ccf43752f0eb56a2180a222af552ceb0",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 89,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_inactive\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "1ac799c533aadef8fe47464b7d13b7194917e146920bf3046c57c2f22e03e255",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 77,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_first_time\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "1df4a1869c415ff591772486343b6515afd1635cc8320e99dff0ec4d575c5583",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -277,6 +317,26 @@
         "method": "shell"
       },
       "user_input": "`ssh #{\"ecs0.openpath.host\"} \"docker ps -a -n 10\"`.split(/\\n/).grep(/#{IMAGE}/).first.split(/\\s/).first",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "2bf0a30baca275e9fa8c2b29b1d73e2238386744deb142c7beed0d3c09e243c7",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 18,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "spm_leaver(period).where(\"#{period}_period_days_to_return\" => (1..731))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "returned_in_two_years"
+      },
+      "user_input": "period",
       "confidence": "Medium",
       "note": ""
     },
@@ -392,6 +452,46 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "3c34148ef3e1480d75ca0f84d0903a2c26b9006b0a35bb5a2ea4ef7aaa7a2500",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 37,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_entering_housing\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "entering_housing"
+      },
+      "user_input": "period",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "3e7e0291a50a229015f6e9674412dd30aaa687e973bc11e005d95406444e97d9",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 29,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_caper_leaver\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "caper_leaver"
+      },
+      "user_input": "period",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "3ea612cf8f87c4df2fb19b416feb0917b443306a55319ddf1d6978b79dedeaea",
@@ -445,6 +545,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "473ca8588df62336dd0e01e2d9695c7643b543e986c48cadceb7641d2acd2e25",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 18,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "spm_leaver(period).where(\"#{period}_period_days_to_return\" => (1..731))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "475555bc06d04eb8ac4900ec1761cf15066a8e28ab69ddb55cf9569d9413c2a4",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -459,6 +579,26 @@
         "method": "run_query"
       },
       "user_input": "File.read(step)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "4dbef2124ce5f88d9517b90cfd0933fa92ca9a4353331c92fca66c397e476a6f",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 77,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_first_time\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "first_time"
+      },
+      "user_input": "period",
       "confidence": "Medium",
       "note": ""
     },
@@ -620,7 +760,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/claims_reporting/app/models/claims_reporting/medical_claim.rb",
-      "line": 199,
+      "line": 209,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"UPDATE #{quoted_table_name}\\nSET enrolled_days=t.enrolled_days, engaged_days=t.engaged_days\\nFROM (VALUES #{[\"(#{connection.quote(claim.id)},#{connection.quote((enrolled_dates[claim.service_start_date] or 0))},#{connection.quote((if (nil or claim.service_start_date) then\n  if (claim.service_start_date < (nil or claim.service_start_date)) then\n    raise(\"claim data out of order\")\n  end\n  previous_day = ((nil or claim.service_start_date) - 1.day)\n  pre_engaged_enrolled_days = (enrolled_dates[((nil or claim.service_start_date) - 1.day)] or 0)\n  ((enrolled_dates[claim.service_start_date] or 0) - (enrolled_dates[((nil or claim.service_start_date) - 1.day)] or 0)).clamp(0, (enrolled_dates[claim.service_start_date] or 0))\nelse\n  0\nend))})\"].join(\",\")}) AS t (id, enrolled_days, engaged_days)\\nWHERE #{quoted_table_name}.id = t.id\\n\")",
       "render_path": null,
@@ -650,6 +790,26 @@
         "method": "_check_that_you_pushed_to_remote!"
       },
       "user_input": "`git rev-parse --abbrev-ref HEAD`.chomp",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "6e5df3b3f5ce952da511bebf27d22c40e0a934348f52d15ee653240ab652ce9b",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 14,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"include_in_#{period}_period\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
       "confidence": "Medium",
       "note": ""
     },
@@ -818,6 +978,46 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "7cf7ec040c7558f045aaf989290c0d7d8e6b87e9e9a2ad2b31455b0a54390da8",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 37,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_entering_housing\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "7cf7ec040c7558f045aaf989290c0d7d8e6b87e9e9a2ad2b31455b0a54390da8",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 85,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_entering_housing\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "7e17f63fe0ee996de8b8f7dde5a7277c192d0bb19ea27c0ecc07f80ffdb4154c",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -832,6 +1032,46 @@
         "method": "remove_temporary_rds"
       },
       "user_input": "@rds.database",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "7e53cd57f540fbff8b4b9ca11202d8504298e65c5969ae454a967b5fdb136eca",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 81,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_reentering\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "7ee61548049f61b1a03ccb384025d6f756bbfbc9dd16bfe279def805e0a66088",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 57,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_in_outflow\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "in_outflow"
+      },
+      "user_input": "period",
       "confidence": "Medium",
       "note": ""
     },
@@ -1236,6 +1476,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "a10e38db6fbbd99c4bff065f90677c565ddd62177052d6245f9d89a292567a90",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 33,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{period}_period_spm_leaver\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "spm_leaver"
+      },
+      "user_input": "period",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "a5ae0e19f1c215e30af6286dee8a557c5215860d59a3a4c4ca3a914e2aadb58e",
@@ -1389,6 +1649,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "ba8ebc9d6a0ba16b9729b36fec201710ab5e28db8ca0266ba8df0cc2a56454f1",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 89,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_inactive\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "inactive"
+      },
+      "user_input": "period",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "bae76e9c6d1f20b593d1307d83fa734b37ce1048ed63f29c7b2607617bf9e009",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1404,6 +1684,26 @@
       },
       "user_input": "sort_column",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "bb7696e11e1b7ca5adb22a40badf890b7c2d1349687d26b96e3d2fa728866255",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 14,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"include_in_#{period}_period\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "served"
+      },
+      "user_input": "period",
+      "confidence": "Medium",
       "note": ""
     },
     {
@@ -1516,13 +1816,73 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "c6eb04c800a45639cca6f59d522ba432fc60aecb0f2b1edfe5e807117f190fc7",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 57,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_in_outflow\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "cc6ebf15e95f7fb90fd0f2c9861623ef42bfa69d297ee8c0c51583fc7b582cd7",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 29,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_caper_leaver\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "cd75e090b221d5a14aeafffafde44c25b0042578a30dc4225d96a1c861f95700",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 33,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{period}_period_spm_leaver\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "period",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Redirect",
       "warning_code": 18,
       "fingerprint": "cf9fa747c96c496625affc43ebc9ecdb01c696ca61f911e2de7da2f6188b251d",
       "check_name": "Redirect",
       "message": "Possible unprotected redirect",
       "file": "app/controllers/admin/translation_keys_controller.rb",
-      "line": 62,
+      "line": 64,
       "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
       "code": "redirect_to(TranslationKey.find(params[:id].to_i))",
       "render_path": null,
@@ -1602,7 +1962,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 662,
+      "line": 707,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -1652,6 +2012,26 @@
         "method": "create_database!"
       },
       "user_input": "database",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "e4f8ccf26e1fd69bcd4fa892bf2291f93f3312d115e805626e4e9984335f08a4",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 81,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_reentering\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "reentering"
+      },
+      "user_input": "period",
       "confidence": "Medium",
       "note": ""
     },
@@ -1713,6 +2093,26 @@
       },
       "user_input": "options[:column].to_sym",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "ef9c705b3ff129992877db4ae4e8a998a8fff80588bd442ebbe677d64135cec2",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_metrics/app/models/performance_metrics/client.rb",
+      "line": 85,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "served(period).where(\"#{period}_period_entering_housing\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMetrics::Client",
+        "method": "entered_housing"
+      },
+      "user_input": "period",
+      "confidence": "Medium",
       "note": ""
     },
     {
@@ -1855,6 +2255,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-05-25 16:39:07 +0000",
-  "brakeman_version": "5.0.1"
+  "updated": "2021-07-08 15:19:28 +0000",
+  "brakeman_version": "5.0.4"
 }

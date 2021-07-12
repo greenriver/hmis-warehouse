@@ -11,14 +11,7 @@ module HudApr
     def filter_params
       return {} unless params[:filter]
 
-      filter_p = params.require(:filter).
-        permit(
-          :start,
-          :end,
-          coc_codes: [],
-          project_ids: [],
-          project_group_ids: [],
-        )
+      filter_p = params.require(:filter).permit(@filter.known_params)
       filter_p[:user_id] = current_user.id
       # filter[:project_ids] = filter[:project_ids].reject(&:blank?).map(&:to_i)
       # filter[:project_group_ids] = filter[:project_group_ids].reject(&:blank?).map(&:to_i)
@@ -50,11 +43,11 @@ module HudApr
         end
       end
       # Override with params if set
-      @filter.set_from_params(filter_params) if filter_params.present?
+      @filter.update(filter_params) if filter_params.present?
     end
 
     private def filter_class
-      HudApr::Filters::AprFilter
+      generator.filter_class
     end
   end
 end

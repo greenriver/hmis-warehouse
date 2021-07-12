@@ -32,6 +32,10 @@ module HudDataQualityReport::Generators::Fy2020
       end.to_h.freeze
     end
 
+    def self.filter_class
+      HudDataQualityReport::Filters::DqFilter
+    end
+
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 1'
     end
