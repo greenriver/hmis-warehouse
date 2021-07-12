@@ -98,7 +98,7 @@ RSpec.shared_context '2020 coc code override setup', shared_context: :metadata d
   end
 
   def csv_file_path(exporter, klass)
-    File.join(exporter.file_path, klass.file_name)
+    File.join(exporter.file_path, klass.hud_csv_file_name)
   end
 end
 

@@ -14,6 +14,10 @@ module HMIS::Structure::User
   end
 
   module ClassMethods
+    def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+      'User.csv'
+    end
+
     def hmis_configuration(version: nil)
       case version
       when '2020', nil

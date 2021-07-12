@@ -60,10 +60,10 @@ RSpec.shared_context '2020 single-enrollment tests', shared_context: :metadata d
         before(:each) do
           exporter.public_send(item[:export_method])
         end
-        it "creates one #{item[:klass].file_name} CSV file" do
+        it "creates one #{item[:klass].hud_csv_file_name} CSV file" do
           expect(File.exist?(csv_file_path(item[:klass]))).to be true
         end
-        it "adds one row to the #{item[:klass].file_name} CSV file" do
+        it "adds one row to the #{item[:klass].hud_csv_file_name} CSV file" do
           csv = CSV.read(csv_file_path(item[:klass]), headers: true)
           expect(csv.count).to eq 1
         end

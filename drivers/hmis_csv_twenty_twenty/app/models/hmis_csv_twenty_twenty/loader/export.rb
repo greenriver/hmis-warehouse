@@ -21,9 +21,5 @@ module HmisCsvTwentyTwenty::Loader
       ).drop(1).first.to_h.
         merge({ file_path: file_path, data_source_id: data_source_id })
     end
-
-    def self.file_name
-      'Export.csv'
-    end
   end
 end

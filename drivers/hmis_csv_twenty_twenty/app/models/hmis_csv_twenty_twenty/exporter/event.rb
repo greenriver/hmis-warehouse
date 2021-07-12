@@ -5,11 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Exporter
-  class Event < GrdaWarehouse::Import::HmisTwentyTwenty::Event
+  class Event < GrdaWarehouse::Hud::Event
     include ::HmisCsvTwentyTwenty::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::Event.hud_csv_headers(version: '2020'))
-
-    self.hud_key = :EventID
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

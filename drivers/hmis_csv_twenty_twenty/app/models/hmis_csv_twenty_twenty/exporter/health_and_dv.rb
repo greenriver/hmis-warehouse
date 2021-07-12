@@ -5,11 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Exporter
-  class HealthAndDv < GrdaWarehouse::Import::HmisTwentyTwenty::HealthAndDv
+  class HealthAndDv < GrdaWarehouse::Hud::HealthAndDv
     include ::HmisCsvTwentyTwenty::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::HealthAndDv.hud_csv_headers(version: '2020'))
-
-    self.hud_key = :HealthAndDVID
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

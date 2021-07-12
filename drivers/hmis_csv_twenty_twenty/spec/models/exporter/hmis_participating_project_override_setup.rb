@@ -8,7 +8,7 @@ RSpec.shared_context '2020 HMIS Participating Project override setup', shared_co
   let!(:clients) { create_list :hud_client, 5, data_source_id: data_source.id }
 
   def csv_file_path(exporter, klass)
-    File.join(exporter.file_path, klass.file_name)
+    File.join(exporter.file_path, klass.hud_csv_file_name)
   end
 end
 

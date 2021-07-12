@@ -34,16 +34,16 @@ RSpec.shared_context '2020 coc code override tests', shared_context: :metadata d
           @exported_class = options[:export_class]
         end
         it 'enrollment scope should find one enrollment' do
-          puts [
-            ['Client'] + GrdaWarehouse::Hud::Client.source.pluck(:PersonalID),
-            ['Enrollment'] + GrdaWarehouse::Hud::Enrollment.pluck(:PersonalID, :EntryDate, :EnrollmentID),
-            ['Exit'] + GrdaWarehouse::Hud::Exit.pluck(:ExitDate, :EnrollmentID),
-          ].inspect
-          puts [
-            ['Enrollment'] + GrdaWarehouse::Hud::Enrollment.pluck(:ProjectID),
-            ['Project'] + GrdaWarehouse::Hud::Project.pluck(:ProjectID, :id),
-          ].inspect
-          puts enrollment_exporter.enrollment_scope.to_sql
+          # puts [
+          #   ['Client'] + GrdaWarehouse::Hud::Client.source.pluck(:PersonalID),
+          #   ['Enrollment'] + GrdaWarehouse::Hud::Enrollment.pluck(:PersonalID, :EntryDate, :EnrollmentID),
+          #   ['Exit'] + GrdaWarehouse::Hud::Exit.pluck(:ExitDate, :EnrollmentID),
+          # ].inspect
+          # puts [
+          #   ['Enrollment'] + GrdaWarehouse::Hud::Enrollment.pluck(:ProjectID),
+          #   ['Project'] + GrdaWarehouse::Hud::Project.pluck(:ProjectID, :id),
+          # ].inspect
+          # puts enrollment_exporter.enrollment_scope.to_sql
           expect(enrollment_exporter.enrollment_scope.count).to eq 1
         end
         it 'creates one CSV file' do

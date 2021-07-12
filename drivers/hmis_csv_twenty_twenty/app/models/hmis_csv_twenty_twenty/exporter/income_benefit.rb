@@ -5,11 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Exporter
-  class IncomeBenefit < GrdaWarehouse::Import::HmisTwentyTwenty::IncomeBenefit
+  class IncomeBenefit < GrdaWarehouse::Hud::IncomeBenefit
     include ::HmisCsvTwentyTwenty::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::IncomeBenefit.hud_csv_headers(version: '2020'))
-
-    self.hud_key = :IncomeBenefitsID
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

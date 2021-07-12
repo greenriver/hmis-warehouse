@@ -11,7 +11,7 @@ module HmisCsvTwentyTwenty::Exporter
     include NotifierConfig
     include ArelHelper
 
-    attr_accessor :logger, :notifier_config, :file_path, :export
+    attr_accessor :logger, :notifier_config, :file_path, :version, :export
 
     def initialize( # rubocop:disable  Metrics/ParameterLists
       version: '2020',
@@ -109,6 +109,10 @@ module HmisCsvTwentyTwenty::Exporter
 
     def zip_path
       @zip_path ||= File.join(@file_path, "#{@export.export_id}.zip")
+    end
+
+    def csv_file_path(klass)
+      File.join(@file_path, klass.hud_csv_file_name(version: version))
     end
 
     def upload_zip

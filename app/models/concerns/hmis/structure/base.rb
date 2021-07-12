@@ -8,6 +8,8 @@ module HMIS::Structure::Base
   extend ActiveSupport::Concern
 
   included do
+    class_attribute :hud_key
+
     scope :delete_pending, -> do
       where.not(pending_date_deleted: nil)
     end
@@ -16,6 +18,11 @@ module HMIS::Structure::Base
   module ClassMethods
     def hud_paranoid_column
       :DateDeleted
+    end
+
+    # default name for a CSV file
+    def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+      "#{name.demodulize}.csv"
     end
 
     # an array (in order) of the expected columns for hud CSV data
@@ -71,14 +78,6 @@ module HMIS::Structure::Base
 
     def hud_assoc(col, model_name)
       bipartite_keys col, model_name
-    end
-
-    def hud_key=(key)
-      @hud_key = key
-    end
-
-    def hud_key
-      @hud_key
     end
 
     def conflict_target=(value)
