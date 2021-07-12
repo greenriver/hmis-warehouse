@@ -78,7 +78,7 @@ module ManualHmisData
 
     private def field_exclusions
       [
-        # :ProjectCocID,
+        :ProjectCoCID,
         :ProjectID,
         :DateCreated,
         :DateUpdated,
@@ -103,28 +103,10 @@ module ManualHmisData
 
     private def field_overrides
       {
-        # HouseholdType: {
-        #   type: :select_two,
-        #   collection: GrdaWarehouse::Hud::ProjectCoc.household_types,
-        # },
-        # Availability: {
-        #   type: :select_two,
-        #   collection: HUD.availabilities.invert,
-        # },
-        # CoCCode: {
-        #   type: :select_two,
-        #   collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode),
-        # },
-        # ProjectCocStartDate: {
-        #   type: :date_picker,
-        # },
-        # ProjectCocEndDate: {
-        #   type: :date_picker,
-        # },
-        # ESBedType: {
-        #   type: :select_two,
-        #   collection: HUD.bed_types.invert,
-        # },
+        GeographyType: {
+          type: :select_two,
+          collection: HUD.geography_types.invert,
+        },
       }
     end
 
