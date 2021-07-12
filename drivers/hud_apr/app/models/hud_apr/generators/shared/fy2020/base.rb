@@ -63,6 +63,8 @@ module HudApr::Generators::Shared::Fy2020
           last_service_history_enrollment = enrollments.last
           enrollment = last_service_history_enrollment.enrollment
           source_client = enrollment.client
+          next unless source_client
+
           client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
           exit_date = last_service_history_enrollment.last_date_in_program

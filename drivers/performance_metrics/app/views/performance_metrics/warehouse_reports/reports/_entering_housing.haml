@@ -1,0 +1,12 @@
+- key = :entering_housing
+%h3= @report.support_title(key)
+.row
+  - @report.comparison_periods.each.with_index do |range, i|
+    .col
+      - label, count = @report.send(key)[i]
+      %h4= label
+      %p= range.to_s.gsub('..', ' to ')
+      .d-flex
+        .count.mr-2
+          = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: key, index: i) do
+            = count

@@ -86,7 +86,7 @@ GEM
       tzinfo (~> 1.1)
     acts-as-taggable-on (7.0.0)
       activerecord (>= 5.0, < 6.2)
-    addressable (2.7.0)
+    addressable (2.8.0)
       public_suffix (>= 2.0.2, < 5.0)
     after_commit_exception_notification (0.2.0)
       activerecord
