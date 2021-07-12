@@ -25,7 +25,7 @@
         - inventories.all.each do |inventory|
           %tr
             %td
-              - if can_see_raw_hmis_data?
+              - if can_see_raw_hmis_data? && !inventory.manual_entry?
                 = link_to 'HMIS', hmi_path(inventory.id, type: 'Inventory'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
             %td= inventory.InventoryID
             %td= HUD.availability inventory.Availability
@@ -46,7 +46,7 @@
                   = inventory.coc_code_override
             %td
               - if can_edit_projects?
-                - unless inventory.manual_entry
+                - unless inventory.manual_entry?
                   = link_to edit_inventory_path(inventory), class: 'btn btn-sm btn-secondary mr-2 mb-1', data: {loads_in_pjax_modal: true} do
                     %i.icon-pencil
                     Edit
