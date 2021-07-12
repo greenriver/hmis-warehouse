@@ -7,8 +7,8 @@
 BostonHmis::Application.routes.draw do
   namespace :user_permission_report do
     namespace :warehouse_reports do
-      resources :reports, only: [:index] do
-      end
+      resources :reports, only: [:index]
+      resources :users, only: [:show]
     end
   end
 end

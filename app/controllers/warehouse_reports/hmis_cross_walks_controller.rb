@@ -25,7 +25,7 @@ module WarehouseReports
     end
 
     private def set_filter
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id)
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id, enforce_one_year_range: false)
       year = if Date.current.month >= 10
         Date.current.year
       else
@@ -33,7 +33,7 @@ module WarehouseReports
       end
       @filter.start = Date.new(year - 1, 10, 1) unless filter_params.dig(:filters, :start)
       @filter.end = Date.new(year, 9, 30) unless filter_params.dig(:filters, :end)
-      @filter.set_from_params(filter_params[:filters]) if filter_params[:filters].present?
+      @filter.set_from_params(filter_params[:filters].merge(enforce_one_year_range: false)) if filter_params[:filters].present?
     end
 
     private def filter_params
