@@ -932,7 +932,11 @@ module HudSpmReport::Generators::Fy2020
               # counting clients who transition from transitional to permanent
               # housing, or from one CoC permanent housing program to another PH
               # project
-              (entry_date - previous_exit_from_ph).to_i > 14
+              if previous_exit_from_ph.present?
+                (entry_date - previous_exit_from_ph).to_i > 14
+              else
+                false # If there is no previous exit from PH, it can't have been 14 days
+              end
             end
 
             previous_exit_from_ph = entry[:last_date_in_program] if entry[:project_type].in?(PH + TH)
