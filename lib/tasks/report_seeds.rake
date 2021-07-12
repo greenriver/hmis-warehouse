@@ -70,6 +70,7 @@ namespace :reports do
     end
     # # SPM 2019 should be removed after 10/1/2021 to allow for comparisons
     # # If we've never run it, go ahead and remove it.
+    # Backdated this to 7/1/2021 as having two versions of the SPM is confusing folks
     spm_2019 = [
       'Reports::SystemPerformance::Fy2019::MeasureOne',
       'Reports::SystemPerformance::Fy2019::MeasureTwo',
@@ -79,7 +80,7 @@ namespace :reports do
       'Reports::SystemPerformance::Fy2019::MeasureSix',
       'Reports::SystemPerformance::Fy2019::MeasureSeven',
     ]
-    if Date.current > '2021-10-01'.to_date || Rails.env.development? || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
+    if Date.current > '2021-07-01'.to_date || Rails.env.development? || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
       removed += spm_2019
     end
     Report.where(type: removed).update_all(enabled: false)

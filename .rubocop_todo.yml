@@ -3290,7 +3290,6 @@ Style/RedundantParentheses:
 Style/RedundantSelf:
   Exclude:
     - 'app/models/aws_s3.rb'
-    - 'app/models/filters/filter_base.rb'
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'
     - 'app/models/glacier/uploader.rb'

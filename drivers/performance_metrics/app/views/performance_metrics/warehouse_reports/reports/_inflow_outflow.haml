@@ -1,0 +1,25 @@
+- key = :inflow_outflow
+%h3= @report.support_title(key)
+.row
+  - @report.comparison_periods.each.with_index do |range, i|
+    .col
+      - data = @report.send(key).to_a[i]
+      %h4= data.first
+      %p= range.to_s.gsub('..', ' to ')
+      - data.last.each do |label, count|
+        - sub_key = :in_inflow if label == 'Inflow'
+        - sub_key = :in_outflow if label == 'Outflow'
+        - sub_key = :first_time if label == 'First Time'
+        - sub_key = :reentering if label == 'Re-entering'
+        - sub_key = :entered_housing if label == 'Entered Housing'
+        - sub_key = :inactive if label == 'Inactive'
+        .d-flex
+          .label
+            = label
+            - if label == 'Inflow'
+              ⟵
+            - if label == 'Outflow'
+              ⟶
+          .count.mr-2
+            = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: sub_key, index: i) do
+              = count

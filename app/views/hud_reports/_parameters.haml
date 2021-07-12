@@ -1,41 +1,4 @@
 .mb-2.reports.warehouse-reports__completed
-  - [:start_date, :end_date, :coc_codes, :project_ids].each do |param|
-    - value = report.public_send(param)
-    - next if value.blank?
-    - if param == :project_ids
-      :ruby
-        project_ids = value.compact.delete_if(&:blank?)
-        projects = GrdaWarehouse::Hud::Project.where(
-          id: project_ids
-        ).order(name: :asc)
-        missing_ids = project_ids - projects.map(&:id)
-        summary = "#{project_ids.size - 5} more..."
-      .report-parameters__parameter
-        %label.label.label-default.parameter-label Projects
-        %label.label.label-primary.parameter-value
-          %div
-            - projects[0..4].each do |project|
-              %div= link_to_if can_view_projects?, project.name, project_path(project)
-            - details = capture_haml do
-              - projects[5..]&.each do |project|
-                %div= project&.name
-                - missing_ids.each do |id|
-                  %div= "##{id} (deleted)"
-            - if projects.size > 5 || missing_ids.any?
-              %span.action{data: {toggle: :tooltip, html: 'true', title: details}}
-                = "#{project_ids.size - 5} more..."
-    - else
-      .report-parameters__parameter
-        %label.label.label-default.parameter-label
-          = param.to_s.humanize
-        %label.label.label-primary.parameter-value
-          %strong
-            - value = value.compact.delete_if(&:blank?).join(', ') if value.is_a?(Array)
-            = value
-        &nbsp;
-  - if report.options['project_group_ids'].present?
-    - project_group_ids = report.options['project_group_ids']
-    - project_group_names = GrdaWarehouse::ProjectGroup.find(project_group_ids).pluck(:name)
-    .report-parameters__parameter
-      %label.label.label-default.parameter-label Project Groups
-      %label.label.label-primary.parameter-value= project_group_names.join(', ')
+  - # NOTE: this is not ideal, we need to figure out which filter type we're actually using
+  - # but for displaying the items chosen, it's probably fine
+  = Filters::FilterBase.new(user_id: report.user_id).update(report.options.with_indifferent_access).describe_filter_as_html
