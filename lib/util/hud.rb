@@ -518,13 +518,17 @@ module HUD
 
   # 2.7.3
   def bed_type(id, reverse = false)
-    map = {
+    map = bed_types
+
+    _translate map, id, reverse
+  end
+
+  def bed_types
+    {
       1 => 'Facility-based',
       2 => 'Voucher',
       3 => 'Other',
     }
-
-    _translate map, id, reverse
   end
 
   # 2.7.4

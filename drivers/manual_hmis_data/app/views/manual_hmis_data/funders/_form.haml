@@ -1,3 +1,2 @@
-= debug @fields
 - @fields.each do |key, value|
   = form.input key, label: key, as: value[:type], input_html: value[:html_input], collection: value[:collection] || [], include_blank: value[:include_blank] || true, required: (value[:null] == false) || false

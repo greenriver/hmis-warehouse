@@ -82,6 +82,7 @@ module ManualHmisData
         :ProjectID,
         :DateCreated,
         :DateUpdated,
+        :DateDeleted,
         :UserID,
         :ExportID,
       ]
@@ -106,9 +107,23 @@ module ManualHmisData
           type: :select_two,
           collection: GrdaWarehouse::Hud::Inventory.household_types,
         },
+        Availability: {
+          type: :select_two,
+          collection: HUD.availabilities.invert,
+        },
         CoCCode: {
           type: :select_two,
           collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode),
+        },
+        InventoryStartDate: {
+          type: :date_picker,
+        },
+        InventoryEndDate: {
+          type: :date_picker,
+        },
+        ESBedType: {
+          type: :select_two,
+          collection: HUD.bed_types.invert,
         },
       }
     end
