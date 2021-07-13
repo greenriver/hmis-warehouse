@@ -12,7 +12,7 @@ module HudPathReport::Generators::Fy2020
     QUESTION_TABLE_NUMBER = 'Q26'.freeze
     QUESTION_TABLE_NUMBERS = [QUESTION_TABLE_NUMBER].freeze
 
-    EMPTY_CELL = ' '
+    EMPTY_CELL = ' '.freeze
 
     TABLE_HEADER = [
       EMPTY_CELL,
@@ -57,6 +57,7 @@ module HudPathReport::Generators::Fy2020
       row_number = 2
       sections.each do |section_label, contents|
         sum = 0
+        sum_members = []
         contents.each_with_index do |(label, query), index|
           answer = @report.answer(question: table_name, cell: 'A' + row_number.to_s)
           if index.zero?
@@ -72,9 +73,11 @@ module HudPathReport::Generators::Fy2020
             answer = @report.answer(question: table_name, cell: 'C' + row_number.to_s)
             if query == :total
               answer.update(summary: sum)
+              answer.add_members(sum_members)
             else
               members = universe.members.where(active_and_enrolled_clients).where(query)
               answer.add_members(members)
+              sum_members += members
               count = members.count
               sum += count
               answer.update(summary: count)
@@ -87,47 +90,47 @@ module HudPathReport::Generators::Fy2020
       @report.complete(QUESTION_NUMBER)
     end
 
-  private def genders
-    h = HUD.genders.map do |k, v|
-      [
-        v,
-        a_t[:gender].eq(k),
-      ]
-    end.to_h
-    h['Total'] = :total
-    h.freeze
-  end
-
-  private def age_ranges
-    {
-      '17 and under' => a_t[:age].between(0..17).and(a_t[:dob_quality].in([1, 2])),
-      '18-23' => a_t[:age].between(18..23).and(a_t[:dob_quality].in([1, 2])),
-      '24-30' => a_t[:age].between(24..30).and(a_t[:dob_quality].in([1, 2])),
-      '31-40' => a_t[:age].between(31..40).and(a_t[:dob_quality].in([1, 2])),
-      '41-50' => a_t[:age].between(41..50).and(a_t[:dob_quality].in([1, 2])),
-      '51-61' => a_t[:age].between(51..61).and(a_t[:dob_quality].in([1, 2])),
-      '62 and over' => a_t[:age].between(55..61).and(a_t[:dob_quality].in([1, 2])),
-      "Client doesn't know" => a_t[:dob_quality].eq(8),
-      'Client refused' => a_t[:dob_quality].eq(9),
-      'Data not collected' => a_t[:dob_quality].not_in([8, 9]).and(a_t[:dob_quality].eq(99).or(a_t[:dob_quality].eq(nil)).or(a_t[:age].lt(0)).or(a_t[:age].eq(nil))),
-      'Total' => :total
-    }.freeze
-  end
-
-  private def races
-    h = HUD.races.reject { |k, _| k == 'RaceNone' }.
-      map do |k, v|
+    private def genders
+      h = HUD.genders.map do |k, v|
         [
           v,
-          a_t[k.underscore].eq(1)
+          a_t[:gender].eq(k),
         ]
       end.to_h
-    [8, 9, 99].each do |v|
-      h[HUD.race_none(v)] = a_t[:race_none].eq(v)
+      h['Total'] = :total
+      h.freeze
     end
-    h['Total'] = nil
-    h.freeze
-  end
+
+    private def age_ranges
+      {
+        '17 and under' => a_t[:age].between(0..17).and(a_t[:dob_quality].in([1, 2])),
+        '18-23' => a_t[:age].between(18..23).and(a_t[:dob_quality].in([1, 2])),
+        '24-30' => a_t[:age].between(24..30).and(a_t[:dob_quality].in([1, 2])),
+        '31-40' => a_t[:age].between(31..40).and(a_t[:dob_quality].in([1, 2])),
+        '41-50' => a_t[:age].between(41..50).and(a_t[:dob_quality].in([1, 2])),
+        '51-61' => a_t[:age].between(51..61).and(a_t[:dob_quality].in([1, 2])),
+        '62 and over' => a_t[:age].between(55..61).and(a_t[:dob_quality].in([1, 2])),
+        "Client doesn't know" => a_t[:dob_quality].eq(8),
+        'Client refused' => a_t[:dob_quality].eq(9),
+        'Data not collected' => a_t[:dob_quality].not_in([8, 9]).and(a_t[:dob_quality].eq(99).or(a_t[:dob_quality].eq(nil)).or(a_t[:age].lt(0)).or(a_t[:age].eq(nil))),
+        'Total' => :total,
+      }.freeze
+    end
+
+    private def races
+      h = HUD.races.reject { |k, _| k == 'RaceNone' }.
+        map do |k, v|
+          [
+            v,
+            a_t[k.underscore].eq(1),
+          ]
+        end.to_h
+      [8, 9, 99].each do |v|
+        h[HUD.race_none(v)] = a_t[:race_none].eq(v)
+      end
+      h['Total'] = nil
+      h.freeze
+    end
 
     private def ethnicities
       h = HUD.ethnicities.map do |k, v|
@@ -179,7 +182,7 @@ module HudPathReport::Generators::Fy2020
         'Institutional Situation',
         15, 6, 7, 25, 5, 4,
         'Transitional and Permanent Housing Situation',
-        14, 11, 21, 3, 10, 19, 28, 31, 20, 33, 34, 29, 35, 36, 2, 32, 8, 9, 99,
+        14, 11, 21, 3, 10, 19, 28, 31, 20, 33, 34, 29, 35, 36, 2, 32, 8, 9, 99
       ].map do |value|
         if value.is_a?(String)
           [value, nil]

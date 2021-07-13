@@ -84,14 +84,17 @@ module HudPathReport::Generators::Fy2020
       @report.answer(question: table_name).update(metadata: metadata)
 
       sum = 0
+      sum_members = []
       ROWS.each_with_index do |(_label, destination), index|
         answer = @report.answer(question: table_name, cell: 'B' + (index + 2).to_s)
         case destination
-        when nil  # Internal label, leave blank
+        when nil # Internal label, leave blank
           next
         when :subtotal # Section sums
           answer.update(summary: sum)
           sum = 0
+          answer.add_members(sum_members)
+          sum_members = []
           next
         when :stayers
           members = universe.members.where(active_and_enrolled_clients).where(stayers)
@@ -101,6 +104,7 @@ module HudPathReport::Generators::Fy2020
           members = universe.members.where(active_and_enrolled_clients).where(a_t[:destination].eq(destination))
         end
         answer.add_members(members)
+        sum_members += members
         count = members.count
         sum += count
         answer.update(summary: count)

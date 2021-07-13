@@ -72,21 +72,22 @@ module HudPathReport::Generators::Fy2020
 
       # Income from any source
       sum = {
-        B: 0,
-        C: 0,
-        D: 0,
+        B: [0, []],
+        C: [0, []],
+        D: [0, []],
       }
       [1, 0, 8, 9, 99].each_with_index do |value, index|
         row_number = index + 3 # Rows 3 - 7
 
-        sum[:B] += column_with_value(table_name, 'B' + row_number.to_s, all_members, :income_from_any_source_entry, value)
-        sum[:C] += column_with_value(table_name, 'C' + row_number.to_s, leavers, :income_from_any_source_exit, value)
-        sum[:D] += column_with_value(table_name, 'D' + row_number.to_s, stayers, :income_from_any_source_report_end, value)
+        sum[:B] = accumulate_sum(sum[:B], column_with_value(table_name, 'B' + row_number.to_s, all_members, :income_from_any_source_entry, value))
+        sum[:C] = accumulate_sum(sum[:C], column_with_value(table_name, 'C' + row_number.to_s, leavers, :income_from_any_source_exit, value))
+        sum[:D] = accumulate_sum(sum[:D], column_with_value(table_name, 'D' + row_number.to_s, stayers, :income_from_any_source_report_end, value))
       end
 
       [:B, :C, :D].each do |col|
         answer = @report.answer(question: table_name, cell: col.to_s + '8')
-        answer.update(summary: sum[col])
+        answer.update(summary: sum[col].first)
+        answer.add_members(sum[col].last)
       end
 
       # SSI/SSDI
@@ -100,40 +101,42 @@ module HudPathReport::Generators::Fy2020
 
       # Non-cash benefits
       sum = {
-        B: 0,
-        C: 0,
-        D: 0,
+        B: [0, []],
+        C: [0, []],
+        D: [0, []],
       }
       [1, 0, 8, 9, 99].each_with_index do |value, index|
         row_number = index + 13 # Rows 13 - 17
 
-        sum[:B] += column_with_value(table_name, 'B' + row_number.to_s, all_members, :benefits_from_any_source_entry, value)
-        sum[:C] += column_with_value(table_name, 'C' + row_number.to_s, leavers, :benefits_from_any_source_exit, value)
-        sum[:D] += column_with_value(table_name, 'D' + row_number.to_s, stayers, :benefits_from_any_source_report_end, value)
+        sum[:B] = accumulate_sum(sum[:B], column_with_value(table_name, 'B' + row_number.to_s, all_members, :benefits_from_any_source_entry, value))
+        sum[:C] = accumulate_sum(sum[:C], column_with_value(table_name, 'C' + row_number.to_s, leavers, :benefits_from_any_source_exit, value))
+        sum[:D] = accumulate_sum(sum[:D], column_with_value(table_name, 'D' + row_number.to_s, stayers, :benefits_from_any_source_report_end, value))
       end
 
       [:B, :C, :D].each do |col|
         answer = @report.answer(question: table_name, cell: col.to_s + '18')
-        answer.update(summary: sum[col])
+        answer.update(summary: sum[col].first)
+        answer.add_members(sum[col].last)
       end
 
       # Health Insurance
       sum = {
-        B: 0,
-        C: 0,
-        D: 0,
+        B: [0, []],
+        C: [0, []],
+        D: [0, []],
       }
       [1, 0, 8, 9, 99].each_with_index do |value, index|
         row_number = index + 20 # Rows 20-24
 
-        sum[:B] += column_with_value(table_name, 'B' + row_number.to_s, all_members, :insurance_from_any_source_entry, value)
-        sum[:C] += column_with_value(table_name, 'C' + row_number.to_s, leavers, :insurance_from_any_source_exit, value)
-        sum[:D] += column_with_value(table_name, 'D' + row_number.to_s, stayers, :insurance_from_any_source_report_end, value)
+        sum[:B] = accumulate_sum(sum[:B], column_with_value(table_name, 'B' + row_number.to_s, all_members, :insurance_from_any_source_entry, value))
+        sum[:C] = accumulate_sum(sum[:C], column_with_value(table_name, 'C' + row_number.to_s, leavers, :insurance_from_any_source_exit, value))
+        sum[:D] = accumulate_sum(sum[:D], column_with_value(table_name, 'D' + row_number.to_s, stayers, :insurance_from_any_source_report_end, value))
       end
 
       [:B, :C, :D].each do |col|
         answer = @report.answer(question: table_name, cell: col.to_s + '25')
-        answer.update(summary: sum[col])
+        answer.update(summary: sum[col].first)
+        answer.add_members(sum[col].last)
       end
 
       # Medicaid/Medicare
@@ -157,13 +160,17 @@ module HudPathReport::Generators::Fy2020
       @report.complete(QUESTION_NUMBER)
     end
 
+    def accumulate_sum(left, right)
+      [left, right].transpose.map { |l, r| l + r }
+    end
+
     def column_with_value(table_name, table_cell, phase, db_column, value)
       answer = @report.answer(question: table_name, cell: table_cell)
       members = universe.members.where(active_and_enrolled_clients).where(phase).where(a_t[db_column].eq(value))
       answer.add_members(members)
       count = members.count
       answer.update(summary: count)
-      count
+      [count, members.to_a]
     end
 
     def cell_with_query(table_name, table_cell, phase, query)
@@ -172,7 +179,6 @@ module HudPathReport::Generators::Fy2020
       answer.add_members(members)
       count = members.count
       answer.update(summary: count)
-      count
     end
 
     def receiving_ssi_or_ssdi(column)
