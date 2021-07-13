@@ -275,7 +275,6 @@ Layout/EmptyLineAfterGuardClause:
 # Configuration parameters: EmptyLineBetweenMethodDefs, EmptyLineBetweenClassDefs, EmptyLineBetweenModuleDefs, AllowAdjacentOneLineDefs, NumberOfEmptyLines.
 Layout/EmptyLineBetweenDefs:
   Exclude:
-    - 'app/models/grda_warehouse/confidence/base.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud/client.rb'
@@ -332,7 +331,6 @@ Layout/EmptyLines:
   Exclude:
     - 'app/models/glacier/archive_runner.rb'
     - 'app/models/grda_warehouse/cohort.rb'
-    - 'app/models/grda_warehouse/confidence/base.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
     - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
@@ -1107,7 +1105,6 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/aws_s3.rb'
     - 'app/models/cas/user.rb'
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
-    - 'app/models/grda_warehouse/confidence/base.rb'
     - 'app/models/grda_warehouse/grades/missing.rb'
     - 'app/models/grda_warehouse/health_emergency/uploaded_test.rb'
     - 'app/models/grda_warehouse/hmis_export.rb'
@@ -3296,7 +3293,6 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/available_file_tag.rb'
     - 'app/models/grda_warehouse/chronic.rb'
     - 'app/models/grda_warehouse/client_match.rb'
-    - 'app/models/grda_warehouse/confidence/base.rb'
     - 'app/models/grda_warehouse/confidence/days_homeless.rb'
     - 'app/models/grda_warehouse/confidence/source_enrollments.rb'
     - 'app/models/grda_warehouse/confidence/source_exits.rb'
