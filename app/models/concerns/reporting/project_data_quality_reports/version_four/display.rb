@@ -137,7 +137,12 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def move_in_date_above_threshold
-      enrolled_household_heads.ph.where(days_ph_before_move_in_date: (move_in_date_threshold..Float::INFINITY))
+      enrolled_household_heads.ph.where(days_ph_before_move_in_date: (move_in_date_threshold..Float::INFINITY)).
+        or(
+          enrolled_household_heads.ph.where(days_ph_before_move_in_date: nil).where(
+            datediff(enrolled_household_heads, 'day', lit("'#{report_end.iso8601}'"), enrolled_household_heads.arel_table[:entry_date]).gt(move_in_date_threshold),
+          ),
+        )
     end
 
     def should_have_income_at_annual
