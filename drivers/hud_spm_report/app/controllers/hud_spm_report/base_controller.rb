@@ -11,16 +11,7 @@ module HudSpmReport
     def filter_params
       return {} unless params[:filter]
 
-      filter_p = params.require(:filter).
-        permit(
-          :start,
-          :end,
-          coc_codes: [],
-          project_ids: [],
-          project_type_codes: [],
-          project_group_ids: [],
-          data_source_ids: [],
-        )
+      filter_p = params.require(:filter).permit(@filter.known_params)
       filter_p[:user_id] = current_user.id
 
       filter_p
@@ -56,7 +47,7 @@ module HudSpmReport
     end
 
     private def filter_class
-      HudSpmReport::Filters::SpmFilter
+      generator.filter_class
     end
 
     private def generator

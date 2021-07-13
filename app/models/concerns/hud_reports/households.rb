@@ -31,6 +31,8 @@ module HudReports::Households
     end
 
     private def ages_for(household_id, date)
+      return [] unless households[household_id]
+
       households[household_id].map { |client| GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob]) }
     end
 
@@ -45,6 +47,8 @@ module HudReports::Households
             # puts 'Household Batch: '
             # puts GetProcessMem.new.inspect
             batch.each do |enrollment|
+              next unless enrollment.enrollment.client
+
               hh[get_hh_id(enrollment)] ||= []
               hh[get_hh_id(enrollment)] << {
                 source_client_id: enrollment.enrollment.client.id,

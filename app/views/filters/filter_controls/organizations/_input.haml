@@ -1,2 +1,2 @@
 - if report_filter_visible?(:organization_ids, current_user)
-  = f.input :organization_ids, collection: @filter.organization_options_for_select(user:  current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true }, label: control.label
+  = f.input :organization_ids, collection: @filter.organization_options_for_select(user:  current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Any Organization'}, label: control.label, placeholder: 'Any Organization'

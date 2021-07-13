@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'memoist'
 class User < ApplicationRecord
   include Rails.application.routes.url_helpers
   include UserPermissions
@@ -35,7 +36,6 @@ class User < ApplicationRecord
          otp_number_of_backup_codes: 10
 
   include OmniauthSupport
-
 
   # Connect users to login attempts
   has_many :login_activities, as: :user
@@ -215,9 +215,7 @@ class User < ApplicationRecord
   end
 
   def agency_name
-    if agency.present?
-      agency&.name
-    end
+    agency&.name if agency.present?
   end
 
   def phone_for_directory
@@ -256,11 +254,10 @@ class User < ApplicationRecord
   end
 
   def passed_2fa_confirmation?
-    confirmed_2fa > 0
+    confirmed_2fa.positive?
   end
 
   def disable_2fa!
-    otp_secret = nil
     update(
       confirmed_2fa: 0,
       otp_required_for_login: false,
@@ -449,6 +446,21 @@ class User < ApplicationRecord
     ].freeze
 
     ! project_related.include?(key.to_sym)
+  end
+
+  class << self
+    extend Memoist
+    def group_associations
+      {
+        data_sources: GrdaWarehouse::DataSource,
+        organizations: GrdaWarehouse::Hud::Organization,
+        projects: GrdaWarehouse::Hud::Project,
+        reports: GrdaWarehouse::WarehouseReports::ReportDefinition,
+        cohorts: GrdaWarehouse::Cohort,
+        project_groups: GrdaWarehouse::ProjectGroup,
+      }.freeze
+    end
+    memoize :group_associations
   end
 
   # def health_agency
