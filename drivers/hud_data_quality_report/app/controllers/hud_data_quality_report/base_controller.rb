@@ -33,10 +33,7 @@ module HudDataQualityReport
           @filter.start = options['start'].presence || Date.new(year - 1, 10, 1)
           @filter.end = options['end'].presence || Date.new(year, 9, 30)
           @filter.coc_codes = options['coc_codes'].presence || site_coc_codes
-          @filter.project_ids = options['project_ids']
-          @filter.project_type_codes = options['project_type_codes']
-          @filter.project_group_ids = options['project_group_ids']
-          @filter.data_source_ids = options['data_source_ids']
+          @filter.update(options.with_indifferent_access)
         else
           @filter.start = Date.new(year - 1, 10, 1)
           @filter.end = Date.new(year, 9, 30)
