@@ -1,8 +1,8 @@
 - if data
   - chart_class = "average-household-size-chart-#{population}"
-  - active_date = data.keys.first
+  - active_date = data.keys.last
   - active_value = data[active_date]['data']
   %h2= data[active_date]['title']
   .jQuarterChosenDate
-  .household-size-chart.jSliderDependentText.pt-2{ data: { active_date: data.keys.first, numbers: data.to_json }, class: [chart_class, "active_date_#{data.keys.first}"] }
+  .household-size-chart.jSliderDependentText.pt-2{ data: { active_date: data.keys.last, numbers: data.to_json }, class: [chart_class, "active_date_#{data.keys.last}"] }
     = active_value
