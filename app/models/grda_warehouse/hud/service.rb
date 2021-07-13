@@ -24,6 +24,8 @@ module GrdaWarehouse::Hud
     has_one :organization, through: :project
 
     scope :bed_night, -> { where RecordType: 200 }
+    scope :path_service, -> { where(RecordType: 141) }
+    scope :path_referral, -> { where(RecordType: 161) }
     scope :descending, -> { order arel_table[:DateProvided].desc }
     # really, the scope below should just be true, but it isn't; this culls things down to the most recent entry of the given type for the date
     scope :uniqueness_constraint, -> {
@@ -32,15 +34,19 @@ module GrdaWarehouse::Hud
       st2.table_alias = 'st2'
       where(
         st2.project(Arel.star).
-          where( st2[:data_source_id].eq st1[:data_source_id] ).
-          where( st2[:PersonalID].eq st1[:PersonalID] ).
-          where( st2[:RecordType].eq st1[:RecordType] ).
-          where( st2[:EnrollmentID].eq st1[:EnrollmentID] ).
-          where( st2[:DateProvided].eq st1[:DateProvided] ).
-          where( st2[:id].gt st1[:id] ).
+          where(st2[:data_source_id].eq(st1[:data_source_id])).
+          where(st2[:PersonalID].eq(st1[:PersonalID])).
+          where(st2[:RecordType].eq(st1[:RecordType])).
+          where(st2[:EnrollmentID].eq(st1[:EnrollmentID])).
+          where(st2[:DateProvided].eq(st1[:DateProvided])).
+          where(st2[:id].gt(st1[:id])).
           exists.not
       )
     }
+
+    scope :between, ->(start_date:, end_date:) do
+      where(arel_table[:DateProvided].between(start_date..end_date))
+    end
 
     def self.related_item_keys
       [
