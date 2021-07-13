@@ -1,37 +1,7 @@
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
 = simple_form_for @filter, as: :filter, url: url do |f|
   - content_for :filters_col_full do
-    .row
-      .col-sm
-        = f.input :start, as: :date_picker, label: 'Start Date', required: true
-      .col-sm
-        = f.input :end, as: :date_picker, label: 'End Date', required: true
-      .col-sm
-        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Please Choose'}, label: 'CoC Codes', hint: default_coc_code
-    .row
-      .col-sm
-        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Please Choose' },label: 'Projects', required: true
-      .col-sm
-        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Any Data Source'}, label: 'Data Sources'
-    .row
-      .col-sm
-        = f.input :project_type_codes, collection: @filter.available_residential_project_types, input_html: { multiple: true, placeholder: 'Any Project Type' }, label: 'Project Types', as: :select_two
-      .col-sm
-        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Any Project Group'}, label: 'Project Groups'
-    .row
-      .col-sm
-        = f.input :sub_population, collection: @filter.available_sub_populations, selected:  @filter.sub_population, required: false, include_blank: false, as: :select_two
-      .col-sm
-        = f.input :age_ranges, collection: @filter.available_age_ranges, as: :select_two, input_html: { multiple: true }, required: false
-      .col-sm.pt-2
-        = f.input :hoh_only, as: :boolean, label: 'Limit to heads of household'
-    .row
-      .col-sm
-        = f.input :genders, collection: HUD.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }
-      .col-sm
-        = f.input :races, collection: HUD.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
-      .col-sm
-        = f.input :ethnicities, collection: HUD.ethnicities.invert, as: :select_two, required: false, placeholder: 'All Ethnicities', input_html: { multiple: true }
+    = render 'hud_reports/report_form_fields', f: f, default_coc_code: default_coc_code
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue Report'
