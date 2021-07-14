@@ -80,6 +80,7 @@ module HmisCsvTwentyTwenty::Exporter
           clean_clients << clean_client
         end
       end
+
       CSV.open(export_path, 'wb', { force_quotes: true }) do |csv|
         break unless clean_clients.any?
 

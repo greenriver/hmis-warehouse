@@ -44,11 +44,13 @@ module HmisCsvTwentyTwenty::Exporter::Shared
       ids.in_groups_of(100_000, false) do |id_group|
         batch = self.class.where(id: id_group).pluck(*columns)
         # export_scope.pluck_in_batches(*columns, batch_size: 100_000) do |batch|
+
         batch.map do |row|
           data_source_id = row.last
           row = Hash[headers.zip(row)]
           row[:ExportID] = export_id
-          csv << clean_row(row: row, export: export, data_source_id: data_source_id).values
+          cleaned_row = clean_row(row: row, export: export, data_source_id: data_source_id).values
+          csv << cleaned_row
         end
       end
     end
@@ -130,7 +132,7 @@ module HmisCsvTwentyTwenty::Exporter::Shared
     @columns_to_pluck ||= begin
       columns = self.class.hud_csv_headers(version: '2020').map do |k|
         if k.to_s == hud_key.to_s
-          Arel.sql(self.class.arel_table[:id].as(hud_key.to_s).to_sql)
+          Arel.sql(self.class.arel_table[:id].as(self.class.connection.quote_column_name(hud_key)).to_sql)
         else
           Arel.sql(self.class.arel_table[k].as("#{k}_").to_sql)
         end
