@@ -1186,7 +1186,8 @@ CREATE TABLE public."Funder" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "OtherFunder" character varying
+    "OtherFunder" character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1457,7 +1458,8 @@ CREATE TABLE public."Inventory" (
     "ESBedType" integer,
     coc_code_override character varying,
     inventory_start_date_override date,
-    inventory_end_date_override date
+    inventory_end_date_override date,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1596,7 +1598,8 @@ CREATE TABLE public."ProjectCoC" (
     "Zip" character varying(5),
     geography_type_override integer,
     geocode_override character varying(6),
-    zip_override character varying
+    zip_override character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -31139,11 +31142,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623184729'),
 ('20210623195645'),
 ('20210625231326'),
+('20210630201802'),
 ('20210702143811'),
 ('20210702144442'),
 ('20210707122337'),
 ('20210707172124'),
 ('20210708183958'),
-('20210710195956');
+('20210710195956'),
+('20210711120353');
 
 

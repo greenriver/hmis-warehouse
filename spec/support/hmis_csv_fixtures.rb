@@ -11,11 +11,11 @@ module HmisCsvFixtures
       data_source = GrdaWarehouse::DataSource.where(
         name: 'Green River',
         short_name: 'GR',
-        source_type: :sftp
+        source_type: :sftp,
       ).first_or_create!
       GrdaWarehouse::DataSource.where(
         name: 'Warehouse',
-        short_name: 'W'
+        short_name: 'W',
       ).first_or_create!
     end
 
