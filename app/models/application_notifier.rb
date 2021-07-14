@@ -18,7 +18,7 @@ class ApplicationNotifier < Slack::Notifier
       url, channel, username = * decode_key(key)
       next unless url.present?
 
-      new(url, channel: channel, username: username).flush
+      new(url, channel: channel, username: username).flush_queue
     end
   end
 
@@ -58,7 +58,7 @@ class ApplicationNotifier < Slack::Notifier
   # Send any rate_limit'd messages plus additional_message.
   # Will break the messages into 4K chars
   # and raise if Redis has become unavailable
-  def flush(additional_message = nil)
+  def flush_queue(additional_message = nil)
     message = ''
     # If we upgrade to Redis 6.2+ we can use lop n to
     # batch fetches
@@ -83,7 +83,7 @@ class ApplicationNotifier < Slack::Notifier
     if last_post && (Time.now - Time.at(last_post.to_f)) < 1.second
       @redis.rpush "#{@namespace}/queue", "#{Time.current.strftime('%I:%M:%S.%L%p')}: #{message}\n"
     else
-      flush message
+      flush_queue message
     end
   rescue Redis::BaseError
     # If Redis has gone down, just try to get this message out
