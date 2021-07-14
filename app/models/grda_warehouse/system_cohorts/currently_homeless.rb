@@ -26,11 +26,14 @@ module GrdaWarehouse::SystemCohorts
       # if exit was to permanent destination within 2 year range, or move in was within 2 year range  - Returned from housing
       # else Returned from inactive unless no service in INACTIVE period
 
-      moved_in_ph = enrollment_source.ongoing.ph.
+      moved_in_ph = enrollment_source.
+        ongoing.
+        ph.
         where(she_t[:move_in_date].lt(Date.current)).
         select(:client_id)
 
-      candidate_enrollments = homeless_enrollment_source.
+      candidate_enrollments = enrollment_source.
+        homeless.
         entry.
         ongoing.
         where.not(client_id: service_history_source.where(date: Date.yesterday, homeless: false).select(:client_id)).
@@ -38,11 +41,11 @@ module GrdaWarehouse::SystemCohorts
         where.not(client_id: cohort_clients.select(:client_id)).
         group(:client_id).minimum(:first_date_in_program)
 
-      previous_enrollments = homeless_enrollment_source.
+      previous_enrollments = enrollment_source.
         exit.
         where(client_id: candidate_enrollments.keys).
-        order(greatest(she_t[:last_date_in_program], she_t[:move_in_date])).
-        pluck(:client_id, greatest(she_t[:last_date_in_program], she_t[:move_in_date]), :destination).
+        order(last_date_in_program: :asc).
+        pluck(:client_id, :last_date_in_program, :destination).
         map { |client_id, *rest| [client_id, rest] }.to_h
 
       most_recent_service_dates = service_history_source.
@@ -86,13 +89,14 @@ module GrdaWarehouse::SystemCohorts
     private def remove_inactive_clients
       # Inactive (hasn't been seen in a homeless project in N days, where N refers to the setting on the cohort.)
       inactive_date = Date.current - days_of_inactivity.days
-      client_ids = enrollment_source.
+      active_client_ids = enrollment_source.
         homeless.
         where(client_id: cohort_clients.select(:client_id)).
         joins(:service_history_services).
         where(shs_t[:date].gt(inactive_date)).
         pluck(:client_id)
-      remove_clients(client_ids, 'Inactive')
+      inactive_client_ids = cohort_clients.pluck(:client_id) - active_client_ids
+      remove_clients(inactive_client_ids, 'Inactive')
     end
 
     private def remove_no_longer_meets_criteria
@@ -116,10 +120,6 @@ module GrdaWarehouse::SystemCohorts
 
     private def service_history_source
       GrdaWarehouse::ServiceHistoryService
-    end
-
-    private def homeless_enrollment_source
-      enrollment_source.homeless
     end
   end
 end
