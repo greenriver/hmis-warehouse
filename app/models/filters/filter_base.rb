@@ -151,6 +151,7 @@ module Filters
           chronic_status: chronic_status,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
           limit_to_vispdat: limit_to_vispdat,
+          enforce_one_year_range: enforce_one_year_range,
         },
       }
     end
@@ -173,6 +174,7 @@ module Filters
         :coordinated_assessment_living_situation_homeless,
         :coc_code,
         :limit_to_vispdat,
+        :enforce_one_year_range,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],
@@ -498,6 +500,10 @@ module Filters
 
     def user
       @user ||= User.find(user_id)
+    end
+
+    def available_sub_populations
+      AvailableSubPopulations.available_sub_populations
     end
 
     def available_age_ranges
