@@ -27,7 +27,7 @@ module Clients::Youth
       @direct_financial_assistances = @client.direct_financial_assistances.
         merge(GrdaWarehouse::Youth::DirectFinancialAssistance.visible_by?(current_user)).
         order(provided_on: :desc, created_at: :desc)
-      @dfa_sum = @client.direct_financial_assistances.sum(:amount)
+      @dfa_sum = @direct_financial_assistances.sum(:amount)
       @youth_referrals = @client.youth_referrals.
         merge(GrdaWarehouse::Youth::YouthReferral.visible_by?(current_user)).
         order(referred_on: :desc, created_at: :desc)

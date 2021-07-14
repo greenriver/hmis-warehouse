@@ -1,0 +1,19 @@
+= render 'breadcrumbs'
+- content_for :title, @generator.title
+%header.mb-3
+  %h1= content_for :title
+
+.well
+  .d-flex
+    %h2 Annual PATH Report
+    .ml-auto
+      = link_to({format: :zip},{class: 'btn btn-primary'}) do
+        %span.icon-download2
+        Download Zip File
+
+  = render 'hud_reports/questions'
+
+.text-right
+  = link_to 'Generate New Full Annual PATH Report', new_hud_reports_path_path, class: 'btn btn-secondary'
+
+= render 'hud_reports/reports_wrapper'

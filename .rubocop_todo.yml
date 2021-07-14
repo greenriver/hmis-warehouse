@@ -275,7 +275,6 @@ Layout/EmptyLineAfterGuardClause:
 # Configuration parameters: EmptyLineBetweenMethodDefs, EmptyLineBetweenClassDefs, EmptyLineBetweenModuleDefs, AllowAdjacentOneLineDefs, NumberOfEmptyLines.
 Layout/EmptyLineBetweenDefs:
   Exclude:
-    - 'app/models/grda_warehouse/confidence/base.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud/client.rb'
@@ -332,7 +331,6 @@ Layout/EmptyLines:
   Exclude:
     - 'app/models/glacier/archive_runner.rb'
     - 'app/models/grda_warehouse/cohort.rb'
-    - 'app/models/grda_warehouse/confidence/base.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
     - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
@@ -1107,7 +1105,6 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/aws_s3.rb'
     - 'app/models/cas/user.rb'
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
-    - 'app/models/grda_warehouse/confidence/base.rb'
     - 'app/models/grda_warehouse/grades/missing.rb'
     - 'app/models/grda_warehouse/health_emergency/uploaded_test.rb'
     - 'app/models/grda_warehouse/hmis_export.rb'
@@ -1928,7 +1925,6 @@ Layout/SpaceInsideParens:
 # Cop supports --auto-correct.
 Layout/SpaceInsidePercentLiteralDelimiters:
   Exclude:
-    - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
 
 # Offense count: 2
@@ -3009,7 +3005,6 @@ Style/MultilineTernaryOperator:
 Style/MultipleComparison:
   Exclude:
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/name_data_quality.rb'
@@ -3093,10 +3088,8 @@ Style/NegatedIf:
 Style/NestedParenthesizedCalls:
   Exclude:
     - 'app/models/grda_warehouse/data_source.rb'
-    - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
-    - 'app/models/grda_warehouse/hud/service.rb'
     - 'app/models/grda_warehouse/hud/site.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/health/eligibility_inquiry.rb'
@@ -3239,7 +3232,6 @@ Style/ParenthesesAroundCondition:
 # Configuration parameters: PreferredDelimiters.
 Style/PercentLiteralDelimiters:
   Exclude:
-    - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
@@ -3301,7 +3293,6 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/available_file_tag.rb'
     - 'app/models/grda_warehouse/chronic.rb'
     - 'app/models/grda_warehouse/client_match.rb'
-    - 'app/models/grda_warehouse/confidence/base.rb'
     - 'app/models/grda_warehouse/confidence/days_homeless.rb'
     - 'app/models/grda_warehouse/confidence/source_enrollments.rb'
     - 'app/models/grda_warehouse/confidence/source_exits.rb'
@@ -3453,7 +3444,6 @@ Style/RescueStandardError:
   Exclude:
     - 'app/models/glacier/tester.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
-    - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/non_hmis_upload.rb'
     - 'app/models/grda_warehouse/upload.rb'
     - 'app/models/grda_warehouse/vispdat/base.rb'
@@ -3968,7 +3958,6 @@ Style/WhileUntilModifier:
 # SupportedStyles: percent, brackets
 Style/WordArray:
   Exclude:
-    - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
