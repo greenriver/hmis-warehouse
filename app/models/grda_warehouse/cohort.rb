@@ -237,7 +237,7 @@ module GrdaWarehouse
         ::CohortColumns::HousedDate.new,
         ::CohortColumns::Destination.new,
         ::CohortColumns::SubPopulation.new,
-        ::CohortColumns::Individual.new,
+        ::CohortColumns::IndividualInMostRecentEnrollment.new,
         ::CohortColumns::StFrancisHouse.new,
         ::CohortColumns::LastGroupReviewDate.new,
         ::CohortColumns::LastDateApproached.new,
@@ -452,7 +452,7 @@ module GrdaWarehouse
           disability_verification_date: disability_verification_date(cc.client),
           missing_documents: missing_documents(cc.client),
           days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
-          individual: individual(cc.client),
+          individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
         }
         cc.update(data)
       end
@@ -487,8 +487,8 @@ module GrdaWarehouse
         end.join('; ')
     end
 
-    private def individual(client)
-      most_recent_enrollment = client.service_history_enrollments.homeless.order(date: :desc).first
+    private def individual_in_most_recent_homeless_enrollment(client)
+      most_recent_enrollment = client.service_history_enrollments.entry.homeless.order(first_date_in_program: :desc).first
       most_recent_enrollment&.presented_as_individual
     end
 
