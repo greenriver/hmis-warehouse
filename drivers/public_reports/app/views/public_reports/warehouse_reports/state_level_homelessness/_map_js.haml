@@ -90,8 +90,8 @@
     getColor(rate) {
       let division_size = 1 / this.colors.length
       let division = Math.floor(rate / division_size)
-      if(division > this.colors.length) {
-        return this.colors[this.colors.length]
+      if(division >= this.colors.length) {
+        return this.colors[this.colors.length - 1]
       } else {
         return this.colors[division]
       }
