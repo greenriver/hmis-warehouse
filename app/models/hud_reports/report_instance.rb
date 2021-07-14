@@ -163,9 +163,9 @@ module HudReports
       cell_name.match(/[A-Z0-9]+/i).to_s
     end
 
-    # only allow alpha numeric
+    # only allow alpha numeric, and dashes
     def valid_table_name(table)
-      table.match(/[A-Z0-9]+/i).to_s
+      table.match(/[A-Z0-9-]+/i).to_s
     end
 
 
