@@ -33,7 +33,11 @@ class CohortsController < ApplicationController
     @cohort = cohort_source.new
     @cohorts = @search.result.active_user.reorder(sort_string)
     @inactive_cohorts = @search.result.inactive.reorder(sort_string)
-    @system_cohorts = @search.result.system_cohorts.reorder(sort_string)
+    @system_cohorts = if ::GrdaWarehouse::Config.get(:enable_system_cohorts)
+      @search.result.system_cohorts.reorder(sort_string)
+    else
+      @search.none
+    end
   end
 
   def show

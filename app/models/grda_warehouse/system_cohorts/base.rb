@@ -8,10 +8,10 @@ module GrdaWarehouse::SystemCohorts
   class Base < GrdaWarehouse::Cohort
     # Factory
     def self.update_system_cohorts
-      cohort_classes.each do |config_key, clazz|
+      cohort_classes.each do |config_key, klass|
         next unless GrdaWarehouse::Config.get(config_key)
 
-        clazz.first_or_create! do |cohort|
+        klass.first_or_create! do |cohort|
           cohort.name = cohort.cohort_name
           cohort.system_cohort = true
         end.sync
