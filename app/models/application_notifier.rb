@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Sends progress messages to Slack, possibly queuing and batching
+# them as needed and if a service to do so is available. Logs
+# any network/services errors and recovers as well as it can.
 class ApplicationNotifier < Slack::Notifier
   def self.namespace_prefix
     'slack-notifier'
@@ -30,7 +33,7 @@ class ApplicationNotifier < Slack::Notifier
     if redis.ping
       @redis = redis
       @namespace = self.class.encode_key(url, channel, username)
-      Rails.logger.debug "ApplicationNotifier#ping queueing enabled at #{@redis.inspect} #{@namespace}"
+      Rails.logger.debug "ApplicationNotifier#ping queuing enabled at #{@redis.inspect} #{@namespace}"
     end
 
     super
@@ -42,21 +45,24 @@ class ApplicationNotifier < Slack::Notifier
     return unless @endpoint&.host
 
     if @redis.nil? || message.is_a?(Hash) || options.present?
+      # fallback on hard cases or if Redis is not available
       super
     else
       rate_limit message
     end
     nil # Dont leak a return value
   rescue OpenSSL::SSL::SSLError => e
-    # Sometimes we see this in addition to the Slack::* errror
+    # Sometimes we see this in addition to the Slack::* error
     # if Slack is unwell
-    Rails.logger.error('Failed to send slack: ' + e.message)
+    Rails.logger.error('ApplicationNotifier#ping: ' + e.message)
   rescue Slack::Notifier::APIError => e
-    Rails.logger.error('Failed to send slack: ' + e.message)
+    Rails.logger.error('ApplicationNotifier#ping: ' + e.message)
   end
 
-  # Send any rate_limit'd messages plus additional_message.
-  # Will break the messages into 4K chars
+  # Send any rate_limit'd messages plus an optional additional_message.
+  # Will break the resulting mega-message into 4K char and burst out
+  # a sequence of posts. If this the queue is too big, say bigger than
+  # 40KB, we will get a Slack rate limit error
   # and raise if Redis has become unavailable
   def flush_queue(additional_message = nil)
     message = ''
@@ -85,8 +91,9 @@ class ApplicationNotifier < Slack::Notifier
     else
       flush_queue message
     end
-  rescue Redis::BaseError
+  rescue Redis::BaseError => e
     # If Redis has gone down, just try to get this message out
+    Rails.logger.error('ApplicationNotifier#rate_limit: ' + e.message)
     post text: message
   end
 
