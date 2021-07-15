@@ -27,7 +27,7 @@ module HudReports
         start_date: filter.start.to_date,
         end_date: filter.end.to_date,
         coc_codes: filter.coc_codes,
-        options: filter.for_params[:filters].slice(:start, :end, :coc_codes, :project_ids, :project_group_ids, :user_id, :project_type_codes, :data_source_ids),
+        options: filter.to_h,
       )
     end
 
@@ -163,9 +163,9 @@ module HudReports
       cell_name.match(/[A-Z0-9]+/i).to_s
     end
 
-    # only allow alpha numeric
+    # only allow alpha numeric, and dashes
     def valid_table_name(table)
-      table.match(/[A-Z0-9]+/i).to_s
+      table.match(/[A-Z0-9-]+/i).to_s
     end
 
 

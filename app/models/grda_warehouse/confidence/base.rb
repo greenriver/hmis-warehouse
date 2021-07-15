@@ -79,6 +79,18 @@ module GrdaWarehouse::Confidence
       collections
     end
 
+    def self.to_csv
+      require 'csv'
+
+      cols = %w/id type resource_id census value change iteration of_iterations/
+      CSV.generate do |csv|
+        csv << cols
+        order(:id, :type, :resource_id, :census, :iteration).map do |r|
+          csv << r.attributes.values_at(*cols)
+        end
+      end
+    end
+
     # generally we'll set these up with create_batch!, but this
     # gives the option to create for one client
     def self.setup_for_client client_id

@@ -57,6 +57,7 @@ module Admin
         :health_emergency,
         :health_emergency_tracing,
         :health_priority_age,
+        :health_claims_data_path,
         :multi_coc_installation,
         :auto_de_duplication_accept_threshold,
         :auto_de_duplication_reject_threshold,
@@ -83,6 +84,7 @@ module Admin
         :bypass_2fa_duration,
         :enable_system_cohorts,
         :currently_homeless_cohort,
+        :enable_youth_hrp,
         client_details: [],
       )
     end

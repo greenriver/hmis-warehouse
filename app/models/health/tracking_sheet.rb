@@ -13,7 +13,7 @@ module Health
       @patient_ids = patients.map(&:id)
     end
 
-    private def patient_ids
+    private def patient_ids # rubocop:disable Style/TrivialAccessors
       @patient_ids
     end
 

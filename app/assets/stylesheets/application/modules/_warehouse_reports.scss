@@ -84,14 +84,26 @@
 .warehouse-reports__user-permission {
   td {
     ul {
-      list-style: none;
       padding-left: 0;
     }
     li {
+      list-style: none;
       margin-bottom: 0.5em;
     }
   }
+}
 
+.modal-content .warehouse-reports__user-permission__profile {
+  ul {
+    padding-left: 0;
+  }
+  li {
+    list-style: none;
+    padding-left: 1em;
+    &:last-child {
+      margin-bottom: 1em;
+    }
+  }
 }
 
 .report-hightlight
