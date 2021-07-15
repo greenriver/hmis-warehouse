@@ -227,7 +227,11 @@ module HmisCsvTwentyTwenty::Loader
       if mapping_status == :ok
         pg_cols = col_mapping + meta_data_names
       elsif mapping_status == :mapped
-        extra_cols = header_row - header_row.values_at(*col_mapping.values) # rubocop:disable Lint/UselessAssignment
+        extra_cols = header_row - header_row.values_at(*col_mapping.values)
+        if extra_cols.present?
+          msg = "Found extra columns and ignoring them: #{extra_cols}"
+          add_error(file_path: original_file_path, message: msg, line: 0)
+        end
         pg_cols = col_mapping.keys + meta_data_names
       else
         return # cannot continue clean_header_row logged its reason
