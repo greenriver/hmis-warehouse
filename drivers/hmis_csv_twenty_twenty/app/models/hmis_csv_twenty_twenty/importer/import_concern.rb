@@ -118,7 +118,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         on #{warehouse_table_name}.data_source_id = #{import_table_name}.data_source_id
         and #{warehouse_table_name}.#{connection.quote_column_name(hud_key)} = #{import_table_name}.#{connection.quote_column_name(hud_key)}
         and #{warehouse_table_name}.source_hash = #{import_table_name}.source_hash
-        and #{import_table_name}.import_log_id = #{importer_log_id}
+        and #{import_table_name}.importer_log_id = #{importer_log_id}
       SQL
     end
 
