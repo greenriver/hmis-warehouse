@@ -3,7 +3,7 @@
 .jQuarterChosenDate
 .race-chart-category-first
   = data[active_date]['categories'].first
-.chart-bar.chart.pt-0{ data: { active_date: data.keys.last }, class: [chart_class, "active_date_#{data.keys.last}"]}
+.chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
 .race-chart-category-last
   = data[active_date]['categories'].last
 %div.d-flex.legend-wrapper-horizontal.legend-wrapper{ class: ["#{chart_class}_legend"] }

@@ -3,7 +3,7 @@
   %h3= data[active_date]['title']
   .jQuarterChosenDate
   .d-flex
-    .chart-donut.chart.pt-2{ data: { active_date: data.keys.last }, class: [chart_class, "active_date_#{data.keys.last}"]}
+    .chart-donut.chart.pt-2{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
     %div.legend-wrapper-vertical.legend-wrapper{ class: ["#{chart_class}_legend"] }
   :javascript
     (function(){
