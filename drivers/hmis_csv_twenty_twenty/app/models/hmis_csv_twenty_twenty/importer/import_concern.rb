@@ -104,22 +104,21 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         project_ids: project_ids,
         date_range: date_range,
       ).with_deleted.
-        joins(Arel.sql(left_join_non_matching_import_to_warehouse_sql)).
-        where(
-          arel_table[:importer_log_id].eq(importer_log_id).
-            or(arel_table[:importer_log_id].eq(nil)),
-        ).
+        # Exclude records that are unchanged
+        joins(Arel.sql(left_join_non_matching_import_to_warehouse_sql(importer_log_id))).
+        where(arel_table[:importer_log_id].eq(nil)).
         update_all(pending_date_deleted: pending_date_deleted)
     end
 
-    def self.left_join_non_matching_import_to_warehouse_sql
+    def self.left_join_non_matching_import_to_warehouse_sql(importer_log_id)
       warehouse_table_name = warehouse_class.quoted_table_name
       import_table_name = quoted_table_name
       <<-SQL.squish
         left outer join #{import_table_name}
         on #{warehouse_table_name}.data_source_id = #{import_table_name}.data_source_id
         and #{warehouse_table_name}.#{connection.quote_column_name(hud_key)} = #{import_table_name}.#{connection.quote_column_name(hud_key)}
-        and #{warehouse_table_name}.source_hash != #{import_table_name}.source_hash
+        and #{warehouse_table_name}.source_hash = #{import_table_name}.source_hash
+        and #{import_table_name}.import_log_id = #{importer_log_id}
       SQL
     end
 

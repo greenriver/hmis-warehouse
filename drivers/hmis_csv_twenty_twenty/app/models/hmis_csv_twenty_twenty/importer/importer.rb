@@ -559,6 +559,7 @@ module HmisCsvTwentyTwenty::Importer
         on #{warehouse_table_name}.data_source_id = #{klass.quoted_table_name}.data_source_id
         and #{warehouse_table_name}.#{klass.connection.quote_column_name(klass.hud_key)} = #{import_table_name}.#{klass.connection.quote_column_name(klass.hud_key)}
         and #{warehouse_table_name}.source_hash = #{klass.quoted_table_name}.source_hash
+        and #{klass.quoted_table_name}.importer_log_id = #{importer_log.id}
       SQL
 
       unchanged_count = klass.involved_warehouse_scope(
