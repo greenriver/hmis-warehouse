@@ -8,43 +8,47 @@
 # them as needed and if a service to do so is available. Logs
 # any network/services errors and recovers as well as it can.
 class ApplicationNotifier < Slack::Notifier
-  def self.namespace_prefix
-    'slack-notifier-hmis-'+ENV.fetch('CLIENT')
-  end
-
-  # Flush out any messages that have accumulated
-  # in queues. Makes one KEYS request to see if there
-  # is anything to do.
-  def self.flush_queues(prefix: nil)
-
-    # use the same redis instance we use for caching
-    redis.keys(namespace_prefix + '/*').each do |key|
-      url, channel, username = * decode_key(key)
-      pp [url, channel, username]
-
-      next unless url.present?
-      new(url, channel: channel, username: username).flush_queue(prefix: prefix)
-    end
-  end
-
-  # redis connection/config to use
+  # use the same redis instance we use for caching
   def self.redis
-    # use the same redis instance we use for caching
     Redis.new Rails.application.config_for(:cache_store).merge(
       timeout: 1,
       ssl: (ENV.fetch('CACHE_SSL') { 'false' }) == 'true',
     )
   end
 
+  # prefix all keys with a CLIENT specific key
+  def self.namespace_prefix
+    'hmis-slack-notifier-' + ENV.fetch('CLIENT')
+  end
+
+  # Flush out any messages that have accumulated
+  # in queues. Makes one KEYS request to see if there
+  # is anything to do.
+  def self.flush_queues(prefix: nil)
+    # use the same redis instance we use for caching
+    redis.keys(namespace_prefix + '/*').each do |key|
+      next unless key.ends_with?('/queue') # there should be a single key ending in queue... for each  user, channel, username
+
+      url, channel, username = * decode_key(key)
+      next unless url.present?
+
+      new(url, channel: channel, username: username).flush_queue(prefix: prefix)
+    end
+  end
+
   def initialize(url, channel: nil, username: nil)
-    # If Redis is available we will use it to rate limit connections to Slack.
-    # It needs to be very responsive to be useful however so
-    # skip it if we cant get a connection fast
-    redis = self.class.redis
-    if redis.ping
-      @redis = redis
-      @namespace = self.class.encode_key(url, channel, username)
-      Rails.logger.debug "ApplicationNotifier#ping queuing enabled at #{@redis.inspect} #{@namespace}"
+    begin
+      # If Redis is available we will use it to rate limit connections to Slack.
+      # It needs to be very responsive to be useful however so
+      # skip it if we cant get a connection fast
+      redis = self.class.redis
+      if redis&.ping
+        @redis = redis
+        @namespace = self.class.encode_key(url, channel, username)
+        Rails.logger.debug "ApplicationNotifier#ping queuing enabled at #{@redis.inspect} #{@namespace}"
+      end
+    rescue Redis::BaseError => e
+      Rails.logger.warn "ApplicationNotifier#ping queuing disabled. #{e.inspect}"
     end
 
     super
@@ -76,9 +80,9 @@ class ApplicationNotifier < Slack::Notifier
   # 40KB, we will get a Slack rate limit error
   # and raise if Redis has become unavailable
   def flush_queue(additional_message: nil, prefix: nil)
-    debugger if prefix.present?
     message = ''
-    # If we upgrade to Redis 6.2+ we can use lop n to
+
+    # TODO: If we upgrade to Redis 6.2+ we can use lop n to
     # batch fetches
     while (batch = @redis.lpop("#{@namespace}/queue"))
       message = prefix.to_s if message.blank?
@@ -111,19 +115,26 @@ class ApplicationNotifier < Slack::Notifier
   end
 
   def self.encode_key(url, channel, username)
-    [namespace_prefix, Base64.urlsafe_encode64(url), channel, username].join('/')
+    # url and username can contain slaskes so we need to encode them
+    [namespace_prefix, Base64.urlsafe_encode64(url.to_s), channel, Base64.urlsafe_encode64(username.to_s)].join('/')
   end
 
   def self.decode_key(key)
-    _, encoded_url, channel, username = *key.split('/')
+    _prefix, encoded_url, channel, username = *key.split('/')
 
-    debugger
-    # incase there is junk in redis
+    # Decode components as best we can, There might be a junk key in coming in
     url = begin
-            Base64.urlsafe_decode64(encoded_url)
-          rescue StandardError
-            nil
+            Base64.urlsafe_decode64(encoded_url.to_s)
+          rescue StandardError => e
+            Rails.logger.error('ApplicationNotifier: encoded_url decode failed' + e.message)
           end
+    if username.present?
+      username = begin
+              Base64.urlsafe_decode64(username.to_s)
+            rescue StandardError => e
+              Rails.logger.error('ApplicationNotifier: username decode failed' + e.message)
+            end
+    end
 
     [url, channel, username]
   end
