@@ -4,7 +4,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   before(:all) do
     import_hmis_csv_fixture(
       'spec/fixtures/files/service_history/tracking_methods',
-      version: '6.11',
+      version: 'AutoDetect',
     )
   end
   after(:all) do
