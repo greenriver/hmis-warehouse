@@ -19,6 +19,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureFive, type: :
   let(:measure) { ReportGenerators::SystemPerformance::Fy2019::MeasureFive.new({}) }
 
   before(:all) do
+    GrdaWarehouse::Utility.clear!
     import_hmis_csv_fixture(
       'spec/fixtures/files/system_performance/measure_five',
       run_jobs: true,

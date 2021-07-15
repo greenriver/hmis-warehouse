@@ -1,5 +1,8 @@
 RSpec.shared_context '2020 coc code override tests', shared_context: :metadata do
   describe 'When exporting enrollment related item' do
+    before(:all) do
+      GrdaWarehouse::Utility.clear!
+    end
     before(:each) do
       FactoryBot.reload
       enrollment_exporter.create_export_directory
