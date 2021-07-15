@@ -34,7 +34,6 @@ module GrdaWarehouse::SystemCohorts
 
       candidate_enrollments = enrollment_source.
         homeless.
-        entry.
         ongoing.
         where.not(client_id: service_history_source.where(date: Date.yesterday, homeless: false).select(:client_id)).
         where.not(client_id: moved_in_ph).
@@ -42,7 +41,6 @@ module GrdaWarehouse::SystemCohorts
         group(:client_id).minimum(:first_date_in_program)
 
       previous_enrollments = enrollment_source.
-        exit.
         where(client_id: candidate_enrollments.keys).
         order(last_date_in_program: :asc).
         pluck(:client_id, :last_date_in_program, :destination).
@@ -82,7 +80,7 @@ module GrdaWarehouse::SystemCohorts
       )
 
       moved_in = cohort_enrollments.ph.where.not(move_in_date: nil).pluck(:client_id)
-      with_permanent_destination = cohort_enrollments.homeless.exit.where(destination: HUD.permanent_destinations).pluck(:client_id)
+      with_permanent_destination = cohort_enrollments.homeless.where(destination: HUD.permanent_destinations).pluck(:client_id)
       remove_clients(moved_in | with_permanent_destination, 'Housed')
     end
 
@@ -102,9 +100,9 @@ module GrdaWarehouse::SystemCohorts
     private def remove_no_longer_meets_criteria
       # No longer meets criteria (exited without a permanent destination and no ongoing homeless enrollments.)
       # or ongoing homeless with overlapping PH move in
-      no_ongoing = homeless_enrollment_source.
-        exit.
-        where(client_id: cohort_clients.where.not(client_id: homeless_enrollment_source.ongoing.select(:client_id)).select(:client_id)).
+      no_ongoing = enrollment_source.
+        homeless.
+        where(client_id: cohort_clients.where.not(client_id: enrollment_source.ongoing.homeless.select(:client_id)).select(:client_id)).
         where.not(destination: HUD.permanent_destinations).
         pluck(:client_id)
       moved_in_ph = enrollment_source.ongoing.ph.
@@ -115,7 +113,7 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def enrollment_source
-      GrdaWarehouse::ServiceHistoryEnrollment
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     private def service_history_source
