@@ -42,6 +42,7 @@ module GrdaWarehouse::SystemCohorts
 
       previous_enrollments = enrollment_source.
         where(client_id: candidate_enrollments.keys).
+        where.not(last_date_in_program: nil).
         order(last_date_in_program: :asc).
         pluck(:client_id, :last_date_in_program, :destination).
         map { |client_id, *rest| [client_id, rest] }.to_h
