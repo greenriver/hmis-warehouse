@@ -460,7 +460,6 @@ Layout/EmptyLinesAroundClassBody:
   Exclude:
     - 'app/jobs/background_render/active_clients_report_job.rb'
     - 'app/jobs/background_render/core_demographics_report_job.rb'
-    - 'app/models/application_notifier.rb'
     - 'app/models/grda_warehouse/ad_hoc_batch.rb'
     - 'app/models/grda_warehouse/ad_hoc_data_source.rb'
     - 'app/models/grda_warehouse/cas_availability.rb'
@@ -1262,7 +1261,6 @@ Layout/SpaceAroundBlockParameters:
 # SupportedStyles: space, no_space
 Layout/SpaceAroundEqualsInParameterDefault:
   Exclude:
-    - 'app/models/application_notifier.rb'
     - 'app/models/auto_encoding_csv.rb'
     - 'app/models/aws_s3.rb'
     - 'app/models/grda_warehouse/available_file_tag.rb'
