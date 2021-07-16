@@ -408,7 +408,6 @@ Layout/EmptyLines:
     - 'app/models/reports/system_performance/fy2019/base.rb'
     - 'app/models/role.rb'
     - 'app/models/talentlms/config.rb'
-    - 'app/models/user.rb'
     - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 3
@@ -2710,7 +2709,6 @@ Style/GuardClause:
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/talentlms/config.rb'
-    - 'app/models/user.rb'
     - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 6

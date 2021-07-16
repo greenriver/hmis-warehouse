@@ -15,14 +15,13 @@ module CohortColumns
     end
 
     def value(cohort_client, user) # OK
-      visible_project_ids = GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
       lhv = cohort_client.client.processed_service_history&.last_homeless_visit
       # e.g.: {:project_name=>\"APR - Transitional Housing\", :date=>Mon, 30 Sep 2019, :project_id=>10}
       return unless lhv.present?
 
       lhv = JSON.parse(lhv)
       lhv.select do |row|
-        row['project_id'].in? visible_project_ids
+        row['project_id'].in? user.visible_project_ids
       end.
         map do |row|
           "#{row['project_name']}: #{row['date'].to_date}"

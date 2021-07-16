@@ -15,10 +15,9 @@ module CohortOngoingEnrollments
     return nil unless cohort_client.client.processed_service_history&.public_send(column)
 
     # in the form [{project_name: 'Project Name', date: 'last date', project_id: 'Project ID}]
-    visible_project_ids = GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
     cohort_client.client.processed_service_history.public_send(column).
       select do |row|
-        row['project_id'].in? visible_project_ids
+        row['project_id'].in? user.visible_project_ids
       end.
       sort do |a, b|
         b['date'].to_date <=> a['date'].to_date
