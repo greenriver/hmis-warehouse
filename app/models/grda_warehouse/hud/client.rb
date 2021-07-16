@@ -664,7 +664,7 @@ module GrdaWarehouse::Hud
 
     def last_exit_destination
       last_exit = source_exits.order(ExitDate: :desc).first
-      unless last_exit
+      if last_exit # rubocop:disable Style/GuardClause
         destination_code = last_exit.Destination || 99
         if destination_code == 17
           destination_string = last_exit.OtherDestination
@@ -672,8 +672,9 @@ module GrdaWarehouse::Hud
           destination_string = HUD.destination(destination_code)
         end
         return "#{destination_string} (#{last_exit.ExitDate})"
+      else
+        return 'None'
       end
-      return 'None'
     end
 
     def demographic_calculation_logic_description(attribute)
@@ -1292,11 +1293,15 @@ module GrdaWarehouse::Hud
       raise 'After required if before specified.' if before.present? && ! after.present?
 
       hh = if before.present? && after.present?
-        households.select do |_, entries|
+        recent_households = households.select do |_, entries| # rubocop:disable Lint/UselessAssignment
           # return true if this client presented with family during the range in question
           # all entries will have the same date and last_date_in_program
           entry = entries.first
           (entry_date, exit_date) = entry.with_indifferent_access.values_at('date', 'last_date_in_program')
+          en_1_start = entry_date # rubocop:disable Lint/UselessAssignment
+          en_1_end = exit_date # rubocop:disable Lint/UselessAssignment
+          en_2_start = after # rubocop:disable Lint/UselessAssignment
+          en_2_end = before # rubocop:disable Lint/UselessAssignment
 
           # Excellent discussion of why this works:
           # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -1304,7 +1309,7 @@ module GrdaWarehouse::Hud
           dates_overlap(entry_date, exit_date, after, before)
         end
       elsif after.present?
-        households.select do |_, entries|
+        recent_households = households.select do |_, entries| # rubocop:disable Lint/UselessAssignment
           # all entries will have the same date and last_date_in_program
           entry = entries.first
           (entry_date, exit_date) = entry.with_indifferent_access.values_at('date', 'last_date_in_program')
