@@ -1120,6 +1120,7 @@ Layout/SpaceAfterComma:
   Exclude:
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/fake_data.rb'
+    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/hud/disability.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
@@ -2126,14 +2127,11 @@ Lint/UnusedMethodArgument:
     - 'app/models/user_role.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/affiliation.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/client.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/export.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/funder.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/import_concern.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/inventory.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/organization.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/project.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/project_coc.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/importer/user.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -2520,6 +2518,7 @@ Style/GuardClause:
     - 'app/models/grda_warehouse/combined_cohort_client_change.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
     - 'app/models/grda_warehouse/fake_data.rb'
+    - 'app/models/grda_warehouse/data_source.rb'
     - 'app/models/grda_warehouse/hmis/staff.rb'
     - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/non_hmis_upload.rb'
