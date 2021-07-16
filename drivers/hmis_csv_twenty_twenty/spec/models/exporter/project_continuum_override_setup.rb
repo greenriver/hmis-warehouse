@@ -5,7 +5,7 @@ RSpec.shared_context '2020 project continuum override setup', shared_context: :m
   let!(:enrollments) { create_list :hud_enrollment, 5, data_source_id: data_source.id, EntryDate: 2.weeks.ago }
 
   def csv_file_path(klass)
-    File.join(exporter.file_path, klass.file_name)
+    File.join(exporter.file_path, klass.hud_csv_file_name)
   end
 end
 

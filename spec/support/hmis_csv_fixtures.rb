@@ -11,11 +11,11 @@ module HmisCsvFixtures
       data_source = GrdaWarehouse::DataSource.where(
         name: 'Green River',
         short_name: 'GR',
-        source_type: :sftp
+        source_type: :sftp,
       ).first_or_create!
       GrdaWarehouse::DataSource.where(
         name: 'Warehouse',
-        short_name: 'W'
+        short_name: 'W',
       ).first_or_create!
     end
 
@@ -29,12 +29,7 @@ module HmisCsvFixtures
     tmp_path = File.join(file_path, data_source.id.to_s)
     FileUtils.cp_r(source_file_path, tmp_path)
 
-    importer = if version == '6.11'
-      Importers::HMISSixOneOne::Base.new(
-        file_path: file_path,
-        data_source_id: data_source.id,
-      )
-    elsif version == '2020'
+    importer = if version == '2020'
       HmisCsvTwentyTwenty::Loader::Loader.new(
         file_path: tmp_path,
         data_source_id: data_source.id,

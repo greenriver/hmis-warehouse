@@ -56,6 +56,7 @@ module WarehouseReports
         reports['ClaimsReporting::QualityMeasures'] = ClaimsReporting::QualityMeasures
       end
       reports['HapReport::Report'] = HapReport::Report if RailsDrivers.loaded.include?(:hap_report)
+      reports['PerformanceMetrics::Report'] = PerformanceMetrics::Report if RailsDrivers.loaded.include?(:performance_metrics)
       reports
     end
   end

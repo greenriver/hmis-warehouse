@@ -5,11 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Exporter
-  class ProjectCoc < GrdaWarehouse::Import::HmisTwentyTwenty::ProjectCoc
+  class ProjectCoc < GrdaWarehouse::Hud::ProjectCoc
     include ::HmisCsvTwentyTwenty::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2020'))
-
-    self.hud_key = :ProjectCoCID
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :project_cocs
 

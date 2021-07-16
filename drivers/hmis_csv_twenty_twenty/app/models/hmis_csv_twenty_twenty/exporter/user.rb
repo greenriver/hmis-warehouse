@@ -5,11 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Exporter
-  class User < GrdaWarehouse::Import::HmisTwentyTwenty::User
+  class User < GrdaWarehouse::Hud::User
     include ::HmisCsvTwentyTwenty::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::User.hud_csv_headers(version: '2020'))
-
-    self.hud_key = :UserID
 
     # NOTE: because there is no direct connection to the scopes for all
     # exported models, we'll just gather the unique UserIDs while we're processing.

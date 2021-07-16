@@ -951,8 +951,14 @@ class WarehouseReport::Outcomes::Base
       else
         project_name = valid_project_name(params[:selected_project])
       end
-      start_date = "#{params[:month]} 01".to_date
-      end_date = start_date.end_of_month
+      if params[:start_date] && params[:end_date]
+        start_date = params[:start_date].to_date
+        end_date = params[:end_date].to_date
+      else
+        start_date = "#{params[:month]} 01".to_date
+        end_date = start_date.end_of_month
+      end
+
       rows = exiting_stabilization.where(residential_project: project_name).
         exiting_stabilization(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
@@ -1191,6 +1197,7 @@ class WarehouseReport::Outcomes::Base
         format_support(hashed)
       end
     end
+    alias to_h support_rows
 
     private def format_support(row)
       row.each do |header, value|

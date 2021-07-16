@@ -5,12 +5,10 @@
 ###
 
 module HmisCsvTwentyTwenty::Exporter
-  class Exit < GrdaWarehouse::Import::HmisTwentyTwenty::Exit
+  class Exit < GrdaWarehouse::Hud::Exit
     include ::HmisCsvTwentyTwenty::Exporter::Shared
 
     setup_hud_column_access(GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '2020'))
-
-    self.hud_key = :ExitID
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

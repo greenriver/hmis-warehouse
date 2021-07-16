@@ -11,16 +11,7 @@ module HudDataQualityReport
     def filter_params
       return {} unless params[:filter]
 
-      filter_p = params.require(:filter).
-        permit(
-          :start,
-          :end,
-          coc_codes: [],
-          project_ids: [],
-          project_type_codes: [],
-          project_group_ids: [],
-          data_source_ids: [],
-        )
+      filter_p = params.require(:filter).permit(@filter.known_params)
       filter_p[:user_id] = current_user.id
 
       filter_p
@@ -42,21 +33,18 @@ module HudDataQualityReport
           @filter.start = options['start'].presence || Date.new(year - 1, 10, 1)
           @filter.end = options['end'].presence || Date.new(year, 9, 30)
           @filter.coc_codes = options['coc_codes'].presence || site_coc_codes
-          @filter.project_ids = options['project_ids']
-          @filter.project_type_codes = options['project_type_codes']
-          @filter.project_group_ids = options['project_group_ids']
-          @filter.data_source_ids = options['data_source_ids']
+          @filter.update(options.with_indifferent_access)
         else
           @filter.start = Date.new(year - 1, 10, 1)
           @filter.end = Date.new(year, 9, 30)
         end
       end
       # Override with params if set
-      @filter.set_from_params(filter_params) if filter_params.present?
+      @filter.update(filter_params) if filter_params.present?
     end
 
     private def filter_class
-      HudDataQualityReport::Filters::DqFilter
+      generator.filter_class
     end
 
     private def generator

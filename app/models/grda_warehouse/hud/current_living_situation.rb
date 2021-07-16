@@ -22,5 +22,9 @@ module GrdaWarehouse::Hud
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client')
     belongs_to :data_source
 
+    scope :between, ->(start_date:, end_date:) do
+      where(arel_table[:InformationDate].between(start_date..end_date))
+    end
+
   end
 end

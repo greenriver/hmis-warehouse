@@ -13,6 +13,7 @@
 
 module HudSpmReport::Generators::Fy2020
   class Base < ::HudReports::QuestionBase
+    include Filter::FilterScopes
     include ArelHelper
 
     delegate :client_scope, to: :@generator
@@ -216,9 +217,17 @@ module HudSpmReport::Generators::Fy2020
 
     # Add report filters to the scope
     private def add_filters(scope)
-      if (project_ids = filter.effective_project_ids).any?
-        scope = scope.joins(:project).where(p_t[:id].in(project_ids))
-      end
+      project_ids = filter.effective_project_ids
+      scope = scope.joins(:project).where(p_t[:id].in(project_ids)) if project_ids.any?
+
+      scope = filter_for_veteran_status(scope)
+      scope = filter_for_household_type(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
+      scope = filter_for_sub_population(scope)
       scope
     end
 
@@ -932,7 +941,11 @@ module HudSpmReport::Generators::Fy2020
               # counting clients who transition from transitional to permanent
               # housing, or from one CoC permanent housing program to another PH
               # project
-              (entry_date - previous_exit_from_ph).to_i > 14
+              if previous_exit_from_ph.present?
+                (entry_date - previous_exit_from_ph).to_i > 14
+              else
+                false # If there is no previous exit from PH, it can't have been 14 days
+              end
             end
 
             previous_exit_from_ph = entry[:last_date_in_program] if entry[:project_type].in?(PH + TH)
@@ -1347,7 +1360,7 @@ module HudSpmReport::Generators::Fy2020
         # Move new start date back based on contiguous homelessness before the start date above
         new_client_start_date = client_start_date.to_date
         days_before_client_start_date.reverse_each do |d|
-          if d.to_date == new_client_start_date.to_date - 1.day # rubocop:disable Style/GuardClause
+          if d.to_date == new_client_start_date.to_date - 1.day
             new_client_start_date = d.to_date
           else
             # Non-contiguous
@@ -1498,7 +1511,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def in_stop_project_on?(night, date, stop_project_types, consider_move_in_dates)
-      if consider_move_in_dates && PH.include?(night[:project_type]) # rubocop:disable Style/GuardClause
+      if consider_move_in_dates && PH.include?(night[:project_type])
         return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].present? && night[:MoveInDate] <= date))
       else
         return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))

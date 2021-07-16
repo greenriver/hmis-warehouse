@@ -5,11 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Exporter
-  class Inventory < GrdaWarehouse::Import::HmisTwentyTwenty::Inventory
+  class Inventory < GrdaWarehouse::Hud::Inventory
     include ::HmisCsvTwentyTwenty::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2020'))
-
-    self.hud_key = :InventoryID
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :inventories
 

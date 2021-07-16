@@ -5,11 +5,10 @@
 ###
 
 module HmisCsvTwentyTwenty::Exporter
-  class Client < GrdaWarehouse::Import::HmisTwentyTwenty::Client
+  class Client < GrdaWarehouse::Hud::Client
     include ::HmisCsvTwentyTwenty::Exporter::Shared
-    setup_hud_column_access(GrdaWarehouse::Hud::Client.hud_csv_headers(version: '2020'))
-
     self.hud_key = :PersonalID
+    setup_hud_column_access(GrdaWarehouse::Hud::Client.hud_csv_headers(version: '2020'))
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
@@ -81,6 +80,7 @@ module HmisCsvTwentyTwenty::Exporter
           clean_clients << clean_client
         end
       end
+
       CSV.open(export_path, 'wb', { force_quotes: true }) do |csv|
         break unless clean_clients.any?
 

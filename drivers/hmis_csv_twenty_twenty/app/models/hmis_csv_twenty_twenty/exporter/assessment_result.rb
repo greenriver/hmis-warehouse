@@ -5,11 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Exporter
-  class AssessmentResult < GrdaWarehouse::Import::HmisTwentyTwenty::AssessmentResult
+  class AssessmentResult < GrdaWarehouse::Hud::AssessmentResult
     include ::HmisCsvTwentyTwenty::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::AssessmentResult.hud_csv_headers(version: '2020'))
-
-    self.hud_key = :AssessmentResultID
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

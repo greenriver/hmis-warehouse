@@ -44,10 +44,10 @@ RSpec.shared_context '2020 multi-project tests', shared_context: :metadata do
         before(:each) do
           exporter.public_send(item[:export_method])
         end
-        it "creates one #{item[:klass].file_name} CSV file" do
+        it "creates one #{item[:klass].hud_csv_file_name} CSV file" do
           expect(File.exist?(csv_file_path(item[:klass]))).to be true
         end
-        it "adds three rows to the #{item[:klass].file_name} CSV file" do
+        it "adds three rows to the #{item[:klass].hud_csv_file_name} CSV file" do
           csv = CSV.read(csv_file_path(item[:klass]), headers: true)
           expect(csv.count).to eq 3
         end

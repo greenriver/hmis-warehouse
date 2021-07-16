@@ -74,9 +74,8 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     def import!
-      # run the load step if we havent yet
+      # run the load step if we haven't yet
       load! unless @loader_log.status.to_s.in? ['failed', 'loaded']
-
 
       return unless @loader_log.successfully_loaded?
 
@@ -169,7 +168,6 @@ module HmisCsvTwentyTwenty::Loader
 
         encoding = AutoEncodingCsv.detect_encoding(source_file_path)
         File.open(source_file_path, 'r', encoding: encoding) do |file|
-
           if bad_line_endings?(file)
             copy_length = file.stat.size - 2
             begin
@@ -219,7 +217,7 @@ module HmisCsvTwentyTwenty::Loader
       header_row = CSV.parse_line(
         read_from,
         liberal_parsing: true,
-        strip: true
+        strip: true,
       )
       # we are transforming the incoming CSV
       # to have only the columns we expect
@@ -230,6 +228,10 @@ module HmisCsvTwentyTwenty::Loader
         pg_cols = col_mapping + meta_data_names
       elsif mapping_status == :mapped
         extra_cols = header_row - header_row.values_at(*col_mapping.values)
+        if extra_cols.present?
+          msg = "Found extra columns and ignoring them: #{extra_cols}"
+          add_error(file_path: original_file_path, message: msg, line: 0)
+        end
         pg_cols = col_mapping.keys + meta_data_names
       else
         return # cannot continue clean_header_row logged its reason
@@ -246,6 +248,7 @@ module HmisCsvTwentyTwenty::Loader
       lines_loaded = nil
       total_lines = nil
       row_errors = []
+
       # SLOW_CHECK; klass.connection.transaction do
       bm = Benchmark.measure do
         pg_conn = klass.connection.raw_connection
@@ -256,7 +259,7 @@ module HmisCsvTwentyTwenty::Loader
               read_from,
               headers: false,
               liberal_parsing: true,
-              skip_blanks: true
+              skip_blanks: true,
             )
             parser.each do |row|
               values = if mapping_status == :mapped
@@ -355,7 +358,7 @@ module HmisCsvTwentyTwenty::Loader
       mapping = {}
       missing_cols = []
       klass.hud_csv_headers(version: '2020').each do |expected_col|
-        if (col_idx = source_headers.find_index{|csv_col| expected_col.to_s.downcase.strip == csv_col.to_s.downcase.strip})
+        if (col_idx = source_headers.find_index { |csv_col| expected_col.to_s.downcase.strip == csv_col.to_s.downcase.strip })
           mapping[expected_col.to_s] = col_idx
         else
           missing_cols << expected_col
@@ -365,11 +368,11 @@ module HmisCsvTwentyTwenty::Loader
         add_error(file_path: file_path, message: "Header row missing expected columns: #{missing_cols.join ','}", line: 1)
         return [:missing_col, mapping]
       end
-      #puts "#{file_path} #{mapping.inspect}"
+      # puts "#{file_path} #{mapping.inspect}"
       add_error(file_path: file_path, message: "Header row incorrect, used mapping: #{mapping.inspect}", line: 1)
       return [:mapped, mapping]
     end
-    HEADER_NORMALIZER = ->(s) { s.to_s.downcase}
+    HEADER_NORMALIZER = ->(s) { s.to_s.downcase }
 
     # Headers need to match our style
     private def old_clean_header_row(source_headers, klass, file_path)

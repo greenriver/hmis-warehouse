@@ -12,23 +12,26 @@ module HmisCsvTwentyTwenty::Exporter::Shared
     include NotifierConfig
     include ArelHelper
 
-    # Date::DATE_FORMATS[:default] = "%Y-%m-%d"
-    # Time::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
-    # DateTime::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
-
-    attr_accessor :file_path
-
     after_initialize do
       setup_notifier('HMIS Exporter 2020')
     end
   end
 
+  class_methods do
+    def setup_hud_column_access(columns)
+      columns.each do |column|
+        alias_attribute(column.to_s.underscore.to_sym, column)
+      end
+    end
+  end
+
   def export_to_path(export_scope:, path:, export:)
     reset_lookups
-    export_path = File.join(path, self.class.file_name)
+    headers = self.class.hud_csv_headers(version: '2020')
+    export_path = File.join(path, self.class.hud_csv_file_name)
     export_id = export.export_id
     CSV.open(export_path, 'wb', force_quotes: true) do |csv|
-      csv << clean_headers(hud_csv_headers)
+      csv << clean_headers(headers)
       export_scope = export_scope.with_deleted if paranoid? && export.include_deleted
 
       columns = columns_to_pluck
@@ -41,11 +44,13 @@ module HmisCsvTwentyTwenty::Exporter::Shared
       ids.in_groups_of(100_000, false) do |id_group|
         batch = self.class.where(id: id_group).pluck(*columns)
         # export_scope.pluck_in_batches(*columns, batch_size: 100_000) do |batch|
+
         batch.map do |row|
           data_source_id = row.last
-          row = Hash[hud_csv_headers.zip(row)]
+          row = Hash[headers.zip(row)]
           row[:ExportID] = export_id
-          csv << clean_row(row: row, export: export, data_source_id: data_source_id).values
+          cleaned_row = clean_row(row: row, export: export, data_source_id: data_source_id).values
+          csv << cleaned_row
         end
       end
     end
@@ -125,12 +130,11 @@ module HmisCsvTwentyTwenty::Exporter::Shared
   # All HUD Keys will need to be replaced with our IDs to make them unique across data sources.
   def columns_to_pluck
     @columns_to_pluck ||= begin
-      columns = hud_csv_headers.map do |k|
-        case k
-        when self.class.hud_key.to_sym
-          Arel.sql(self.class.arel_table[:id].as(self.class.connection.quote_column_name(self.class.hud_key)).to_sql)
+      columns = self.class.hud_csv_headers(version: '2020').map do |k|
+        if k.to_s == hud_key.to_s
+          Arel.sql(self.class.arel_table[:id].as(self.class.connection.quote_column_name(hud_key)).to_sql)
         else
-          Arel.sql(self.class.arel_table[k].as("#{k}_".to_s).to_sql)
+          Arel.sql(self.class.arel_table[k].as("#{k}_").to_sql)
         end
       end
       columns << :data_source_id
