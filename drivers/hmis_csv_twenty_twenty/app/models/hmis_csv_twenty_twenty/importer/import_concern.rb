@@ -97,7 +97,6 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     # Override as necessary
-    # TODO: don't mark any unchanged as dead
     def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:)
       involved_warehouse_scope(
         data_source_id: data_source_id,
