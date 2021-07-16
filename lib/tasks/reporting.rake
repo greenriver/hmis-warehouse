@@ -46,6 +46,8 @@ namespace :reporting do
     rescue StandardError => e
       puts e.message
     end
+
+    ApplicationNotifier.flush_queues
   end
 
   # DB related, provides reporting:db:migrate etc.
