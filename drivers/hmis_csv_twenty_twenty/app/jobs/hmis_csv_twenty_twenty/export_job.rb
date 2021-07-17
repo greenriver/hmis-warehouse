@@ -26,7 +26,7 @@ module HmisCsvTwentyTwenty
       ).export!
 
       if (recurring_hmis_export = recurring_hmis_export(options))
-        GrdaWarehouse::RecurringHmisExportLink.create(hmis_export_id: report.id, recurring_hmis_export_id: recurring_hmis_export.id, exported_at: Date.current)
+        ::GrdaWarehouse::RecurringHmisExportLink.create(hmis_export_id: report.id, recurring_hmis_export_id: recurring_hmis_export.id, exported_at: Date.current)
         recurring_hmis_export.store(report) if recurring_hmis_export.s3_valid?
       end
 

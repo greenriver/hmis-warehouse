@@ -16,6 +16,7 @@ module WarehouseReports
       @filter = ::Filters::HmisExport.new(user_id: current_user.id)
       @all_project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).pluck(:ProjectName)
     end
+
     def running
     end
 
@@ -84,15 +85,15 @@ module WarehouseReports
     end
 
     def export_source
-      GrdaWarehouse::HmisExport
+      ::GrdaWarehouse::HmisExport
     end
 
     def recurring_export_source
-      GrdaWarehouse::RecurringHmisExport
+      ::GrdaWarehouse::RecurringHmisExport
     end
 
     def recurring_export_link_source
-      GrdaWarehouse::RecurringHmisExportLink
+      ::GrdaWarehouse::RecurringHmisExportLink
     end
 
     def export_scope
