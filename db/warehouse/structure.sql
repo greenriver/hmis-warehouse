@@ -88,9 +88,10 @@ CREATE TYPE public.census_levels AS ENUM (
 --
 
 CREATE TYPE public.record_action AS ENUM (
+    'added',
+    'updated',
     'unchanged',
-    'needs_update',
-    'needs_removal'
+    'removed'
 );
 
 
@@ -10222,8 +10223,9 @@ CREATE VIEW public.index_stats AS
 CREATE TABLE public.involved_in_imports (
     id bigint NOT NULL,
     importer_log_id bigint,
-    warehouse_record_type character varying NOT NULL,
-    warehouse_record_id bigint NOT NULL,
+    record_type character varying NOT NULL,
+    record_id bigint NOT NULL,
+    hud_key character varying NOT NULL,
     record_action public.record_action
 );
 
@@ -28397,10 +28399,17 @@ CREATE INDEX inventory_export_id ON public."Inventory" USING btree ("ExportID");
 
 
 --
--- Name: involved_in_imports_action; Type: INDEX; Schema: public; Owner: -
+-- Name: involved_in_imports_by_hud_key; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX involved_in_imports_action ON public.involved_in_imports USING btree (warehouse_record_id, warehouse_record_type, record_action, importer_log_id);
+CREATE UNIQUE INDEX involved_in_imports_by_hud_key ON public.involved_in_imports USING btree (hud_key, record_type, record_action, importer_log_id);
+
+
+--
+-- Name: involved_in_imports_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USING btree (record_id, record_type, record_action, importer_log_id);
 
 
 --
