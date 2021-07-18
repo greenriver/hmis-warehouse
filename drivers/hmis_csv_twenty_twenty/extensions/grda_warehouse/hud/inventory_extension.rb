@@ -11,6 +11,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse::Hud
     included do
       has_many :imported_items, class_name: 'HmisCsvTwentyTwenty::Importer::Inventory', primary_key: [:InventoryID, :data_source_id], foreign_key: [:InventoryID, :data_source_id]
       has_many :loaded_items, class_name: 'HmisCsvTwentyTwenty::Loader::Inventory', primary_key: [:InventoryID, :data_source_id], foreign_key: [:InventoryID, :data_source_id]
+      has_many :involved_in_imports, class_name: 'HmisCsvTwentyTwenty::Importer::InvolvedInImport', as: :warehouse_record
     end
   end
 end

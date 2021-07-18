@@ -109,6 +109,50 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         update_all(pending_date_deleted: pending_date_deleted)
     end
 
+    def self.setup_involved(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:) # rubocop:disable Lint/UnusedMethodArgument
+      import_scope = where(importer_log_id: importer_log_id)
+      import_scope = import_scope.with_deleted if paranoid?
+      import_data = import_scope.pluck(hud_key, :source_hash, :DateUpdated).index_by(&:first)
+
+      existing_data = involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      ).with_deleted.
+        pluck(hud_key, :id, :source_hash, :DateUpdated).index_by(&:first)
+
+      involved = []
+      # FIXME: what should we do with these?
+      # to_add = import_data.keys - existing_data.keys
+      to_remove = existing_data.keys - import_data.keys
+      to_remove.each do |key|
+        warehouse_record = existing_data[key]
+        involved << HmisCsvTwentyTwenty::Importer::InvolvedInImport.new(
+          importer_log_id: importer_log_id,
+          warehouse_id: warehouse_record[1],
+          warehouse_record_type: warehouse_class.name,
+          record_action: :needs_removal,
+        )
+        to_remove.delete(key)
+      end
+
+      existing_data.each do |key, (_, id, source_hash, updated_at)|
+        (_, import_source_hash, import_updated_at) = import_data[key]
+        record_action = if source_hash == import_source_hash
+          :unchanged
+        elsif updated_at.to_date > import_updated_at.to_date
+          :needs_update
+        end
+        involved << HmisCsvTwentyTwenty::Importer::InvolvedInImport.new(
+          importer_log_id: importer_log_id,
+          warehouse_id: id,
+          warehouse_record_type: warehouse_class.name,
+          record_action: record_action,
+        )
+      end
+      HmisCsvTwentyTwenty::Importer::InvolvedInImport.import(involved)
+    end
+
     def self.left_join_non_matching_import_to_warehouse_sql(importer_log_id)
       warehouse_table_name = warehouse_class.quoted_table_name
       import_table_name = quoted_table_name

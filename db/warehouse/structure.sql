@@ -84,6 +84,17 @@ CREATE TYPE public.census_levels AS ENUM (
 
 
 --
+-- Name: record_action; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.record_action AS ENUM (
+    'unchanged',
+    'needs_update',
+    'needs_removal'
+);
+
+
+--
 -- Name: record_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -10205,6 +10216,38 @@ CREATE VIEW public.index_stats AS
 
 
 --
+-- Name: involved_in_imports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.involved_in_imports (
+    id bigint NOT NULL,
+    importer_log_id bigint,
+    warehouse_record_type character varying NOT NULL,
+    warehouse_record_id bigint NOT NULL,
+    record_action public.record_action
+);
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.involved_in_imports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.involved_in_imports_id_seq OWNED BY public.involved_in_imports.id;
+
+
+--
 -- Name: lftp_s3_syncs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15751,6 +15794,13 @@ ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: involved_in_imports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports ALTER COLUMN id SET DEFAULT nextval('public.involved_in_imports_id_seq'::regclass);
+
+
+--
 -- Name: lftp_s3_syncs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -17955,6 +18005,14 @@ ALTER TABLE ONLY public.income_benefits_report_incomes
 
 ALTER TABLE ONLY public.income_benefits_reports
     ADD CONSTRAINT income_benefits_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: involved_in_imports involved_in_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports
+    ADD CONSTRAINT involved_in_imports_pkey PRIMARY KEY (id);
 
 
 --
@@ -24153,6 +24211,13 @@ CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_
 
 
 --
+-- Name: index_involved_in_imports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_involved_in_imports_on_importer_log_id ON public.involved_in_imports USING btree (importer_log_id);
+
+
+--
 -- Name: index_lftp_s3_syncs_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28332,6 +28397,13 @@ CREATE INDEX inventory_export_id ON public."Inventory" USING btree ("ExportID");
 
 
 --
+-- Name: involved_in_imports_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_action ON public.involved_in_imports USING btree (warehouse_record_id, warehouse_record_type, record_action, importer_log_id);
+
+
+--
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -31002,6 +31074,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210707172124'),
 ('20210708183958'),
 ('20210710195956'),
-('20210711120353');
+('20210711120353'),
+('20210717154701');
 
 

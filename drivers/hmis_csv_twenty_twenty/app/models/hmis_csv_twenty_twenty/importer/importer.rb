@@ -282,6 +282,9 @@ module HmisCsvTwentyTwenty::Importer
     # In here, add history_generated_on date to enrollment record
     def ingest!
       importer_log.update(status: :importing)
+
+      log_timing :setup_involved
+
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
       log_timing :mark_tree_as_dead
@@ -324,6 +327,18 @@ module HmisCsvTwentyTwenty::Importer
     def cleanups_from_class(klass, data_source)
       basename = klass.name.split('::').last
       data_source.import_cleanups[basename]&.map(&:constantize)
+    end
+
+    def setup_involved
+      importable_files.each_value do |klass|
+        klass.setup_involved(
+          data_source_id: data_source.id,
+          project_ids: involved_project_ids,
+          date_range: date_range,
+          pending_date_deleted: Date.current,
+          importer_log_id: @importer_log.id,
+        )
+      end
     end
 
     def mark_tree_as_dead
