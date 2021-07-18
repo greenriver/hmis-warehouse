@@ -40,7 +40,7 @@ module HmisCsvTwentyTwenty::Exporter
       @directive = directive.presence || 2
       @hash_status = hash_status.presence || 1
       @faked_pii = faked_pii
-      @user = User.find(user_id)
+      @user = ::User.find(user_id)
       @include_deleted = include_deleted
       @faked_environment = faked_environment
     end
