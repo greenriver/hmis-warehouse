@@ -5,25 +5,35 @@
 ###
 
 module Confidence
-  class DaysHomelessJob < BaseJob
-    queue_as :long_running
-    include ArelHelper
-
-    def initialize(client_ids:)
-      @client_ids = client_ids
+  class DaysHomelessJob < ConfidenceJob
+    private def dm_model
+      GrdaWarehouse::Confidence::DaysHomeless
     end
 
-    def perform
-      @client_ids.each do |id|
-        GrdaWarehouse::Confidence::DaysHomeless.calculate_queued_for_client(id)
+    private def counts_for_batch(batch)
+      # get lists of dates for the provided client
+      # ids where they have only homeless services
+      # This is a batch version of GrdaWarehouse::Hud::Client.dates_homeless_scope
+      dates_by_client_id = {}
+      t = GrdaWarehouse::ServiceHistoryService.arel_table
+      GrdaWarehouse::ServiceHistoryService.where(
+        client_id: @client_ids,
+      ).where(
+        t[:date].lteq(Date.current),
+      ).group(:client_id, :date).having(
+        # If all answers are nil, then not homeless
+        # If any answers are not nil, and any answers are false, then not homeless
+        # If any answers are not nil, and all answers are true, then homeless
+        Arel.sql('every(homeless)'),
+      ).pluck(:client_id, :date).each do |client_id, date|
+        dates_by_client_id[client_id] ||= []
+        dates_by_client_id[client_id] << date
       end
-    end
-
-    def enqueue(job, queue: :long_running)
-    end
-
-    def max_attempts
-      2
+      # Create the data object to power the bulk update
+      batch.each do |record|
+        dates = dates_by_client_id[record.resource_id] || []
+        record.value = dates.select { |date| date <= record.census }.count
+      end
     end
   end
 end
