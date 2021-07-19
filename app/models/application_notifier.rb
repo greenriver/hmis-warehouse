@@ -4,6 +4,21 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Manual testing routine
+# reload!; include NotifierConfig; setup_notifier('test_user')
+# @notifier.ping('test message')
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+# ApplicationNotifier.flush_queues
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+# sleep(5)
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+#
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+# long_message_text = 'some really long text (close to 4kb) -- fix me, make me long'
+# @notifier.ping(long_message_text)
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+#
+
 # Sends progress messages to Slack, possibly queuing and batching
 # them as needed and if a service to do so is available. Logs
 # any network/services errors and recovers as well as it can.
@@ -89,14 +104,14 @@ class ApplicationNotifier < Slack::Notifier
     while (batch = @redis.lpop("#{@namespace}/queue"))
       message = prefix.to_s if message.blank?
       if (message + batch).bytesize > chunk_size
-        messages << message
+        messages << message if message.present?
         message = ''
         break message += batch if single_message
       end
       message += batch
     end
-    messages << message
-    messages << additional_message.to_s
+    messages << message if message.present?
+    messages << additional_message.to_s if additional_message.to_s.present?
 
     # flush out in 4k blocks -- Slack limit
     messages.each do |chunk|
