@@ -71,7 +71,7 @@ module CohortColumns
       "cohort_client[#{cohort_client.id}]"
     end
 
-    def value(cohort_client)
+    def value(cohort_client, _user)
       cohort_client.send(column)
     end
 
