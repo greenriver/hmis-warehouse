@@ -1,4 +1,4 @@
-OrganizationID,OrganizationName,OrganizationCommonName,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-3,Organization1,Organization1,2009-01-01 10:00:00,2016-12-15 22:13:00,brigida,,77ebf652741208fa9a36c52556058416
-16,Organization2,Organization2,2014-10-01 08:00:00,2016-10-01 16:54:00,hipolito,,77ebf652741208fa9a36c52556058416
-32,Organization3,,2016-07-14 12:00:00,2018-10-31 01:57:43,kathey,,77ebf652741208fa9a36c52556058416
+OrganizationID,OrganizationName,VictimServicesProvider,OrganizationCommonName,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+3,Organization1,,Organization1,2009-01-01 10:00:00,2016-12-15 22:13:00,brigida,,77ebf652741208fa9a36c52556058416
+16,Organization2,,Organization2,2014-10-01 08:00:00,2016-10-01 16:54:00,hipolito,,77ebf652741208fa9a36c52556058416
+32,Organization3,,,2016-07-14 12:00:00,2018-10-31 01:57:43,kathey,,77ebf652741208fa9a36c52556058416

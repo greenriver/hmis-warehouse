@@ -32,15 +32,7 @@ module GrdaWarehouse
     def run
       filter = ::Filters::HmisExport.new(filter_hash)
       filter.adjust_reporting_period
-      case filter.version
-      when '6.11'
-        ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json, report_url: nil)
-      when '2020'
-        ::WarehouseReports::HmisTwentyTwentyExportJob.perform_later(filter.options_for_hmis_export(2020).as_json, report_url: nil)
-      else
-        # default to the current version
-        ::WarehouseReports::HmisTwentyTwentyExportJob.perform_later(filter.options_for_hmis_export(2020).as_json, report_url: nil)
-      end
+      filter.schedule_job(report_url: nil)
     end
 
     def s3_present?
@@ -74,7 +66,7 @@ module GrdaWarehouse
 
     def aws_s3
       return nil unless s3_present?
-      @awsS3 ||= if self.s3_secret_access_key.present?
+      @aws_s3 ||= if self.s3_secret_access_key.present?
         AwsS3.new(
           region: s3_region.strip,
           bucket_name: s3_bucket.strip,
@@ -125,7 +117,6 @@ module GrdaWarehouse
         :user_id,
         :faked_pii,
         :version,
-
         :reporting_range,
         :reporting_range_days,
       )

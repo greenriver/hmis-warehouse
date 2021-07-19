@@ -14,6 +14,10 @@ module HMIS::Structure::ProjectCoc
   end
 
   module ClassMethods
+    def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+      'ProjectCoC.csv'
+    end
+
     def hmis_configuration(version: nil)
       case version
       when '5.1', '6.11', '6.12'

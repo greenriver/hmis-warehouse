@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.configure do |config| # rubocop:disable Lint/UnusedBlockArgument
+RSpec.configure do
   RSpec.configuration.fixpoints_path = 'drivers/hud_spm_report/spec/fixpoints'
 end
 
@@ -15,7 +15,6 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     cleanup
     # puts "  Setting up DB for #{described_class.question_number}"
     @user = create(:user, email: SPM_USER_EMAIL)
-    @delete_later = [] # We are going to create some temporary folders that need cleanup
   end
 
   after(:context) do
@@ -23,12 +22,6 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   end
 
   def cleanup
-    # puts '  Cleaning up DB and temporary files'
-    while (path = @delete_later&.pop)
-      # puts "Removing #{path}"
-      FileUtils.rm_rf(path)
-    end
-
     # these should have been impossible
     HudReports::ReportCell.with_deleted.where(report_instance_id: nil).delete_all
 
@@ -84,39 +77,14 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   def setup(file_path)
     @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
     GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
-
     import(file_path, @data_source)
   end
 
   def import(file_path, data_source)
     # relative to our own spec fixture files
-    file_path = Rails.root.join('drivers/hud_spm_report/spec/fixtures/files', file_path)
-    source_file_path = File.join(file_path, 'source')
+    file_path = File.join('drivers/hud_spm_report/spec/fixtures/files', file_path)
 
-    # Importers::HmisTwentyTwenty::Base expects a directory named after that data source
-    # to work with and wants file_path to point to its parent. It will potentially
-    # tamper with the directory contents so we make a temporary copy of the fixture data
-    # and delete it later
-    import_path = File.join(file_path, data_source.id.to_s)
-    # puts "Creating #{import_path}"
-    FileUtils.cp_r(source_file_path, import_path)
-    @delete_later << import_path
-
+    import_hmis_csv_fixture(file_path, data_source: data_source)
     GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
-    importer = Importers::HmisTwentyTwenty::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
-
-    raise 'Somethings is not right' unless importer.import.import_errors.none?
-
-    importer.import!
-
-    # We need this import to be fully processed right now
-    # so run various normally async processes
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
-    GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-    AccessGroup.maintain_system_groups
-    Delayed::Worker.new.work_off
-
-    importer
   end
 end

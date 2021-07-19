@@ -14,6 +14,10 @@ module HMIS::Structure::Service
   end
 
   module ClassMethods
+    def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+      'Services.csv'
+    end
+
     def hmis_configuration(version: nil)
       case version
       when '6.11', '6.12', '2020', nil

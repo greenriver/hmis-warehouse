@@ -1186,7 +1186,8 @@ CREATE TABLE public."Funder" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "OtherFunder" character varying
+    "OtherFunder" character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1457,7 +1458,8 @@ CREATE TABLE public."Inventory" (
     "ESBedType" integer,
     coc_code_override character varying,
     inventory_start_date_override date,
-    inventory_end_date_override date
+    inventory_end_date_override date,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1596,7 +1598,8 @@ CREATE TABLE public."ProjectCoC" (
     "Zip" character varying(5),
     geography_type_override integer,
     geocode_override character varying(6),
-    zip_override character varying
+    zip_override character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -5149,7 +5152,8 @@ CREATE TABLE public.exports (
     content_type character varying,
     content bytea,
     file character varying,
-    delayed_job_id integer
+    delayed_job_id integer,
+    version character varying
 );
 
 
@@ -18983,6 +18987,153 @@ CREATE INDEX health_and_dv_export_id ON public."HealthAndDV" USING btree ("Expor
 
 
 --
+-- Name: hmis2020affiliations_90a93a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020affiliations_90a93a ON public.hmis_2020_affiliations USING btree ("AffiliationID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020assessmentquestions_2d10ed; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020assessmentquestions_2d10ed ON public.hmis_2020_assessment_questions USING btree ("AssessmentQuestionID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020assessmentresults_8f9b20; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020assessmentresults_8f9b20 ON public.hmis_2020_assessment_results USING btree ("AssessmentResultID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020assessments_b71a3f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020assessments_b71a3f ON public.hmis_2020_assessments USING btree ("AssessmentID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020clients_0a609c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020clients_0a609c ON public.hmis_2020_clients USING btree ("PersonalID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020currentlivingsituations_7329c8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020currentlivingsituations_7329c8 ON public.hmis_2020_current_living_situations USING btree ("CurrentLivingSitID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020disabilities_556c63; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020disabilities_556c63 ON public.hmis_2020_disabilities USING btree ("DisabilitiesID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020employmenteducations_b84d39; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020employmenteducations_b84d39 ON public.hmis_2020_employment_educations USING btree ("EmploymentEducationID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020enrollmentcocs_55100e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020enrollmentcocs_55100e ON public.hmis_2020_enrollment_cocs USING btree ("EnrollmentCoCID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020enrollments_2e8333; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020enrollments_2e8333 ON public.hmis_2020_enrollments USING btree ("EnrollmentID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020events_52fa96; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020events_52fa96 ON public.hmis_2020_events USING btree ("EventID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020exits_f8474f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020exits_f8474f ON public.hmis_2020_exits USING btree ("ExitID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020funders_62a7a9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020funders_62a7a9 ON public.hmis_2020_funders USING btree ("FunderID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020healthanddvs_7c2c21; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020healthanddvs_7c2c21 ON public.hmis_2020_health_and_dvs USING btree ("HealthAndDVID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020incomebenefits_5b1d1f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020incomebenefits_5b1d1f ON public.hmis_2020_income_benefits USING btree ("IncomeBenefitsID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020inventories_432f94; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020inventories_432f94 ON public.hmis_2020_inventories USING btree ("InventoryID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020organizations_8b67c8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020organizations_8b67c8 ON public.hmis_2020_organizations USING btree ("OrganizationID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020projectcocs_35a1f2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020projectcocs_35a1f2 ON public.hmis_2020_project_cocs USING btree ("ProjectCoCID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020projects_bda85f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020projects_bda85f ON public.hmis_2020_projects USING btree ("ProjectID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020services_6bce80; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020services_6bce80 ON public.hmis_2020_services USING btree ("ServicesID", importer_log_id, data_source_id);
+
+
+--
+-- Name: hmis2020users_5b34c1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020users_5b34c1 ON public.hmis_2020_users USING btree ("UserID", importer_log_id, data_source_id);
+
+
+--
 -- Name: hmis_2020_affiliations-jXFa; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -30843,10 +30994,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623184626'),
 ('20210623184729'),
 ('20210623195645'),
+('20210625231326'),
+('20210630201802'),
 ('20210702143811'),
 ('20210702144442'),
 ('20210707122337'),
 ('20210707172124'),
-('20210708183958');
+('20210708183958'),
+('20210710195956'),
+('20210711120353');
 
 

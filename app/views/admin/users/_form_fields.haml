@@ -31,7 +31,7 @@
         .row
           .col-sm-8
             %p This user has enabled Two-Factor authentication.  If this is preventing login, you can turn it off below.  Before you do, you should ensure the request is coming from the actual user.  Once off, the user will need to re-enable it.
-            = f.input :otp_required_for_login, as: :select, label: 'Require two-factor authentication', include_blank: false, input_html: {class: [:j2Fa]}, as: :select_two
+            = f.input :otp_required_for_login, as: :select_two, label: 'Require two-factor authentication', include_blank: false, input_html: {class: [:j2Fa]}
 
   .col-sm-6
     .form--checkbox-groups

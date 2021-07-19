@@ -41,6 +41,11 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         id_in_source: 1,
       )
     end
+    after(:all) do
+      # The enrollments and project sequences seem to drift.
+      # This ensures we'll have one to test
+      FactoryBot.reload
+    end
     it 'previous client has 5 notes' do
       expect(prev_destination.notes.count).to eq 5
     end

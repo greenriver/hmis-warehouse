@@ -52,29 +52,14 @@ RSpec.shared_context 'path context', shared_context: :metadata do
   end
 
   def setup(file_path)
-    @delete_later = []
+    HmisCsvTwentyTwenty::Utility.clear!
     GrdaWarehouse::Utility.clear!
-
-    @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-    GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
-    GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
-    import(file_path, @data_source)
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
-    GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-
-    Delayed::Worker.new.work_off(2)
-  end
-
-  def import(file_path, data_source)
-    source_file_path = File.join(file_path, 'source')
-    import_path = File.join(file_path, data_source.id.to_s)
-    # duplicate the fixture file as it gets manipulated
-    FileUtils.cp_r(source_file_path, import_path)
-    @delete_later << import_path unless import_path == source_file_path
-
-    importer = Importers::HmisTwentyTwenty::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
-    importer.import!
+    import_hmis_csv_fixture(
+      file_path,
+      data_source: @data_source,
+      version: '2020',
+      run_jobs: true,
+    )
   end
 
   def cleanup
@@ -88,11 +73,7 @@ RSpec.shared_context 'path context', shared_context: :metadata do
     ].each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
     end
-    if @delete_later # rubocop:disable Style/SafeNavigation
-      @delete_later.each do |path|
-        FileUtils.rm_rf(path)
-      end
-    end
+
     Delayed::Job.delete_all
   end
 end

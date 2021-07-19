@@ -21,10 +21,6 @@ module Importing::HudZip
 
     def known_classes
       [
-        'Importers::HMISSixOneOne::Sftp',
-        'Importers::HmisTwentyTwenty::Sftp',
-        'Importers::HMISSixOneOne::S3',
-        'Importers::HmisTwentyTwenty::S3',
         'Importers::HmisAutoDetect::S3',
       ].freeze
     end

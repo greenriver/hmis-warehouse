@@ -486,7 +486,7 @@ module LsaSqlServer
     end
 
     def available_household_types
-      @available_household_types ||= ReportGenerators::Lsa::Fy2018::Base.new.household_types
+      @available_household_types ||= ReportGenerators::Lsa::Fy2019::Base.new.household_types
     end
 
     def demographic_parameters

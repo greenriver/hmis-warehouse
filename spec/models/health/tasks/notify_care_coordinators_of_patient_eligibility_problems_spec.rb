@@ -29,6 +29,12 @@ RSpec.describe Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems
     ActionMailer::Base.deliveries.clear
   end
 
+  after(:all) do
+    # The enrollments and project sequences seem to drift.
+    # This ensures we'll have one to test
+    FactoryBot.reload
+  end
+
   it 'sends each coordinator at most one email' do
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
 

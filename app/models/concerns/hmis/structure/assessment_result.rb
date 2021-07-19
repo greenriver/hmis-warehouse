@@ -14,6 +14,10 @@ module HMIS::Structure::AssessmentResult
   end
 
   module ClassMethods
+    def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+      'AssessmentResults.csv'
+    end
+
     def hmis_configuration(version: nil)
       case version
       when '2020', nil

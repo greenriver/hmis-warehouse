@@ -15,10 +15,11 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionEight, type: :model do
   end
 
   def question_8_setup
-    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
     warehouse = GrdaWarehouseBase.connection
 
+    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
     if Fixpoint.exists? :hud_hmis_q8_export_app
+      GrdaWarehouse::Utility.clear!
       restore_fixpoint :hud_hmis_q8_export_app
       restore_fixpoint :hud_hmis_q8_export_warehouse, connection: warehouse
     else

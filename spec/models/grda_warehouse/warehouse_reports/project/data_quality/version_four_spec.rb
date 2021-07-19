@@ -5,10 +5,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
   # NOTE: The date range of the report is limited and will not include everyone in the import file
   describe 'project data quality V4' do
     before(:all) do
-      import_fixture
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/importers/hmis_twenty_twenty/project_data_quality_v4',
+        version: 'AutoDetect',
+      )
     end
     after(:all) do
-      cleanup_fixture
+      cleanup_hmis_csv_fixtures
     end
 
     describe 'a single project report' do
@@ -163,29 +166,5 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
           GrdaWarehouse::Hud::Exit.where(ExitDate: @range.range),
         )
     end
-  end
-
-  def import_fixture
-    cleanup_fixture
-    @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :s3)
-    GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'Warehouse', source_type: nil)
-    @file_path = 'spec/fixtures/files/importers/hmis_twenty_twenty/project_data_quality_v4'
-    @source_file_path = File.join(@file_path, 'source')
-    @import_path = File.join(@file_path, @data_source.id.to_s)
-    # duplicate the fixture file as it gets manipulated
-    FileUtils.cp_r(@source_file_path, @import_path)
-
-    importer = Importers::HMISSixOneOne::Base.new(file_path: @file_path, data_source_id: @data_source.id, remove_files: false)
-    importer.import!
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
-    Delayed::Worker.new.work_off(2)
-  end
-
-  def cleanup_fixture
-    # Because we are only running the import once, we have to do our own DB and file cleanup
-    GrdaWarehouse::Utility.clear!
-    FileUtils.rm_rf(@import_path) unless @import_path == @file_path
   end
 end

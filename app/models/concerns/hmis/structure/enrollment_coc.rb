@@ -14,6 +14,10 @@ module HMIS::Structure::EnrollmentCoc
   end
 
   module ClassMethods
+    def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+      'EnrollmentCoC.csv' # case change
+    end
+
     def hmis_configuration(version: nil)
       case version
       when '6.11', '6.12', '2020', nil
