@@ -86,7 +86,7 @@ module UserPermissions
     end
 
     def window_file_access
-      can_see_own_file_uploads? || can_manage_window_client_files?
+      can_see_own_file_uploads? || can_manage_window_client_files? || can_generate_homeless_verification_pdfs?
     end
 
     def can_access_vspdat_list
