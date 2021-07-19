@@ -91,7 +91,7 @@ class ApplicationNotifier < Slack::Notifier
       if (message + batch).bytesize > chunk_size
         messages << message
         message = ''
-        break if single_message
+        break message += batch if single_message
       end
       message += batch
     end
