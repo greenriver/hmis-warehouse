@@ -279,7 +279,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
                 warehouse_class.where(
                   data_source_id: data_source_id,
                   PersonalID: incoming.PersonalID,
-                ).with_deleted.update_all(incoming.slice(upsert_column_names))
+                ).with_deleted.update_all(incoming.slice(upsert_column_names).merge(demographic_dirty: true))
               end
             else
               warehouse_class.import(
@@ -299,7 +299,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
             warehouse_class.where(
               data_source_id: data_source_id,
               PersonalID: incoming.PersonalID,
-            ).with_deleted.update_all(incoming.slice(upsert_column_names))
+            ).with_deleted.update_all(incoming.slice(upsert_column_names).merge(demographic_dirty: true))
           end
         else
           warehouse_class.import(
