@@ -184,7 +184,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
             importer_log.id,
             id,
             warehouse_class.name,
-            :needs_removal,
+            :removed,
             key,
           ]
           to_remove.delete(key)
