@@ -14,17 +14,19 @@ module CohortColumns
       'Date of last homeless service in ongoing enrollments'
     end
 
-    def value(cohort_client) # OK
-      cohort_client.client.processed_service_history&.last_homeless_visit&.
-        split(';')&.
-        map(&:strip)&.
-        sort do |a, b|
-          get_date(b) <=> get_date(a)
-        end&.join('; ')
-    end
+    def value(cohort_client, user) # OK
+      lhv = cohort_client.client.processed_service_history&.last_homeless_visit
+      # e.g.: {:project_name=>\"APR - Transitional Housing\", :date=>Mon, 30 Sep 2019, :project_id=>10}
+      return unless lhv.present?
 
-    private def get_date(visit)
-      visit.split(':').last.strip.to_date
+      lhv = JSON.parse(lhv)
+      lhv.select do |row|
+        row['project_id'].in? user.visible_project_ids
+      end.
+        map do |row|
+          "#{row['project_name']}: #{row['date'].to_date}"
+        end.
+        join('; ')
     end
   end
 end

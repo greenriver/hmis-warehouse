@@ -1186,7 +1186,8 @@ CREATE TABLE public."Funder" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "OtherFunder" character varying
+    "OtherFunder" character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1457,7 +1458,8 @@ CREATE TABLE public."Inventory" (
     "ESBedType" integer,
     coc_code_override character varying,
     inventory_start_date_override date,
-    inventory_end_date_override date
+    inventory_end_date_override date,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1596,7 +1598,8 @@ CREATE TABLE public."ProjectCoC" (
     "Zip" character varying(5),
     geography_type_override integer,
     geocode_override character varying(6),
-    zip_override character varying
+    zip_override character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -4656,10 +4659,10 @@ CREATE TABLE public.configs (
     cas_sync_months integer DEFAULT 3,
     send_sms_for_covid_reminders boolean DEFAULT false NOT NULL,
     bypass_2fa_duration integer DEFAULT 0 NOT NULL,
-    enable_system_cohorts boolean DEFAULT false,
-    currently_homeless_cohort boolean DEFAULT false,
     health_claims_data_path character varying,
-    enable_youth_hrp boolean DEFAULT true NOT NULL
+    enable_youth_hrp boolean DEFAULT true NOT NULL,
+    enable_system_cohorts boolean DEFAULT false,
+    currently_homeless_cohort boolean DEFAULT false
 );
 
 
@@ -5154,7 +5157,8 @@ CREATE TABLE public.exports (
     content_type character varying,
     content bytea,
     file character varying,
-    delayed_job_id integer
+    delayed_job_id integer,
+    version character varying
 );
 
 
@@ -18519,6 +18523,34 @@ ALTER TABLE ONLY public.youth_referrals
 
 
 --
+-- Name: Affiliation_c5b464; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Affiliation_c5b464" ON public."Affiliation" USING btree (source_hash, "AffiliationID", data_source_id);
+
+
+--
+-- Name: AssessmentQuestions_2f3a50; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "AssessmentQuestions_2f3a50" ON public."AssessmentQuestions" USING btree (source_hash, "AssessmentQuestionID", data_source_id);
+
+
+--
+-- Name: AssessmentResults_88030b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "AssessmentResults_88030b" ON public."AssessmentResults" USING btree (source_hash, "AssessmentResultID", data_source_id);
+
+
+--
+-- Name: Assessment_1f99f3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Assessment_1f99f3" ON public."Assessment" USING btree (source_hash, "AssessmentID", data_source_id);
+
+
+--
 -- Name: ClientUnencrypted_DateCreated_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -18589,6 +18621,27 @@ CREATE INDEX "ClientUnencrypted_pending_date_deleted_idx" ON public."ClientUnenc
 
 
 --
+-- Name: Client_031b5b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Client_031b5b" ON public."Client" USING btree (source_hash, "PersonalID", data_source_id);
+
+
+--
+-- Name: CurrentLivingSituation_9e9c7b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "CurrentLivingSituation_9e9c7b" ON public."CurrentLivingSituation" USING btree (source_hash, "CurrentLivingSitID", data_source_id);
+
+
+--
+-- Name: Disabilities_8c6de1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Disabilities_8c6de1" ON public."Disabilities" USING btree (source_hash, "DisabilitiesID", data_source_id);
+
+
+--
 -- Name: Disabilities_DateDeleted_data_source_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -18610,6 +18663,62 @@ CREATE INDEX "Disabilities_DateDeleted_idx" ON public."Disabilities" USING btree
 
 
 --
+-- Name: EmploymentEducation_098f34; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "EmploymentEducation_098f34" ON public."EmploymentEducation" USING btree (source_hash, "EmploymentEducationID", data_source_id);
+
+
+--
+-- Name: EnrollmentCoC_136266; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "EnrollmentCoC_136266" ON public."EnrollmentCoC" USING btree (source_hash, "EnrollmentCoCID", data_source_id);
+
+
+--
+-- Name: Enrollment_307e36; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_307e36" ON public."Enrollment" USING btree (source_hash, "EnrollmentID", data_source_id);
+
+
+--
+-- Name: Event_b3f7f5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Event_b3f7f5" ON public."Event" USING btree (source_hash, "EventID", data_source_id);
+
+
+--
+-- Name: Exit_855be6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Exit_855be6" ON public."Exit" USING btree (source_hash, "ExitID", data_source_id);
+
+
+--
+-- Name: Funder_206edb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Funder_206edb" ON public."Funder" USING btree (source_hash, "FunderID", data_source_id);
+
+
+--
+-- Name: HealthAndDV_e807d1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "HealthAndDV_e807d1" ON public."HealthAndDV" USING btree (source_hash, "HealthAndDVID", data_source_id);
+
+
+--
+-- Name: IncomeBenefits_1278b8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "IncomeBenefits_1278b8" ON public."IncomeBenefits" USING btree (source_hash, "IncomeBenefitsID", data_source_id);
+
+
+--
 -- Name: IncomeBenefits_DateDeleted_data_source_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -18628,6 +18737,48 @@ CREATE INDEX "IncomeBenefits_DateDeleted_idx" ON public."IncomeBenefits" USING b
 --
 
 CREATE INDEX "IncomeBenefits_data_source_id_DateDeleted_idx" ON public."IncomeBenefits" USING btree (data_source_id, "DateDeleted") WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: Inventory_5c1c07; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Inventory_5c1c07" ON public."Inventory" USING btree (source_hash, "InventoryID", data_source_id);
+
+
+--
+-- Name: Organization_7c2e82; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Organization_7c2e82" ON public."Organization" USING btree (source_hash, "OrganizationID", data_source_id);
+
+
+--
+-- Name: ProjectCoC_1f108e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "ProjectCoC_1f108e" ON public."ProjectCoC" USING btree (source_hash, "ProjectCoCID", data_source_id);
+
+
+--
+-- Name: Project_9bb473; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Project_9bb473" ON public."Project" USING btree (source_hash, "ProjectID", data_source_id);
+
+
+--
+-- Name: Services_bbce3d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Services_bbce3d" ON public."Services" USING btree (source_hash, "ServicesID", data_source_id);
+
+
+--
+-- Name: User_a94c18; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "User_a94c18" ON public."User" USING btree (source_hash, "UserID", data_source_id);
 
 
 --
@@ -18985,6 +19136,153 @@ CREATE INDEX health_and_dv_date_updated ON public."HealthAndDV" USING btree ("Da
 --
 
 CREATE INDEX health_and_dv_export_id ON public."HealthAndDV" USING btree ("ExportID");
+
+
+--
+-- Name: hmis2020affiliations_c5b464; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020affiliations_c5b464 ON public.hmis_2020_affiliations USING btree (source_hash, "AffiliationID", data_source_id);
+
+
+--
+-- Name: hmis2020assessmentquestions_2f3a50; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020assessmentquestions_2f3a50 ON public.hmis_2020_assessment_questions USING btree (source_hash, "AssessmentQuestionID", data_source_id);
+
+
+--
+-- Name: hmis2020assessmentresults_88030b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020assessmentresults_88030b ON public.hmis_2020_assessment_results USING btree (source_hash, "AssessmentResultID", data_source_id);
+
+
+--
+-- Name: hmis2020assessments_1f99f3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020assessments_1f99f3 ON public.hmis_2020_assessments USING btree (source_hash, "AssessmentID", data_source_id);
+
+
+--
+-- Name: hmis2020clients_031b5b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020clients_031b5b ON public.hmis_2020_clients USING btree (source_hash, "PersonalID", data_source_id);
+
+
+--
+-- Name: hmis2020currentlivingsituations_9e9c7b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020currentlivingsituations_9e9c7b ON public.hmis_2020_current_living_situations USING btree (source_hash, "CurrentLivingSitID", data_source_id);
+
+
+--
+-- Name: hmis2020disabilities_8c6de1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020disabilities_8c6de1 ON public.hmis_2020_disabilities USING btree (source_hash, "DisabilitiesID", data_source_id);
+
+
+--
+-- Name: hmis2020employmenteducations_098f34; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020employmenteducations_098f34 ON public.hmis_2020_employment_educations USING btree (source_hash, "EmploymentEducationID", data_source_id);
+
+
+--
+-- Name: hmis2020enrollmentcocs_136266; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020enrollmentcocs_136266 ON public.hmis_2020_enrollment_cocs USING btree (source_hash, "EnrollmentCoCID", data_source_id);
+
+
+--
+-- Name: hmis2020enrollments_307e36; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020enrollments_307e36 ON public.hmis_2020_enrollments USING btree (source_hash, "EnrollmentID", data_source_id);
+
+
+--
+-- Name: hmis2020events_b3f7f5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020events_b3f7f5 ON public.hmis_2020_events USING btree (source_hash, "EventID", data_source_id);
+
+
+--
+-- Name: hmis2020exits_855be6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020exits_855be6 ON public.hmis_2020_exits USING btree (source_hash, "ExitID", data_source_id);
+
+
+--
+-- Name: hmis2020funders_206edb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020funders_206edb ON public.hmis_2020_funders USING btree (source_hash, "FunderID", data_source_id);
+
+
+--
+-- Name: hmis2020healthanddvs_e807d1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020healthanddvs_e807d1 ON public.hmis_2020_health_and_dvs USING btree (source_hash, "HealthAndDVID", data_source_id);
+
+
+--
+-- Name: hmis2020incomebenefits_1278b8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020incomebenefits_1278b8 ON public.hmis_2020_income_benefits USING btree (source_hash, "IncomeBenefitsID", data_source_id);
+
+
+--
+-- Name: hmis2020inventories_5c1c07; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020inventories_5c1c07 ON public.hmis_2020_inventories USING btree (source_hash, "InventoryID", data_source_id);
+
+
+--
+-- Name: hmis2020organizations_7c2e82; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020organizations_7c2e82 ON public.hmis_2020_organizations USING btree (source_hash, "OrganizationID", data_source_id);
+
+
+--
+-- Name: hmis2020projectcocs_1f108e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020projectcocs_1f108e ON public.hmis_2020_project_cocs USING btree (source_hash, "ProjectCoCID", data_source_id);
+
+
+--
+-- Name: hmis2020projects_9bb473; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020projects_9bb473 ON public.hmis_2020_projects USING btree (source_hash, "ProjectID", data_source_id);
+
+
+--
+-- Name: hmis2020services_bbce3d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020services_bbce3d ON public.hmis_2020_services USING btree (source_hash, "ServicesID", data_source_id);
+
+
+--
+-- Name: hmis2020users_a94c18; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2020users_a94c18 ON public.hmis_2020_users USING btree (source_hash, "UserID", data_source_id);
 
 
 --
@@ -28361,6 +28659,13 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 
 
 --
+-- Name: test_shs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -30841,6 +31146,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623184626'),
 ('20210623184729'),
 ('20210623195645'),
+('20210625231326'),
+('20210630201802'),
 ('20210702143811'),
 ('20210702144442'),
 ('20210707122337'),
@@ -30849,6 +31156,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210707193633'),
 ('20210708183958'),
 ('20210708192452'),
-('20210714131449');
+('20210710195956'),
+('20210711120353'),
+('20210714131449'),
+('20210716144139');
 
 
