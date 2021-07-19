@@ -15,8 +15,8 @@ module CohortColumns
       'Date of last service in ongoing TH enrollments'
     end
 
-    def value(cohort_client) # OK
-      for_display(:cohorts_ongoing_enrollments_th)
+    def value(cohort_client, user) # OK
+      for_display(:cohorts_ongoing_enrollments_th, user)
     end
   end
 end
