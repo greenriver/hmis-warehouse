@@ -2247,7 +2247,7 @@ module GrdaWarehouse::Hud
     # Build a set of potential client matches grouped by criteria
     # FIXME: consolidate this logic with merge_candidates below
     def potential_matches
-      @potential_matches ||= begin # rubocop:disable Style/RedundantBegin
+      @potential_matches ||= begin
         {}.tap do |m|
           c_arel = self.class.arel_table
           # Find anyone with a nickname match
