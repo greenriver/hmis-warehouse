@@ -4,7 +4,7 @@
   %p Select a quarter with the slider; this selection affects all charts below.
   - quarter_count = data.count - 1
   %fieldset.range__field
-    %input.range.jQuarters#jQuarters{ type: :range, min: 0, max: data.count - 1, value: 0, step: 1, data: { dates: data, selected: data.first }, list: :quarters}
+    %input.range.jQuarters#jQuarters{ type: :range, min: 0, max: quarter_count, value: quarter_count, step: 1, data: { dates: data, selected: data[quarter_count] }, list: :quarters}
     %svg{role: :presentation, width: '100%', height: '20', xmlns: 'http://www.w3.org/2000/svg'}
       - data.each.with_index do |date, index|
         - horizontal_shift = ((index)/quarter_count.to_f * 100)

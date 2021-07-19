@@ -25,7 +25,7 @@ class Role < ApplicationRecord
     health.where(name: 'Nurse Care Manager')
   end
 
-  def has_super_admin_permissions?
+  def has_super_admin_permissions? # rubocop:disable Naming/PredicateName
     Role.permissions.each do |permission,|
       return true if Role.super_admin_permissions.include?(permission) && self[permission]
     end
@@ -52,12 +52,12 @@ class Role < ApplicationRecord
 
   def self.permissions(exclude_health: false)
     perms = permissions_with_descriptions.keys
-    perms += self.health_permissions unless exclude_health
+    perms += self.health_permissions unless exclude_health # rubocop:disable Style/RedundantSelf
     return perms
   end
 
   def self.permission_categories
-    permissions_with_descriptions.map{|perm_key, perm| perm[:categories]}.flatten.uniq
+    permissions_with_descriptions.map { |perm_key, perm| perm[:categories] }.flatten.uniq
   end
 
   def self.health_permissions
@@ -65,17 +65,16 @@ class Role < ApplicationRecord
   end
 
   def self.description_for permission:
-    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:description] rescue ''
+    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:description] rescue '' # rubocop:disable Style/RescueModifier
   end
 
   def self.category_for permission:
-    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:categories] rescue []
+    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:categories] rescue [] # rubocop:disable Style/RescueModifier
   end
 
   def self.administrative? permission:
-    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true
+    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
   end
-
 
   def self.permissions_with_descriptions
     {
@@ -335,6 +334,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_generate_homeless_verification_pdfs: {
+        description: '',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_see_own_file_uploads: {
         description: 'Access to files this user has uploaded, no access to others.  Usually used for community members who might be collecting files, but shouldn\'t see files provided by others',
         administrative: false,
@@ -393,21 +399,21 @@ class Role < ApplicationRecord
         ],
       },
       can_view_ce_assessment: {
-        description: "Access to view existing Coordinated Entry Assessments",
+        description: 'Access to view existing Coordinated Entry Assessments',
         administrative: false,
         categories: [
           'Client Extras',
         ],
       },
       can_edit_ce_assessment: {
-        description: "Ability to edit existing Coordinated Entry Assessments",
+        description: 'Ability to edit existing Coordinated Entry Assessments',
         administrative: false,
         categories: [
           'Client Extras',
         ],
       },
       can_submit_ce_assessment: {
-        description: "Ability to add Coordinated Entry Assessments",
+        description: 'Ability to add Coordinated Entry Assessments',
         administrative: false,
         categories: [
           'Client Extras',
@@ -864,155 +870,129 @@ class Role < ApplicationRecord
       can_administer_health: {
         description: 'Administrative access to all health sections and patient records',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_edit_client_health: {
         description: 'Provides the ability to enter data for pilot patients. Pilot Permission',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_view_client_health: {
         description: 'Ability to view pilot patient records. Pilot Permission',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_view_aggregate_health: {
         description: 'Access to see the claims and ED use data provided from BHCHP',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_manage_health_agency: {
         description: 'Ability to add and edit health agency records',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_approve_patient_assignments: {
         description: 'Ability to convert patient referrals to patient records and assign patients to agencies',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_manage_claims: {
         description: 'Can generate, review, and download claims files',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_manage_all_patients: {
         description: 'Ability to claim patient referrals for any agency',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_manage_patients_for_own_agency: {
         description: 'Ability to claim patient referrals for an agency, used in conjunction with user-agency assignments',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_manage_care_coordinators: {
         description: 'Assign care coordinators to patients',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_approve_cha: {
         description: 'Ability to approve Comprehensive Health Assessments',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_approve_ssm: {
         description: 'Ability to approve Self-Sufficiency Matrix forms',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_approve_release: {
         description: 'Ability to approve release forms',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_approve_participation: {
         description: 'Ability to approve participation forms',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_edit_all_patient_items: {
         description: 'Unused',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_edit_patient_items_for_own_agency: {
         description: 'Edit ability for patient records',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_create_care_plans_for_own_agency: {
         description: 'Unused',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_view_all_patients: {
         description: 'Unused',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_view_patients_for_own_agency: {
         description: 'Allows access to patient records',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       }, # Read-only - not implemented as such yet
       can_add_case_management_notes: {
         description: 'Unused',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
       can_manage_accountable_care_organizations: {
         description: 'Administer ACO records',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_view_member_health_reports: {
         description: 'Use for downloading individual member reports',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_unsubmit_submitted_claims: {
         description: 'Can this user blank out the submitted date on QA, allowing resubmission?',
         administrative: true,
-        categories: [
-        ],
+        categories: [],
       },
       can_edit_health_emergency_contact_tracing: {
         description: 'Grants access to the contact tracing section when there is an active health emergency',
         administrative: false,
-        categories: [
-        ],
+        categories: [],
       },
     }
   end
 
   def self.ensure_permissions_exist
     Role.permissions.each do |permission|
-      unless ActiveRecord::Base.connection.column_exists?(:roles, permission)
-        ActiveRecord::Migration.add_column :roles, permission, :boolean, default: false
-      end
+      ActiveRecord::Migration.add_column :roles, permission, :boolean, default: false unless ActiveRecord::Base.connection.column_exists?(:roles, permission)
     end
   end
 
@@ -1023,5 +1003,4 @@ class Role < ApplicationRecord
   def remove(users)
     self.users = (self.users - Array.wrap(users))
   end
-
 end
