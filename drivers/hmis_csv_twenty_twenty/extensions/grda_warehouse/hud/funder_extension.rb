@@ -11,6 +11,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse::Hud
     included do
       has_many :imported_items, class_name: 'HmisCsvTwentyTwenty::Importer::Funder', primary_key: [:FunderID, :data_source_id], foreign_key: [:FunderID, :data_source_id]
       has_many :loaded_items, class_name: 'HmisCsvTwentyTwenty::Loader::Funder', primary_key: [:FunderID, :data_source_id], foreign_key: [:FunderID, :data_source_id]
+      has_many :involved_in_imports, class_name: 'HmisCsvTwentyTwenty::Importer::InvolvedInImport', as: :record
     end
   end
 end

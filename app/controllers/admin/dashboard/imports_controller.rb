@@ -8,6 +8,8 @@ module Admin::Dashboard
   class ImportsController < ApplicationController
     before_action :require_can_view_imports!
     def index
+      sti_col = GrdaWarehouse::ImportLog.inheritance_column
+      GrdaWarehouse::ImportLog.inheritance_column = :_disabled
       @imports = data_source_scope.map do |d|
         GrdaWarehouse::ImportLog.where(data_source_id: d.id).
           diet.
@@ -20,6 +22,8 @@ module Admin::Dashboard
       matched_sources = warehouse_client_source.pluck(:source_id)
 
       @source_clients_with_no_destination = (source_clients - matched_sources).size
+    ensure
+      GrdaWarehouse::ImportLog.inheritance_column = sti_col
     end
 
     private def client_scope

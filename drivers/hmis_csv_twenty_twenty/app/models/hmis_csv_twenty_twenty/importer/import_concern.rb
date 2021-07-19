@@ -7,7 +7,7 @@
 module HmisCsvTwentyTwenty::Importer::ImportConcern
   extend ActiveSupport::Concern
   SELECT_BATCH_SIZE = 10_000
-  INSERT_BATCH_SIZE = 2_000
+  INSERT_BATCH_SIZE = 5_000
   RE_YYYYMMDD = /(?<y>\d{4})-(?<m>\d{1,2})-(?<d>\d{1,2})/.freeze
 
   HMIS_DATE_FORMATS = [
@@ -27,6 +27,17 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
   included do
     belongs_to :importer_log
+    has_many :involved_in_imports, class_name: 'HmisCsvTwentyTwenty::Importer::InvolvedInImport', as: :record
+    # has_many :involved_in_import_updates, do
+    #   where(record_action: :updated)
+    # end, class_name: 'HmisCsvTwentyTwenty::Importer::InvolvedInImport', as: :record, primary_key: [hud_key, :import_log_id,
+    #     importer_log_id: importer_log_id,
+    #     hud_key => HmisCsvTwentyTwenty::Importer::InvolvedInImport.
+    #       where(
+    #         importer_log_id: importer_log_id,
+    #         record_action: :updated,
+    #       ).select(:hud_key),
+    #   )
 
     # If the model is paranoid, include the deleted rows by default
     default_scope do
@@ -97,13 +108,313 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     # Override as necessary
-    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
-      involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).with_deleted.
-        update_all(pending_date_deleted: pending_date_deleted)
+    # def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:)
+    #   involved_warehouse_scope(
+    #     data_source_id: data_source_id,
+    #     project_ids: project_ids,
+    #     date_range: date_range,
+    #   ).with_deleted.
+    #     # Exclude records that are unchanged
+    #     joins(Arel.sql(left_join_non_matching_import_to_warehouse_sql(importer_log_id))).
+    #     where(arel_table[:importer_log_id].eq(nil)).
+    #     update_all(pending_date_deleted: pending_date_deleted)
+    # end
+
+    def self.plan_ingest(
+      data_source_id:,
+      project_ids:,
+      date_range:,
+      importer_log:,
+      most_recent_import:
+    )
+      involved = []
+      # In an attempt to keep RAM usage way down, we'll use some positional data
+      import_order = [
+        :importer_log_id,
+        :record_id,
+        :record_type,
+        :record_action,
+        :hud_key,
+      ]
+      pluck_columns = [
+        hud_key,
+        :id,
+        :source_hash,
+        :DateUpdated,
+      ]
+      import_scope = should_import.where(importer_log_id: importer_log.id)
+
+      # If this is the Export table, just add the row, there will always be one
+      if hud_key == :ExportID
+        (_, id,) = import_scope.pluck(hud_key, :id).first
+        involved << [
+          importer_log.id,
+          id,
+          name,
+          :added,
+          key,
+        ]
+      else
+        import_scope = import_scope.with_deleted if paranoid?
+        import_data = import_scope.pluck(*pluck_columns).index_by(&:first)
+
+        existing_data = involved_warehouse_scope(
+          data_source_id: data_source_id,
+          project_ids: project_ids,
+          date_range: date_range,
+        ).with_deleted.
+          pluck(*pluck_columns).index_by(&:first)
+
+        to_add = import_data.keys - existing_data.keys
+        to_add.each do |key|
+          (_, id,) = import_data[key]
+          involved << [
+            importer_log.id,
+            id,
+            name,
+            :added,
+            key,
+          ]
+        end
+
+        to_remove = existing_data.keys - import_data.keys
+        to_remove.each do |key|
+          (_, id,) = existing_data[key]
+          involved << [
+            importer_log.id,
+            id,
+            warehouse_class.name,
+            :removed,
+            key,
+          ]
+          to_remove.delete(key)
+        end
+
+        existing_data.each do |key, (_, existing_id, existing_source_hash, existing_updated_at)|
+          (_, _, import_source_hash, import_updated_at) = import_data[key]
+          record_action = if existing_source_hash == import_source_hash
+            :unchanged
+          elsif most_recent_import || import_updated_at.to_date >= existing_updated_at.to_date
+            :updated
+          else
+            :unchanged # may be changed, but was changed in a way we don't want to import
+          end
+          involved << [
+            importer_log.id,
+            existing_id,
+            warehouse_class.name,
+            record_action,
+            key,
+          ]
+        end
+      end
+      HmisCsvTwentyTwenty::Importer::InvolvedInImport.import(import_order, involved)
+    end
+
+    # Just update the ExportID
+    # Returns number unchanged
+    def self.unchanged(importer_log:, data_source_id:, export_id:, file_name:, importer:) # rubocop:disable Lint/UnusedMethodArgument
+      number_effected = warehouse_class.where(data_source_id: data_source_id).
+        joins(:involved_in_imports).
+        merge(
+          HmisCsvTwentyTwenty::Importer::InvolvedInImport.
+            where(
+              importer_log_id: importer_log.id,
+              record_action: :unchanged,
+            ),
+        ).update_all(ExportID: export_id)
+      number_effected
+    end
+
+    # Create new records for records not seen before
+    def self.added(importer_log:, data_source_id:, export_id:, file_name:, importer:) # rubocop:disable Lint/UnusedMethodArgument
+      batch = []
+      number_effected = 0
+      # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
+      # for whatever reason doesn't fall within the involved scope
+      # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
+      # entire history of enrollments for aggregated projects because some of the existing enrollments fall
+      # outside of the range, but are necessary to calculate the correctly aggregated set
+      upsert = ! warehouse_class.name.in?(un_updateable_warehouse_classes)
+
+      where(importer_log_id: importer_log.id).
+        joins(:involved_in_imports).
+        merge(
+          HmisCsvTwentyTwenty::Importer::InvolvedInImport.
+            where(
+              importer_log_id: importer_log.id,
+              record_action: :added,
+            ),
+        ).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+          batch << row.as_destination_record
+          if batch.count == INSERT_BATCH_SIZE
+            columns = batch.first.attributes.keys - ['id']
+            number_effected += batch.count
+            importer.process_batch!(
+              warehouse_class,
+              batch,
+              file_name,
+              columns: columns,
+              type: 'added',
+              upsert: upsert,
+              should_note_processed: false,
+            )
+            # warehouse_class.import(
+            #   batch,
+            #   import_options(columns),
+            # )
+            batch = []
+          end
+        end
+
+      # Make sure we don't leave any behind
+      if batch.count.positive?
+        columns = batch.first.attributes.keys - ['id']
+        number_effected += batch.count
+        importer.process_batch!(
+          warehouse_class,
+          batch,
+          file_name,
+          columns: columns,
+          type: 'added',
+          upsert: upsert,
+          should_note_processed: false,
+        )
+        # warehouse_class.import(
+        #   batch,
+        #   import_options(columns),
+        # )
+        batch = []
+      end
+      number_effected
+    end
+
+    # Copy from the import tables to the warehouse using an upsert
+    def self.updated(importer_log:, data_source_id:, export_id:, file_name:, importer:) # rubocop:disable Lint/UnusedMethodArgument
+      # columns = upsert_column_names
+      batch = []
+      number_effected = 0
+      involved_table_name = HmisCsvTwentyTwenty::Importer::InvolvedInImport.quoted_table_name
+      join_sql = <<-SQL.squish
+        inner join #{involved_table_name}
+        on #{involved_table_name}.hud_key = #{quoted_table_name}.#{connection.quote_column_name(hud_key)}
+        and #{involved_table_name}.importer_log_id = #{quoted_table_name}.importer_log_id
+      SQL
+      joins(join_sql).
+        where(importer_log_id: importer_log.id).
+        merge(HmisCsvTwentyTwenty::Importer::InvolvedInImport.where(record_action: :updated, record_type: warehouse_class.name)).
+        find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+          batch << row.as_destination_record
+          if batch.count == INSERT_BATCH_SIZE
+            # Client model doesn't have a uniqueness constraint because of the warehouse data source
+            # so these must be processed more slowly
+            if hud_key == :PersonalID
+              batch.each do |incoming|
+                warehouse_class.where(
+                  data_source_id: data_source_id,
+                  PersonalID: incoming.PersonalID,
+                ).with_deleted.update_all(incoming.slice(upsert_column_names).merge(demographic_dirty: true))
+              end
+            else
+              importer.process_batch!(
+                warehouse_class,
+                batch,
+                file_name,
+                type: 'updated',
+                upsert: true,
+                should_note_processed: false,
+              )
+              # warehouse_class.import(
+              #   batch,
+              #   import_options(columns),
+              # )
+            end
+            number_effected += batch.count
+            batch = []
+          end
+        end
+
+      # Make sure we don't leave any behind
+      if batch.count.positive?
+        if hud_key == :PersonalID
+          batch.each do |incoming|
+            warehouse_class.where(
+              data_source_id: data_source_id,
+              PersonalID: incoming.PersonalID,
+            ).with_deleted.update_all(incoming.slice(upsert_column_names).merge(demographic_dirty: true))
+          end
+        else
+          importer.process_batch!(
+            warehouse_class,
+            batch,
+            file_name,
+            type: 'updated',
+            upsert: true,
+            should_note_processed: false,
+          )
+          # warehouse_class.import(
+          #   batch,
+          #   import_options(columns),
+          # )
+        end
+        number_effected += batch.count
+        batch = []
+      end
+      number_effected
+    end
+
+    # Remove from warehouse
+    # Returns number removed
+    def self.removed(importer_log:, data_source_id:, export_id:, file_name:, importer:) # rubocop:disable Lint/UnusedMethodArgument
+      # never delete exports, projects, organizations or clients
+      return 0 if hud_key.in?([:ExportID, :ProjectID, :OrganizationID, :PersonalID])
+
+      number_effected = warehouse_class.where(data_source_id: data_source_id).
+        joins(:involved_in_imports).
+        merge(
+          HmisCsvTwentyTwenty::Importer::InvolvedInImport.
+            where(
+              importer_log_id: importer_log.id,
+              record_action: :removed,
+            ),
+        ).update_all(DateDeleted: Date.current)
+      number_effected
+    end
+
+    def self.un_updateable_warehouse_classes
+      [
+        'GrdaWarehouse::Hud::Export',
+        'GrdaWarehouse::Hud::Client',
+      ].freeze
+    end
+
+    # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
+    # for whatever reason doesn't fall within the involved scope
+    # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
+    # entire history of enrollments for aggregated projects because some of the existing enrollments fall
+    # outside of the range, but are necessary to calculate the correctly aggregated set
+    # def self.import_options(columns)
+    #   options = { validate: false }
+    #   return options if warehouse_class.name.in?(un_updateable_warehouse_classes)
+
+    #   options.merge(
+    #     on_duplicate_key_update: {
+    #       conflict_target: warehouse_class.conflict_target,
+    #       columns: columns,
+    #     },
+    #   )
+    # end
+
+    def self.left_join_non_matching_import_to_warehouse_sql(importer_log_id)
+      warehouse_table_name = warehouse_class.quoted_table_name
+      import_table_name = quoted_table_name
+      <<-SQL.squish
+        left outer join #{import_table_name}
+        on #{warehouse_table_name}.data_source_id = #{import_table_name}.data_source_id
+        and #{warehouse_table_name}.#{connection.quote_column_name(hud_key)} = #{import_table_name}.#{connection.quote_column_name(hud_key)}
+        and #{warehouse_table_name}.source_hash = #{import_table_name}.source_hash
+        and #{import_table_name}.importer_log_id = #{importer_log_id}
+      SQL
     end
 
     def self.new_data(data_source_id:, project_ids:, date_range:, importer_log_id:)

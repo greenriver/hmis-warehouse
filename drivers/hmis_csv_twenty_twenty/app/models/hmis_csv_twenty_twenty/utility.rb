@@ -21,6 +21,7 @@ class HmisCsvTwentyTwenty::Utility
       HmisCsvTwentyTwenty::Aggregated::Exit,
       HmisCsvTwentyTwenty::Loader::LoaderLog,
       HmisCsvTwentyTwenty::Importer::ImporterLog,
+      HmisCsvTwentyTwenty::Importer::InvolvedInImport,
       HmisCsvValidation::Base,
     ].each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")

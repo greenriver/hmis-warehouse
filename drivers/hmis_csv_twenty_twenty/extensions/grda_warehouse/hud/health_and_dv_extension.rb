@@ -11,6 +11,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse::Hud
     included do
       has_many :imported_items, class_name: 'HmisCsvTwentyTwenty::Importer::HealthAndDv', primary_key: [:HealthAndDVID, :data_source_id], foreign_key: [:HealthAndDVID, :data_source_id]
       has_many :loaded_items, class_name: 'HmisCsvTwentyTwenty::Loader::HealthAndDv', primary_key: [:HealthAndDVID, :data_source_id], foreign_key: [:HealthAndDVID, :data_source_id]
+      has_many :involved_in_imports, class_name: 'HmisCsvTwentyTwenty::Importer::InvolvedInImport', as: :record
     end
   end
 end
