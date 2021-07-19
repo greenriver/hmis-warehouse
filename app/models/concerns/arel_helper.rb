@@ -78,6 +78,15 @@ module ArelHelper
       nf('CONCAT', args)
     end
 
+    # create the GREATEST named function
+    def greatest(*args)
+      nf('GREATEST', args)
+    end
+
+    def self.greatest(*args)
+      nf('GREATEST', args)
+    end
+
     def any(*args)
       nf 'ANY', args
     end

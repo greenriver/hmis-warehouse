@@ -159,6 +159,7 @@ module Importing
         Health::PruneDocumentExportsJob.perform_later
 
         YouthFollowUpsJob.perform_later
+        SystemCohortsJob.perform_later
 
         create_statistical_matches
         generate_logging_info

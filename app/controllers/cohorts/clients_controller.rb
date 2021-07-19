@@ -390,14 +390,16 @@ module Cohorts
     end
 
     def bulk_destroy
-      @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
-      @cohort_clients = cohort_client_source.where(id: @cohort_client_ids)
-      removed = 0
-      @cohort_clients.each do |client|
-        log_removal(client.cohort_id, client.id, params.dig(:cc, :reason))
-        removed += 1 if client.destroy
+      unless @cohort.system_cohort
+        @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
+        @cohort_clients = cohort_client_source.where(id: @cohort_client_ids)
+        removed = 0
+        @cohort_clients.each do |client|
+          log_removal(client.cohort_id, client.id, params.dig(:cc, :reason))
+          removed += 1 if client.destroy
+        end
+        flash[:notice] = "Removed #{removed} #{'client'.pluralize(removed)}"
       end
-      flash[:notice] = "Removed #{removed} #{'client'.pluralize(removed)}"
       redirect_to cohort_path(@cohort)
     end
 
@@ -424,12 +426,16 @@ module Cohorts
     end
 
     def destroy
-      log_removal(@client.cohort_id, @client.id, params.dig(:grda_warehouse_cohort_client, :reason))
-      if @client.destroy
-        flash[:notice] = "Removed #{@client.name}"
+      if @cohort.system_cohort
         redirect_to cohort_path(@cohort)
       else
-        render :pre_destroy
+        log_removal(@client.cohort_id, @client.id, params.dig(:grda_warehouse_cohort_client, :reason))
+        if @client.destroy
+          flash[:notice] = "Removed #{@client.name}"
+          redirect_to cohort_path(@cohort)
+        else
+          render :pre_destroy
+        end
       end
     end
 

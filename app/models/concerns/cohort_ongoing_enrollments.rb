@@ -7,16 +7,23 @@
 module CohortOngoingEnrollments
   extend ActiveSupport::Concern
 
-  private def for_display(column)
+  def display_read_only(user)
+    value(cohort_client, user)
+  end
+
+  private def for_display(column, user)
     return nil unless cohort_client.client.processed_service_history&.public_send(column)
 
-    # in the form [['Project Name', 'last date']]
+    # in the form [{project_name: 'Project Name', date: 'last date', project_id: 'Project ID}]
     cohort_client.client.processed_service_history.public_send(column).
+      select do |row|
+        row['project_id'].in? user.visible_project_ids
+      end.
       sort do |a, b|
-        b.last.to_date <=> a.last.to_date
+        b['date'].to_date <=> a['date'].to_date
       end.
       map do |row|
-        row.join(': ')
+        "#{row['project_name']}: #{row['date']}"
       end.join('; ')
   end
 end

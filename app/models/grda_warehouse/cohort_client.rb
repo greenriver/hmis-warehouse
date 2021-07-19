@@ -14,6 +14,7 @@ module GrdaWarehouse
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     has_many :cohort_client_notes
     has_many :cohort_client_changes, class_name: 'GrdaWarehouse::CohortClientChange'
+    has_many :service_history_enrollments, through: :client
 
     validates_presence_of :cohort, :client
 

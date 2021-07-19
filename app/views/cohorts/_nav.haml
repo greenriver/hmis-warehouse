@@ -10,11 +10,11 @@
         %i.icon-cog
         Edit Visible Columns
 
-
-    %li.nav-item
-      = link_to new_cohort_copy_path(@cohort), title: 'Import data from another cohort', class: 'nav-link' do
-        %i.icon-copy
-        Import
+    - unless system_cohort
+      %li.nav-item
+        = link_to new_cohort_copy_path(@cohort), title: 'Import data from another cohort', class: 'nav-link' do
+          %i.icon-copy
+          Import
 
     %li.nav-item
       = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: 'nav-link' do
@@ -38,10 +38,11 @@
           Re-Rank
         %input#rank_order{type: :hidden, name: :rank_order}
 
-    %li.nav-item
-      = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'nav-link' do
-        %i.icon-users
-        Add Clients
+    - unless system_cohort
+      %li.nav-item
+        = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'nav-link' do
+          %i.icon-users
+          Add Clients
 
   - if can_download_cohorts?
     %li.nav-item

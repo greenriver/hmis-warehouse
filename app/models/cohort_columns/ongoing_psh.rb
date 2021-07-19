@@ -15,8 +15,8 @@ module CohortColumns
       'Date of last service in ongoing PSH enrollments'
     end
 
-    def value(cohort_client) # OK
-      for_display(:cohorts_ongoing_enrollments_psh)
+    def value(cohort_client, user) # rubocop:disable Lint/UnusedMethodArgument
+      for_display(:cohorts_ongoing_enrollments_psh, user)
     end
   end
 end
