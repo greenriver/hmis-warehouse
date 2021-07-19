@@ -1675,7 +1675,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/models/health/team/member.rb'
     - 'app/models/health/tracking_sheet.rb'
     - 'app/models/health_base.rb'
-    - 'app/models/importers/hmis_auto_detect/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/pit/fy2018/base.rb'
@@ -2751,7 +2750,6 @@ Style/MethodCallWithoutArgsParentheses:
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
-    - 'app/models/importers/hmis_auto_detect/base.rb'
     - 'app/models/importers/hmis_auto_detect/s3.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
     - 'app/models/report_generators/data_quality/fy2017/q2.rb'
@@ -3049,7 +3047,6 @@ Style/RedundantInterpolation:
   Exclude:
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
     - 'app/models/grda_warehouse/vispdat/base.rb'
-    - 'app/models/importers/hmis_auto_detect/base.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
 
 # Offense count: 25
