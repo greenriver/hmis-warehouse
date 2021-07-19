@@ -11,6 +11,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse::Hud
     included do
       has_many :imported_items, class_name: 'HmisCsvTwentyTwenty::Importer::EmploymentEducation', primary_key: [:EmploymentEducationID, :data_source_id], foreign_key: [:EmploymentEducationID, :data_source_id]
       has_many :loaded_items, class_name: 'HmisCsvTwentyTwenty::Loader::EmploymentEducation', primary_key: [:EmploymentEducationID, :data_source_id], foreign_key: [:EmploymentEducationID, :data_source_id]
+      has_many :involved_in_imports, class_name: 'HmisCsvTwentyTwenty::Importer::InvolvedInImport', as: :record
     end
   end
 end
