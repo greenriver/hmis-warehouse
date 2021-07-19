@@ -24,7 +24,7 @@ module HmisCsvTwentyTwenty::Importer
 
     def self.changed_personal_ids(importer_log_id)
       where(
-        record_class: 'GrdaWarehouse::Hud::Client',
+        record_type: 'GrdaWarehouse::Hud::Client',
         record_action: :updated,
         importer_log_id: importer_log_id,
       ).pluck(:hud_key)

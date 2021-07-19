@@ -156,8 +156,6 @@ module HmisCsvTwentyTwenty::Importer
           destination['importer_log_id'] = importer_log_id
           destination['pre_processed_at'] = pre_processed_at
 
-          # FIXME: are we sure this source_hash algo matches
-          # existing import logic. If not all records will be considered modified on the next run
           destination['source_hash'] = klass.new(destination).calculate_source_hash
 
           row_failures = run_row_validations(klass, destination, file_name, importer_log)
@@ -334,15 +332,16 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def plan_ingest
+      most_recent_import = most_recent_export_for_ds?
       importable_files.each_value do |klass|
-        next if hud_key == :ExportID
+        next if klass.hud_key == :ExportID
 
         klass.plan_ingest(
           data_source_id: data_source.id,
           project_ids: involved_project_ids,
           date_range: date_range,
-          pending_date_deleted: Date.current,
-          importer_log_id: @importer_log.id,
+          importer_log: @importer_log,
+          most_recent_import: most_recent_import,
         )
       end
     end
@@ -350,13 +349,29 @@ module HmisCsvTwentyTwenty::Importer
     def process_ingest
       HmisCsvTwentyTwenty::Importer::InvolvedInImport.actions.each do |action|
         importable_files.each do |file_name, klass|
-          number_effected = klass.send(
-            action,
-            importer_log_id: @importer_log.id,
-            data_source_id: data_source.id,
-            export_id: export_record.ExportID,
-          )
+          number_effected = 0
+          destination_class = klass.reflect_on_association(:destination_record).klass
+          logger.debug "Starting: #{action} #{destination_class.table_name} #{hash_as_log_str(log_ids)}"
+          bm = Benchmark.measure do
+            number_effected = klass.send(
+              action,
+              importer: self,
+              importer_log: @importer_log,
+              data_source_id: data_source.id,
+              export_id: export_record.ExportID,
+              file_name: file_name,
+            )
+          end
           note_processed(file_name, number_effected, action)
+          stats = {
+            add_secs: bm.real.round(3),
+            add_rps: ((number_effected / bm.real).round(3) unless number_effected.zero?),
+            add_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+          }
+          importer_log.summary[file_name].merge!(stats)
+          logger.debug do
+            "  Completed #{action} #{destination_class.table_name} #{hash_as_log_str({ action => number_effected }.merge(stats).merge(log_ids))}"
+          end
         end
       end
     end
@@ -688,11 +703,10 @@ module HmisCsvTwentyTwenty::Importer
     # end
 
     # private def dirty_enrollment_ids
-    #   # FIXME: need to calculate this from InvolvedInImport
     #   @track_dirty_enrollment
     # end
 
-    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: '2020'))
+    def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: '2020'), should_note_processed: true)
       klass.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
       klass.logger.silence(Logger::WARN) do
         if upsert
@@ -707,7 +721,7 @@ module HmisCsvTwentyTwenty::Importer
         else
           klass.import(batch, validate: use_ar_model_validations)
         end
-        note_processed(file_name, batch.count, type)
+        note_processed(file_name, batch.count, type) if should_note_processed
       end
       return nil
     rescue ActiveRecord::ActiveRecordError, PG::Error => e
@@ -727,7 +741,7 @@ module HmisCsvTwentyTwenty::Importer
         else
           klass.import(Array.wrap(row), validate: use_ar_model_validations, batch_size: 1)
         end
-        note_processed(file_name, 1, type)
+        note_processed(file_name, 1, type) if should_note_processed
       rescue ActiveRecord::ActiveRecordError, PG::Error => e
         errors << add_error(file: file_name, klass: klass, source_id: row[:source_id] || row[:source_hash], message: e.message)
       end
@@ -752,7 +766,6 @@ module HmisCsvTwentyTwenty::Importer
 
     # If we exported this from HMIS more recently than previous data (compared at day granularity)
     # then we can assume this data is more-correct even if the HMIS bungled the DateUpdated columns
-    # FIXME: need for new version
     private def most_recent_export_for_ds?
       return false if export_record.ExportDate.blank?
       return true if export_record.class.where(data_source_id: export_record.data_source_id).count <= 1
@@ -775,10 +788,9 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.update(status: :paused)
     end
 
-    # FIXME: lost summary logging in new version
-    def summary_for(file, type)
-      importer_log.summary[file][type]
-    end
+    # def summary_for(file, type)
+    #   importer_log.summary[file][type]
+    # end
 
     def note_processed(file, increment_by, type)
       return if increment_by.nil? || increment_by.zero?

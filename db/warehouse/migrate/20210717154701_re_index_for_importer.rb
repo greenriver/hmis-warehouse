@@ -11,7 +11,7 @@ class ReIndexForImporter < ActiveRecord::Migration[5.2]
     end
     add_index :involved_in_imports, [:record_id, :importer_log_id, :record_type, :record_action], name: 'involved_in_imports_by_id', unique: true
     add_index :involved_in_imports, [:hud_key, :importer_log_id, :record_type, :record_action], name: 'involved_in_imports_by_hud_key', unique: true
-    add_index :involved_in_imports, [:importer_log_id, :record_type, :record_action], name: 'involved_in_imports_by_hud_key', unique: true
+    add_index :involved_in_imports, [:importer_log_id, :record_type, :record_action], name: 'involved_in_imports_by_importer_log', unique: false
   end
 
   def down

@@ -28402,14 +28402,21 @@ CREATE INDEX inventory_export_id ON public."Inventory" USING btree ("ExportID");
 -- Name: involved_in_imports_by_hud_key; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX involved_in_imports_by_hud_key ON public.involved_in_imports USING btree (hud_key, record_type, record_action, importer_log_id);
+CREATE UNIQUE INDEX involved_in_imports_by_hud_key ON public.involved_in_imports USING btree (hud_key, importer_log_id, record_type, record_action);
 
 
 --
 -- Name: involved_in_imports_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USING btree (record_id, record_type, record_action, importer_log_id);
+CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USING btree (record_id, importer_log_id, record_type, record_action);
+
+
+--
+-- Name: involved_in_imports_by_importer_log; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports USING btree (importer_log_id, record_type, record_action);
 
 
 --
