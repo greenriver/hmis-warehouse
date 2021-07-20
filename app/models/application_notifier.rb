@@ -4,6 +4,21 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Manual testing routine
+# reload!; include NotifierConfig; setup_notifier('test_user')
+# @notifier.ping('test message')
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+# ApplicationNotifier.flush_queues
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+# sleep(5)
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+#
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+# long_message_text = 'some really long text (close to 4kb) -- fix me, make me long'
+# @notifier.ping(long_message_text)
+# 100.times { |i| @notifier.ping("new test message #{i}")}
+#
+
 # Sends progress messages to Slack, possibly queuing and batching
 # them as needed and if a service to do so is available. Logs
 # any network/services errors and recovers as well as it can.
@@ -32,7 +47,7 @@ class ApplicationNotifier < Slack::Notifier
       url, channel, username = * decode_key(key)
       next unless url.present?
 
-      new(url, channel: channel, username: username).flush_queue(prefix: prefix)
+      new(url, channel: channel, username: username).flush_queue(prefix: prefix, single_message: false)
     end
   end
 
@@ -63,7 +78,7 @@ class ApplicationNotifier < Slack::Notifier
       # fallback on hard cases or if Redis is not available
       super
     else
-      rate_limit message
+      rate_limit(message)
     end
     nil # Dont leak a return value
   rescue OpenSSL::SSL::SSLError => e
@@ -79,23 +94,35 @@ class ApplicationNotifier < Slack::Notifier
   # a sequence of posts. If this the queue is too big, say bigger than
   # 40KB, we will get a Slack rate limit error
   # and raise if Redis has become unavailable
-  def flush_queue(additional_message: nil, prefix: nil)
+  def flush_queue(additional_message: nil, prefix: nil, single_message: true)
     message = ''
-
+    messages = []
+    chunk_size = 4_000
     # TODO: If we upgrade to Redis 6.2+ we can use lop n to
     # batch fetches
+    # Store messages in chunks in an array for processing
     while (batch = @redis.lpop("#{@namespace}/queue"))
       message = prefix.to_s if message.blank?
+      if (message + batch).bytesize > chunk_size
+        messages << message if message.present?
+        message = ''
+        break message += batch if single_message
+      end
       message += batch
     end
-    message += additional_message.to_s
+    messages << message if message.present?
+    messages << additional_message.to_s if additional_message.to_s.present?
 
     # flush out in 4k blocks -- Slack limit
-    chunk_size = 4_000
-    io = StringIO.new(message)
-    until io.eof?
-      chunk = io.read(chunk_size)
-      post text: chunk
+    messages.each do |chunk|
+      post(text: chunk)
+      # keep slack happy even when bursting out remaining messages
+      # if this is called when it has been more than a second since the last send, it might
+      # delay things a bit (max 3 messages for a single_message flush).
+      # if this is called from flush_messages with single_message: false
+      # this will slow things down, but it should be happening in a background task
+      # specifically for sending these that can tolerate the delay.
+      sleep(0.7)
     end
     @redis.set "#{@namespace}/last_post", Time.now.to_f
   end
@@ -106,7 +133,7 @@ class ApplicationNotifier < Slack::Notifier
     if last_post && (Time.now - Time.at(last_post.to_f)) < 1.second
       @redis.rpush "#{@namespace}/queue", "#{message}\n"
     else
-      flush_queue additional_message: message
+      flush_queue(additional_message: message)
     end
   rescue Redis::BaseError => e
     # If Redis has gone down, just try to get this message out
