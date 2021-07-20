@@ -18,6 +18,10 @@ module CohortColumns
       value(cohort_client, user)
     end
 
+    def value_requires_user?
+      true
+    end
+
     def value(cohort_client, user) # OK
       lhv = cohort_client.client.processed_service_history&.last_homeless_visit
       # e.g.: {:project_name=>\"APR - Transitional Housing\", :date=>Mon, 30 Sep 2019, :project_id=>10}

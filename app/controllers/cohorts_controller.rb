@@ -92,6 +92,7 @@ class CohortsController < ApplicationController
         end
       end
       format.xlsx do
+        @user = current_user
         not_authorized! unless can_download_cohorts?
 
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"
