@@ -734,7 +734,7 @@ module ClaimsReporting
     private def in_set?(vs_name, claim, dx1_only: false)
       codes_by_system = value_set_lookups.fetch(vs_name) do
         raise "Value Set '#{vs_name}' is unknown"
-        #{}
+        # {}
       end
       raise "Value Set '#{vs_name}' has no codes defined" if codes_by_system.empty?
 
@@ -1218,7 +1218,7 @@ module ClaimsReporting
       remote_claims = outpatient_claims.select do |c|
         in_set?('Telephone Visits', c) || in_set?('Online Assessments', c)
       end
-      return true if outpatient_claims.size > 2 && !( outpatient_claims - remote_claims).empty?
+      return true if outpatient_claims.size > 2 && !(outpatient_claims - remote_claims).empty?
 
       # – Pharmacy data. Enrollees who were dispensed insulin or oral
       #   hypoglycemics/antihyperglycemics during the measurement year or
@@ -1367,7 +1367,7 @@ module ClaimsReporting
     # 82947 Glucose; quantitative, blood (except reagent strip)
     # 82948 Glucose; blood, reagent strip
     # 82962 Glucose; blood by glucose monitoring device(s) cleared by the FDA specifically for home use
-    CPT_GLUCOSE = ['82947', '82948', '82962']
+    CPT_GLUCOSE = ['82947', '82948', '82962'].freeze
 
     # BH CP #13: Hospital Readmissions (Adult)
     private def calculate_bh_cp_13(member, claims, enrollments) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
@@ -2135,65 +2135,67 @@ module ClaimsReporting
       'Long Acting Injections 30 Days Supply Medications' => '2.16.840.1.113883.3.464.1004.2190',
       'Long Acting Injections 28 Days Supply Medications' => '2.16.840.1.113883.3.464.1004.2101',
     }.freeze
-    VALUE_SETS = MEDICATION_LISTS.merge({
-      'Acute Condition' => '2.16.840.1.113883.3.464.1004.1324',
-      'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1810',
-      'Acute Inpatient POS' => '2.16.840.1.113883.3.464.1004.1027',
-      'Alcohol Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1424',
-      'Ambulatory Surgical Center POS' => '2.16.840.1.113883.3.464.1004.1480',
-      'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013',
-      'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
-      'BH Outpatient' => '2.16.840.1.113883.3.464.1004.1481',
-      'Bone Marrow Transplant' => '2.16.840.1.113883.3.464.1004.1325',
-      'Chemotherapy' => '2.16.840.1.113883.3.464.1004.1326',
-      'Community Mental Health Center POS' => '2.16.840.1.113883.3.464.1004.1484',
-      'Detoxification' => '2.16.840.1.113883.3.464.1004.1076',
-      'Diabetes' => '2.16.840.1.113883.3.464.1004.1077',
-      'ED POS' => '2.16.840.1.113883.3.464.1004.1087',
-      'ED' => '2.16.840.1.113883.3.464.1004.1086',
-      'Electroconvulsive Therapy' => '2.16.840.1.113883.3.464.1004.1294',
-      'HbA1c Tests' => '2.16.840.1.113883.3.464.1004.1116',
-      'Hospice' => '2.16.840.1.113883.3.464.1004.1418',
-      'IET POS Group 1' => '2.16.840.1.113883.3.464.1004.1129',
-      'IET POS Group 2' => '2.16.840.1.113883.3.464.1004.1130',
-      'IET Stand Alone Visits' => '2.16.840.1.113883.3.464.1004.1131',
-      'IET Visits Group 1' => '2.16.840.1.113883.3.464.1004.1132',
-      'IET Visits Group 2' => '2.16.840.1.113883.3.464.1004.1133',
-      'Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1395',
-      'Intentional Self-Harm' => '2.16.840.1.113883.3.464.1004.1468',
-      'Introduction of Autologous Pancreatic Cells' => '2.16.840.1.113883.3.464.1004.1459',
-      'Kidney Transplant' => '2.16.840.1.113883.3.464.1004.1141',
-      'Mental Health Diagnosis' => '2.16.840.1.113883.3.464.1004.1178',
-      'Mental Illness' => '2.16.840.1.113883.3.464.1004.1179',
-      'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
-      'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
-      'Observation' => '2.16.840.1.113883.3.464.1004.1191',
-      'Observation Stay' => '2.16.840.1.113883.3.464.1004.1461',
-      'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
-      'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
-      'Organ Transplant Other Than Kidney' => '2.16.840.1.113883.3.464.1004.1195',
-      'Other Drug Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1426',
-      'Outpatient POS' => '2.16.840.1.113883.3.464.1004.1443',
-      'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
-      'Partial Hospitalization POS' => '2.16.840.1.113883.3.464.1004.1491',
-      'Partial Hospitalization/Intensive Outpatient' => '2.16.840.1.113883.3.464.1004.1492',
-      'Perinatal Conditions' => '2.16.840.1.113883.3.464.1004.1209',
-      'Potentially Planned Procedures' => '2.16.840.1.113883.3.464.1004.1327',
-      'Pregnancy' => '2.16.840.1.113883.3.464.1004.1219',
-      'Rehabilitation' => '2.16.840.1.113883.3.464.1004.1328',
-      'Surgery Procedure' => '2.16.840.1.113883.3.464.1004.2223',
-      'Telehealth Modifier' => '2.16.840.1.113883.3.464.1004.1445',
-      'Telehealth POS' => '2.16.840.1.113883.3.464.1004.1460',
-      'Telephone Visits' => '2.16.840.1.113883.3.464.1004.1246',
-      'Transitional Care Management Services' => '2.16.840.1.113883.3.464.1004.1462',
-      'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
-      'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
-      'Schizophrenia' => 'x.Schizophrenia',
-      'Bipolar Disorder' => 'x.Bipolar Disorder',
-      'Other Bipolar Disorder' => 'x.Other Bipolar Disorder',
-      'BH Stand Alone Acute Inpatient' => 'x.BH Stand Alone Acute Inpatient',
-      'BH Stand Alone Nonacute Inpatient' => 'x.BH Stand Alone Nonacute Inpatient',
-      'Nonacute Inpatient POS' => 'x.Nonacute Inpatient POS',
-    }).freeze
+    VALUE_SETS = MEDICATION_LISTS.merge(
+      {
+        'Acute Condition' => '2.16.840.1.113883.3.464.1004.1324',
+        'Acute Inpatient' => '2.16.840.1.113883.3.464.1004.1810',
+        'Acute Inpatient POS' => '2.16.840.1.113883.3.464.1004.1027',
+        'Alcohol Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1424',
+        'Ambulatory Surgical Center POS' => '2.16.840.1.113883.3.464.1004.1480',
+        'AOD Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1013',
+        'AOD Medication Treatment' => '2.16.840.1.113883.3.464.1004.2017',
+        'BH Outpatient' => '2.16.840.1.113883.3.464.1004.1481',
+        'Bone Marrow Transplant' => '2.16.840.1.113883.3.464.1004.1325',
+        'Chemotherapy' => '2.16.840.1.113883.3.464.1004.1326',
+        'Community Mental Health Center POS' => '2.16.840.1.113883.3.464.1004.1484',
+        'Detoxification' => '2.16.840.1.113883.3.464.1004.1076',
+        'Diabetes' => '2.16.840.1.113883.3.464.1004.1077',
+        'ED POS' => '2.16.840.1.113883.3.464.1004.1087',
+        'ED' => '2.16.840.1.113883.3.464.1004.1086',
+        'Electroconvulsive Therapy' => '2.16.840.1.113883.3.464.1004.1294',
+        'HbA1c Tests' => '2.16.840.1.113883.3.464.1004.1116',
+        'Hospice' => '2.16.840.1.113883.3.464.1004.1418',
+        'IET POS Group 1' => '2.16.840.1.113883.3.464.1004.1129',
+        'IET POS Group 2' => '2.16.840.1.113883.3.464.1004.1130',
+        'IET Stand Alone Visits' => '2.16.840.1.113883.3.464.1004.1131',
+        'IET Visits Group 1' => '2.16.840.1.113883.3.464.1004.1132',
+        'IET Visits Group 2' => '2.16.840.1.113883.3.464.1004.1133',
+        'Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1395',
+        'Intentional Self-Harm' => '2.16.840.1.113883.3.464.1004.1468',
+        'Introduction of Autologous Pancreatic Cells' => '2.16.840.1.113883.3.464.1004.1459',
+        'Kidney Transplant' => '2.16.840.1.113883.3.464.1004.1141',
+        'Mental Health Diagnosis' => '2.16.840.1.113883.3.464.1004.1178',
+        'Mental Illness' => '2.16.840.1.113883.3.464.1004.1179',
+        'Nonacute Inpatient Stay' => '2.16.840.1.113883.3.464.1004.1398',
+        'Nonacute Inpatient' => '2.16.840.1.113883.3.464.1004.1189',
+        'Observation' => '2.16.840.1.113883.3.464.1004.1191',
+        'Observation Stay' => '2.16.840.1.113883.3.464.1004.1461',
+        'Online Assessments' => '2.16.840.1.113883.3.464.1004.1446',
+        'Opioid Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1425',
+        'Organ Transplant Other Than Kidney' => '2.16.840.1.113883.3.464.1004.1195',
+        'Other Drug Abuse and Dependence' => '2.16.840.1.113883.3.464.1004.1426',
+        'Outpatient POS' => '2.16.840.1.113883.3.464.1004.1443',
+        'Outpatient' => '2.16.840.1.113883.3.464.1004.1202',
+        'Partial Hospitalization POS' => '2.16.840.1.113883.3.464.1004.1491',
+        'Partial Hospitalization/Intensive Outpatient' => '2.16.840.1.113883.3.464.1004.1492',
+        'Perinatal Conditions' => '2.16.840.1.113883.3.464.1004.1209',
+        'Potentially Planned Procedures' => '2.16.840.1.113883.3.464.1004.1327',
+        'Pregnancy' => '2.16.840.1.113883.3.464.1004.1219',
+        'Rehabilitation' => '2.16.840.1.113883.3.464.1004.1328',
+        'Surgery Procedure' => '2.16.840.1.113883.3.464.1004.2223',
+        'Telehealth Modifier' => '2.16.840.1.113883.3.464.1004.1445',
+        'Telehealth POS' => '2.16.840.1.113883.3.464.1004.1460',
+        'Telephone Visits' => '2.16.840.1.113883.3.464.1004.1246',
+        'Transitional Care Management Services' => '2.16.840.1.113883.3.464.1004.1462',
+        'Visit Setting Unspecified' => '2.16.840.1.113883.3.464.1004.1493',
+        'Well-Care' => '2.16.840.1.113883.3.464.1004.1262',
+        'Schizophrenia' => 'x.Schizophrenia',
+        'Bipolar Disorder' => 'x.Bipolar Disorder',
+        'Other Bipolar Disorder' => 'x.Other Bipolar Disorder',
+        'BH Stand Alone Acute Inpatient' => 'x.BH Stand Alone Acute Inpatient',
+        'BH Stand Alone Nonacute Inpatient' => 'x.BH Stand Alone Nonacute Inpatient',
+        'Nonacute Inpatient POS' => 'x.Nonacute Inpatient POS',
+      },
+    ).freeze
   end
 end
