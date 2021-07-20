@@ -44,4 +44,4 @@ jobs:
 
       - name: Run brakeman
         run: |
-          bundle exec brakeman -q --ensure-latest --no-pager --except PermitAttributes,Render
+          bundle exec brakeman -q --no-pager --except PermitAttributes,Render

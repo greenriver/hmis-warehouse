@@ -17,7 +17,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
 
-  has_many :import_logs
+  has_many :import_logs, class_name: 'GrdaWarehouse::ImportLog'
   has_many :services, class_name: 'GrdaWarehouse::Hud::Service', inverse_of: :data_source
   has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', inverse_of: :data_source
   has_many :exits, class_name: 'GrdaWarehouse::Hud::Exit', inverse_of: :data_source
@@ -282,9 +282,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return none unless text.present?
 
     query = "%#{text}%"
-    where(
-      arel_table[:name].matches(query),
-    )
+    where(arel_table[:name].matches(query))
   end
 
   def self.data_spans_by_id
@@ -330,8 +328,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def data_span
     return unless enrollments.any?
+    return unless id.present?
 
-    self.class.data_spans_by_id[id] if id.present?
+    self.class.data_spans_by_id[id]
   end
 
   def unprocessed_enrollment_count
@@ -418,7 +417,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   private def maintain_system_group
-    AccessGroup.delayed_system_group_maintenance(group: :data_sources)
+    if Rails.env.test?
+      AccessGroup.maintain_system_groups(group: :data_sources)
+    else
+      AccessGroup.delayed_system_group_maintenance(group: :data_sources)
+    end
   end
 
   class << self

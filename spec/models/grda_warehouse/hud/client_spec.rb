@@ -256,6 +256,12 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       let!(:exits) { create_list :hud_exit, dates.count, PersonalID: client_with_enrollments.PersonalID, data_source_id: client_with_enrollments.data_source_id }
       let!(:projects) { create_list :hud_project, dates.count, data_source_id: client_with_enrollments.data_source_id }
 
+      after(:all) do
+        # The enrollments and project sequences seem to drift.
+        # This ensures we'll have one to test
+        FactoryBot.reload
+      end
+
       it 'should find 3 new episodes' do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         enrollments.each_with_index do |en, i|

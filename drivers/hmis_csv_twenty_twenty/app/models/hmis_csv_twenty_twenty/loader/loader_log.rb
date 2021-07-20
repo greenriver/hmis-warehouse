@@ -17,7 +17,7 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     def successfully_loaded?
-      status == 'loaded'
+      status.to_s == 'loaded'
     end
 
     def load_time

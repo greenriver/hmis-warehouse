@@ -30,7 +30,7 @@
         - active = params[:filter].present? && params[:filter][:population] == 'no_activities'
         %label{class: "#{active ? :active : ''}"}
           %input{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active}
-          0 Recent Qualifying Activities
+          0 Recent Payable QAs
       .radio
         - active = params[:filter].present? && params[:filter][:population] == 'engagement_ending'
         %label{class: "#{active ? :active : ''}"}
