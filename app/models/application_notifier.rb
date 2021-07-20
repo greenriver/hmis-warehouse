@@ -116,6 +116,13 @@ class ApplicationNotifier < Slack::Notifier
     # flush out in 4k blocks -- Slack limit
     messages.each do |chunk|
       post(text: chunk)
+      # keep slack happy even when bursting out remaining messages
+      # if this is called when it has been more than a second since the last send, it might
+      # delay things a bit (max 3 messages for a single_message flush).
+      # if this is called from flush_messages with single_message: false
+      # this will slow things down, but it should be happening in a background task
+      # specifically for sending these that can tolerate the delay.
+      sleep(0.7)
     end
     @redis.set "#{@namespace}/last_post", Time.now.to_f
   end
