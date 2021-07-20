@@ -513,7 +513,8 @@ module Filters
         twenty_five_to_twenty_nine: '25 - 29',
         thirty_to_thirty_nine: '30 - 39',
         forty_to_forty_nine: '40 - 49',
-        fifty_to_fifty_nine: '50 - 59',
+        fifty_to_fifty_four: '50 - 54',
+        fifty_five_to_fifty_nine: '55 - 59',
         sixty_to_sixty_one: '60 - 61',
         over_sixty_one: '62+',
       }.invert.freeze
