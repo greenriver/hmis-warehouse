@@ -52,22 +52,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       )
     end
 
-    scope :for_organizations, ->(organization_ids) do
-      return all unless organization_ids.present?
-
-      where(organization_id: organization_ids)
-    end
-
     scope :for_projects, ->(project_ids) do
       return all unless project_ids.present?
 
       where(project_id: project_ids)
-    end
-
-    scope :for_project_types, ->(project_types_ids) do
-      return all unless project_types_ids.present?
-
-      where(project_type: project_types_ids)
     end
 
     scope :heads_of_household, -> do
@@ -204,9 +192,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       @clients_for_report ||= self.class.
         where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).
         in_months(filter.range).
-        for_organizations(filter.organization_ids).
-        for_projects(filter.project_ids).
-        for_project_types(filter.project_type_ids).
+        for_projects(filter.anded_effective_project_ids). # project ids from projects, organizations, project groups and project types
         filtered(filter)
     end
 

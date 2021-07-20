@@ -141,6 +141,7 @@ module Dashboards
           genders: [],
           organization_ids: [],
           project_ids: [],
+          project_group_ids: [],
           project_type_codes: [],
           age_ranges: [],
           coc_codes: [],
