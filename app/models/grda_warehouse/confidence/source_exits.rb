@@ -30,17 +30,18 @@ module GrdaWarehouse::Confidence
     end
 
     def self.queue_batch force_run: false, force_create: false
-      return unless should_run? || force_run
-      notifier = self.new.notifier
-      message = "Generating confidence for source exits"
+      return unless force_run || should_run?
+
+      notifier = new.notifier
+      message = 'Generating confidence for source exits'
       Rails.logger.info message
       notifier&.ping message
-      if should_start_a_new_batch? || force_create
-        message = "Setting up a new batch..."
+      if force_create || should_start_a_new_batch?
+        message = 'Setting up a new batch...'
         Rails.logger.info message
         notifier&.ping message
-        create_batch!()
-        message = "... batch setup complete"
+        create_batch!
+        message = '... batch setup complete'
         Rails.logger.info message
         notifier&.ping message
       end
@@ -51,28 +52,6 @@ module GrdaWarehouse::Confidence
           priority: 10,
         )
       end
-    end
-
-    def self.calculate_queued_for_client client_id
-      source_exit_count = GrdaWarehouse::Hud::Client.where(id: client_id).
-        joins(:source_exits).count
-      se = queued.where(resource_id: client_id).first
-      se.value = source_exit_count
-      se.calculated_on = Date.current
-      if previous = previous_census_date(client_id: client_id, source_exit: se)
-        previous_iteration = find_by(
-          resource_id: client_id,
-          census: previous
-        )
-        se.change = se.value - previous_iteration.value rescue nil
-      end
-      se.save
-    end
-
-    def self.previous_census_date client_id:, source_exit:
-      where(resource_id: client_id).
-        where(arel_table[:census].lt(source_exit.census)).
-        maximum(:census)
     end
 
     def self.batch_scope

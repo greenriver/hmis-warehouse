@@ -50,12 +50,11 @@ module PerformanceMetrics
 
     def returns
       @returns ||= begin
-        no_return_count = clients.did_not_return_in_two_years(:current).count
-        returned_count = clients.returned_in_two_years(:current).count
         returns = []
         if include_comparison?
-          no_return_count = clients.did_not_return_in_two_years(:prior).count
-          returned_count = clients.returned_in_two_years(:prior).count
+          period = :prior
+          no_return_count = clients.did_not_return_in_two_years(period).count
+          returned_count = clients.returned_in_two_years(period).count
           returns << [
             'Prior Period',
             [
@@ -64,6 +63,9 @@ module PerformanceMetrics
             ],
           ]
         end
+        period = :current
+        no_return_count = clients.did_not_return_in_two_years(period).count
+        returned_count = clients.returned_in_two_years(period).count
         returns << [
           'Current Period',
           [
@@ -96,15 +98,15 @@ module PerformanceMetrics
       @income ||= begin
         incomes = []
         if include_comparison?
-          with_earned_income_at_start = clients.with_earned_income_at_start(:prior).count
-          with_increased_earned_income = clients.with_increased_earned_income(:prior).count
+          period = :prior
+          clients_served = clients.served(period).count
+          with_increased_earned_income = clients.with_increased_earned_income(period).count
           percentage_earned_change = 0
-          percentage_earned_change = (with_increased_earned_income / with_earned_income_at_start.to_f * 100).round if with_earned_income_at_start.positive?
+          percentage_earned_change = (with_increased_earned_income / clients_served.to_f * 100).round if clients_served.positive?
 
-          with_other_income_at_start = clients.with_other_income_at_start(:prior).count
-          with_increased_other_income = clients.with_increased_other_income(:prior).count
+          with_increased_other_income = clients.with_increased_other_income(period).count
           percentage_other_change = 0
-          percentage_other_change = (with_increased_other_income / with_other_income_at_start.to_f * 100).round if with_other_income_at_start.positive?
+          percentage_other_change = (with_increased_other_income / clients_served.to_f * 100).round if clients_served.positive?
           incomes << [
             'Current Period', [
               ['Employment Income', percentage_earned_change],
@@ -112,15 +114,15 @@ module PerformanceMetrics
             ]
           ]
         end
-        with_earned_income_at_start = clients.with_earned_income_at_start(:current).count
-        with_increased_earned_income = clients.with_increased_earned_income(:current).count
+        period = :current
+        clients_served = clients.served(period).count
+        with_increased_earned_income = clients.with_increased_earned_income(period).count
         percentage_earned_change = 0
-        percentage_earned_change = (with_increased_earned_income / with_earned_income_at_start.to_f * 100).round if with_earned_income_at_start.positive?
+        percentage_earned_change = (with_increased_earned_income / clients_served.to_f * 100).round if clients_served.positive?
 
-        with_other_income_at_start = clients.with_other_income_at_start(:current).count
-        with_increased_other_income = clients.with_increased_other_income(:current).count
+        with_increased_other_income = clients.with_increased_other_income(period).count
         percentage_other_change = 0
-        percentage_other_change = (with_increased_other_income / with_other_income_at_start.to_f * 100).round if with_other_income_at_start.positive?
+        percentage_other_change = (with_increased_other_income / clients_served.to_f * 100).round if clients_served.positive?
 
         incomes << [
           'Current Period', [
@@ -140,19 +142,19 @@ module PerformanceMetrics
           es_count = es.count
           es_length = es.sum("#{period}_period_days_in_es")
           es_average = 0
-          es_average = ((es_length / 30.to_f) / es_count).round if es_count.positive?
+          es_average = (es_length / es_count).round if es_count.positive?
 
           rrh = clients.with_rrh_stay(period)
           rrh_count = rrh.count
           rrh_length = rrh.sum("#{period}_period_days_in_rrh")
           rrh_average = 0
-          rrh_average = ((rrh_length / 30.to_f) / rrh_count).round if rrh_count.positive?
+          rrh_average = (rrh_length / rrh_count).round if rrh_count.positive?
 
           psh = clients.with_psh_stay(period)
           psh_count = psh.count
           psh_length = psh.sum("#{period}_period_days_in_psh")
           psh_average = 0
-          psh_average = ((psh_length / 30.to_f) / psh_count).round if psh_count.positive?
+          psh_average = (psh_length / psh_count).round if psh_count.positive?
           stay_lengths << [
             'Prior Period', [
               ['Emergency Shelter', es_average],
@@ -166,19 +168,19 @@ module PerformanceMetrics
         es_count = es.count
         es_length = es.sum("#{period}_period_days_in_es")
         es_average = 0
-        es_average = ((es_length / 30.to_f) / es_count).round if es_count.positive?
+        es_average = (es_length / es_count).round if es_count.positive?
 
         rrh = clients.with_rrh_stay(period)
         rrh_count = rrh.count
         rrh_length = rrh.sum("#{period}_period_days_in_rrh")
         rrh_average = 0
-        rrh_average = ((rrh_length / 30.to_f) / rrh_count).round if rrh_count.positive?
+        rrh_average = (rrh_length / rrh_count).round if rrh_count.positive?
 
         psh = clients.with_psh_stay(period)
         psh_count = psh.count
         psh_length = psh.sum("#{period}_period_days_in_psh")
         psh_average = 0
-        psh_average = ((psh_length / 30.to_f) / psh_count).round if psh_count.positive?
+        psh_average = (psh_length / psh_count).round if psh_count.positive?
         stay_lengths << [
           'Current Period', [
             ['Emergency Shelter', es_average],
@@ -193,9 +195,10 @@ module PerformanceMetrics
     def inflow_outflow
       @inflow_outflow ||= begin
         flows = []
-        period = :current
         if include_comparison?
           period = :prior
+          percent_entering_housing = 0
+          percent_entering_housing = ((clients.entered_housing(period).count / clients.served(period).count.to_f) * 100).round if clients.served(period).count.positive?
           flows << [
             'Prior Period', [
               ['Inflow', clients.in_inflow(period).count],
@@ -203,10 +206,14 @@ module PerformanceMetrics
               ['First Time', clients.first_time(period).count],
               ['Re-entering', clients.reentering(period).count],
               ['Entered Housing', clients.entered_housing(period).count],
+              ['Entered Housing %', "#{percent_entering_housing} %"],
               ['Inactive', clients.inactive(period).count],
             ]
           ]
         end
+        period = :current
+        percent_entering_housing = 0
+        percent_entering_housing = ((clients.entered_housing(period).count / clients.served(period).count.to_f) * 100).round if clients.served(period).count.positive?
         flows << [
           'Current Period', [
             ['Inflow', clients.in_inflow(period).count],
@@ -214,6 +221,7 @@ module PerformanceMetrics
             ['First Time', clients.first_time(period).count],
             ['Re-entering', clients.reentering(period).count],
             ['Entered Housing', clients.entered_housing(period).count],
+            ['Entered Housing %', "#{percent_entering_housing} %"],
             ['Inactive', clients.inactive(period).count],
           ]
         ]
@@ -340,7 +348,7 @@ module PerformanceMetrics
           },
         },
         entering_housing: {
-          title: _('Clients moving into permanant housing'),
+          title: _('Clients moving into permanent housing'),
           entering_housing: {
             scope: :entering_housing,
             title: '',
@@ -542,8 +550,8 @@ module PerformanceMetrics
           if caper_client
             earned_income_at_start = caper_client.income_sources_at_start['EarnedAmount'] || 0
             earned_income_at_exit = caper_client.income_sources_at_exit['EarnedAmount'] || 0
-            other_income_at_start = caper_client.income_total_at_start - earned_income_at_start
-            other_income_at_exit = caper_client.income_total_at_exit - earned_income_at_exit
+            other_income_at_start = caper_client.income_total_at_start.to_i - earned_income_at_start.to_i
+            other_income_at_exit = caper_client.income_total_at_exit.to_i - earned_income_at_exit.to_i
             caper_leaver = true
           end
 
@@ -654,7 +662,13 @@ module PerformanceMetrics
     private def answer_clients(report, table, cell)
       report.answer(question: table, cell: cell).universe_members.
         map(&:universe_membership).
-        index_by(&:client_id)
+        index_by(&destination_client_column(report))
+    end
+
+    private def destination_client_column(report)
+      return :destination_client_id if report.report_name == 'Consolidated Annual Performance and Evaluation Report - FY 2020'
+
+      :client_id
     end
 
     private def run_spm
@@ -670,6 +684,7 @@ module PerformanceMetrics
       options = filter.to_h
       options[:project_type_codes] ||= []
       options[:project_type_codes] += [:es, :so, :sh, :th]
+      options.delete(:comparison_pattern)
       spm_filter = HudSpmReport::Filters::SpmFilter.new(user_id: filter.user_id).update(options)
       generator = HudSpmReport::Generators::Fy2020::Generator
       spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
@@ -679,21 +694,27 @@ module PerformanceMetrics
 
     private def run_rrh
       rrh_filter = WarehouseReport::Outcomes::OutcomesFilter.new(user_id: filter.user_id)
-      rrh_filter.update(filter.to_h)
+      options = filter.to_h
+      options.delete(:comparison_pattern)
+      rrh_filter.update(options)
       rrh_filter.project_type_numbers = [13]
       WarehouseReport::Outcomes::RrhReport.new(rrh_filter)
     end
 
     private def run_psh
       psh_filter = WarehouseReport::Outcomes::OutcomesFilter.new(user_id: filter.user_id)
-      psh_filter.update(filter.to_h)
+      options = filter.to_h
+      options.delete(:comparison_pattern)
+      psh_filter.update(options)
       psh_filter.project_type_numbers = [3, 9, 10]
       WarehouseReport::Outcomes::PshReport.new(psh_filter)
     end
 
     private def run_outflow
       outflow_filter = ::Filters::OutflowReport.new(user_id: filter.user_id)
-      outflow_filter.update(filter.to_h)
+      options = filter.to_h
+      options.delete(:comparison_pattern)
+      outflow_filter.update(options)
       GrdaWarehouse::WarehouseReports::OutflowReport.new(outflow_filter, filter.user)
     end
 
@@ -704,7 +725,9 @@ module PerformanceMetrics
       )
       # FIXME: need to send symbolic project_types in addition to numeric
       # filter[:project_type_codes] =
-      inflow_filter.update(filter.to_h)
+      options = filter.to_h
+      options.delete(:comparison_pattern)
+      inflow_filter.update(options)
       Reporting::MonthlyReports::Base.class_for(inflow_filter.sub_population).new(
         user: inflow_filter.user,
         filter: inflow_filter,

@@ -33,9 +33,9 @@
                 %td{style: 'max-width: 600px;'}
                   - if k == 'client_id'
                     = link_to formatted_cell(client[k]), appropriate_client_path(client[k]), target: :_blank
-                  - if k.include?('spm_id') && client[k]
+                  - elsif k.include?('spm_id') && client[k]
                     = link_to formatted_cell(client[k]), hud_reports_spm_path(client[k]), target: :_blank
-                  - if k.include?('caper_id') && client[k]
+                  - elsif k.include?('caper_id') && client[k]
                     = link_to formatted_cell(client[k]), hud_reports_caper_path(client[k]), target: :_blank
                   - else
                     = formatted_cell(client[k])
