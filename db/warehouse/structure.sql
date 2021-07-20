@@ -4448,7 +4448,8 @@ CREATE TABLE public.cohort_clients (
     user_boolean_28 boolean,
     user_boolean_29 boolean,
     user_boolean_30 boolean,
-    date_added_to_cohort date
+    date_added_to_cohort date,
+    individual_in_most_recent_homeless_enrollment boolean
 );
 
 
@@ -4541,7 +4542,9 @@ CREATE TABLE public.cohorts (
     threshold_label_4 character varying,
     threshold_row_5 integer,
     threshold_color_5 character varying,
-    threshold_label_5 character varying
+    threshold_label_5 character varying,
+    system_cohort boolean DEFAULT false,
+    type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying
 );
 
 
@@ -4669,7 +4672,9 @@ CREATE TABLE public.configs (
     send_sms_for_covid_reminders boolean DEFAULT false NOT NULL,
     bypass_2fa_duration integer DEFAULT 0 NOT NULL,
     health_claims_data_path character varying,
-    enable_youth_hrp boolean DEFAULT true NOT NULL
+    enable_youth_hrp boolean DEFAULT true NOT NULL,
+    enable_system_cohorts boolean DEFAULT false,
+    currently_homeless_cohort boolean DEFAULT false
 );
 
 
@@ -30941,7 +30946,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210702144442'),
 ('20210707122337'),
 ('20210707172124'),
+('20210707190613'),
+('20210707193633'),
 ('20210708183958'),
+('20210708192452'),
+('20210714131449'),
+('20210716144139'),
 ('20210717154701');
 
 
