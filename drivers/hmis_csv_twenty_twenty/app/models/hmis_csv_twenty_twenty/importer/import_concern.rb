@@ -120,6 +120,11 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     #     update_all(pending_date_deleted: pending_date_deleted)
     # end
 
+    # FIXME: this is too slow, probably because in some situations we bring back essentially
+    # the entire table.  It may help to either do the calculation for add and delete in SQL, or
+    # to do separate queries where we bring back just the relevant hud_keys to do the array subtraction.
+    # Not sure if the calculation of unchanged/changed needs help or not.  There may be some
+    # large data sets (row wise, but the number of columns is small)
     def self.plan_ingest(
       data_source_id:,
       project_ids:,
