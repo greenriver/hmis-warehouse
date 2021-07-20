@@ -29,7 +29,7 @@ module HmisCsvTwentyTwenty::Importer
       where(TrackingMethod: 3)
     end
 
-    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
+    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
       return none unless project_ids.present?
 
       warehouse_class.where(data_source_id: data_source_id, ProjectID: project_ids)

@@ -330,6 +330,7 @@ module HmisCsvTwentyTwenty::Importer
           project_ids: involved_project_ids,
           date_range: date_range,
           pending_date_deleted: Date.current,
+          importer_log_id: @importer_log.id,
         )
       end
     end
@@ -418,7 +419,6 @@ module HmisCsvTwentyTwenty::Importer
     def process_existing
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
-        mark_unchanged(klass, file_name)
         mark_incoming_older(klass, file_name)
         apply_updates(klass, file_name)
       end
@@ -745,13 +745,15 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def complete_import
-      data_source.update(last_imported_at: Time.zone.now)
-      importer_log.completed_at = Time.zone.now
-      importer_log.upload_id = @upload.id if @upload.present?
-      importer_log.save
-      elapsed = Time.current - @started_at
-      # log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.", summary_as_log_str(importer_log.summary))
-      log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.  #{summary_as_log_str(importer_log.summary)}")
+      db_transaction do
+        importer_log.status = :complete
+        importer_log.completed_at = Time.current
+        importer_log.upload_id = @upload.id if @upload.present?
+        importer_log.save
+        data_source.update(last_imported_at: Time.current)
+        elapsed = importer_log.completed_at - @started_at
+        log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.  #{summary_as_log_str(importer_log.summary)}")
+      end
       post_process
     end
 

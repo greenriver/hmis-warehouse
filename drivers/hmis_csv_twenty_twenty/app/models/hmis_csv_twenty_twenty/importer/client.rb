@@ -77,7 +77,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     # We never delete clients during the import, so make sure we find all existing clients in this data source
-    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
+    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
       return none unless project_ids.present?
 
       warehouse_class.where(data_source_id: data_source_id)
