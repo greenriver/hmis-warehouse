@@ -164,7 +164,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     }
   end
 
-  def self.has_access_to_data_source_through_viewable_entities(user, q, qc) # rubocop:disable  Naming/PredicateName,Naming/MethodParameterName
+  def self.has_access_to_data_source_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -195,7 +195,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  def self.has_access_to_data_source_through_organizations(user, q, qc) # rubocop:disable  Naming/PredicateName,Naming/MethodParameterName
+  def self.has_access_to_data_source_through_organizations(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
     data_source_table  = quoted_table_name
     viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -231,7 +231,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  def self.has_access_to_data_source_through_projects(user, q, qc) # rubocop:disable  Naming/PredicateName,Naming/MethodParameterName
+  def self.has_access_to_data_source_through_projects(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
@@ -391,7 +391,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     "/tmp/uploaded#{file_path}"
   end
 
-  def has_data? # rubocop:disable  Naming/PredicateName
+  def has_data? # rubocop:disable Naming/PredicateName
     exports.any?
   end
 
@@ -405,7 +405,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def destroy_dependents!
     organizations.map(&:destroy_dependents!)
-    organizations.update_all(DateDeleted: Time.current)
+    organizations.update_all(DateDeleted: Time.current, source_hash: nil)
   end
 
   def client_count
