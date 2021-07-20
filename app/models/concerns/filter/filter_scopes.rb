@@ -276,5 +276,11 @@ module Filter::FilterScopes
         or(she_t[:computed_project_type].in(@project_types)),
       )
     end
+
+    private def filter_for_times_homeless(scope)
+      return scope unless @filter.times_homeless_in_last_three_years.present?
+
+      scope.joins(:enrollment).where(e_t[:TimesHomelessPastThreeYears].in(@filter.times_homeless_in_last_three_years))
+    end
   end
 end
