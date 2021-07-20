@@ -84,6 +84,18 @@ CREATE TYPE public.census_levels AS ENUM (
 
 
 --
+-- Name: record_action; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.record_action AS ENUM (
+    'added',
+    'updated',
+    'unchanged',
+    'removed'
+);
+
+
+--
 -- Name: record_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -10205,6 +10217,39 @@ CREATE VIEW public.index_stats AS
 
 
 --
+-- Name: involved_in_imports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.involved_in_imports (
+    id bigint NOT NULL,
+    importer_log_id bigint,
+    record_type character varying NOT NULL,
+    record_id bigint NOT NULL,
+    hud_key character varying NOT NULL,
+    record_action public.record_action
+);
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.involved_in_imports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.involved_in_imports_id_seq OWNED BY public.involved_in_imports.id;
+
+
+--
 -- Name: lftp_s3_syncs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15751,6 +15796,13 @@ ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: involved_in_imports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports ALTER COLUMN id SET DEFAULT nextval('public.involved_in_imports_id_seq'::regclass);
+
+
+--
 -- Name: lftp_s3_syncs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -17958,6 +18010,14 @@ ALTER TABLE ONLY public.income_benefits_reports
 
 
 --
+-- Name: involved_in_imports involved_in_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports
+    ADD CONSTRAINT involved_in_imports_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: lftp_s3_syncs lftp_s3_syncs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18984,153 +19044,6 @@ CREATE INDEX health_and_dv_date_updated ON public."HealthAndDV" USING btree ("Da
 --
 
 CREATE INDEX health_and_dv_export_id ON public."HealthAndDV" USING btree ("ExportID");
-
-
---
--- Name: hmis2020affiliations_90a93a; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020affiliations_90a93a ON public.hmis_2020_affiliations USING btree ("AffiliationID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020assessmentquestions_2d10ed; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020assessmentquestions_2d10ed ON public.hmis_2020_assessment_questions USING btree ("AssessmentQuestionID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020assessmentresults_8f9b20; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020assessmentresults_8f9b20 ON public.hmis_2020_assessment_results USING btree ("AssessmentResultID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020assessments_b71a3f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020assessments_b71a3f ON public.hmis_2020_assessments USING btree ("AssessmentID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020clients_0a609c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020clients_0a609c ON public.hmis_2020_clients USING btree ("PersonalID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020currentlivingsituations_7329c8; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020currentlivingsituations_7329c8 ON public.hmis_2020_current_living_situations USING btree ("CurrentLivingSitID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020disabilities_556c63; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020disabilities_556c63 ON public.hmis_2020_disabilities USING btree ("DisabilitiesID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020employmenteducations_b84d39; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020employmenteducations_b84d39 ON public.hmis_2020_employment_educations USING btree ("EmploymentEducationID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020enrollmentcocs_55100e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020enrollmentcocs_55100e ON public.hmis_2020_enrollment_cocs USING btree ("EnrollmentCoCID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020enrollments_2e8333; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020enrollments_2e8333 ON public.hmis_2020_enrollments USING btree ("EnrollmentID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020events_52fa96; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020events_52fa96 ON public.hmis_2020_events USING btree ("EventID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020exits_f8474f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020exits_f8474f ON public.hmis_2020_exits USING btree ("ExitID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020funders_62a7a9; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020funders_62a7a9 ON public.hmis_2020_funders USING btree ("FunderID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020healthanddvs_7c2c21; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020healthanddvs_7c2c21 ON public.hmis_2020_health_and_dvs USING btree ("HealthAndDVID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020incomebenefits_5b1d1f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020incomebenefits_5b1d1f ON public.hmis_2020_income_benefits USING btree ("IncomeBenefitsID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020inventories_432f94; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020inventories_432f94 ON public.hmis_2020_inventories USING btree ("InventoryID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020organizations_8b67c8; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020organizations_8b67c8 ON public.hmis_2020_organizations USING btree ("OrganizationID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020projectcocs_35a1f2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020projectcocs_35a1f2 ON public.hmis_2020_project_cocs USING btree ("ProjectCoCID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020projects_bda85f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020projects_bda85f ON public.hmis_2020_projects USING btree ("ProjectID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020services_6bce80; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020services_6bce80 ON public.hmis_2020_services USING btree ("ServicesID", importer_log_id, data_source_id);
-
-
---
--- Name: hmis2020users_5b34c1; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2020users_5b34c1 ON public.hmis_2020_users USING btree ("UserID", importer_log_id, data_source_id);
 
 
 --
@@ -24153,6 +24066,13 @@ CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_
 
 
 --
+-- Name: index_involved_in_imports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_involved_in_imports_on_importer_log_id ON public.involved_in_imports USING btree (importer_log_id);
+
+
+--
 -- Name: index_lftp_s3_syncs_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28332,6 +28252,27 @@ CREATE INDEX inventory_export_id ON public."Inventory" USING btree ("ExportID");
 
 
 --
+-- Name: involved_in_imports_by_hud_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_by_hud_key ON public.involved_in_imports USING btree (hud_key, importer_log_id, record_type, record_action);
+
+
+--
+-- Name: involved_in_imports_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USING btree (record_id, importer_log_id, record_type, record_action);
+
+
+--
+-- Name: involved_in_imports_by_importer_log; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports USING btree (importer_log_id, record_type, record_action);
+
+
+--
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -31001,7 +30942,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210707122337'),
 ('20210707172124'),
 ('20210708183958'),
-('20210710195956'),
-('20210711120353');
+('20210717154701');
 
 
