@@ -4,20 +4,25 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# A base class for specific confidence models
+
 module GrdaWarehouse::Confidence
   class Base < GrdaWarehouseBase
-    include TsqlImport
     include NotifierConfig
 
     self.table_name = :data_monitorings
+
+    scope :processed, -> do
+      # use calculated_on which is indexed.
+      where.not(value: nil)
+    end
 
     scope :unprocessed, -> do
       where(value: nil)
     end
 
     scope :queued, -> do
-      unprocessed.
-      where(arel_table[:calculate_after].lteq(Date.current))
+      unprocessed.where(arel_table[:calculate_after].lteq(Date.current))
     end
 
     def self.iterations
@@ -43,14 +48,13 @@ module GrdaWarehouse::Confidence
     # Start a new batch if we don't have one in the previous month
     def self.should_start_a_new_batch?
       # Date.current.day <= 7
-      ! self.where(census: fifteenth_of_last_month).exists?
+      ! where(census: fifteenth_of_last_month).exists?
     end
-
 
     # If there are any that are ready for calculation
     def self.should_run?
       # Date.current.wday == 6
-      self.where(calculated_on: nil).
+      where(calculated_on: nil).
         where(arel_table[:calculate_after].lt(Date.current)).exists?
     end
 
@@ -79,10 +83,11 @@ module GrdaWarehouse::Confidence
       collections
     end
 
+    # Current purpose is as an aid in development and debugging
     def self.to_csv
       require 'csv'
 
-      cols = %w/id type resource_id census value change iteration of_iterations/
+      cols = ['id', 'type', 'resource_id', 'census', 'value', 'change', 'iteration', 'of_iterations']
       CSV.generate do |csv|
         csv << cols
         order(:id, :type, :resource_id, :census, :iteration).map do |r|
@@ -95,15 +100,20 @@ module GrdaWarehouse::Confidence
     # gives the option to create for one client
     def self.setup_for_client client_id
       collections = collection_dates_for_client(client_id)
-      self.new.insert_batch(self, collections.first.keys, collections.map(&:values))
+      return unless collections.present?
+
+      import(collections.first.keys, collections.map(&:values))
     end
 
+    # For efficiency, import updates as a batch rather than as individual updates
     def self.create_batch!
       collections = []
       batch_scope.distinct.pluck(:client_id).each do |id|
         collections += collection_dates_for_client(id)
       end
-      self.new.insert_batch(self, collections.first.keys, collections.map(&:values))
+      return unless collections.present?
+
+      import(collections.first.keys, collections.map(&:values))
     end
 
     # Define in sub-class
