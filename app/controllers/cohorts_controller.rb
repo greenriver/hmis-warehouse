@@ -36,7 +36,7 @@ class CohortsController < ApplicationController
     @system_cohorts = if ::GrdaWarehouse::Config.get(:enable_system_cohorts)
       @search.result.system_cohorts.reorder(sort_string)
     else
-      @search.none
+      scope.none
     end
   end
 

@@ -188,7 +188,7 @@ module GrdaWarehouse
 
     def cas_tag_name
       Cas::Tag.find(tag_id)&.name
-    rescue ActiveRecord::RecordNotFound
+    rescue ActiveRecord::RecordNotFound, PG::ConnectionBad
       nil
     end
 
