@@ -7,6 +7,10 @@
 module CohortOngoingEnrollments
   extend ActiveSupport::Concern
 
+  def value_requires_user?
+    true
+  end
+
   def display_read_only(user)
     value(cohort_client, user)
   end

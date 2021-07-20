@@ -36,7 +36,7 @@ class CohortsController < ApplicationController
     @system_cohorts = if ::GrdaWarehouse::Config.get(:enable_system_cohorts)
       @search.result.system_cohorts.reorder(sort_string)
     else
-      @search.none
+      scope.none
     end
   end
 
@@ -92,6 +92,7 @@ class CohortsController < ApplicationController
         end
       end
       format.xlsx do
+        @user = current_user
         not_authorized! unless can_download_cohorts?
 
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"

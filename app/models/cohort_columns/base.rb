@@ -75,6 +75,10 @@ module CohortColumns
       cohort_client.send(column)
     end
 
+    def value_requires_user?
+      false
+    end
+
     def input_class
       'jCohortClientInput'
     end
