@@ -57,7 +57,7 @@ class Role < ApplicationRecord
   end
 
   def self.permission_categories
-    permissions_with_descriptions.map { |perm_key, perm| perm[:categories] }.flatten.uniq
+    permissions_with_descriptions.map { |_perm_key, perm| perm[:categories] }.flatten.uniq
   end
 
   def self.health_permissions
@@ -137,7 +137,7 @@ class Role < ApplicationRecord
           'Administration',
         ],
       },
-       can_enable_2fa: {
+      can_enable_2fa: {
         description: 'Ability to enable Two-factor authentication for own account',
         administrative: false,
         categories: [
@@ -335,7 +335,7 @@ class Role < ApplicationRecord
         ],
       },
       can_generate_homeless_verification_pdfs: {
-        description: '',
+        description: 'Allows access to generate and view homeless verification PDFs for any client for which the user has access',
         administrative: false,
         categories: [
           'Client Extras',
@@ -992,7 +992,7 @@ class Role < ApplicationRecord
 
   def self.ensure_permissions_exist
     Role.permissions.each do |permission|
-      ActiveRecord::Migration.add_column :roles, permission, :boolean, default: false unless ActiveRecord::Base.connection.column_exists?(:roles, permission)
+      ActiveRecord::Migration.add_column(:roles, permission, :boolean, default: false) unless ActiveRecord::Base.connection.column_exists?(:roles, permission)
     end
   end
 
