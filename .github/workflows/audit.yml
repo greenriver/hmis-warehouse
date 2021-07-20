@@ -31,7 +31,6 @@ jobs:
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
           gem install bundler --version=2.2.15
-          gem install brakeman
 
       - uses: actions/checkout@v2
       - name: Install gems
@@ -45,4 +44,4 @@ jobs:
 
       - name: Run brakeman
         run: |
-          brakeman -q --ensure-latest --no-pager --except PermitAttributes,Render
+          bundle exec brakeman -q --no-pager --except PermitAttributes,Render
