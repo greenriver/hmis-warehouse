@@ -46,8 +46,10 @@ module Importers::HmisAutoDetect
       raise
     ensure
       FileUtils.rm_rf(@local_path) if File.exist?(@local_path)
-      import_log.completed_at = Time.current
-      import_log.save!
+      if import_log.present?
+        import_log.completed_at = Time.current
+        import_log.save!
+      end
     end
 
     def log(message)
