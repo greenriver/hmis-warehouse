@@ -3,12 +3,15 @@
     %h3.mt-0 Options
   = simple_form_for filter, as: :filters, url: request.env['PATH_INFO'], method: :get do |f|
     .row
-      .col-4
-        = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, as: :select_two, input_html: { multiple: true, data: { 'stimulus-select-target' => 'projectTypes', action: 'change->stimulus-select#updateDependentProjectList' } }
-      .col-4
+      .col
+        = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, as: :select_two, label: 'Project Types', input_html: { multiple: true, data: { 'stimulus-select-target' => 'projectTypes', action: 'change->stimulus-select#updateDependentProjectList' } }
+      .col
         = f.input :organization_ids, collection: filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }, placeholder: 'Any Organization'}, label: 'Organizations', required: false
-      .col-4
+    .row
+      .col
         = f.input :project_ids, collection: filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: {'stimulus-select-target' => 'projects', project_url: api_projects_path() }, placeholder: 'Any Project' }, label: 'Projects', required: false
+      .col
+        = f.input :project_group_ids, collection: filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, placeholder: 'Any Project Group' }, label: 'Project Groups', as: :select_two, placeholder: 'Any Project Group'
     .row
       - if GrdaWarehouse::Config.get(:show_vispdats_on_dashboards)
         .col-4

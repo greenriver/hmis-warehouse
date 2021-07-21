@@ -443,10 +443,12 @@ class User < ApplicationRecord
       :organization_ids,
       :data_source_ids,
       :funder_ids,
+      :project_group_ids,
       :projects,
       :organizations,
       :data_sources,
       :funding_sources,
+      :project_groups,
     ].freeze
 
     ! project_related.include?(key.to_sym)
