@@ -419,6 +419,7 @@ module HmisCsvTwentyTwenty::Importer
     def process_existing
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
+        mark_unchanged(klass, file_name)
         mark_incoming_older(klass, file_name)
         apply_updates(klass, file_name)
       end
