@@ -24,8 +24,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       routine: :service_history,
     ).index_by(&:client_id)
 
-    cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).
-      merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id).to_set
+    cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id).to_set
     assessment_client_ids = GrdaWarehouse::Hud::Client.distinct.joins(:coc_assessment_touch_points).pluck(:id)
 
     calcs = StatsCalculator.new(client_ids: client_ids)
