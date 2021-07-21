@@ -358,6 +358,10 @@ class User < ApplicationRecord
     end
   end
 
+  def visible_project_ids
+    @visible_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id)
+  end
+
   def user_care_coordinators
     Health::UserCareCoordinator.where(user_id: id)
   end
@@ -439,10 +443,12 @@ class User < ApplicationRecord
       :organization_ids,
       :data_source_ids,
       :funder_ids,
+      :project_group_ids,
       :projects,
       :organizations,
       :data_sources,
       :funding_sources,
+      :project_groups,
     ].freeze
 
     ! project_related.include?(key.to_sym)

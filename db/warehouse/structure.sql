@@ -84,6 +84,18 @@ CREATE TYPE public.census_levels AS ENUM (
 
 
 --
+-- Name: record_action; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.record_action AS ENUM (
+    'added',
+    'updated',
+    'unchanged',
+    'removed'
+);
+
+
+--
 -- Name: record_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -1186,7 +1198,8 @@ CREATE TABLE public."Funder" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "OtherFunder" character varying
+    "OtherFunder" character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1457,7 +1470,8 @@ CREATE TABLE public."Inventory" (
     "ESBedType" integer,
     coc_code_override character varying,
     inventory_start_date_override date,
-    inventory_end_date_override date
+    inventory_end_date_override date,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1596,7 +1610,8 @@ CREATE TABLE public."ProjectCoC" (
     "Zip" character varying(5),
     geography_type_override integer,
     geocode_override character varying(6),
-    zip_override character varying
+    zip_override character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -4433,7 +4448,8 @@ CREATE TABLE public.cohort_clients (
     user_boolean_28 boolean,
     user_boolean_29 boolean,
     user_boolean_30 boolean,
-    date_added_to_cohort date
+    date_added_to_cohort date,
+    individual_in_most_recent_homeless_enrollment boolean
 );
 
 
@@ -4526,7 +4542,9 @@ CREATE TABLE public.cohorts (
     threshold_label_4 character varying,
     threshold_row_5 integer,
     threshold_color_5 character varying,
-    threshold_label_5 character varying
+    threshold_label_5 character varying,
+    system_cohort boolean DEFAULT false,
+    type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying
 );
 
 
@@ -4654,7 +4672,9 @@ CREATE TABLE public.configs (
     send_sms_for_covid_reminders boolean DEFAULT false NOT NULL,
     bypass_2fa_duration integer DEFAULT 0 NOT NULL,
     health_claims_data_path character varying,
-    enable_youth_hrp boolean DEFAULT true NOT NULL
+    enable_youth_hrp boolean DEFAULT true NOT NULL,
+    enable_system_cohorts boolean DEFAULT false,
+    currently_homeless_cohort boolean DEFAULT false
 );
 
 
@@ -5149,7 +5169,8 @@ CREATE TABLE public.exports (
     content_type character varying,
     content bytea,
     file character varying,
-    delayed_job_id integer
+    delayed_job_id integer,
+    version character varying
 );
 
 
@@ -10198,6 +10219,39 @@ CREATE VIEW public.index_stats AS
      LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
      LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
   ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+
+
+--
+-- Name: involved_in_imports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.involved_in_imports (
+    id bigint NOT NULL,
+    importer_log_id bigint,
+    record_type character varying NOT NULL,
+    record_id bigint NOT NULL,
+    hud_key character varying NOT NULL,
+    record_action public.record_action
+);
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.involved_in_imports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.involved_in_imports_id_seq OWNED BY public.involved_in_imports.id;
 
 
 --
@@ -15747,6 +15801,13 @@ ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: involved_in_imports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports ALTER COLUMN id SET DEFAULT nextval('public.involved_in_imports_id_seq'::regclass);
+
+
+--
 -- Name: lftp_s3_syncs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -17951,6 +18012,14 @@ ALTER TABLE ONLY public.income_benefits_report_incomes
 
 ALTER TABLE ONLY public.income_benefits_reports
     ADD CONSTRAINT income_benefits_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: involved_in_imports involved_in_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports
+    ADD CONSTRAINT involved_in_imports_pkey PRIMARY KEY (id);
 
 
 --
@@ -24002,6 +24071,13 @@ CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_
 
 
 --
+-- Name: index_involved_in_imports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_involved_in_imports_on_importer_log_id ON public.involved_in_imports USING btree (importer_log_id);
+
+
+--
 -- Name: index_lftp_s3_syncs_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28181,6 +28257,27 @@ CREATE INDEX inventory_export_id ON public."Inventory" USING btree ("ExportID");
 
 
 --
+-- Name: involved_in_imports_by_hud_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_by_hud_key ON public.involved_in_imports USING btree (hud_key, importer_log_id, record_type, record_action);
+
+
+--
+-- Name: involved_in_imports_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USING btree (record_id, importer_log_id, record_type, record_action);
+
+
+--
+-- Name: involved_in_imports_by_importer_log; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports USING btree (importer_log_id, record_type, record_action);
+
+
+--
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -30843,10 +30940,18 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623184626'),
 ('20210623184729'),
 ('20210623195645'),
+('20210625231326'),
+('20210630201802'),
 ('20210702143811'),
 ('20210702144442'),
 ('20210707122337'),
 ('20210707172124'),
-('20210708183958');
+('20210707190613'),
+('20210707193633'),
+('20210708183958'),
+('20210708192452'),
+('20210714131449'),
+('20210716144139'),
+('20210717154701');
 
 

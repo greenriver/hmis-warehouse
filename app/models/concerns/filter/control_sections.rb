@@ -142,6 +142,11 @@ module
           short_label: 'Veteran Status',
           value: @filter.chosen_veteran_statuses,
         )
+        section.add_control(
+          id: 'times_homeless_in_last_three_years',
+          short_label: 'Times Homeless in Past 3 Years',
+          value: @filter.times_homeless_in_last_three_years,
+        )
       end
     end
 

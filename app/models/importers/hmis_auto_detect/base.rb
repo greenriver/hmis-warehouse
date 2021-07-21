@@ -23,20 +23,15 @@ module Importers::HmisAutoDetect
     end
 
     def import!
-      upload_id = @upload&.id || 0
-      import_log = GrdaWarehouse::ImportLog.new(
-        upload_id: upload_id,
-        data_source_id: @data_source_id,
-        summary: {},
-        import_errors: {},
-        files: [],
-      )
+      upload_id = @upload&.id || 0 # rubocop:disable Lint/UselessAssignment
+
       # pre_process should do any cleanup of the zip file contents
       # and present a clean zip file in the @upload variable
       pre_process
       return if @stale
 
       expand_upload
+
       @upload.update(percent_complete: 1)
       import_log = importer.import!(
         @local_path,
@@ -46,12 +41,14 @@ module Importers::HmisAutoDetect
       )
       @upload.update(percent_complete: 100, completed_at: Time.current)
     rescue Exception => e
-      import_log.import_errors = [{'message' => "#{e}"}]
+      import_log.import_errors = [{ 'message' => e.to_s }]
       raise
     ensure
       FileUtils.rm_rf(@local_path) if File.exist?(@local_path)
-      import_log.completed_at = Time.current
-      import_log.save!
+      if import_log.present?
+        import_log.completed_at = Time.current
+        import_log.save!
+      end
     end
 
     def log(message)
@@ -80,7 +77,7 @@ module Importers::HmisAutoDetect
     end
 
     def upload(file_path:)
-      user = User.setup_system_user()
+      user = User.setup_system_user
       @upload = GrdaWarehouse::Upload.new(
         percent_complete: 0.0,
         data_source_id: @data_source_id,

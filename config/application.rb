@@ -83,5 +83,6 @@ module BostonHmis
     config.monthly_reports = {}
     config.hud_reports = {}
     config.hmis_importers = []
+    config.hmis_exporters = []
   end
 end

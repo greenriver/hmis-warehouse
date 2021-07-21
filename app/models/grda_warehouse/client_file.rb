@@ -38,6 +38,7 @@ module GrdaWarehouse
     end
 
     scope :visible_by?, ->(user) do
+      can_view_homeless_verification_pdfs = GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all) || user.can_generate_homeless_verification_pdfs?
       # If you can see all client files, show everything
       if user.can_manage_client_files?
         current_scope
@@ -49,14 +50,18 @@ module GrdaWarehouse
         ).or(arel_table[:user_id].eq(user.id))
 
         sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))) if GrdaWarehouse::Config.get(:consent_visible_to_all)
-        sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))) if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
+        sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))) if can_view_homeless_verification_pdfs
 
         window.where(sql)
       # You can only see files you uploaded
       elsif user.can_see_own_file_uploads? || user.can_use_separated_consent?
         sql = arel_table[:user_id].eq(user.id)
         sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))) if GrdaWarehouse::Config.get(:consent_visible_to_all)
-        sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))) if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
+        sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))) if can_view_homeless_verification_pdfs
+        where(sql)
+      # You have specific permission to generate homeless verification PDFs
+      elsif user.can_generate_homeless_verification_pdfs?
+        sql = arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))
         where(sql)
       else
         none
@@ -240,9 +245,8 @@ module GrdaWarehouse
       end
 
       if ! client.consent_form_valid?
-        if consent_form_signed_on.present? && consent_revoked_at.blank?
-          client.update_column(:consent_form_signed_on, consent_form_signed_on)
-        end
+        client.update_column(:consent_form_signed_on, consent_form_signed_on) if consent_form_signed_on.present? && consent_revoked_at.blank?
+
         if consent_form_confirmed && consent_revoked_at.blank?
           client.update_columns(
             housing_release_status: consent_type,
@@ -253,7 +257,7 @@ module GrdaWarehouse
         end
       else
         consent_form_ids = self.class.consent_forms.confirmed.where(client_id: client_id).pluck(:id)
-        no_other_confirmed_consent_files = consent_form_ids.count == 0 && ! consent_form_confirmed || consent_form_ids.count == 1 && consent_form_ids.first == id
+        no_other_confirmed_consent_files = consent_form_ids.count.zero? && ! consent_form_confirmed || consent_form_ids.count == 1 && consent_form_ids.first == id
 
         if consent_form_confirmed && consent_revoked_at.blank?
           client.update_columns(
@@ -273,13 +277,9 @@ module GrdaWarehouse
       return unless client.present?
 
       # notify related users if the client has a full release and the file is visible in the window
-      if client.release_valid? && visible_in_window
-        NotifyUser.file_uploaded(id).deliver_later
-      end
+      NotifyUser.file_uploaded(id).deliver_later if client.release_valid? && visible_in_window
       # Send out administrative notifications as appropriate
-      if GrdaWarehouse::AvailableFileTag.should_send_notifications?(tag_list)
-        FileNotificationMailer.notify(client.id).deliver_later
-      end
+      FileNotificationMailer.notify(client.id).deliver_later if GrdaWarehouse::AvailableFileTag.should_send_notifications?(tag_list)
     end
 
     def file_exists_and_not_too_large
