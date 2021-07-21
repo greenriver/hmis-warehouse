@@ -89,12 +89,12 @@ class ApplicationNotifier < Slack::Notifier
     Rails.logger.error('ApplicationNotifier#ping: ' + e.message)
   end
 
-  # Send any rate_limit'd messages plus an optional additional_message.
+  # Send any rate_limit'd messages.
   # Will break the resulting mega-message into 4K char and burst out
   # a sequence of posts. If this the queue is too big, say bigger than
   # 40KB, we will get a Slack rate limit error
   # and raise if Redis has become unavailable
-  def flush_queue(additional_message: nil, prefix: nil, single_message: true)
+  def flush_queue(prefix: nil, single_message: true)
     message = ''
     messages = []
     chunk_size = 4_000
@@ -111,7 +111,6 @@ class ApplicationNotifier < Slack::Notifier
       message += batch
     end
     messages << message if message.present?
-    messages << additional_message.to_s if additional_message.to_s.present?
 
     # flush out in 4k blocks -- Slack limit
     messages.each do |chunk|
@@ -130,11 +129,8 @@ class ApplicationNotifier < Slack::Notifier
   private def rate_limit(message)
     # Slack wants no more then one webhook per client per second
     last_post = @redis.get "#{@namespace}/last_post"
-    if last_post && (Time.now - Time.at(last_post.to_f)) < 1.second
-      @redis.rpush "#{@namespace}/queue", "#{message}\n"
-    else
-      flush_queue(additional_message: message)
-    end
+    @redis.rpush "#{@namespace}/queue", "#{message}\n"
+    flush_queue unless last_post && (Time.now - Time.at(last_post.to_f)) < 1.second
   rescue Redis::BaseError => e
     # If Redis has gone down, just try to get this message out
     Rails.logger.error('ApplicationNotifier#rate_limit: ' + e.message)

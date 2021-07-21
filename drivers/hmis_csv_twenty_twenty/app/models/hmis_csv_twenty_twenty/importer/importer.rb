@@ -72,6 +72,7 @@ module HmisCsvTwentyTwenty::Importer
       }
     end
 
+    # Needs to return an import_log instance
     def import!
       # log that we're waiting, but then continue on.
       already_running_for_data_source?
@@ -91,6 +92,8 @@ module HmisCsvTwentyTwenty::Importer
           complete_import
         end
       end
+    ensure
+      HmisCsvTwentyTwenty::ImportLog.find_by(importer_log_id: importer_log.id)
     end
 
     def resume!
