@@ -161,14 +161,20 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         ]
       else
         import_scope = import_scope.with_deleted if paranoid?
-        import_data = import_scope.pluck(*pluck_columns).index_by(&:first)
+        import_data = {}
+        import_scope.pluck(*pluck_columns).each do |row|
+          import_data[row.first]
+        end
 
-        existing_data = involved_warehouse_scope(
+        existing_data = {}
+        involved_warehouse_scope(
           data_source_id: data_source_id,
           project_ids: project_ids,
           date_range: date_range,
         ).with_deleted.
-          pluck(*pluck_columns).index_by(&:first)
+          pluck(*pluck_columns).each do |row|
+            existing_data[row.first] = row
+          end
 
         to_add = import_data.keys - existing_data.keys
         to_add.each do |key|
