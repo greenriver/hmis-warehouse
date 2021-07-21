@@ -18,8 +18,8 @@ module CohortColumns
       display_read_only(user)
     end
 
-    def display_read_only(user)
-      value(cohort_client, user)
+    def display_read_only(_user)
+      value(cohort_client)
     end
 
     def text_value(cohort_client)

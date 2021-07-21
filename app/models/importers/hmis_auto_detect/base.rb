@@ -31,7 +31,6 @@ module Importers::HmisAutoDetect
       return if @stale
 
       expand_upload
-      return if @stale
 
       @upload.update(percent_complete: 1)
       import_log = importer.import!(
@@ -46,8 +45,10 @@ module Importers::HmisAutoDetect
       raise
     ensure
       FileUtils.rm_rf(@local_path) if File.exist?(@local_path)
-      import_log.completed_at = Time.current
-      import_log.save!
+      if import_log.present?
+        import_log.completed_at = Time.current
+        import_log.save!
+      end
     end
 
     def log(message)

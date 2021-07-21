@@ -64,16 +64,16 @@ module Filters
     end
 
     def self.options_for_version
-      available_versions.map{|v| [v.label, v.version_str]}
+      available_versions.map { |v| [v.label, v.version_str] }
     end
 
     def schedule_job(report_url:)
       table = Rails.application.config.hmis_exporters || []
 
       job_class = if version.present?
-        table.index_by(&:version_str)[version.to_s]
+                    table.index_by(&:version_str)[version.to_s]
                   else
-        table.first
+                    table.first
       end&.job_class
 
       raise "Unable to find an HMIS Exporter for #{job_class}. Available: #{self.class.options_for_version} " unless job_class

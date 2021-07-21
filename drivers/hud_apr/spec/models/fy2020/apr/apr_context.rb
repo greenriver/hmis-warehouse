@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.configure do |config|
+RSpec.configure do
   RSpec.configuration.fixpoints_path = 'drivers/hud_apr/spec/fixpoints'
 end
 
