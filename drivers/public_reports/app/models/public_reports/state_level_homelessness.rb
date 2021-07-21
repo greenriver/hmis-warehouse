@@ -15,6 +15,7 @@ module PublicReports
     acts_as_paranoid
 
     MIN_THRESHOLD = 10
+    GEOMETRY = :zip
 
     def title
       _('State-Level Homelessness Report Generator')
@@ -183,14 +184,6 @@ module PublicReports
         date = date.next_quarter
       end
       dates
-    end
-
-    def map_shapes
-      GrdaWarehouse::Shape.geo_collection_hash(state_coc_shapes)
-    end
-
-    private def state_coc_shapes
-      GrdaWarehouse::Shape::CoC.my_state
     end
 
     private def summary
@@ -414,42 +407,56 @@ module PublicReports
       }
     end
 
-    private def population_by_coc
-      @population_by_coc ||= {}.tap do |charts|
-        quarter_dates.map(&:year).uniq.each do |year|
-          charts[year] = {}
-          geometries.each do |coc|
-            charts[year][coc.cocnum] = coc.population(internal_names: ALL_PEOPLE, year: year).val
-          end
-        end
-      end
-    end
-
     # Counts and rate of homeless individuals by CoC
     private def homeless_map
-      census_comparison(homeless_scope)
+      scope = homeless_scope
+      if map_by_zip?
+        census_comparison_by_zip(scope)
+      else
+        census_comparison(scope)
+      end
     end
 
     private def youth_homeless_map
       @filter = filter_object.deep_dup
       @filter.age_ranges = [:eighteen_to_twenty_four]
       scope = filter_for_age(homeless_scope)
-      census_comparison(scope)
+
+      if map_by_zip?
+        census_comparison_by_zip(scope)
+      else
+        census_comparison(scope)
+      end
     end
 
     private def adults_homeless_map
       scope = homeless_scope.adult_only_households
-      census_comparison(scope)
+
+      if map_by_zip?
+        census_comparison_by_zip(scope)
+      else
+        census_comparison(scope)
+      end
     end
 
     private def adults_with_children_homeless_map
       scope = homeless_scope.adults_with_children
-      census_comparison(scope)
+
+      if map_by_zip?
+        census_comparison_by_zip(scope)
+      else
+        census_comparison(scope)
+      end
     end
 
     private def veterans_homeless_map
       scope = homeless_scope.veterans
-      census_comparison(scope)
+
+      if map_by_zip?
+        census_comparison_by_zip(scope)
+      else
+        census_comparison(scope)
+      end
     end
 
     private def census_comparison(scope)
@@ -473,6 +480,36 @@ module PublicReports
             # rate per 10,000
             rate = count / population_overall.to_f * 10_000.0
             charts[date.iso8601][coc_code] = {
+              count: count,
+              overall_population: population_overall.to_i,
+              rate: rate.round(1),
+            }
+          end
+        end
+      end
+    end
+
+    private def census_comparison_by_zip(scope)
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+          charts[date.iso8601] = {}
+          zip_codes.each do |code|
+            population_overall = population_by_zip[date.year][code]
+            count = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).in_zip(zip_code: code).count
+            else
+              max = [population_overall, 1].compact.max / 10_000
+              (0..max).to_a.sample
+            end
+            count = 10 if count < 10
+            # rate per 10,000
+            rate = count / population_overall.to_f * 10_000.0
+            charts[date.iso8601][code] = {
               count: count,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
@@ -768,6 +805,14 @@ module PublicReports
       pluralize(number_with_delimiter(count), word)
     end
 
+    def map_shapes
+      if map_by_zip?
+        GrdaWarehouse::Shape.geo_collection_hash(state_zip_shapes)
+      else
+        GrdaWarehouse::Shape.geo_collection_hash(state_coc_shapes)
+      end
+    end
+
     private def get_us_census_population(race_code: 'All', year:)
       race_var = \
         case race_code
@@ -783,8 +828,8 @@ module PublicReports
           raise "Invalid race code: #{race_code}"
         end
 
-      results = geometries.map do |coc|
-        coc.population(internal_names: race_var, year: year)
+      results = geometries.map do |geo|
+        geo.population(internal_names: race_var, year: year)
       end
 
       results.each do |result|
@@ -799,12 +844,57 @@ module PublicReports
       results.map(&:val).sum
     end
 
+    # COC CODES
     private def geometries
       @geometries ||= GrdaWarehouse::Shape::CoC.where(cocnum: coc_codes)
     end
 
+    private def state_coc_shapes
+      @state_coc_shapes ||= GrdaWarehouse::Shape::CoC.my_state
+    end
+
     private def coc_codes
-      @coc_codes ||= GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum)
+      @coc_codes ||= state_coc_shapes.map(&:cocnum)
+    end
+
+    private def population_by_coc
+      @population_by_coc ||= {}.tap do |charts|
+        quarter_dates.map(&:year).uniq.each do |year|
+          charts[year] = {}
+          geometries.each do |coc|
+            charts[year][coc.cocnum] = coc.population(internal_names: ALL_PEOPLE, year: year).val
+          end
+        end
+      end
+    end
+
+
+    # ZIP CODES
+    def map_by_zip?
+      GEOMETRY == :zip
+    end
+
+    private def zip_geometries
+      @zip_geometries ||= GrdaWarehouse::Shape::ZipCode.where(zcta5ce10: zip_codes)
+    end
+
+    private def zip_codes
+      @zip_codes ||= state_zip_shapes.map(&:zcta5ce10)
+    end
+
+    private def state_zip_shapes
+      @state_zip_shapes ||= GrdaWarehouse::Shape::ZipCode.my_state
+    end
+
+    private def population_by_zip
+      @population_by_zip ||= {}.tap do |charts|
+        quarter_dates.map(&:year).uniq.each do |year|
+          charts[year] = {}
+          zip_geometries.each do |geo|
+            charts[year][geo.zcta5ce10] = geo.population(internal_names: ALL_PEOPLE, year: year).val
+          end
+        end
+      end
     end
   end
 end
