@@ -13,12 +13,12 @@ module HmisCsvTwentyTwenty
   end
 
   def self.import!(file_path, data_source_id, upload, deidentified:)
-    log = HmisCsvTwentyTwenty::ImportLog.new(
+    log = ::HmisCsvTwentyTwenty::ImportLog.new(
       created_at: Time.current,
       upload_id: upload.id,
       data_source_id: data_source_id,
     )
-    loader = HmisCsvTwentyTwenty::Loader::Loader.new(
+    loader = ::HmisCsvTwentyTwenty::Loader::Loader.new(
       file_path: file_path,
       data_source_id: data_source_id,
       deidentified: deidentified,

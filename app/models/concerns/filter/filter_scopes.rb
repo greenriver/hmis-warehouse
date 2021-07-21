@@ -21,7 +21,7 @@ module Filter::FilterScopes
       return scope unless @filter.coc_codes.present?
 
       scope.joins(project: :project_cocs).
-        where(pc_t[:CoCCode].in(@filter.coc_codes))
+        merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes))
     end
 
     private def filter_for_household_type(scope)
@@ -144,11 +144,10 @@ module Filter::FilterScopes
     private def filter_for_project_type(scope, all_project_types: nil)
       return scope if all_project_types
 
-      p_types = if @filter.coordinated_assessment_living_situation_homeless
-        @project_types + GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca]
-      else
-        @project_types
-      end
+      # Make this backwards compatible with a pre-set set of project_types.
+      p_types = @project_types.presence || @filter.project_type_ids
+      p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless
+
       scope.in_project_type(p_types)
     end
 
@@ -196,6 +195,8 @@ module Filter::FilterScopes
     end
 
     private def filter_for_sub_population(scope)
+      return scope unless @filter.sub_population.present?
+
       scope.public_send(@filter.sub_population)
     end
 

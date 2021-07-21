@@ -1,2 +1,2 @@
 - if report_filter_visible?(:data_source_ids, current_user)
-  = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), input_html: {multiple: true}, label: control.label, as: :select_two
+  = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), input_html: {multiple: true, placeholder: 'Any Data Source'}, label: control.label, as: :select_two, placeholder: 'Any Data Source'

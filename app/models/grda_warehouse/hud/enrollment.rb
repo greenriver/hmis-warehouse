@@ -129,6 +129,9 @@ module GrdaWarehouse::Hud
     scope :with_project_type, ->(project_types) do
       joins(:project).merge(Project.with_project_type(project_types))
     end
+    scope :in_project, ->(project_ids) do
+      joins(:project).where(p_t[:id].in(project_ids))
+    end
 
     scope :visible_in_window_to, ->(user) do
       visible_to(user)
@@ -174,11 +177,16 @@ module GrdaWarehouse::Hud
       where(RelationshipToHoH: 1)
     end
 
-    ADDRESS_FIELDS = %w( LastPermanentStreet LastPermanentCity LastPermanentState LastPermanentZIP ).map(&:to_sym).freeze
+    ADDRESS_FIELDS = [
+      :LastPermanentStreet,
+      :LastPermanentCity,
+      :LastPermanentState,
+      :LastPermanentZIP,
+    ].freeze
 
     scope :any_address, -> {
       at = arel_table
-      conditions = ADDRESS_FIELDS.map{ |f| at[f].not_eq(nil).and( at[f].not_eq '' ) }
+      conditions = ADDRESS_FIELDS.map{ |f| at[f].not_eq(nil).and( at[f].not_eq('')) }
       condition = conditions.reduce(conditions.shift){ |c1, c2| c1.or c2 }
       where condition
     }
@@ -257,7 +265,7 @@ module GrdaWarehouse::Hud
         if result.present?
           return {address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox}
         end
-      rescue
+      rescue StandardError
         setup_notifier('NominatimWarning')
         @notifier.ping("Error contacting the OSM Nominatim API") if @send_notifications
       end
@@ -402,7 +410,7 @@ module GrdaWarehouse::Hud
     end
 
     def dk_or_r_or_missing(value)
-      return :dk_or_r if value == 8 || value == 9
+      return :dk_or_r if [8, 9].include?(value)
       return :missing if value == 99
     end
 

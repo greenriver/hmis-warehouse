@@ -26,8 +26,7 @@
               %td= upload.user&.name
               %td= upload.created_at
               %td
-                - if upload.import_log&.loader_log.present?
-                  = upload.import_log.loader_log.started_at
+                = upload.import_log.loader_log.started_at rescue nil
               %td
                 - if upload.import_log.present?
                   = link_to upload.import_time, import_path(id: upload.import_log.id)

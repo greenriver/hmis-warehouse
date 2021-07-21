@@ -8,8 +8,9 @@
     A 3-month follow up case note was due for #{@client.name} on #{@client.youth_follow_up_due_on}
 = render 'intake_list'
 = render 'case_management_list'
-= render 'housing_resolution_plan_list'
-= render 'psc_feedback_survey_list'
+- if GrdaWarehouse::Config.get(:enable_youth_hrp)
+  = render 'housing_resolution_plan_list'
+  = render 'psc_feedback_survey_list'
 
 .row
   .col-sm-6

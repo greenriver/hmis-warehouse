@@ -87,7 +87,7 @@ module HapReport
           existing_client = hap_clients[processed_enrollment.client] || HapClient.new
           new_client = HapClient.new(
             client_id: existing_client[:client_id] || processed_enrollment.client_id,
-            age: existing_client[:age] || client.age,
+            age: existing_client[:age] || client.age([@start_date, processed_enrollment.first_date_in_program].max),
             emancipated: false,
             head_of_household: existing_client[:head_of_household] || head_of_household,
             household_ids: (Array.wrap(existing_client[:household_ids]) << household_id).uniq,
@@ -298,7 +298,7 @@ module HapReport
         'adults_who_gained_employment_total',
         'adults_who_received_rental_assistance_for_multiple_crises_total',
         'adults_with_combined_rental_assistance_payments_total',
-        'total_clients_served_total',
+
         'total_clients_denied_total',
         'total_near_homeless_served_total',
         'total_homeless_served_total',

@@ -141,7 +141,7 @@ module Health
           code: '',
           weight: 40,
         },
-      }.sort_by { |_, m| m[:weight]}.to_h
+      }.sort_by { |_, m| m[:weight] }.to_h
     end
 
     def self.client_reached
@@ -166,7 +166,7 @@ module Health
           code: 'UK',
           weight: 30,
         },
-      }.sort_by { |_, m| m[:weight]}.to_h
+      }.sort_by { |_, m| m[:weight] }.to_h
     end
 
     def self.activities
@@ -231,7 +231,7 @@ module Health
           code: 'T2024>U4',
           weight: 100,
         },
-      }.sort_by { |_, m| m[:weight]}.to_h
+      }.sort_by { |_, m| m[:weight] }.to_h
     end
 
     def self.date_search(start_date, end_date)
@@ -297,7 +297,7 @@ module Health
     end
 
     def self.load_string_collection(collection)
-      collection.map { |k, v| [v, k]}
+      collection.map { |k, v| [v, k] }
     end
 
     def self.mode_of_contact_collection
@@ -477,7 +477,7 @@ module Health
       ).group(
         Arel.sql("DATE_TRUNC('month', date_of_activity)"),
       ).count
-      outreaches_by_month.reject { |_k, v| v.zero?}.keys.count
+      outreaches_by_month.reject { |_k, v| v.zero? }.keys.count
     end
 
     def number_of_non_outreach_activity_months
@@ -491,7 +491,7 @@ module Health
       ).group(
         Arel.sql("DATE_TRUNC('month', date_of_activity)"),
       ).count
-      non_outreaches_by_month.reject { |_k, v| v.zero?}.keys.count
+      non_outreaches_by_month.reject { |_k, v| v.zero? }.keys.count
     end
 
     def same_of_type_for_day_for_patient
@@ -535,6 +535,7 @@ module Health
     end
 
     def maintain_cached_values
+      calculate_payability!
       maintain_procedure_valid
       maintain_valid_unpayable
     end

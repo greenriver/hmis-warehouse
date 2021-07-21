@@ -11,26 +11,33 @@
       .col-4
         = f.input :sub_population, collection: @filter.available_sub_populations, selected:  @filter.sub_population, required: false, include_blank: false, as: :select_two
       .col-4
-        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), placeholder: 'Any Organization', as: :grouped_select_two, group_method: :last, input_html: {multiple: true }, selected: @filter.organization_ids, label: 'Organizations', required: false
+        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Any Organization'}, selected: @filter.organization_ids, label: 'Organizations', required: false
       .col-4
         = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
     .row
       .col-4
-        = f.input :races, collection: HUD.races.invert, placeholder: 'Any Race', selected: @filter.races, required: false, input_html: {multiple: true}, as: :select_two
+        = f.input :races, collection: HUD.races.invert, selected: @filter.races, required: false, input_html: {multiple: true, placeholder: 'Any Race'}, as: :select_two
       .col-4
-        = f.input :ethnicities, collection: HUD.ethnicities.invert, placeholder: 'Any Ethnicity', selected: @filter.ethnicities, required: false, input_html: {multiple: true}, as: :select_two
+        = f.input :ethnicities, collection: HUD.ethnicities.invert, selected: @filter.ethnicities, required: false, input_html: {multiple: true, placeholder: 'Any Ethnicity'}, as: :select_two
       .col-4
-        = f.input :genders, collection: HUD.genders.invert, placeholder: 'Any Gender', selected: @filter.genders, required: false, input_html: {multiple: true}, as: :select_two
+        = f.input :genders, collection: HUD.genders.invert, selected: @filter.genders, required: false, input_html: {multiple: true, placeholder: 'Any Gender'}, as: :select_two
+    .row
+      .col
+        = f.input :age_ranges, collection: @filter.available_age_ranges, required: false, input_html: { multiple: true, placeholder: 'Any Ages' }, label: 'Age Ranges', as: :select_two
+      .col
+        = f.input :veteran_statuses, collection: HUD.no_yes_reasons_for_missing_data_options.invert, required: false, input_html: { multiple: true, placeholder: 'Any Status' }, label: 'Veteran Status', as: :select_two
     .row
       .col-4
-        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true }, label: 'Project Groups', as: :select_two
+        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, placeholder: 'Any Project Group' }, label: 'Project Groups', as: :select_two
       .col-8
         = f.input :no_recent_service_project_ids, collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'No Project Limit', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.no_recent_service_project_ids)}}, include_blank: false, label: 'Additional projects included in "without recent service" calculation', required: false
     .row
-      .col-6
+      .col
         = f.input :limit_to_vispdats, label: 'Only include clients with a VI-SPDAT?', as: :boolean
-      .col-6
+      .col
         = f.input :require_homeless_enrollment, label: 'Client received at least one homeless service during the date range', as: :boolean
+      .col
+        = f.input :hoh_only, label: 'Only Heads of Household?', as: :boolean
 
   - content_for :filter_actions do
     .row

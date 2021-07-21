@@ -10,6 +10,10 @@
       .o-page__search
         = render 'search_form', tooltip: 'Search on a user\'s first name, last name or email address', aria: { label: 'User Search' }, data: {placement: 'bottom'}
 
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
+      %i.icon-file-excel.icon-lg
+      Download Excel
+
 .row
   .col-sm-8
     %h1= content_for :title
@@ -19,32 +23,48 @@
     %p= page_entries_info @users, entry_name: _('user')
     %p.ml-auto= paginate @users
   .card.warehouse-reports__user-permission
-    .overflow-x-scroll{style: "height: 800px"}
-      %table.table.table-fixed.table-striped
-        %thead
-          %th Name
-          %th Roles
-          %th Access Groups
-          - @group_associations.each do |ga|
-            %th= ga.to_s.humanize.titleize
-        %tbody
-          - @users.each do |user|
-            %tr
-              %td
-                = link_to_if can_edit_users?, user.name_with_email, edit_admin_user_path(user)
-              %td
+    %table.table.table-striped
+      %thead
+        %th User
+        %th
+        %th Roles
+        %th Access Groups
+        - @group_associations.keys.each do |ga|
+          %th= ga.to_s.humanize.titleize
+      %tbody
+        - @users.each do |user|
+          %tr
+            %td
+              = link_to_if can_edit_users?, user.name, edit_admin_user_path(user)
+              %br
+              = user.email
+            %td
+              = link_to user_permission_report_warehouse_reports_user_path(user), data: {loads_in_pjax_modal: true}, class: 'btn btn-xs btn-primary btn-muted btn-hmis' do
+                View Details
+            %td
+              - if user.roles.count == Role.count
+                All Roles
+              - else
                 %ul
                   - user.roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.each do |i|
                     %li= i
-              %td
+            %td
+              - if user.access_groups.general.count == AccessGroup.general.count
+                All Access Groups
+              - else
                 %ul
                   - user.access_groups.map{|g| next unless g.general?; link_to_if can_edit_access_groups?, g.name, edit_admin_group_path(g)}.compact.each do |i|
                     %li= i
-              - @group_associations.each do |ga|
-                %td
-                  %ul
-                    - associated_items(user, ga).each do |i|
-                      %li= i
+            - @group_associations.keys.each do |ga|
+              %td
+                - items = associated_items(user, ga)
+                .warehouse_reports__user-permission__td-content
+                  - if items[:count] == 0
+                    None
+                  - elsif items[:count] == items[:total]
+                    All
+                  - else
+                    = "#{items[:count]} / #{items[:total]}"
   %p= paginate @users
 - else
   %p.none-found

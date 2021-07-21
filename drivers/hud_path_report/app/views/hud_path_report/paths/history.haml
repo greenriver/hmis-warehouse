@@ -1,0 +1,9 @@
+= render 'breadcrumbs'
+- content_for :title, @generator.title
+%header.mb-3
+  %h1= content_for :title
+
+.text-right
+  = link_to 'Generate New Full Annual PATH Report', new_hud_reports_path_path, class: 'btn btn-secondary'
+
+= render 'hud_reports/reports_wrapper'

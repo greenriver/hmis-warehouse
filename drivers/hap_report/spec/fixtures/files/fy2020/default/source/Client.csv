@@ -1,0 +1,10 @@
+PersonalID,FirstName,MiddleName,LastName,NameSuffix,NameDataQuality,SSN,SSNDataQuality,DOB,DOBDataQuality,AmIndAKNative,Asian,BlackAfAmerican,NativeHIOtherPacific,White,RaceNone,Ethnicity,Gender,OtherGender,VeteranStatus,YearEnteredService,YearSeparated,WorldWarII,KoreanWar,VietnamWar,DesertStorm,AfghanistanOEF,IraqOIF,IraqOND,OtherTheater,MilitaryBranch,DischargeStatus,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+C-1,Adult,,Leaver,,1,449780523,1,2000-01-01,1,1,0,0,0,0,,0,0,,0,,,,,,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+C-2,Adult,,Stayer,,1,245563851,1,2000-02-01,1,0,1,0,0,0,,0,1,,0,,,,,,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+C-3,Child,,Leaver,,1,267236391,1,2002-01-01,1,0,0,1,0,0,,0,2,,0,,,,,,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+C-4,Unknown,,Stayer,,1,118582575,1,,99,0,0,0,1,0,,0,3,,0,,,,,,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+C-5,Veteran,,Leaver,,1,090844771,1,2000-03-01,1,0,0,0,0,1,,0,0,,1,,,,,,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+C-6,Veteran,,Stayer,,1,443665363,1,2000-04-01,1,0,0,0,0,0,8,0,1,,1,,,,,,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+C-7,Youth,,Leaver,,1,508130602,1,2000-05-01,1,0,0,0,0,0,9,0,8,,0,,,,,,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+C-8,Youth,,Stayer,,1,328904700,1,2000-06-01,1,0,0,0,0,0,99,0,9,,0,,,,,,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+C-9,Child,,Stayer,,1,643824095,1,2002-01-01,1,0,0,0,1,0,,0,3,,0,,,,,,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT

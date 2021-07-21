@@ -1,0 +1,41 @@
+- title = "Support for #{@report.support_title(@key)}"
+= content_for :modal_title, title
+= content_for :crumbs do
+  = link_to performance_metrics_warehouse_reports_report_path(@report) do
+    &laquo; #{_('Performance Metrics Report')}
+.d-flex
+  %p.mr-auto
+    - if @comparison
+      = @report.filter.comparison_range_words
+    - else
+      = @report.filter.date_range_words
+-#   %div
+-#     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+-#       %i.icon.icon-download2
+-#       Download Excel
+- scope = @report.detail_scope(@key, @sub_key, @comparison)
+- if scope.exists?
+  %h4= @report.header_for(@key, @sub_key)
+  %p Showing #{pluralize(number_with_delimiter(scope.distinct.select(:client_id).count), 'client')}.
+  .card
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-sm.table-bordered.table-fixed
+        %thead.thead-dark
+          %tr
+            %th
+            - @headers.each_value do |header|
+              %th= header
+        %tbody.thead-dark
+          - scope.each.with_index do |client, i|
+            %tr
+              %th= i + 1
+              - @headers.each_key do |k|
+                %td{style: 'max-width: 600px;'}
+                  - if k == 'client_id'
+                    = link_to formatted_cell(client[k]), appropriate_client_path(client[k]), target: :_blank
+                  - elsif k.include?('spm_id') && client[k]
+                    = link_to formatted_cell(client[k]), hud_reports_spm_path(client[k]), target: :_blank
+                  - elsif k.include?('caper_id') && client[k]
+                    = link_to formatted_cell(client[k]), hud_reports_caper_path(client[k]), target: :_blank
+                  - else
+                    = formatted_cell(client[k])

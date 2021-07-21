@@ -115,6 +115,7 @@ module Filters
       self.ph = filters.dig(:ph).in?(['1', 'true', true])
       self
     end
+    alias update set_from_params
 
     def for_params
       {
@@ -150,8 +151,52 @@ module Filters
           chronic_status: chronic_status,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
           limit_to_vispdat: limit_to_vispdat,
+          enforce_one_year_range: enforce_one_year_range,
         },
       }
+    end
+
+    def to_h
+      for_params[:filters]
+    end
+    alias inspect to_h
+
+    def known_params
+      [
+        :on,
+        :start,
+        :end,
+        :comparison_pattern,
+        :household_type,
+        :hoh_only,
+        :sub_population,
+        :chronic_status,
+        :coordinated_assessment_living_situation_homeless,
+        :coc_code,
+        :limit_to_vispdat,
+        :enforce_one_year_range,
+        coc_codes: [],
+        project_types: [],
+        project_type_codes: [],
+        project_type_numbers: [],
+        veteran_statuses: [],
+        age_ranges: [],
+        genders: [],
+        races: [],
+        ethnicities: [],
+        data_source_ids: [],
+        organization_ids: [],
+        project_ids: [],
+        funder_ids: [],
+        project_group_ids: [],
+        disability_summary_ids: [],
+        destination_ids: [],
+        disabilities: [],
+        indefinite_disabilities: [],
+        dv_status: [],
+        prior_living_situation_ids: [],
+        length_of_times: [],
+      ]
     end
 
     def selected_params_for_display(single_date: false)
@@ -190,11 +235,11 @@ module Filters
     end
 
     def range
-      self.start .. self.end
+      start .. self.end
     end
 
     def as_date_range
-      DateRange.new(start: self.start, end: self.end)
+      DateRange.new(start: start, end: self.end)
     end
 
     def first
@@ -228,7 +273,7 @@ module Filters
     end
 
     def length
-      (self.end - self.start).to_i
+      (self.end - start).to_i
     rescue StandardError
       0
     end
@@ -457,6 +502,10 @@ module Filters
       @user ||= User.find(user_id)
     end
 
+    def available_sub_populations
+      AvailableSubPopulations.available_sub_populations
+    end
+
     def available_age_ranges
       {
         under_eighteen: '< 18',
@@ -600,6 +649,7 @@ module Filters
       when :heads_of_household, :hoh_only
         'Heads of Household Only?'
       when :limit_to_vispdat
+        value = nil if limit_to_vispdat == :all_clients
         'Client Limits'
       end
 

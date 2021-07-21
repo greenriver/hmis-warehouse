@@ -30,7 +30,7 @@
       .col-sm-3
         = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, as: :select_two
       .col-sm-3
-        = f.input :version, collection: { 'HMIS 2020' => '2020', 'HMIS CSV 6.x' => '6.11' }, include_blank: false, as: :select_two
+        = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
       - if can_export_anonymous_hmis_data?
         .col-sm-3
           %p

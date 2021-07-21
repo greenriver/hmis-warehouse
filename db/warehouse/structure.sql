@@ -84,6 +84,18 @@ CREATE TYPE public.census_levels AS ENUM (
 
 
 --
+-- Name: record_action; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.record_action AS ENUM (
+    'added',
+    'updated',
+    'unchanged',
+    'removed'
+);
+
+
+--
 -- Name: record_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -1186,7 +1198,8 @@ CREATE TABLE public."Funder" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "OtherFunder" character varying
+    "OtherFunder" character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1457,7 +1470,8 @@ CREATE TABLE public."Inventory" (
     "ESBedType" integer,
     coc_code_override character varying,
     inventory_start_date_override date,
-    inventory_end_date_override date
+    inventory_end_date_override date,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1596,7 +1610,8 @@ CREATE TABLE public."ProjectCoC" (
     "Zip" character varying(5),
     geography_type_override integer,
     geocode_override character varying(6),
-    zip_override character varying
+    zip_override character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -4433,7 +4448,8 @@ CREATE TABLE public.cohort_clients (
     user_boolean_28 boolean,
     user_boolean_29 boolean,
     user_boolean_30 boolean,
-    date_added_to_cohort date
+    date_added_to_cohort date,
+    individual_in_most_recent_homeless_enrollment boolean
 );
 
 
@@ -4526,7 +4542,9 @@ CREATE TABLE public.cohorts (
     threshold_label_4 character varying,
     threshold_row_5 integer,
     threshold_color_5 character varying,
-    threshold_label_5 character varying
+    threshold_label_5 character varying,
+    system_cohort boolean DEFAULT false,
+    type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying
 );
 
 
@@ -4652,7 +4670,11 @@ CREATE TABLE public.configs (
     pf_show_additional_timeliness boolean DEFAULT false NOT NULL,
     cas_sync_months integer DEFAULT 3,
     send_sms_for_covid_reminders boolean DEFAULT false NOT NULL,
-    bypass_2fa_duration integer DEFAULT 0 NOT NULL
+    bypass_2fa_duration integer DEFAULT 0 NOT NULL,
+    health_claims_data_path character varying,
+    enable_youth_hrp boolean DEFAULT true NOT NULL,
+    enable_system_cohorts boolean DEFAULT false,
+    currently_homeless_cohort boolean DEFAULT false
 );
 
 
@@ -5147,7 +5169,8 @@ CREATE TABLE public.exports (
     content_type character varying,
     content bytea,
     file character varying,
-    delayed_job_id integer
+    delayed_job_id integer,
+    version character varying
 );
 
 
@@ -10199,6 +10222,39 @@ CREATE VIEW public.index_stats AS
 
 
 --
+-- Name: involved_in_imports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.involved_in_imports (
+    id bigint NOT NULL,
+    importer_log_id bigint,
+    record_type character varying NOT NULL,
+    record_id bigint NOT NULL,
+    hud_key character varying NOT NULL,
+    record_action public.record_action
+);
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.involved_in_imports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.involved_in_imports_id_seq OWNED BY public.involved_in_imports.id;
+
+
+--
 -- Name: lftp_s3_syncs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -10922,7 +10978,9 @@ CREATE TABLE public.performance_metrics_clients (
     prior_period_spm_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    first_name character varying,
+    last_name character varying
 );
 
 
@@ -13433,6 +13491,76 @@ ALTER SEQUENCE public.simple_report_universe_members_id_seq OWNED BY public.simp
 
 
 --
+-- Name: synthetic_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_assessments (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_assessments_id_seq OWNED BY public.synthetic_assessments.id;
+
+
+--
+-- Name: synthetic_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_events (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_events_id_seq OWNED BY public.synthetic_events.id;
+
+
+--
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15673,6 +15801,13 @@ ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: involved_in_imports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports ALTER COLUMN id SET DEFAULT nextval('public.involved_in_imports_id_seq'::regclass);
+
+
+--
 -- Name: lftp_s3_syncs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16335,6 +16470,20 @@ ALTER TABLE ONLY public.simple_report_instances ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.simple_report_universe_members ALTER COLUMN id SET DEFAULT nextval('public.simple_report_universe_members_id_seq'::regclass);
+
+
+--
+-- Name: synthetic_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_assessments ALTER COLUMN id SET DEFAULT nextval('public.synthetic_assessments_id_seq'::regclass);
+
+
+--
+-- Name: synthetic_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_events ALTER COLUMN id SET DEFAULT nextval('public.synthetic_events_id_seq'::regclass);
 
 
 --
@@ -17866,6 +18015,14 @@ ALTER TABLE ONLY public.income_benefits_reports
 
 
 --
+-- Name: involved_in_imports involved_in_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports
+    ADD CONSTRAINT involved_in_imports_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: lftp_s3_syncs lftp_s3_syncs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18215,6 +18372,22 @@ ALTER TABLE ONLY public.simple_report_instances
 
 ALTER TABLE ONLY public.simple_report_universe_members
     ADD CONSTRAINT simple_report_universe_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_assessments synthetic_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_assessments
+    ADD CONSTRAINT synthetic_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_events synthetic_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_events
+    ADD CONSTRAINT synthetic_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -23898,6 +24071,13 @@ CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_
 
 
 --
+-- Name: index_involved_in_imports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_involved_in_imports_on_importer_log_id ON public.involved_in_imports USING btree (importer_log_id);
+
+
+--
 -- Name: index_lftp_s3_syncs_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27622,6 +27802,48 @@ CREATE UNIQUE INDEX index_staff_x_client_s_id_c_id_r_id ON public.hmis_staff_x_c
 
 
 --
+-- Name: index_synthetic_assessments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_client_id ON public.synthetic_assessments USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_assessments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_enrollment_id ON public.synthetic_assessments USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_assessments_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_source_type_and_source_id ON public.synthetic_assessments USING btree (source_type, source_id);
+
+
+--
+-- Name: index_synthetic_events_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_client_id ON public.synthetic_events USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_events_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_events_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_source_type_and_source_id ON public.synthetic_events USING btree (source_type, source_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28032,6 +28254,27 @@ CREATE INDEX inventory_date_updated ON public."Inventory" USING btree ("DateUpda
 --
 
 CREATE INDEX inventory_export_id ON public."Inventory" USING btree ("ExportID");
+
+
+--
+-- Name: involved_in_imports_by_hud_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_by_hud_key ON public.involved_in_imports USING btree (hud_key, importer_log_id, record_type, record_action);
+
+
+--
+-- Name: involved_in_imports_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USING btree (record_id, importer_log_id, record_type, record_action);
+
+
+--
+-- Name: involved_in_imports_by_importer_log; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports USING btree (importer_log_id, record_type, record_action);
 
 
 --
@@ -30667,6 +30910,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210312200044'),
 ('20210325202706'),
 ('20210330124825'),
+('20210413143040'),
 ('20210422191627'),
 ('20210426165914'),
 ('20210427184522'),
@@ -30687,6 +30931,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210601135719'),
 ('20210601173704'),
 ('20210603121547'),
+('20210603143037'),
 ('20210604155334'),
 ('20210615131534'),
 ('20210616181054'),
@@ -30695,7 +30940,18 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623184626'),
 ('20210623184729'),
 ('20210623195645'),
+('20210625231326'),
+('20210630201802'),
 ('20210702143811'),
-('20210702144442');
+('20210702144442'),
+('20210707122337'),
+('20210707172124'),
+('20210707190613'),
+('20210707193633'),
+('20210708183958'),
+('20210708192452'),
+('20210714131449'),
+('20210716144139'),
+('20210717154701');
 
 

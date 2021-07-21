@@ -15,7 +15,7 @@ module GrdaWarehouse
     acts_as_paranoid
     validates_presence_of :name
     validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
-    validates :static_column_count, numericality: { only_integer: true}
+    validates :static_column_count, numericality: { only_integer: true }
     serialize :column_state, Array
 
     after_create :maintain_system_group
@@ -31,18 +31,28 @@ module GrdaWarehouse
     scope :active, -> do
       where(active_cohort: true)
     end
+
+    scope :active_user, -> do
+      where(active_cohort: true, system_cohort: false)
+    end
+
     scope :inactive, -> do
-      where(active_cohort: false)
+      where(active_cohort: false, system_cohort: false)
     end
 
     scope :visible_in_cas, -> do
       where(visible_in_cas: true)
     end
+
     scope :show_on_client_dashboard, -> do
       where(show_on_client_dashboard: true)
     end
 
-    scope :viewable_by, -> (user) do
+    scope :system_cohorts, -> do
+      where(system_cohort: true)
+    end
+
+    scope :viewable_by, ->(user) do
       if user.can_edit_cohort_clients? || user.can_manage_cohorts?
         current_scope
       elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
@@ -56,7 +66,7 @@ module GrdaWarehouse
       end
     end
 
-    scope :editable_by, -> (user) do
+    scope :editable_by, ->(user) do
       if user.can_edit_cohort_clients? || user.can_manage_cohorts?
         current_scope
       elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
@@ -70,7 +80,7 @@ module GrdaWarehouse
       end
     end
 
-    def search_clients(page: nil, per: nil, population: :active, user: )
+    def search_clients(page: nil, per: nil, population: :active, user:)
       @client_search_scope = cohort_clients.joins(:client)
 
       scope = case population&.to_sym
@@ -85,9 +95,7 @@ module GrdaWarehouse
       else # active
         active_scope.where(active: true)
       end
-      if page.present? && per.present?
-        scope = scope.order(id: :asc).page(page).per(per)
-      end
+      scope = scope.order(id: :asc).page(page).per(per) if page.present? && per.present?
       @client_search_result = scope.preload(
         :cohort_client_changes,
         {
@@ -96,10 +104,10 @@ module GrdaWarehouse
             :source_clients,
             :processed_service_history,
             {
-              cohort_clients: :cohort
+              cohort_clients: :cohort,
             },
-          ]
-        }
+          ],
+        },
       )
     end
 
@@ -114,20 +122,22 @@ module GrdaWarehouse
 
     def active_scope
       @client_search_scope.where(
-          at[:housed_date].eq(nil).
-          or(at[:destination].eq(nil).
-          or(at[:destination].eq('')))
-        ).where(ineligible: [nil, false])
+        at[:housed_date].eq(nil).
+        or(at[:destination].eq(nil).
+        or(at[:destination].eq(''))),
+      ).where(ineligible: [nil, false])
     end
 
     # only administrator should have access to the inactive clients
     def inactive_scope user
       return @client_search_scope.none unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+
       @client_search_scope.where(active: false)
     end
 
     def show_inactive user
       return false unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+
       inactive_scope(user).exists?
     end
 
@@ -149,7 +159,7 @@ module GrdaWarehouse
       @client_search_scope.where(ineligible: true).where(
         at[:housed_date].eq(nil).
         or(at[:destination].eq(nil).
-        or(at[:destination].eq('')))
+        or(at[:destination].eq(''))),
       )
     end
 
@@ -159,7 +169,7 @@ module GrdaWarehouse
     # paginated/preloaded scope for the last `client_search`
     attr_reader :client_search_result
 
-    def self.has_some_cohort_access user
+    def self.has_some_cohort_access user # rubocop:disable  Naming/PredicateName
       user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
     end
 
@@ -177,7 +187,9 @@ module GrdaWarehouse
     end
 
     def cas_tag_name
-      Cas::Tag.find(tag_id)&.name rescue nil
+      Cas::Tag.find(tag_id)&.name
+    rescue ActiveRecord::RecordNotFound, PG::ConnectionBad
+      nil
     end
 
     def visible_columns(user:)
@@ -191,206 +203,207 @@ module GrdaWarehouse
 
     def self.default_visible_columns
       [
-        ::CohortColumns::LastName.new(),
-        ::CohortColumns::FirstName.new(),
+        ::CohortColumns::LastName.new,
+        ::CohortColumns::FirstName.new,
       ]
     end
 
     def self.available_columns # rubocop:disable Metrics/AbcSize
       [
-        ::CohortColumns::LastName.new(),
-        ::CohortColumns::FirstName.new(),
-        ::CohortColumns::Rank.new(),
-        ::CohortColumns::Age.new(),
-        ::CohortColumns::Gender.new(),
-        ::CohortColumns::Ssn.new(),
-        ::CohortColumns::ClientId.new(),
-        ::CohortColumns::CalculatedDaysHomeless.new(),
-        ::CohortColumns::AdjustedDaysHomeless.new(),
-        ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new(),
-        ::CohortColumns::AdjustedDaysLiterallyHomelessLastThreeYears.new(),
-        ::CohortColumns::DaysHomelessPlusOverrides.new(),
-        ::CohortColumns::FirstDateHomeless.new(),
-        ::CohortColumns::Chronic.new(),
-        ::CohortColumns::Agency.new(),
-        ::CohortColumns::CaseManager.new(),
-        ::CohortColumns::HousingManager.new(),
-        ::CohortColumns::HousingSearchAgency.new(),
-        ::CohortColumns::HousingOpportunity.new(),
-        ::CohortColumns::LegalBarriers.new(),
-        ::CohortColumns::CriminalRecordStatus.new(),
-        ::CohortColumns::DocumentReady.new(),
-        ::CohortColumns::SifEligible.new(),
-        ::CohortColumns::SensoryImpaired.new(),
-        ::CohortColumns::HousedDate.new(),
-        ::CohortColumns::Destination.new(),
-        ::CohortColumns::SubPopulation.new(),
-        ::CohortColumns::StFrancisHouse.new(),
-        ::CohortColumns::LastGroupReviewDate.new(),
-        ::CohortColumns::LastDateApproached.new(),
-        ::CohortColumns::PreContemplativeLastDateApproached.new(),
-        ::CohortColumns::HousingTrackSuggested.new(),
-        ::CohortColumns::PrimaryHousingTrackSuggested.new(),
-        ::CohortColumns::HousingTrackEnrolled.new(),
-        ::CohortColumns::VaEligible.new(),
-        ::CohortColumns::VashEligible.new(),
-        ::CohortColumns::Chapter115.new(),
-        ::CohortColumns::Veteran.new(),
-        ::CohortColumns::ClientNotes.new(),
-        ::CohortColumns::Notes.new(),
-        ::CohortColumns::VispdatScore.new(),
-        ::CohortColumns::VispdatPriorityScore.new(),
-        ::CohortColumns::HousingNavigator.new(),
-        ::CohortColumns::LocationType.new(),
-        ::CohortColumns::Location.new(),
-        ::CohortColumns::Status.new(),
-        ::CohortColumns::SsvfEligible.new(),
-        ::CohortColumns::VetSquaresConfirmed.new(),
-        ::CohortColumns::MissingDocuments.new(),
-        ::CohortColumns::Provider.new(),
-        ::CohortColumns::NextStep.new(),
-        ::CohortColumns::HousingPlan.new(),
-        ::CohortColumns::DateDocumentReady.new(),
-        ::CohortColumns::DaysHomelessLastThreeYears.new(),
-        ::CohortColumns::DaysLiterallyHomelessLastThreeYears.new(),
-        ::CohortColumns::EnrolledHomelessShelter.new(),
-        ::CohortColumns::EnrolledHomelessUnsheltered.new(),
-        ::CohortColumns::EnrolledPermanentHousing.new(),
-        ::CohortColumns::RelatedUsers.new(),
-        ::CohortColumns::Active.new(),
-        ::CohortColumns::LastHomelessVisit.new(),
-        ::CohortColumns::OngoingEs.new(),
-        ::CohortColumns::OngoingSo.new(),
-        ::CohortColumns::OngoingSh.new(),
-        ::CohortColumns::OngoingTh.new(),
-        ::CohortColumns::OngoingRrh.new(),
-        ::CohortColumns::OngoingPsh.new(),
-        ::CohortColumns::NewLeaseReferral.new(),
-        ::CohortColumns::VulnerabilityRank.new(),
-        ::CohortColumns::ActiveCohorts.new(),
-        ::CohortColumns::DestinationFromHomelessness.new(),
-        ::CohortColumns::HmisDestination.new(),
-        ::CohortColumns::OpenEnrollments.new(),
-        ::CohortColumns::Ineligible.new(),
-        ::CohortColumns::ConsentConfirmed.new(),
-        ::CohortColumns::DisabilityVerificationDate.new(),
-        ::CohortColumns::AvailableForMatchingInCas.new(),
-        ::CohortColumns::DaysSinceCasMatch.new(),
-        ::CohortColumns::Sober.new(),
-        ::CohortColumns::OriginalChronic.new(),
-        ::CohortColumns::NotAVet.new(),
-        ::CohortColumns::EtoCoordinatedEntryAssessmentScore.new(),
-        ::CohortColumns::HouseholdMembers.new(),
-        ::CohortColumns::MinimumBedroomSize.new(),
-        ::CohortColumns::SpecialNeeds.new(),
-        ::CohortColumns::RrhDesired.new(),
-        ::CohortColumns::YouthRrhDesired.new(),
-        ::CohortColumns::RrhAssessmentContactInfo.new(),
-        ::CohortColumns::RrhSsvfEligible.new(),
-        ::CohortColumns::Reported.new(),
-        ::CohortColumns::Race.new(),
-        ::CohortColumns::Ethnicity.new(),
-        ::CohortColumns::Lgbtq.new(),
-        ::CohortColumns::LgbtqFromHmis.new(),
-        ::CohortColumns::SleepingLocation.new(),
-        ::CohortColumns::ExitDestination.new(),
-        ::CohortColumns::ActiveInCasMatch.new(),
-        ::CohortColumns::SchoolDistrict.new(),
-        ::CohortColumns::AssessmentScore.new(),
-        ::CohortColumns::VispdatScoreManual.new(),
-        ::CohortColumns::DaysOnCohort.new(),
-        ::CohortColumns::CasVashEligible.new(),
-        ::CohortColumns::DateAddedToCohort.new(),
-        ::CohortColumns::PreviousRemovalReason.new(),
-        ::CohortColumns::HealthPrioritized.new(),
-        ::CohortColumns::UserString1.new(),
-        ::CohortColumns::UserString2.new(),
-        ::CohortColumns::UserString3.new(),
-        ::CohortColumns::UserString4.new(),
-        ::CohortColumns::UserString5.new(),
-        ::CohortColumns::UserString6.new(),
-        ::CohortColumns::UserString7.new(),
-        ::CohortColumns::UserString8.new(),
-        ::CohortColumns::UserBoolean1.new(),
-        ::CohortColumns::UserBoolean2.new(),
-        ::CohortColumns::UserBoolean3.new(),
-        ::CohortColumns::UserBoolean4.new(),
-        ::CohortColumns::UserBoolean5.new(),
-        ::CohortColumns::UserBoolean6.new(),
-        ::CohortColumns::UserBoolean7.new(),
-        ::CohortColumns::UserBoolean8.new(),
-        ::CohortColumns::UserBoolean9.new(),
-        ::CohortColumns::UserBoolean10.new(),
-        ::CohortColumns::UserBoolean11.new(),
-        ::CohortColumns::UserBoolean12.new(),
-        ::CohortColumns::UserBoolean13.new(),
-        ::CohortColumns::UserBoolean14.new(),
-        ::CohortColumns::UserBoolean15.new(),
-        ::CohortColumns::UserBoolean16.new(),
-        ::CohortColumns::UserBoolean17.new(),
-        ::CohortColumns::UserBoolean18.new(),
-        ::CohortColumns::UserBoolean19.new(),
-        ::CohortColumns::UserBoolean20.new(),
-        ::CohortColumns::UserBoolean21.new(),
-        ::CohortColumns::UserBoolean22.new(),
-        ::CohortColumns::UserBoolean23.new(),
-        ::CohortColumns::UserBoolean24.new(),
-        ::CohortColumns::UserBoolean25.new(),
-        ::CohortColumns::UserBoolean26.new(),
-        ::CohortColumns::UserBoolean27.new(),
-        ::CohortColumns::UserBoolean28.new(),
-        ::CohortColumns::UserBoolean29.new(),
-        ::CohortColumns::UserBoolean30.new(),
-        ::CohortColumns::UserSelect1.new(),
-        ::CohortColumns::UserSelect2.new(),
-        ::CohortColumns::UserSelect3.new(),
-        ::CohortColumns::UserSelect4.new(),
-        ::CohortColumns::UserSelect5.new(),
-        ::CohortColumns::UserSelect6.new(),
-        ::CohortColumns::UserSelect7.new(),
-        ::CohortColumns::UserSelect8.new(),
-        ::CohortColumns::UserSelect9.new(),
-        ::CohortColumns::UserSelect10.new(),
-        ::CohortColumns::UserSelect11.new(),
-        ::CohortColumns::UserSelect12.new(),
-        ::CohortColumns::UserSelect13.new(),
-        ::CohortColumns::UserSelect14.new(),
-        ::CohortColumns::UserSelect15.new(),
-        ::CohortColumns::UserSelect16.new(),
-        ::CohortColumns::UserSelect17.new(),
-        ::CohortColumns::UserSelect18.new(),
-        ::CohortColumns::UserSelect19.new(),
-        ::CohortColumns::UserSelect20.new(),
-        ::CohortColumns::UserSelect21.new(),
-        ::CohortColumns::UserSelect22.new(),
-        ::CohortColumns::UserSelect23.new(),
-        ::CohortColumns::UserSelect24.new(),
-        ::CohortColumns::UserSelect25.new(),
-        ::CohortColumns::UserSelect26.new(),
-        ::CohortColumns::UserSelect27.new(),
-        ::CohortColumns::UserSelect28.new(),
-        ::CohortColumns::UserSelect28.new(),
-        ::CohortColumns::UserSelect30.new(),
-        ::CohortColumns::UserDate1.new(),
-        ::CohortColumns::UserDate2.new(),
-        ::CohortColumns::UserDate3.new(),
-        ::CohortColumns::UserDate4.new(),
-        ::CohortColumns::UserDate5.new(),
-        ::CohortColumns::UserDate6.new(),
-        ::CohortColumns::UserDate7.new(),
-        ::CohortColumns::UserDate8.new(),
-        ::CohortColumns::UserDate9.new(),
-        ::CohortColumns::UserDate10.new(),
-        ::CohortColumns::UserNumeric1.new(),
-        ::CohortColumns::UserNumeric2.new(),
-        ::CohortColumns::UserNumeric3.new(),
-        ::CohortColumns::UserNumeric4.new(),
-        ::CohortColumns::UserNumeric5.new(),
-        ::CohortColumns::UserNumeric6.new(),
-        ::CohortColumns::UserNumeric7.new(),
-        ::CohortColumns::UserNumeric8.new(),
-        ::CohortColumns::UserNumeric9.new(),
-        ::CohortColumns::UserNumeric10.new(),
+        ::CohortColumns::LastName.new,
+        ::CohortColumns::FirstName.new,
+        ::CohortColumns::Rank.new,
+        ::CohortColumns::Age.new,
+        ::CohortColumns::Gender.new,
+        ::CohortColumns::Ssn.new,
+        ::CohortColumns::ClientId.new,
+        ::CohortColumns::CalculatedDaysHomeless.new,
+        ::CohortColumns::AdjustedDaysHomeless.new,
+        ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new,
+        ::CohortColumns::AdjustedDaysLiterallyHomelessLastThreeYears.new,
+        ::CohortColumns::DaysHomelessPlusOverrides.new,
+        ::CohortColumns::FirstDateHomeless.new,
+        ::CohortColumns::Chronic.new,
+        ::CohortColumns::Agency.new,
+        ::CohortColumns::CaseManager.new,
+        ::CohortColumns::HousingManager.new,
+        ::CohortColumns::HousingSearchAgency.new,
+        ::CohortColumns::HousingOpportunity.new,
+        ::CohortColumns::LegalBarriers.new,
+        ::CohortColumns::CriminalRecordStatus.new,
+        ::CohortColumns::DocumentReady.new,
+        ::CohortColumns::SifEligible.new,
+        ::CohortColumns::SensoryImpaired.new,
+        ::CohortColumns::HousedDate.new,
+        ::CohortColumns::Destination.new,
+        ::CohortColumns::SubPopulation.new,
+        ::CohortColumns::IndividualInMostRecentEnrollment.new,
+        ::CohortColumns::StFrancisHouse.new,
+        ::CohortColumns::LastGroupReviewDate.new,
+        ::CohortColumns::LastDateApproached.new,
+        ::CohortColumns::PreContemplativeLastDateApproached.new,
+        ::CohortColumns::HousingTrackSuggested.new,
+        ::CohortColumns::PrimaryHousingTrackSuggested.new,
+        ::CohortColumns::HousingTrackEnrolled.new,
+        ::CohortColumns::VaEligible.new,
+        ::CohortColumns::VashEligible.new,
+        ::CohortColumns::Chapter115.new,
+        ::CohortColumns::Veteran.new,
+        ::CohortColumns::ClientNotes.new,
+        ::CohortColumns::Notes.new,
+        ::CohortColumns::VispdatScore.new,
+        ::CohortColumns::VispdatPriorityScore.new,
+        ::CohortColumns::HousingNavigator.new,
+        ::CohortColumns::LocationType.new,
+        ::CohortColumns::Location.new,
+        ::CohortColumns::Status.new,
+        ::CohortColumns::SsvfEligible.new,
+        ::CohortColumns::VetSquaresConfirmed.new,
+        ::CohortColumns::MissingDocuments.new,
+        ::CohortColumns::Provider.new,
+        ::CohortColumns::NextStep.new,
+        ::CohortColumns::HousingPlan.new,
+        ::CohortColumns::DateDocumentReady.new,
+        ::CohortColumns::DaysHomelessLastThreeYears.new,
+        ::CohortColumns::DaysLiterallyHomelessLastThreeYears.new,
+        ::CohortColumns::EnrolledHomelessShelter.new,
+        ::CohortColumns::EnrolledHomelessUnsheltered.new,
+        ::CohortColumns::EnrolledPermanentHousing.new,
+        ::CohortColumns::RelatedUsers.new,
+        ::CohortColumns::Active.new,
+        ::CohortColumns::LastHomelessVisit.new,
+        ::CohortColumns::OngoingEs.new,
+        ::CohortColumns::OngoingSo.new,
+        ::CohortColumns::OngoingSh.new,
+        ::CohortColumns::OngoingTh.new,
+        ::CohortColumns::OngoingRrh.new,
+        ::CohortColumns::OngoingPsh.new,
+        ::CohortColumns::NewLeaseReferral.new,
+        ::CohortColumns::VulnerabilityRank.new,
+        ::CohortColumns::ActiveCohorts.new,
+        ::CohortColumns::DestinationFromHomelessness.new,
+        ::CohortColumns::HmisDestination.new,
+        ::CohortColumns::OpenEnrollments.new,
+        ::CohortColumns::Ineligible.new,
+        ::CohortColumns::ConsentConfirmed.new,
+        ::CohortColumns::DisabilityVerificationDate.new,
+        ::CohortColumns::AvailableForMatchingInCas.new,
+        ::CohortColumns::DaysSinceCasMatch.new,
+        ::CohortColumns::Sober.new,
+        ::CohortColumns::OriginalChronic.new,
+        ::CohortColumns::NotAVet.new,
+        ::CohortColumns::EtoCoordinatedEntryAssessmentScore.new,
+        ::CohortColumns::HouseholdMembers.new,
+        ::CohortColumns::MinimumBedroomSize.new,
+        ::CohortColumns::SpecialNeeds.new,
+        ::CohortColumns::RrhDesired.new,
+        ::CohortColumns::YouthRrhDesired.new,
+        ::CohortColumns::RrhAssessmentContactInfo.new,
+        ::CohortColumns::RrhSsvfEligible.new,
+        ::CohortColumns::Reported.new,
+        ::CohortColumns::Race.new,
+        ::CohortColumns::Ethnicity.new,
+        ::CohortColumns::Lgbtq.new,
+        ::CohortColumns::LgbtqFromHmis.new,
+        ::CohortColumns::SleepingLocation.new,
+        ::CohortColumns::ExitDestination.new,
+        ::CohortColumns::ActiveInCasMatch.new,
+        ::CohortColumns::SchoolDistrict.new,
+        ::CohortColumns::AssessmentScore.new,
+        ::CohortColumns::VispdatScoreManual.new,
+        ::CohortColumns::DaysOnCohort.new,
+        ::CohortColumns::CasVashEligible.new,
+        ::CohortColumns::DateAddedToCohort.new,
+        ::CohortColumns::PreviousRemovalReason.new,
+        ::CohortColumns::HealthPrioritized.new,
+        ::CohortColumns::UserString1.new,
+        ::CohortColumns::UserString2.new,
+        ::CohortColumns::UserString3.new,
+        ::CohortColumns::UserString4.new,
+        ::CohortColumns::UserString5.new,
+        ::CohortColumns::UserString6.new,
+        ::CohortColumns::UserString7.new,
+        ::CohortColumns::UserString8.new,
+        ::CohortColumns::UserBoolean1.new,
+        ::CohortColumns::UserBoolean2.new,
+        ::CohortColumns::UserBoolean3.new,
+        ::CohortColumns::UserBoolean4.new,
+        ::CohortColumns::UserBoolean5.new,
+        ::CohortColumns::UserBoolean6.new,
+        ::CohortColumns::UserBoolean7.new,
+        ::CohortColumns::UserBoolean8.new,
+        ::CohortColumns::UserBoolean9.new,
+        ::CohortColumns::UserBoolean10.new,
+        ::CohortColumns::UserBoolean11.new,
+        ::CohortColumns::UserBoolean12.new,
+        ::CohortColumns::UserBoolean13.new,
+        ::CohortColumns::UserBoolean14.new,
+        ::CohortColumns::UserBoolean15.new,
+        ::CohortColumns::UserBoolean16.new,
+        ::CohortColumns::UserBoolean17.new,
+        ::CohortColumns::UserBoolean18.new,
+        ::CohortColumns::UserBoolean19.new,
+        ::CohortColumns::UserBoolean20.new,
+        ::CohortColumns::UserBoolean21.new,
+        ::CohortColumns::UserBoolean22.new,
+        ::CohortColumns::UserBoolean23.new,
+        ::CohortColumns::UserBoolean24.new,
+        ::CohortColumns::UserBoolean25.new,
+        ::CohortColumns::UserBoolean26.new,
+        ::CohortColumns::UserBoolean27.new,
+        ::CohortColumns::UserBoolean28.new,
+        ::CohortColumns::UserBoolean29.new,
+        ::CohortColumns::UserBoolean30.new,
+        ::CohortColumns::UserSelect1.new,
+        ::CohortColumns::UserSelect2.new,
+        ::CohortColumns::UserSelect3.new,
+        ::CohortColumns::UserSelect4.new,
+        ::CohortColumns::UserSelect5.new,
+        ::CohortColumns::UserSelect6.new,
+        ::CohortColumns::UserSelect7.new,
+        ::CohortColumns::UserSelect8.new,
+        ::CohortColumns::UserSelect9.new,
+        ::CohortColumns::UserSelect10.new,
+        ::CohortColumns::UserSelect11.new,
+        ::CohortColumns::UserSelect12.new,
+        ::CohortColumns::UserSelect13.new,
+        ::CohortColumns::UserSelect14.new,
+        ::CohortColumns::UserSelect15.new,
+        ::CohortColumns::UserSelect16.new,
+        ::CohortColumns::UserSelect17.new,
+        ::CohortColumns::UserSelect18.new,
+        ::CohortColumns::UserSelect19.new,
+        ::CohortColumns::UserSelect20.new,
+        ::CohortColumns::UserSelect21.new,
+        ::CohortColumns::UserSelect22.new,
+        ::CohortColumns::UserSelect23.new,
+        ::CohortColumns::UserSelect24.new,
+        ::CohortColumns::UserSelect25.new,
+        ::CohortColumns::UserSelect26.new,
+        ::CohortColumns::UserSelect27.new,
+        ::CohortColumns::UserSelect28.new,
+        ::CohortColumns::UserSelect28.new,
+        ::CohortColumns::UserSelect30.new,
+        ::CohortColumns::UserDate1.new,
+        ::CohortColumns::UserDate2.new,
+        ::CohortColumns::UserDate3.new,
+        ::CohortColumns::UserDate4.new,
+        ::CohortColumns::UserDate5.new,
+        ::CohortColumns::UserDate6.new,
+        ::CohortColumns::UserDate7.new,
+        ::CohortColumns::UserDate8.new,
+        ::CohortColumns::UserDate9.new,
+        ::CohortColumns::UserDate10.new,
+        ::CohortColumns::UserNumeric1.new,
+        ::CohortColumns::UserNumeric2.new,
+        ::CohortColumns::UserNumeric3.new,
+        ::CohortColumns::UserNumeric4.new,
+        ::CohortColumns::UserNumeric5.new,
+        ::CohortColumns::UserNumeric6.new,
+        ::CohortColumns::UserNumeric7.new,
+        ::CohortColumns::UserNumeric8.new,
+        ::CohortColumns::UserNumeric9.new,
+        ::CohortColumns::UserNumeric10.new,
       ]
     end
 
@@ -428,9 +441,7 @@ module GrdaWarehouse
 
     def refresh_time_dependant_client_data(cohort_client_ids: nil)
       scope = cohort_clients
-      if cohort_client_ids.present?
-        scope = scope.where(id: cohort_client_ids)
-      end
+      scope = scope.where(id: cohort_client_ids) if cohort_client_ids.present?
       scope.joins(:client).each do |cc|
         data = {
           calculated_days_homeless_on_effective_date: calculated_days_homeless(cc.client),
@@ -441,11 +452,11 @@ module GrdaWarehouse
           disability_verification_date: disability_verification_date(cc.client),
           missing_documents: missing_documents(cc.client),
           days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
+          individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
         }
         cc.update(data)
       end
     end
-
 
     private def calculated_days_homeless(client)
       client.days_homeless(on_date: effective_date || Date.current)
@@ -476,12 +487,17 @@ module GrdaWarehouse
         end.join('; ')
     end
 
+    private def individual_in_most_recent_homeless_enrollment(client)
+      most_recent_enrollment = client.service_history_enrollments.entry.homeless.order(first_date_in_program: :desc).first
+      most_recent_enrollment&.presented_as_individual
+    end
+
     private def related_users(client)
       users = client.user_clients.
         non_confidential.
         active.
         pluck(:user_id, :relationship).to_h
-      User.where(id: users.keys).map{|u| "#{users[u.id]} (#{u.name})"}.join('; ')
+      User.where(id: users.keys).map { |u| "#{users[u.id]} (#{u.name})" }.join('; ')
     end
 
     private def missing_documents(client)

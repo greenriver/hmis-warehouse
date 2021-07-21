@@ -1,2 +1,2 @@
 - if report_filter_visible?(:funder_ids, current_user)
-  = f.input :funder_ids, collection: @filter.funder_options_for_select(user: current_user), input_html: {multiple: true}, label: control.label, as: :select_two
+  = f.input :funder_ids, collection: @filter.funder_options_for_select(user: current_user), input_html: {multiple: true, placeholder: 'Any Funding Source'}, label: control.label, as: :select_two, placeholder: 'Any Funding Source'
