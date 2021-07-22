@@ -1117,7 +1117,7 @@ class WarehouseReport::Outcomes::Base
       send(@household_type).
       open_between(start_date: @start_date, end_date: @end_date)
     scope = scope.where(data_source_id: @data_source_ids) if @data_source_ids.present?
-    scope.in_organization(@organization_ids) if @organization_ids.present?
+    scope = scope.in_organization(@organization_ids) if @organization_ids.present?
     scope = scope.heads_of_households if @filter.hoh_only
 
     scope
