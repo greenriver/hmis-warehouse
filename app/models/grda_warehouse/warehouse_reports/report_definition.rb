@@ -950,6 +950,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:homeless_summary_report)
+        r_list['Operational'] << {
+          url: 'homeless_summary_report/warehouse_reports/reports',
+          name: 'Homeless Summary Report',
+          description: 'A summary of various homelessness metrics',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:text_message)
         r_list['Operational'] << {
           url: 'text_message/warehouse_reports/queue',
@@ -1139,6 +1148,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'user_directory_report/warehouse_reports/users/warehouse' unless RailsDrivers.loaded.include?(:user_directory_report)
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'performance_metrics/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:performance_metrics)
+      cleanup << 'homeless_summary_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:homeless_summary_report)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       unless RailsDrivers.loaded.include?(:public_reports)
         cleanup << 'public_reports/warehouse_reports/point_in_time'
@@ -1158,8 +1168,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'dashboards/veterans' unless RailsDrivers.loaded.include?(:veterans_sub_pop)
       cleanup << 'census_tracking/warehouse_reports/census_trackers' unless RailsDrivers.loaded.include?(:census_tracking)
       cleanup << 'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
-       cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
-
+      cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
