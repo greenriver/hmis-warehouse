@@ -368,7 +368,7 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      veterans = universe.members.where(veteran_clause)
+      veterans_leavers = universe.members.where(veteran_clause.and(leavers_clause))
       q25i_populations.values.each_with_index do |population_clause, col_index|
         q25i_destinations.values.each_with_index do |destination_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
@@ -380,14 +380,14 @@ module HudApr::Generators::Shared::Fy2020
             case destination_clause
             when :percentage
               value = percentage(0.0)
-              members = veterans.where(population_clause)
+              members = veterans_leavers.where(population_clause)
               positive = members.where(q25i_destinations['Total persons exiting to positive housing destinations']).count
               total = members.where(q25i_destinations['Total']).count
               excluded = members.where(q25i_destinations['Total persons whose destinations excluded them from the calculation']).count
               value = percentage(positive.to_f / (total - excluded)) if total.positive? && excluded != total
             end
           else
-            members = veterans.where(population_clause).where(destination_clause)
+            members = veterans_leavers.where(population_clause).where(destination_clause)
             value = members.count
           end
           answer.add_members(members)
