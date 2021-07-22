@@ -135,7 +135,7 @@ module HudApr::Generators::Shared::Fy2020
             developmental_disability: disabilities.detect(&:developmental?).present?,
             disabling_condition: enrollment.DisablingCondition,
             dob_quality: source_client.DOBDataQuality,
-            dob: dob,
+            dob: source_client.DOB,
             domestic_violence: health_and_dv&.DomesticViolenceVictim,
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
