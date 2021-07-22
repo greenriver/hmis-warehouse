@@ -9,35 +9,6 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
---
--- Name: monthly_reports_insert_trigger(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.monthly_reports_insert_trigger() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-        BEGIN
-        IF  ( NEW.type = 'AdultOnlyHouseholdsSubPop::Reporting::MonthlyReports::AdultOnlyHouseholds' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_adult_only_households VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'AdultsWithChildrenSubPop::Reporting::MonthlyReports::AdultsWithChildren' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_adults_with_children VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'ChildOnlyHouseholdsSubPop::Reporting::MonthlyReports::ChildOnlyHouseholds' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_child_only_households VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'ClientsSubPop::Reporting::MonthlyReports::Clients' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_clients VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'NonVeteransSubPop::Reporting::MonthlyReports::NonVeterans' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_non_veterans VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'VeteransSubPop::Reporting::MonthlyReports::Veterans' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_veterans VALUES (NEW.*);
-          
-        ELSE
-          INSERT INTO warehouse_partitioned_monthly_reports_unknown VALUES (NEW.*);
-          END IF;
-          RETURN NULL;
-      END;
-      $$;
-
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -1324,13 +1295,6 @@ CREATE INDEX pdq_rep_act_ent_head_enr ON public.warehouse_data_quality_report_en
 --
 
 CREATE INDEX pdq_rep_act_ext_head_enr ON public.warehouse_data_quality_report_enrollments USING btree (report_id, active, exited, head_of_household, enrolled);
-
-
---
--- Name: warehouse_partitioned_monthly_reports monthly_reports_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER monthly_reports_insert_trigger BEFORE INSERT ON public.warehouse_partitioned_monthly_reports FOR EACH ROW EXECUTE FUNCTION public.monthly_reports_insert_trigger();
 
 
 --
