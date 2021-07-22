@@ -22,7 +22,7 @@ module
       ]
     end
 
-    protected def build_general_control_section
+    protected def build_general_control_section(include_comparison_period: true)
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
         section.add_control(
           id: 'project_types',
@@ -42,10 +42,12 @@ module
           required: true,
           value: @filter.date_range_words,
         )
-        section.add_control(
-          id: 'comparison_period',
-          value: nil,
-        )
+        if include_comparison_period
+          section.add_control(
+            id: 'comparison_period',
+            value: nil,
+          )
+        end
       end
     end
 
