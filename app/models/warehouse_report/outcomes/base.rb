@@ -13,7 +13,7 @@ class WarehouseReport::Outcomes::Base
     @filter = filter
     @organization_ids = @filter.organization_ids
     @data_source_ids = @filter.data_source_ids
-    @project_ids = @filter.project_ids
+    @project_ids = @filter.effective_project_ids
     @coc_codes = @filter.coc_codes
     @start_date = @filter.start
     @end_date = @filter.end
@@ -640,7 +640,7 @@ class WarehouseReport::Outcomes::Base
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       residential_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
@@ -1117,7 +1117,7 @@ class WarehouseReport::Outcomes::Base
       send(@household_type).
       open_between(start_date: @start_date, end_date: @end_date)
     scope = scope.where(data_source_id: @data_source_ids) if @data_source_ids.present?
-    scope = scope.where(organization_id: @organization_ids) if @organization_ids.present?
+    scope = scope.in_organization(@organization_ids) if @organization_ids.present?
     scope = scope.heads_of_households if @filter.hoh_only
 
     scope
