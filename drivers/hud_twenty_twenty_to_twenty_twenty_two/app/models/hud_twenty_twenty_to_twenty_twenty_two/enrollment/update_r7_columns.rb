@@ -34,7 +34,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Enrollment
     # TargetScreenReqd is set if thee are any values in the columns
     def process(row)
       COLUMNS.each do |column|
-        row[column] = nil unless row.keys.include?(column)
+        row[column] ||= nil
       end
       row['TargetScreenReqd'] = screening_required?(row)
 
