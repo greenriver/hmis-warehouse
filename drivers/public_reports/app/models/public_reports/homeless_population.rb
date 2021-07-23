@@ -448,7 +448,7 @@ module PublicReports
               group(c_t[:Ethnicity]).
               count.
               map do |e_id, count|
-                # Force any unknown genders to Unknown
+                # Force any unknown ethnicties to Unknown
                 e_id = nil unless e_id.in?([0, 1])
                 [
                   ::HUD.ethnicity(e_id) || 'Unknown',
