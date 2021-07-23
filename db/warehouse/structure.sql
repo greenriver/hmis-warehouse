@@ -3344,6 +3344,7 @@ ALTER SEQUENCE public.cas_availabilities_id_seq OWNED BY public.cas_availabiliti
 CREATE TABLE public.cas_ce_assessments (
     id bigint NOT NULL,
     cas_client_id bigint,
+    cas_non_hmis_assessment_id bigint,
     hmis_client_id bigint,
     program_id bigint,
     assessment_date date,
@@ -22630,6 +22631,13 @@ CREATE INDEX index_cas_availabilities_on_unavailable_at ON public.cas_availabili
 --
 
 CREATE INDEX index_cas_ce_assessments_on_cas_client_id ON public.cas_ce_assessments USING btree (cas_client_id);
+
+
+--
+-- Name: index_cas_ce_assessments_on_cas_non_hmis_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_ce_assessments_on_cas_non_hmis_assessment_id ON public.cas_ce_assessments USING btree (cas_non_hmis_assessment_id);
 
 
 --

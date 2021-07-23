@@ -2,6 +2,7 @@ class CreateCasCeAssessments < ActiveRecord::Migration[5.2]
   def change
     create_table :cas_ce_assessments do |t|
       t.references :cas_client
+      t.references :cas_non_hmis_assessment
       t.references :hmis_client
       t.references :program
       t.date :assessment_date
