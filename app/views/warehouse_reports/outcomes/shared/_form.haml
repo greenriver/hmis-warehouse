@@ -5,15 +5,16 @@
         = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), placeholder: 'All', as: :select_two, input_html: { multiple: true }, include_blank: false, label: 'Data Sources'
       .col
         = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), placeholder: 'All', as: :grouped_select_two, group_method: :last, input_html: { multiple: true }, include_blank: false, label: 'Organizations'
-      - unless GrdaWarehouse::Config.get(:multi_coc_installation)
-        .col
-          = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, project_type_ids: @filter.project_type_numbers)}}, include_blank: false
+    .row
+      .col
+        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, project_type_ids: @filter.project_type_numbers)}}, include_blank: false
+      .col
+        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), input_html: {multiple: true, placeholder: 'Any Project Group'}, label: 'Project Groups', as: :select_two, placeholder: 'Any Project Group'
+
     - if GrdaWarehouse::Config.get(:multi_coc_installation)
       .row
         .col
           = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), placeholder: 'All', as: :select_two, input_html: { multiple: true }, include_blank: false, label: 'CoC Codes'
-        .col
-          = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, project_type_ids: @filter.project_type_numbers)}}, include_blank: false
     .row
       .col
         = f.input :start, collection: @start_months, label: 'Start', as: :select_two

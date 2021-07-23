@@ -29,34 +29,34 @@ module GrdaWarehouse::Hud
     # NOTE: you need to add a distinct to this or group it to keep from getting repeats
     scope :residential, -> {
       joins(:projects).where(
-        Project.arel_table[:ProjectType].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+        Project.arel_table[:ProjectType].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS),
       )
     }
 
     scope :dmh, -> do
       where(dmh: true)
     end
-    scope :viewable_by, -> (user) do
-      qc = -> (s) { connection.quote_column_name s }
-      q  = -> (s) { connection.quote s }
+    scope :viewable_by, ->(user) do
+      qc = ->(s) { connection.quote_column_name s }
+      q  = ->(s) { connection.quote s }
 
       where(
         [
           has_access_to_organization_through_viewable_entities(user, q, qc),
           has_access_to_organization_through_data_source(user, q, qc),
-          has_access_to_organization_through_projects(user, q, qc)
-        ].join ' OR '
+          has_access_to_organization_through_projects(user, q, qc),
+        ].join(' OR '),
       )
     end
 
-    scope :editable_by, -> (user) do
-      qc = -> (s) { connection.quote_column_name s }
-      q  = -> (s) { connection.quote s }
+    scope :editable_by, ->(user) do
+      qc = ->(s) { connection.quote_column_name s }
+      q  = ->(s) { connection.quote s }
 
       where [
         has_access_to_organization_through_viewable_entities(user, q, qc),
-        has_access_to_organization_through_data_source(user, q, qc)
-      ].join ' OR '
+        has_access_to_organization_through_data_source(user, q, qc),
+      ].join(' OR ')
     end
 
     # def self.bed_utilization_by_project filter:
@@ -76,7 +76,7 @@ module GrdaWarehouse::Hud
     #     group_by(&:id)
     # end
 
-    def self.project_scope_for_user user=nil
+    def self.project_scope_for_user user = nil
       if user.present?
         GrdaWarehouse::Hud::Project.viewable_by(user)
       else
@@ -84,15 +84,15 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def self.has_access_to_organization_through_viewable_entities(user, q, qc)
+    def self.has_access_to_organization_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
       group_ids = user.access_groups.pluck(:id)
       group_id_query = if group_ids.empty?
-        "0=1"
+        '0=1'
       else
-        "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
       <<-SQL.squish
 
@@ -100,30 +100,30 @@ module GrdaWarehouse::Hud
           SELECT 1 FROM
             #{viewability_table}
             WHERE
-              #{viewability_table}.#{qc.('entity_id')}   = #{organization_table}.#{qc.('id')}
+              #{viewability_table}.#{qc.call('entity_id')}   = #{organization_table}.#{qc.call('id')}
               AND
-              #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
+              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
               AND
-              #{organization_table}.#{qc.(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
+              #{organization_table}.#{qc.call(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
         )
 
       SQL
     end
 
-    def self.has_access_to_organization_through_data_source(user, q, qc)
+    def self.has_access_to_organization_through_data_source(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
       data_source_table  = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
       group_ids = user.access_groups.pluck(:id)
       group_id_query = if group_ids.empty?
-        "0=1"
+        '0=1'
       else
-        "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -134,32 +134,32 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{data_source_table}
             ON
-              #{viewability_table}.#{qc.('entity_id')}   = #{data_source_table}.#{qc.('id')}
+              #{viewability_table}.#{qc.call('entity_id')}   = #{data_source_table}.#{qc.call('id')}
               AND
-              #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::DataSource.sti_name)}
+              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::DataSource.sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
               AND
-              #{data_source_table}.#{qc.(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
+              #{data_source_table}.#{qc.call(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
             WHERE
-              #{organization_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
+              #{organization_table}.#{qc.call('data_source_id')} = #{data_source_table}.#{qc.call('id')}
         )
 
       SQL
     end
 
-    def self.has_access_to_organization_through_projects(user, q, qc)
+    def self.has_access_to_organization_through_projects(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table      = GrdaWarehouse::Hud::Project.quoted_table_name
       organization_table = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
       group_ids = user.access_groups.pluck(:id)
       group_id_query = if group_ids.empty?
-        "0=1"
+        '0=1'
       else
-        "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -170,19 +170,19 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{project_table}
             ON
-              #{viewability_table}.#{qc.('entity_id')}   = #{project_table}.#{qc.('id')}
+              #{viewability_table}.#{qc.call('entity_id')}   = #{project_table}.#{qc.call('id')}
               AND
-              #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
+              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::Hud::Project.sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
             WHERE
-              #{project_table}.#{qc.('data_source_id')} = #{organization_table}.#{qc.('data_source_id')}
+              #{project_table}.#{qc.call('data_source_id')} = #{organization_table}.#{qc.call('data_source_id')}
               AND
-              #{project_table}.#{qc.('OrganizationID')} = #{organization_table}.#{qc.('OrganizationID')}
+              #{project_table}.#{qc.call('OrganizationID')} = #{organization_table}.#{qc.call('OrganizationID')}
               AND
-              #{project_table}.#{qc.(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
+              #{project_table}.#{qc.call(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
         )
 
       SQL
@@ -190,10 +190,9 @@ module GrdaWarehouse::Hud
 
     # when we export, we always need to replace OrganizationID with the value of id
     def self.to_csv(scope:)
-      attributes = self.hud_csv_headers.dup
+      attributes = hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:OrganizationID)] = :id
-
 
       CSV.generate(headers: true) do |csv|
         csv << headers
@@ -202,7 +201,7 @@ module GrdaWarehouse::Hud
           csv << attributes.map do |attr|
             v = i.send(attr)
             if v.is_a? Date
-              v = v.strftime("%Y-%m-%d")
+              v = v.strftime('%Y-%m-%d')
             elsif v.is_a? Time
               v = v.to_formatted_s(:db)
             end
@@ -228,7 +227,7 @@ module GrdaWarehouse::Hud
       query = "%#{text}%"
 
       where(
-        arel_table[:OrganizationName].matches(query)
+        arel_table[:OrganizationName].matches(query),
       )
     end
 
@@ -249,7 +248,7 @@ module GrdaWarehouse::Hud
 
     def destroy_dependents!
       projects.map(&:destroy_dependents!)
-      projects.update_all(DateDeleted: Time.current)
+      projects.update_all(DateDeleted: Time.current, source_hash: nil)
     end
   end
 end

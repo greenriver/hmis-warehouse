@@ -55,6 +55,7 @@ module Filters
     attribute :chronic_status, Boolean, default: false
     attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
     attribute :limit_to_vispdat, Symbol, default: :all_clients
+    attribute :times_homeless_in_last_three_years, Array, default: []
 
     validates_presence_of :start, :end
 
@@ -113,6 +114,7 @@ module Filters
       self.limit_to_vispdat = vispdat_limit if available_vispdat_limits.values.include?(vispdat_limit)
       ensure_dates_work if valid?
       self.ph = filters.dig(:ph).in?(['1', 'true', true])
+      self.times_homeless_in_last_three_years = filters.dig(:times_homeless_in_last_three_years)&.reject(&:blank?)&.map { |m| m.to_i }
       self
     end
     alias update set_from_params
@@ -152,6 +154,7 @@ module Filters
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
           limit_to_vispdat: limit_to_vispdat,
           enforce_one_year_range: enforce_one_year_range,
+          times_homeless_in_last_three_years: times_homeless_in_last_three_years,
         },
       }
     end
@@ -196,6 +199,7 @@ module Filters
         dv_status: [],
         prior_living_situation_ids: [],
         length_of_times: [],
+        times_homeless_in_last_three_years: [],
       ]
     end
 
@@ -231,6 +235,7 @@ module Filters
         opts['Chronically Homeless'] = 'Yes' if chronic_status
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
+        opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
       end
     end
 
@@ -485,6 +490,14 @@ module Filters
       available_vispdat_limits.invert[limit_to_vispdat]
     end
 
+    def available_times_homeless_in_last_three_years
+      ::HUD.times_homeless_options
+    end
+
+    def chosen_times_homeless_in_last_three_years
+      available_times_homeless_in_last_three_years.invert[times_homeless_in_last_three_years]
+    end
+
     def project_type_ids
       ids = GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
         *project_type_codes.reject(&:blank?).map(&:to_sym),
@@ -513,7 +526,8 @@ module Filters
         twenty_five_to_twenty_nine: '25 - 29',
         thirty_to_thirty_nine: '30 - 39',
         forty_to_forty_nine: '40 - 49',
-        fifty_to_fifty_nine: '50 - 59',
+        fifty_to_fifty_four: '50 - 54',
+        fifty_five_to_fifty_nine: '55 - 59',
         sixty_to_sixty_one: '60 - 61',
         over_sixty_one: '62+',
       }.invert.freeze
@@ -651,6 +665,8 @@ module Filters
       when :limit_to_vispdat
         value = nil if limit_to_vispdat == :all_clients
         'Client Limits'
+      when :times_homeless_in_last_three_years
+        'Times Homeless in Past 3 Years'
       end
 
       return unless value.present?
@@ -706,6 +722,8 @@ module Filters
         'Yes' if heads_of_household || hoh_only
       when :limit_to_vispdat
         chosen_vispdat_limits
+      when :times_homeless_in_last_three_years
+        chosen_times_homeless_in_last_three_years
       end
     end
 

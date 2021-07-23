@@ -97,7 +97,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     # Override as necessary
-    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
+    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:) # rubocop:disable Lint/UnusedMethodArgument
       involved_warehouse_scope(
         data_source_id: data_source_id,
         project_ids: project_ids,

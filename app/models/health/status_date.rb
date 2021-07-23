@@ -20,11 +20,11 @@ module Health
       where(enrolled: true)
     end
 
-    scope :enrolled_before, -> (date) do
+    scope :enrolled_before, ->(date) do
       enrolled.where(arel_table[:date].lt(date))
     end
 
-    scope :engaged_before, -> (date) do
+    scope :engaged_before, ->(date) do
       engaged.where(arel_table[:date].lt(date))
     end
 

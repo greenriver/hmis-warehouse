@@ -65,7 +65,7 @@ module Health
     # has_many :goals, class_name: 'Health::Goal::Base', through: :careplans
     has_many :goals, class_name: 'Health::Goal::Base'
     # NOTE: not sure if this is the right order but it seems they should have some kind of order
-    has_many :hpc_goals, -> {order 'health_goals.start_date'}, class_name: 'Health::Goal::Hpc'
+    has_many :hpc_goals, -> { order 'health_goals.start_date' }, class_name: 'Health::Goal::Hpc'
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
@@ -116,43 +116,42 @@ module Health
 
     scope :participating, -> do
       joins(:patient_referral).
-      merge(Health::PatientReferral.not_confirmed_rejected)
+        merge(Health::PatientReferral.not_confirmed_rejected)
     end
 
-    scope :active_on_date, -> (date) do
+    scope :active_on_date, ->(date) do
       joins(:patient_referrals).
-      merge(Health::PatientReferral.where(
-        hpr_t[:enrollment_start_date].lteq(date).
-        and(hpr_t[:disenrollment_date].gt(date).
-          or(hpr_t[:disenrollment_date].eq(nil))
-        )
-      ))
+        merge(Health::PatientReferral.where(
+                hpr_t[:enrollment_start_date].lteq(date).
+                  and(hpr_t[:disenrollment_date].gt(date).
+                    or(hpr_t[:disenrollment_date].eq(nil))),
+              ))
     end
 
-    scope :active_between, -> (start_date, end_date) do
+    scope :active_between, ->(start_date, end_date) do
       where(
         id: Health::PatientReferral.active_within_range(
           start_date: start_date,
-          end_date: end_date
-        ).select(:patient_id)
+          end_date: end_date,
+        ).select(:patient_id),
       )
     end
 
-    scope :unprocessed, -> { where client_id: nil}
-    scope :consent_revoked, -> {where.not(consent_revoked: nil)}
-    scope :consented, -> {where(consent_revoked: nil)}
+    scope :unprocessed, -> { where client_id: nil }
+    scope :consent_revoked, -> { where.not(consent_revoked: nil) }
+    scope :consented, -> { where(consent_revoked: nil) }
 
     scope :with_unsent_eligibility_notification, -> { where eligibility_notification: nil }
     scope :program_ineligible, -> do
       where coverage_level: [
         Health::Patient.coverage_level_none_value,
-        Health::Patient.coverage_level_standard_value
+        Health::Patient.coverage_level_standard_value,
       ]
     end
     scope :no_coverage, -> { where coverage_level: Health::Patient.coverage_level_none_value }
     scope :standard_coverage, -> { where coverage_level: Health::Patient.coverage_level_standard_value }
 
-    scope :full_text_search, -> (text) do
+    scope :full_text_search, ->(text) do
       text_search(text, patient_scope: current_scope)
     end
 
@@ -161,7 +160,7 @@ module Health
     end
 
     scope :has_ssm, -> do
-       # This lives in the warehouse DB and must be materialized
+      # This lives in the warehouse DB and must be materialized
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:client_id)
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
       epic_ssm_patient_id_scope = Health::EpicSsm.distinct.joins(:patient).select(hp_t[:id].to_sql)
@@ -169,11 +168,11 @@ module Health
       where(
         arel_table[:client_id].in(hmis_ssm_client_ids).
         or(
-          arel_table[:id].in(Arel.sql ssm_patient_id_scope.to_sql)
+          arel_table[:id].in(Arel.sql(ssm_patient_id_scope.to_sql)),
         ).
         or(
-          arel_table[:id].in(Arel.sql epic_ssm_patient_id_scope.to_sql)
-        )
+          arel_table[:id].in(Arel.sql(epic_ssm_patient_id_scope.to_sql)),
+        ),
       )
     end
 
@@ -182,10 +181,10 @@ module Health
       epic_cha_patient_id_scope = Health::EpicCha.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       where(
-        arel_table[:id].in(Arel.sql cha_patient_id_scope.to_sql).
+        arel_table[:id].in(Arel.sql(cha_patient_id_scope.to_sql)).
         or(
-          arel_table[:id].in(Arel.sql epic_cha_patient_id_scope.to_sql)
-        )
+          arel_table[:id].in(Arel.sql(epic_cha_patient_id_scope.to_sql)),
+        ),
       )
     end
 
@@ -203,7 +202,7 @@ module Health
     # Has Participation Form
     # Has Release Form
     # Has CHA
-    scope :engaged, -> (on: Date.current) do
+    scope :engaged, ->(on: Date.current) do
       # This lives in the warehouse DB and must be materialized
       # hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
       first_date = Health::PatientReferral.first_enrollment_start_date&.to_time || '2015-01-01'.to_time
@@ -246,29 +245,29 @@ module Health
       # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       where(
-        arel_table[:id].in(Arel.sql participation_form_patient_id_scope.to_sql).
+        arel_table[:id].in(Arel.sql(participation_form_patient_id_scope.to_sql)).
         and(
-          arel_table[:id].in(Arel.sql release_form_patient_id_scope.to_sql)
+          arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)),
         ).
         and(
-          arel_table[:id].in(Arel.sql cha_patient_id_scope.to_sql).
+          arel_table[:id].in(Arel.sql(cha_patient_id_scope.to_sql)).
           or(
-            arel_table[:id].in(Arel.sql epic_cha_patient_id_scope.to_sql)
-          )
+            arel_table[:id].in(Arel.sql(epic_cha_patient_id_scope.to_sql)),
+          ),
         ).
         and(
-          arel_table[:id].in(Arel.sql ssm_patient_id_scope.to_sql).
+          arel_table[:id].in(Arel.sql(ssm_patient_id_scope.to_sql)).
           or(
-            arel_table[:id].in(Arel.sql epic_ssm_patient_id_scope.to_sql)
-          )
+            arel_table[:id].in(Arel.sql(epic_ssm_patient_id_scope.to_sql)),
+          ),
         ).
         and(
-          arel_table[:id].in(Arel.sql pctp_signed_patient_id_scope.to_sql)
-        )
+          arel_table[:id].in(Arel.sql(pctp_signed_patient_id_scope.to_sql)),
+        ),
       )
     end
 
-    scope :engagement_required_by, -> (date) do
+    scope :engagement_required_by, ->(date) do
       not_engaged.where(arel_table[:engagement_date].lteq(date))
     end
 
@@ -280,29 +279,32 @@ module Health
     scope :no_recent_qualifying_activities, -> do
       where.not(
         id: Health::QualifyingActivity.in_range(1.months.ago..Date.current).
-          distinct.select(:patient_id)
+          distinct.select(:patient_id),
       )
     end
 
-    # patients with no qualifying activities in the current calendar month
+    # patients with no payable qualifying activities in the current calendar month
     scope :no_qualifying_activities_this_month, -> do
       where.not(
-        id: Health::QualifyingActivity.in_range(Date.current.beginning_of_month..Date.current).
-          distinct.select(:patient_id)
+        id: Health::QualifyingActivity.
+          payable.
+          not_valid_unpayable.
+          in_range(Date.current.beginning_of_month..Date.current).
+          distinct.select(:patient_id),
       )
     end
 
-    scope :received_qualifying_activities_within, -> (range) do
+    scope :received_qualifying_activities_within, ->(range) do
       where(
         id: Health::QualifyingActivity.in_range(range).
-          distinct.select(:patient_id)
+          distinct.select(:patient_id),
       )
     end
 
-    scope :with_unsubmitted_qualifying_activities_within, -> (range) do
+    scope :with_unsubmitted_qualifying_activities_within, ->(range) do
       where(
         id: Health::QualifyingActivity.unsubmitted.in_range(range).
-          distinct.select(:patient_id)
+          distinct.select(:patient_id),
       )
     end
 
@@ -310,15 +312,15 @@ module Health
       where.not(housing_status: [nil, ''], housing_status_timestamp: nil)
     end
 
-    scope :enrolled_before, -> (date) do
+    scope :enrolled_before, ->(date) do
       joins(:status_dates).merge(Health::StatusDate.enrolled_before(date))
     end
 
-    scope :engaged_before, -> (date) do
+    scope :engaged_before, ->(date) do
       joins(:status_dates).merge(Health::StatusDate.engaged_before(date))
     end
 
-    scope :engaged_for, -> (range) do
+    scope :engaged_for, ->(range) do
       where(id: Health::StatusDate.engaged.group(h_sd_t[:patient_id]).
         having(nf('count', [h_sd_t[:patient_id]]).between(range)).select(:patient_id))
     end
@@ -437,21 +439,21 @@ module Health
 
     def reenroll!(referral)
       # Create a "Care Plan Complete QA" if the patient has an unexpired care plan as of the enrollment start date
-      if careplans.fully_signed.where(h_cp_t[:provider_signed_on].gteq(referral.enrollment_start_date - 1.year)).exists?
-        user = User.setup_system_user
-        qualifying_activities.create(
-          activity: :pctp_signed,
-          date_of_activity: referral.enrollment_start_date,
+      return unless careplans.fully_signed.where(h_cp_t[:provider_signed_on].gteq(referral.enrollment_start_date - 1.year)).exists?
 
-          user_id: user.id,
-          user_full_name: user.name,
-          source: referral,
-          follow_up: 'None',
-          mode_of_contact: :other,
-          mode_of_contact_other: 'MassHealth re-enrollment',
-          reached_client: :yes,
-        )
-      end
+      user = User.setup_system_user
+      qualifying_activities.create(
+        activity: :pctp_signed,
+        date_of_activity: referral.enrollment_start_date,
+
+        user_id: user.id,
+        user_full_name: user.name,
+        source: referral,
+        follow_up: 'None',
+        mode_of_contact: :other,
+        mode_of_contact_other: 'MassHealth re-enrollment',
+        reached_client: :yes,
+      )
     end
 
     def age(on_date:)
@@ -488,13 +490,15 @@ module Health
         self.death_date = epic_patient.death_date
         self.pilot = epic_patient.pilot
       end
-      self.save if self.changed?
+
       if client.present? && client.data_source_id == GrdaWarehouse::DataSource.health_authoritative_id
-        client.FirstName = self.first_name
-        client.LastName = self.last_name
-        client.SSN = self.ssn
+        client.FirstName = first_name
+        client.LastName = last_name
+        client.SSN = ssn
         client.save if client.changed?
       end
+
+      save if changed?
     end
 
     def self.update_demographic_from_sources
@@ -502,11 +506,12 @@ module Health
     end
 
     def available_team_members
-      team_members.map{|t| [t.full_name, t.id]}
+      team_members.map { |t| [t.full_name, t.id] }
     end
 
     def days_to_engage
       return 0 unless engagement_date.present?
+
       (engagement_date - Date.current).to_i.clamp(0, 365)
     end
 
@@ -544,12 +549,13 @@ module Health
     def accessible_by_user user
       return false unless user.present?
       return true if user.can_administer_health?
+
       if pilot_patient?
         return true if consented? && (user.can_edit_client_health? || user.can_view_client_health?)
-      else # hpc_patient?
-        return true if patient_referrals.exists? && user.has_some_patient_access?
+      elsif patient_referrals.exists? && user.has_some_patient_access? # hpc_patient?
+        return true
       end
-      return false
+      false
     end
 
     def anything_expiring?
@@ -685,7 +691,7 @@ module Health
     end
 
     def recent_case_management_note
-      @recent_cmn ||= sdh_case_management_notes.recent.with_phone&.first
+      @recent_case_management_note ||= sdh_case_management_notes.recent.with_phone&.first
     end
 
     # Provide a means of seeing all the case notes, regardless of data source in one location
@@ -725,14 +731,14 @@ module Health
           user: form.provider_name,
         }
       end
-      case_notes.sort_by{|m| m[:date]}.reverse
+      case_notes.sort_by { |m| m[:date] }.reverse
     end
 
     def most_recent_ssn
       [
-        [self.ssn.presence, updated_at.to_i],
+        [ssn.presence, updated_at.to_i],
         [recent_cha&.ssn.presence, recent_cha&.updated_at.to_i],
-        [client.SSN.presence, client.DateUpdated.to_i]
+        [client.SSN.presence, client.DateUpdated.to_i],
       ].sort_by(&:last).map(&:first).compact.reverse.first
     end
 
@@ -744,7 +750,7 @@ module Health
       note = recent_case_management_note
       [
         [recent_cha&.phone.presence, recent_cha&.updated_at.to_i],
-        [note&.client_phone_number.presence, note&.updated_at.to_i]
+        [note&.client_phone_number.presence, note&.updated_at.to_i],
       ].sort_by(&:last).map(&:first).compact.reverse.first
     end
 
@@ -778,9 +784,9 @@ module Health
           'Veteran'
         elsif status == 'No'
           'Non-veteran'
-        else
-          nil
         end
+
+        nil
       end
     end
 
@@ -811,6 +817,7 @@ module Health
     # most recently updated Epic Patient
     def epic_patient
       return false unless epic_patients.exists?
+
       epic_patients.order(updated_at: :desc).first
     end
 
@@ -819,7 +826,7 @@ module Health
     end
 
     def current_email
-      @current_email||= email || client.email || 'patient@openpath.biz'
+      @current_email ||= email || client.email || 'patient@openpath.biz'
     end
 
     def advanced_directive
@@ -828,7 +835,7 @@ module Health
         relationship: recent_cha&.answer(:r_q6b),
         address: recent_cha&.answer(:r_q6c),
         phone: recent_cha&.answer(:r_q6d),
-        comments: recent_cha&.answer(:r_q6e)
+        comments: recent_cha&.answer(:r_q6e),
       }
     end
 
@@ -863,23 +870,24 @@ module Health
 
     # This does not return a scope
     def valid_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).to_a.select{ |qa| qa.compute_procedure_valid? }
+      qualified_activities_since(date: date).to_a.select(&:compute_procedure_valid?)
     end
 
     # This does not return a scope
     def valid_payable_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).to_a.select{ |qa| qa.compute_procedure_valid? && ! qa.compute_valid_unpayable? }
+      qualified_activities_since(date: date).to_a.select { |qa| qa.compute_procedure_valid? && ! qa.compute_valid_unpayable? }
     end
 
     # This does not return a scope
     def valid_unpayable_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).to_a.select{ |qa| qa.compute_valid_unpayable? }
+      qualified_activities_since(date: date).to_a.select(&:compute_valid_unpayable?)
     end
 
     def import_epic_team_members
       # I think this updates this for changes made here PT story #158636393
       potential_team = epic_team_members.unprocessed.to_a
       return unless potential_team.any?
+
       potential_team.each do |epic_member|
         if epic_member.name.include?(',')
           (last_name, first_name) = epic_member.name.split(',', 2).map(&:strip)
@@ -892,29 +900,29 @@ module Health
         klass = Health::Team::Member.class_from_member_type_name(relationship)
         at = klass.arel_table
         if epic_member.email?
-          member = klass.where(at[:email].lower.eq(epic_member&.email.downcase).to_sql).
+          member = klass.where(at[:email].lower.eq(epic_member.email.downcase).to_sql).
             where(patient_id: id).
             first_or_initialize
         elsif first_name && last_name
           member = klass.where(
             at[:first_name].lower.eq(first_name&.downcase).
-            and(at[:last_name].lower.eq(last_name&.downcase)).to_sql
+            and(at[:last_name].lower.eq(last_name&.downcase)).to_sql,
           ).
-          where(patient_id: id).
-          first_or_initialize
+            where(patient_id: id).
+            first_or_initialize
         else
           next
         end
         member.assign_attributes(
-            patient_id: id,
-            user_id: user.id,
-            first_name: first_name,
-            last_name: last_name,
-            title: epic_member.relationship,
-            email: epic_member.email,
-            phone: epic_member.phone,
-            organization: epic_member.email&.split('@')&.last || 'Unknown',
-          )
+          patient_id: id,
+          user_id: user.id,
+          first_name: first_name,
+          last_name: last_name,
+          title: epic_member.relationship,
+          email: epic_member.email,
+          phone: epic_member.phone,
+          organization: epic_member.email&.split('@')&.last || 'Unknown',
+        )
         member.save(validate: false)
         epic_member.update(processed: Time.now)
       end
@@ -973,19 +981,21 @@ module Health
         last_name: user.last_name,
         email: user.email,
         organization: health_agency&.name,
-        user_id: current_user.id
+        user_id: current_user.id,
       )
       team_member.save!
     end
 
     def available_care_coordinators
       return [] unless health_agency.present?
+
       user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
       User.where(id: user_ids)
     end
 
     def available_nurse_care_managers
       return [] unless health_agency.present?
+
       user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
       User.where(id: user_ids)
     end
@@ -993,19 +1003,19 @@ module Health
     def housing_stati
       client.case_management_notes.map do |form|
         first_section = form.answers[:sections].first
-        if first_section.present?
-          answer = form.answers[:sections].first[:questions].select do |question|
-            question[:question] == "A-6. Where did you sleep last night?"
-          end.first
-          status = client.class.health_housing_bucket(answer[:answer])
-          OpenStruct.new({
-            date: form.collected_at.to_date,
-            postitive_outcome: client.class.health_housing_positive_outcome?(answer[:answer]),
-            outcome: status,
-            detail: answer[:answer],
-          })
-        end
-      end.select{|row| row.outcome.present?}.
+        next unless first_section.present?
+
+        answer = form.answers[:sections].first[:questions].select do |question|
+          question[:question] == 'A-6. Where did you sleep last night?'
+        end.first
+        status = client.class.health_housing_bucket(answer[:answer])
+        OpenStruct.new(
+          date: form.collected_at.to_date,
+          postitive_outcome: client.class.health_housing_positive_outcome?(answer[:answer]),
+          outcome: status,
+          detail: answer[:answer],
+        )
+      end.select { |row| row.outcome.present? }.
         index_by(&:date).values.
         sort_by(&:date).reverse
     end
@@ -1035,13 +1045,12 @@ module Health
         joins(:service_history_enrollment).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.visible_in_window_to(user).entry.ongoing.residential).
         order(date: :desc).first
+      return unless service.present?
 
-      if service.present?
-        {
-          date: service.date,
-          location: service.service_history_enrollment&.organization&.name || 'Unable to determine location'
-        }
-      end
+      {
+        date: service.date,
+        location: service.service_history_enrollment&.organization&.name || 'Unable to determine location',
+      }
     end
 
     def consented_date
@@ -1061,9 +1070,7 @@ module Health
     end
 
     def cha_renewal_date
-      @cha_renewal_date ||= if cha_reviewed_date.present?
-        cha_reviewed_date + 1.years
-      end
+      @cha_renewal_date ||= (cha_reviewed_date + 1.years if cha_reviewed_date.present?)
     end
 
     def care_plan_patient_signed_date
@@ -1075,9 +1082,7 @@ module Health
     end
 
     def care_plan_renewal_date
-      if care_plan_provider_signed_date.present?
-        care_plan_provider_signed_date + 1.years
-      end
+      care_plan_provider_signed_date + 1.years if care_plan_provider_signed_date.present?
     end
 
     def care_plan_signed?
@@ -1092,10 +1097,10 @@ module Health
       Health::QualifyingActivity.
         where(
           source_type: [
-            "GrdaWarehouse::HmisForm",
-            "Health::SdhCaseManagementNote",
-            "Health::EpicQualifyingActivity",
-          ]
+            'GrdaWarehouse::HmisForm',
+            'Health::SdhCaseManagementNote',
+            'Health::EpicQualifyingActivity',
+          ],
         ).
         joins(:patient).
         merge(Health::Patient.where(id: id)).
@@ -1106,8 +1111,8 @@ module Health
       @ed_ip_visits_for_chart ||= begin
         visits = ed_ip_visits.valid.group(
           Arel.sql("DATE_TRUNC('month', admit_date)"),
-          :encounter_major_class
-        ).count.sort_by{ |(date, type), _| [date, type] }
+          :encounter_major_class,
+        ).count.sort_by { |(date, type), _| [date, type] }
         dates = {}
         visits.each do |(date, type), count|
           date = date.to_date
@@ -1120,21 +1125,21 @@ module Health
                 {
                   'Emergency' => 0,
                   'Inpatient' => 0,
-                }
+                },
               ]
             end.to_h
           end
           dates[year][date]['Emergency'] += count if type == 'Emergency'
           dates[year][date]['Inpatient'] += count if type == 'Inpatient'
         end
-        dates.map do |year, visits|
+        dates.map do |year, visits_in_year|
           [
             year,
             {
-              'x' => visits.keys,
-              'Emergency' => visits.values.map{|m| m['Emergency'] },
-              'Inpatient' => visits.values.map{|m| m['Inpatient'] },
-            }
+              'x' => visits_in_year.keys,
+              'Emergency' => visits_in_year.values.map { |m| m['Emergency'] },
+              'Inpatient' => visits_in_year.values.map { |m| m['Inpatient'] },
+            },
           ]
         end.to_h
       end
@@ -1142,10 +1147,10 @@ module Health
 
     def self.sort_options
       [
-        {title: 'Patient Last name A-Z', column: :patient_last_name, direction: 'asc'},
-        {title: 'Patient Last name Z-A', column: :patient_last_name, direction: 'desc'},
-        {title: 'Patient First name A-Z', column: :patient_first_name, direction: 'asc'},
-        {title: 'Patient First name Z-A', column: :patient_first_name, direction: 'desc'},
+        { title: 'Patient Last name A-Z', column: :patient_last_name, direction: 'asc' },
+        { title: 'Patient Last name Z-A', column: :patient_last_name, direction: 'desc' },
+        { title: 'Patient First name A-Z', column: :patient_first_name, direction: 'asc' },
+        { title: 'Patient First name Z-A', column: :patient_first_name, direction: 'desc' },
       ]
     end
 
@@ -1166,25 +1171,26 @@ module Health
       :asc
     end
 
-    def self.ransackable_scopes(auth_object = nil)
+    def self.ransackable_scopes(_auth_object = nil)
       [:full_text_search]
     end
 
     def self.text_search(text, patient_scope:)
       return none unless text.present?
+
       text.strip!
       patient_t = arel_table
 
       # Explicitly search for only last, first if there's a comma in the search
       if text.include?(',')
         last, first = text.split(',').map(&:strip)
-        where = patient_t[:first_name].lower.matches("#{first.downcase}%")
-          .and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
+        where = patient_t[:first_name].lower.matches("#{first.downcase}%").
+          and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
       # Explicity search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
-        where = patient_t[:first_name].lower.matches("#{first.downcase}%")
-          .and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
+        where = patient_t[:first_name].lower.matches("#{first.downcase}%").
+          and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
       else
         query = "%#{text.downcase}%"
 

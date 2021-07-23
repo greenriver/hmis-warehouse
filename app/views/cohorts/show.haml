@@ -15,7 +15,7 @@
     %i.icon-warning
     This cohort is inactive.  Changes will not be reflected on client dashboards.
 
-= render 'nav'
+= render 'nav', system_cohort: @cohort.system_cohort, active_tab: 'cohort'
 = render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)
 = render 'text_size_options'
 = render 'thresholds'
@@ -28,7 +28,7 @@
       .percent-loaded
 
 
-- if @cohort.clients.blank?
+- if @cohort.clients.blank? && ! @cohort.system_cohort
   %p.text-center.mt-2
     = link_to new_cohort_cohort_client_path(@cohort), class: 'btn btn-primary' do
       %i.icon-plus

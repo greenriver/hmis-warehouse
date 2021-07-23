@@ -5,25 +5,17 @@
 ###
 
 module Confidence
-  class SourceEnrollmentsJob < BaseJob
-    queue_as :long_running
-    include ArelHelper
-
-    def initialize(client_ids:)
-      @client_ids = client_ids
+  class SourceEnrollmentsJob < ConfidenceJob
+    private def dm_model
+      GrdaWarehouse::Confidence::SourceEnrollments
     end
 
-    def perform
-      @client_ids.each do |id|
-        GrdaWarehouse::Confidence::SourceEnrollments.calculate_queued_for_client(id)
+    private def counts_for_batch(batch)
+      counts_by_client_id = GrdaWarehouse::Hud::Client.where(id: @client_ids).joins(:source_enrollments).group(:id).count
+      # Set up the data for the batch update
+      batch.each do |record|
+        record.value = counts_by_client_id[record.resource_id] || 0
       end
-    end
-
-    def enqueue(job, queue: :long_running)
-    end
-
-    def max_attempts
-      2
     end
   end
 end

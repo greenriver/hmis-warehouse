@@ -21,11 +21,13 @@ module WarehouseReports
     end
 
     def set_jobs
-      @job_reports = Delayed::Job.jobs_for_class(['HmisSixOneOneExportJob', 'HmisTwentyTwentyExportJob']).order(run_at: :desc).map do |job|
+      @job_reports = Delayed::Job.jobs_for_class(::Filters::HmisExport.job_classes).order(run_at: :desc).map do |job|
         parameters = YAML.load(job.handler).job_data['arguments'].first # rubocop:disable Security/YAMLLoad
         parameters.delete('_aj_symbol_keys')
+        parameters.delete('_aj_globalid')
         parameters['project_ids'] = parameters.delete('projects')
         report = GrdaWarehouse::HmisExport.new(parameters)
+
         [job.run_at, report]
       end
     end
@@ -49,12 +51,8 @@ module WarehouseReports
           flash[:error] = 'Invalid S3 Configuration'
           render :index
         else
-          case @filter.version
-          when '6.11'
-            WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
-          when '2020'
-            WarehouseReports::HmisTwentyTwentyExportJob.perform_later(@filter.options_for_hmis_export(2020).as_json, report_url: warehouse_reports_hmis_exports_url)
-          end
+          @filter.schedule_job(report_url: warehouse_reports_hmis_exports_url)
+
           redirect_to warehouse_reports_hmis_exports_path
         end
       else
@@ -87,15 +85,15 @@ module WarehouseReports
     end
 
     def export_source
-      GrdaWarehouse::HmisExport
+      ::GrdaWarehouse::HmisExport
     end
 
     def recurring_export_source
-      GrdaWarehouse::RecurringHmisExport
+      ::GrdaWarehouse::RecurringHmisExport
     end
 
     def recurring_export_link_source
-      GrdaWarehouse::RecurringHmisExportLink
+      ::GrdaWarehouse::RecurringHmisExportLink
     end
 
     def export_scope

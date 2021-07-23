@@ -65,17 +65,17 @@ module HudApr::Generators::Shared::Fy2020
         # Number of leavers
         {
           cell: 'B5',
-          clause: a_t[:last_date_in_program].lteq(@report.end_date),
+          clause: leavers_clause,
         },
         # Number of adult leavers
         {
           cell: 'B6',
-          clause: a_t[:last_date_in_program].lteq(@report.end_date).and(adult_clause),
+          clause: leavers_clause.and(adult_clause),
         },
         # Number of adult and HoH leavers
         {
           cell: 'B7',
-          clause: a_t[:last_date_in_program].lteq(@report.end_date).
+          clause: leavers_clause.
             and(adult_clause.
               or(a_t[:head_of_household].eq(true))),
         },

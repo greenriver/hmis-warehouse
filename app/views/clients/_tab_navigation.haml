@@ -77,7 +77,7 @@
       },
       polymorphic_path(files_path_generator, client_id: @client) => {
         title: 'Files', #'File Uploads'
-        permission: can_manage_window_client_files? || can_see_own_file_uploads?,
+        permission: can_manage_window_client_files? || can_see_own_file_uploads? || can_generate_homeless_verification_pdfs?,
       },
       polymorphic_path(users_path_generator, client_id: @client) => {
         title: 'Relationships',

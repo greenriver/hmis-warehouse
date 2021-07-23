@@ -16,23 +16,22 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   belongs_to :warehouse_client, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :client_id, primary_key: :destination_id
   has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: :client_id, foreign_key: :client_id
 
-  scope :service_history, -> {where(routine: 'service_history')}
+  scope :service_history, -> { where(routine: 'service_history') }
 
-  def self.update_cached_counts client_ids: []
+  def self.update_cached_counts(client_ids: [], force_cohort_calculation: false)
     existing_by_client_id = where(
       client_id: client_ids,
-      routine: :service_history
+      routine: :service_history,
     ).index_by(&:client_id)
 
-    cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).
-      merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id).to_set
+    cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id).to_set
     assessment_client_ids = GrdaWarehouse::Hud::Client.distinct.joins(:coc_assessment_touch_points).pluck(:id)
 
     calcs = StatsCalculator.new(client_ids: client_ids)
     client_ids.each do |client_id|
       processed = existing_by_client_id[client_id] || where(
         client_id: client_id,
-        routine: :service_history
+        routine: :service_history,
       ).first_or_initialize
 
       processed.assign_attributes(
@@ -50,9 +49,9 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
         days_homeless_plus_overrides: calcs.homeless_counts_plus_overrides[client_id] || 0,
       )
-      if client_id.in?(cohort_client_ids + assessment_client_ids)
+      if force_cohort_calculation || client_id.in?(cohort_client_ids + assessment_client_ids)
         processed.assign_attributes(
-          CohortCalcs.new(processed.client).as_hash
+          CohortCalcs.new(processed.client).as_hash,
         )
       end
       processed.save if processed.changed?
@@ -64,7 +63,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   class StatsCalculator
     include ArelHelper
 
-    def initialize(client_ids: )
+    def initialize(client_ids:)
       @client_ids = client_ids
     end
 
@@ -82,7 +81,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           where(client_id: @client_ids).
           group(:client_id).
           maximum(:date).each do |client_id, date|
-            dates[client_id] = [ dates[client_id], date ].compact.max
+            dates[client_id] = [dates[client_id], date].compact.max
           end
 
         dates
@@ -90,13 +89,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def first_homeless_dates
-      @first_homeless_dates ||= begin
-        GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
+      @first_homeless_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
         in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES). # for index hinting
         where(client_id: @client_ids).
         group(:client_id).
         minimum(:date)
-      end
     end
 
     def homeless_counts
@@ -133,7 +130,6 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           group(shsm_c[:client_id]).
           count('c.date')
       end
-
     end
 
     def homeless_counts_plus_overrides
@@ -157,7 +153,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:homeless].eq(false)).
           where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])). # for index hinting
-        where(shsm_a[:client_id].in(@client_ids)).
+          where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
           select(shsm_a[:client_id], shsm_a[:date]).
@@ -168,7 +164,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:homeless].eq(true)).
           where(shsm_b[:project_type].in(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)). # for index hinting
-        where(shsm_b[:client_id].in(@client_ids)).
+          where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
           to_sql.
@@ -180,7 +176,6 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           group(shsm_c[:client_id]).
           count('c.date')
       end
-
     end
 
     # days in ES, SO, SH, or TH that don't overlap with PH
@@ -194,7 +189,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:literally_homeless].eq(false)).
-          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])).  # for index hinting
+          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])). # for index hinting
           where(shsm_a[:date].between(3.years.ago.to_date..Date.current)).
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
@@ -287,7 +282,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:literally_homeless].eq(false)).
-          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])).  # for index hinting
+          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])). # for index hinting
           where(shsm_a[:date].between(3.years.ago.to_date..Date.current)).
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
@@ -336,7 +331,6 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         distinct.
         count(:date)
     end
-
   end
 
   # stats used by Cohort reports --
@@ -377,17 +371,15 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     private def household_members
       households = client.households
-      if households.present?
-        households.values.flatten.map do |member|
-          "#{member['FirstName']} #{member['LastName']} (#{member['age']} in #{member['date'].year})"
-        end.uniq.join('; ')
-      end
+      return unless households.present?
+
+      households.values.flatten.map do |member|
+        "#{member['FirstName']} #{member['LastName']} (#{member['age']} in #{member['date'].year})"
+      end.uniq.join('; ')
     end
 
     private def last_homeless_visit
-      client.last_homeless_visits.map do |row|
-        row.join(': ')
-      end.join('; ')
+      client.last_homeless_visits.to_json
     end
 
     private def open_enrollments
