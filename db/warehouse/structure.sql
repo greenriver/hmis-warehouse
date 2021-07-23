@@ -3350,6 +3350,8 @@ CREATE TABLE public.cas_ce_assessments (
     assessment_date date,
     assessment_location character varying,
     assessment_type integer,
+    assessment_level integer,
+    assessment_status integer,
     assessment_created_at timestamp without time zone,
     assessment_updated_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,

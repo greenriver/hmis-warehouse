@@ -8,8 +8,8 @@ class CreateCasCeAssessments < ActiveRecord::Migration[5.2]
       t.date :assessment_date
       t.string :assessment_location
       t.integer :assessment_type
-      t.integer :assessment_type
-      t.integer :assessment_type
+      t.integer :assessment_level
+      t.integer :assessment_status
       t.datetime :assessment_created_at
       t.datetime :assessment_updated_at
 
