@@ -11,6 +11,7 @@ class ProjectCocsController < ApplicationController
   before_action :set_project, only: [:edit, :update]
 
   include ArelHelper
+  include AjaxModalRails::Controller
 
   def edit
   end

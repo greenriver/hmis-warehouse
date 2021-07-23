@@ -1,0 +1,5 @@
+= content_for :modal_title do
+  Add Funder
+= simple_form_for :funder, url: manual_hmis_data_project_funders_path do |f|
+  = render 'manual_hmis_data/form', form: f
+  = f.submit 'Add Funder'
