@@ -164,6 +164,7 @@ module PublicReports
         time_homeless: time_homeless(population),
         time_housed: time_housed(population),
         race_chart: race_chart(population),
+        ethnicity_chart: ethnicity_chart(population),
         household_chart: household_chart(population),
         average_household_size: average_household_size(population),
       }
@@ -438,6 +439,29 @@ module PublicReports
       }.freeze
     end
 
+    private def ethnicity_chart(population)
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          charts[date.iso8601] = {
+            data: with_service_in_quarter(report_scope, date, population).
+              joins(:client).
+              group(c_t[:Ethnicity]).
+              count.
+              map do |e_id, count|
+                # Force any unknown genders to Unknown
+                e_id = nil unless e_id.in?([0, 1])
+                [
+                  ::HUD.ethnicity(e_id) || 'Unknown',
+                  count,
+                ]
+              end,
+            title: _('Ethnicity'),
+            total: total_for(with_service_in_quarter(report_scope, date, population), population),
+          }
+        end
+      end
+    end
+
     private def race_chart(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -697,7 +721,12 @@ module PublicReports
     private def time_housed(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
-          data = {}
+          data = {
+            'less than a month' => 0,
+            'One to six months' => 0,
+            'Six to twelve months' => 0,
+            'More than one year' => 0,
+          }
           counted_clients = Set.new
           with_service_in_quarter(report_scope, date, population).
             order(first_date_in_program: :desc). # Use most-recently started
@@ -711,7 +740,6 @@ module PublicReports
               end
               end_date = [enrollment.last_date_in_program, date.end_of_quarter].compact.min
               days = (end_date - start_date).to_i
-              data[bucket_days(days)] ||= 0
               data[bucket_days(days)] += 1 unless counted_clients.include?(enrollment.client_id)
               counted_clients << enrollment.client_id
             end
