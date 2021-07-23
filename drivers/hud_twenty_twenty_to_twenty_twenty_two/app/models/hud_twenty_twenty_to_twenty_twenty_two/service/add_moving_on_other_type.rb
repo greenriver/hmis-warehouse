@@ -5,10 +5,11 @@
 ###
 #
 
-module HudTwentyTwentyToTwentyTwentyTwo
-  class AddCsvVersionToExport
+module HudTwentyTwentyToTwentyTwentyTwo::Service
+  class AddMovingOnOtherType
     def process(row)
-      row['CSVVersion'] = '2022'
+      row['MovingOnOtherType'] = nil
+
       row
     end
   end
