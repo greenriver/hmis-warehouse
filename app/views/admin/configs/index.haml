@@ -22,6 +22,12 @@
           = f.input :show_partial_ssn_in_window_search_results, label: 'Show partial SSNs in the window search results? (no means don\'t show anything)'
 
       %section.o-section-card
+        %h3 System Cohorts
+        .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :enable_system_cohorts, label: 'Enable system cohorts?'
+          = f.input :currently_homeless_cohort, label: 'Currently Homeless', hint: 'The currently homeless cohort includes all open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
+
+      %section.o-section-card
         %h3 Client Calculations
         .c-card.c-card--flush.c-card--padded.flex-wrap
           = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'

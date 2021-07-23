@@ -203,26 +203,6 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
-      "fingerprint": "183d6735294c38b8c0b0611b9ad3b005663982697937cb37c89c72f00df84e1f",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/importers/hmis_six_one_one/sftp.rb",
-      "line": 82,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"atool --repack -q #{\"#{Rails.root.to_s}/#{@local_path}/#{file}\"} #{\"#{Rails.root.to_s}/#{@local_path}/#{file}\".gsub(\".7z\", \".zip\")}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Importers::HMISSixOneOne::Sftp",
-        "method": "force_standard_zip"
-      },
-      "user_input": "@local_path",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
       "fingerprint": "18a6f39c30bf1ec1d965f076562af5578472b944d2e7324025e393523c8f03e2",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -238,6 +218,37 @@
       },
       "user_input": "lftp_config_location",
       "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "194ffcfbbfb5dad65d6c2cd5fc8e010479f66a6251142ec091dc5436f8205abe",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/imports/show.haml",
+      "line": 1,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => import_scope.find(params.require(:id)), {})",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "ImportsController",
+          "method": "show",
+          "line": 29,
+          "file": "app/controllers/imports_controller.rb",
+          "rendered": {
+            "name": "imports/show",
+            "file": "app/views/imports/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "imports/show"
+      },
+      "user_input": "params.require(:id)",
+      "confidence": "Weak",
       "note": ""
     },
     {
@@ -512,37 +523,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "45ba8ec6c039b68ae04bc85f1d277996ce975f38f43956c9b8909b3c78ac7590",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/views/imports/show.haml",
-      "line": 1,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => import_scope.find(params[:id].to_i), {})",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "ImportsController",
-          "method": "show",
-          "line": 29,
-          "file": "app/controllers/imports_controller.rb",
-          "rendered": {
-            "name": "imports/show",
-            "file": "app/views/imports/show.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "imports/show"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "473ca8588df62336dd0e01e2d9695c7643b543e986c48cadceb7641d2acd2e25",
@@ -609,7 +589,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 1182,
+      "line": 1187,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).where(\"#{key}_#{measure}\" => true)",
       "render_path": null,
@@ -620,26 +600,6 @@
       },
       "user_input": "key",
       "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "5b822772717cae02ef27ccb1a1db82c0dd6f1380b3dd8f4d712d9a65190f0202",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/importers/hmis_twenty_twenty/sftp.rb",
-      "line": 82,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"atool --repack -q #{\"#{Rails.root.to_s}/#{@local_path}/#{file}\"} #{\"#{Rails.root.to_s}/#{@local_path}/#{file}\".gsub(\".7z\", \".zip\")}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Importers::HmisTwentyTwenty::Sftp",
-        "method": "force_standard_zip"
-      },
-      "user_input": "@local_path",
-      "confidence": "Medium",
       "note": ""
     },
     {
@@ -962,7 +922,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 1214,
+      "line": 1219,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).where(:project_id => hud_project.id, \"#{key}_#{measure}\" => true)",
       "render_path": null,
@@ -1442,7 +1402,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 417,
+      "line": 419,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -1962,7 +1922,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 707,
+      "line": 713,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -2062,7 +2022,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 346,
+      "line": 351,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).group(:project_id).where(\"#{key}_#{:complete}\" => true)",
       "render_path": null,
@@ -2255,6 +2215,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-07-08 15:19:28 +0000",
+  "updated": "2021-07-20 15:36:00 +0000",
   "brakeman_version": "5.0.4"
 }

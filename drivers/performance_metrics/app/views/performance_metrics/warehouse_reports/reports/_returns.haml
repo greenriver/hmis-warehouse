@@ -3,6 +3,7 @@
 .row
   - @report.comparison_periods.each.with_index do |range, i|
     .col
+
       - data = @report.send(key).to_a[i]
       - chart_id = "#{key}_#{i}_chart"
       - legend_id = "legend_#{chart_id}"

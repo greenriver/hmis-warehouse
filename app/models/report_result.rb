@@ -94,6 +94,7 @@ class ReportResult < ApplicationRecord
   end
 
   def export
+    ## FIXME? This model doesnt exist anymore
     GrdaWarehouse::Export.where(id: export_id)
   end
 

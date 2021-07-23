@@ -50,7 +50,7 @@ module PerformanceMetrics::WarehouseReports
     def details
       @key = params[:key].to_sym
       @sub_key = params[:sub_key].to_sym
-      @comparison = params[:index] == '1'
+      @comparison = @report.include_comparison? && params[:index] == '0'
       @headers = PerformanceMetrics::Client.detail_headers
       respond_to do |format|
         format.html {}
