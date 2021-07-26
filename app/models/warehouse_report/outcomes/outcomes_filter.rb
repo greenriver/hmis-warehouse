@@ -42,4 +42,15 @@ class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
   private def housed_scope
     Reporting::Housed
   end
+
+  # Override the default because we want to preserve the empty array when nothing is chosen
+  def effective_project_ids
+    @effective_project_ids = effective_project_ids_from_projects
+    @effective_project_ids += effective_project_ids_from_project_groups
+    @effective_project_ids += effective_project_ids_from_organizations
+    @effective_project_ids += effective_project_ids_from_data_sources
+    @effective_project_ids += effective_project_ids_from_coc_codes
+
+    @effective_project_ids.uniq.reject(&:blank?)
+  end
 end

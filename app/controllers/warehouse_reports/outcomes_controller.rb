@@ -149,6 +149,7 @@ module WarehouseReports
         data_source_ids: [],
         organization_ids: [],
         project_ids: [],
+        project_group_ids: [],
         coc_codes: [],
       ]
     end

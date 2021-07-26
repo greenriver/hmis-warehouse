@@ -369,7 +369,7 @@ module HmisCsvTwentyTwenty::Loader
         return [:missing_col, mapping]
       end
       # puts "#{file_path} #{mapping.inspect}"
-      add_error(file_path: file_path, message: "Header row incorrect, used mapping: #{mapping.inspect}", line: 1)
+      add_error(file_path: file_path, message: "Header row order incorrect all headers found. Used mapping: #{mapping.inspect}", line: 1)
       return [:mapped, mapping]
     end
     HEADER_NORMALIZER = ->(s) { s.to_s.downcase }

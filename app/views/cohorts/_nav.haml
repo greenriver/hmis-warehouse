@@ -1,4 +1,9 @@
+- active_tab ||= ''
 %ul.nav.nav-tabs.sub-nav-tabs
+  %li.nav-item
+    - active_class = if active_tab == 'cohort' then 'active' else '' end
+    = link_to cohort_path(@cohort), title: 'Cohort', class: ['nav-link', active_class] do
+      Cohort
   - if can_manage_cohorts?
     %li.nav-item
       = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'nav-link' do
@@ -17,7 +22,8 @@
           Import
 
     %li.nav-item
-      = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: 'nav-link' do
+      - active_class =if active_tab == 'report' then  'active' else '' end
+      = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: ['nav-link', active_class] do
         %i.icon-printer
         Changes Report
 

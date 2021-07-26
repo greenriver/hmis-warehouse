@@ -18,7 +18,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   scope :service_history, -> { where(routine: 'service_history') }
 
-  def self.update_cached_counts client_ids: []
+  def self.update_cached_counts(client_ids: [], force_cohort_calculation: false)
     existing_by_client_id = where(
       client_id: client_ids,
       routine: :service_history,
@@ -49,7 +49,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
         days_homeless_plus_overrides: calcs.homeless_counts_plus_overrides[client_id] || 0,
       )
-      if client_id.in?(cohort_client_ids + assessment_client_ids)
+      if force_cohort_calculation || client_id.in?(cohort_client_ids + assessment_client_ids)
         processed.assign_attributes(
           CohortCalcs.new(processed.client).as_hash,
         )
