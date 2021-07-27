@@ -17,7 +17,9 @@ module HmisCsvTwentyTwenty::Importer
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
       return none unless project_ids.present?
 
-      warehouse_class.joins(enrollment: :project).
+      warehouse_class.
+        where(synthetic: false).
+        joins(enrollment: :project).
         merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range)).
         where(warehouse_class.arel_table[:EventDate].lteq(date_range.last))

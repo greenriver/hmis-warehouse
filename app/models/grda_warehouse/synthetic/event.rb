@@ -5,38 +5,71 @@ module GrdaWarehouse::Synthetic
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :source, polymorphic: true
+    belongs_to :hud_event, class_name: 'GrdaWarehouse::Hud::Event', optional: true
 
     validates_presence_of :enrollment
     validates_presence_of :client
 
-    # Subclasses should define:
-    #   event_date, event
+    # Subclasses must define:
+    #   event_date, event, data_source
 
     # Subclasses may override
     def client_housed_in_a_safe_alternative
       nil
     end
-    alias_method :ProbSolDivRRResult, :client_housed_in_a_safe_alternative
+    alias ProbSolDivRRResult client_housed_in_a_safe_alternative
 
     def enrolled_in_aftercare_project
       nil
     end
-    alias_method :ReferralCaseManageAfter, :enrolled_in_aftercare_project
+    alias ReferralCaseManageAfter enrolled_in_aftercare_project
 
     def location_of_crisis_or_ph_housing
       nil
     end
-    alias_method :LocationCrisisOrPHHousing, :location_of_crisis_or_ph_housing
+    alias LocationCrisisOrPHHousing location_of_crisis_or_ph_housing
 
     # If this is overridden, result_date must be as well.
     def referral_result
       nil
     end
-    alias_method :ReferralResult, :referral_result
+    alias ReferralResult referral_result
 
     def result_date
       nil
     end
-    alias_method :ResultDate, :result_date
+    alias ResultDate result_date
+
+    def self.hud_sync
+      # Import synthetic events
+      GrdaWarehouse::Synthetic.available_event_types.each do |class_name|
+        class_name.constantize.sync
+      end
+
+      #  Create HUD events from synthetic events
+      find_each(&:hud_sync)
+
+      # Clean up orphans in HUD table
+      GrdaWarehouse::Hud::Event.
+        where(synthetic: true).
+        where.not(id: pluck(:hud_event_id)).
+        delete_all
+    end
+
+    def hud_sync
+      ds = GrdaWarehouse::DataSource.find_by(short_name: data_source)
+      return unless ds.present?
+
+      hud_event = create_hud_event(data_source_id: ds.id, synthetic: true) if event.nil?
+      hud_event.update(
+        EventDate: event_date,
+        Event: event,
+        ProbSolDivRRResult: client_housed_in_a_safe_alternative,
+        ReferralCaseManageAfter: enrolled_in_aftercare_project,
+        LocationCrisisOrPHHousing: location_of_crisis_or_ph_housing,
+        ReferralResult: referral_result,
+        ResultDate: result_date,
+      )
+    end
   end
 end

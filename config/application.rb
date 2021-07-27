@@ -84,5 +84,6 @@ module BostonHmis
     config.hud_reports = {}
     config.hmis_importers = []
     config.hmis_exporters = []
+    config.synthetic_event_types = []
   end
 end
