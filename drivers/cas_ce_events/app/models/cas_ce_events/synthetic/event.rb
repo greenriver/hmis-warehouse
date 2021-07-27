@@ -25,6 +25,10 @@ module CasCeEvents::Synthetic
       end
     end
 
+    def data_source
+      'CAS'
+    end
+
     def referral_result
       source.referral_result
     end

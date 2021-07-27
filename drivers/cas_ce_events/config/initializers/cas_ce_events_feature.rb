@@ -5,3 +5,5 @@
 #
 # use with caution!
 RailsDrivers.loaded << :cas_ce_events
+
+GrdaWarehouse::Synthetic.add_event_type('CasCeEvents::Synthetic::Event')
