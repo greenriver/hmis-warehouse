@@ -870,17 +870,17 @@ module Health
 
     # This does not return a scope
     def valid_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).to_a.select(&:compute_procedure_valid?)
+      qualified_activities_since(date: date).payable.to_a
     end
 
     # This does not return a scope
     def valid_payable_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).to_a.select { |qa| qa.compute_procedure_valid? && ! qa.compute_valid_unpayable? }
+      qualified_activities_since(date: date).payable.not_valid_unpayable.to_a
     end
 
     # This does not return a scope
     def valid_unpayable_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).to_a.select(&:compute_valid_unpayable?)
+      qualified_activities_since(date: date).payable.valid_unpayable.to_a
     end
 
     def import_epic_team_members
