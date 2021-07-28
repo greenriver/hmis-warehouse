@@ -26,7 +26,7 @@ module Health
             )
             Health::ProcessEnrollmentChangesJob.perform_later(file.id)
           else
-            @notifier.ping('API Error: ' + response.error_message) if @send_notifications # rubocop:disable Style/IfInsideElse
+            @notifier.ping('API Error: ' + response.error_message.to_s) if @send_notifications # rubocop:disable Style/IfInsideElse
           end
         end
       else
