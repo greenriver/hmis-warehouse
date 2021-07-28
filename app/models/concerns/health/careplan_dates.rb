@@ -15,18 +15,13 @@ module Health::CareplanDates
     end
 
     private def care_plan_sent_to_provider_date(patient_id)
-      @care_plan_sent_to_provider_dates ||= begin
-        signature_request_dates = Health::Careplan.where(patient_id: patient_ids).
-          group(:patient_id).
-          maximum(:provider_signature_requested_at)
+      # If the patient has more than one careplan, and the newest one is unsigned, use the previous
+      # ones signature request date
+      careplans = Health::Careplan.where(patient_id: patient_id).order(provider_signature_requested_at: :desc)
+      careplan = careplans.first
+      careplan = careplans.second if careplan&.provider_signed_on&.blank? && careplans.count > 1
 
-        signature_request_dates.each do |id, date|
-          signature_request_dates[id] = care_plan_provider_signed_date(id) if date.blank?
-        end
-        signature_request_dates
-      end
-
-      @care_plan_sent_to_provider_dates[patient_id]&.to_date
+      careplan&.provider_signature_requested_at&.to_date || care_plan_provider_signed_date(patient_id)
     end
 
     private def care_plan_provider_signed_date(patient_id)
