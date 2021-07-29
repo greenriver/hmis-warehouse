@@ -52,7 +52,7 @@ module GrdaWarehouse::Synthetic
       # Clean up orphans in HUD table
       GrdaWarehouse::Hud::Event.
         where(synthetic: true).
-        where.not(id: pluck(:hud_event_id)).
+        where.not(id: select(:hud_event_id)).
         delete_all
     end
 
@@ -60,8 +60,9 @@ module GrdaWarehouse::Synthetic
       ds = GrdaWarehouse::DataSource.find_by(short_name: data_source)
       return unless ds.present?
 
-      hud_event = create_hud_event(data_source_id: ds.id, synthetic: true) if event.nil?
-      hud_event.update(
+      hud_assessment_hash = {
+        EnrollmentID: enrollment.EnrollmentID,
+        PersonalID: client.PersonalID,
         EventDate: event_date,
         Event: event,
         ProbSolDivRRResult: client_housed_in_a_safe_alternative,
@@ -69,7 +70,16 @@ module GrdaWarehouse::Synthetic
         LocationCrisisOrPHHousing: location_of_crisis_or_ph_housing,
         ReferralResult: referral_result,
         ResultDate: result_date,
-      )
+        data_source_id: ds.id,
+        synthetic: true,
+      }
+
+      if hud_assessment.nil?
+        hud_assessment_hash[:EventID] = SecureRandom.uuid.gsub(/-/, '')
+        create_hud_event(hud_assessment_hash)
+      else
+        hud_event.update(hud_assessment_hash)
+      end
     end
   end
 end
