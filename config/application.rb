@@ -85,5 +85,6 @@ module BostonHmis
     config.hmis_importers = []
     config.hmis_exporters = []
     config.synthetic_event_types = []
+    config.synthetic_assessment_types = []
   end
 end

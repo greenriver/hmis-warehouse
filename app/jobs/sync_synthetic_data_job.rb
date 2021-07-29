@@ -17,6 +17,7 @@ class SyncSyntheticDataJob < BaseJob
     @notifier.ping('Processing synthetic data') if @send_notifications
 
     GrdaWarehouse::Synthetic::Event.hud_sync
+    GrdaWarehouse::Synthetic::Assessment.hud_sync
 
     @notifier.ping('Updated synthetic data') if @send_notifications
   end
