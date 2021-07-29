@@ -60,20 +60,22 @@ module Filter::FilterScopes
     end
 
     private def filter_for_age(scope)
-      return scope unless @filter.age_ranges.present? && (@filter.available_age_ranges.values & @filter.age_ranges).present?
+      # The age ranges will be strings if we had saved them in the db, so we map to symbols
+      age_ranges = @filter.age_ranges.select(&:present?).map(&:to_sym)
+      return scope unless age_ranges.present? && (@filter.available_age_ranges.values & age_ranges).present?
 
       # Or'ing ages is very slow, instead we'll build up an acceptable
       # array of ages
       ages = []
-      ages += (0..17).to_a if @filter.age_ranges.include?(:under_eighteen)
-      ages += (18..24).to_a if @filter.age_ranges.include?(:eighteen_to_twenty_four)
-      ages += (25..29).to_a if @filter.age_ranges.include?(:twenty_five_to_twenty_nine)
-      ages += (30..39).to_a if @filter.age_ranges.include?(:thirty_to_thirty_nine)
-      ages += (40..49).to_a if @filter.age_ranges.include?(:forty_to_forty_nine)
-      ages += (50..54).to_a if @filter.age_ranges.include?(:fifty_to_fifty_four)
-      ages += (55..59).to_a if @filter.age_ranges.include?(:fifty_five_to_fifty_nine)
-      ages += (60..61).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
-      ages += (62..110).to_a if @filter.age_ranges.include?(:over_sixty_one)
+      ages += (0..17).to_a if age_ranges.include?(:under_eighteen)
+      ages += (18..24).to_a if age_ranges.include?(:eighteen_to_twenty_four)
+      ages += (25..29).to_a if age_ranges.include?(:twenty_five_to_twenty_nine)
+      ages += (30..39).to_a if age_ranges.include?(:thirty_to_thirty_nine)
+      ages += (40..49).to_a if age_ranges.include?(:forty_to_forty_nine)
+      ages += (50..54).to_a if age_ranges.include?(:fifty_to_fifty_four)
+      ages += (55..59).to_a if age_ranges.include?(:fifty_five_to_fifty_nine)
+      ages += (60..61).to_a if age_ranges.include?(:sixty_to_sixty_one)
+      ages += (62..110).to_a if age_ranges.include?(:over_sixty_one)
 
       scope.joins(:client).where(
         Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in(ages),
