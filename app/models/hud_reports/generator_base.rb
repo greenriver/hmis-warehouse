@@ -47,7 +47,8 @@ module HudReports
         joins(:service_history_enrollments).
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date))
 
-      @filter = self.class.filter_class.new(user_id: @report.user_id, enforce_one_year_range: false).update(@report.options)
+      @filter = self.class.filter_class.new(user_id: @report.user_id, enforce_one_year_range: false).
+        update(@report.options.transform_keys(&:to_sym))
       she_scope = GrdaWarehouse::ServiceHistoryEnrollment.all
       she_scope = filter_for_projects(she_scope)
       she_scope = filter_for_cocs(she_scope)
