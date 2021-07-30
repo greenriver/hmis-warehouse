@@ -53,6 +53,9 @@ module GrdaWarehouse::Synthetic
         AssessmentType: assessment_type,
         AssessmentLevel: assessment_level,
         PrioritizationStatus: prioritization_status,
+        DateCreated: source.created_at,
+        DateUpdated: source.updated_at,
+        UserID: User.setup_system_user.name,
         data_source_id: ds.id,
         synthetic: true,
       }
