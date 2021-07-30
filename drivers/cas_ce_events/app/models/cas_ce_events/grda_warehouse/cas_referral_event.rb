@@ -9,7 +9,7 @@ module CasCeEvents::GrdaWarehouse
     self.table_name = 'cas_referral_events'
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :hmis_client_id
-    has_many :program_to_projects, foreign_key: :program_id
-    has_many :projects, through: :program_to_projects
+    has_many :program_to_projects, primary_key: :program_id, foreign_key: :program_id
+    has_many :projects, through: :program_to_projects, class_name: 'GrdaWarehouse::Hud::Project'
   end
 end
