@@ -118,7 +118,7 @@ module Filters
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true]) unless filters.dig(:chronic_status).nil?
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true]) unless filters.dig(:coordinated_assessment_living_situation_homeless).nil?
       vispdat_limit = filters.dig(:limit_to_vispdat)&.to_sym
-      self.limit_to_vispdat = vispdat_limit if !vispdat_limit.nil? && available_vispdat_limits.values.include?(vispdat_limit)
+      self.limit_to_vispdat = vispdat_limit if vispdat_limit.present? && available_vispdat_limits.values.include?(vispdat_limit)
       self.ph = filters.dig(:ph).in?(['1', 'true', true]) unless filters.dig(:ph).nil?
       self.times_homeless_in_last_three_years = filters.dig(:times_homeless_in_last_three_years)&.reject(&:blank?)&.map(&:to_i) unless filters.dig(:times_homeless_in_last_three_years).nil?
 
