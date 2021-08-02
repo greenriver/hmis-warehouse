@@ -30,9 +30,7 @@
               - comparison_class = "c-swatch__border-left--td-#{index}"
             %div{class: column_class}
               - data = report.data_for_living_situations[:all]
-              - unless data.present?
-                %h3 No matching records found
-              - else
+              - if data.present?
                 .mb-4
                   %h3 Universe
                   .card.overflow-scroll.mb-4{class: comparison_class}
@@ -78,4 +76,6 @@
                                 %td= sub_title
                                 %td
                                   = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(ids.count), details_prior_living_situation_warehouse_reports_prior_living_situation_index_path(report.filter.for_params.deep_merge(key: "#{coc_code}_#{situation}_#{sub_title}".underscore, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              - else
+                %h3 No matching records found
       = render 'computation_description'
