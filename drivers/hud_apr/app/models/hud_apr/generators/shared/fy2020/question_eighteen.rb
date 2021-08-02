@@ -34,7 +34,7 @@ module HudApr::Generators::Shared::Fy2020
           when :annual_assessment
             adults = adults.where(stayers_clause.and(a_t[:annual_assessment_expected].eq(true)))
           when :exit
-            adults = adults.where(leavers_clause) if suffix == :exit
+            adults = adults.where(leavers_clause)
           end
 
           ids = Set.new
