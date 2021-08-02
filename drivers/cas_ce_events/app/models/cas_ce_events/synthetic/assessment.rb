@@ -13,6 +13,8 @@ module CasCeEvents::Synthetic
     delegate :assessment_date, to: :source
     delegate :assessment_location, to: :source
     delegate :assessment_type, to: :source
+    delegate :assessment_level, to: :source
+    delegate :assessment_status, to: :source
 
     def self.sync
       remove_orphans
