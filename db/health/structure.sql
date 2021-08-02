@@ -901,7 +901,8 @@ CREATE TABLE public.claims_reporting_medical_claims (
     cde_cos_subcategory character varying(50),
     ind_mco_aco_cvd_svc character varying(50),
     enrolled_days integer DEFAULT 0,
-    engaged_days integer DEFAULT 0
+    engaged_days integer DEFAULT 0,
+    cde_ndc character varying(48)
 );
 
 
@@ -7200,6 +7201,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210422161421'),
 ('20210510185734'),
 ('20210511143037'),
-('20210607182656');
+('20210607182656'),
+('20210726193142');
 
 

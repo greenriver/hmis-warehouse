@@ -125,15 +125,9 @@ module HudDataQualityReport::Generators::Fy2020
           clause: Arel.sql('1=1'),
           include_in_percent: false,
         },
-        # date homeless missing
-        {
-          cell: 'C3',
-          clause: a_t[:date_homeless].eq(nil),
-          include_in_percent: true,
-        },
         # missing time in institution
         {
-          cell: 'D3',
+          cell: 'C3',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
             and(a_t[:prior_length_of_stay].in([8, 9]).
               or(a_t[:prior_length_of_stay].eq(nil))),
@@ -141,11 +135,17 @@ module HudDataQualityReport::Generators::Fy2020
         },
         # missing time in housing
         {
-          cell: 'E3',
+          cell: 'D3',
           clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
             or(a_t[:prior_living_situation].eq(nil)).
             and(a_t[:prior_length_of_stay].in([8, 9]).
               or(a_t[:prior_length_of_stay].eq(nil))),
+          include_in_percent: true,
+        },
+        # date homeless missing
+        {
+          cell: 'E3',
+          clause: a_t[:date_homeless].eq(nil),
           include_in_percent: true,
         },
         # times homeless dk/r/missing
@@ -192,15 +192,9 @@ module HudDataQualityReport::Generators::Fy2020
           clause: Arel.sql('1=1'),
           include_in_percent: false,
         },
-        # date homeless missing
-        {
-          cell: 'C4',
-          clause: a_t[:date_homeless].eq(nil),
-          include_in_percent: true,
-        },
         # missing time in institution
         {
-          cell: 'D4',
+          cell: 'C4',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
             and(a_t[:prior_length_of_stay].in([8, 9]).
               or(a_t[:prior_length_of_stay].eq(nil))),
@@ -208,11 +202,17 @@ module HudDataQualityReport::Generators::Fy2020
         },
         # missing time in housing
         {
-          cell: 'E4',
+          cell: 'D4',
           clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
             or(a_t[:prior_living_situation].eq(nil)).
             and(a_t[:prior_length_of_stay].in([8, 9]).
               or(a_t[:prior_length_of_stay].eq(nil))),
+          include_in_percent: true,
+        },
+        # date homeless missing
+        {
+          cell: 'E4',
+          clause: a_t[:date_homeless].eq(nil),
           include_in_percent: true,
         },
         # times homeless dk/r/missing
