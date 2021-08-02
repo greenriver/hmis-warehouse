@@ -89,19 +89,17 @@ module Filter::FilterScopes
     private def filter_for_race(scope)
       return scope unless @filter.races.present?
 
-      keys = @filter.races
       race_scope = nil
-      race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if keys.include?('AmIndAKNative')
-      race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
-      race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
-      race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
-      race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
-      race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
+      race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if @filter.races.include?('AmIndAKNative')
+      race_scope = add_alternative(race_scope, race_alternative(:Asian)) if @filter.races.include?('Asian')
+      race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if @filter.races.include?('BlackAfAmerican')
+      race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if @filter.races.include?('NativeHIOtherPacific')
+      race_scope = add_alternative(race_scope, race_alternative(:White)) if @filter.races.include?('White')
+      race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if @filter.races.include?('RaceNone')
 
       # Include anyone who has more than one race listed, anded with any previous alternatives
       race_scope ||= scope
-      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if keys.include?('MultiRacial')
-
+      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if @filter.races.include?('MultiRacial')
       scope.merge(race_scope)
     end
 
