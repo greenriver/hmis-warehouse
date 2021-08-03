@@ -14,7 +14,7 @@ module PublicReports
     extend Memoist
     acts_as_paranoid
 
-    MIN_THRESHOLD = 10
+    MIN_THRESHOLD = 11
     GEOMETRY = :zip
 
     def title
@@ -476,7 +476,7 @@ module PublicReports
               max = [population_overall, 1].compact.max / 10_000
               (0..max).to_a.sample
             end
-            count = 10 if count < 10
+            count = MIN_THRESHOLD if count < MIN_THRESHOLD
             # rate per 10,000
             rate = count / population_overall.to_f * 10_000.0
             charts[date.iso8601][coc_code] = {
@@ -496,7 +496,7 @@ module PublicReports
           end_date = date.end_of_quarter
           charts[date.iso8601] = {}
           zip_codes.each do |code|
-            population_overall = population_by_zip[date.year][code]
+            population_overall = population_by_zip.try(:[], date.year).try(:[], code) || 0
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -506,7 +506,7 @@ module PublicReports
               max = [population_overall, 1].compact.max / 10_000
               (0..max).to_a.sample
             end
-            count = 10 if count < 10
+            count = MIN_THRESHOLD if count < MIN_THRESHOLD
             # rate per 10,000
             rate = count / population_overall.to_f * 10_000.0
             charts[date.iso8601][code] = {
@@ -537,7 +537,7 @@ module PublicReports
         chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).select(:client_id)).count
         sheltered_count = scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count
         sheltered_count = enforce_min_threshold(sheltered_count)
-        unsheltered_count =scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
+        unsheltered_count = scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
         unsheltered_count = enforce_min_threshold(unsheltered_count)
         charts[section_title] ||= {
           'sub_sections' => {},
@@ -566,14 +566,14 @@ module PublicReports
             ['Sheltered', sheltered_count],
             ['Unsheltered', unsheltered_count],
           ],
-          categories: [ title ],
+          categories: [title],
         }
       end
     end
 
     private def enforce_min_threshold(count)
       return 0 if count.blank? || count.zero?
-      return 10 if count < MIN_THRESHOLD
+      return MIN_THRESHOLD if count < MIN_THRESHOLD
 
       count
     end
@@ -791,7 +791,7 @@ module PublicReports
 
     private def total_for(scope, population)
       count = scope.select(:client_id).distinct.count
-      count = 10 if count.positive? && count < 10
+      count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
 
       word = case population
       when :veterans
@@ -868,7 +868,6 @@ module PublicReports
       end
     end
 
-
     # ZIP CODES
     def map_by_zip?
       GEOMETRY == :zip
@@ -891,7 +890,7 @@ module PublicReports
         quarter_dates.map(&:year).uniq.each do |year|
           charts[year] = {}
           zip_geometries.each do |geo|
-            charts[year][geo.zcta5ce10] = geo.population(internal_names: ALL_PEOPLE, year: year).val
+            charts[year][geo.zcta5ce10] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
           end
         end
       end
