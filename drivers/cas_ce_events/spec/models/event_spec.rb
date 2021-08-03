@@ -18,13 +18,12 @@ RSpec.describe 'CasCeEvents::Synthetic::Event', type: :model do
 
   let!(:mapping) { create :program_to_project, project_id: project.id }
   let!(:cas_referral_event) { create :cas_referral_event, hmis_client_id: destination_client.id, program_id: mapping.program_id, referral_date: enrollment.EntryDate }
-  let!(:cas_data_source) { create :grda_warehouse_data_source, short_name: 'CAS' }
 
   it 'creates events from cas referral event' do
     expect(CasCeEvents::Synthetic::Event.count).to eq(0)
     CasCeEvents::Synthetic::Event.sync
     expect(GrdaWarehouse::Synthetic::Event.count).to eq(1)
-    GrdaWarehouse::Synthetic::Event.first.hud_sync
+    GrdaWarehouse::Synthetic::Event.create_hud_events
     expect(GrdaWarehouse::Hud::Event.count).to eq(1)
   end
 end

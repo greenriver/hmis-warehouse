@@ -12,5 +12,4 @@ associated with HMIS Projects.
 ## Warehouse Configuration
 
 To distinguish synthetic events, they are stored in a warehouse data source
-'CAS'. If this datasource does not exist, the events are not propagated into
-the HUD events table.
+'CAS'.

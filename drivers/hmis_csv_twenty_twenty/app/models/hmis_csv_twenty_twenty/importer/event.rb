@@ -18,7 +18,7 @@ module HmisCsvTwentyTwenty::Importer
       return none unless project_ids.present?
 
       warehouse_class.
-        where(synthetic: false).
+        importable.
         joins(enrollment: :project).
         merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range)).
