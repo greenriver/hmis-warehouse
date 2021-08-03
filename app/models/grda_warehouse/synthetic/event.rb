@@ -46,21 +46,30 @@ module GrdaWarehouse::Synthetic
         class_name.constantize.sync
       end
 
-      #  Create HUD events from synthetic events
-      find_each(&:hud_sync)
+      create_hud_events
 
       # Clean up orphans in HUD table
-      GrdaWarehouse::Hud::Event.
-        where(synthetic: true).
+      event_source.
+        synthetic.
         where.not(id: select(:hud_event_id)).
         delete_all
     end
 
-    def hud_sync
-      ds = GrdaWarehouse::DataSource.find_by(short_name: data_source)
-      return unless ds.present?
+    def self.create_hud_events
+      find_in_batches do |batch|
+        event_source.import(
+          batch.map(&:hud_event_hash),
+          on_duplicate_key_update: {
+            conflict_target: ['"EventID"', :data_source_id],
+            columns: event_source.hmis_configuration.keys,
+          },
+        )
+      end
+    end
 
-      hud_event_hash = {
+    def hud_event_hash
+      {
+        EventID: hud_event&.EventID || SecureRandom.uuid.gsub(/-/, ''),
         EnrollmentID: enrollment.EnrollmentID,
         PersonalID: client.PersonalID,
         EventDate: event_date,
@@ -76,13 +85,18 @@ module GrdaWarehouse::Synthetic
         data_source_id: ds.id,
         synthetic: true,
       }
+    end
 
-      if hud_event.nil?
-        hud_event_hash[:EventID] = SecureRandom.uuid.gsub(/-/, '')
-        create_hud_event(hud_event_hash)
-      else
-        hud_event.update(hud_event_hash)
+    private def ds
+      @ds ||= GrdaWarehouse::DataSource.where(short_name: data_source).first_or_create do |ds|
+        ds.name = data_source
+        ds.authoritative = true
+        ds.authoritative_type = :synthetic
       end
+    end
+
+    def self.event_source
+      GrdaWarehouse::Hud::Event
     end
   end
 end

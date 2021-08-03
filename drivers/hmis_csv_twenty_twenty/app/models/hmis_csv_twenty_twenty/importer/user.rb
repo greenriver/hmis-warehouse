@@ -15,7 +15,7 @@ module HmisCsvTwentyTwenty::Importer
     has_one :destination_record, **hud_assoc(:UserID, 'User')
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
-      warehouse_class.where(data_source_id: data_source_id)
+      warehouse_class.importable.where(data_source_id: data_source_id)
     end
 
     def self.warehouse_class
