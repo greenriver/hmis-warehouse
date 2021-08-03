@@ -3327,6 +3327,47 @@ ALTER SEQUENCE public.cas_availabilities_id_seq OWNED BY public.cas_availabiliti
 
 
 --
+-- Name: cas_ce_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_ce_assessments (
+    id bigint NOT NULL,
+    cas_client_id bigint,
+    cas_non_hmis_assessment_id bigint,
+    hmis_client_id bigint,
+    program_id bigint,
+    assessment_date date,
+    assessment_location character varying,
+    assessment_type integer,
+    assessment_level integer,
+    assessment_status integer,
+    assessment_created_at timestamp without time zone,
+    assessment_updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_ce_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_ce_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_ce_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_ce_assessments_id_seq OWNED BY public.cas_ce_assessments.id;
+
+
+--
 -- Name: cas_enrollments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14847,6 +14888,13 @@ ALTER TABLE ONLY public.cas_availabilities ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: cas_ce_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_ce_assessments ALTER COLUMN id SET DEFAULT nextval('public.cas_ce_assessments_id_seq'::regclass);
+
+
+--
 -- Name: cas_enrollments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16922,6 +16970,14 @@ ALTER TABLE ONLY public.bo_configs
 
 ALTER TABLE ONLY public.cas_availabilities
     ADD CONSTRAINT cas_availabilities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_ce_assessments cas_ce_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_ce_assessments
+    ADD CONSTRAINT cas_ce_assessments_pkey PRIMARY KEY (id);
 
 
 --
@@ -22568,6 +22624,34 @@ CREATE INDEX index_cas_availabilities_on_client_id ON public.cas_availabilities 
 --
 
 CREATE INDEX index_cas_availabilities_on_unavailable_at ON public.cas_availabilities USING btree (unavailable_at);
+
+
+--
+-- Name: index_cas_ce_assessments_on_cas_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_ce_assessments_on_cas_client_id ON public.cas_ce_assessments USING btree (cas_client_id);
+
+
+--
+-- Name: index_cas_ce_assessments_on_cas_non_hmis_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_ce_assessments_on_cas_non_hmis_assessment_id ON public.cas_ce_assessments USING btree (cas_non_hmis_assessment_id);
+
+
+--
+-- Name: index_cas_ce_assessments_on_hmis_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_ce_assessments_on_hmis_client_id ON public.cas_ce_assessments USING btree (hmis_client_id);
+
+
+--
+-- Name: index_cas_ce_assessments_on_program_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_ce_assessments_on_program_id ON public.cas_ce_assessments USING btree (program_id);
 
 
 --
@@ -30922,6 +31006,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210708192452'),
 ('20210714131449'),
 ('20210716144139'),
+('20210723161722'),
 ('20210726155740'),
 ('20210727134415');
 

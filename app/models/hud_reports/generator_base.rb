@@ -68,7 +68,7 @@ module HudReports
       GrdaWarehouse::Hud::Client
     end
 
-    private def report_scope_source
+    def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
   end

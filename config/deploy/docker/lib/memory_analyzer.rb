@@ -97,7 +97,7 @@ class MemoryAnalyzer
   end
 
   def use_memory_analyzer?
-    task_definition_name.match?(/staging|vi|workoff/)
+    true
   end
 
   # Set the limits on this object and call this method
