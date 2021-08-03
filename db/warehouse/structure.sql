@@ -279,7 +279,8 @@ CREATE TABLE public."Assessment" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -13498,6 +13499,7 @@ CREATE TABLE public.synthetic_assessments (
     type character varying,
     source_type character varying,
     source_id bigint,
+    hud_assessment_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -27891,6 +27893,13 @@ CREATE INDEX index_synthetic_assessments_on_enrollment_id ON public.synthetic_as
 
 
 --
+-- Name: index_synthetic_assessments_on_hud_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_hud_assessment_id ON public.synthetic_assessments USING btree (hud_assessment_id);
+
+
+--
 -- Name: index_synthetic_assessments_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -31008,6 +31017,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210716144139'),
 ('20210723161722'),
 ('20210726155740'),
-('20210727134415');
+('20210727134415'),
+('20210729175328'),
+('20210729201521');
 
 

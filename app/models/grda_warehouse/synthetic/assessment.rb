@@ -3,7 +3,6 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-#
 
 module GrdaWarehouse::Synthetic
   class Assessment < GrdaWarehouseBase
@@ -32,8 +31,7 @@ module GrdaWarehouse::Synthetic
         class_name.constantize.sync
       end
 
-      #  Create HUD assessments from synthetic events
-      find_each(&:hud_sync)
+      create_hud_assessments
 
       # Clean up orphans in HUD table
       GrdaWarehouse::Hud::Assessment.
@@ -42,11 +40,21 @@ module GrdaWarehouse::Synthetic
         delete_all
     end
 
-    def hud_sync
-      ds = GrdaWarehouse::DataSource.find_by(short_name: data_source)
-      return unless ds.present?
+    def self.create_hud_assessments
+      find_in_batches do |batch|
+        assessment_source.import(
+          batch.map(&:hud_assessment_hash),
+          on_duplicate_key_update: {
+            conflict_target: ['"AssessmentID"', :data_source_id],
+            columns: assessment_source.hmis_configuration.keys,
+          },
+        )
+      end
+    end
 
-      hud_assessment_hash = {
+    def hud_assessment_hash
+      {
+        AssessmentID: hud_assessment&.AssessmentID || SecureRandom.uuid.gsub(/-/, ''),
         EnrollmentID: enrollment.EnrollmentID,
         PersonalID: client.PersonalID,
         AssessmentDate: assessment_date,
@@ -60,13 +68,18 @@ module GrdaWarehouse::Synthetic
         data_source_id: ds.id,
         synthetic: true,
       }
+    end
 
-      if hud_assessment.nil?
-        hud_assessment_hash[:AssessmentID] = SecureRandom.uuid.gsub(/-/, '')
-        create_hud_assessment(hud_assessment_hash)
-      else
-        hud_assessment.update(hud_assessment_hash)
+    private def ds
+      @ds ||= GrdaWarehouse::DataSource.where(short_name: data_source).first_or_create do |ds|
+        ds.name = data_source
+        ds.authoritative = true
+        ds.authoritative_type = :synthetic
       end
+    end
+
+    def self.assessment_source
+      GrdaWarehouse::Hud::Assessment
     end
   end
 end
