@@ -654,6 +654,10 @@ class RollOut
         deployment_configuration: {
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
+          deployment_circuit_breaker: {
+            enable: true,
+            rollback: true,
+          },
         }
       }
 
