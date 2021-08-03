@@ -12,7 +12,7 @@
 .state-map-comparison-legend.d-flex
   - colors = JSON.parse(@report.chart_color_shades(:youth_primary_color))
   - colors.each_with_index do |color, i|
-    - division_size = 1.0 / colors.count
+    - division_size = max_rate / colors.count
     - division_start = i * division_size
     - division_end = (i + 1) * division_size
     - division_end = division_end.round(1)
@@ -25,10 +25,8 @@
   Rate per 10,000 people
 
 - # include the map class directly
-- if @report.map_by_zip?
-  = render 'map_zip_js'
-- else
-  = render 'map_js'
+- map_type = if @report.map_by_zip? then 'map_zip_js' else 'map_js' end
+= render map_type
 
 :javascript
   (function() {
@@ -44,6 +42,8 @@
       shapes: shapes,
       metrics: comparison_data[selected_date],
       colors: comparison_colors,
+      max_rate: #{max_rate},
+      max_count: #{max_count},
     })
 
     $('.jQuarters').on('change', function(e) {

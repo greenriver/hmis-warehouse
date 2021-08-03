@@ -17,6 +17,8 @@ module PublicReports
     MIN_THRESHOLD = 11
     GEOMETRY = :zip
 
+    attr_accessor :map_max_rate, :map_max_count
+
     def title
       _('State-Level Homelessness Report Generator')
     end
@@ -144,7 +146,13 @@ module PublicReports
         race_chart: race_chart,
         need_map: need_map,
         homeless_breakdowns: homeless_breakdowns,
+        map_max_rate: map_max_rate,
+        map_max_count: map_max_count,
       }.to_json
+    end
+
+    def parsed_pre_calculated_data
+      @parsed_pre_calculated_data ||= JSON.parse(precalculated_data)
     end
 
     private def pre_calculate_data
@@ -460,6 +468,8 @@ module PublicReports
     end
 
     private def census_comparison(scope)
+      self.map_max_rate ||= 0
+      self.map_max_count ||= 0
       {}.tap do |charts|
         quarter_dates.each do |date|
           start_date = date.beginning_of_quarter
@@ -476,20 +486,25 @@ module PublicReports
               max = [population_overall, 1].compact.max / 10_000
               (0..max).to_a.sample
             end
-            count = MIN_THRESHOLD if count < MIN_THRESHOLD
+            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
             # rate per 10,000
-            rate = count / population_overall.to_f * 10_000.0
+            rate = 0
+            rate = count / population_overall.to_f * 10_000.0 if population_overall.positive?
             charts[date.iso8601][coc_code] = {
               count: count,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
             }
+            self.map_max_rate = rate if rate > self.map_max_rate
+            self.map_max_count = count if count > self.map_max_count
           end
         end
       end
     end
 
     private def census_comparison_by_zip(scope)
+      self.map_max_rate ||= 0
+      self.map_max_count ||= 0
       {}.tap do |charts|
         quarter_dates.each do |date|
           start_date = date.beginning_of_quarter
@@ -506,14 +521,17 @@ module PublicReports
               max = [population_overall, 1].compact.max / 10_000
               (0..max).to_a.sample
             end
-            count = MIN_THRESHOLD if count < MIN_THRESHOLD
+            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
             # rate per 10,000
-            rate = count / population_overall.to_f * 10_000.0
+            rate = 0
+            rate = count / population_overall.to_f * 10_000.0 if population_overall.positive?
             charts[date.iso8601][code] = {
               count: count,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
             }
+            self.map_max_rate = rate if rate > self.map_max_rate
+            self.map_max_count = count if count > self.map_max_count
           end
         end
       end
@@ -573,7 +591,7 @@ module PublicReports
 
     private def enforce_min_threshold(count)
       return 0 if count.blank? || count.zero?
-      return MIN_THRESHOLD if count < MIN_THRESHOLD
+      return MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
 
       count
     end

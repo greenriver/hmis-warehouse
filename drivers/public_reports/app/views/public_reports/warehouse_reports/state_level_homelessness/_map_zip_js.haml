@@ -1,6 +1,6 @@
 :javascript
   class CocMap {
-    constructor({ elementId, shapes, metrics, colors }) {
+    constructor({ elementId, shapes, metrics, colors, max_rate, max_count }) {
       this.initInfoBox = this.initInfoBox.bind(this);
       this.style = this.style.bind(this);
       this.updateInfo = this.updateInfo.bind(this);
@@ -11,7 +11,10 @@
       this.shapes = shapes;
       this.colors = colors;
       this.metrics = metrics;
+      this.max_rate = max_rate;
+      this.max_count = max_count;
       this.showingData = false;
+      this.markers = [];
       const mapOptions = {
         minZoom: 5,
         maxZoom: 9,
@@ -39,12 +42,13 @@
 
       const geoJSONOptions = {
         style: this.style,
-        onEachFeature: this.onEachFeature,
+        // onEachFeature: this.onEachFeature,
       };
 
       this.geojson = L.geoJSON(this.shapes, geoJSONOptions).addTo(this.map);
 
       this.map.fitBounds(this.geojson.getBounds());
+      this.map.createPane('markers');
 
       this.initInfoBox();
     }
@@ -79,7 +83,7 @@
     style() {
       return {
         fillColor: 'white',
-        weight: 1,
+        weight: 2,
         opacity: 1,
         color: this.strokeColor,
         dashArray: '',
@@ -88,13 +92,18 @@
     }
 
     getColor(rate) {
-      let division_size = 1 / this.colors.length
-      let division = Math.floor(rate / division_size)
+      let division_size = this.max_rate / this.colors.length;
+      let division = Math.floor(rate / division_size);
       if(division < this.colors.length) {
         return this.colors[division]
       } else {
         return this.colors[this.colors.length - 1]
       }
+    }
+
+    getSize(count) {
+      let size = Math.round(count / this.max_count * 20)
+      return size
     }
 
     bringLayerToFront(layer) {
@@ -116,14 +125,14 @@
     updateInfo(e) {
       const layer = (e != null ? e.target : undefined) || e;
       if (this.info != null) {
-        this.info.update(layer.feature.properties);
+        this.info.update(layer.options.feature.properties);
       }
       this.bringLayerToFront(layer);
-      layer.setStyle({
-        color: '#888',
-        weight: 3,
-        opacity: 1,
-      });
+      // layer.setStyle({
+      //   color: '#888',
+      //   weight: 3,
+      //   opacity: 1,
+      // });
     }
 
     clearInfo(e) {
@@ -131,13 +140,13 @@
       if (this.info != null) {
         this.info.update(null);
       }
-      if (layer.feature.properties.id != this.secondaryId) {
+      if (layer.options.feature.properties.id != this.secondaryId) {
         this.bringLayerToBack(layer);
-        return layer.setStyle({
-          color: this.strokeColor,
-          weight: 1,
-          opacity: 1,
-        });
+        // return layer.setStyle({
+        //   color: this.strokeColor,
+        //   weight: 1,
+        //  opacity: 1,
+        // });
       }
     }
 
@@ -150,15 +159,38 @@
     }
 
     updateMetrics(metrics) {
+      // Maybe remove and re-add pane here
+      if(this.markers.length > 0) {
+        let group = L.layerGroup(this.markers)
+        group.clearLayers();
+        this.markers = [];
+      }
       this.metrics = metrics
       this.geojson.getLayers().forEach((l) => {
-        const zip = l.feature.properties.name
-        l.feature.properties.metric = this.metrics[zip].rate
+        const zip = l.feature.properties.name;
+        l.feature.properties.metric = this.metrics[zip].rate;
         this.geojson.resetStyle(l);
-        return l.setStyle({
-          fillColor: this.getColor(l.feature.properties.metric),
-          fillOpacity: 1,
-        });
+        let count = this.metrics[zip].count
+        if(count > 0) {
+          let marker = L.circleMarker(l.feature.properties.centroid, {
+            pane: 'markers',
+            radius: this.getSize(count),
+            fillColor: this.getColor(l.feature.properties.metric),
+            weight: 1,
+            opacity: 0.8,
+            fillOpacity: 0.8,
+            stroke: false,
+            feature: l.feature,
+          });
+          marker.on('mouseover', this.updateInfo)
+          marker.on('mouseout', this.clearInfo)
+          marker.addTo(this.map);
+          this.markers.push(marker)
+        }
+        // return l.setStyle({
+        //   fillColor: this.getColor(l.feature.properties.metric),
+        //   fillOpacity: 1,
+        // });
       });
     }
   };
