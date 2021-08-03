@@ -31,7 +31,6 @@ module Importers::HmisAutoDetect
       return if @stale
 
       expand_upload
-      return if @stale
 
       @upload.update(percent_complete: 1)
       import_log = importer.import!(

@@ -13,7 +13,7 @@ class WarehouseReport::Outcomes::Base
     @filter = filter
     @organization_ids = @filter.organization_ids
     @data_source_ids = @filter.data_source_ids
-    @project_ids = @filter.project_ids
+    @project_ids = @filter.effective_project_ids
     @coc_codes = @filter.coc_codes
     @start_date = @filter.start
     @end_date = @filter.end
@@ -336,31 +336,35 @@ class WarehouseReport::Outcomes::Base
   # returns to shelter after exiting to permanent housing
   def returns_to_shelter(leaver_scope)
     @returns_to_shelter = begin
-      leavers_with_date = leaver_scope.pluck(:client_id, :housing_exit).to_h
+      leavers_with_date = leaver_scope.
+        pluck(:client_id, :housing_exit, :destination).
+        index_by(&:first) # NOTE: order of pluck is used later
       return {} unless leavers_with_date.present?
 
       returner_ids = Reporting::Return.where(client_id: leavers_with_date.keys).
         distinct.
         pluck(:client_id)
       returner_demographics = Reporting::Return.where(client_id: returner_ids).distinct.
-        pluck(:client_id, :race, :ethnicity, :gender).index_by(&:first) # NOTE: order of pluck is used later for positional access
+        pluck(:client_id, :race, :ethnicity, :gender).
+        index_by(&:first) # NOTE: order of pluck is used later for positional access
       returns = {}
       returner_ids.each do |id|
+        (_, exit_date, destination) = leavers_with_date[id]
         # find the first start date after the exit to PH
-        first_return = min_return_date_for_client_after(id, leavers_with_date[id])
+        first_return = min_return_date_for_client_after(id, exit_date)
         next unless first_return.present?
 
-        exit_date = leavers_with_date[id]
         days_to_return = (first_return - exit_date).to_i.abs
         returns[id] = {
           entry_date: first_return,
-          exit_date: leavers_with_date[id],
+          exit_date: exit_date,
           days_to_return: days_to_return,
           bucket: bucket(days_to_return),
           client_id: id,
           race: returner_demographics[id][1],
           ethnicity: returner_demographics[id][2]&.to_i,
           gender: returner_demographics[id][3],
+          destination: HUD.destination(destination),
         }
       end
       returns
@@ -396,37 +400,57 @@ class WarehouseReport::Outcomes::Base
     percent_returns_to_shelter(exiting_stabilization)
   end
 
-  def bucketed_returns
-    @bucketed_returns ||= {}
-    grouped_returns = returns_to_shelter_after_exit.values.group_by { |m| m[:bucket] }
-    length_of_time_buckets.each do |_, bucket_text|
-      @bucketed_returns[bucket_text] = grouped_returns[bucket_text].count if grouped_returns[bucket_text].present?
+  private def bucketed_returns
+    @bucketed_returns ||= {}.tap do |returns|
+      grouped_returns = returns_to_shelter_after_exit.values.group_by { |m| m[:bucket] }
+      length_of_time_buckets.each do |_, bucket_text|
+        next unless grouped_returns[bucket_text].present?
+
+        returns[bucket_text] ||= {}
+        returns[bucket_text][:count] = grouped_returns[bucket_text].count
+        returns[bucket_text][:destinations] ||= {}
+
+        grouped_returns[bucket_text].each do |row|
+          returns[bucket_text][:destinations][row[:destination]] ||= 0
+          returns[bucket_text][:destinations][row[:destination]] += 1
+        end
+      end
     end
-    @bucketed_returns.to_a
   end
 
-  def ph_bucketed_returns
-    @ph_bucketed_returns ||= {}
-    grouped_returns = returns_to_shelter_after_ph.values.group_by { |m| m[:bucket] }
-    length_of_time_buckets.each do |_, bucket_text|
-      @ph_bucketed_returns[bucket_text] = grouped_returns[bucket_text].count if grouped_returns[bucket_text].present?
+  private def ph_bucketed_returns
+    @ph_bucketed_returns ||= {}.tap do |returns|
+      grouped_returns = returns_to_shelter_after_ph.values.group_by { |m| m[:bucket] }
+      length_of_time_buckets.each do |_, bucket_text|
+        next unless grouped_returns[bucket_text].present?
+
+        returns[bucket_text] ||= {}
+        returns[bucket_text][:count] = grouped_returns[bucket_text].count
+        returns[bucket_text][:destinations] ||= {}
+
+        grouped_returns[bucket_text].each do |row|
+          returns[bucket_text][:destinations][row[:destination]] ||= 0
+          returns[bucket_text][:destinations][row[:destination]] += 1
+        end
+      end
     end
-    @ph_bucketed_returns.to_a
   end
 
   def ph_returns_for_chart
     {
-      labels: ph_bucketed_returns.map(&:first),
-      data: [['Client count'] + ph_bucketed_returns.map(&:last)],
+      labels: ph_bucketed_returns.keys,
+      data: [['Client count'] + ph_bucketed_returns.values.map { |m| m[:count] }],
       projects_selected: ! all_projects,
+      destinations: ph_bucketed_returns.map { |_, m| m[:destinations] },
     }
   end
 
   def returns_for_chart
     {
-      labels: bucketed_returns.map(&:first),
-      data: [['Client count'] + bucketed_returns.map(&:last)],
+      labels: bucketed_returns.keys,
+      data: [['Client count'] + bucketed_returns.values.map { |m| m[:count] }],
       projects_selected: ! all_projects,
+      destinations: bucketed_returns.map { |_, m| m[:destinations] },
     }
   end
 
@@ -640,7 +664,7 @@ class WarehouseReport::Outcomes::Base
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       residential_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
@@ -975,6 +999,7 @@ class WarehouseReport::Outcomes::Base
           row[:exit_date],
           row[:entry_date], # actually return date
           row[:days_to_return],
+          row[:destination],
           row[:race],
           row[:ethnicity],
           row[:gender],
@@ -993,6 +1018,7 @@ class WarehouseReport::Outcomes::Base
           row[:exit_date],
           row[:entry_date], # actually return date
           row[:days_to_return],
+          row[:destination],
           row[:race],
           row[:ethnicity],
           row[:gender],
@@ -1117,7 +1143,7 @@ class WarehouseReport::Outcomes::Base
       send(@household_type).
       open_between(start_date: @start_date, end_date: @end_date)
     scope = scope.where(data_source_id: @data_source_ids) if @data_source_ids.present?
-    scope = scope.where(organization_id: @organization_ids) if @organization_ids.present?
+    scope = scope.in_organization(@organization_ids) if @organization_ids.present?
     scope = scope.heads_of_households if @filter.hoh_only
 
     scope

@@ -32,6 +32,7 @@ module ClientDetailReports
         age_ranges: [],
         organization_ids: [],
         project_ids: [],
+        project_group_ids: [],
         project_type_codes: [],
         coc_codes: [],
       )

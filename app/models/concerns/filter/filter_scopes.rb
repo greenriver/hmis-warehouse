@@ -70,7 +70,8 @@ module Filter::FilterScopes
       ages += (25..29).to_a if @filter.age_ranges.include?(:twenty_five_to_twenty_nine)
       ages += (30..39).to_a if @filter.age_ranges.include?(:thirty_to_thirty_nine)
       ages += (40..49).to_a if @filter.age_ranges.include?(:forty_to_forty_nine)
-      ages += (50..59).to_a if @filter.age_ranges.include?(:fifty_to_fifty_nine)
+      ages += (50..54).to_a if @filter.age_ranges.include?(:fifty_to_fifty_four)
+      ages += (55..59).to_a if @filter.age_ranges.include?(:fifty_five_to_fifty_nine)
       ages += (60..61).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
       ages += (62..110).to_a if @filter.age_ranges.include?(:over_sixty_one)
 
@@ -274,6 +275,12 @@ module Filter::FilterScopes
         and(e_t[:LivingSituation].in(HUD.homeless_situations(as: :prior))).
         or(she_t[:computed_project_type].in(@project_types)),
       )
+    end
+
+    private def filter_for_times_homeless(scope)
+      return scope unless @filter.times_homeless_in_last_three_years.present?
+
+      scope.joins(:enrollment).where(e_t[:TimesHomelessPastThreeYears].in(@filter.times_homeless_in_last_three_years))
     end
   end
 end

@@ -1,0 +1,7 @@
+- defaults = {input_html: {}, collection: [], include_blank: true, required: false}
+- @fields.each do |key, value|
+  - options = defaults.merge(value)
+  - options[:as] = options.delete(:type)
+  .row
+    .col-sm-12
+      = form.input key, label: key, **options

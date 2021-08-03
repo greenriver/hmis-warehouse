@@ -1,28 +1,29 @@
 - title = "#{@cohort.name} - Report"
 - content_for :title, title
 %h1= content_for :title
+= render 'cohorts/nav', system_cohort: @cohort.system_cohort, active_tab: 'report'
 %p Show cohort changes during the following date range.
 = render 'filter'
-.pull-right
+.pull-right.mb-4
   = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
     Download Excel
-
-%table.table.table-sm
-  %thead
-    %tr
-      %th Client
-      %th Change
-      %th Reason
-      %th Changed On
-      %th Changed By
-  %tbody
-    - @changes.each do |change|
-      - next unless change.cohort_client.present? && change.cohort_client.client.present?
-      - client = change.cohort_client.client
+.card
+  %table.table.table-striped.mb-0
+    %thead
       %tr
-        %td
-          = link_to client.full_name, client_path(client)
-        %td= change.change
-        %td= change.reason
-        %td= change.changed_at.to_date
-        %td= change.user.name
+        %th Client
+        %th Change
+        %th Reason
+        %th Changed On
+        %th Changed By
+    %tbody
+      - @changes.each do |change|
+        - next unless change.cohort_client.present? && change.cohort_client.client.present?
+        - client = change.cohort_client.client
+        %tr
+          %td
+            = link_to client.full_name, client_path(client)
+          %td= change.change
+          %td= change.reason
+          %td= change.changed_at.to_date
+          %td= change.user.name

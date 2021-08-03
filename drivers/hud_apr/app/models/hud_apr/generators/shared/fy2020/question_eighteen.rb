@@ -29,8 +29,13 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
           adults = universe.members.where(adult_clause)
-          adults = adults.where(stayers_clause) if suffix == :annual_assessment
-          adults = adults.where(leavers_clause) if suffix == :exit
+
+          case suffix
+          when :annual_assessment
+            adults = adults.where(stayers_clause.and(a_t[:annual_assessment_expected].eq(true)))
+          when :exit
+            adults = adults.where(leavers_clause)
+          end
 
           ids = Set.new
           if income_case.is_a?(Symbol)

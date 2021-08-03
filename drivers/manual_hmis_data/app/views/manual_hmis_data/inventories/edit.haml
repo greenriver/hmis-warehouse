@@ -1,0 +1,5 @@
+= content_for :modal_title do
+  Edit Inventory for #{@inventory.project.name} at #{@inventory.project.organization.name}
+= simple_form_for :inventory, url: manual_hmis_data_inventory_path, method: :patch do |f|
+  = render 'manual_hmis_data/form', form: f
+  = f.submit 'Save Inventory'

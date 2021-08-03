@@ -18,14 +18,13 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   scope :service_history, -> { where(routine: 'service_history') }
 
-  def self.update_cached_counts client_ids: []
+  def self.update_cached_counts(client_ids: [], force_cohort_calculation: false)
     existing_by_client_id = where(
       client_id: client_ids,
       routine: :service_history,
     ).index_by(&:client_id)
 
-    cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).
-      merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id).to_set
+    cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id).to_set
     assessment_client_ids = GrdaWarehouse::Hud::Client.distinct.joins(:coc_assessment_touch_points).pluck(:id)
 
     calcs = StatsCalculator.new(client_ids: client_ids)
@@ -50,7 +49,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
         days_homeless_plus_overrides: calcs.homeless_counts_plus_overrides[client_id] || 0,
       )
-      if client_id.in?(cohort_client_ids + assessment_client_ids)
+      if force_cohort_calculation || client_id.in?(cohort_client_ids + assessment_client_ids)
         processed.assign_attributes(
           CohortCalcs.new(processed.client).as_hash,
         )

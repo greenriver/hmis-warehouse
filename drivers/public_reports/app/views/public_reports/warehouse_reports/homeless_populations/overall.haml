@@ -19,8 +19,10 @@
 .d-flex
   .w-50
     = render 'household_composition_chart', population: population, data: population_data['household_chart']
+  .w-50
+    = render 'time_homeless', population: population, data: population_data['time_homeless']
 .d-flex
   .w-50
     = render 'race_chart', population: population, data: population_data['race_chart']
   .w-50
-    = render 'time_homeless', population: population, data: population_data['time_homeless']
+    = render 'ethnicity_chart', population: population, data: population_data['ethnicity_chart']

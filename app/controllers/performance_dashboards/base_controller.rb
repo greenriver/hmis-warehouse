@@ -32,32 +32,7 @@ class PerformanceDashboards::BaseController < ApplicationController
   helper_method :breakdown
 
   def filter_params
-    filtered = params.permit(
-      filters: [
-        :start,
-        :end,
-        :comparison_pattern,
-        :household_type,
-        :hoh_only,
-        :sub_population,
-        :coordinated_assessment_living_situation_homeless,
-        coc_codes: [],
-        project_types: [],
-        project_type_codes: [],
-        veteran_statuses: [],
-        age_ranges: [],
-        genders: [],
-        races: [],
-        ethnicities: [],
-        data_source_ids: [],
-        organization_ids: [],
-        project_ids: [],
-        funder_ids: [],
-        project_group_ids: [],
-        prior_living_situation_ids: [],
-        destination_ids: [],
-      ],
-    )
+    filtered = params.permit(filters: @filter.known_params)
     # project_type_codes exists as both a single and multi, ensure it's always
     # an array
 

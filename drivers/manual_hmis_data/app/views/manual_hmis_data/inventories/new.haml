@@ -1,0 +1,5 @@
+= content_for :modal_title do
+  Add Inventory
+= simple_form_for :inventory, url: manual_hmis_data_project_inventories_path do |f|
+  = render 'manual_hmis_data/form', form: f
+  = f.submit 'Add Inventory'

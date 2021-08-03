@@ -24,11 +24,13 @@ module GrdaWarehouse::Hud
     self.table_name = 'Inventory'
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    FAMILY_HOUSEHOLD_TYPE = 3
-    INDIVIDUAL_HOUSEHOLD_TYPE = 1
-    CHILD_ONLY_HOUSEHOLD_TYPE = 4
+    HOUSEHOLD_TYPES = {
+      family: 3,
+      individual: 1,
+      child_only: 4,
+    }.freeze
 
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :inventories, optional: :true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :inventories, optional: true
     # has_one :project, through: :project_coc, source: :project
     has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :inventories
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :inventories
@@ -38,19 +40,19 @@ module GrdaWarehouse::Hud
     alias_attribute :end_date, :InventoryEndDate
     alias_attribute :beds, :BedInventory
 
-    scope :within_range, -> (range) do
+    scope :within_range, ->(range) do
       i_start = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
       i_end = i_t[:InventoryEndDate]
       where(
         i_end.gteq(range.first).
         or(i_end.eq(nil)).
         and(i_start.lteq(range.last).
-        or(i_start.eq(nil)))
+        or(i_start.eq(nil))),
       )
     end
 
     scope :serves_families, -> do
-      where(HouseholdType: FAMILY_HOUSEHOLD_TYPE)
+      where(HouseholdType: HOUSEHOLD_TYPES[:family])
     end
 
     scope :family, -> do
@@ -58,7 +60,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :serves_individuals, -> do
-      where(i_t[:HouseholdType].not_eq(FAMILY_HOUSEHOLD_TYPE).
+      where(i_t[:HouseholdType].not_eq(HOUSEHOLD_TYPES[:family]).
           or(i_t[:HouseholdType].eq(nil)))
     end
 
@@ -67,13 +69,13 @@ module GrdaWarehouse::Hud
     end
 
     scope :serves_children, -> do
-      where(HouseholdType: CHILD_ONLY_HOUSEHOLD_TYPE)
+      where(HouseholdType: HOUSEHOLD_TYPES[:child_only])
     end
 
     # when we export, we always need to replace InventoryID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)
-      attributes = self.hud_csv_headers.dup
+      attributes = hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:InventoryID)] = :id
       attributes[attributes.index(:ProjectID)] = 'project.id'
@@ -101,7 +103,7 @@ module GrdaWarehouse::Hud
               i.send(attr)
             end
             if v.is_a? Date
-              v = v.strftime("%Y-%m-%d")
+              v = v.strftime('%Y-%m-%d')
             elsif v.is_a? Time
               v = v.to_formatted_s(:db)
             end
@@ -113,6 +115,10 @@ module GrdaWarehouse::Hud
 
     def self.related_item_keys
       [:ProjectID]
+    end
+
+    def self.household_types
+      HOUSEHOLD_TYPES
     end
 
     def computed_start_date

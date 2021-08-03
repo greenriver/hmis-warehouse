@@ -54,6 +54,7 @@ class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
       exit_date: _('Exit Date'),
       return_date: _('Date of Return'),
       days_to_return: _('Days to Return'),
+      destination: _('Destination'),
       race: _('Race'),
       ethnicity: _('Ethnicity'),
       gender: _('Gender'),
