@@ -6,12 +6,17 @@
     .row
       .col-sm-6
         = f.input :signature_on, as: :date_picker
+
         - if @participation_form.case_manager
           .form-group
             %label Case Manager
             %p.form-control-static= @participation_form.case_manager&.name
 
-        = f.input :location
+        - if @participation_form.location
+          .form-group
+            %label Location
+            %p.form-control-static= @participation_form.location
+
       - if @blank_participation_form_url.present?
         .col-sm-6.text-right
           = link_to @blank_participation_form_url, class: 'btn btn-secondary' do
@@ -20,7 +25,11 @@
 
     .row
       .col-sm-6.j-file-upload
-        = render 'upload_fields', f: f
+        - if @participation_form.errors.messages[:file].present?
+          .alert.alert-danger
+            = render 'upload_fields', f: f
+        - else
+          = render 'upload_fields', f: f
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 

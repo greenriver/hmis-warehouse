@@ -75,7 +75,6 @@ module Health
       local_params = params.require(:form).permit(
         :signature_on,
         :reviewed_by_supervisor,
-        :location,
         health_file_attributes: [
           :id,
           :file,
@@ -120,7 +119,7 @@ module Health
     end
 
     def validate_form
-      @participation_form.errors.add :location, 'Please include either a file location or upload.' if health_file_params_blank? && form_params[:location].blank?
+      # @participation_form.errors.add :file, 'Please upload a participation form.' if health_file_params_blank? && form_params[:location].blank?
     end
 
     def reviewed?
