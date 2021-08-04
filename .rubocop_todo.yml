@@ -2477,7 +2477,6 @@ Style/GuardClause:
     - 'app/controllers/application_controller.rb'
     - 'app/models/access_group.rb'
     - 'app/models/cas/user.rb'
-    - 'app/models/concerns/hud_reports/clients.rb'
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'
     - 'app/models/grda_warehouse/cohort_client_change.rb'
