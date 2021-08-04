@@ -6,7 +6,7 @@
       All
   - else
     %dd
-      = @filter.chosen_coc_codes
+      = @filter.chosen_coc_codes.join(', ')
 %dl
   %dt Project Types
   - if @filter.chosen_project_types.blank?
