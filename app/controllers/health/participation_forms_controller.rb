@@ -40,7 +40,7 @@ module Health
         Health::ParticipationSaver.new(form: @participation_form, user: current_user).create
         respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       elsif @participation_form.valid?
-        Health::ReleaseSaver.new(form: @participation_form, user: current_user).create
+        Health::ParticipationSaver.new(form: @participation_form, user: current_user).create
       end
     end
 

@@ -19,8 +19,8 @@
   .row
     .col-sm-6.j-file-upload
       - if @release_form.errors.messages[:file_location].present?
-        -#.alert.alert-danger
-        = render 'upload_fields', f: f
+        .alert.alert-danger
+          = render 'upload_fields', f: f
       - else
         = render 'upload_fields', f: f
 

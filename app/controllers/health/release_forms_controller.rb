@@ -8,7 +8,6 @@ module Health
   class ReleaseFormsController < IndividualPatientController
     include AjaxModalRails::Controller
     include ClientPathGenerator
-
     include HealthFileController
 
     before_action :set_client
