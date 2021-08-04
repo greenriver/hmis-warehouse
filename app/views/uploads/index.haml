@@ -32,6 +32,9 @@
                   = link_to upload.import_time, import_path(id: upload.import_log.id)
                 - else
                   = upload.import_time
+                  - if upload&.file&.present?
+                    %br
+                    = link_to 'Download Original', download_upload_import_path(upload)
 
 
 %p= paginate @uploads
