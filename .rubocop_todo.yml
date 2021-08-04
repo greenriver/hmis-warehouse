@@ -64,7 +64,6 @@ Layout/ClosingParenthesisIndentation:
   Exclude:
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud/funder.rb'
-    - 'app/models/grda_warehouse/service_history_enrollment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/outflow_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -139,7 +138,6 @@ Layout/DotPosition:
   Exclude:
     - 'app/models/grda_warehouse/hud/project.rb'
     - 'app/models/grda_warehouse/shape/coc.rb'
-    - 'app/models/grda_warehouse/shape/zip_code.rb'
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/health/patient_referral.rb'
     - 'app/models/health/tasks/import_epic.rb'
@@ -214,7 +212,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/health/health_file.rb'
     - 'app/models/health/member_status_report.rb'
     - 'app/models/health/patient_referral.rb'
-    - 'app/models/health/soap/mass_health.rb'
     - 'app/models/health/tasks/check_patient_eligibility.rb'
     - 'app/models/health/team/member.rb'
     - 'app/models/health/tracking_sheet.rb'
@@ -320,7 +317,6 @@ Layout/EmptyLines:
     - 'app/models/grda_warehouse/hud/assessment_result.rb'
     - 'app/models/grda_warehouse/hud/enrollment.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
-    - 'app/models/grda_warehouse/hud/project_coc.rb'
     - 'app/models/grda_warehouse/recurring_hmis_export.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/tasks/census_import.rb'
@@ -876,7 +872,6 @@ Layout/HashAlignment:
     - 'app/models/health/comprehensive_health_assessment.rb'
     - 'app/models/health/eligibility_inquiry.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/soap/mass_health.rb'
     - 'app/models/health/tasks/notify_care_coordinators_of_patient_eligibility_problems.rb'
     - 'app/models/health/tracking_sheet.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
@@ -906,7 +901,6 @@ Layout/HashAlignment:
 # Cop supports --auto-correct.
 Layout/HeredocIndentation:
   Exclude:
-    - 'app/models/health/soap/mass_health.rb'
     - 'app/models/similarity_metric/base.rb'
     - 'app/models/similarity_metric/boolean.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
@@ -1017,7 +1011,6 @@ Layout/LeadingCommentSpace:
 Layout/MultilineMethodCallBraceLayout:
   Exclude:
     - 'app/models/grda_warehouse/hud/funder.rb'
-    - 'app/models/grda_warehouse/service_history_enrollment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/outflow_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -1052,7 +1045,6 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/grda_warehouse/report/enrollment.rb'
     - 'app/models/grda_warehouse/service_history_service.rb'
     - 'app/models/grda_warehouse/shape/coc.rb'
-    - 'app/models/grda_warehouse/shape/zip_code.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
@@ -1285,7 +1277,6 @@ Layout/SpaceAroundOperators:
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
     - 'app/models/similarity_metric/initializer.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty.rb'
-    - 'drivers/public_reports/app/models/public_reports/state_level_homelessness.rb'
 
 # Offense count: 698
 # Cop supports --auto-correct.
@@ -1488,7 +1479,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/youth/homeless_youth_report.rb'
     - 'app/models/health/exporter/health_exporter.rb'
-    - 'app/models/health/soap/mass_health.rb'
     - 'app/models/report_generators/pit/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
@@ -1501,7 +1491,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
     - 'app/models/similarity_metric/initializer.rb'
     - 'app/models/user_role.rb'
-    - 'drivers/public_reports/app/models/public_reports/state_level_homelessness.rb'
 
 # Offense count: 1274
 # Cop supports --auto-correct.
@@ -1532,7 +1521,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/grda_warehouse/hud/with_deleted/user.rb'
     - 'app/models/grda_warehouse/lftp_s3_sync.rb'
     - 'app/models/grda_warehouse/project_group.rb'
-    - 'app/models/grda_warehouse/service_history_enrollment.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/identify_duplicates.rb'
@@ -1719,7 +1707,6 @@ Layout/SpaceInsideParens:
     - 'app/models/grda_warehouse/hud/enrollment_coc.rb'
     - 'app/models/grda_warehouse/hud/funder.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
-    - 'app/models/grda_warehouse/hud/project_coc.rb'
     - 'app/models/grda_warehouse/hud/service.rb'
     - 'app/models/grda_warehouse/hud/site.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/affiliation.rb'
@@ -2027,7 +2014,6 @@ Lint/UnusedBlockArgument:
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/project_group.rb'
-    - 'app/models/grda_warehouse/service_history_enrollment.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
@@ -2524,7 +2510,6 @@ Style/GuardClause:
     - 'app/models/health/patient_referral.rb'
     - 'app/models/health/release_form.rb'
     - 'app/models/health/sdh_case_management_note.rb'
-    - 'app/models/health/soap/mass_health.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
     - 'app/models/health/team/member.rb'
@@ -2561,7 +2546,6 @@ Style/IdenticalConditionalBranches:
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/enrollment_reasons.rb'
-    - 'app/models/health/soap/mass_health.rb'
 
 # Offense count: 17
 # Cop supports --auto-correct.
@@ -2569,7 +2553,6 @@ Style/IdenticalConditionalBranches:
 Style/IfInsideElse:
   Exclude:
     - 'app/models/grda_warehouse/hud/project.rb'
-    - 'app/models/grda_warehouse/hud/project_coc.rb'
     - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
@@ -2632,7 +2615,6 @@ Style/IfUnlessModifier:
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/release_form.rb'
     - 'app/models/health/sdh_case_management_note.rb'
-    - 'app/models/health/soap/mass_health.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/team/member.rb'
@@ -2794,7 +2776,6 @@ Style/MutableConstant:
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/soap/mass_health.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/message.rb'
@@ -3058,7 +3039,6 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/hud/inventory.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
-    - 'app/models/grda_warehouse/hud/project_coc.rb'
     - 'app/models/grda_warehouse/hud/site.rb'
     - 'app/models/grda_warehouse/hud_chronic.rb'
     - 'app/models/grda_warehouse/hud_create_log.rb'
@@ -3081,7 +3061,6 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/service.rb'
     - 'app/models/grda_warehouse/recurring_hmis_export.rb'
     - 'app/models/grda_warehouse/report/base.rb'
-    - 'app/models/grda_warehouse/service_history_enrollment.rb'
     - 'app/models/grda_warehouse/service_history_service_materialized.rb'
     - 'app/models/grda_warehouse/shape/coc.rb'
     - 'app/models/grda_warehouse/shape/shared_behaviors.rb'
@@ -3231,7 +3210,6 @@ Style/Semicolon:
 Style/SlicingWithRange:
   Exclude:
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/health/soap/mass_health.rb'
 
 # Offense count: 988
 # Cop supports --auto-correct.
@@ -3269,7 +3247,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/hud/inventory.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
-    - 'app/models/grda_warehouse/hud/project_coc.rb'
     - 'app/models/grda_warehouse/public_file.rb'
     - 'app/models/grda_warehouse/report/demographic.rb'
     - 'app/models/grda_warehouse/service_history_service_materialized.rb'
@@ -3438,12 +3415,10 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/hud/inventory.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/project.rb'
-    - 'app/models/grda_warehouse/hud/project_coc.rb'
     - 'app/models/grda_warehouse/hud/service.rb'
     - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/recurring_hmis_export.rb'
     - 'app/models/grda_warehouse/report/base.rb'
-    - 'app/models/grda_warehouse/service_history_enrollment.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
@@ -3581,7 +3556,6 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
     - 'app/models/grda_warehouse/hmis/assessment.rb'
     - 'app/models/grda_warehouse/shape.rb'
-    - 'app/models/grda_warehouse/shape/zip_code.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'

@@ -211,6 +211,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     coc_funded.in_coc(coc_code: coc_code)
   end
 
+  scope :in_zip, ->(zip_code:) do
+    joins(project: :project_cocs).
+      merge(GrdaWarehouse::Hud::ProjectCoc.in_zip(zip_code: zip_code))
+  end
+
   # Category 3 is "Homeless only under other federal statuses" and
   # is defined as a housing status of value 5
   scope :category_3, -> do

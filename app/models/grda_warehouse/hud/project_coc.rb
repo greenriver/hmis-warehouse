@@ -39,6 +39,14 @@ module GrdaWarehouse::Hud
       where.not(CoCCode: nil).or(where.not(hud_coc_code: nil))
     end
 
+    scope :in_zip, ->(zip_code:) do
+      zip_code = Array(zip_code)
+      where(
+        pc_t[:Zip].in(zip_code).and(pc_t[:zip_override].eq(nil).or(pc_t[:zip_override].eq(''))).
+        or(pc_t[:zip_override].in(zip_code))
+      )
+    end
+
     scope :viewable_by, ->(user) do
       if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope
