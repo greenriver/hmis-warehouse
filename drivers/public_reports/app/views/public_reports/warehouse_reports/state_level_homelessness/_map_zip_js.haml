@@ -14,7 +14,7 @@
       this.max_rate = max_rate;
       this.max_count = max_count;
       this.showingData = false;
-      this.markers = [];
+
       const mapOptions = {
         minZoom: 5,
         maxZoom: 9,
@@ -27,6 +27,7 @@
       this.highlightedFeatures = [];
 
       this.map = new L.Map(this.elementId, mapOptions);
+      this.markers = L.layerGroup().addTo(this.map);
 
       L.control
         .zoom({
@@ -42,7 +43,7 @@
 
       const geoJSONOptions = {
         style: this.style,
-        // onEachFeature: this.onEachFeature,
+        onEachFeature: this.onEachFeature,
       };
 
       this.geojson = L.geoJSON(this.shapes, geoJSONOptions).addTo(this.map);
@@ -125,7 +126,7 @@
     updateInfo(e) {
       const layer = (e != null ? e.target : undefined) || e;
       if (this.info != null) {
-        this.info.update(layer.options.feature.properties);
+        this.info.update(layer.feature.properties);
       }
       this.bringLayerToFront(layer);
       // layer.setStyle({
@@ -140,7 +141,7 @@
       if (this.info != null) {
         this.info.update(null);
       }
-      if (layer.options.feature.properties.id != this.secondaryId) {
+      if (layer.feature.properties.id != this.secondaryId) {
         this.bringLayerToBack(layer);
         // return layer.setStyle({
         //   color: this.strokeColor,
@@ -159,12 +160,8 @@
     }
 
     updateMetrics(metrics) {
-      // Maybe remove and re-add pane here
-      if(this.markers.length > 0) {
-        let group = L.layerGroup(this.markers)
-        group.clearLayers();
-        this.markers = [];
-      }
+      this.markers.clearLayers();
+
       this.metrics = metrics
       this.geojson.getLayers().forEach((l) => {
         const zip = l.feature.properties.name;
@@ -180,12 +177,13 @@
             opacity: 0.8,
             fillOpacity: 0.8,
             stroke: false,
-            feature: l.feature,
+            // feature: l.feature,
           });
-          marker.on('mouseover', this.updateInfo)
-          marker.on('mouseout', this.clearInfo)
-          marker.addTo(this.map);
-          this.markers.push(marker)
+          marker.feature = l.feature;
+          marker.on('mouseover', this.updateInfo);
+          marker.on('mouseout', this.clearInfo);
+          marker.addTo(this.markers);
+
         }
         // return l.setStyle({
         //   fillColor: this.getColor(l.feature.properties.metric),

@@ -34,7 +34,7 @@
     const data = #{data.to_json.html_safe}
     const comparison_colors = #{@report.chart_color_shades(:youth_primary_color)}
 
-    let selected_date = $('.jQuarters').data('dates')[0];
+    let selected_date = $('.jQuarters').data('dates')[$('.jQuarters').val()];
     let comparison_data = data.homeless_map
 
     const comparison_map = new CocMap({
