@@ -34,6 +34,12 @@ class ImportsController < ApplicationController
     send_data(@upload.content, type: @upload.content_type, filename: filename) if @upload.content.present?
   end
 
+  def download_upload
+    @upload = GrdaWarehouse::Upload.viewable_by(current_user).find(params[:id].to_i)
+    filename = @upload.file&.file&.filename&.to_s || 'import'
+    send_data(@upload.content, type: @upload.content_type, filename: filename) if @upload.content.present?
+  end
+
   # POST /imports
   def create
     run_import = false

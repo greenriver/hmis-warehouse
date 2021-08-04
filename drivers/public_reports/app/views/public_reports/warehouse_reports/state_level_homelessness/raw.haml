@@ -1,5 +1,5 @@
 = render 'chart_css'
-- data = JSON.parse(@report.precalculated_data)
+- data = @report.parsed_pre_calculated_data
 
 = render 'summary_counts', data: data
 
@@ -17,7 +17,7 @@
 
 = render 'slider', data: data['quarters']
 %h3 Where is the need?
-= render 'need_map', data: data['need_map']
+= render 'need_map', data: data['need_map'], max_rate: data['map_max_rate'], max_count: data['map_max_count']
 
 %h3 Who is experiencing homelessness?
 .d-flex
