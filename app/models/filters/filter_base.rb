@@ -756,7 +756,7 @@ module Filters
     end
 
     def chosen_coc_codes
-      coc_codes.join(', ')
+      coc_codes
     end
 
     def chosen_organizations
