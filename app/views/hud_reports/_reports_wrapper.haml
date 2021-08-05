@@ -3,6 +3,7 @@
   .jReportListing
     = render 'hud_reports/reports'
   = render 'hud_reports/list_refresher'
+  %p= paginate @reports
 - else
   %p.none-found
     No reports to show
