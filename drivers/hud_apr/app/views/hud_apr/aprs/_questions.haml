@@ -17,7 +17,7 @@
   - if included.any?
     %p Results included in this download will include the following:
     - included.each do |item|
-      = link_to hud_reports_apr_question_path(@report, item), class: 'btn btn-sm btn-secondary mb-2 ml-2' do
+      = link_to path_for_question_result(item, report: @report), class: 'btn btn-sm btn-secondary mb-2 ml-2' do
         = checkmark_or_x(true)
         = item
   - else
