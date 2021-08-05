@@ -77,11 +77,16 @@ module HudReports::Clients
       }
     end
 
+    # Assessments are expected if:
+    # You are the head of household.
+    # If the enrollment lasted more than one year
+    # and the reporting period end is more than a year since the beginning of the enrollment
+    # and the enrollment started more than one year ago
     private def annual_assessment_expected?(enrollment)
-      return false if enrollment.last_date_in_program.present? &&
-        enrollment.last_date_in_program - enrollment.first_date_in_program < 365
+      return false unless enrollment.head_of_household?
 
-      enrollment.head_of_household? && enrollment.first_date_in_program + 1.years < report_end_date
+      end_date = [enrollment.last_date_in_program, report_end_date, Date.current].compact.min
+      enrollment.first_date_in_program + 1.years < end_date
     end
 
     private def annual_assessment_in_window?(enrollment, assessment_date)
