@@ -37,9 +37,9 @@ module GrdaWarehouse::Hud
       pt[:street_outreach]      = h[:so]
       pt[:safe_haven]           = h[:sh]
       pt.freeze
-    end
+    end.freeze
 
-    HOMELESS_PROJECT_TYPE_CODES = [:es, :so, :sh, :th]
+    HOMELESS_PROJECT_TYPE_CODES = [:es, :so, :sh, :th].freeze
 
     RESIDENTIAL_PROJECT_TYPE_IDS = RESIDENTIAL_PROJECT_TYPES.values.flatten.uniq.sort
 
@@ -62,21 +62,21 @@ module GrdaWarehouse::Hud
       day_shelter: 'Day Shelter',
       prevention: 'Homelessness Prevention',
       services_only: 'Services Only',
-    }
-    PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so]) }
+    }.freeze
+    PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so]) }.freeze
     HOMELESS_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
     CHRONIC_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
-    RESIDENTIAL_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh]) }
+    RESIDENTIAL_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh]) }.freeze
     PROJECT_TYPE_COLORS = {
       ph: 'rgba(150, 3, 130, 0.5)',
       th: 'rgba(103, 81, 140, 0.5)',
       es: 'rgba(87, 132, 93, 0.5)',
       so: 'rgba(132, 26, 7, 0.5)',
       sh: 'rgba(61, 99, 130, 0.5)',
-    }
+    }.freeze
 
     ALL_PROJECT_TYPES = ::HUD.project_types.keys
-    PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
+    PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14].freeze
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
     PERFORMANCE_REPORTING = { # duplicate of code in various places
@@ -92,7 +92,7 @@ module GrdaWarehouse::Hud
       day_shelter: [11],
       prevention: [12],
       services_only: [6],
-    }
+    }.freeze
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override, :zip_override
     belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects
@@ -343,7 +343,7 @@ module GrdaWarehouse::Hud
       visible_count.positive? && visible_count == all.count
     end
 
-    def self.has_access_to_project_through_viewable_entities(user, q, qc)
+    def self.has_access_to_project_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -376,7 +376,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    def self.has_access_to_project_through_organization(user, q, qc)
+    def self.has_access_to_project_through_organization(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
       viewability_table   = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -416,7 +416,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    def self.has_access_to_project_through_data_source(user, q, qc)
+    def self.has_access_to_project_through_data_source(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
       data_source_table = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
@@ -454,7 +454,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    def self.has_access_to_project_through_coc_codes(user, q, qc)
+    def self.has_access_to_project_through_coc_codes(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
       return '(1=0)' unless user.coc_codes.any?
 
       project_coc_table = GrdaWarehouse::Hud::ProjectCoc.quoted_table_name
@@ -622,7 +622,7 @@ module GrdaWarehouse::Hud
         projects = projects.select selector.as(header.to_s)
       end
 
-      csv = CSV.generate headers: true do |csv|
+      CSV.generate headers: true do |csv|
         headers = spec.keys.reject { |k| k.to_s.starts_with? '_' }
         csv << headers
 
