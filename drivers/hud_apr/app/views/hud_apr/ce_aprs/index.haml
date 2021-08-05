@@ -1,0 +1,10 @@
+- content_for :title, _("HUD Reports")
+%header.mb-3
+  %h1= content_for :title
+
+= render 'hud_reports/tabs', tab_name: 'Annual Performance Report'
+
+
+.jReportListing
+  = render 'all_questions'
+= render 'hud_reports/list_refresher'
