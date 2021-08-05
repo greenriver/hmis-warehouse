@@ -79,7 +79,7 @@ module HudReports::Clients
 
     private def annual_assessment_expected?(enrollment)
       return false if enrollment.last_date_in_program.present? &&
-        enrollment.last_date_in_program - enrollment.first_date_in_program < 1.year
+        enrollment.last_date_in_program - enrollment.first_date_in_program < 365
 
       enrollment.head_of_household? && enrollment.first_date_in_program + 1.years < report_end_date
     end
