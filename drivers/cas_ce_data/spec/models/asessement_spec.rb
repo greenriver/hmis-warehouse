@@ -23,7 +23,7 @@ RSpec.describe 'CasCeData::Synthetic::Assessment', type: :model do
     expect(CasCeData::Synthetic::Assessment.count).to eq(0)
     CasCeData::Synthetic::Assessment.sync
     expect(GrdaWarehouse::Synthetic::Assessment.count).to eq(1)
-    # GrdaWarehouse::Synthetic::Assessment.create_hud_assessments
-    # expect(GrdaWarehouse::Hud::Assessment.count).to eq(1)
+    GrdaWarehouse::Synthetic::Assessment.create_hud_assessments
+    expect(GrdaWarehouse::Hud::Assessment.count).to eq(1)
   end
 end

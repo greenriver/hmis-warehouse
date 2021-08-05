@@ -41,7 +41,7 @@ module GrdaWarehouse::Synthetic
     end
 
     def self.create_hud_assessments
-      find_in_batches do |batch|
+      preload(:enrollment, :client, :source).find_in_batches do |batch|
         assessment_source.import(
           batch.map(&:hud_assessment_hash),
           on_duplicate_key_update: {
@@ -64,10 +64,14 @@ module GrdaWarehouse::Synthetic
         PrioritizationStatus: prioritization_status,
         DateCreated: source.created_at,
         DateUpdated: source.updated_at,
-        UserID: User.setup_system_user.name,
+        UserID: user_id,
         data_source_id: ds.id,
         synthetic: true,
       }
+    end
+
+    private def user_id
+      @user_id ||= User.setup_system_user.name
     end
 
     private def ds

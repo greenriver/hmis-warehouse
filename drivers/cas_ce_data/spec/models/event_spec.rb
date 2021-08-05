@@ -23,7 +23,7 @@ RSpec.describe 'CasCeData::Synthetic::Event', type: :model do
     expect(CasCeData::Synthetic::Event.count).to eq(0)
     CasCeData::Synthetic::Event.sync
     expect(GrdaWarehouse::Synthetic::Event.count).to eq(1)
-    # GrdaWarehouse::Synthetic::Event.create_hud_events
-    # expect(GrdaWarehouse::Hud::Event.count).to eq(1)
+    GrdaWarehouse::Synthetic::Event.create_hud_events
+    expect(GrdaWarehouse::Hud::Event.count).to eq(1)
   end
 end

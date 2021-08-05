@@ -62,7 +62,7 @@ module GrdaWarehouse::Synthetic
     end
 
     def self.create_hud_events
-      find_in_batches do |batch|
+      preload(:enrollment, :client, :source).find_in_batches do |batch|
         event_source.import(
           batch.map(&:hud_event_hash),
           on_duplicate_key_update: {
@@ -87,10 +87,14 @@ module GrdaWarehouse::Synthetic
         ResultDate: result_date,
         DateCreated: source.created_at,
         DateUpdated: source.updated_at,
-        UserID: User.setup_system_user.name,
+        UserID: user_id,
         data_source_id: ds.id,
         synthetic: true,
       }
+    end
+
+    private def user_id
+      @user_id ||= User.setup_system_user.name
     end
 
     private def ds
