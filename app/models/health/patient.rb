@@ -868,19 +868,16 @@ module Health
       qualifying_activities.in_range(date..Date.tomorrow)
     end
 
-    # This does not return a scope
     def valid_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).payable.to_a
+      qualified_activities_since(date: date).payable
     end
 
-    # This does not return a scope
     def valid_payable_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).payable.not_valid_unpayable.to_a
+      qualified_activities_since(date: date).payable.not_valid_unpayable
     end
 
-    # This does not return a scope
     def valid_unpayable_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).payable.valid_unpayable.to_a
+      qualified_activities_since(date: date).payable.valid_unpayable
     end
 
     def import_epic_team_members
