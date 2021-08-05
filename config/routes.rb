@@ -594,6 +594,7 @@ Rails.application.routes.draw do
 
   resources :imports do
     get :download, on: :member
+    get :download_upload, on: :member
   end
 
   resources :match_logs, only: [:index]

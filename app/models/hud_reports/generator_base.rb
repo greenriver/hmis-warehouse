@@ -4,11 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'memoist'
 module HudReports
   class GeneratorBase
     include ArelHelper
     include Filter::FilterScopes
     include Rails.application.routes.url_helpers
+    extend Memoist
 
     PENDING = 'pending'.freeze
     STARTED = 'started'.freeze
@@ -47,7 +49,11 @@ module HudReports
         joins(:service_history_enrollments).
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date))
 
-      @filter = self.class.filter_class.new(user_id: @report.user_id, enforce_one_year_range: false).update(@report.options)
+      @filter = self.class.filter_class.new(
+        user_id: @report.user_id,
+        enforce_one_year_range: false,
+      ).update(@report.options)
+
       she_scope = GrdaWarehouse::ServiceHistoryEnrollment.all
       she_scope = filter_for_projects(she_scope)
       she_scope = filter_for_cocs(she_scope)
@@ -59,16 +65,17 @@ module HudReports
       she_scope = filter_for_race(she_scope)
       she_scope = filter_for_ethnicity(she_scope)
       she_scope = filter_for_sub_population(she_scope)
-      scope.merge(she_scope)
+      scope = scope.merge(she_scope)
 
       scope.select(:id)
     end
+    memoize :client_scope
 
     def client_source
       GrdaWarehouse::Hud::Client
     end
 
-    private def report_scope_source
+    def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
   end

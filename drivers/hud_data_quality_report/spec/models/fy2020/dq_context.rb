@@ -24,6 +24,24 @@ RSpec.shared_context 'dq context', shared_context: :metadata do
     HudDataQualityReport::Filters::DqFilter.new(shared_filter.merge(project_ids: [project_id]))
   end
 
+  def race_filter
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
+    HudDataQualityReport::Filters::DqFilter.new(shared_filter.merge(project_ids: [project_id])).update(
+      shared_filter.merge(
+        { 'races' => ['Asian'] },
+      ),
+    )
+  end
+
+  def age_filter
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
+    HudDataQualityReport::Filters::DqFilter.new(shared_filter.merge(project_ids: [project_id])).update(
+      shared_filter.merge(
+        { 'age_ranges' => ['under_eighteen'] },
+      ),
+    )
+  end
+
   def night_by_night_shelter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'NBN').id
     HudDataQualityReport::Filters::DqFilter.new(shared_filter.merge(project_ids: [project_id]))

@@ -16,27 +16,31 @@ module WarehouseReports::Health
 
     def create
       if params[:commit] == 'Retrieve Enrollments Via API'
-        api = Health::Soap::MassHealth.new(test: !Rails.env.production?)
-        file_list = api.file_list
-        enrollment_payloads = file_list.payloads(Health::Soap::MassHealth::ENROLLMENT_RESPONSE_PAYLOAD_TYPE)
-        if enrollment_payloads.present?
-          enrollment_payloads.each do |payload|
-            errors = []
-            response = payload.response
-            if response.success?
-              file = Health::Enrollment.create(
-                user_id: current_user.id,
-                content: response.response,
-                status: 'processing',
-              )
-              Health::ProcessEnrollmentChangesJob.perform_later(file.id)
-            else
-              errors << response.error_message
+        begin
+          api = Health::Soap::MassHealth.new(test: !Rails.env.production?)
+          file_list = api.file_list
+          enrollment_payloads = file_list.payloads(Health::Soap::MassHealth::ENROLLMENT_RESPONSE_PAYLOAD_TYPE)
+          if enrollment_payloads.present?
+            enrollment_payloads.each do |payload|
+              errors = []
+              response = payload.response
+              if response.success?
+                file = Health::Enrollment.create(
+                  user_id: current_user.id,
+                  content: response.response,
+                  status: 'processing',
+                )
+                Health::ProcessEnrollmentChangesJob.perform_later(file.id)
+              else
+                errors << response.error_message
+              end
+              flash[:error] = errors.join(', ') if errors.present?
             end
-            flash[:error] = errors.join(', ') if errors.present?
+          else
+            flash[:error] = 'No 834s found'
           end
-        else
-          flash[:error] = 'No 834s found'
+        rescue RuntimeError => e
+          flash[:error] = "Error contacting MassHealth API: #{e.message}"
         end
       else
         begin

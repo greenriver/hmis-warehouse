@@ -455,14 +455,14 @@ module Health
 
     def first_outreach_of_month_for_patient?
       outreaches_of_month_for_patient.
-        payable. # Limit to payable QAs
+        payable.not_valid_unpayable. # Limit to payable QAs
         or(self.class.where(id: id)). # Assume that we are payable for this calculation
         minimum(:id) == id
     end
 
     def first_non_outreach_of_month_for_patient?
       non_outreaches_of_month_for_patient.
-        payable. # Limit to payable QAs
+        payable.not_valid_unpayable. # Limit to payable QAs
         or(self.class.where(id: id)). # Assume that we are payable for this calculation
         minimum(:id) == id
     end
