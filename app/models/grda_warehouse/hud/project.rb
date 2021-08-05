@@ -796,7 +796,7 @@ module GrdaWarehouse::Hud
 
         project_scope.
           joins(:organization, :data_source).
-          preload(:organization, :data_source).
+          eager_load(:organization, :data_source).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
           each do |project|
             org_name = project.organization.OrganizationName
