@@ -272,7 +272,14 @@ module HudDataQualityReport::Generators::Fy2020
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: report_end_date).
-        joins(:enrollment)
+        joins(:enrollment, :project).
+        where(
+          p_t[:ProjectType].not_eq(4).
+          or(
+            p_t[:ProjectType].eq(4).
+              and(e_t[:DateOfEngagement].lt(report_end_date)),
+          ),
+        )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
     end
