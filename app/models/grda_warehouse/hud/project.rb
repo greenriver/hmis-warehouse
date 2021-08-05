@@ -20,11 +20,11 @@ module GrdaWarehouse::Hud
 
     has_paper_trail
 
-   include Filterable
+    include Filterable
 
     RESIDENTIAL_PROJECT_TYPES = {}.tap do |pt|
-      h = {   # duplicate of code in various places
-        ph: [3,9,10,13],
+      h = { # duplicate of code in various places
+        ph: [3, 9, 10, 13],
         th: [2],
         es: [1],
         so: [4],
@@ -63,10 +63,10 @@ module GrdaWarehouse::Hud
       prevention: 'Homelessness Prevention',
       services_only: 'Services Only',
     }
-    PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select{|k,_| k.in?([:ph, :es, :th, :sh, :so])}
+    PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so]) }
     HOMELESS_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
     CHRONIC_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
-    RESIDENTIAL_TYPE_TITLES = PROJECT_GROUP_TITLES.select{|k,_| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh])}
+    RESIDENTIAL_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh]) }
     PROJECT_TYPE_COLORS = {
       ph: 'rgba(150, 3, 130, 0.5)',
       th: 'rgba(103, 81, 140, 0.5)',
@@ -79,7 +79,7 @@ module GrdaWarehouse::Hud
     PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
-    PERFORMANCE_REPORTING = {   # duplicate of code in various places
+    PERFORMANCE_REPORTING = { # duplicate of code in various places
       ph: [3, 9, 10, 13],
       th: [2],
       es: [1],
@@ -100,8 +100,8 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
 
     has_and_belongs_to_many :project_groups,
-      class_name: 'GrdaWarehouse::ProjectGroup',
-      join_table: :project_project_groups
+                            class_name: 'GrdaWarehouse::ProjectGroup',
+                            join_table: :project_project_groups
 
     has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
 
@@ -140,32 +140,32 @@ module GrdaWarehouse::Hud
       where(ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS)
     end
     scope :hud_residential, -> do
-      where(self.project_type_override.in(RESIDENTIAL_PROJECT_TYPE_IDS))
+      where(project_type_override.in(RESIDENTIAL_PROJECT_TYPE_IDS))
     end
     scope :non_residential, -> do
       where.not(ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS)
     end
     scope :hud_non_residential, -> do
-      where.not(self.project_type_override.in(RESIDENTIAL_PROJECT_TYPE_IDS))
+      where.not(project_type_override.in(RESIDENTIAL_PROJECT_TYPE_IDS))
     end
 
     scope :chronic, -> do
-      where(self.project_type_override.in(CHRONIC_PROJECT_TYPES))
+      where(project_type_override.in(CHRONIC_PROJECT_TYPES))
     end
     scope :hud_chronic, -> do
-      where(self.project_type_override.in(CHRONIC_PROJECT_TYPES))
+      where(project_type_override.in(CHRONIC_PROJECT_TYPES))
     end
     scope :homeless, -> do
-      where(self.project_type_override.in(HOMELESS_PROJECT_TYPES))
+      where(project_type_override.in(HOMELESS_PROJECT_TYPES))
     end
     scope :hud_homeless, -> do
-      where(self.project_type_override.in(CHRONIC_PROJECT_TYPES))
+      where(project_type_override.in(CHRONIC_PROJECT_TYPES))
     end
     scope :homeless_sheltered, -> do
-      where(self.project_type_override.in(HOMELESS_SHELTERED_PROJECT_TYPES))
+      where(project_type_override.in(HOMELESS_SHELTERED_PROJECT_TYPES))
     end
     scope :homeless_unsheltered, -> do
-      where(self.project_type_override.in(HOMELESS_UNSHELTERED_PROJECT_TYPES))
+      where(project_type_override.in(HOMELESS_UNSHELTERED_PROJECT_TYPES))
     end
     scope :residential_non_homeless, -> do
       r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
@@ -173,11 +173,11 @@ module GrdaWarehouse::Hud
     end
     scope :hud_residential_non_homeless, -> do
       r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-      where(self.project_type_override.in(r_non_homeless))
+      where(project_type_override.in(r_non_homeless))
     end
 
     scope :with_hud_project_type, ->(project_types) do
-      where(self.project_type_override.in(project_types))
+      where(project_type_override.in(project_types))
     end
     scope :with_project_type, ->(project_types) do
       where(project_type_column => project_types)
@@ -200,8 +200,8 @@ module GrdaWarehouse::Hud
       # hud_continuum_funded overrides ContinuumProject
       where(
         arel_table[:ContinuumProject].eq(1).
-        and(arel_table[:hud_continuum_funded].eq(nil))
-        .or(arel_table[:hud_continuum_funded].eq(true)),
+        and(arel_table[:hud_continuum_funded].eq(nil)).
+        or(arel_table[:hud_continuum_funded].eq(true)),
       )
     end
 
@@ -238,7 +238,6 @@ module GrdaWarehouse::Hud
           merge(GrdaWarehouse::Hud::Inventory.serves_families).
           distinct.select(:id),
       )
-
     end
 
     def serves_families?
@@ -252,7 +251,7 @@ module GrdaWarehouse::Hud
     scope :serves_individuals, -> do
       where(
         p_t[:id].in(lit(GrdaWarehouse::Hud::Project.joins(:inventories).merge(GrdaWarehouse::Hud::Inventory.serves_individuals).select(:id).to_sql)).
-          or(p_t[:id].not_in(lit(GrdaWarehouse::Hud::Project.serves_families.select(:id).to_sql)))
+          or(p_t[:id].not_in(lit(GrdaWarehouse::Hud::Project.serves_families.select(:id).to_sql))),
       )
     end
 
@@ -292,7 +291,6 @@ module GrdaWarehouse::Hud
       where(include_in_days_homeless_override: true)
     end
 
-
     #################################
     # Standard Cohort Scopes
     scope :veteran, -> do
@@ -319,16 +317,16 @@ module GrdaWarehouse::Hud
     #################################
 
     scope :viewable_by, ->(user) do
-      qc = -> (s) { connection.quote_column_name s }
-      q  = -> (s) { connection.quote s }
+      qc = ->(s) { connection.quote_column_name s }
+      q  = ->(s) { connection.quote s }
 
       where(
         [
           has_access_to_project_through_viewable_entities(user, q, qc),
           has_access_to_project_through_organization(user, q, qc),
           has_access_to_project_through_data_source(user, q, qc),
-          has_access_to_project_through_coc_codes(user, q, qc)
-        ].join ' OR '
+          has_access_to_project_through_coc_codes(user, q, qc),
+        ].join(' OR '),
       )
     end
 
@@ -353,9 +351,9 @@ module GrdaWarehouse::Hud
         user.access_groups.pluck(:id)
       end
       group_id_query = if group_ids.empty?
-        "0=1"
+        '0=1'
       else
-        "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -364,15 +362,15 @@ module GrdaWarehouse::Hud
           SELECT 1 FROM
             #{viewability_table}
             WHERE
-              #{viewability_table}.#{qc.('entity_id')}   = #{project_table}.#{qc.('id')}
+              #{viewability_table}.#{qc.call('entity_id')}   = #{project_table}.#{qc.call('id')}
               AND
-              #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
+              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
               AND
-              #{project_table}.#{qc.(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
+              #{project_table}.#{qc.call(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
         )
 
       SQL
@@ -387,9 +385,9 @@ module GrdaWarehouse::Hud
         user.access_groups.pluck(:id)
       end
       group_id_query = if group_ids.empty?
-        "0=1"
+        '0=1'
       else
-        "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -400,19 +398,19 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{organization_table}
             ON
-              #{viewability_table}.#{qc.('entity_id')}   = #{organization_table}.#{qc.('id')}
+              #{viewability_table}.#{qc.call('entity_id')}   = #{organization_table}.#{qc.call('id')}
               AND
-              #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
+              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::Hud::Organization.sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
             WHERE
-              #{organization_table}.#{qc.('data_source_id')} = #{project_table}.#{qc.('data_source_id')}
+              #{organization_table}.#{qc.call('data_source_id')} = #{project_table}.#{qc.call('data_source_id')}
               AND
-              #{organization_table}.#{qc.('OrganizationID')} = #{project_table}.#{qc.('OrganizationID')}
+              #{organization_table}.#{qc.call('OrganizationID')} = #{project_table}.#{qc.call('OrganizationID')}
               AND
-              #{organization_table}.#{qc.(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
+              #{organization_table}.#{qc.call(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
         )
 
       SQL
@@ -427,9 +425,9 @@ module GrdaWarehouse::Hud
         user.access_groups.pluck(:id)
       end
       group_id_query = if group_ids.empty?
-        "0=1"
+        '0=1'
       else
-        "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -440,17 +438,17 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{data_source_table}
             ON
-              #{viewability_table}.#{qc.('entity_id')}   = #{data_source_table}.#{qc.('id')}
+              #{viewability_table}.#{qc.call('entity_id')}   = #{data_source_table}.#{qc.call('id')}
               AND
-              #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::DataSource.sti_name)}
+              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::DataSource.sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
               AND
-              #{data_source_table}.#{qc.(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
+              #{data_source_table}.#{qc.call(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
             WHERE
-              #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
+              #{project_table}.#{qc.call('data_source_id')} = #{data_source_table}.#{qc.call('id')}
         )
 
       SQL
@@ -474,11 +472,11 @@ module GrdaWarehouse::Hud
               AND
               #{project_coc_table}.#{qc[:data_source_id]} = pt.#{qc[:data_source_id]}
               AND
-              #{project_coc_table}.#{qc.(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
+              #{project_coc_table}.#{qc.call(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
             WHERE
               (
                 (
-                  #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
+                  #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map { |c| q[c] }.join ','})
                   AND
                   (
                     #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL
@@ -487,7 +485,7 @@ module GrdaWarehouse::Hud
                   )
                 )
                 OR
-                #{project_coc_table}.#{qc[:hud_coc_code]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
+                #{project_coc_table}.#{qc[:hud_coc_code]} IN (#{user.coc_codes.map { |c| q[c] }.join ','})
               )
               AND
               #{project_table}.#{qc[:id]} = pt.#{qc[:id]}
@@ -498,7 +496,7 @@ module GrdaWarehouse::Hud
     end
 
     # make a scope for every project type and a type? method for instances
-    RESIDENTIAL_PROJECT_TYPES.each do |k,v|
+    RESIDENTIAL_PROJECT_TYPES.each do |k, v|
       scope k, -> { where(project_type_column => v) }
       define_method "#{k}?" do
         v.include? project_type_to_use
@@ -594,7 +592,7 @@ module GrdaWarehouse::Hud
       @answer ||= GrdaWarehouse::Hud::Project.where(id: id).
         joins(:services).
         select(:ProjectID, :data_source_id).
-        where(Services: {RecordType: 12}).
+        where(Services: { RecordType: 12 }).
         exists?
       @answer
     end
@@ -617,15 +615,15 @@ module GrdaWarehouse::Hud
         hud_geocode: g_t[:Geocode],
         current_continuum_project: p_t[:ContinuumProject],
       }
-      projects = joins( :funders, :organization, :project_cocs, :geographies ).
-        order( arel_table[:ProjectID], pc_t[:CoCCode], f_t[:FunderID] ).
-        where( pc_t[:CoCCode].in coc_codes )
+      projects = joins(:funders, :organization, :project_cocs, :geographies).
+        order(arel_table[:ProjectID], pc_t[:CoCCode], f_t[:FunderID]).
+        where(pc_t[:CoCCode].in(coc_codes))
       spec.each do |header, selector|
         projects = projects.select selector.as(header.to_s)
       end
 
       csv = CSV.generate headers: true do |csv|
-        headers = spec.keys.reject{ |k| k.to_s.starts_with? '_' }
+        headers = spec.keys.reject { |k| k.to_s.starts_with? '_' }
         csv << headers
 
         last = nil
@@ -650,6 +648,7 @@ module GrdaWarehouse::Hud
             row << value
           end
           next if row == last
+
           last = row
           csv << row
         end
@@ -659,7 +658,7 @@ module GrdaWarehouse::Hud
     # when we export, we always need to replace ProjectID with the value of id
     # and OrganizationID with the id of the related organization
     def self.to_csv(scope:, override_project_type:)
-      attributes = self.hud_csv_headers.dup
+      attributes = hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:ProjectID)] = :id
       attributes[attributes.index(:OrganizationID)] = 'organization.id'
@@ -674,35 +673,33 @@ module GrdaWarehouse::Hud
             v = if attr.include?('.')
               obj, meth = attr.split('.')
               i.send(obj).send(meth)
-            else
-              if override_project_type && attr == 'ProjectType'
-                i.computed_project_type
-              elsif attr == 'ResidentialAffiliation'
-                i.send(attr).presence || 99
-              elsif attr == 'TrackingMethod'
-                if i.tracking_method_override.present?
-                  i.tracking_method_override
-                else
-                  i.send(attr).presence || 0
-                end
-              elsif attr == 'ProjectCommonName' && i.ProjectCommonName.blank?
-                i.ProjectName
-              elsif attr == 'ContinuumProject' && i.hud_continuum_funded
-                1
-              elsif attr == 'OperatingStartDate' && i.operating_start_date_override.present?
-                i.operating_start_date_override
-              elsif attr == 'OperatingEndDate' && i.operating_end_date_override.present?
-                i.operating_end_date_override
-              elsif attr == 'HMISParticipatingProject' && i.hmis_participating_project_override.present?
-                i.hmis_participating_project_override
-              elsif attr == 'TargetPopulation' && i.target_population_override.present?
-                i.target_population_override
+            elsif override_project_type && attr == 'ProjectType'
+              i.computed_project_type
+            elsif attr == 'ResidentialAffiliation'
+              i.send(attr).presence || 99
+            elsif attr == 'TrackingMethod'
+              if i.tracking_method_override.present?
+                i.tracking_method_override
               else
-                i.send(attr)
+                i.send(attr).presence || 0
               end
+            elsif attr == 'ProjectCommonName' && i.ProjectCommonName.blank?
+              i.ProjectName
+            elsif attr == 'ContinuumProject' && i.hud_continuum_funded
+              1
+            elsif attr == 'OperatingStartDate' && i.operating_start_date_override.present?
+              i.operating_start_date_override
+            elsif attr == 'OperatingEndDate' && i.operating_end_date_override.present?
+              i.operating_end_date_override
+            elsif attr == 'HMISParticipatingProject' && i.hmis_participating_project_override.present?
+              i.hmis_participating_project_override
+            elsif attr == 'TargetPopulation' && i.target_population_override.present?
+              i.target_population_override
+            else
+              i.send(attr)
             end
             if v.is_a? Date
-              v = v.strftime("%Y-%m-%d")
+              v = v.strftime('%Y-%m-%d')
             elsif v.is_a? Time
               v = v.to_formatted_s(:db)
             end
@@ -777,13 +774,13 @@ module GrdaWarehouse::Hud
       query = "%#{text}%"
 
       org_matches = GrdaWarehouse::Hud::Organization.where(
-        GrdaWarehouse::Hud::Organization.arel_table[:OrganizationID].eq(arel_table[:OrganizationID])
-        .and(GrdaWarehouse::Hud::Organization.arel_table[:data_source_id].eq(arel_table[:data_source_id]))
+        GrdaWarehouse::Hud::Organization.arel_table[:OrganizationID].eq(arel_table[:OrganizationID]).
+        and(GrdaWarehouse::Hud::Organization.arel_table[:data_source_id].eq(arel_table[:data_source_id])),
       ).text_search(text).exists
 
       where(
-        arel_table[:ProjectName].matches(query)
-        .or(org_matches),
+        arel_table[:ProjectName].matches(query).
+        or(org_matches),
       )
     end
 
