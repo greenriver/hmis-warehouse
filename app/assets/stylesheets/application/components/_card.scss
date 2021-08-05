@@ -3,6 +3,9 @@
 .c-card {
   overflow: auto;
 }
+.c-card-overflow-inherit {
+  overflow: inherit;
+}
 
 .c-card--block {
   display: block;
