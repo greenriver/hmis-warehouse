@@ -6,6 +6,8 @@
 
 module Vispdats::Synthetic
   class Base < ::GrdaWarehouse::Synthetic::Assessment
+    include ArelHelper
+
     validates_presence_of :source
 
     def assessment_date
@@ -17,17 +19,17 @@ module Vispdats::Synthetic
     end
 
     def assessment_type
-      # FIXME
+      # TODO add to the VI-SPDAT
       3 # In Person
     end
 
     def assessment_level
-      # FIXME
-      1 # Crisis Needs Assessment
+      2 # Housing Needs Assessment
     end
 
     def priortization_status
-      # FIXME
+      return 1 if source.score >= 4 # Placed on prioritization list
+
       2 # Not placed on prioritization list
     end
 
@@ -53,12 +55,13 @@ module Vispdats::Synthetic
     end
 
     def self.find_enrollment(vispdat)
-      project_candidates = GrdaWarehouse::Hud::Project.pluck(:ProjectID) # FIXME
-      vispdat.client.service_history_entries.
-        where(project_id: project_candidates).
-        ongoing(on_date: vispdat.submitted_at.to_date)&.
-        first&.
-        enrollment
+      # The open enrollment started closest to the date the VI-SPDAT was submitted
+      enrollment_candidates = vispdat.client.service_history_entries.
+        ongoing(on_date: vispdat.submitted_at.to_date).
+        where(she_t[:first_date_in_program].lteq(vispdat.submitted_at.to_date)).
+        order(she_t[:first_date_in_program].desc)
+
+      enrollment_candidates.first&.enrollment
     end
   end
 end
