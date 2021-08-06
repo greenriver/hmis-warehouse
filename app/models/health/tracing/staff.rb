@@ -76,8 +76,8 @@ module Health::Tracing
         referred_for_testing: referred_for_testing,
         test_result: test_result,
         vaccinated: vaccinated,
-        vaccine: vaccine,
-        vaccination_dates: vaccination_dates,
+        vaccine: vaccine&.reject(&:blank?)&.join(', '),
+        vaccination_dates: vaccination_dates&.map { |v| v.to_date.strftime('%m/%d/%Y') }&.join(', '),
         vaccination_complete: vaccination_complete,
         notes: notes,
       }
@@ -175,6 +175,22 @@ module Health::Tracing
         test_result: {
           section_header: '',
           column_header: 'Test result',
+        },
+        vaccinated: {
+          section_header: '',
+          column_header: 'Vaccinated?',
+        },
+        vaccine: {
+          section_header: '',
+          column_header: 'Vaccine(s) received',
+        },
+        vaccination_dates: {
+          section_header: '',
+          column_header: 'Dates of vaccinations',
+        },
+        vaccination_complete: {
+          section_header: '',
+          column_header: 'Vaccination complete?',
         },
         notes: {
           section_header: '',

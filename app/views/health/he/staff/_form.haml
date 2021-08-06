@@ -29,12 +29,12 @@
         = f.input :referred_for_testing, as: :boolean_button_group, collection: @staff.referred_options, include_blank: true, label: @staff.label_for(:referred_for_testing)
         = f.input :test_result, as: :boolean_button_group, collection: @staff.test_result_options, include_blank: true
         = f.input :vaccinated, as: :boolean_button_group, collection: @staff.yes_no_unknown_options, include_blank: true, label: @staff.label_for(:vaccinated)
-        = f.input :vaccine, as: :select_two, collection: Health::Vaccination.vaccination_type_options, input_html: { multiple: true }, label: @staff.label_for(:vaccine)
+        = f.input :vaccine, as: :check_boxes, collection: Health::Vaccination.vaccination_type_options, input_html: { multiple: true }, label: @staff.label_for(:vaccine), wrapper: radio_wrapper_class
         - if f.options[:wrapper] == :readonly
           %label.readonly-label= @staff.label_for(:vaccination_dates)
           .controls.readonly-input
             %label.d-block.readonly-value
-              = @staff.vaccination_dates.join(', ')
+              = @staff.vaccination_dates&.join(', ')
         - else
           - @staff.vaccination_date_count.times do |i|
             = f.input :vaccination_dates, label: @staff.label_for(:vaccination_dates), as: :date_picker, input_html: {name: "health_tracing_staff[vaccination_dates][]", id: "health_tracing_staff[vaccination_dates][]", value: @staff.vaccination_dates.try(:[], i)}

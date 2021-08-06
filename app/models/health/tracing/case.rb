@@ -41,12 +41,24 @@ module Health::Tracing
       }
     end
 
+    def yes_no_unknown_options
+      {
+        'Unknown' => '',
+        'No' => 'No',
+        'Yes' => 'Yes',
+      }
+    end
+
     def symptom_options
       {
         'Coughing' => 'Coughing',
         'Fever' => 'Fever',
         'Shortness of breath' => 'Shortness of breath',
       }
+    end
+
+    def vaccination_date_count
+      3
     end
 
     def to_h
@@ -79,8 +91,8 @@ module Health::Tracing
         recent_incarceration: recent_incarceration,
         additional_locations: locations[5..]&.map(&:location)&.join(', '),
         vaccinated: vaccinated,
-        vaccine: vaccine,
-        vaccination_dates: vaccination_dates,
+        vaccine: vaccine&.reject(&:blank?)&.join(', '),
+        vaccination_dates: vaccination_dates&.map { |v| v.to_date.strftime('%m/%d/%Y') }&.join(', '),
         vaccination_complete: vaccination_complete,
         notes: notes,
       }
@@ -164,6 +176,22 @@ module Health::Tracing
         isolation_start_date: {
           section_header: '',
           column_header: 'Isolation Start Date',
+        },
+        vaccinated: {
+          section_header: '',
+          column_header: 'Vaccinated?',
+        },
+        vaccine: {
+          section_header: '',
+          column_header: 'Vaccine(s) received',
+        },
+        vaccination_dates: {
+          section_header: '',
+          column_header: 'Dates of vaccinations',
+        },
+        vaccination_complete: {
+          section_header: '',
+          column_header: 'Vaccination complete?',
         },
         first_name: {
           section_header: 'INDEX CASE INFORMATION',

@@ -38,4 +38,15 @@
         = f.input :referred_for_testing, as: :boolean_button_group, collection: @contact.referred_options, include_blank: true, label: @contact.label_for(:referred_for_testing)
         .jResults
           = render 'health/he/results/table', readonly: f.options[:wrapper] == :readonly
+        = f.input :vaccinated, as: :boolean_button_group, collection: @contact.yes_no_unknown_options, include_blank: true, label: @contact.label_for(:vaccinated)
+        = f.input :vaccine, as: :check_boxes, collection: Health::Vaccination.vaccination_type_options, input_html: { multiple: true }, label: @contact.label_for(:vaccine), wrapper: radio_wrapper_class
+        - if f.options[:wrapper] == :readonly
+          %label.readonly-label= @contact.label_for(:vaccination_dates)
+          .controls.readonly-input
+            %label.d-block.readonly-value
+              = @contact.vaccination_dates&.join(', ')
+        - else
+          - @contact.vaccination_date_count.times do |i|
+            = f.input :vaccination_dates, label: @contact.label_for(:vaccination_dates), as: :date_picker, input_html: {name: "health_tracing_contact[vaccination_dates][]", id: "health_tracing_contact[vaccination_dates][]", value: @contact.vaccination_dates.try(:[], i)}
+        = f.input :vaccination_complete, as: :boolean_button_group, collection: @contact.yes_no_unknown_options, include_blank: true, label: @contact.label_for(:vaccination_complete)
         = f.input :notes, as: :text
