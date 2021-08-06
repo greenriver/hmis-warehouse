@@ -56,12 +56,30 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
       enrollment_scope.where(HouseholdID: multi_person_to_fix.keys).
         where(RelationshipToHoH: 1).
         update_all(RelationshipToHoH: 99)
+
       enrollment_source.import(
         [
           :id,
           :RelationshipToHoH,
+          # The following columns need to be included simply to make the upsert work
+          :data_source_id,
+          :importer_log_id,
+          :pre_processed_at,
+          :source_id,
+          :source_type,
         ],
-        multi_person_to_fix.values.map { |id| [id, 1] },
+        multi_person_to_fix.values.map do |id|
+          [
+            id,
+            1,
+            # The following columns need to be included simply to make the upsert work
+            @importer_log.data_source.id,
+            @importer_log.id,
+            Time.current,
+            1,
+            1,
+          ]
+        end,
         on_duplicate_key_update: {
           conflict_target: [:id],
           columns: [:RelationshipToHoH],
@@ -74,6 +92,12 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
           row[:id], # Enrollment.id
           1, # RelationshipToHoH
           Digest::MD5.hexdigest("e_#{@importer_log.data_source.id}_#{row[:project_id]}_#{row[:en_id]}"),
+          # The following columns need to be included simply to make the upsert work
+          @importer_log.data_source.id,
+          @importer_log.id,
+          Time.current,
+          1,
+          1,
         ]
       end
       enrollment_source.import(
@@ -81,6 +105,12 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
           :id,
           :RelationshipToHoH,
           :HouseholdID,
+          # The following columns need to be included simply to make the upsert work
+          :data_source_id,
+          :importer_log_id,
+          :pre_processed_at,
+          :source_id,
+          :source_type,
         ],
         values,
         on_duplicate_key_update: {

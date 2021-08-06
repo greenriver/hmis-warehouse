@@ -1,0 +1,20 @@
+EnrollmentID,PersonalID,ProjectID,EntryDate,HouseholdID,RelationshipToHoH,LivingSituation,LengthOfStay,LOSUnderThreshold,PreviousStreetESSH,DateToStreetESSH,TimesHomelessPastThreeYears,MonthsHomelessPastThreeYears,DisablingCondition,DateOfEngagement,MoveInDate,DateOfPATHStatus,ClientEnrolledInPATH,ReasonNotEnrolled,WorstHousingSituation,PercentAMI,LastPermanentStreet,LastPermanentCity,LastPermanentState,LastPermanentZIP,AddressDataQuality,DateOfBCPStatus,EligibleForRHY,ReasonNoServices,RunawayYouth,SexualOrientation,SexualOrientationOther,FormerWardChildWelfare,ChildWelfareYears,ChildWelfareMonths,FormerWardJuvenileJustice,JuvenileJusticeYears,JuvenileJusticeMonths,UnemploymentFam,MentalHealthIssuesFam,PhysicalDisabilityFam,AlcoholDrugAbuseFam,InsufficientIncome,IncarceratedParent,ReferralSource,CountOutreachReferralApproaches,UrgentReferral,TimeToHousingLoss,ZeroIncome,AnnualPercentAMI,FinancialChange,HouseholdChange,EvictionHistory,SubsidyAtRisk,LiteralHomelessHistory,DisabledHoH,CriminalRecord,SexOffender,DependentUnder6,SingleParent,HH5Plus,IraqAfghanistan,FemVet,HPScreeningScore,ThresholdScore,VAMCStation,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+E-1,C-1,PROJECT,2020-01-01,H1,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-2,C-1,PROJECT,2020-01-01,H2,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-3,C-1,PROJECT,2020-01-01,H3,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-4,C-1,PROJECT,2020-01-01,H4,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-5,C-2,PROJECT,2020-01-01,H4,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-6,C-1,PROJECT,2020-01-01,H5,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-7,C-1,PROJECT,2020-01-01,H5,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-8,C-1,PROJECT,2020-01-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-9,C-1,PROJECT,2020-01-01,,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-10,C-2,PROJECT,2020-01-01,H6,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-11,C-3,PROJECT,2020-01-01,H6,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-12,C-4,PROJECT,2020-01-01,H6,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-13,C-3,PROJECT,2020-01-01,H7,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-14,C-4,PROJECT,2020-01-01,H7,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-15,C-7,PROJECT,2020-01-01,H8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-16,C-4,PROJECT,2020-01-01,H8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-17,C-3,PROJECT,2020-01-01,H8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-18,C-3,PROJECT,2020-01-01,H9,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST
+E-19,C-4,PROJECT,2020-01-01,H9,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,RELATIONSHIP-TEST

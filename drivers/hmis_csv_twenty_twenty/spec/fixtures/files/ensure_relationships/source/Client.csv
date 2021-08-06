@@ -1,0 +1,8 @@
+PersonalID,FirstName,MiddleName,LastName,NameSuffix,NameDataQuality,SSN,SSNDataQuality,DOB,DOBDataQuality,AmIndAKNative,Asian,BlackAfAmerican,NativeHIOtherPacific,White,RaceNone,Ethnicity,Gender,VeteranStatus,YearEnteredService,YearSeparated,WorldWarII,KoreanWar,VietnamWar,DesertStorm,AfghanistanOEF,IraqOIF,IraqOND,OtherTheater,MilitaryBranch,DischargeStatus,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+C-1,Client,,Adult Female One,,,,99,1980-01-01,99,0,0,0,0,0,99,99,0,99,,,,,,,,,,,,,2010-01-01,2010-01-01,user,,RELATIONSHIP-TEST
+C-2,Client,,Adult Two,,,,99,1981-01-01,99,0,0,0,0,0,99,99,1,99,,,,,,,,,,,,,2010-01-01,2010-01-01,user,,RELATIONSHIP-TEST
+C-3,Client,,Child Three,,,,99,2010-01-01,99,0,0,0,0,0,99,99,3,99,,,,,,,,,,,,,2010-01-01,2010-01-01,user,,RELATIONSHIP-TEST
+C-4,Client,,Child Four,,,,99,2011-01-01,99,0,0,0,0,0,99,99,4,99,,,,,,,,,,,,,2010-01-01,2010-01-01,user,,RELATIONSHIP-TEST
+C-5,Client,,Unknown Age Five,,,,99,,99,0,0,0,0,0,99,99,4,99,,,,,,,,,,,,,2010-01-01,2010-01-01,user,,RELATIONSHIP-TEST
+C-6,Client,,Child Six,,,,99,2011-01-01,99,0,0,0,0,0,99,99,4,99,,,,,,,,,,,,,2010-01-01,2010-01-01,user,,RELATIONSHIP-TEST
+C-7,Client,,Teen Seven,,,,99,2006-01-01,99,0,0,0,0,0,99,99,4,99,,,,,,,,,,,,,2010-01-01,2010-01-01,user,,RELATIONSHIP-TEST
