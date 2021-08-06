@@ -17,7 +17,7 @@ module HmisCsvTwentyTwenty::Importer
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
       return none unless project_ids.present?
 
-      warehouse_class.where(manual_entry: false).joins(:project).
+      warehouse_class.importable.joins(:project).
         merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids))
     end
 

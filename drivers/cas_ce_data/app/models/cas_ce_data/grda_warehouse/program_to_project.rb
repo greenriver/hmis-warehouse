@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CasCeEvents::GrdaWarehouse
+module CasCeData::GrdaWarehouse
   class ProgramToProject < GrdaWarehouseBase
     self.table_name = 'cas_programs_to_projects'
 

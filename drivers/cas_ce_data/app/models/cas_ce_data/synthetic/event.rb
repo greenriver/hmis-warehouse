@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CasCeEvents::Synthetic
+module CasCeData::Synthetic
   class Event < ::GrdaWarehouse::Synthetic::Event
     include ArelHelper
 
@@ -25,6 +25,10 @@ module CasCeEvents::Synthetic
       end
     end
 
+    def data_source
+      'CAS'
+    end
+
     def referral_result
       source.referral_result
     end
@@ -39,14 +43,14 @@ module CasCeEvents::Synthetic
     end
 
     def self.remove_orphans
-      orphan_ids = pluck(:source_id) - CasCeEvents::GrdaWarehouse::CasReferralEvent.pluck(:id)
+      orphan_ids = pluck(:source_id) - CasCeData::GrdaWarehouse::CasReferralEvent.pluck(:id)
       return unless orphan_ids.present?
 
       where(source_id: orphan_ids).delete_all
     end
 
     def self.add_new
-      new_events = CasCeEvents::GrdaWarehouse::CasReferralEvent.where.not(id: self.select(:source_id))
+      new_events = CasCeData::GrdaWarehouse::CasReferralEvent.where.not(id: self.select(:source_id))
       new_events.find_each do |event|
         next unless event.client.present?
 

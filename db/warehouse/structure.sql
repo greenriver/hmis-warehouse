@@ -84,18 +84,6 @@ CREATE TYPE public.census_levels AS ENUM (
 
 
 --
--- Name: record_action; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.record_action AS ENUM (
-    'added',
-    'updated',
-    'unchanged',
-    'removed'
-);
-
-
---
 -- Name: record_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -291,7 +279,8 @@ CREATE TABLE public."Assessment" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -1020,7 +1009,8 @@ CREATE TABLE public."Event" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -4712,10 +4702,10 @@ CREATE TABLE public.configs (
     cas_sync_months integer DEFAULT 3,
     send_sms_for_covid_reminders boolean DEFAULT false NOT NULL,
     bypass_2fa_duration integer DEFAULT 0 NOT NULL,
-    health_claims_data_path character varying,
-    enable_youth_hrp boolean DEFAULT true NOT NULL,
     enable_system_cohorts boolean DEFAULT false,
-    currently_homeless_cohort boolean DEFAULT false
+    currently_homeless_cohort boolean DEFAULT false,
+    health_claims_data_path character varying,
+    enable_youth_hrp boolean DEFAULT true NOT NULL
 );
 
 
@@ -10263,39 +10253,6 @@ CREATE VIEW public.index_stats AS
 
 
 --
--- Name: involved_in_imports; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.involved_in_imports (
-    id bigint NOT NULL,
-    importer_log_id bigint,
-    record_type character varying NOT NULL,
-    record_id bigint NOT NULL,
-    hud_key character varying NOT NULL,
-    record_action public.record_action
-);
-
-
---
--- Name: involved_in_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.involved_in_imports_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: involved_in_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.involved_in_imports_id_seq OWNED BY public.involved_in_imports.id;
-
-
---
 -- Name: lftp_s3_syncs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13542,6 +13499,7 @@ CREATE TABLE public.synthetic_assessments (
     type character varying,
     source_type character varying,
     source_id bigint,
+    hud_assessment_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -13578,7 +13536,8 @@ CREATE TABLE public.synthetic_events (
     source_type character varying,
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    hud_event_id bigint
 );
 
 
@@ -14476,6 +14435,47 @@ CREATE SEQUENCE public.youth_case_managements_id_seq
 --
 
 ALTER SEQUENCE public.youth_case_managements_id_seq OWNED BY public.youth_case_managements.id;
+
+
+--
+-- Name: youth_education_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.youth_education_statuses (
+    id bigint NOT NULL,
+    "YouthEducationStatusID" character varying(32) NOT NULL,
+    "EnrollmentID" character varying(32) NOT NULL,
+    "PersonalID" character varying(32) NOT NULL,
+    "InformationDate" date NOT NULL,
+    "CurrentSchoolAttend" integer,
+    "MostRecentEdStatus" integer,
+    "CurrentEdStatus" integer,
+    "DataCollectionStage" integer NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying(32) NOT NULL
+);
+
+
+--
+-- Name: youth_education_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.youth_education_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: youth_education_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.youth_education_statuses_id_seq OWNED BY public.youth_education_statuses.id;
 
 
 --
@@ -15849,13 +15849,6 @@ ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT next
 
 
 --
--- Name: involved_in_imports id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.involved_in_imports ALTER COLUMN id SET DEFAULT nextval('public.involved_in_imports_id_seq'::regclass);
-
-
---
 -- Name: lftp_s3_syncs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16672,6 +16665,13 @@ ALTER TABLE ONLY public.whitelisted_projects_for_clients ALTER COLUMN id SET DEF
 --
 
 ALTER TABLE ONLY public.youth_case_managements ALTER COLUMN id SET DEFAULT nextval('public.youth_case_managements_id_seq'::regclass);
+
+
+--
+-- Name: youth_education_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.youth_education_statuses ALTER COLUMN id SET DEFAULT nextval('public.youth_education_statuses_id_seq'::regclass);
 
 
 --
@@ -18071,14 +18071,6 @@ ALTER TABLE ONLY public.income_benefits_reports
 
 
 --
--- Name: involved_in_imports involved_in_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.involved_in_imports
-    ADD CONSTRAINT involved_in_imports_pkey PRIMARY KEY (id);
-
-
---
 -- Name: lftp_s3_syncs lftp_s3_syncs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18604,6 +18596,14 @@ ALTER TABLE ONLY public.whitelisted_projects_for_clients
 
 ALTER TABLE ONLY public.youth_case_managements
     ADD CONSTRAINT youth_case_managements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: youth_education_statuses youth_education_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.youth_education_statuses
+    ADD CONSTRAINT youth_education_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -24155,13 +24155,6 @@ CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_
 
 
 --
--- Name: index_involved_in_imports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_involved_in_imports_on_importer_log_id ON public.involved_in_imports USING btree (importer_log_id);
-
-
---
 -- Name: index_lftp_s3_syncs_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27900,6 +27893,13 @@ CREATE INDEX index_synthetic_assessments_on_enrollment_id ON public.synthetic_as
 
 
 --
+-- Name: index_synthetic_assessments_on_hud_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_hud_assessment_id ON public.synthetic_assessments USING btree (hud_assessment_id);
+
+
+--
 -- Name: index_synthetic_assessments_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27918,6 +27918,13 @@ CREATE INDEX index_synthetic_events_on_client_id ON public.synthetic_events USIN
 --
 
 CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_events_on_hud_event_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_hud_event_id ON public.synthetic_events USING btree (hud_event_id);
 
 
 --
@@ -28341,27 +28348,6 @@ CREATE INDEX inventory_export_id ON public."Inventory" USING btree ("ExportID");
 
 
 --
--- Name: involved_in_imports_by_hud_key; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX involved_in_imports_by_hud_key ON public.involved_in_imports USING btree (hud_key, importer_log_id, record_type, record_action);
-
-
---
--- Name: involved_in_imports_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USING btree (record_id, importer_log_id, record_type, record_action);
-
-
---
--- Name: involved_in_imports_by_importer_log; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports USING btree (importer_log_id, record_type, record_action);
-
-
---
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28534,13 +28520,6 @@ CREATE UNIQUE INDEX taggings_idx ON public.taggings USING btree (tag_id, taggabl
 --
 
 CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_type, tagger_id, context);
-
-
---
--- Name: test_shs; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
 
 
 --
@@ -31036,7 +31015,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210708192452'),
 ('20210714131449'),
 ('20210716144139'),
-('20210717154701'),
-('20210723161722');
+('20210723161722'),
+('20210726155740'),
+('20210727134415'),
+('20210729175328'),
+('20210729201521');
 
 

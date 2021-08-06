@@ -8,7 +8,6 @@ module Health
   class ReleaseFormsController < IndividualPatientController
     include AjaxModalRails::Controller
     include ClientPathGenerator
-
     include HealthFileController
 
     before_action :set_client
@@ -33,7 +32,6 @@ module Health
       @release_form = @patient.release_forms.build(form_params)
       set_upload_object
       @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file.present?
-      validate_form
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.user = current_user
 
@@ -82,7 +80,6 @@ module Health
     private def form_params
       local_params = params.require(:form).permit(
         :signature_on,
-        :file_location,
         :reviewed_by_supervisor,
         health_file_attributes: [
           :id,
@@ -117,10 +114,6 @@ module Health
     private def health_file_params_blank?
       attrs = form_params[:health_file_attributes] || {}
       attrs[:file].blank? && attrs[:file_cache].blank?
-    end
-
-    private def validate_form
-      @release_form.errors.add :file_location, 'Please include either a file location or upload.' if health_file_params_blank? && form_params[:file_location].blank?
     end
 
     private def reviewed?

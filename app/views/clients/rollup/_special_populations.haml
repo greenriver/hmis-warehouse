@@ -13,8 +13,6 @@
           %th Project
           %th Entry Date
           %th Information Date
-          %th Veteran Status
-          %th Disabling Condition
           %th Domestic Violence
           %th Currently Fleeing?
           %th Pregnancy Status
@@ -29,8 +27,6 @@
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
             %td.date-cell= h.enrollment.EntryDate
             %td= h.InformationDate
-            %td= hud_1_8 h.enrollment.client.VeteranStatus
-            %td= hud_1_8 h.enrollment.DisablingCondition
             %td= hud_1_8 h.DomesticViolenceVictim
             %td= hud_1_8 h.CurrentlyFleeing
             %td= hud_1_8 h.PregnancyStatus

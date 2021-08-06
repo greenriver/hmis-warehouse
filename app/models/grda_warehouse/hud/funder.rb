@@ -19,7 +19,11 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: true
     belongs_to :data_source
 
-    scope :open_between, -> (start_date:, end_date:) do
+    scope :importable, -> do
+      where(manual_entry: false)
+    end
+
+    scope :open_between, ->(start_date:, end_date:) do
       at = arel_table
 
       closed_within_range = at[:StartDate].gt(start_date).
@@ -28,18 +32,16 @@ module GrdaWarehouse::Hud
         and(at[:StartDate].lt(end_date))
       open_throughout = at[:StartDate].lt(start_date).
         and(at[:EndDate].gt(start_date).
-          or(at[:EndDate].eq(nil))
-        )
+          or(at[:EndDate].eq(nil)))
       where(closed_within_range.or(opened_within_range).or(open_throughout))
     end
 
-    scope :within_range, -> (range) do
+    scope :within_range, ->(range) do
       where(
         f_t[:EndDate].gteq(range.first).
         or(f_t[:EndDate].eq(nil)).
         and(f_t[:StartDate].lteq(range.last).
-          or(f_t[:StartDate].eq(nil))
-        )
+          or(f_t[:StartDate].eq(nil))),
       )
     end
 
@@ -51,7 +53,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :viewable_by, -> (user) do
+    scope :viewable_by, ->(user) do
       joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(user))
     end
@@ -68,7 +70,7 @@ module GrdaWarehouse::Hud
       "#{self.StartDate} - #{self.EndDate}"
     end
 
-    def self.options_for_select(user: )
+    def self.options_for_select(user:)
       viewable_by(user).
         distinct.
         order(Funder: :asc).
@@ -87,7 +89,7 @@ module GrdaWarehouse::Hud
 
     # when we export, we always need to replace FunderID with the value of id
     def self.to_csv(scope:)
-      attributes = self.hud_csv_headers.dup
+      attributes = hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:FunderID)] = :id
       attributes[attributes.index(:ProjectID)] = 'project.id'
@@ -109,7 +111,7 @@ module GrdaWarehouse::Hud
               i.send(attr)
             end
             if v.is_a? Date
-              v = v.strftime("%Y-%m-%d")
+              v = v.strftime('%Y-%m-%d')
             elsif v.is_a? Time
               v = v.to_formatted_s(:db)
             end
