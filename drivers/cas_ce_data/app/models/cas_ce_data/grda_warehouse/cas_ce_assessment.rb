@@ -8,7 +8,7 @@
 # 1. 4.19.7 PrioritizationStatus - everyone in CAS is on the list (1)
 # 2. 4.19.4 AssessmentLevel - all assessments are housing needs assessments (2)
 # 3. 4.19.3 AssessmentType - are all virtual (2)
-module CasCeEvents::GrdaWarehouse
+module CasCeData::GrdaWarehouse
   class CasCeAssessment < GrdaWarehouseBase
     self.table_name = 'cas_ce_assessments'
 

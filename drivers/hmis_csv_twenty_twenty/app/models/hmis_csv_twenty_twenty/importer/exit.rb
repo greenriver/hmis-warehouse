@@ -29,7 +29,7 @@ module HmisCsvTwentyTwenty::Importer
         pluck(ex_t[:id])
       return none unless ids
 
-      warehouse_class.where(id: ids)
+      warehouse_class.importable.where(id: ids)
     end
 
     def self.warehouse_class

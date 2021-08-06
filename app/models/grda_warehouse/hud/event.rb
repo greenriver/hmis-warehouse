@@ -21,5 +21,12 @@ module GrdaWarehouse::Hud
     has_one :client, through: :enrollment, inverse_of: :events
     belongs_to :data_source
 
+    scope :importable, -> do
+      where(synthetic: false)
+    end
+
+    scope :synthetic, -> do
+      where(synthetic: true)
+    end
   end
 end
