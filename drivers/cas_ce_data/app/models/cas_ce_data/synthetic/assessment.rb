@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CasCeEvents::Synthetic
+module CasCeData::Synthetic
   class Assessment < ::GrdaWarehouse::Synthetic::Assessment
     include ArelHelper
 
@@ -15,6 +15,11 @@ module CasCeEvents::Synthetic
     delegate :assessment_type, to: :source
     delegate :assessment_level, to: :source
     delegate :assessment_status, to: :source
+    alias prioritization_status assessment_status
+
+    def data_source
+      'CAS'
+    end
 
     def self.sync
       remove_orphans
@@ -22,14 +27,14 @@ module CasCeEvents::Synthetic
     end
 
     def self.remove_orphans
-      orphan_ids = pluck(:source_id) - CasCeEvents::GrdaWarehouse::CasCeAssessment.pluck(:id)
+      orphan_ids = pluck(:source_id) - CasCeData::GrdaWarehouse::CasCeAssessment.pluck(:id)
       return unless orphan_ids.present?
 
       where(source_id: orphan_ids).delete_all
     end
 
     def self.add_new
-      new_assessments = CasCeEvents::GrdaWarehouse::CasCeAssessment.where.not(id: self.select(:source_id))
+      new_assessments = CasCeData::GrdaWarehouse::CasCeAssessment.where.not(id: self.select(:source_id))
       new_assessments.find_each do |assessment|
         next unless assessment.client.present?
 

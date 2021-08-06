@@ -25,13 +25,16 @@ module GrdaWarehouse::Hud
     has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :project_coc
     has_one :overridden_lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :overridden_project_coc
 
+    scope :importable, -> do
+      where(manual_entry: false)
+    end
 
     scope :in_coc, ->(coc_code:) do
       # hud_coc_code overrides CoCCode
       coc_code = Array(coc_code)
       where(
         pc_t[:CoCCode].in(coc_code).and(pc_t[:hud_coc_code].eq(nil).or(pc_t[:hud_coc_code].eq(''))).
-        or(pc_t[:hud_coc_code].in(coc_code))
+        or(pc_t[:hud_coc_code].in(coc_code)),
       )
     end
 
@@ -43,7 +46,7 @@ module GrdaWarehouse::Hud
       zip_code = Array(zip_code)
       where(
         pc_t[:Zip].in(zip_code).and(pc_t[:zip_override].eq(nil).or(pc_t[:zip_override].eq(''))).
-        or(pc_t[:zip_override].in(zip_code))
+        or(pc_t[:zip_override].in(zip_code)),
       )
     end
 
@@ -53,7 +56,7 @@ module GrdaWarehouse::Hud
       elsif user.coc_codes.none?
         none
       else
-        in_coc( coc_code: user.coc_codes )
+        in_coc(coc_code: user.coc_codes)
       end
     end
 
@@ -95,7 +98,7 @@ module GrdaWarehouse::Hud
     # when we export, we always need to replace ProjectCoCID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)
-      attributes = self.hud_csv_headers.dup
+      attributes = hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:ProjectCoCID)] = :id
       attributes[attributes.index(:ProjectID)] = 'project.id'
@@ -111,7 +114,7 @@ module GrdaWarehouse::Hud
               obj, meth = attr.split('.')
               i.send(obj).send(meth)
             else
-              if attr == 'CoCCode' && i.hud_coc_code.present?
+              if attr == 'CoCCode' && i.hud_coc_code.present? # rubocop:disable Style/IfInsideElse
                 i.hud_coc_code
               elsif attr == 'GeographyType' && i.geography_type_override.present?
                 i.geography_type_override
@@ -125,7 +128,7 @@ module GrdaWarehouse::Hud
             end
 
             if v.is_a? Date
-              v = v.strftime("%Y-%m-%d")
+              v = v.strftime('%Y-%m-%d')
             elsif v.is_a? Time
               v = v.to_formatted_s(:db)
             end

@@ -444,10 +444,11 @@ module ClaimsReporting
         146,e_dx_present_on_admission_12,External injury diagnosis code indicates present on admission. Each relates to diagnosis code of same number. ,50,string,-
         147,quantity,Quantity billed,30,"decimal(12,4)",-
         148,price_method,Indicates the pricing method used for payment of the claim,50,string,-
-        149,cde_cos_rollup,,50,string,-
-        150,cde_cos_category,,50,string,-
-        151,cde_cos_subcategory,,50,string,-
-        151,ind_mco_aco_cvd_svc,,50,string,-
+        149,cde_cos_rollup,High-level COS grouping to the categories used in ACO rate setting and reporting.,50,string,-
+        150,cde_cos_category,Mid-level categorization of COS. Initial rollup of subcategory COS codes.,50,string,-
+        151,cde_cos_subcategory,Most granular categorization of COS. Contains the most detailed description of the service performed on the claim.,50,string,-
+        152,ind_mco_aco_cvd_svc,"Y/N flag indicating ACO/MCO covered vs ACO/MCO non-covered services (e.g., wrap services)",50,string,-
+        153,cde_ndc,The National Drug Code used to identify the drug. Applies to paid Outpatient and Professional claims.,48,string,-
       CSV
     end
   end

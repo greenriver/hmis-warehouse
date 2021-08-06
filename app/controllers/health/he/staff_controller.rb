@@ -47,6 +47,7 @@ module Health::He
         :notified,
         :nature_of_exposure,
         :symptomatic,
+        :other_symptoms,
         :referred_for_testing,
         :test_result,
         :notes,
@@ -55,6 +56,10 @@ module Health::He
         :dob,
         :estimated_age,
         :gender,
+        :vaccinated,
+        :vaccination_complete,
+        vaccine: [],
+        vaccination_dates: [],
         symptoms: [],
       )
     end
