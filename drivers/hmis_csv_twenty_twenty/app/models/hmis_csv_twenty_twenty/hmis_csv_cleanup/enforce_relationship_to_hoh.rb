@@ -23,9 +23,12 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
         update_all(RelationshipToHoH: 1)
 
       # Figure out HouseholdID and PersonalID for HoH for each household
-      individual_household_ids = [] # don't need to track HoH because everyone is
+      # don't need to track HoH because everyone is for individual enrollments
+      individual_household_ids = []
+      # the three situations where we just need to correctly identify the HoH are essentially the same with a different logic for the head, so we'll collect those all up in one place
       multi_person_to_fix = {}
-      multi_person_with_no_child_under_11 = [] # all of these will need new HouseholdIDs
+      # all of these will need new HouseholdIDs, so collect up all the rows
+      multi_person_with_no_child_under_11 = []
       households.each do |hh_id, rows|
         if rows.count == 1
           individual_household_ids << hh_id
@@ -41,7 +44,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
           elsif child_under_11
             multi_person_to_fix[hh_id] = oldest_client[:row_id]
           else
-            multi_person_with_no_child_under_11 << hh_id
+            multi_person_with_no_child_under_11 += rows
           end
         end
       end
@@ -54,11 +57,38 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
         where(RelationshipToHoH: 1).
         update_all(RelationshipToHoH: 99)
       enrollment_source.import(
-        [:id, :RelationshipToHoH],
+        [
+          :id,
+          :RelationshipToHoH,
+        ],
         multi_person_to_fix.values.map { |id| [id, 1] },
         on_duplicate_key_update: {
           conflict_target: [:id],
           columns: [:RelationshipToHoH],
+        },
+      )
+
+      # Generate new HouseholdIDs using the same logic as the exporter.
+      values = multi_person_with_no_child_under_11.map do |row|
+        [
+          row[:id], # Enrollment.id
+          1, # RelationshipToHoH
+          Digest::MD5.hexdigest("e_#{@importer_log.data_source.id}_#{row[:project_id]}_#{row[:en_id]}"),
+        ]
+      end
+      enrollment_source.import(
+        [
+          :id,
+          :RelationshipToHoH,
+          :HouseholdID,
+        ],
+        values,
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: [
+            :RelationshipToHoH,
+            :HouseholdID,
+          ],
         },
       )
     end
