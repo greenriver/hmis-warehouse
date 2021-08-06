@@ -21,7 +21,7 @@ module Filter::FilterScopes
       return scope unless @filter.coc_codes.present?
 
       scope.joins(project: :project_cocs).
-        where(pc_t[:CoCCode].in(@filter.coc_codes))
+        merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes))
     end
 
     private def filter_for_household_type(scope)
@@ -70,7 +70,8 @@ module Filter::FilterScopes
       ages += (25..29).to_a if @filter.age_ranges.include?(:twenty_five_to_twenty_nine)
       ages += (30..39).to_a if @filter.age_ranges.include?(:thirty_to_thirty_nine)
       ages += (40..49).to_a if @filter.age_ranges.include?(:forty_to_forty_nine)
-      ages += (50..59).to_a if @filter.age_ranges.include?(:fifty_to_fifty_nine)
+      ages += (50..54).to_a if @filter.age_ranges.include?(:fifty_to_fifty_four)
+      ages += (55..59).to_a if @filter.age_ranges.include?(:fifty_five_to_fifty_nine)
       ages += (60..61).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
       ages += (62..110).to_a if @filter.age_ranges.include?(:over_sixty_one)
 
@@ -88,19 +89,17 @@ module Filter::FilterScopes
     private def filter_for_race(scope)
       return scope unless @filter.races.present?
 
-      keys = @filter.races
       race_scope = nil
-      race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if keys.include?('AmIndAKNative')
-      race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
-      race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
-      race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
-      race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
-      race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
+      race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if @filter.races.include?('AmIndAKNative')
+      race_scope = add_alternative(race_scope, race_alternative(:Asian)) if @filter.races.include?('Asian')
+      race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if @filter.races.include?('BlackAfAmerican')
+      race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if @filter.races.include?('NativeHIOtherPacific')
+      race_scope = add_alternative(race_scope, race_alternative(:White)) if @filter.races.include?('White')
+      race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if @filter.races.include?('RaceNone')
 
       # Include anyone who has more than one race listed, anded with any previous alternatives
       race_scope ||= scope
-      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if keys.include?('MultiRacial')
-
+      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if @filter.races.include?('MultiRacial')
       scope.merge(race_scope)
     end
 
@@ -144,11 +143,10 @@ module Filter::FilterScopes
     private def filter_for_project_type(scope, all_project_types: nil)
       return scope if all_project_types
 
-      p_types = if @filter.coordinated_assessment_living_situation_homeless
-        @project_types + GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca]
-      else
-        @project_types
-      end
+      # Make this backwards compatible with a pre-set set of project_types.
+      p_types = @project_types.presence || @filter.project_type_ids
+      p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless
+
       scope.in_project_type(p_types)
     end
 
@@ -196,6 +194,8 @@ module Filter::FilterScopes
     end
 
     private def filter_for_sub_population(scope)
+      return scope unless @filter.sub_population.present?
+
       scope.public_send(@filter.sub_population)
     end
 
@@ -273,6 +273,12 @@ module Filter::FilterScopes
         and(e_t[:LivingSituation].in(HUD.homeless_situations(as: :prior))).
         or(she_t[:computed_project_type].in(@project_types)),
       )
+    end
+
+    private def filter_for_times_homeless(scope)
+      return scope unless @filter.times_homeless_in_last_three_years.present?
+
+      scope.joins(:enrollment).where(e_t[:TimesHomelessPastThreeYears].in(@filter.times_homeless_in_last_three_years))
     end
   end
 end

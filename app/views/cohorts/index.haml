@@ -11,11 +11,15 @@
             %span.icon-pencil
             Edit Cohort Columns
 
+- system_cohorts_enabled = GrdaWarehouse::Config.get(:enable_system_cohorts)
 %ul.nav.nav-tabs{role: :tablist}
-  %li.nav-item.active{role: :presentation}
-    %a{href: '#active-cohorts', aria: {controls: 'active-cohorts'}, data: {toggle: :tab}, role: :tab, class: 'nav-link'} Cohorts
+  %li.nav-item{role: :presentation}
+    %a{href: '#active-cohorts', aria: {controls: 'active-cohorts'}, data: {toggle: :tab}, role: :tab, class: 'nav-link active'} Cohorts
   %li.nav-item{role: :presentation}
     %a{href: '#inactive-cohorts', aria: {controls: 'inactive-cohorts'}, data: {toggle: :tab}, role: :tab, class: 'nav-link'} Inactive Cohorts
+  - if system_cohorts_enabled
+    %li.nav-item{role: :presentation}
+      %a{href: '#system-cohorts', aria: {controls: 'system-cohorts'}, data: {toggle: :tab}, role: :tab, class: 'nav-link'} System Cohorts
 .tab-content
   #active-cohorts.tab-pane.active{role: :tabpanel}
     .o-page
@@ -82,3 +86,21 @@
               = cohort.effective_date
             %td.text-center
               = cohort.cohort_clients.count
+  - if system_cohorts_enabled
+    #system-cohorts.tab-pane{role: :tabpanel}
+      .o-page
+        .o-page__controls
+          = render 'search'
+          = render 'sort'
+      %table.table.table-sm
+        %thead
+          %tr
+            %th{style: 'min-width: 20em;'} Name
+            %th Clients
+        %tbody
+          - @system_cohorts.each do |cohort|
+            %tr
+              %td
+                = link_to cohort.name, cohort_path(cohort)
+              %td.text-center
+                = cohort.cohort_clients.count

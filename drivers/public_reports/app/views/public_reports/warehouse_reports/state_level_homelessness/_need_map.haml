@@ -1,81 +1,54 @@
 .d-flex
-  .w-50
-    %h4 All Homeless Individuals
-    .jQuarterChosenDate
-    .state-map#all-homeless-map
-    .state-map-all-homeless-legend.d-flex
-      - colors = JSON.parse(@report.chart_color_shades(:homeless_primary_color))
-      - colors.each_with_index do |color, i|
-        - division_size = 1.0 / colors.count
-        - division_start = i * division_size
-        - division_end = (i + 1) * division_size
-        - division_end = division_end.round(1)
-        - range = if division_end == 1.0 then "#{division_start.round(1)}+" else "#{division_start.round(1)} - #{division_end}" end
-        .ml-4
-          .color-box.mr-auto.ml-auto.p-2{style: "background-color: #{color}; width: 20px; height: 20px;"}
-          .color-range
-            = range
-    .w-100
-      Rate of homelessness per 10,000 people
-
-  .w-50
-    .d-flex
-      %label.ml-auto.mb-2{ for: 'comparison-map-trigger' }
-        Choose a Population Group
-        %br
-        %select#comparison-map-trigger.jComparisonMapTrigger{name: 'comparison-map-trigger'}
-          %option{value: 'youth_homeless_map'} Youth and Young Adults (age 18-24)
-          %option{value: 'adults_homeless_map'} Adults in Adult Only Households (age 18+)
-          %option{value: 'adults_with_children_homeless_map'} Adults with Children
-          %option{value: 'veterans_homeless_map'} Veterans
-    .state-map#comparison-map
-    .state-map-comparison-legend.d-flex
-      - colors = JSON.parse(@report.chart_color_shades(:youth_primary_color))
-      - colors.each_with_index do |color, i|
-        - division_size = 1.0 / colors.count
-        - division_start = i * division_size
-        - division_end = (i + 1) * division_size
-        - division_end = division_end.round(1)
-        - range = if division_end == 1.0 then "#{division_start.round(1)}+" else "#{division_start.round(1)} - #{division_end}" end
-        .ml-4
-          .color-box.mr-auto.ml-auto.p-2{style: "background-color: #{color}; width: 20px; height: 20px;"}
-          .color-range
-            = range
-    .w-100
-      Rate per 10,000 people
+  %label.ml-auto.mb-2{ for: 'comparison-map-trigger' }
+    Choose a Population Group
+    %br
+    %select#comparison-map-trigger.jComparisonMapTrigger{name: 'comparison-map-trigger'}
+      %option{value: 'homeless_map'} All Homeless
+      %option{value: 'youth_homeless_map'} Youth and Young Adults (age 18-24)
+      %option{value: 'adults_homeless_map'} Adults in Adult Only Households (age 18+)
+      %option{value: 'adults_with_children_homeless_map'} Adults with Children
+      %option{value: 'veterans_homeless_map'} Veterans
+.state-map#comparison-map
+.state-map-comparison-legend.d-flex
+  - colors = JSON.parse(@report.chart_color_shades(:youth_primary_color))
+  - colors.each_with_index do |color, i|
+    - division_size = max_rate / colors.count
+    - division_start = i * division_size
+    - division_end = (i + 1) * division_size
+    - division_end = division_end.round(1)
+    - range = if division_end == 1.0 then "#{division_start.round(1)}+" else "#{division_start.round(1)} - #{division_end}" end
+    .ml-4
+      .color-box.mr-auto.ml-auto.p-2{style: "background-color: #{color}; width: 20px; height: 20px;"}
+      .color-range
+        = range
+.w-100
+  Rate per 10,000 people
 
 - # include the map class directly
-= render 'map_js'
-
+- map_type = if @report.map_by_zip? then 'map_zip_js' else 'map_js' end
+= render map_type
 
 :javascript
   (function() {
     const shapes = #{@report.map_shapes.to_json.html_safe}
     const data = #{data.to_json.html_safe}
-    const homeless_colors = #{@report.chart_color_shades(:homeless_primary_color)}
     const comparison_colors = #{@report.chart_color_shades(:youth_primary_color)}
 
-    const homeless_data = data.homeless_map
-    let selected_date = $('.jQuarters').data('dates')[0];
-    let comparison_data = data.youth_homeless_map
+    let selected_date = $('.jQuarters').data('dates')[$('.jQuarters').val()];
+    let comparison_data = data.homeless_map
 
-    const homeless_map = new CocMap({
-      elementId: "all-homeless-map",
-      shapes: shapes,
-      metrics: homeless_data[selected_date],
-      colors: homeless_colors,
-    })
     const comparison_map = new CocMap({
       elementId: "comparison-map",
       shapes: shapes,
       metrics: comparison_data[selected_date],
       colors: comparison_colors,
+      max_rate: #{max_rate},
+      max_count: #{max_count},
     })
 
     $('.jQuarters').on('change', function(e) {
       var index = $(this).val();
       var selected_date = $(this).data('dates')[index];
-      homeless_map.updateMetrics(homeless_data[selected_date])
       comparison_map.updateMetrics(comparison_data[selected_date])
     });
     $('.jComparisonMapTrigger').on('change', function(e) {

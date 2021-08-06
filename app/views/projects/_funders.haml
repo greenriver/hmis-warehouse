@@ -1,23 +1,40 @@
-%h2 Funding Sources
+.d-flex.justify-content-between.mb-2
+  %h2 Funding Sources
+  - if RailsDrivers.loaded.include?(:manual_hmis_data)  
+    = link_to new_manual_hmis_data_project_funder_path(@project), data: {loads_in_pjax_modal: true}, class: 'btn btn-sm btn-secondary' do
+      %i.icon-plus
+      Add Manual Funder
 .card.mb-4
   - if funders.any?
-    %table.table.table-sm.table-hover
+    %table.table.table-sm.table-hover.table-striped
       %thead
         %tr
           %th
           %th FunderID
           %th Source
           %th Grant ID
+          - if RailsDrivers.loaded.include?(:manual_hmis_data)
+            %th
       %tbody
-        - funders.each do |f|
+        - funders.each do |funder|
           %tr
             %td
-              - if can_see_raw_hmis_data?
-                = link_to 'HMIS', hmi_path(f.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
-            %td= f.FunderID
+              - if can_see_raw_hmis_data? && !funder.manual_entry?
+                = link_to 'HMIS', hmi_path(funder.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+            %td= funder.FunderID
             %td
-              = HUD.funding_source f.Funder.to_i
+              = HUD.funding_source funder.Funder.to_i
             %td
-              = f.GrantID
+              = funder.GrantID
+            - if funder.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)
+              %td
+                = link_to edit_manual_hmis_data_funder_path(funder), class: 'btn btn-sm btn-secondary mr-2 mb-1', data: {loads_in_pjax_modal: true} do
+                  %i.icon-pencil
+                  Edit
+                = link_to manual_hmis_data_funder_path(funder), method: :delete, class: 'btn btn-sm btn-secondary btn-danger mb-1', data: {confirm: 'Do you really want to remove this manually entered Funder'}  do
+                  %i.icon-cross
+                  Remove
+            - else
+              %td
   - else
     %h4.text-center No funding sources

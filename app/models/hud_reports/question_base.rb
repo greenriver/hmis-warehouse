@@ -8,6 +8,8 @@ module HudReports
   class QuestionBase
     include NotifierConfig
 
+    delegate :report_scope_source, to: :@generator
+
     def initialize(generator = nil, report = nil, options: {})
       setup_notifier('HudReports')
       options = options.with_indifferent_access

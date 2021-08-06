@@ -1,0 +1,15 @@
+.well
+  %p
+    The PATH report contains 6 tables labeled Q8-Q16, Q17, Q18, Q19-Q24, Q25, and Q26.
+    Tables can be run individually below, or can be run all together. Each report run can be downloaded as a
+    zip file suitable for upload to HUD by following the link in the
+    %strong Status
+    column on subsequent pages.
+  %p
+    = link_to history_hud_reports_paths_path do
+      See the history of all report runs and download zip files
+  %p
+    = link_to new_hud_reports_path_path do
+      Generate New Annual PATH Report
+
+= render 'hud_reports/all_questions_table'

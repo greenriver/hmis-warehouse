@@ -131,6 +131,7 @@ module CoreDemographicsReport
       scope = filter_for_indefinite_disabilities(scope)
       scope = filter_for_dv_status(scope)
       scope = filter_for_chronic_status(scope)
+      scope = filter_for_times_homeless(scope)
       filter_for_ca_homeless(scope)
     end
 

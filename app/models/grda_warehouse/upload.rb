@@ -24,7 +24,11 @@ module GrdaWarehouse
       where(percent_complete: 100)
     end
 
-    def has_import_log?
+    scope :viewable_by, ->(user) do
+      where(data_source_id: GrdaWarehouse::DataSource.directly_viewable_by(user).select(:id))
+    end
+
+    def has_import_log? # rubocop:disable Naming/PredicateName
       @has_import_log ||= GrdaWarehouse::ImportLog.where.not(completed_at: nil).
         where(data_source_id: data_source_id, completed_at: completed_at).
         exists?
@@ -38,7 +42,7 @@ module GrdaWarehouse
     end
 
     def status
-      if percent_complete == 0
+      if percent_complete.zero?
         'Queued'
       elsif percent_complete == 0.01
         'Started'
@@ -56,13 +60,13 @@ module GrdaWarehouse
       end
       if percent_complete == 100
         begin
-          seconds = ((completed_at - created_at)/1.minute).round * 60
+          seconds = ((completed_at - created_at) / 1.minute).round * 60
           distance_of_time_in_words(seconds)
-        rescue
+        rescue Exception
           'unknown'
         end
       else
-        if updated_at < 2.days.ago
+        if updated_at < 2.days.ago # rubocop:disable Style/IfInsideElse
           'failed'
         else
           'processing...'

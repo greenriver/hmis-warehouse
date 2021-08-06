@@ -78,8 +78,26 @@ module ArelHelper
       nf('CONCAT', args)
     end
 
+    # create the GREATEST named function
+    def greatest(*args)
+      nf('GREATEST', args)
+    end
+
+    def self.greatest(*args)
+      nf('GREATEST', args)
+    end
+
     def any(*args)
       nf 'ANY', args
+    end
+
+    def array_agg(*args)
+      nf 'ARRAY_AGG', args
+    end
+
+    def sql_array(*args)
+      elements = args.map(&:to_sql)
+      lit("ARRAY [#{elements.join(', ')}]")
     end
 
     def lit(str)

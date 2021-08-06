@@ -287,7 +287,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     end
 
     it 'ignores unpayable outreach QAs when checking for first' do
-      create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-15'), naturally_payable: false
+      create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-15'), naturally_payable: true, valid_unpayable: true
       outreach_qa = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-20')
 
       Timecop.return
@@ -307,6 +307,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       expect(qa.procedure_code).to eq 'G9011'
     end
   end
+
   describe 'PCTP QA' do
     let(:qa) { create :pctp_signed_qa }
 

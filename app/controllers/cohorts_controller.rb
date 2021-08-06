@@ -31,8 +31,13 @@ class CohortsController < ApplicationController
     @search = scope.ransack(params[:q])
 
     @cohort = cohort_source.new
-    @cohorts = @search.result.active.reorder(sort_string)
+    @cohorts = @search.result.active_user.reorder(sort_string)
     @inactive_cohorts = @search.result.inactive.reorder(sort_string)
+    @system_cohorts = if ::GrdaWarehouse::Config.get(:enable_system_cohorts)
+      @search.result.system_cohorts.reorder(sort_string)
+    else
+      scope.none
+    end
   end
 
   def show
@@ -49,7 +54,7 @@ class CohortsController < ApplicationController
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
-        @visible_columns << CohortColumns::Delete.new if can_manage_cohorts? || can_edit_cohort_clients?
+        @visible_columns << CohortColumns::Delete.new if (can_manage_cohorts? || can_edit_cohort_clients?) && ! @cohort.system_cohort
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           header = {
             headerName: col.title,
@@ -87,6 +92,7 @@ class CohortsController < ApplicationController
         end
       end
       format.xlsx do
+        @user = current_user
         not_authorized! unless can_download_cohorts?
 
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"
@@ -98,7 +104,7 @@ class CohortsController < ApplicationController
   end
 
   def destroy
-    @cohort.destroy
+    @cohort.destroy unless @cohort.system_cohort
     redirect_to cohorts_path
   end
 
@@ -112,6 +118,7 @@ class CohortsController < ApplicationController
 
   def update
     cohort_options = cohort_params.except(:user_ids)
+    cohort_options = cohort_options.except(:name) if @cohort.system_cohort
     user_ids = cohort_params[:user_ids].select(&:present?).map(&:to_i)
     @cohort.update(cohort_options)
     @cohort.update_access(user_ids)
@@ -139,7 +146,7 @@ class CohortsController < ApplicationController
   end
 
   def set_assessment_types
-    @assessment_types ||= begin
+    @assessment_types ||= begin # rubocop:disable  Naming/MemoizedInstanceVariableName
       types = []
       if can_view_vspdat?
         types += [
@@ -183,7 +190,7 @@ class CohortsController < ApplicationController
   end
 
   def load_cohort_names
-    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
+    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).  # rubocop:disable  Naming/MemoizedInstanceVariableName
       map do |id, name, short_name|
       [id, short_name.presence || name]
     end.to_h

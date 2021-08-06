@@ -56,6 +56,8 @@ module HudDataQualityReport::Generators::Fy2020
           last_service_history_enrollment = enrollments.last
           enrollment = last_service_history_enrollment.enrollment
           source_client = enrollment.client
+          next unless source_client
+
           client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
           exit_date = last_service_history_enrollment.last_date_in_program
@@ -86,6 +88,13 @@ module HudDataQualityReport::Generators::Fy2020
             next
           end
 
+          age = source_client.age_on(client_start_date)
+          household_type = if age.blank? || age.negative?
+            :unknown
+          else
+            household_types[get_hh_id(last_service_history_enrollment)]
+          end
+
           processed_source_clients << source_client.id
           pending_associations[client] = report_client_universe.new(
             client_id: source_client.id,
@@ -93,7 +102,7 @@ module HudDataQualityReport::Generators::Fy2020
             data_source_id: source_client.data_source_id,
             report_instance_id: @report.id,
 
-            age: source_client.age_on(client_start_date),
+            age: age,
             alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
@@ -138,7 +147,7 @@ module HudDataQualityReport::Generators::Fy2020
             hiv_aids: disabilities.detect(&:hiv?).present?,
             household_id: get_hh_id(last_service_history_enrollment),
             household_members: household_member_data(last_service_history_enrollment),
-            household_type: household_types[get_hh_id(last_service_history_enrollment)],
+            household_type: household_type,
             housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment,
             income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
             income_date_at_exit: income_at_exit&.InformationDate,
@@ -263,7 +272,14 @@ module HudDataQualityReport::Generators::Fy2020
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: report_end_date).
-        joins(:enrollment)
+        joins(:enrollment, :project).
+        where(
+          p_t[:ProjectType].not_eq(4).
+          or(
+            p_t[:ProjectType].eq(4).
+              and(e_t[:DateOfEngagement].lt(report_end_date)),
+          ),
+        )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
     end

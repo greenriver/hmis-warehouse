@@ -55,6 +55,7 @@ module Filters
     attribute :chronic_status, Boolean, default: false
     attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
     attribute :limit_to_vispdat, Symbol, default: :all_clients
+    attribute :times_homeless_in_last_three_years, Array, default: []
 
     validates_presence_of :start, :end
 
@@ -72,49 +73,59 @@ module Filters
       ]
     end
 
-    def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName, Metrics/AbcSize
+    # use incoming data, if not available, use previously set value, or default value
+    def update(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
       return self unless filters.present?
 
-      self.on = filters.dig(:on)&.to_date || default_on
-      self.start = filters.dig(:start)&.to_date || default_start
-      self.end = filters.dig(:end)&.to_date || default_end
+      filters = filters.to_h.with_indifferent_access
+
+      self.on = filters.dig(:on)&.to_date || on
+      self.start = filters.dig(:start)&.to_date || start
+      self.end = filters.dig(:end)&.to_date || self.end
       # Allow multi-year filters if we explicitly passed in something that isn't truthy
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
-      self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || user.coc_codes
+      self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || coc_codes.presence || user.coc_codes
       self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
-      self.household_type = filters.dig(:household_type)&.to_sym
-      self.heads_of_household = self.hoh_only = filters.dig(:hoh_only).in?(['1', 'true', true])
-      self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject { |type| type.blank? }.presence
-      self.project_type_numbers = filters.dig(:project_type_numbers)&.reject(&:blank?)&.map(&:to_i)
-      self.data_source_ids = filters.dig(:data_source_ids)&.reject(&:blank?)&.map(&:to_i)
-      self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i)
-      self.project_ids = filters.dig(:project_ids)&.reject(&:blank?)&.map(&:to_i)
-      self.funder_ids = filters.dig(:funder_ids)&.reject(&:blank?)&.map(&:to_i)
-      self.veteran_statuses = filters.dig(:veteran_statuses)&.reject(&:blank?)&.map(&:to_i)
-      self.age_ranges = filters.dig(:age_ranges)&.reject(&:blank?)&.map { |range| range.to_sym }
-      self.genders = filters.dig(:genders)&.reject(&:blank?)&.map { |gender| gender.to_i }
-      self.sub_population = filters.dig(:sub_population)&.to_sym
-      self.races = filters.dig(:races)&.select { |race| HUD.races(multi_racial: true).keys.include?(race) }
-      self.ethnicities = filters.dig(:ethnicities)&.reject(&:blank?)&.map { |ethnicity| ethnicity.to_i }
-      self.project_group_ids = filters.dig(:project_group_ids)&.reject(&:blank?)&.map { |group| group.to_i }
-      self.prior_living_situation_ids = filters.dig(:prior_living_situation_ids)&.reject(&:blank?)&.map { |m| m.to_i }
-      self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map { |m| m.to_i }
-      self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map { |m| m.to_sym }
-      self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map { |m| m.to_i }
+      self.household_type = filters.dig(:household_type)&.to_sym || household_type
+      unless filters.dig(:hoh_only).nil?
+        filter_hoh = filters.dig(:hoh_only).in?(['1', 'true', true])
+        self.heads_of_household = filter_hoh
+        self.hoh_only = filter_hoh
+      end
+      self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject(&:blank?).presence || project_type_codes
+      self.project_type_numbers = filters.dig(:project_type_numbers)&.reject(&:blank?)&.map(&:to_i).presence || project_type_numbers
+      self.data_source_ids = filters.dig(:data_source_ids)&.reject(&:blank?)&.map(&:to_i).presence || data_source_ids
+      self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i).presence || organization_ids
+      self.project_ids = filters.dig(:project_ids)&.reject(&:blank?)&.map(&:to_i).presence || project_ids
+      self.funder_ids = filters.dig(:funder_ids)&.reject(&:blank?)&.map(&:to_i).presence || funder_ids
+      self.veteran_statuses = filters.dig(:veteran_statuses)&.reject(&:blank?)&.map(&:to_i).presence || veteran_statuses
+      self.age_ranges = filters.dig(:age_ranges)&.reject(&:blank?)&.map(&:to_sym).presence || age_ranges
+      self.genders = filters.dig(:genders)&.reject(&:blank?)&.map(&:to_i).presence || genders
+      self.sub_population = filters.dig(:sub_population)&.to_sym || sub_population
+      self.races = filters.dig(:races)&.select { |race| HUD.races(multi_racial: true).keys.include?(race) }.presence || races
+      self.ethnicities = filters.dig(:ethnicities)&.reject(&:blank?)&.map(&:to_i).presence || ethnicities
+      self.project_group_ids = filters.dig(:project_group_ids)&.reject(&:blank?)&.map(&:to_i).presence || project_group_ids
+      self.prior_living_situation_ids = filters.dig(:prior_living_situation_ids)&.reject(&:blank?)&.map(&:to_i).presence || prior_living_situation_ids
+      self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map(&:to_i).presence || destination_ids
+      self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map(&:to_sym).presence || length_of_times
+      self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map(&:to_i).presence || cohort_ids
 
-      self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map { |m| m.to_i }
-      self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map { |m| m.to_i }
-      self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map { |m| m.to_i }
-      self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
-      self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true])
+      self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map(&:to_i).presence || disabilities
+      self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map(&:to_i).presence || indefinite_disabilities
+      self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map(&:to_i).presence || dv_status
+      self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true]) unless filters.dig(:chronic_status).nil?
+      self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true]) unless filters.dig(:coordinated_assessment_living_situation_homeless).nil?
       vispdat_limit = filters.dig(:limit_to_vispdat)&.to_sym
-      self.limit_to_vispdat = vispdat_limit if available_vispdat_limits.values.include?(vispdat_limit)
+      self.limit_to_vispdat = vispdat_limit if vispdat_limit.present? && available_vispdat_limits.values.include?(vispdat_limit)
+      self.ph = filters.dig(:ph).in?(['1', 'true', true]) unless filters.dig(:ph).nil?
+      self.times_homeless_in_last_three_years = filters.dig(:times_homeless_in_last_three_years)&.reject(&:blank?)&.map(&:to_i) unless filters.dig(:times_homeless_in_last_three_years).nil?
+
       ensure_dates_work if valid?
-      self.ph = filters.dig(:ph).in?(['1', 'true', true])
       self
     end
+    alias set_from_params update
 
     def for_params
       {
@@ -150,8 +161,54 @@ module Filters
           chronic_status: chronic_status,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
           limit_to_vispdat: limit_to_vispdat,
+          enforce_one_year_range: enforce_one_year_range,
+          times_homeless_in_last_three_years: times_homeless_in_last_three_years,
         },
       }
+    end
+
+    def to_h
+      for_params[:filters]
+    end
+    alias inspect to_h
+
+    def known_params
+      [
+        :on,
+        :start,
+        :end,
+        :comparison_pattern,
+        :household_type,
+        :hoh_only,
+        :sub_population,
+        :chronic_status,
+        :coordinated_assessment_living_situation_homeless,
+        :coc_code,
+        :limit_to_vispdat,
+        :enforce_one_year_range,
+        coc_codes: [],
+        project_types: [],
+        project_type_codes: [],
+        project_type_numbers: [],
+        veteran_statuses: [],
+        age_ranges: [],
+        genders: [],
+        races: [],
+        ethnicities: [],
+        data_source_ids: [],
+        organization_ids: [],
+        project_ids: [],
+        funder_ids: [],
+        project_group_ids: [],
+        disability_summary_ids: [],
+        destination_ids: [],
+        disabilities: [],
+        indefinite_disabilities: [],
+        dv_status: [],
+        prior_living_situation_ids: [],
+        length_of_times: [],
+        times_homeless_in_last_three_years: [],
+      ]
     end
 
     def selected_params_for_display(single_date: false)
@@ -186,15 +243,16 @@ module Filters
         opts['Chronically Homeless'] = 'Yes' if chronic_status
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
+        opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
       end
     end
 
     def range
-      self.start .. self.end
+      start .. self.end
     end
 
     def as_date_range
-      DateRange.new(start: self.start, end: self.end)
+      DateRange.new(start: start, end: self.end)
     end
 
     def first
@@ -228,7 +286,7 @@ module Filters
     end
 
     def length
-      (self.end - self.start).to_i
+      (self.end - start).to_i
     rescue StandardError
       0
     end
@@ -440,6 +498,14 @@ module Filters
       available_vispdat_limits.invert[limit_to_vispdat]
     end
 
+    def available_times_homeless_in_last_three_years
+      ::HUD.times_homeless_options
+    end
+
+    def chosen_times_homeless_in_last_three_years
+      available_times_homeless_in_last_three_years.invert[times_homeless_in_last_three_years]
+    end
+
     def project_type_ids
       ids = GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
         *project_type_codes.reject(&:blank?).map(&:to_sym),
@@ -457,6 +523,10 @@ module Filters
       @user ||= User.find(user_id)
     end
 
+    def available_sub_populations
+      AvailableSubPopulations.available_sub_populations
+    end
+
     def available_age_ranges
       {
         under_eighteen: '< 18',
@@ -464,7 +534,8 @@ module Filters
         twenty_five_to_twenty_nine: '25 - 29',
         thirty_to_thirty_nine: '30 - 39',
         forty_to_forty_nine: '40 - 49',
-        fifty_to_fifty_nine: '50 - 59',
+        fifty_to_fifty_four: '50 - 54',
+        fifty_five_to_fifty_nine: '55 - 59',
         sixty_to_sixty_one: '60 - 61',
         over_sixty_one: '62+',
       }.invert.freeze
@@ -479,7 +550,7 @@ module Filters
     end
 
     def clean_comparison_pattern(pattern)
-      comparison_patterns.values.detect { |m| m == pattern&.to_sym } || default_comparison_pattern
+      comparison_patterns.values.detect { |m| m == pattern&.to_sym } || comparison_pattern.presence || default_comparison_pattern
     end
 
     def available_coc_codes
@@ -600,7 +671,10 @@ module Filters
       when :heads_of_household, :hoh_only
         'Heads of Household Only?'
       when :limit_to_vispdat
+        value = nil if limit_to_vispdat == :all_clients
         'Client Limits'
+      when :times_homeless_in_last_three_years
+        'Times Homeless in Past 3 Years'
       end
 
       return unless value.present?
@@ -656,6 +730,8 @@ module Filters
         'Yes' if heads_of_household || hoh_only
       when :limit_to_vispdat
         chosen_vispdat_limits
+      when :times_homeless_in_last_three_years
+        chosen_times_homeless_in_last_three_years
       end
     end
 
@@ -688,7 +764,7 @@ module Filters
     end
 
     def chosen_coc_codes
-      coc_codes.join(', ')
+      coc_codes
     end
 
     def chosen_organizations

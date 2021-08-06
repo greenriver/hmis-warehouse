@@ -1,0 +1,74 @@
+- key = :average_stay_length
+
+%h3= @report.support_title(key)
+.row
+  - @report.comparison_periods.each.with_index do |range, i|
+    .col
+      - data = @report.send(key).to_a[i]
+      - chart_id = "#{key}_#{i}_chart"
+      - legend_id = "legend_#{chart_id}"
+      .w-50
+        %h4= data.first
+        %p= range.to_s.gsub('..', ' to ')
+        .d-flex
+          %div{ id: legend_id }
+          %div{ id: chart_id }
+        = content_for :page_js do
+          :javascript
+            var chart = bb.generate({
+              data: {
+                columns: #{data.last.to_json.html_safe},
+                type: "bar", // for ESM specify as: bar()
+                labels: {
+                  format: function(v, id, i, j) {
+                    return v + " days"
+                  },
+                  centered: true,
+                  colors: 'white',
+                },
+              },
+              legend: {
+                contents: {
+                  bindto: "##{legend_id}",
+                  template: function (title, color) {
+                    var swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+                    return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
+                  },
+                },
+              },
+              bar: {
+                width: {
+                  ratio: 0.5
+                },
+                label: {
+                  threshold: 0,
+                },
+                padding: 5
+              },
+              tooltip: {
+                format: {
+                  title: function(x) { return "#{@report.support_title(key)}" },
+                },
+              },
+              axis: {
+                rotated: true,
+                x: {
+                  show: true,
+                  tick: {
+                    show: true,
+                  }
+                },
+              },
+              bindto: "##{chart_id}"
+            });
+
+
+        - data.last.each do |label, count|
+          - sub_key = :with_es_stay if label == 'Emergency Shelter'
+          - sub_key = :with_rrh_stay if label == 'Rapid Rehousing'
+          - sub_key = :with_psh_stay if label == 'PSH'
+          .d-flex
+            .label= label
+            .count.mr-2
+              = link_to details_performance_metrics_warehouse_reports_report_path(@report, key: key, sub_key: sub_key, index: i) do
+                = pluralize(count, 'day')

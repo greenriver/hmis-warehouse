@@ -1008,7 +1008,8 @@ CREATE TABLE public."Event" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -1186,7 +1187,8 @@ CREATE TABLE public."Funder" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "OtherFunder" character varying
+    "OtherFunder" character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1457,7 +1459,8 @@ CREATE TABLE public."Inventory" (
     "ESBedType" integer,
     coc_code_override character varying,
     inventory_start_date_override date,
-    inventory_end_date_override date
+    inventory_end_date_override date,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -1596,7 +1599,8 @@ CREATE TABLE public."ProjectCoC" (
     "Zip" character varying(5),
     geography_type_override integer,
     geocode_override character varying(6),
-    zip_override character varying
+    zip_override character varying,
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -3323,6 +3327,47 @@ ALTER SEQUENCE public.cas_availabilities_id_seq OWNED BY public.cas_availabiliti
 
 
 --
+-- Name: cas_ce_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_ce_assessments (
+    id bigint NOT NULL,
+    cas_client_id bigint,
+    cas_non_hmis_assessment_id bigint,
+    hmis_client_id bigint,
+    program_id bigint,
+    assessment_date date,
+    assessment_location character varying,
+    assessment_type integer,
+    assessment_level integer,
+    assessment_status integer,
+    assessment_created_at timestamp without time zone,
+    assessment_updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_ce_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_ce_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_ce_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_ce_assessments_id_seq OWNED BY public.cas_ce_assessments.id;
+
+
+--
 -- Name: cas_enrollments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4433,7 +4478,8 @@ CREATE TABLE public.cohort_clients (
     user_boolean_28 boolean,
     user_boolean_29 boolean,
     user_boolean_30 boolean,
-    date_added_to_cohort date
+    date_added_to_cohort date,
+    individual_in_most_recent_homeless_enrollment boolean
 );
 
 
@@ -4526,7 +4572,9 @@ CREATE TABLE public.cohorts (
     threshold_label_4 character varying,
     threshold_row_5 integer,
     threshold_color_5 character varying,
-    threshold_label_5 character varying
+    threshold_label_5 character varying,
+    system_cohort boolean DEFAULT false,
+    type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying
 );
 
 
@@ -4652,7 +4700,11 @@ CREATE TABLE public.configs (
     pf_show_additional_timeliness boolean DEFAULT false NOT NULL,
     cas_sync_months integer DEFAULT 3,
     send_sms_for_covid_reminders boolean DEFAULT false NOT NULL,
-    bypass_2fa_duration integer DEFAULT 0 NOT NULL
+    bypass_2fa_duration integer DEFAULT 0 NOT NULL,
+    enable_system_cohorts boolean DEFAULT false,
+    currently_homeless_cohort boolean DEFAULT false,
+    health_claims_data_path character varying,
+    enable_youth_hrp boolean DEFAULT true NOT NULL
 );
 
 
@@ -5147,7 +5199,8 @@ CREATE TABLE public.exports (
     content_type character varying,
     content bytea,
     file character varying,
-    delayed_job_id integer
+    delayed_job_id integer,
+    version character varying
 );
 
 
@@ -13481,7 +13534,8 @@ CREATE TABLE public.synthetic_events (
     source_type character varying,
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    hud_event_id bigint
 );
 
 
@@ -14382,6 +14436,47 @@ ALTER SEQUENCE public.youth_case_managements_id_seq OWNED BY public.youth_case_m
 
 
 --
+-- Name: youth_education_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.youth_education_statuses (
+    id bigint NOT NULL,
+    "YouthEducationStatusID" character varying(32) NOT NULL,
+    "EnrollmentID" character varying(32) NOT NULL,
+    "PersonalID" character varying(32) NOT NULL,
+    "InformationDate" date NOT NULL,
+    "CurrentSchoolAttend" integer,
+    "MostRecentEdStatus" integer,
+    "CurrentEdStatus" integer,
+    "DataCollectionStage" integer NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying(32) NOT NULL
+);
+
+
+--
+-- Name: youth_education_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.youth_education_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: youth_education_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.youth_education_statuses_id_seq OWNED BY public.youth_education_statuses.id;
+
+
+--
 -- Name: youth_exports; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14790,6 +14885,13 @@ ALTER TABLE ONLY public.bo_configs ALTER COLUMN id SET DEFAULT nextval('public.b
 --
 
 ALTER TABLE ONLY public.cas_availabilities ALTER COLUMN id SET DEFAULT nextval('public.cas_availabilities_id_seq'::regclass);
+
+
+--
+-- Name: cas_ce_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_ce_assessments ALTER COLUMN id SET DEFAULT nextval('public.cas_ce_assessments_id_seq'::regclass);
 
 
 --
@@ -16564,6 +16666,13 @@ ALTER TABLE ONLY public.youth_case_managements ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: youth_education_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.youth_education_statuses ALTER COLUMN id SET DEFAULT nextval('public.youth_education_statuses_id_seq'::regclass);
+
+
+--
 -- Name: youth_exports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16861,6 +16970,14 @@ ALTER TABLE ONLY public.bo_configs
 
 ALTER TABLE ONLY public.cas_availabilities
     ADD CONSTRAINT cas_availabilities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_ce_assessments cas_ce_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_ce_assessments
+    ADD CONSTRAINT cas_ce_assessments_pkey PRIMARY KEY (id);
 
 
 --
@@ -18477,6 +18594,14 @@ ALTER TABLE ONLY public.whitelisted_projects_for_clients
 
 ALTER TABLE ONLY public.youth_case_managements
     ADD CONSTRAINT youth_case_managements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: youth_education_statuses youth_education_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.youth_education_statuses
+    ADD CONSTRAINT youth_education_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -22499,6 +22624,34 @@ CREATE INDEX index_cas_availabilities_on_client_id ON public.cas_availabilities 
 --
 
 CREATE INDEX index_cas_availabilities_on_unavailable_at ON public.cas_availabilities USING btree (unavailable_at);
+
+
+--
+-- Name: index_cas_ce_assessments_on_cas_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_ce_assessments_on_cas_client_id ON public.cas_ce_assessments USING btree (cas_client_id);
+
+
+--
+-- Name: index_cas_ce_assessments_on_cas_non_hmis_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_ce_assessments_on_cas_non_hmis_assessment_id ON public.cas_ce_assessments USING btree (cas_non_hmis_assessment_id);
+
+
+--
+-- Name: index_cas_ce_assessments_on_hmis_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_ce_assessments_on_hmis_client_id ON public.cas_ce_assessments USING btree (hmis_client_id);
+
+
+--
+-- Name: index_cas_ce_assessments_on_program_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_ce_assessments_on_program_id ON public.cas_ce_assessments USING btree (program_id);
 
 
 --
@@ -27759,6 +27912,13 @@ CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events 
 
 
 --
+-- Name: index_synthetic_events_on_hud_event_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_hud_event_id ON public.synthetic_events USING btree (hud_event_id);
+
+
+--
 -- Name: index_synthetic_events_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28351,13 +28511,6 @@ CREATE UNIQUE INDEX taggings_idx ON public.taggings USING btree (tag_id, taggabl
 --
 
 CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_type, tagger_id, context);
-
-
---
--- Name: test_shs; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
 
 
 --
@@ -30841,8 +30994,20 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210623184626'),
 ('20210623184729'),
 ('20210623195645'),
+('20210625231326'),
+('20210630201802'),
 ('20210702143811'),
 ('20210702144442'),
-('20210707122337');
+('20210707122337'),
+('20210707172124'),
+('20210707190613'),
+('20210707193633'),
+('20210708183958'),
+('20210708192452'),
+('20210714131449'),
+('20210716144139'),
+('20210723161722'),
+('20210726155740'),
+('20210727134415');
 
 

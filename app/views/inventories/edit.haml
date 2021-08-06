@@ -1,6 +1,5 @@
-= render 'projects/project_breadcrumbs'
-- content_for :title, "Edit Inventory for #{@project.name} at #{@project.organization.name}"
-%h1= content_for :title
+- content_for :modal_title do
+  "Edit Inventory for #{@project.name} at #{@project.organization.name}"
 = simple_form_for @inventory, as: :inventory, url: inventory_path(@inventory) do |f|
   .row
     .col-sm-6

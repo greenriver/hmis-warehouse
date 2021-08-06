@@ -34,6 +34,12 @@ class ImportsController < ApplicationController
     send_data(@upload.content, type: @upload.content_type, filename: filename) if @upload.content.present?
   end
 
+  def download_upload
+    @upload = GrdaWarehouse::Upload.viewable_by(current_user).find(params[:id].to_i)
+    filename = @upload.file&.file&.filename&.to_s || 'import'
+    send_data(@upload.content, type: @upload.content_type, filename: filename) if @upload.content.present?
+  end
+
   # POST /imports
   def create
     run_import = false
@@ -78,7 +84,15 @@ class ImportsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_import
-    @import = import_scope.find(params[:id].to_i)
+    sti_col = import_scope.inheritance_column
+    @import = import_scope.find(params.require(:id))
+  rescue ActiveRecord::SubclassNotFound
+    # Importers are optional driver components now
+    # so we fallback to loading as the generic log interface
+    import_scope.inheritance_column = :_disabled
+    @import = import_scope.find(params.require(:id))
+  ensure
+    import_scope.inheritance_column = sti_col
   end
 
   # Only allow a trusted parameter "white list" through.

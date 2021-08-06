@@ -52,26 +52,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       )
     end
 
-    scope :for_organizations, ->(organization_ids) do
-      return all unless organization_ids.present?
-
-      where(organization_id: organization_ids)
-    end
-
     scope :for_projects, ->(project_ids) do
       return all unless project_ids.present?
 
       where(project_id: project_ids)
-    end
-
-    scope :for_project_types, ->(project_types) do
-      return all unless project_types.present?
-
-      project_type_codes = []
-      project_types.each do |type|
-        project_type_codes += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.try(:[], type.to_sym)
-      end
-      where(project_type: project_type_codes)
     end
 
     scope :heads_of_household, -> do
@@ -111,7 +95,8 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       ages += (25..29).to_a if age_ranges.include?(:twenty_five_to_twenty_nine)
       ages += (30..39).to_a if age_ranges.include?(:thirty_to_thirty_nine)
       ages += (40..49).to_a if age_ranges.include?(:forty_to_forty_nine)
-      ages += (50..59).to_a if age_ranges.include?(:fifty_to_fifty_nine)
+      ages += (50..54).to_a if age_ranges.include?(:fifty_to_fifty_four)
+      ages += (55..59).to_a if age_ranges.include?(:fifty_five_to_fifty_nine)
       ages += (60..61).to_a if age_ranges.include?(:sixty_to_sixty_one)
       ages += (62..110).to_a if age_ranges.include?(:over_sixty_one)
 
@@ -207,9 +192,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       @clients_for_report ||= self.class.
         where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).
         in_months(filter.range).
-        for_organizations(filter.organization_ids).
-        for_projects(filter.project_ids).
-        for_project_types(filter.project_type_codes).
+        for_projects(filter.anded_effective_project_ids). # project ids from projects, organizations, project groups and project types
         filtered(filter)
     end
 

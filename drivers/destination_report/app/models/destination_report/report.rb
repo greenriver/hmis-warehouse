@@ -99,6 +99,7 @@ module DestinationReport
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_prior_living_situation(scope)
       scope = filter_for_destination(scope)
+      scope = filter_for_times_homeless(scope)
       scope.joins(enrollment: :exit)
     end
 

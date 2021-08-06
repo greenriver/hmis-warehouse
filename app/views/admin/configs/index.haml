@@ -22,6 +22,12 @@
           = f.input :show_partial_ssn_in_window_search_results, label: 'Show partial SSNs in the window search results? (no means don\'t show anything)'
 
       %section.o-section-card
+        %h3 System Cohorts
+        .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :enable_system_cohorts, label: 'Enable system cohorts?'
+          = f.input :currently_homeless_cohort, label: 'Currently Homeless', hint: 'The currently homeless cohort includes all open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
+
+      %section.o-section-card
         %h3 Client Calculations
         .c-card.c-card--flush.c-card--padded.flex-wrap
           = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'
@@ -34,6 +40,7 @@
           = f.input :family_calculation_method, collection: GrdaWarehouse::Config.family_calculation_methods, label: 'Method used to identify families (exclusive of HUD reporting)', as: :select_two
           = f.input :infer_family_from_household_id, label: 'Should "presented as an individual" be inferred from the count of matching household ids? (unchecked uses project inventory HouseholdType)'
           = f.input :expose_coc_code, label: 'Expose CoC Code on client dashboard rows?', hint: 'This is most useful if the installation spans multiple CoCs'
+          = f.input :enable_youth_hrp, label: 'Enable Youth Housing Resolution Plans'
 
       %section.o-section-card
         %h3 Reporting Options
@@ -78,6 +85,8 @@
           = f.input :health_emergency, collection: GrdaWarehouse::Config.available_health_emergencies, label: 'Ongoing health emergency?', include_blank: 'No current emergency', as: :select_two
           = f.input :health_emergency_tracing, collection: GrdaWarehouse::Config.available_health_emergency_tracings, label: 'Tracing contacts for', include_blank: 'No current emergency', as: :select_two
           = f.input :send_sms_for_covid_reminders, label: 'Send SMS reminders for 2nd dose of COVID-19 Vaccine?'
+          - if RailsDrivers.loaded.include?(:claims_reporting) && ClaimsReporting::Importer.default_credentials[:host].present?
+            = f.input :health_claims_data_path, label: _('Health SFTP incoming claims data folder'), hint: "If provided, any new claims data files detected will be imported automatically. #{link_to 'Details & Logs', claims_reporting_imports_path}".html_safe
 
       %section.o-section-card
         %h3 CAS

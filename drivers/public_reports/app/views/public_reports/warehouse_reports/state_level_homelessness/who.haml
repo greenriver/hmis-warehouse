@@ -1,7 +1,6 @@
 = render 'chart_css'
-- data = JSON.parse(@report.precalculated_data)
+- data = @report.parsed_pre_calculated_data
 
-%h3 Who is experiencing homelessness?
 = render 'slider', data: data['quarters']
 .d-flex
   = render 'location_chart', data: data['location_chart']

@@ -207,6 +207,7 @@ module IncomeBenefitsReport
       scope = filter_for_dv_status(scope)
       scope = filter_for_chronic_status(scope)
       scope = filter_for_ca_homeless(scope)
+      scope = filter_for_times_homeless(scope)
 
       # Limit to most recently started enrollment per client
       scope.only_most_recent_by_client(scope: scope)
