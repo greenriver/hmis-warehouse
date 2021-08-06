@@ -13,7 +13,8 @@ wb.add_worksheet(name: "Index Cases") do |sheet|
   index_cases.each do |index_case|
     row = []
     index_case_columns.keys.each do |key|
-      row << index_case[key]
+      value = index_case[key]
+      row << value
     end
     sheet.add_row(row)
   end
@@ -25,7 +26,7 @@ wb.add_worksheet(name: "Index Cases") do |sheet|
     end
 
   investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
-  sheet["B1"].style=investigation_head_style
+  sheet["B1"].style = investigation_head_style
 
   period_of_interest_style = sheet.styles.add_style(bg_color: 'F0F0F0', border: Axlsx::STYLE_THIN_BORDER)
   (6..10).each do |col|
@@ -36,7 +37,7 @@ wb.add_worksheet(name: "Index Cases") do |sheet|
   sheet["G1"].style=period_of_interest_head_style
 
   index_case_head_style = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet["L1"].style=index_case_head_style
+  sheet["L1"].style = index_case_head_style
 end
 
 wb.add_worksheet(name: "Patient Contacts") do |sheet|
@@ -51,7 +52,8 @@ wb.add_worksheet(name: "Patient Contacts") do |sheet|
   patient_contacts.each do |patient_contact|
     row = []
     patient_contact_columns.keys.each do |key|
-      row << patient_contact[key]
+      value = patient_contact[key]
+      row << value
     end
     sheet.add_row(row)
   end
@@ -63,10 +65,10 @@ wb.add_worksheet(name: "Patient Contacts") do |sheet|
   end
 
   investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
-  sheet["A1"].style=investigation_head_style
+  sheet["A1"].style = investigation_head_style
 
   contact_head_style = sheet.styles.add_style(sz: 12, b: true)
-  sheet["E1"].style=contact_head_style
+  sheet["E1"].style = contact_head_style
 end
 
 wb.add_worksheet(name: "Site Manager Notifications") do |sheet|
@@ -81,7 +83,8 @@ wb.add_worksheet(name: "Site Manager Notifications") do |sheet|
   site_managers.each do |manager|
     row = []
     site_manager_columns.keys.each do |key|
-      row << manager[key]
+      value = manager[key]
+      row << value
     end
     sheet.add_row(row)
   end
@@ -93,10 +96,10 @@ wb.add_worksheet(name: "Site Manager Notifications") do |sheet|
   end
 
   investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
-  sheet["A1"].style=investigation_head_style
+  sheet["A1"].style = investigation_head_style
 
   site_manager_head_style = sheet.styles.add_style(sz: 12, b: true)
-  sheet["C1"].style=site_manager_head_style
+  sheet["C1"].style =site_manager_head_style
 end
 
 wb.add_worksheet(name: "Staff Contacts") do |sheet|
@@ -111,7 +114,8 @@ wb.add_worksheet(name: "Staff Contacts") do |sheet|
   staff_contacts.each do |contact|
     row = []
     staff_contacts_columns.keys.each do |key|
-      row << contact[key]
+      value = contact[key]
+      row << value
     end
     sheet.add_row(row)
   end
@@ -123,10 +127,10 @@ wb.add_worksheet(name: "Staff Contacts") do |sheet|
   end
 
   investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
-  sheet["A1"].style=investigation_head_style
+  sheet["A1"].style = investigation_head_style
 
   staff_contact_head_style = sheet.styles.add_style(sz: 12, b: true)
-  sheet["D1"].style=staff_contact_head_style
+  sheet["D1"].style = staff_contact_head_style
 end
 
 # wb.add_worksheet(name: "Contact Investigation") do |sheet|
@@ -142,7 +146,9 @@ end
 #     rows.times do |i|
 #       row = []
 #       columns.keys.each do |column|
-#         row << case_info[column][i]
+#         value = case_info[column][i]
+#
+#         row << value
 #       end
 #       if highlight
 #         sheet.add_row(row, style: background)

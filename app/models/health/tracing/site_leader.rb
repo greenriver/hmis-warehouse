@@ -24,6 +24,31 @@ module Health::Tracing
       @label_for[column_name]
     end
 
+    def self.site_manager_columns
+      {
+        investigator: {
+          section_header: 'INVESTIGATION INFO',
+          column_header: 'Investigator',
+        },
+        index_case_id: {
+          section_header: '',
+          column_header: 'Linked Index Case ID',
+        },
+        site: {
+          section_header: 'SITE LEADERS NOTIFIED (e.g., shelter or clinic managers)',
+          column_header: 'Site',
+        },
+        site_leader: {
+          section_header: '',
+          column_header: 'Site Leader Name',
+        },
+        notification_date: {
+          section_header: '',
+          column_header: 'Notified Date',
+        },
+      }.freeze
+    end
+
     def label_for(column_name)
       self.class.label_for(column_name)
     end

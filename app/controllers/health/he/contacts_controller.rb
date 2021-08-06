@@ -64,6 +64,10 @@ module Health::He
         :symptom_onset_date,
         :referred_for_testing,
         :notes,
+        :vaccinated,
+        :vaccination_complete,
+        vaccine: [],
+        vaccination_dates: [],
         race: [],
         symptoms: [],
       )
