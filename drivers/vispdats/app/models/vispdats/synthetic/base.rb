@@ -33,6 +33,10 @@ module Vispdats::Synthetic
       2 # Not placed on prioritization list
     end
 
+    def data_source
+      'VI-SPDAT'
+    end
+
     def self.sync
       remove_orphans
       add_new

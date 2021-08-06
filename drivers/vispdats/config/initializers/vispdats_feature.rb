@@ -5,3 +5,5 @@
 #
 # use with caution!
 RailsDrivers.loaded << :vispdats
+
+GrdaWarehouse::Synthetic.add_assessment_type('Vispdats::Synthetic::Base')
