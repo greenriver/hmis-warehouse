@@ -1,6 +1,8 @@
 @import '../helpers';
 
-.c-card { }
+.c-card {
+  overflow: auto;
+}
 
 .c-card--block {
   display: block;

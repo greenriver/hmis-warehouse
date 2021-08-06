@@ -5,7 +5,12 @@
   .row
     .col-sm-6
       = f.input :signature_on, as: :date_picker
-      = f.input :file_location
+
+      - if @release_form.file_location
+        .form-group
+          %label Location
+          %p.form-control-static= @release_form.file_location
+
     - if @blank_release_form_url.present?
       .col-sm-6.text-right
         = link_to @blank_release_form_url, class: 'btn btn-secondary' do
@@ -13,7 +18,11 @@
           Blank Release Form
   .row
     .col-sm-6.j-file-upload
-      = render 'upload_fields', f: f
+      - if @release_form.errors.messages[:file_location].present?
+        .alert.alert-danger
+          = render 'upload_fields', f: f
+      - else
+        = render 'upload_fields', f: f
 
   .row
     .col-sm-8

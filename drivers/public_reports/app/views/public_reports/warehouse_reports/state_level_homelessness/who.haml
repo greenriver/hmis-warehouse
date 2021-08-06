@@ -1,5 +1,5 @@
 = render 'chart_css'
-- data = JSON.parse(@report.precalculated_data)
+- data = @report.parsed_pre_calculated_data
 
 = render 'slider', data: data['quarters']
 .d-flex

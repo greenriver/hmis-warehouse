@@ -7,13 +7,14 @@
       this.clearInfo = this.clearInfo.bind(this);
       this.onEachFeature = this.onEachFeature.bind(this);
       this.updateMetrics = this.updateMetrics.bind(this);
-      this.max_rate = max_rate;
-      this.max_count = max_count;
       this.elementId = elementId;
       this.shapes = shapes;
       this.colors = colors;
       this.metrics = metrics;
+      this.max_rate = max_rate;
+      this.max_count = max_count;
       this.showingData = false;
+
       const mapOptions = {
         minZoom: 5,
         maxZoom: 9,
@@ -26,6 +27,7 @@
       this.highlightedFeatures = [];
 
       this.map = new L.Map(this.elementId, mapOptions);
+      this.markers = L.layerGroup().addTo(this.map);
 
       L.control
         .zoom({
@@ -47,6 +49,7 @@
       this.geojson = L.geoJSON(this.shapes, geoJSONOptions).addTo(this.map);
 
       this.map.fitBounds(this.geojson.getBounds());
+      this.map.createPane('markers');
 
       this.initInfoBox();
     }
@@ -57,11 +60,11 @@
         let innerHTML = '';
         let hidden = true;
         if (props != null) {
-          const { id, name, cocnum, metric } = props;
-          const rate = this.metrics[cocnum].rate
-          const count = this.metrics[cocnum].count
-          const population = this.metrics[cocnum].overall_population
-          innerHTML = `<h4>${name} (${cocnum})</h4><div class="rate">${rate} per 10,000 people</div><div class="count">${count.toLocaleString()} clients of ${population.toLocaleString()} people</div>`;
+          const { id, name, code, metric } = props;
+          const rate = this.metrics[name].rate
+          const count = this.metrics[name].count
+          const population = this.metrics[name].overall_population
+          innerHTML = `<h4>Zip Code: ${name}</h4><div class="rate">${rate} per 10,000 people</div><div class="count">${count.toLocaleString()} clients of ${population.toLocaleString()} people</div>`;
 
           hidden = false;
         }
@@ -81,7 +84,7 @@
     style() {
       return {
         fillColor: 'white',
-        weight: 1,
+        weight: 2,
         opacity: 1,
         color: this.strokeColor,
         dashArray: '',
@@ -90,13 +93,18 @@
     }
 
     getColor(rate) {
-      let division_size = this.max_rate / this.colors.length
-      let division = Math.floor(rate / division_size)
+      let division_size = this.max_rate / this.colors.length;
+      let division = Math.floor(rate / division_size);
       if(division < this.colors.length) {
         return this.colors[division]
       } else {
         return this.colors[this.colors.length - 1]
       }
+    }
+
+    getSize(count) {
+      let size = Math.round(count / this.max_count * 20)
+      return size
     }
 
     bringLayerToFront(layer) {
@@ -121,11 +129,11 @@
         this.info.update(layer.feature.properties);
       }
       this.bringLayerToFront(layer);
-      layer.setStyle({
-        color: '#888',
-        weight: 3,
-        opacity: 1,
-      });
+      // layer.setStyle({
+      //   color: '#888',
+      //   weight: 3,
+      //   opacity: 1,
+      // });
     }
 
     clearInfo(e) {
@@ -135,11 +143,11 @@
       }
       if (layer.feature.properties.id != this.secondaryId) {
         this.bringLayerToBack(layer);
-        return layer.setStyle({
-          color: this.strokeColor,
-          weight: 1,
-          opacity: 1,
-        });
+        // return layer.setStyle({
+        //   color: this.strokeColor,
+        //   weight: 1,
+        //  opacity: 1,
+        // });
       }
     }
 
@@ -152,15 +160,35 @@
     }
 
     updateMetrics(metrics) {
+      this.markers.clearLayers();
+
       this.metrics = metrics
       this.geojson.getLayers().forEach((l) => {
-        const coc_number = l.feature.properties.cocnum
-        l.feature.properties.metric = this.metrics[coc_number].rate
+        const zip = l.feature.properties.name;
+        l.feature.properties.metric = this.metrics[zip].rate;
         this.geojson.resetStyle(l);
-        return l.setStyle({
-          fillColor: this.getColor(l.feature.properties.metric),
-          fillOpacity: 1,
-        });
+        let count = this.metrics[zip].count
+        if(count > 0) {
+          let marker = L.circleMarker(l.feature.properties.centroid, {
+            pane: 'markers',
+            radius: this.getSize(count),
+            fillColor: this.getColor(l.feature.properties.metric),
+            weight: 1,
+            opacity: 0.8,
+            fillOpacity: 0.8,
+            stroke: false,
+            // feature: l.feature,
+          });
+          marker.feature = l.feature;
+          marker.on('mouseover', this.updateInfo);
+          marker.on('mouseout', this.clearInfo);
+          marker.addTo(this.markers);
+
+        }
+        // return l.setStyle({
+        //   fillColor: this.getColor(l.feature.properties.metric),
+        //   fillOpacity: 1,
+        // });
       });
     }
   };

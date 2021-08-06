@@ -31,6 +31,7 @@ module ClientShowPages
         '/clients/rollup/chronic_days',
         '/clients/rollup/contact_information',
         '/clients/rollup/demographics',
+        '/clients/rollup/disabilities',
         '/clients/rollup/disability_types',
         '/clients/rollup/entry_assessments',
         '/clients/rollup/error',

@@ -10,8 +10,8 @@ module Health::Soap
   class MassHealth
     RequestFailed = Class.new(StandardError)
 
-    ENROLLMENT_RESPONSE_PAYLOAD_TYPE = 'X12_834_Response_005010X220A1'
-    ELIGIBILITY_RESPONSE_PAYLOAD_TYPE = 'X12_005010_Request_Batch_Results_271'
+    ENROLLMENT_RESPONSE_PAYLOAD_TYPE = 'X12_834_Response_005010X220A1'.freeze
+    ELIGIBILITY_RESPONSE_PAYLOAD_TYPE = 'X12_005010_Request_Batch_Results_271'.freeze
 
     def initialize(test: false)
       @config = Config.where(name: 'masshealth').first_or_initialize
@@ -27,15 +27,19 @@ module Health::Soap
     end
 
     def realtime_eligibility_inquiry_request(edi_doc:)
-      result = request(action: 'RealTimeTransaction',
-        xml: realtime_eligibility_inquiry_request_xml(edi_doc))
+      result = request(
+        action: 'RealTimeTransaction',
+        xml: realtime_eligibility_inquiry_request_xml(edi_doc),
+      )
       return parse_result(result)
     end
 
     def batch_eligibility_inquiry(edi_doc:)
-      result = request_with_attachment(action: 'BatchSubmitTransaction',
+      result = request_with_attachment(
+        action: 'BatchSubmitTransaction',
         xml: batch_eligibility_request_xml(edi_doc),
-        attachment: edi_doc)
+        attachment: edi_doc,
+      )
       return parse_result(result)
     end
 
@@ -43,11 +47,15 @@ module Health::Soap
       result = generic_results_retrieval_request(payload_type: 'FILELIST', payload_id: 'FILELIST')
       file_list = Array.wrap(Hash.from_xml(result.response)&.dig('FileList', 'File')).uniq
       return ::Health::Soap::FileList.new(file_list, self)
+    rescue StandardError
+      raise result.response.error_message
     end
 
     def generic_results_retrieval_request(payload_type:, payload_id:)
-      result = request(action: 'GenericBatchRetrievalTransaction',
-        xml: generic_results_retrieval_request_xml(payload_type, payload_id))
+      result = request(
+        action: 'GenericBatchRetrievalTransaction',
+        xml: generic_results_retrieval_request_xml(payload_type, payload_id),
+      )
       return parse_result(result)
     end
 
@@ -85,10 +93,9 @@ module Health::Soap
         curl.headers['charset'] = 'UTF-8'
         curl.headers['SoapAction'] = action
       end
-      if response.response_code != 200 || response.body_str.blank?
-        raise RequestFailed
-      end
-      return response
+      raise RequestFailed if response.response_code != 200 || response.body_str.blank?
+
+      response
     end
 
     # Submit a multi-part request with an attachment
@@ -99,35 +106,29 @@ module Health::Soap
         curl.headers['Content-type'] = " multipart/related; type=\"application/xop+xml\"; start=\"rootpart\"; start-info=\"application/soap+xml\"; action=\"#{action}\"; boundary=\"#{boundary}\""
         curl.headers['charset'] = 'UTF-8'
       end
-      if response.response_code != 200 || response.body_str.blank?
-        raise RequestFailed
-      end
-      return response
+      raise RequestFailed if response.response_code != 200 || response.body_str.blank?
+
+      response
     end
 
     # Parse the response. Generally, MassHealth responds with a multipart, so we use the Mail parser to decode the message
     private def parse_result(result)
       body = result.body_str
       if body[0..1] == '--'
-        header = "Content-Type: multipart/alternative; boundary=\"#{body.lines.first.strip[2..-1]}\"\r\n\r\n"
-        message = Mail.read_from_string(header + body)
+        header = "Content-Type: multipart/alternative; boundary=\"#{body.lines.first.strip[2..]}\"\r\n\r\n"
       else
         header = "Content-Type: text/plain\r\n\r\n"
-        message = Mail.read_from_string(header + body)
       end
+      message = Mail.read_from_string(header + body)
       if message.multipart?
-        if message.parts.size > 1
-          return SoapResponse.new(self, [ Hash.from_xml(message.parts.first.decoded), message.parts.last.decoded ])
-        else
-          return SoapResponse.new(self, [ Hash.from_xml(message.parts.first.decoded), nil ])
-        end
+        return SoapResponse.new(self, [Hash.from_xml(message.parts.first.decoded), message.parts.last.decoded]) if message.parts.size > 1
+
+        return SoapResponse.new(self, [Hash.from_xml(message.parts.first.decoded), nil])
       else
         decoded = message.decoded
-        if decoded[0..4] == '<?xml'
-          return SoapResponse.new(self, [ Hash.from_xml(decoded), nil])
-        else
-          return SoapResponse.new(self, [ message.decoded, nil ])
-        end
+        return SoapResponse.new(self, [Hash.from_xml(decoded), nil]) if decoded[0..4] == '<?xml'
+
+        return SoapResponse.new(self, [message.decoded, nil])
       end
     end
 
@@ -199,21 +200,20 @@ module Health::Soap
     end
 
     private def request_with_attachment_xml(body, attachment, boundary)
-      # MIME is very picky about whitespace, so, it is important that this not be indented
       <<~HEREDOC
---#{boundary}
-Content-Type: application/xop+xml; charset=UTF-8; type="application/soap+xml"; action="BatchSubmitTransaction"
-Content-Transfer-Encoding: binary
-Content-ID: rootpart
+        --#{boundary}
+        Content-Type: application/xop+xml; charset=UTF-8; type="application/soap+xml"; action="BatchSubmitTransaction"
+        Content-Transfer-Encoding: binary
+        Content-ID: rootpart
 
- #{request_xml(body)}
---#{boundary}
-Content-Type: application/xml
-Content-Transfer-Encoding: binary
-Content-ID: attachment
+        #{request_xml(body)}
+        --#{boundary}
+        Content-Type: application/xml
+        Content-Transfer-Encoding: binary
+        Content-ID: attachment
 
-#{attachment}
---#{boundary}--
+        #{attachment}
+        --#{boundary}--
       HEREDOC
     end
 
