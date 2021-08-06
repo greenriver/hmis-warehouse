@@ -47,6 +47,7 @@ module Health::He
         :notified,
         :nature_of_exposure,
         :symptomatic,
+        :other_symptoms,
         :referred_for_testing,
         :test_result,
         :notes,
