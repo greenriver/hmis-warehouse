@@ -23,6 +23,7 @@ class CreateCasCeAssessments < ActiveRecord::Migration[5.2]
         t.references :client
         t.string :type
         t.references :source, polymorphic: true
+        t.references :hud_assessment
 
         t.timestamps
       end
