@@ -160,6 +160,7 @@ module Importing
 
         YouthFollowUpsJob.perform_later
         SystemCohortsJob.perform_later
+        SyncSyntheticDataJob.perform_later
 
         create_statistical_matches
         generate_logging_info
