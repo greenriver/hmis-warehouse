@@ -4133,7 +4133,11 @@ CREATE TABLE public.tracing_cases (
     day_two date,
     phone character varying,
     symptoms jsonb,
-    other_symptoms character varying
+    other_symptoms character varying,
+    vaccinated character varying,
+    vaccine jsonb,
+    vaccination_dates jsonb,
+    vaccination_complete character varying
 );
 
 
@@ -4196,7 +4200,11 @@ CREATE TABLE public.tracing_contacts (
     alert_in_epic character varying,
     notified character varying,
     symptoms jsonb,
-    other_symptoms character varying
+    other_symptoms character varying,
+    vaccinated character varying,
+    vaccine jsonb,
+    vaccination_dates jsonb,
+    vaccination_complete character varying
 );
 
 
@@ -4352,7 +4360,11 @@ CREATE TABLE public.tracing_staffs (
     phone_number character varying,
     symptoms jsonb,
     other_symptoms character varying,
-    investigator character varying
+    investigator character varying,
+    vaccinated character varying,
+    vaccine jsonb,
+    vaccination_dates jsonb,
+    vaccination_complete character varying
 );
 
 
@@ -7158,6 +7170,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210510185734'),
 ('20210511143037'),
 ('20210607182656'),
-('20210726193142');
+('20210726193142'),
+('20210806150431');
 
 
