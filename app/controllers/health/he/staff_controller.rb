@@ -55,6 +55,10 @@ module Health::He
         :dob,
         :estimated_age,
         :gender,
+        :vaccinated,
+        :vaccination_complete,
+        vaccine: [],
+        vaccination_dates: [],
         symptoms: [],
       )
     end

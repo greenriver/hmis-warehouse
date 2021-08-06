@@ -1187,7 +1187,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
     - 'app/models/health/agency_user_saver.rb'
-    - 'app/models/health/tracing/case.rb'
     - 'app/models/health_base.rb'
     - 'app/models/message.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
@@ -1326,7 +1325,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/health/tasks/patient_client_matcher.rb'
     - 'app/models/health/tracking_sheet.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
-    - 'app/models/health/vaccination.rb'
     - 'app/models/hud_reports/report_instance.rb'
     - 'app/models/report.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
@@ -1543,7 +1541,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
-    - 'app/models/health/vaccination.rb'
     - 'app/models/hud_reports/report_instance.rb'
     - 'app/models/importers/hmis_auto_detect/uploaded_zip.rb'
     - 'app/models/report.rb'
@@ -2079,7 +2076,6 @@ Lint/UnusedMethodArgument:
     - 'app/models/health/member_status_report.rb'
     - 'app/models/health/problem.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
-    - 'app/models/health/vaccination.rb'
     - 'app/models/health/visit.rb'
     - 'app/models/report.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
@@ -2420,7 +2416,6 @@ Style/EmptyLambdaParameter:
   Exclude:
     - 'app/models/grda_warehouse/hud/health_and_dv.rb'
     - 'app/models/health/eligibility_inquiry.rb'
-    - 'app/models/health/tracing/case.rb'
 
 # Offense count: 16
 # Cop supports --auto-correct.
@@ -3528,9 +3523,6 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
     - 'app/models/health/soap/file_list.rb'
-    - 'app/models/health/tracing/case.rb'
-    - 'app/models/health/tracing/contact.rb'
-    - 'app/models/health/tracing/staff.rb'
     - 'app/models/health_base.rb'
     - 'app/models/report_generators/pit/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
