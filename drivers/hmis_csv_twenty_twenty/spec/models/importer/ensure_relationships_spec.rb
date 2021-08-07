@@ -15,7 +15,7 @@ RSpec.describe 'Ensure Relationships', type: :model do
     end
 
     it 'Has expected enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(19)
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(21)
     end
   end
 
@@ -27,7 +27,7 @@ RSpec.describe 'Ensure Relationships', type: :model do
     end
 
     it 'Has expected enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(19)
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(21)
     end
 
     it 'Individual enrollments all have one HoH' do
@@ -36,11 +36,9 @@ RSpec.describe 'Ensure Relationships', type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.where(HouseholdID: 'H3', RelationshipToHoH: 1).count).to eq(1)
     end
 
-    it 'Individual enrollments with no HoH all have one HoH' do
+    it 'Individual enrollments with no HouseholdID all have one HoH ' do
       expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-8').RelationshipToHoH).to eq(1)
-      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-8').HouseholdID).not_to be_empty
       expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-9').RelationshipToHoH).to eq(1)
-      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-9').HouseholdID).not_to be_empty
     end
 
     it 'Multi-client enrollments with no HoH all have one HoH' do
@@ -57,17 +55,23 @@ RSpec.describe 'Ensure Relationships', type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-10').RelationshipToHoH).to eq(1)
     end
 
-    it 'fixes all child enrollments with multiple incorrect HoH, breaking them up' do
-      expect(GrdaWarehouse::Hud::Enrollment.where(HouseholdID: 'H7').count).to eq(0)
+    it 'all child enrollments with multiple incorrect HoH, sets oldest as HoH, other as unknown relationship' do
+      expect(GrdaWarehouse::Hud::Enrollment.where(HouseholdID: 'H7').count).to eq(2)
       expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-13').RelationshipToHoH).to eq(1)
-      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-14').RelationshipToHoH).to eq(1)
-      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-13').HouseholdID).not_to be_empty
-      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-14').HouseholdID).not_to be_empty
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-14').RelationshipToHoH).to eq(99)
     end
 
     it 'adds HoH, choosing the adult' do
       expect(GrdaWarehouse::Hud::Enrollment.where(HouseholdID: 'H5', RelationshipToHoH: 1).count).to eq(1)
       expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-6').RelationshipToHoH).to eq(1)
+    end
+
+    it 'All teen enrollment is broken up, given alternate HouseholdIDs and HoH' do
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-20').RelationshipToHoH).to eq(1)
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-20').HouseholdID).not_to be_empty
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-21').RelationshipToHoH).to eq(1)
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-21').HouseholdID).not_to be_empty
+      expect(GrdaWarehouse::Hud::Enrollment.where(HouseholdID: 'H10').count).to eq(0)
     end
   end
 

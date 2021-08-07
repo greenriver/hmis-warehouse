@@ -19,7 +19,10 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
       # Set anyone with a blank HouseholdID to RelationshipToHoH = 1
       # These clients are not in households
       enrollment_scope.where(HouseholdID: nil).
-        where.not(RelationshipToHoH: 1).
+        where(
+          ie_t[:RelationshipToHoH].not_eq(1).
+          or(ie_t[:RelationshipToHoH].eq(nil)),
+        ).
         update_all(RelationshipToHoH: 1)
 
       # Figure out HouseholdID and PersonalID for HoH for each household
@@ -35,7 +38,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
         else
           female_adult = rows.select { |m| m[:female] && m[:adult] }.max_by { |m| m[:age] }
           oldest_adult = rows.select { |m| m[:adult] }.max_by { |m| m[:age] }
-          child_under_11 = rows.any? { |m| m[:age] >= 0 }
+          child_under_11 = rows.any? { |m| m[:age].between?(0, 11) }
           oldest_client = rows.max_by { |m| m[:age] }
           if female_adult.present?
             multi_person_to_fix[hh_id] = female_adult[:row_id]
@@ -50,7 +53,10 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
       end
 
       enrollment_scope.where(HouseholdID: individual_household_ids).
-        where.not(RelationshipToHoH: 1).
+        where(
+          ie_t[:RelationshipToHoH].not_eq(1).
+          or(ie_t[:RelationshipToHoH].eq(nil)),
+        ).
         update_all(RelationshipToHoH: 1)
 
       enrollment_scope.where(HouseholdID: multi_person_to_fix.keys).
@@ -89,7 +95,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
       # Generate new HouseholdIDs using the same logic as the exporter.
       values = multi_person_with_no_child_under_11.map do |row|
         [
-          row[:id], # Enrollment.id
+          row[:row_id], # Enrollment.id
           1, # RelationshipToHoH
           Digest::MD5.hexdigest("e_#{@importer_log.data_source.id}_#{row[:project_id]}_#{row[:en_id]}"),
           # The following columns need to be included simply to make the upsert work
@@ -100,6 +106,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
           1,
         ]
       end
+
       enrollment_source.import(
         [
           :id,
@@ -152,6 +159,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
               project_id: project_id,
             }
           end
+
         # Ignore any households where there is already only one HoH
         hh.delete_if { |_, rows| rows.one? { |m| m[:hoh] } }
       end
@@ -165,6 +173,10 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
 
     def enrollment_source
       HmisCsvTwentyTwenty::Importer::Enrollment
+    end
+
+    private def ie_t
+      enrollment_source.arel_table
     end
 
     def self.description
