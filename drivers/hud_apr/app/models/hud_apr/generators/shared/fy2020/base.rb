@@ -264,6 +264,7 @@ module HudApr::Generators::Shared::Fy2020
     private def clients_with_enrollments(batch)
       enrollment_scope.
         where(client_id: batch.map(&:id)).
+        order(first_date_in_program: :asc).
         group_by(&:client_id).
         reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
     end

@@ -56,6 +56,9 @@ module HudReports::Households
                 veteran_status: enrollment.enrollment.client.VeteranStatus,
                 chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
                 relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
+                # Include dates for determining if someone was present at assessement date
+                entry_date: enrollment.first_date_in_program,
+                exit_date: enrollment.last_date_in_program,
               }.with_indifferent_access
             end
             GC.start

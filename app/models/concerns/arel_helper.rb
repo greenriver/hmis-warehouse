@@ -224,6 +224,14 @@ module ArelHelper
     GrdaWarehouse::Hud::Affiliation.arel_table
   end
 
+  def as_t
+    GrdaWarehouse::Hud::Assessment.arel_table
+  end
+
+  def ev_t
+    GrdaWarehouse::Hud::Event.arel_table
+  end
+
   def ch_t
     GrdaWarehouse::Chronic.arel_table
   end
@@ -551,6 +559,14 @@ module ArelHelper
 
     def af_t
       GrdaWarehouse::Hud::Affiliation.arel_table
+    end
+
+    def as_t
+      GrdaWarehouse::Hud::Assessment.arel_table
+    end
+
+    def ev_t
+      GrdaWarehouse::Hud::Event.arel_table
     end
 
     def ch_t
