@@ -280,7 +280,6 @@ module HudApr::Generators::Shared::Fy2020
     private def enrollment_scope
       preloads = {
         enrollment: [
-          :client,
           :disabilities,
           :current_living_situations,
           :project,
@@ -292,6 +291,8 @@ module HudApr::Generators::Shared::Fy2020
           :enrollment_coc_at_entry,
           :health_and_dvs,
           :exit,
+          :assessments,
+          client: [events: [enrollment: :project]],
         ],
       }
       enrollment_scope_without_preloads.preload(preloads)

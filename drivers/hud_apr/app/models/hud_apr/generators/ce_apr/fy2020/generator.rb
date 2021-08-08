@@ -121,10 +121,38 @@ module HudApr::Generators::CeApr::Fy2020
       end
     end
 
+    # Assessments are only collected (and reported on) for HoH
+    # Return the most_recent assessment completed for the latest enrollment
+    # where the assessment occurred within the report range
+    # NOTE: there _should_ always be one of these based on the enrollment_scope and client_scope
+    private def latest_ce_assessment(she_enrollment)
+      she_enrollment.enrollment.assessments.
+        select { |a| a.AssessmentDate.present? && a.AssessmentDate.between(@report.start_date, @report.end_date) }.
+        max_by(&:AssessmentDate)
+    end
+
+    # Returns the appropriate CE Event for the client
+    # Search for [Coordinated Entry Event] (4.20) records assigned to the same head of household with a [date of event] (4.20.1) where all of the following are
+    # true:
+    # a. [Date of event] >= [date of assessment] from step 1
+    # b. [Date of event] <= ([report end date] + 90 days)
+    # c. [Date of event] < Any [dates of assessment] which are between [report end date] and ([report end date] + 90 days)
+    # Refer to the example below for clarification.
+    # 4. For each client, if any of the records found belong to the same [project id] (2.02.1) as the CE assessment from step 1, use the latest of those to report the
+    # client in the table above.
+    # 5. If, for a given client, none of the records found belong to the same [project id] as the CE assessment from step 1, use the latest of those to report the client in the table above.
+    # 6. The intention of the criteria is to locate the most recent logically relevant record pertaining to the CE assessment record reported in Q9a and Q9b by giving preference to data entered by the same project.
+    private def latest_ce_event(she_enrollment, ce_latest_assessment)
+      potential_events = she_enrollment.client.events.select { |e| e.EventDate.present? && e.EventDate.between(ce_latest_assessment.AssessmentDate, @report.end_date + 90.days) }
+      events_from_project = potential_events.select { |e| e.enrollment.project.id == she_enrollment.project.id }
+      return events_from_project.max_by(&:EventDate) if events_from_project.present?
+
+      potential_events.max_by(&:EventDate)
+    end
+
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
       @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
-        assessment_date = last_service_history_enrollment.enrollment.assessments.max_by(&:AssessmentDate).AssessmentDate
 
         # Pre-calculate some values
         household_types = {}
@@ -154,6 +182,8 @@ module HudApr::Generators::CeApr::Fy2020
           next unless enrollments.present?
 
           last_service_history_enrollment = enrollments.last
+          ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment)
+          ce_latest_event = latest_ce_event(she_enrollment, ce_latest_assessment)
           enrollment = last_service_history_enrollment.enrollment
           source_client = enrollment.client
           next unless source_client
@@ -247,7 +277,7 @@ module HudApr::Generators::CeApr::Fy2020
             hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids: disabilities.detect(&:hiv?).present?,
             household_id: get_hh_id(last_service_history_enrollment),
-            household_members: household_member_data(last_service_history_enrollment, assessment_date),
+            household_members: household_member_data(last_service_history_enrollment, latest_assessment.AssessmentDate),
             household_type: household_type,
             housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment,
             income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
@@ -282,7 +312,7 @@ module HudApr::Generators::CeApr::Fy2020
             # SHE other_clients_over_25 is computed at entry date, and we need to consider the report start date
             other_clients_over_25: ! only_youth?(
               OpenStruct.new(
-                household_members: household_member_data(last_service_history_enrollment, assessment_date),
+                household_members: household_member_data(last_service_history_enrollment, latest_assessment.AssessmentDate),
                 first_date_in_program: last_service_history_enrollment.first_date_in_program,
               ),
             ),
@@ -291,7 +321,7 @@ module HudApr::Generators::CeApr::Fy2020
             parenting_youth: youth_parent?(
               OpenStruct.new(
                 head_of_household: last_service_history_enrollment[:head_of_household],
-                household_members: household_member_data(last_service_history_enrollment, assessment_date),
+                household_members: household_member_data(last_service_history_enrollment, latest_assessment.AssessmentDate),
                 first_date_in_program: last_service_history_enrollment.first_date_in_program,
               ),
             ),
@@ -315,6 +345,11 @@ module HudApr::Generators::CeApr::Fy2020
             time_to_move_in: times_to_move_in[last_service_history_enrollment.client_id],
             times_homeless: enrollment.TimesHomelessPastThreeYears,
             veteran_status: source_client.VeteranStatus,
+            ce_assessment_date: latest_assessment.AssessmentDate,
+            ce_assessment_type: latest_assessment.AssessmentType, # for Q9a
+            ce_assessment_prioritization_status: latest_assessment.PrioritizationStatus, # for Q9b, Q9d
+            ce_event_date: ce_latest_event.EventDate,
+            ce_event_event: ce_latest_event.Event, # Q9c, Q9d
           )
         end
 
