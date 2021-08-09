@@ -29,6 +29,10 @@ module HudApr::Generators::Shared::Fy2020
       @universe ||= @report.universe(self.class.question_number)
     end
 
+    def needs_ce_assessments?
+      false
+    end
+
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
       @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
@@ -61,6 +65,10 @@ module HudApr::Generators::Shared::Fy2020
           next unless enrollments.present?
 
           last_service_history_enrollment = enrollments.last
+          if needs_ce_assessments?
+            ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment)
+            ce_latest_event = latest_ce_event(she_enrollment, ce_latest_assessment)
+          end
           enrollment = last_service_history_enrollment.enrollment
           source_client = enrollment.client
           next unless source_client
@@ -103,7 +111,8 @@ module HudApr::Generators::Shared::Fy2020
           end
 
           processed_source_clients << source_client.id
-          pending_associations[client] = report_client_universe.new(
+          ce_hash = {}
+          options = {
             client_id: source_client.id,
             destination_client_id: last_service_history_enrollment.client_id,
             data_source_id: source_client.data_source_id,
@@ -222,7 +231,36 @@ module HudApr::Generators::Shared::Fy2020
             time_to_move_in: times_to_move_in[last_service_history_enrollment.client_id],
             times_homeless: enrollment.TimesHomelessPastThreeYears,
             veteran_status: source_client.VeteranStatus,
-          )
+          }
+          if needs_ce_assessments?
+            ce_hash = {
+              household_members: household_member_data(last_service_history_enrollment, latest_assessment.AssessmentDate),
+              other_clients_over_25: ! only_youth?(
+                OpenStruct.new(
+                  household_members: household_member_data(last_service_history_enrollment, latest_assessment.AssessmentDate),
+                  first_date_in_program: last_service_history_enrollment.first_date_in_program,
+                ),
+              ),
+              parenting_youth: youth_parent?(
+                OpenStruct.new(
+                  head_of_household: last_service_history_enrollment[:head_of_household],
+                  household_members: household_member_data(last_service_history_enrollment, latest_assessment.AssessmentDate),
+                  first_date_in_program: last_service_history_enrollment.first_date_in_program,
+                ),
+              ),
+              ce_assessment_date: latest_assessment.AssessmentDate,
+              ce_assessment_type: latest_assessment.AssessmentType, # for Q9a
+              ce_assessment_prioritization_status: latest_assessment.PrioritizationStatus, # for Q9b, Q9d
+              ce_event_date: ce_latest_event.EventDate,
+              ce_event_event: ce_latest_event.Event, # Q9c, Q9d
+              ce_event_problem_sol_div_rr_result: ce_latest_event.ProbSolDivRRResult,
+              ce_event_referral_case_manage_after: ce_latest_event.ReferralCaseManageAfter,
+              ce_event_referral_result: ce_latest_event.ReferralResult,
+            }
+
+          end
+          options.merge(ce_hash)
+          pending_associations[client] = report_client_universe.new(options)
         end
 
         # Import APR clients
@@ -254,6 +292,41 @@ module HudApr::Generators::Shared::Fy2020
         end
 
         report_living_situation_universe.import(client_living_situations)
+
+        if needs_ce_assessments?
+          # Add any CE assessments and Events that occurred during the reporting period
+          # regardless of enrollment
+          assessments = []
+          events = []
+          apr_clients.each do |apr_client|
+            last_enrollment = enrollments_by_client_id[apr_client.destination_client_id].last.enrollment
+            last_enrollment.client.assessments.select do |assessment|
+              assessment.AssessmentDate.present? && assessment.AssessmentDate.between?(@report.start_date, @report.end_date)
+            end.each do |assessment|
+              assessments << apr_client.hud_report_ce_assessments.build(
+                project_id: assessment.enrollment.project.id,
+                assessment_date: assessment.AssessmentDate,
+                assessment_level: assessment.AssessmentLevel,
+              )
+            end
+
+            last_enrollment.client.events.select do |event|
+              event.EventDate.present? && event.EventDate.between?(@report.start_date, @report.end_date)
+            end.each do |event|
+              events << apr_client.hud_report_ce_events.build(
+                project_id: event.enrollment.project.id,
+                event_date: event.EventDate,
+                event: event.Event,
+                problem_sol_div_rr_result: event.ProbSolDivRRResult,
+                referral_case_manage_after: event.ReferralCaseManageAfter,
+                referral_result: event.ReferralResult,
+              )
+            end
+          end
+
+          report_ce_assessment_universe.import(assessments)
+          report_ce_event_universe.import(events)
+        end
       end
     end
 
@@ -292,7 +365,14 @@ module HudApr::Generators::Shared::Fy2020
           :health_and_dvs,
           :exit,
           :assessments,
-          client: [events: [enrollment: :project]],
+          client: [
+            assessments: [
+              enrollment: :project,
+            ],
+            events: [
+              enrollment: :project,
+            ],
+          ],
         ],
       }
       enrollment_scope_without_preloads.preload(preloads)
@@ -316,6 +396,14 @@ module HudApr::Generators::Shared::Fy2020
 
     private def report_living_situation_universe
       HudApr::Fy2020::AprLivingSituation
+    end
+
+    private def report_ce_assessment_universe
+      HudApr::Fy2020::CeAssessment
+    end
+
+    private def report_ce_event_universe
+      HudApr::Fy2020::CeEvent
     end
 
     private def a_t
