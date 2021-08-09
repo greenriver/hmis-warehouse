@@ -29,8 +29,15 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
           adults = universe.members.where(adult_clause)
-          adults = adults.where(stayers_clause) if suffix == :annual_assessment
-          adults = adults.where(leavers_clause) if suffix == :exit
+
+          case suffix
+          when :annual_assessment
+            adults = adults.where(stayers_clause)
+            # C8-10 will either add their own requirements or should include everyone
+            adults = adults.where(a_t[:annual_assessment_expected].eq(true)) unless cell.in?(annual_assessment_clause_not_required)
+          when :exit
+            adults = adults.where(leavers_clause)
+          end
 
           ids = Set.new
           if income_case.is_a?(Symbol)
@@ -56,6 +63,14 @@ module HudApr::Generators::Shared::Fy2020
           answer.update(summary: members.count)
         end
       end
+    end
+
+    private def annual_assessment_clause_not_required
+      [
+        'C8',
+        'C9',
+        'C10',
+      ]
     end
 
     private def income_headers

@@ -40,6 +40,10 @@ module GrdaWarehouse::Hud
     alias_attribute :end_date, :InventoryEndDate
     alias_attribute :beds, :BedInventory
 
+    scope :importable, -> do
+      where(manual_entry: false)
+    end
+
     scope :within_range, ->(range) do
       i_start = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
       i_end = i_t[:InventoryEndDate]

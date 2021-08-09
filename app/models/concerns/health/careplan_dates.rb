@@ -15,18 +15,22 @@ module Health::CareplanDates
     end
 
     private def care_plan_sent_to_provider_date(patient_id)
-      @care_plan_sent_to_provider_dates ||= begin
-        signature_request_dates = Health::Careplan.where(patient_id: patient_ids).
-          group(:patient_id).
-          maximum(:provider_signature_requested_at)
+      careplans = Health::Careplan.where(patient_id: patient_id).
+        order(Arel.sql(h_cp_t[:provider_signed_on].desc.to_sql + ' NULLS LAST'),
+              Arel.sql(h_cp_t[:provider_signature_requested_at].desc.to_sql + ' NULLS LAST'))
+      return unless careplans.exists?
 
-        signature_request_dates.each do |id, date|
-          signature_request_dates[id] = care_plan_provider_signed_date(id) if date.blank?
-        end
-        signature_request_dates
-      end
+      # Return the request date if the most recent careplan is signed, or is the only careplan
+      careplan = careplans.first
+      # If there is no request date, use the signature data as the request date
+      requested_date = careplan.provider_signature_requested_at&.to_date || careplan.provider_signed_on&.to_date
+      return requested_date if careplan.provider_signed_on || careplans.count == 1
 
-      @care_plan_sent_to_provider_dates[patient_id]&.to_date
+      # Otherwise use the next most recent careplan w/ a signature or request
+      careplan = careplans.drop(1).select { |cp| cp.provider_signed_on.present? || cp.provider_signature_requested_at.present? }
+      return unless careplan.present?
+
+      careplan.provider_signature_requested_at&.to_date || careplan.provider_signed_on&.to_date
     end
 
     private def care_plan_provider_signed_date(patient_id)

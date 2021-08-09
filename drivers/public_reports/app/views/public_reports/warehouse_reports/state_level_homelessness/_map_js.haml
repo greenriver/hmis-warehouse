@@ -1,12 +1,14 @@
 :javascript
   class CocMap {
-    constructor({ elementId, shapes, metrics, colors }) {
+    constructor({ elementId, shapes, metrics, colors, max_rate, max_count }) {
       this.initInfoBox = this.initInfoBox.bind(this);
       this.style = this.style.bind(this);
       this.updateInfo = this.updateInfo.bind(this);
       this.clearInfo = this.clearInfo.bind(this);
       this.onEachFeature = this.onEachFeature.bind(this);
       this.updateMetrics = this.updateMetrics.bind(this);
+      this.max_rate = max_rate;
+      this.max_count = max_count;
       this.elementId = elementId;
       this.shapes = shapes;
       this.colors = colors;
@@ -88,7 +90,7 @@
     }
 
     getColor(rate) {
-      let division_size = 1 / this.colors.length
+      let division_size = this.max_rate / this.colors.length
       let division = Math.floor(rate / division_size)
       if(division < this.colors.length) {
         return this.colors[division]

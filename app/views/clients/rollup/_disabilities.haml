@@ -1,0 +1,38 @@
+:ruby
+  et = GrdaWarehouse::Hud::Enrollment.arel_table
+  d_t = GrdaWarehouse::Hud::Disability.arel_table
+  disabilities = @client.
+    source_disabilities.
+    joins(enrollment: :client).
+    merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user)).
+    preload( :project, enrollment: :client ).
+    order(et[:EntryDate].desc, d_t[:InformationDate].desc)
+- if disabilities.any?
+  .table-responsive
+    %table.table
+      %colgroup
+      %thead
+        %tr
+          %th
+          %th Project
+          %th Entry Date
+          %th Information Date
+          %th Disability Type
+          %th Disability Response
+          %th Indefinite and Impairs
+          %th
+      %tbody
+        - disabilities.each do |disability|
+          - project = disability.project
+          %tr
+            %td
+              .ds{class: "ds-color-#{disability.data_source_id}"}= ds_short_name_for(disability.enrollment.client.id)
+            %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+            %td.date-cell= disability.enrollment.EntryDate
+            %td= disability.InformationDate
+            %td= HUD.disability_type disability.DisabilityType
+            %td= HUD.disability_response disability.DisabilityResponse
+            %td= HUD.no_yes_reasons_for_missing_data(disability.IndefiniteAndImpairs)
+- else
+  .no-data
+    No Disabilities on file

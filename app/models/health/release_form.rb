@@ -59,7 +59,7 @@ module Health
     end
     scope :during_current_enrollment, -> do
       where(arel_table[:signature_on].gteq(hpr_t[:enrollment_start_date])).
-      joins(patient: :patient_referral)
+        joins(patient: :patient_referral)
     end
     scope :during_contributing_enrollments, -> do
       where(arel_table[:signature_on].gteq(hpr_t[:enrollment_start_date])).
@@ -72,8 +72,8 @@ module Health
         merge(
           Health::PatientReferral.contributing.
             where(
-              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:signature_on].to_sql} + INTERVAL '1 year'"))
-            )
+              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:signature_on].to_sql} + INTERVAL '1 year'")),
+            ),
         )
     end
 
@@ -87,19 +87,15 @@ module Health
 
     before_save :set_reviewer
     private def set_reviewer
-      if reviewed_by
-        self.reviewer = reviewed_by.name
-        self.reviewed_at = DateTime.current
-      end
+      return unless reviewed_by
+
+      self.reviewer = reviewed_by.name
+      self.reviewed_at = DateTime.current
     end
 
     def file_or_location
-      if health_file.blank? && file_location.blank?
-        errors.add :file_location, "Please include either a file location or upload."
-      end
-      if health_file.present? && health_file.invalid?
-        errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ')
-      end
+      errors.add :file_location, 'Please upload a release of information form.' if health_file.blank? && file_location.blank?
+      errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ') if health_file.present? && health_file.invalid?
     end
 
     def self.encounter_report_details

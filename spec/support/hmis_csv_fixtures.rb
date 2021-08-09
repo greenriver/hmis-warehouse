@@ -54,6 +54,7 @@ module HmisCsvFixtures
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run! unless version == '2020'
 
       GrdaWarehouse::Tasks::ProjectCleanup.new.run!
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
       GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
       AccessGroup.maintain_system_groups
 

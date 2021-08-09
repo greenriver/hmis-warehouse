@@ -30,49 +30,52 @@
               - comparison_class = "c-swatch__border-left--td-#{index}"
             %div{class: column_class}
               - data = report.data_for_living_situations[:all]
-              .mb-4
-                %h3 Universe
-                .card.overflow-scroll.mb-4{class: comparison_class}
-                  %table.table.table-striped
-                    %thead
-                      %tr
-                        - data.each do |situation, _|
-                          %th.text-center= situation
-                    %tbody
-                      %tr
-                        - data.each do |key, ids|
-                          %th.text-center
-                            = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(ids.count), details_prior_living_situation_warehouse_reports_prior_living_situation_index_path(report.filter.for_params.deep_merge(key: "all_#{key}".underscore, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
-              - report.data_for_living_situations[:by_coc].each do |coc_code, data|
+              - if data.present?
                 .mb-4
-                  %h3= coc_code
+                  %h3 Universe
                   .card.overflow-scroll.mb-4{class: comparison_class}
                     %table.table.table-striped
                       %thead
                         %tr
-                          - data[:situations].each do |situation, _|
+                          - data.each do |situation, _|
                             %th.text-center= situation
                       %tbody
                         %tr
-                          - data[:situations].each do |key, ids|
+                          - data.each do |key, ids|
                             %th.text-center
-                              = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(ids.count), details_prior_living_situation_warehouse_reports_prior_living_situation_index_path(report.filter.for_params.deep_merge(key: "#{coc_code}_#{key}".underscore, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
-                  .card{class: comparison_class}
-                    %table.table.table-striped
-                      %thead
-                        %tr
-                          %th Situation
-                          %th Length of Stay in Days
-                          %th Client Count
-                      %tbody
-                        - data[:situations_length].each do |situation, sit_data|
-                          - sit_data.each_with_index do |(length, ids), index|
-                            - sub_title = length.presence || 'unknown'
-                            %tr
-                              %th
-                                - if index.zero?
-                                  = situation
-                              %td= sub_title
-                              %td
-                                = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(ids.count), details_prior_living_situation_warehouse_reports_prior_living_situation_index_path(report.filter.for_params.deep_merge(key: "#{coc_code}_#{situation}_#{sub_title}".underscore, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                              = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(ids.count), details_prior_living_situation_warehouse_reports_prior_living_situation_index_path(report.filter.for_params.deep_merge(key: "all_#{key}".underscore, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                - report.data_for_living_situations[:by_coc].each do |coc_code, data|
+                  .mb-4
+                    %h3= coc_code
+                    .card.overflow-scroll.mb-4{class: comparison_class}
+                      %table.table.table-striped
+                        %thead
+                          %tr
+                            - data[:situations].each do |situation, _|
+                              %th.text-center= situation
+                        %tbody
+                          %tr
+                            - data[:situations].each do |key, ids|
+                              %th.text-center
+                                = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(ids.count), details_prior_living_situation_warehouse_reports_prior_living_situation_index_path(report.filter.for_params.deep_merge(key: "#{coc_code}_#{key}".underscore, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                    .card{class: comparison_class}
+                      %table.table.table-striped
+                        %thead
+                          %tr
+                            %th Situation
+                            %th Length of Stay in Days
+                            %th Client Count
+                        %tbody
+                          - data[:situations_length].each do |situation, sit_data|
+                            - sit_data.each_with_index do |(length, ids), index|
+                              - sub_title = length.presence || 'unknown'
+                              %tr
+                                %th
+                                  - if index.zero?
+                                    = situation
+                                %td= sub_title
+                                %td
+                                  = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(ids.count), details_prior_living_situation_warehouse_reports_prior_living_situation_index_path(report.filter.for_params.deep_merge(key: "#{coc_code}_#{situation}_#{sub_title}".underscore, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              - else
+                %h3 No matching records found
       = render 'computation_description'

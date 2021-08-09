@@ -46,7 +46,7 @@ module Health
       where.not(follow_up_cell_phone: nil)
     end
 
-    def self.csv_map(version: nil)
+    def self.csv_map(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       {
         PAT_ID: :epic_patient_id,
         MEDICAID_ID: :medicaid_id,
@@ -99,7 +99,7 @@ module Health
     # Called from ImportEpic
     def self.process_new_data(values)
       # Ensure we only have one per conflict key or SQL will be very unhappy
-      values = values.index_by{|m| m.slice(*conflict_key)}.values
+      values = values.index_by { |m| m.slice(*conflict_key) }.values
       # Remove any that were removed from the source
       remove_missing!(values)
 
@@ -192,6 +192,14 @@ module Health
 
     def self.use_tsql_import?
       false
+    end
+
+    def self.vaccination_type_options
+      {
+        'ModernaTX, Inc.' => MODERNA,
+        'Pfizer, Inc., and BioNTech' => PFIZER,
+        'Janssen COVID-19 Vaccine' => JANSSEN,
+      }
     end
 
     def clean_vaccination_type

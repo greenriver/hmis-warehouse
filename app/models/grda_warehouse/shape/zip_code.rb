@@ -24,12 +24,12 @@ module GrdaWarehouse
         where(shape_states: { geoid: state_fips })
         .joins(Arel.sql(<<~SQL))
           join shape_states ON (
-            (shape_zip_codes.geom && shape_states.geom)
+            (shape_zip_codes.simplified_geom && shape_states.simplified_geom)
             and
             (
-              ST_Area(ST_Intersection(shape_zip_codes.geom, shape_states.geom))
+              ST_Area(ST_Intersection(shape_zip_codes.simplified_geom, shape_states.simplified_geom))
               /
-              ST_Area(shape_zip_codes.geom)
+              ST_Area(shape_zip_codes.simplified_geom)
               >
               0.95
             )

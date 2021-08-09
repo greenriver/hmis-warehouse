@@ -19,7 +19,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort_client.date_added_to_cohort.to_date.to_s
+      cohort_client.date_added_to_cohort&.to_date&.to_s
     end
 
     def default_value?
