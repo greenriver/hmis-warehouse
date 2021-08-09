@@ -9,6 +9,6 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::YouthEducationStatus
     include RailsDrivers::Extensions
 
-    # TODO This a placeholder class to be completed as part of the 2022 spec implmementation
+    # TODO This a placeholder class to be completed as part of the 2022 spec implementation
   end
 end

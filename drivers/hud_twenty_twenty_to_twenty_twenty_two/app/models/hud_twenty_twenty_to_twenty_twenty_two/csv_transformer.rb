@@ -3,7 +3,6 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-#
 
 module HudTwentyTwentyToTwentyTwentyTwo
   class CsvTransformer
@@ -37,10 +36,6 @@ module HudTwentyTwentyToTwentyTwentyTwo
       TRANSFORM_TYPES.each do |file, (action, klass)|
         source_file = File.join(source_directory, file)
         destination_file = File.join(destination_directory, file)
-
-        puts(file)
-        puts(action)
-        puts(klass)
 
         case action
         when :copy
