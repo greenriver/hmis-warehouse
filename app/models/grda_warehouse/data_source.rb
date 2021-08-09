@@ -161,6 +161,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       'Health' => :health,
       'Coordinated Assessment' => :coordinated_assessment,
       'Other' => :other,
+      'Synthetic' => :synthetic,
     }
   end
 

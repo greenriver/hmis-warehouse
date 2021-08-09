@@ -84,6 +84,10 @@ module Health::He
         :occupation,
         :recent_incarceration,
         :notes,
+        :vaccinated,
+        :vaccination_complete,
+        vaccine: [],
+        vaccination_dates: [],
         race: [],
         symptoms: [],
       )

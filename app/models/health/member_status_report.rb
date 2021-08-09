@@ -19,7 +19,7 @@ module Health
     has_many :member_status_report_patients
     belongs_to :user
 
-    scope :visible_by?, -> (user) do
+    scope :visible_by?, ->(user) do
       if user.can_view_member_health_reports? || user.can_view_aggregate_health? || user.can_administer_health?
         all
       else
@@ -45,6 +45,7 @@ module Health
         aco_mco_name = pr.aco&.name || pr.aco_name
         aco_mco_pid = pr.aco&.mco_pid || pr.aco_mco_pid
         aco_mco_sl = pr.aco&.mco_sl || pr.aco_mco_sl
+
         attributes = {
           medicaid_id: pr.medicaid_id,
           member_first_name: pr.first_name,
@@ -62,7 +63,7 @@ module Health
           cp_outreach_status: pr.outreach_status,
           cp_last_contact_date: most_recent_qualifying_activity&.date_of_activity,
           cp_last_contact_face: client_recent_face_to_face(most_recent_qualifying_activity),
-          cp_contact_face: any_face_to_face_for_patient_in_range(patient, report_range),
+          cp_contact_face: any_face_to_face_for_patient_in_range(patient),
           cp_participation_form_date: patient&.participation_forms&.maximum(:signature_on),
           cp_care_plan_sent_pcp_date: care_plan_sent_to_provider_date(patient&.id),
           cp_care_plan_returned_pcp_date: care_plan_provider_signed_date(patient&.id),
@@ -82,8 +83,8 @@ module Health
         }
 
         next if receiver.present? && attributes[:aco_mco_name] != receiver
-        report_patient = member_status_report_patients.create!(attributes)
 
+        member_status_report_patients.create!(attributes)
       end
       complete_report
     end
@@ -133,25 +134,21 @@ module Health
       }
     end
 
-    def any_face_to_face_for_patient_in_range patient, range
-      if patient.present?
-        if patient.face_to_face_contact_in_range? report_range
-          'Y'
-        else
-          'N'
-        end
+    def any_face_to_face_for_patient_in_range(patient)
+      return unless patient.present?
+
+      if patient.face_to_face_contact_in_range? report_range
+        'Y'
       else
-        nil
+        'N'
       end
     end
 
-    def client_recent_face_to_face qa
+    def client_recent_face_to_face qa # rubocop:disable Naming/MethodParameterName
       if Health::QualifyingActivity.face_to_face?(qa&.mode_of_contact)
         'Y'
       elsif qa.present?
         'N'
-      else
-        nil
       end
     end
 

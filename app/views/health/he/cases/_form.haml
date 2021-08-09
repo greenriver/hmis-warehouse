@@ -38,6 +38,17 @@
           = render 'health/he/locations/table', readonly: f.options[:wrapper] == :readonly
         = f.input :occupation, label: @case.label_for(:occupation)
         = f.input :recent_incarceration
+        = f.input :vaccinated, as: :boolean_button_group, collection: @case.yes_no_unknown_options, include_blank: true, label: @case.label_for(:vaccinated)
+        = f.input :vaccine, as: :check_boxes, collection: Health::Vaccination.vaccination_type_options, input_html: { multiple: true }, label: @case.label_for(:vaccine), wrapper: radio_wrapper_class
+        - if f.options[:wrapper] == :readonly
+          %label.readonly-label= @case.label_for(:vaccination_dates)
+          .controls.readonly-input
+            %label.d-block.readonly-value
+              = @case.vaccination_dates&.join(', ')
+        - else
+          - @case.vaccination_date_count.times do |i|
+            = f.input :vaccination_dates, label: @case.label_for(:vaccination_dates), as: :date_picker, input_html: {name: "health_tracing_case[vaccination_dates][]", id: "health_tracing_case[vaccination_dates][]", value: @case.vaccination_dates.try(:[], i)}
+        = f.input :vaccination_complete, as: :boolean_button_group, collection: @case.yes_no_unknown_options, include_blank: true, label: @case.label_for(:vaccination_complete)
         = f.input :notes, as: :text
 
 = render 'health/he/period_of_interest_js'

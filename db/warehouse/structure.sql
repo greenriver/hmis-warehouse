@@ -291,7 +291,8 @@ CREATE TABLE public."Assessment" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -1020,7 +1021,8 @@ CREATE TABLE public."Event" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -13543,7 +13545,8 @@ CREATE TABLE public.synthetic_assessments (
     source_type character varying,
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    hud_assessment_id bigint
 );
 
 
@@ -13578,7 +13581,8 @@ CREATE TABLE public.synthetic_events (
     source_type character varying,
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    hud_event_id bigint
 );
 
 
@@ -18842,13 +18846,6 @@ CREATE INDEX client_first_name ON public."Client" USING btree ("FirstName");
 
 
 --
--- Name: client_id_ret_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree (client_id);
-
-
---
 -- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -19014,13 +19011,6 @@ CREATE INDEX enrollment_date_updated ON public."Enrollment" USING btree ("DateUp
 --
 
 CREATE INDEX enrollment_export_id ON public."Enrollment" USING btree ("ExportID");
-
-
---
--- Name: entrydate_ret_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX entrydate_ret_index ON public.recent_report_enrollments USING btree ("EntryDate");
 
 
 --
@@ -21555,13 +21545,6 @@ CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree
 --
 
 CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_clients USING btree (report_instance_id, data_source_id, client_id);
-
-
---
--- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
 
 
 --
@@ -27900,6 +27883,13 @@ CREATE INDEX index_synthetic_assessments_on_enrollment_id ON public.synthetic_as
 
 
 --
+-- Name: index_synthetic_assessments_on_hud_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_hud_assessment_id ON public.synthetic_assessments USING btree (hud_assessment_id);
+
+
+--
 -- Name: index_synthetic_assessments_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27918,6 +27908,13 @@ CREATE INDEX index_synthetic_events_on_client_id ON public.synthetic_events USIN
 --
 
 CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_events_on_hud_event_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_hud_event_id ON public.synthetic_events USING btree (hud_event_id);
 
 
 --
@@ -31037,6 +31034,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210714131449'),
 ('20210716144139'),
 ('20210717154701'),
-('20210723161722');
+('20210723161722'),
+('20210726155740'),
+('20210727134415'),
+('20210729175328'),
+('20210729201521'),
+('20210809124146');
 
 
