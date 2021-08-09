@@ -1,13 +1,5 @@
 class CreateSyntheticAssessments < ActiveRecord::Migration[5.2]
   def change
-    create_table :synthetic_assessments do |t|
-      t.references :enrollment
-      t.references :client
-      t.string :type
-      t.references :source, polymorphic: true
-      t.references :hud_assessment
-
-      t.timestamps
-    end
+    # Replaced by 20210723161722_create_cas_ce_assessments.rb
   end
 end
