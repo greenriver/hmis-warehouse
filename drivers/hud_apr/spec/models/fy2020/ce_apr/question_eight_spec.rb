@@ -5,10 +5,10 @@
 ###
 
 require 'rails_helper'
-require_relative 'apr_context'
+require_relative 'ce_apr_context'
 
 RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionEight, type: :model do
-  include_context 'apr context'
+  include_context 'ce apr context'
 
   def question_8_setup_apr_path
     'drivers/hud_apr/spec/fixtures/files/fy2020/question_8'

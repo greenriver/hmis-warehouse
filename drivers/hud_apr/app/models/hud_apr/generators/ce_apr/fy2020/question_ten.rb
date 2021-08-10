@@ -89,12 +89,12 @@ module HudApr::Generators::CeApr::Fy2020
         last_column: columns.keys.last,
         first_row: 2,
         last_row: 18,
-      }.merge(meta_overrides)
+      }
       @report.answer(question: table_name).update(metadata: metadata)
 
       columns.each do |col, columns_clause|
-        q10_table_rows.each_value do |row, row_clause|
-          cell = "#{col}#{row}"
+        q10_table_rows.each_value.with_index do |row_clause, row|
+          cell = "#{col}#{row + metadata[:first_row]}"
           next if cell.in?(intentionally_blank)
 
           answer = @report.answer(question: table_name, cell: cell)

@@ -70,8 +70,8 @@ module HudApr::Generators::CeApr::Fy2020
 
       # Populate row 3 with calculated values
       columns.each do |col, _|
-        numerator = @report.answer(question: table_name, cell: "#{col}1")
-        denominator = numerator + @report.answer(question: table_name, cell: "#{col}2")
+        numerator = @report.answer(question: table_name, cell: "#{col}1").summary || 0
+        denominator = numerator + (@report.answer(question: table_name, cell: "#{col}2").summary || 0)
         value = percentage(numerator / denominator.to_f)
         @report.answer(question: table_name, cell: "#{col}3").update(summary: value)
       end
@@ -96,8 +96,8 @@ module HudApr::Generators::CeApr::Fy2020
 
       # Populate row 7 with calculated values
       columns.each do |col, _|
-        numerator = @report.answer(question: table_name, cell: "#{col}2")
-        denominator = @report.answer(question: table_name, cell: "#{col}6")
+        numerator = @report.answer(question: table_name, cell: "#{col}2").summary || 0
+        denominator = @report.answer(question: table_name, cell: "#{col}6").summary || 0
         value = percentage(numerator / denominator.to_f)
         @report.answer(question: table_name, cell: "#{col}7").update(summary: value)
       end
@@ -134,14 +134,14 @@ module HudApr::Generators::CeApr::Fy2020
 
       # Populate rows 13 and 19 with calculated values
       columns.each do |col, _|
-        numerator = @report.answer(question: table_name, cell: "#{col}1")
-        denominator = @report.answer(question: table_name, cell: "#{col}12")
+        numerator = @report.answer(question: table_name, cell: "#{col}1").summary || 0
+        denominator = @report.answer(question: table_name, cell: "#{col}12").summary || 0
         value = percentage(numerator / denominator.to_f)
         @report.answer(question: table_name, cell: "#{col}13").update(summary: value)
 
-        numerator = @report.answer(question: table_name, cell: "#{col}14")
+        numerator = @report.answer(question: table_name, cell: "#{col}14").summary || 0
         denominator = (6..11).map do |row_num|
-          @report.answer(question: table_name, cell: "#{col}#{row_num}")
+          @report.answer(question: table_name, cell: "#{col}#{row_num}").summary || 0
         end.sum
         value = percentage(numerator / denominator.to_f)
         @report.answer(question: table_name, cell: "#{col}19").update(summary: value)
@@ -158,16 +158,17 @@ module HudApr::Generators::CeApr::Fy2020
         last_row: 5,
       }.merge(meta_overrides)
       @report.answer(question: table_name).update(metadata: metadata)
-
       columns.each do |col, columns_clause|
-        row_calculations.each_value do |row, row_clause|
-          cell = "#{col}#{row}"
+        row_calculations.each_value.with_index do |row_clause, row|
+          cell = "#{col}#{row + metadata[:first_row]}"
+          puts cell
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
             where(hoh_clause).
             where(columns_clause).
             where(row_clause)
           answer.add_members(members)
+          puts members.count
           answer.update(summary: members.count)
         end
       end

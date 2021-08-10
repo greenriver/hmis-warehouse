@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Fy2020
-  class CeAssessment < GrdaWarehouseBase
+  class CeEvent < GrdaWarehouseBase
     self.table_name = 'hud_report_apr_ce_events'
     acts_as_paranoid
 

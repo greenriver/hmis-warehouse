@@ -6,7 +6,7 @@
 
 module HudApr
   class CeAprsController < BaseController
-    include Apr::CeAprConcern
+    include CeApr::CeAprConcern
     before_action :set_report, only: [:show, :destroy, :running]
     before_action :set_reports, except: [:index, :running_all_questions]
 
