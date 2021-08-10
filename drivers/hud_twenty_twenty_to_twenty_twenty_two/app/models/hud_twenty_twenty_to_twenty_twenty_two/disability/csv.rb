@@ -5,15 +5,7 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::Disability
-  class Csv
+  class Csv < Transforms
     include HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
-
-    def self.transformer
-      HudTwentyTwentyToTwentyTwentyTwo::Disability::Transform
-    end
-
-    def self.destination_class
-      GrdaWarehouse::Hud::Disability
-    end
   end
 end

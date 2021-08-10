@@ -12,7 +12,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
 
   included do
     def self.up(source_name, destination_name)
-      transformer.up(
+      HudTwentyTwentyToTwentyTwentyTwo::Kiba::Transform.up(
         Kiba::Common::Sources::CSV,
         {
           filename: source_name,
@@ -21,10 +21,11 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
             skip_blanks: true,
           },
         },
+        transforms,
         Kiba::Common::Destinations::CSV,
         {
           filename: destination_name,
-          headers: destination_class.hmis_configuration(version: '2022').keys.map(&:to_s),
+          headers: target_class.hmis_configuration(version: '2022').keys.map(&:to_s),
         },
       )
     end

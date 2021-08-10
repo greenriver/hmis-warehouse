@@ -5,15 +5,7 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::Export
-  class Db
+  class Db < Transforms
     include HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
-
-    def self.transformer
-      HudTwentyTwentyToTwentyTwentyTwo::Export::Transform
-    end
-
-    def self.rails_class
-      GrdaWarehouse::Hud::Export
-    end
   end
 end

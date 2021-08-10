@@ -5,15 +5,7 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::Enrollment
-  class Db
+  class Db < Transforms
     include HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
-
-    def self.transformer
-      HudTwentyTwentyToTwentyTwentyTwo::Enrollment::Transform
-    end
-
-    def self.rails_class
-      GrdaWarehouse::Hud::Enrollment
-    end
   end
 end

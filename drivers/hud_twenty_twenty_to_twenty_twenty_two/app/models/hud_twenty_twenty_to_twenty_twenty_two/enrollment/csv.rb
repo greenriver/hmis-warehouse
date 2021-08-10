@@ -5,15 +5,7 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::Enrollment
-  class Csv
+  class Csv < Transforms
     include HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
-
-    def self.transformer
-      HudTwentyTwentyToTwentyTwentyTwo::Enrollment::Transform
-    end
-
-    def self.destination_class
-      GrdaWarehouse::Hud::Enrollment
-    end
   end
 end

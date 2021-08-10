@@ -5,7 +5,15 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::Export
-  class Csv < Transforms
-    include HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
+  class Transforms
+    def self.transforms
+      [
+        HudTwentyTwentyToTwentyTwentyTwo::Export::AddCsvVersion,
+      ]
+    end
+
+    def self.target_class
+      GrdaWarehouse::Hud::Export
+    end
   end
 end

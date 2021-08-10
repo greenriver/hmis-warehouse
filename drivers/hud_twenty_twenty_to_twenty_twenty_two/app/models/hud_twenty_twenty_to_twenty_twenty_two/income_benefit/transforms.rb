@@ -5,7 +5,15 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::IncomeBenefit
-  class Csv < Transforms
-    include HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
+  class Transforms
+    def self.transforms
+      [
+        HudTwentyTwentyToTwentyTwentyTwo::IncomeBenefit::AddRyanWhiteMedDent,
+      ]
+    end
+
+    def self.target_class
+      GrdaWarehouse::Hud::IncomeBenefit
+    end
   end
 end

@@ -5,15 +5,7 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::HealthAndDv
-  class Db
+  class Db < Transforms
     include HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
-
-    def self.transformer
-      HudTwentyTwentyToTwentyTwentyTwo::HealthAndDv::Transform
-    end
-
-    def self.rails_class
-      GrdaWarehouse::Hud::HealthAndDv
-    end
   end
 end

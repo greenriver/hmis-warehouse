@@ -5,7 +5,15 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::Client
-  class Csv < Transforms
-    include HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
+  class Transforms
+    def self.transforms
+      [
+        HudTwentyTwentyToTwentyTwentyTwo::Client::TransformGenderToColumns,
+      ]
+    end
+
+    def self.target_class
+      GrdaWarehouse::Hud::Client
+    end
   end
 end

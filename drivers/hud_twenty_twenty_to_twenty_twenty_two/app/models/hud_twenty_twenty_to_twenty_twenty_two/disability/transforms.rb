@@ -5,7 +5,15 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::Disability
-  class Db < Transforms
-    include HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
+  class Transforms
+    def self.transforms
+      [
+        HudTwentyTwentyToTwentyTwentyTwo::Disability::AddAntiRetroviral,
+      ]
+    end
+
+    def self.target_class
+      GrdaWarehouse::Hud::Disability
+    end
   end
 end

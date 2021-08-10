@@ -5,7 +5,15 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::HealthAndDv
-  class Csv < Transforms
-    include HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
+  class Transforms
+    def self.transforms
+      [
+        HudTwentyTwentyToTwentyTwentyTwo::HealthAndDv::AddC1Columns,
+      ]
+    end
+
+    def self.target_class
+      GrdaWarehouse::Hud::HealthAndDv
+    end
   end
 end

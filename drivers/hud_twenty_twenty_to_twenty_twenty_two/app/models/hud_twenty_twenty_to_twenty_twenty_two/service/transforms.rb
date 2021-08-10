@@ -5,7 +5,15 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::Service
-  class Db < Transforms
-    include HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
+  class Transforms
+    def self.transforms
+      [
+        HudTwentyTwentyToTwentyTwentyTwo::Service::AddMovingOnOtherType,
+      ]
+    end
+
+    def self.target_class
+      GrdaWarehouse::Hud::Service
+    end
   end
 end

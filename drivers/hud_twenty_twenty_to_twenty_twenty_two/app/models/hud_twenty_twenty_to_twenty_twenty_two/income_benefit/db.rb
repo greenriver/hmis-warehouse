@@ -5,15 +5,7 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::IncomeBenefit
-  class Db
+  class Db < Transforms
     include HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
-
-    def self.transformer
-      HudTwentyTwentyToTwentyTwentyTwo::IncomeBenefit::Transform
-    end
-
-    def self.rails_class
-      GrdaWarehouse::Hud::IncomeBenefit
-    end
   end
 end

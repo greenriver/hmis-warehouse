@@ -5,15 +5,7 @@
 ###
 
 module HudTwentyTwentyToTwentyTwentyTwo::Organization
-  class Csv
+  class Csv < Transforms
     include HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
-
-    def self.transformer
-      HudTwentyTwentyToTwentyTwentyTwo::Organization::Transform
-    end
-
-    def self.destination_class
-      GrdaWarehouse::Hud::Organization
-    end
   end
 end

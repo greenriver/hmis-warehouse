@@ -9,11 +9,12 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
 
   included do
     def self.up
-      transformer.up(
+      HudTwentyTwentyToTwentyTwentyTwo::Kiba::Transform.up(
         HudTwentyTwentyToTwentyTwentyTwo::Kiba::RailsSource,
-        rails_class,
+        target_class,
+        transforms,
         HudTwentyTwentyToTwentyTwentyTwo::Kiba::RailsDestination,
-        rails_class,
+        target_class,
       )
     end
   end
