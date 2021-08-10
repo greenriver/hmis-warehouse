@@ -19,8 +19,14 @@ module Vispdats::Synthetic
     end
 
     def assessment_type
-      # TODO add to the VI-SPDAT
-      3 # In Person
+      case source.contact_method
+      when 'contact_phone'
+        1
+      when 'contact_virtual'
+        2
+      when 'contact_in_person'
+        3
+      end
     end
 
     def assessment_level

@@ -143,6 +143,8 @@ module GrdaWarehouse::Vispdat
       validates field.to_sym, absence: { message: 'cannot have an entry if refusing to answer' }, if: -> { send([field, '_refused?'].join.to_sym) }
     end
 
+    validates :contact_method, inclusion: { in: contact_answers.keys }, if: -> { completed? }
+
     ####################
     # Scopes
     ####################
