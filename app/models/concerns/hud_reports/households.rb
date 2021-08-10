@@ -66,7 +66,7 @@ module HudReports::Households
       end
     end
 
-    private def household_member_data(enrollment, _date) # date is included for CE APR compatibility
+    private def household_member_data(enrollment, _date = nil) # date is included for CE APR compatibility
       # return nil unless enrollment[:head_of_household]
 
       households[enrollment.household_id] || []
