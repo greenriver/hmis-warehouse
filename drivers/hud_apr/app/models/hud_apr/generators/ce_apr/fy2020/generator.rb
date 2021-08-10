@@ -124,34 +124,5 @@ module HudApr::Generators::CeApr::Fy2020
         client.entry_date > date || client.exit_date.present? && client.exit_date < date
       end
     end
-
-    # Assessments are only collected (and reported on) for HoH
-    # Return the most_recent assessment completed for the latest enrollment
-    # where the assessment occurred within the report range
-    # NOTE: there _should_ always be one of these based on the enrollment_scope and client_scope
-    private def latest_ce_assessment(she_enrollment)
-      she_enrollment.enrollment.assessments.
-        select { |a| a.AssessmentDate.present? && a.AssessmentDate.between(@report.start_date, @report.end_date) }.
-        max_by(&:AssessmentDate)
-    end
-
-    # Returns the appropriate CE Event for the client
-    # Search for [Coordinated Entry Event] (4.20) records assigned to the same head of household with a [date of event] (4.20.1) where all of the following are
-    # true:
-    # a. [Date of event] >= [date of assessment] from step 1
-    # b. [Date of event] <= ([report end date] + 90 days)
-    # c. [Date of event] < Any [dates of assessment] which are between [report end date] and ([report end date] + 90 days)
-    # Refer to the example below for clarification.
-    # 4. For each client, if any of the records found belong to the same [project id] (2.02.1) as the CE assessment from step 1, use the latest of those to report the
-    # client in the table above.
-    # 5. If, for a given client, none of the records found belong to the same [project id] as the CE assessment from step 1, use the latest of those to report the client in the table above.
-    # 6. The intention of the criteria is to locate the most recent logically relevant record pertaining to the CE assessment record reported in Q9a and Q9b by giving preference to data entered by the same project.
-    private def latest_ce_event(she_enrollment, ce_latest_assessment)
-      potential_events = she_enrollment.client.events.select { |e| e.EventDate.present? && e.EventDate.between(ce_latest_assessment.AssessmentDate, @report.end_date + 90.days) }
-      events_from_project = potential_events.select { |e| e.enrollment.project.id == she_enrollment.project.id }
-      return events_from_project.max_by(&:EventDate) if events_from_project.present?
-
-      potential_events.max_by(&:EventDate)
-    end
   end
 end

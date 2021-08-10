@@ -8,6 +8,10 @@ module HudApr::Generators::CeApr::Fy2020
   class QuestionNine < HudApr::Generators::Shared::Fy2020::QuestionNine
     QUESTION_TABLE_NUMBERS = ['Q9a', 'Q9b', 'Q9c', 'Q9d'].freeze
 
+    def needs_ce_assessments?
+      true
+    end
+
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
@@ -161,14 +165,12 @@ module HudApr::Generators::CeApr::Fy2020
       columns.each do |col, columns_clause|
         row_calculations.each_value.with_index do |row_clause, row|
           cell = "#{col}#{row + metadata[:first_row]}"
-          puts cell
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
             where(hoh_clause).
             where(columns_clause).
             where(row_clause)
           answer.add_members(members)
-          puts members.count
           answer.update(summary: members.count)
         end
       end

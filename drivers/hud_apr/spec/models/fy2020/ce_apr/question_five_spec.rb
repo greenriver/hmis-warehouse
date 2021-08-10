@@ -37,23 +37,23 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionFive, type: :model do
       end
 
       it 'counts leavers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B5').summary).to eq(0)
+        expect(report_result.answer(question: 'Q5a', cell: 'B5').summary).to eq(nil)
       end
 
       it 'counts adult leavers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B6').summary).to eq(0)
+        expect(report_result.answer(question: 'Q5a', cell: 'B6').summary).to eq(nil)
       end
 
       it 'counts adult and head of household leavers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B7').summary).to eq(0)
+        expect(report_result.answer(question: 'Q5a', cell: 'B7').summary).to eq(nil)
       end
 
       it 'counts stayers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B8').summary).to eq(0)
+        expect(report_result.answer(question: 'Q5a', cell: 'B8').summary).to eq(nil)
       end
 
       it 'counts adult stayers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B9').summary).to eq(0)
+        expect(report_result.answer(question: 'Q5a', cell: 'B9').summary).to eq(nil)
       end
 
       it 'counts veterans' do
@@ -61,7 +61,7 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionFive, type: :model do
       end
 
       it 'counts chronically homeless persons' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B11').summary).to eq(0)
+        expect(report_result.answer(question: 'Q5a', cell: 'B11').summary).to eq(nil)
       end
 
       it 'counts under 25' do
@@ -69,7 +69,7 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionFive, type: :model do
       end
 
       it 'counts under 25 with children' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B13').summary).to eq(0)
+        expect(report_result.answer(question: 'Q5a', cell: 'B13').summary).to eq(nil)
       end
 
       it 'counts adult heads of household' do
@@ -81,7 +81,7 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionFive, type: :model do
       end
 
       it 'counts heads of household and stayers over 365 days' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B16').summary).to eq(0)
+        expect(report_result.answer(question: 'Q5a', cell: 'B16').summary).to eq(nil)
       end
     end
 
@@ -133,23 +133,23 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionFive, type: :model do
       end
 
       it 'counts leavers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B5').summary).to eq(4)
+        expect(report_result.answer(question: 'Q5a', cell: 'B5').summary).to eq(nil)
       end
 
       it 'counts adult leavers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B6').summary).to eq(3)
+        expect(report_result.answer(question: 'Q5a', cell: 'B6').summary).to eq(nil)
       end
 
       it 'counts adult and head of household leavers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B7').summary).to eq(3)
+        expect(report_result.answer(question: 'Q5a', cell: 'B7').summary).to eq(nil)
       end
 
       it 'counts stayers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B8').summary).to eq(5)
+        expect(report_result.answer(question: 'Q5a', cell: 'B8').summary).to eq(nil)
       end
 
       it 'counts adult stayers' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B9').summary).to eq(3)
+        expect(report_result.answer(question: 'Q5a', cell: 'B9').summary).to eq(nil)
       end
 
       it 'counts veterans' do
@@ -157,7 +157,7 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionFive, type: :model do
       end
 
       it 'counts chronically homeless persons' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B11').summary).to eq(1)
+        expect(report_result.answer(question: 'Q5a', cell: 'B11').summary).to eq(nil)
       end
 
       it 'counts under 25' do
@@ -165,7 +165,7 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionFive, type: :model do
       end
 
       it 'counts under 25 with children' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B13').summary).to eq(1)
+        expect(report_result.answer(question: 'Q5a', cell: 'B13').summary).to eq(nil)
       end
 
       it 'counts adult heads of household' do
@@ -177,7 +177,7 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionFive, type: :model do
       end
 
       it 'counts heads of household and stayers over 365 days' do
-        expect(report_result.answer(question: 'Q5a', cell: 'B16').summary).to eq(4)
+        expect(report_result.answer(question: 'Q5a', cell: 'B16').summary).to eq(nil)
       end
     end
 

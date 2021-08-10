@@ -4,10 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.configure do
-  RSpec.configuration.fixpoints_path = 'drivers/hud_apr/spec/fixpoints'
-end
-
 RSpec.shared_context 'ce apr context', shared_context: :metadata do
   def shared_filter
     {
@@ -68,22 +64,7 @@ RSpec.shared_context 'ce apr context', shared_context: :metadata do
     ::HudReports::ReportInstance.last
   end
 
-  def default_setup(path)
-    warehouse = GrdaWarehouseBase.connection
-
-    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    if Fixpoint.exists? :hud_hmis_export_app
-      GrdaWarehouse::Utility.clear!
-      restore_fixpoint :hud_hmis_export_app
-      restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    else
-      setup(path)
-      store_fixpoint :hud_hmis_export_app
-      store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    end
-  end
-
-  def setup(file_path)
+  def default_setup(file_path)
     HmisCsvTwentyTwenty::Utility.clear!
     GrdaWarehouse::Utility.clear!
     import_hmis_csv_fixture(file_path)

@@ -18,24 +18,9 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionEight, type: :model do
     'drivers/hud_apr/spec/fixtures/files/fy2020/question_8_ce_apr'
   end
 
-  def question_8_setup(path)
-    warehouse = GrdaWarehouseBase.connection
-
-    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    if Fixpoint.exists? :hud_hmis_q8_export_app
-      GrdaWarehouse::Utility.clear!
-      restore_fixpoint :hud_hmis_q8_export_app
-      restore_fixpoint :hud_hmis_q8_export_warehouse, connection: warehouse
-    else
-      setup(path)
-      store_fixpoint :hud_hmis_q8_export_app
-      store_fixpoint :hud_hmis_q8_export_warehouse, connection: warehouse
-    end
-  end
-
   describe 'with no assessments' do
     before(:all) do
-      question_8_setup(question_8_setup_apr_path)
+      default_setup(question_8_setup_apr_path)
       run(ph, HudApr::Generators::CeApr::Fy2020::QuestionEight::QUESTION_NUMBER)
     end
 
@@ -64,29 +49,11 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionEight, type: :model do
         expect(report_result.answer(question: 'Q8a', cell: 'E2').summary).to eq(0)
       end
     end
-
-    describe 'Q8b: Point-in-Time Count of Households on the Last Wednesday' do
-      it 'counts households in January' do
-        expect(report_result.answer(question: 'Q8b', cell: 'B2').summary).to eq(0)
-      end
-
-      it 'counts households in April' do
-        expect(report_result.answer(question: 'Q8b', cell: 'B3').summary).to eq(0)
-      end
-
-      it 'counts households in July' do
-        expect(report_result.answer(question: 'Q8b', cell: 'B4').summary).to eq(0)
-      end
-
-      it 'counts households in Oct' do
-        expect(report_result.answer(question: 'Q8b', cell: 'B5').summary).to eq(0)
-      end
-    end
   end
 
   describe 'with assessments' do
     before(:all) do
-      question_8_setup
+      default_setup(question_8_setup_ce_apr_path)
       run(ph, HudApr::Generators::CeApr::Fy2020::QuestionEight::QUESTION_NUMBER)
     end
 
@@ -113,24 +80,6 @@ RSpec.describe HudApr::Generators::CeApr::Fy2020::QuestionEight, type: :model do
 
       it 'counts unknown households' do
         expect(report_result.answer(question: 'Q8a', cell: 'E2').summary).to eq(1)
-      end
-    end
-
-    describe 'Q8b: Point-in-Time Count of Households on the Last Wednesday' do
-      it 'counts households in January' do
-        expect(report_result.answer(question: 'Q8b', cell: 'B2').summary).to eq(0)
-      end
-
-      it 'counts households in April' do
-        expect(report_result.answer(question: 'Q8b', cell: 'B3').summary).to eq(1)
-      end
-
-      it 'counts households in July' do
-        expect(report_result.answer(question: 'Q8b', cell: 'B4').summary).to eq(1)
-      end
-
-      it 'counts households in Oct' do
-        expect(report_result.answer(question: 'Q8b', cell: 'B5').summary).to eq(0)
       end
     end
   end

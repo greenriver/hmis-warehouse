@@ -8,6 +8,10 @@ module HudApr::Generators::CeApr::Fy2020
   class QuestionSix < HudApr::Generators::Shared::Fy2020::QuestionSix
     QUESTION_TABLE_NUMBERS = ('Q6a'..'Q6f').to_a.freeze
 
+    def needs_ce_assessments?
+      true
+    end
+
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 

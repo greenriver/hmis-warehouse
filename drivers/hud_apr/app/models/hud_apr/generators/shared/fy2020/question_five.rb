@@ -148,6 +148,8 @@ module HudApr::Generators::Shared::Fy2020
       # HoH and adult stayers in project 365 days or more
       # "...any adult stayer present when the head of household’s stay is 365 days or more,
       # even if that adult has not been in the household that long"
+      return if 'B16'.in?(intentionally_blank)
+
       answer = @report.answer(question: table_name, cell: 'B16')
       members = universe.members.where(
         a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
