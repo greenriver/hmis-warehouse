@@ -4,15 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudTwentyTwentyToTwentyTwentyTwo::Client::Db
-  module_function
+module HudTwentyTwentyToTwentyTwentyTwo::Client
+  class Db
+    include HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
 
-  def up
-    HudTwentyTwentyToTwentyTwentyTwo::Client::Transform.up(
-      HudTwentyTwentyToTwentyTwentyTwo::Kiba::RailsSource,
-      GrdaWarehouse::Hud::Client,
-      HudTwentyTwentyToTwentyTwentyTwo::Kiba::RailsDestination,
-      GrdaWarehouse::Hud::Client,
-    )
+    def self.transformer
+      HudTwentyTwentyToTwentyTwentyTwo::Client::Transform
+    end
+
+    def self.rails_class
+      GrdaWarehouse::Hud::Client
+    end
   end
 end

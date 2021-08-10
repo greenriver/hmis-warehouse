@@ -56,6 +56,6 @@ class Add2022SpecItems < ActiveRecord::Migration[5.2]
     end
 
     add_index :YouthEducationStatus, [:YouthEducationStatusID, :data_source_id], name: :youth_ed_ev_id_ds_id
-    add_index :YouthEducationStatus, [:data_source_id, :PersonalID, :EnrollmentID, :YouthEducationStatusID], name: :youth_ed_ds_id_p_id_en_id_ye_id
+    add_index :YouthEducationStatus, [:YouthEducationStatusID, :EnrollmentID, :PersonalID, :data_source_id], name: :youth_eds_id_e_id_p_id_ds_id
   end
 end

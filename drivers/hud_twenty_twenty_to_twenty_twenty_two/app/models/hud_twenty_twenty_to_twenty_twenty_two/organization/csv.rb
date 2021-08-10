@@ -4,27 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'kiba-common/sources/csv'
-require 'kiba-common/destinations/csv'
+module HudTwentyTwentyToTwentyTwentyTwo::Organization
+  class Csv
+    include HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
 
-module HudTwentyTwentyToTwentyTwentyTwo::Organization::Csv
-  module_function
+    def self.transformer
+      HudTwentyTwentyToTwentyTwentyTwo::Organization::Transform
+    end
 
-  def up(source_name, destination_name)
-    HudTwentyTwentyToTwentyTwentyTwo::Organization::Transform.up(
-      Kiba::Common::Sources::CSV,
-      {
-        filename: source_name,
-        csv_options: {
-          headers: :first_row,
-          skip_blanks: true,
-        },
-      },
-      Kiba::Common::Destinations::CSV,
-      {
-        filename: destination_name,
-        headers: GrdaWarehouse::Hud::Organization.hmis_configuration(version: '2022').keys.map(&:to_s),
-      },
-    )
+    def self.destination_class
+      GrdaWarehouse::Hud::Organization
+    end
   end
 end

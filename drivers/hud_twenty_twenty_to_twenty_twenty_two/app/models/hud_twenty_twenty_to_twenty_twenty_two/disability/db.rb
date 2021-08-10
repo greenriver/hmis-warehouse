@@ -4,15 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudTwentyTwentyToTwentyTwentyTwo::Disability::Db
-  module_function
+module HudTwentyTwentyToTwentyTwentyTwo::Disability
+  class Db
+    include HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
 
-  def up
-    HudTwentyTwentyToTwentyTwentyTwo::Disability::Transform.up(
-      HudTwentyTwentyToTwentyTwentyTwo::Kiba::RailsSource,
-      GrdaWarehouse::Hud::Disability,
-      HudTwentyTwentyToTwentyTwentyTwo::Kiba::RailsDestination,
-      GrdaWarehouse::Hud::Disability,
-    )
+    def self.transformer
+      HudTwentyTwentyToTwentyTwentyTwo::Disability::Transform
+    end
+
+    def self.rails_class
+      GrdaWarehouse::Hud::Disability
+    end
   end
 end

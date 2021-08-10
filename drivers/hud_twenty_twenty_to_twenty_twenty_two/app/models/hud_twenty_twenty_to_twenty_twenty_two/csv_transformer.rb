@@ -41,7 +41,7 @@ module HudTwentyTwentyToTwentyTwentyTwo
         when :copy
           FileUtils.copy(source_file, destination_file)
         when :update
-          Kiba.run(klass.up(source_file, destination_file))
+          ::Kiba.run(klass.up(source_file, destination_file))
         when :create
           CSV.open(
             destination_file, 'w',

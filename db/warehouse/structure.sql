@@ -28656,17 +28656,17 @@ CREATE UNIQUE INDEX "unk_Site" ON public."Geography" USING btree (data_source_id
 
 
 --
--- Name: youth_ed_ds_id_p_id_en_id_ye_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX youth_ed_ds_id_p_id_en_id_ye_id ON public."YouthEducationStatus" USING btree (data_source_id, "PersonalID", "EnrollmentID", "YouthEducationStatusID");
-
-
---
 -- Name: youth_ed_ev_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX youth_ed_ev_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", data_source_id);
+
+
+--
+-- Name: youth_eds_id_e_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX youth_eds_id_e_id_p_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", "EnrollmentID", "PersonalID", data_source_id);
 
 
 --
