@@ -84,18 +84,6 @@ CREATE TYPE public.census_levels AS ENUM (
 
 
 --
--- Name: record_action; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.record_action AS ENUM (
-    'added',
-    'updated',
-    'unchanged',
-    'removed'
-);
-
-
---
 -- Name: record_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -516,7 +504,13 @@ CREATE TABLE public."Client" (
     "encrypted_NameSuffix" character varying,
     "encrypted_NameSuffix_iv" character varying,
     soundex_first character varying,
-    soundex_last character varying
+    soundex_last character varying,
+    "Female" integer,
+    "Male" integer,
+    "GenderOther" integer,
+    "Transgender" integer,
+    "Questioning" integer,
+    "GenderNone" integer
 );
 
 
@@ -737,7 +731,8 @@ CREATE TABLE public."Disabilities" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "AntiRetroviral" integer
 );
 
 
@@ -931,7 +926,16 @@ CREATE TABLE public."Enrollment" (
     "SexualOrientationOther" character varying(100),
     history_generated_on date,
     original_household_id character varying,
-    service_history_processing_job_id bigint
+    service_history_processing_job_id bigint,
+    "MentalHealthDisorderFam" integer,
+    "AlcoholDrugUseDisorderFam" integer,
+    "ClientLeaseholder" integer,
+    "HOHLeasesholder" integer,
+    "IncarceratedAdult" integer,
+    "PrisonDischarge" integer,
+    "CurrentPregnant" integer,
+    "CoCPrioritized" integer,
+    "TargetScreenReqd" integer
 );
 
 
@@ -1157,7 +1161,8 @@ CREATE TABLE public."Export" (
     id integer NOT NULL,
     "SourceType" integer,
     effective_export_end_date date,
-    source_hash character varying
+    source_hash character varying,
+    "CSVVersion" character varying
 );
 
 
@@ -1301,7 +1306,11 @@ CREATE TABLE public."HealthAndDV" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "LifeValue" integer,
+    "SupportfromOthers" integer,
+    "BounceBack" integer,
+    "FeelingFrequency" integer
 );
 
 
@@ -1411,7 +1420,9 @@ CREATE TABLE public."IncomeBenefits" (
     "OtherInsuranceIdentify" character varying(50),
     "ConnectionWithSOAR" integer,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "RyanWhiteMedDent" integer,
+    "NoRyanWhiteReason" integer
 );
 
 
@@ -1514,7 +1525,8 @@ CREATE TABLE public."Organization" (
     dmh boolean DEFAULT false NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "VictimServicesProvider" integer
+    "VictimServicesProvider" integer,
+    "VictimServiceProvider" integer
 );
 
 
@@ -1581,7 +1593,8 @@ CREATE TABLE public."Project" (
     hmis_participating_project_override integer,
     target_population_override integer,
     tracking_method_override integer,
-    operating_end_date_override date
+    operating_end_date_override date,
+    "HOPWAMedAssistedLivingFac" integer
 );
 
 
@@ -1678,7 +1691,8 @@ CREATE TABLE public."Services" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "MovingOnOtherType" character varying
 );
 
 
@@ -1768,6 +1782,48 @@ CREATE SEQUENCE public."User_id_seq"
 --
 
 ALTER SEQUENCE public."User_id_seq" OWNED BY public."User".id;
+
+
+--
+-- Name: YouthEducationStatus; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."YouthEducationStatus" (
+    id bigint NOT NULL,
+    "YouthEducationStatusID" character varying(32) NOT NULL,
+    "EnrollmentID" character varying(32) NOT NULL,
+    "PersonalID" character varying(32) NOT NULL,
+    "InformationDate" date NOT NULL,
+    "CurrentSchoolAttend" integer,
+    "MostRecentEdStatus" integer,
+    "CurrentEdStatus" integer,
+    "DataCollectionStage" integer NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying(32) NOT NULL,
+    data_source_id integer
+);
+
+
+--
+-- Name: YouthEducationStatus_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."YouthEducationStatus_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: YouthEducationStatus_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."YouthEducationStatus_id_seq" OWNED BY public."YouthEducationStatus".id;
 
 
 --
@@ -4714,10 +4770,10 @@ CREATE TABLE public.configs (
     cas_sync_months integer DEFAULT 3,
     send_sms_for_covid_reminders boolean DEFAULT false NOT NULL,
     bypass_2fa_duration integer DEFAULT 0 NOT NULL,
-    health_claims_data_path character varying,
-    enable_youth_hrp boolean DEFAULT true NOT NULL,
     enable_system_cohorts boolean DEFAULT false,
-    currently_homeless_cohort boolean DEFAULT false
+    currently_homeless_cohort boolean DEFAULT false,
+    health_claims_data_path character varying,
+    enable_youth_hrp boolean DEFAULT true NOT NULL
 );
 
 
@@ -10265,39 +10321,6 @@ CREATE VIEW public.index_stats AS
 
 
 --
--- Name: involved_in_imports; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.involved_in_imports (
-    id bigint NOT NULL,
-    importer_log_id bigint,
-    record_type character varying NOT NULL,
-    record_id bigint NOT NULL,
-    hud_key character varying NOT NULL,
-    record_action public.record_action
-);
-
-
---
--- Name: involved_in_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.involved_in_imports_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: involved_in_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.involved_in_imports_id_seq OWNED BY public.involved_in_imports.id;
-
-
---
 -- Name: lftp_s3_syncs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13544,9 +13567,9 @@ CREATE TABLE public.synthetic_assessments (
     type character varying,
     source_type character varying,
     source_id bigint,
+    hud_assessment_id bigint,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    hud_assessment_id bigint
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -14173,7 +14196,8 @@ CREATE TABLE public.vispdats (
     time_spent_alone_13_answer integer,
     time_spent_alone_12_answer integer,
     time_spent_helping_siblings_answer integer,
-    number_of_bedrooms integer DEFAULT 0
+    number_of_bedrooms integer DEFAULT 0,
+    contact_method character varying
 );
 
 
@@ -14480,6 +14504,47 @@ CREATE SEQUENCE public.youth_case_managements_id_seq
 --
 
 ALTER SEQUENCE public.youth_case_managements_id_seq OWNED BY public.youth_case_managements.id;
+
+
+--
+-- Name: youth_education_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.youth_education_statuses (
+    id bigint NOT NULL,
+    "YouthEducationStatusID" character varying(32) NOT NULL,
+    "EnrollmentID" character varying(32) NOT NULL,
+    "PersonalID" character varying(32) NOT NULL,
+    "InformationDate" date NOT NULL,
+    "CurrentSchoolAttend" integer,
+    "MostRecentEdStatus" integer,
+    "CurrentEdStatus" integer,
+    "DataCollectionStage" integer NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying(32) NOT NULL
+);
+
+
+--
+-- Name: youth_education_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.youth_education_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: youth_education_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.youth_education_statuses_id_seq OWNED BY public.youth_education_statuses.id;
 
 
 --
@@ -14828,6 +14893,13 @@ ALTER TABLE ONLY public."Services" ALTER COLUMN id SET DEFAULT nextval('public."
 --
 
 ALTER TABLE ONLY public."User" ALTER COLUMN id SET DEFAULT nextval('public."User_id_seq"'::regclass);
+
+
+--
+-- Name: YouthEducationStatus id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."YouthEducationStatus" ALTER COLUMN id SET DEFAULT nextval('public."YouthEducationStatus_id_seq"'::regclass);
 
 
 --
@@ -15853,13 +15925,6 @@ ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT next
 
 
 --
--- Name: involved_in_imports id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.involved_in_imports ALTER COLUMN id SET DEFAULT nextval('public.involved_in_imports_id_seq'::regclass);
-
-
---
 -- Name: lftp_s3_syncs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16679,6 +16744,13 @@ ALTER TABLE ONLY public.youth_case_managements ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: youth_education_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.youth_education_statuses ALTER COLUMN id SET DEFAULT nextval('public.youth_education_statuses_id_seq'::regclass);
+
+
+--
 -- Name: youth_exports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -16896,6 +16968,14 @@ ALTER TABLE ONLY public."Services"
 
 ALTER TABLE ONLY public."User"
     ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: YouthEducationStatus YouthEducationStatus_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."YouthEducationStatus"
+    ADD CONSTRAINT "YouthEducationStatus_pkey" PRIMARY KEY (id);
 
 
 --
@@ -18075,14 +18155,6 @@ ALTER TABLE ONLY public.income_benefits_reports
 
 
 --
--- Name: involved_in_imports involved_in_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.involved_in_imports
-    ADD CONSTRAINT involved_in_imports_pkey PRIMARY KEY (id);
-
-
---
 -- Name: lftp_s3_syncs lftp_s3_syncs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18611,6 +18683,14 @@ ALTER TABLE ONLY public.youth_case_managements
 
 
 --
+-- Name: youth_education_statuses youth_education_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.youth_education_statuses
+    ADD CONSTRAINT youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: youth_exports youth_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18846,6 +18926,13 @@ CREATE INDEX client_first_name ON public."Client" USING btree ("FirstName");
 
 
 --
+-- Name: client_id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree (client_id);
+
+
+--
 -- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -19011,6 +19098,13 @@ CREATE INDEX enrollment_date_updated ON public."Enrollment" USING btree ("DateUp
 --
 
 CREATE INDEX enrollment_export_id ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: entrydate_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX entrydate_ret_index ON public.recent_report_enrollments USING btree ("EntryDate");
 
 
 --
@@ -21545,6 +21639,13 @@ CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree
 --
 
 CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_clients USING btree (report_instance_id, data_source_id, client_id);
+
+
+--
+-- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
 
 
 --
@@ -24135,13 +24236,6 @@ CREATE INDEX index_income_benefits_reports_on_updated_at ON public.income_benefi
 --
 
 CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_reports USING btree (user_id);
-
-
---
--- Name: index_involved_in_imports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_involved_in_imports_on_importer_log_id ON public.involved_in_imports USING btree (importer_log_id);
 
 
 --
@@ -28338,27 +28432,6 @@ CREATE INDEX inventory_export_id ON public."Inventory" USING btree ("ExportID");
 
 
 --
--- Name: involved_in_imports_by_hud_key; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX involved_in_imports_by_hud_key ON public.involved_in_imports USING btree (hud_key, importer_log_id, record_type, record_action);
-
-
---
--- Name: involved_in_imports_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USING btree (record_id, importer_log_id, record_type, record_action);
-
-
---
--- Name: involved_in_imports_by_importer_log; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports USING btree (importer_log_id, record_type, record_action);
-
-
---
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28534,13 +28607,6 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 
 
 --
--- Name: test_shs; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
-
-
---
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28587,6 +28653,20 @@ CREATE UNIQUE INDEX "unk_Project" ON public."Project" USING btree (data_source_i
 --
 
 CREATE UNIQUE INDEX "unk_Site" ON public."Geography" USING btree (data_source_id, "GeographyID");
+
+
+--
+-- Name: youth_ed_ev_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX youth_ed_ev_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", data_source_id);
+
+
+--
+-- Name: youth_eds_id_e_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX youth_eds_id_e_id_p_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", "EnrollmentID", "PersonalID", data_source_id);
 
 
 --
@@ -31033,12 +31113,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210708192452'),
 ('20210714131449'),
 ('20210716144139'),
-('20210717154701'),
 ('20210723161722'),
 ('20210726155740'),
 ('20210727134415'),
 ('20210729175328'),
 ('20210729201521'),
-('20210809124146');
+('20210806202832'),
+('20210809124146'),
+('20210809154208');
 
 
