@@ -34,7 +34,12 @@ module HomelessSummaryReport
 
     def run_and_save!
       start
-      create_universe
+      begin
+        create_universe
+      rescue Exception => e
+        update(failed_at: Time.current)
+        raise e
+      end
       complete
     end
 
@@ -163,7 +168,7 @@ module HomelessSummaryReport
       # With all the fields populated we need to process `exited_from_homeless_system`
       # TODO: Could we just make this a scope on the client model?
       report_clients = report_clients.transform_values! do |client|
-        client.exited_from_homeless_system = (
+        client.spm_exited_from_homeless_system = (
             client.spm_m7a1_c3 ||
             client.spm_m7a1_c4 ||
             client.spm_m7b1_c3
@@ -377,14 +382,48 @@ module HomelessSummaryReport
             races: ['MultiRacial'],
           },
         },
-        #### TODO:  unimplemented Filters
-        # fleeing_dv
-        # veteran
-        # has_disability
-        # has_rrh_move_in_date
-        # has_psh_move_in_date
-        # first_time_homeless
-        # returned_to_homelessness_from_permanent_destination
+        fleeing_dv: {
+          name: 'Currently Fleeing DV',
+          extra_filters: {
+            currently_fleeing: [1],
+          },
+        },
+        veteran: {
+          name: 'Veterans',
+          extra_filters: {
+            veteran_statuses: [1],
+          },
+        },
+        has_disability: {
+          name: 'With Indefinite and Impairing Disability',
+          extra_filters: {
+            indefinite_disabilities: [1],
+          },
+        },
+        has_rrh_move_in_date: {
+          name: 'Moved in to RRH',
+          extra_filters: {
+            rrh_move_in: true,
+          },
+        },
+        has_psh_move_in_date: {
+          name: 'Moved in to PSH',
+          extra_filters: {
+            psh_move_in: true,
+          },
+        },
+        first_time_homeless: {
+          name: 'First Time Homeless in Past Two Years',
+          extra_filters: {
+            first_time_homeless: true,
+          },
+        },
+        returned_to_homelessness_from_permanent_destination: {
+          name: 'Returned to Homelessness from Permanent Destination',
+          extra_filters: {
+            returned_to_homelessness_from_permanent_destination: true,
+          },
+        },
       }.freeze
     end
   end

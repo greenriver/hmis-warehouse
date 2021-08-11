@@ -6,12 +6,17 @@
 
 - @report.measures.each do |measure, data_fields|
   %h2= measure
-  - @report.variants.each do |variant, details|
-    - spm_id = @report.clients.send(variant).first.send("spm_#{variant}")
+  - @variants.each do |variant, details|
+    - client = @report.clients.send(variant)&.first
     %h3= details[:name]
-    %p= link_to 'view related SPM report', result_hud_reports_spm_measure_path(spm_id, measure)
-    %ul
-      - data_fields.each do |field|
-        %li
-          = "#{field}:"
-          = link_to @report.clients.send(variant).send("spm_#{field}").count, details_homeless_summary_report_warehouse_reports_report_path(@report, variant: variant, cell: field)
+    - if client
+      - spm_id = client.send("spm_#{variant}")
+      %p= link_to 'view related SPM report', result_hud_reports_spm_measure_path(spm_id, measure)
+      %ul
+        - data_fields.each do |field|
+          %li
+            = "#{field}:"
+            = link_to @report.clients.send(variant).send("spm_#{field}").count, details_homeless_summary_report_warehouse_reports_report_path(@report, variant: variant, cell: field)
+    - else
+      %p.none-found
+        No Clients found.
