@@ -15,7 +15,6 @@ module HudApr::Generators::CeApr::Fy2020
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
-      # FIXME: this needs to inspect the resulting AprClients to determine which projects to include
       q4_project_identifiers
 
       @report.complete(QUESTION_NUMBER)
