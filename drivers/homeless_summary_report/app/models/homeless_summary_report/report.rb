@@ -284,12 +284,16 @@ module HomelessSummaryReport
             ],
           },
         },
-        # adults_with_children_where_parenting_adult_18_to_24: {
-        #   name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
-        #   extra_filters: {
-        #     # TODO: define these filters
-        #   },
-        # },
+        adults_with_children_where_parenting_adult_18_to_24: {
+          name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
+          extra_filters: {
+            household_type: :with_children,
+            hoh_only: true,
+            age_ranges: [
+              :eighteen_to_twenty_four,
+            ],
+          },
+        },
         white_non_hispanic_latino: {
           name: 'White Non Hispanic/Latino Persons',
           extra_filters: {
