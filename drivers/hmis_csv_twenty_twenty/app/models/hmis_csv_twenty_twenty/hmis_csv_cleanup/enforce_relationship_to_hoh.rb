@@ -22,8 +22,25 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
         where(
           ie_t[:RelationshipToHoH].not_eq(1).
           or(ie_t[:RelationshipToHoH].eq(nil)),
-        ).
-        update_all(RelationshipToHoH: 1)
+        ).find_in_batches do |batch|
+          batch.each do |enrollment|
+            enrollment.RelationshipToHoH = 1
+            enrollment.HouseholdID = Digest::MD5.hexdigest("e_#{@importer_log.data_source.id}_#{enrollment.ProjectID}_#{enrollment.EnrollmentID}")
+            enrollment.set_source_hash
+          end
+
+          enrollment_source.import(
+            batch,
+            on_duplicate_key_update: {
+              conflict_target: [:id],
+              columns: [
+                :RelationshipToHoH,
+                :HouseholdID,
+                :source_hash,
+              ],
+            },
+          )
+        end
 
       # Figure out HouseholdID and PersonalID for HoH for each household
       # don't need to track HoH because everyone is for individual enrollments
@@ -56,78 +73,82 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
         where(
           ie_t[:RelationshipToHoH].not_eq(1).
           or(ie_t[:RelationshipToHoH].eq(nil)),
-        ).
-        update_all(RelationshipToHoH: 1)
+        ).find_in_batches do |batch|
+          batch.each do |enrollment|
+            enrollment.RelationshipToHoH = 1
+            enrollment.set_source_hash
+          end
+          enrollment_source.import(
+            batch,
+            on_duplicate_key_update: {
+              conflict_target: [:id],
+              columns: [
+                :RelationshipToHoH,
+                :source_hash,
+              ],
+            },
+          )
+        end
 
+      # This is somewhat more expensive than we'd like because we need to calculate the source hash
+      # for some enrollments twice, but I'm not seeing an easy way around it.
       enrollment_scope.where(HouseholdID: multi_person_to_fix.keys).
         where(RelationshipToHoH: 1).
-        update_all(RelationshipToHoH: 99)
+        find_in_batches do |batch|
+          batch.each do |enrollment|
+            enrollment.RelationshipToHoH = 99
+            enrollment.set_source_hash
+          end
+          enrollment_source.import(
+            batch,
+            on_duplicate_key_update: {
+              conflict_target: [:id],
+              columns: [
+                :RelationshipToHoH,
+                :source_hash,
+              ],
+            },
+          )
+        end
 
-      enrollment_source.import(
-        [
-          :id,
-          :RelationshipToHoH,
-          # The following columns need to be included simply to make the upsert work
-          :data_source_id,
-          :importer_log_id,
-          :pre_processed_at,
-          :source_id,
-          :source_type,
-        ],
-        multi_person_to_fix.values.map do |id|
-          [
-            id,
-            1,
-            # The following columns need to be included simply to make the upsert work
-            @importer_log.data_source.id,
-            @importer_log.id,
-            Time.current,
-            1,
-            1,
-          ]
-        end,
-        on_duplicate_key_update: {
-          conflict_target: [:id],
-          columns: [:RelationshipToHoH],
-        },
-      )
+      enrollment_source.where(id: multi_person_to_fix.values).
+        find_in_batches do |batch|
+          batch.each do |enrollment|
+            enrollment.RelationshipToHoH = 1
+            enrollment.set_source_hash
+          end
+          enrollment_source.import(
+            batch,
+            on_duplicate_key_update: {
+              conflict_target: [:id],
+              columns: [
+                :RelationshipToHoH,
+                :source_hash,
+              ],
+            },
+          )
+        end
 
       # Generate new HouseholdIDs using the same logic as the exporter.
-      values = multi_person_with_no_child_under_11.map do |row|
-        [
-          row[:row_id], # Enrollment.id
-          1, # RelationshipToHoH
-          Digest::MD5.hexdigest("e_#{@importer_log.data_source.id}_#{row[:project_id]}_#{row[:en_id]}"),
-          # The following columns need to be included simply to make the upsert work
-          @importer_log.data_source.id,
-          @importer_log.id,
-          Time.current,
-          1,
-          1,
-        ]
-      end
-
-      enrollment_source.import(
-        [
-          :id,
-          :RelationshipToHoH,
-          :HouseholdID,
-          # The following columns need to be included simply to make the upsert work
-          :data_source_id,
-          :importer_log_id,
-          :pre_processed_at,
-          :source_id,
-          :source_type,
-        ],
-        values,
-        on_duplicate_key_update: {
-          conflict_target: [:id],
-          columns: [
-            :RelationshipToHoH,
-            :HouseholdID,
-          ],
-        },
-      )
+      enrollment_source.where(id: multi_person_with_no_child_under_11.map { |m| m[:row_id] }).
+        find_in_batches do |batch|
+          batch.each do |enrollment|
+            enrollment.RelationshipToHoH = 1
+            enrollment.HouseholdID = Digest::MD5.hexdigest("e_#{@importer_log.data_source.id}_#{enrollment.ProjectID}_#{enrollment.EnrollmentID}")
+            enrollment.set_source_hash
+          end
+          enrollment_source.import(
+            batch,
+            on_duplicate_key_update: {
+              conflict_target: [:id],
+              columns: [
+                :RelationshipToHoH,
+                :HouseholdID,
+                :source_hash,
+              ],
+            },
+          )
+        end
     end
 
     def households
