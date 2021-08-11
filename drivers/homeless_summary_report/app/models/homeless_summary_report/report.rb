@@ -82,28 +82,14 @@ module HomelessSummaryReport
       true
     end
 
-    protected def build_control_sections
+    private def build_control_sections
       # ensure filter has been set
       filter
       [
         build_general_control_section(include_comparison_period: false),
-        build_household_control_section,
-        build_coc_control_section,
-        # NOTE: We removed the below filters because they conflict with the automatic Filters.
-        # NOTE: In future we might work out how to handle them gracefully in case of conflict.
-        # build_demographics_control_section,
+        build_hoh_control_section,
+        build_coc_control_section(true),
       ]
-    end
-
-    protected def build_household_control_section
-      # NOTE: We override this section to exclude household_type which might conflict with automated filters.
-      ::Filters::UiControlSection.new(id: 'household').tap do |section|
-        section.add_control(
-          id: 'hoh_only',
-          label: 'Only Heads of Household?',
-          value: @filter.hoh_only ? 'HOH Only' : nil,
-        )
-      end
     end
 
     def report_path_array

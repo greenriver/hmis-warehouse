@@ -61,14 +61,14 @@ module
       end
     end
 
-    protected def build_coc_control_section
-      title = if GrdaWarehouse::Config.get(:multi_coc_installation)
+    protected def build_coc_control_section(multi_coc = GrdaWarehouse::Config.get(:multi_coc_installation))
+      title = if multi_coc
         'CoC & Funding'
       else
         'Projects & Funding'
       end
       ::Filters::UiControlSection.new(id: 'coc', title: title).tap do |section|
-        if GrdaWarehouse::Config.get(:multi_coc_installation)
+        if multi_coc
           section.add_control(
             id: 'coc_codes',
             label: 'CoC Codes',
@@ -95,6 +95,16 @@ module
         section.add_control(
           id: 'project_groups',
           value: @filter.project_groups,
+        )
+      end
+    end
+
+    protected def build_hoh_control_section
+      ::Filters::UiControlSection.new(id: 'household').tap do |section|
+        section.add_control(
+          id: 'hoh_only',
+          label: 'Only Heads of Household?',
+          value: @filter.hoh_only ? 'HOH Only' : nil,
         )
       end
     end
