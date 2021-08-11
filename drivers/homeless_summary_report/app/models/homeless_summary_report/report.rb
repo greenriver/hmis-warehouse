@@ -418,6 +418,7 @@ module HomelessSummaryReport
             first_time_homeless: true,
           },
         },
+        # NOTE: only display this on Measure 1 (it will never work on Measure 2)
         returned_to_homelessness_from_permanent_destination: {
           name: 'Returned to Homelessness from Permanent Destination',
           extra_filters: {
@@ -425,6 +426,14 @@ module HomelessSummaryReport
           },
         },
       }.freeze
+    end
+
+    def exclude_variants(measure_name, variant)
+      @exclude_variants ||= {
+        'Measure 2' => [:returned_to_homelessness_from_permanent_destination],
+        'Measure 7' => [:returned_to_homelessness_from_permanent_destination],
+      }
+      @exclude_variants[measure_name].include?(variant)
     end
   end
 end

@@ -296,11 +296,7 @@ module Filter::FilterScopes
         open_between(start_date: @filter.start - 2.years, end_date: @filter.start)
       # For a given client, only include rows where they don't have an open homeless
       # enrollment in the 2 years prior to the report start date
-      scope.correlated_exists(
-        recent_homeless_enrollments,
-        column_name: 'client_id',
-        negated: true,
-      )
+      scope.homeless.where.not(client_id: recent_homeless_enrollments.select(:client_id))
     end
 
     private def filter_for_returned_to_homelessness_from_permanent_destination(scope)
@@ -314,14 +310,10 @@ module Filter::FilterScopes
         define_window(:client_window).
         partition_by(:client_id, order_by: { last_date_in_program: :desc }).
         select_window(:row_number, over: :client_window, as: :row_id)
-      client_ids_with_recent_permanent_exits = GrdaWarehouse::ServiceHistoryEnrollment.select(:client_id).from(exits).
+      client_ids_with_recent_permanent_exits = GrdaWarehouse::ServiceHistoryEnrollment.from(exits).
         where("row_id = 1 and destination in (#{HUD.permanent_destinations.join(', ')})")
 
-      scope.correlated_exists(
-        client_ids_with_recent_permanent_exits,
-        column_name: 'client_id',
-        negated: true,
-      )
+      scope.homeless.where(client_id: client_ids_with_recent_permanent_exits.select(:client_id))
     end
 
     # This needs to work correctly with project type filters, where it adds the

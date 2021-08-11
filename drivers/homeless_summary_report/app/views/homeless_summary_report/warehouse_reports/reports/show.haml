@@ -6,9 +6,16 @@
 
 - @report.measures.each do |measure, data_fields|
   %h2= measure
-  - @variants.each do |variant, details|
+  - @report.variants.each do |variant, details|
+    - next if exclude_variants(measure, variant)
+
     - client = @report.clients.send(variant)&.first
     %h3= details[:name]
+    - # TODO
+    - # Measure 1 is table with Client Count, Average Days, Median Days
+    - # Measure 2 is table with Client Count, % in each category
+    - # Measure 7 is table with Client Count, Permanent Destination Count, Temporary Destination Count, Permanent Unknown Count,
+    - # Measure 7 is table with Client Count, column for count of every destination
     - if client
       - spm_id = client.send("spm_#{variant}")
       %p= link_to 'view related SPM report', result_hud_reports_spm_measure_path(spm_id, measure)

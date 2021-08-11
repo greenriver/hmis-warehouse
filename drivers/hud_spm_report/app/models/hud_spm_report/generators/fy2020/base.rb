@@ -235,6 +235,8 @@ module HudSpmReport::Generators::Fy2020
       scope = filter_for_indefinite_disabilities(scope)
       scope = filter_for_rrh_move_in(scope)
       scope = filter_for_psh_move_in(scope)
+      scope = filter_for_first_time_homeless_in_past_two_years(scope)
+      scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
       scope
     end
 
