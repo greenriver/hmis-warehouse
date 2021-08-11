@@ -82,25 +82,14 @@ module HomelessSummaryReport
       true
     end
 
-    protected def build_control_sections
+    private def build_control_sections
       # ensure filter has been set
       filter
       [
         build_general_control_section(include_comparison_period: false),
-        build_household_control_section,
-        build_coc_control_section,
+        build_hoh_control_section,
+        build_coc_control_section(true),
       ]
-    end
-
-    protected def build_household_control_section
-      # NOTE: We override this section to exclude household_type which might conflict with automated filters.
-      ::Filters::UiControlSection.new(id: 'household').tap do |section|
-        section.add_control(
-          id: 'hoh_only',
-          label: 'Only Heads of Household?',
-          value: @filter.hoh_only ? 'HOH Only' : nil,
-        )
-      end
     end
 
     def report_path_array
@@ -118,26 +107,14 @@ module HomelessSummaryReport
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
-      scope = filter_for_sub_population(scope)
-      scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
-      scope = filter_for_veteran_status(scope)
-      # TODO: I wonder if a filter is missing here for times homeless in last three years
       scope = filter_for_project_type(scope)
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
       scope = filter_for_funders(scope)
-      filter_for_ca_homeless(scope)
-    end
-
-    def enrollment_scope
-      # TODO: Can we get rid of income_benefits preload?
-      report_scope.preload(:client, enrollment: :income_benefits)
+      scope = filter_for_ca_homeless(scope)
+      scope
     end
 
     def report_scope_source

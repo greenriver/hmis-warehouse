@@ -16,7 +16,6 @@ module HomelessSummaryReport
       scope variant, -> { where(arel_table["spm_#{variant}".to_sym].gt(0)) }
     end
 
-    # TODO: Can we drop the spm_ prefix from the table names? It would make some things easier?
     scope :spm_m1a_es_sh_days, -> { where(arel_table[:spm_m1a_es_sh_days].gt(0)) }
     scope :spm_m1a_es_sh_th_days, -> { where(arel_table[:spm_m1a_es_sh_th_days].gt(0)) }
     scope :spm_m1b_es_sh_ph_days, -> { where(arel_table[:spm_m1b_es_sh_ph_days].gt(0)) }
