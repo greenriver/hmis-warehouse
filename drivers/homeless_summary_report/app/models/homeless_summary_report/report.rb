@@ -214,30 +214,18 @@ module HomelessSummaryReport
 
     # @return filtered scope
     def report_scope
-      # Report range
       scope = report_scope_source
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
-      scope = filter_for_sub_population(scope)
-      scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
-      scope = filter_for_veteran_status(scope)
-      # TODO: I wonder if a filter is missing here for times homeless in last three years
       scope = filter_for_project_type(scope)
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
       scope = filter_for_funders(scope)
-      filter_for_ca_homeless(scope)
-    end
-
-    def enrollment_scope
-      report_scope.preload(:client, enrollment: :income_benefits)
+      scope = filter_for_ca_homeless(scope)
+      scope
     end
 
     def report_scope_source
