@@ -84,6 +84,18 @@ CREATE TYPE public.census_levels AS ENUM (
 
 
 --
+-- Name: record_action; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.record_action AS ENUM (
+    'added',
+    'updated',
+    'unchanged',
+    'removed'
+);
+
+
+--
 -- Name: record_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -4770,10 +4782,10 @@ CREATE TABLE public.configs (
     cas_sync_months integer DEFAULT 3,
     send_sms_for_covid_reminders boolean DEFAULT false NOT NULL,
     bypass_2fa_duration integer DEFAULT 0 NOT NULL,
-    enable_system_cohorts boolean DEFAULT false,
-    currently_homeless_cohort boolean DEFAULT false,
     health_claims_data_path character varying,
-    enable_youth_hrp boolean DEFAULT true NOT NULL
+    enable_youth_hrp boolean DEFAULT true NOT NULL,
+    enable_system_cohorts boolean DEFAULT false,
+    currently_homeless_cohort boolean DEFAULT false
 );
 
 
@@ -9272,6 +9284,77 @@ ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_c
 
 
 --
+-- Name: homeless_summary_report_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.homeless_summary_report_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    report_id bigint,
+    first_name character varying,
+    last_name character varying,
+    spm_m1a_es_sh_days integer,
+    spm_m1a_es_sh_th_days integer,
+    spm_m1b_es_sh_ph_days integer,
+    spm_m1b_es_sh_th_ph_days integer,
+    spm_m2_reentry_days integer,
+    spm_m7a1_destination integer,
+    spm_m7b1_destination integer,
+    spm_m7b2_destination integer,
+    spm_m7a1_c2 boolean DEFAULT false,
+    spm_m7a1_c3 boolean DEFAULT false,
+    spm_m7a1_c4 boolean DEFAULT false,
+    spm_m7b1_c2 boolean DEFAULT false,
+    spm_m7b1_c3 boolean DEFAULT false,
+    spm_m7b2_c2 boolean DEFAULT false,
+    spm_m7b2_c3 boolean DEFAULT false,
+    spm_all_persons integer,
+    spm_without_children integer,
+    spm_with_children integer,
+    spm_only_children integer,
+    spm_without_children_and_fifty_five_plus integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24 integer,
+    spm_white_non_hispanic_latino integer,
+    spm_hispanic_latino integer,
+    spm_black_african_american integer,
+    spm_asian integer,
+    spm_american_indian_alaskan_native integer,
+    spm_native_hawaiian_other_pacific_islander integer,
+    spm_multi_racial integer,
+    spm_fleeing_dv integer,
+    spm_veteran integer,
+    spm_has_disability integer,
+    spm_has_rrh_move_in_date integer,
+    spm_has_psh_move_in_date integer,
+    spm_first_time_homeless integer,
+    spm_returned_to_homelessness_from_permanent_destination integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    spm_exited_from_homeless_system boolean DEFAULT false
+);
+
+
+--
+-- Name: homeless_summary_report_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.homeless_summary_report_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: homeless_summary_report_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.homeless_summary_report_clients_id_seq OWNED BY public.homeless_summary_report_clients.id;
+
+
+--
 -- Name: housing_resolution_plans; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -9401,6 +9484,75 @@ ALTER SEQUENCE public.hud_create_logs_id_seq OWNED BY public.hud_create_logs.id;
 
 
 --
+-- Name: hud_report_apr_ce_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_apr_ce_assessments (
+    id bigint NOT NULL,
+    hud_report_apr_client_id bigint,
+    project_id bigint,
+    assessment_date date,
+    assessment_level integer,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hud_report_apr_ce_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_apr_ce_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_apr_ce_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_apr_ce_assessments_id_seq OWNED BY public.hud_report_apr_ce_assessments.id;
+
+
+--
+-- Name: hud_report_apr_ce_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_apr_ce_events (
+    id bigint NOT NULL,
+    hud_report_apr_client_id bigint,
+    project_id bigint,
+    event_date date,
+    event integer,
+    problem_sol_div_rr_result integer,
+    referral_case_manage_after integer,
+    referral_result integer,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hud_report_apr_ce_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_apr_ce_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_apr_ce_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_apr_ce_events_id_seq OWNED BY public.hud_report_apr_ce_events.id;
+
+
+--
 -- Name: hud_report_apr_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -9514,7 +9666,15 @@ CREATE TABLE public.hud_report_apr_clients (
     deleted_at timestamp without time zone,
     destination_client_id integer,
     annual_assessment_in_window boolean,
-    chronically_homeless_detail character varying
+    chronically_homeless_detail character varying,
+    ce_assessment_date date,
+    ce_assessment_type integer,
+    ce_assessment_prioritization_status integer,
+    ce_event_date date,
+    ce_event_event integer,
+    ce_event_problem_sol_div_rr_result integer,
+    ce_event_referral_case_manage_after integer,
+    ce_event_referral_result integer
 );
 
 
@@ -10318,6 +10478,39 @@ CREATE VIEW public.index_stats AS
      LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
      LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
   ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+
+
+--
+-- Name: involved_in_imports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.involved_in_imports (
+    id bigint NOT NULL,
+    importer_log_id bigint,
+    record_type character varying NOT NULL,
+    record_id bigint NOT NULL,
+    hud_key character varying NOT NULL,
+    record_action public.record_action
+);
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.involved_in_imports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: involved_in_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.involved_in_imports_id_seq OWNED BY public.involved_in_imports.id;
 
 
 --
@@ -13567,9 +13760,9 @@ CREATE TABLE public.synthetic_assessments (
     type character varying,
     source_type character varying,
     source_id bigint,
-    hud_assessment_id bigint,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    hud_assessment_id bigint
 );
 
 
@@ -14196,8 +14389,7 @@ CREATE TABLE public.vispdats (
     time_spent_alone_13_answer integer,
     time_spent_alone_12_answer integer,
     time_spent_helping_siblings_answer integer,
-    number_of_bedrooms integer DEFAULT 0,
-    contact_method character varying
+    number_of_bedrooms integer DEFAULT 0
 );
 
 
@@ -14504,47 +14696,6 @@ CREATE SEQUENCE public.youth_case_managements_id_seq
 --
 
 ALTER SEQUENCE public.youth_case_managements_id_seq OWNED BY public.youth_case_managements.id;
-
-
---
--- Name: youth_education_statuses; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.youth_education_statuses (
-    id bigint NOT NULL,
-    "YouthEducationStatusID" character varying(32) NOT NULL,
-    "EnrollmentID" character varying(32) NOT NULL,
-    "PersonalID" character varying(32) NOT NULL,
-    "InformationDate" date NOT NULL,
-    "CurrentSchoolAttend" integer,
-    "MostRecentEdStatus" integer,
-    "CurrentEdStatus" integer,
-    "DataCollectionStage" integer NOT NULL,
-    "DateCreated" timestamp without time zone NOT NULL,
-    "DateUpdated" timestamp without time zone NOT NULL,
-    "UserID" character varying(32) NOT NULL,
-    "DateDeleted" timestamp without time zone,
-    "ExportID" character varying(32) NOT NULL
-);
-
-
---
--- Name: youth_education_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.youth_education_statuses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: youth_education_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.youth_education_statuses_id_seq OWNED BY public.youth_education_statuses.id;
 
 
 --
@@ -15806,6 +15957,13 @@ ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: homeless_summary_report_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_clients ALTER COLUMN id SET DEFAULT nextval('public.homeless_summary_report_clients_id_seq'::regclass);
+
+
+--
 -- Name: housing_resolution_plans id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -15824,6 +15982,20 @@ ALTER TABLE ONLY public.hud_chronics ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.hud_create_logs ALTER COLUMN id SET DEFAULT nextval('public.hud_create_logs_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_apr_ce_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_apr_ce_assessments ALTER COLUMN id SET DEFAULT nextval('public.hud_report_apr_ce_assessments_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_apr_ce_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_apr_ce_events ALTER COLUMN id SET DEFAULT nextval('public.hud_report_apr_ce_events_id_seq'::regclass);
 
 
 --
@@ -15922,6 +16094,13 @@ ALTER TABLE ONLY public.income_benefits_report_incomes ALTER COLUMN id SET DEFAU
 --
 
 ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT nextval('public.income_benefits_reports_id_seq'::regclass);
+
+
+--
+-- Name: involved_in_imports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports ALTER COLUMN id SET DEFAULT nextval('public.involved_in_imports_id_seq'::regclass);
 
 
 --
@@ -16741,13 +16920,6 @@ ALTER TABLE ONLY public.whitelisted_projects_for_clients ALTER COLUMN id SET DEF
 --
 
 ALTER TABLE ONLY public.youth_case_managements ALTER COLUMN id SET DEFAULT nextval('public.youth_case_managements_id_seq'::regclass);
-
-
---
--- Name: youth_education_statuses id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.youth_education_statuses ALTER COLUMN id SET DEFAULT nextval('public.youth_education_statuses_id_seq'::regclass);
 
 
 --
@@ -18019,6 +18191,14 @@ ALTER TABLE ONLY public.hmis_staff_x_clients
 
 
 --
+-- Name: homeless_summary_report_clients homeless_summary_report_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_clients
+    ADD CONSTRAINT homeless_summary_report_clients_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: housing_resolution_plans housing_resolution_plans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18040,6 +18220,22 @@ ALTER TABLE ONLY public.hud_chronics
 
 ALTER TABLE ONLY public.hud_create_logs
     ADD CONSTRAINT hud_create_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_apr_ce_assessments hud_report_apr_ce_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_apr_ce_assessments
+    ADD CONSTRAINT hud_report_apr_ce_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_apr_ce_events hud_report_apr_ce_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_apr_ce_events
+    ADD CONSTRAINT hud_report_apr_ce_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -18152,6 +18348,14 @@ ALTER TABLE ONLY public.income_benefits_report_incomes
 
 ALTER TABLE ONLY public.income_benefits_reports
     ADD CONSTRAINT income_benefits_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: involved_in_imports involved_in_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.involved_in_imports
+    ADD CONSTRAINT involved_in_imports_pkey PRIMARY KEY (id);
 
 
 --
@@ -18683,14 +18887,6 @@ ALTER TABLE ONLY public.youth_case_managements
 
 
 --
--- Name: youth_education_statuses youth_education_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.youth_education_statuses
-    ADD CONSTRAINT youth_education_statuses_pkey PRIMARY KEY (id);
-
-
---
 -- Name: youth_exports youth_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18926,13 +19122,6 @@ CREATE INDEX client_first_name ON public."Client" USING btree ("FirstName");
 
 
 --
--- Name: client_id_ret_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree (client_id);
-
-
---
 -- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -19098,13 +19287,6 @@ CREATE INDEX enrollment_date_updated ON public."Enrollment" USING btree ("DateUp
 --
 
 CREATE INDEX enrollment_export_id ON public."Enrollment" USING btree ("ExportID");
-
-
---
--- Name: entrydate_ret_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX entrydate_ret_index ON public.recent_report_enrollments USING btree ("EntryDate");
 
 
 --
@@ -21642,13 +21824,6 @@ CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_c
 
 
 --
--- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
-
-
---
 -- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23952,6 +24127,41 @@ CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_c
 
 
 --
+-- Name: index_homeless_summary_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_client_id ON public.homeless_summary_report_clients USING btree (client_id);
+
+
+--
+-- Name: index_homeless_summary_report_clients_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_created_at ON public.homeless_summary_report_clients USING btree (created_at);
+
+
+--
+-- Name: index_homeless_summary_report_clients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_deleted_at ON public.homeless_summary_report_clients USING btree (deleted_at);
+
+
+--
+-- Name: index_homeless_summary_report_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_report_id ON public.homeless_summary_report_clients USING btree (report_id);
+
+
+--
+-- Name: index_homeless_summary_report_clients_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_updated_at ON public.homeless_summary_report_clients USING btree (updated_at);
+
+
+--
 -- Name: index_housing_resolution_plans_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23998,6 +24208,34 @@ CREATE INDEX index_hud_create_logs_on_imported_at ON public.hud_create_logs USIN
 --
 
 CREATE INDEX index_hud_dq_client_liv_sit ON public.hud_report_dq_living_situations USING btree (hud_report_dq_client_id);
+
+
+--
+-- Name: index_hud_report_apr_ce_assessments_on_hud_report_apr_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_apr_ce_assessments_on_hud_report_apr_client_id ON public.hud_report_apr_ce_assessments USING btree (hud_report_apr_client_id);
+
+
+--
+-- Name: index_hud_report_apr_ce_assessments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_apr_ce_assessments_on_project_id ON public.hud_report_apr_ce_assessments USING btree (project_id);
+
+
+--
+-- Name: index_hud_report_apr_ce_events_on_hud_report_apr_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_apr_ce_events_on_hud_report_apr_client_id ON public.hud_report_apr_ce_events USING btree (hud_report_apr_client_id);
+
+
+--
+-- Name: index_hud_report_apr_ce_events_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_apr_ce_events_on_project_id ON public.hud_report_apr_ce_events USING btree (project_id);
 
 
 --
@@ -24236,6 +24474,13 @@ CREATE INDEX index_income_benefits_reports_on_updated_at ON public.income_benefi
 --
 
 CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_reports USING btree (user_id);
+
+
+--
+-- Name: index_involved_in_imports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_involved_in_imports_on_importer_log_id ON public.involved_in_imports USING btree (importer_log_id);
 
 
 --
@@ -28432,6 +28677,27 @@ CREATE INDEX inventory_export_id ON public."Inventory" USING btree ("ExportID");
 
 
 --
+-- Name: involved_in_imports_by_hud_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_by_hud_key ON public.involved_in_imports USING btree (hud_key, importer_log_id, record_type, record_action);
+
+
+--
+-- Name: involved_in_imports_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USING btree (record_id, importer_log_id, record_type, record_action);
+
+
+--
+-- Name: involved_in_imports_by_importer_log; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports USING btree (importer_log_id, record_type, record_action);
+
+
+--
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28604,6 +28870,13 @@ CREATE UNIQUE INDEX taggings_idx ON public.taggings USING btree (tag_id, taggabl
 --
 
 CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_type, tagger_id, context);
+
+
+--
+-- Name: test_shs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
 
 
 --
@@ -31113,12 +31386,17 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210708192452'),
 ('20210714131449'),
 ('20210716144139'),
+('20210717154701'),
+('20210722155210'),
 ('20210723161722'),
 ('20210726155740'),
 ('20210727134415'),
 ('20210729175328'),
 ('20210729201521'),
-('20210806202832'),
-('20210809154208');
+('20210809124146'),
+('20210809130851'),
+('20210809154208'),
+('20210809184745'),
+('20210810182752');
 
 
