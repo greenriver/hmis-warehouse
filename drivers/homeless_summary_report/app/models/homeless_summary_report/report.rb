@@ -162,16 +162,14 @@ module HomelessSummaryReport
 
       # With all the fields populated we need to process `exited_from_homeless_system`
       # TODO: Could we just make this a scope on the client model?
-      report_clients = report_clients.map do |client_id, client|
-        if (
+      report_clients = report_clients.transform_values! do |client|
+        client.exited_from_homeless_system = (
             client.spm_m7a1_c3 ||
             client.spm_m7a1_c4 ||
             client.spm_m7b1_c3
           ) && !client.spm_m7b2_c3
-          client.exited_from_homeless_system = true
-        end
-        [client_id, client]
-      end.to_h
+        client
+      end
 
       Client.import(
         report_clients.values,
