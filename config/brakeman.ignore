@@ -565,6 +565,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "488929247f57a052483960e34ae2e99819be0cc9ed762545be1803490a90c853",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/concerns/arel_helper.rb",
+      "line": 49,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"#{(\"NOT EXISTS\" or \"EXISTS\")} (#{ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")} and #{quoted_table_name}.\\\"#{column_name}\\\" = \\\"#{alias_name}\\\".\\\"#{column_name}\\\") \")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ArelHelper",
+        "method": "ArelHelper.exists_sql"
+      },
+      "user_input": "ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "4dbef2124ce5f88d9517b90cfd0933fa92ca9a4353331c92fca66c397e476a6f",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1076,26 +1096,6 @@
       "note": "Injection from internal sources"
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "82aadb4eb72cf1375fedd19ae96c5db6f000edd4c357495ea1c068ff3031103e",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/concerns/arel_helper.rb",
-      "line": 44,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"EXISTS (#{ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")} and #{quoted_table_name}.\\\"#{column_name}\\\" = \\\"#{alias_name}\\\".\\\"#{column_name}\\\") \")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ArelHelper",
-        "method": "ArelHelper.exists_sql"
-      },
-      "user_input": "ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "850068cbcbd30e554efc5cc597f03ad14dfbd68240142d37a64e9f7a6c53a1a7",
@@ -1382,7 +1382,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 327,
+      "line": 325,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1922,7 +1922,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 713,
+      "line": 768,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -2215,6 +2215,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-07-20 15:36:00 +0000",
+  "updated": "2021-08-11 18:29:00 +0000",
   "brakeman_version": "5.0.4"
 }
