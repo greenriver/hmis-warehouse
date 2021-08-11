@@ -1,17 +1,12 @@
-:ruby
-  def details_path(*args)
-    details_homeless_summary_report_warehouse_reports_report_path(*args)
-  end
-
 = render 'breadcrumbs'
 = render 'beta_warning'
 
 - title = "Homeless Summary Report"
 - content_for :title, title
 
-- @measures.each do |measure, data_fields|
+- @report.measures.each do |measure, data_fields|
   %h2= measure
-  - @variants.each do |variant, details|
+  - @report.variants.each do |variant, details|
     - spm_id = @report.clients.send(variant).first.send("spm_#{variant}")
     %h3= details[:name]
     %p= link_to 'view related SPM report', result_hud_reports_spm_measure_path(spm_id, measure)
@@ -19,4 +14,4 @@
       - data_fields.each do |field|
         %li
           = "#{field}:"
-          = link_to @report.clients.send(variant).send("spm_#{field}").count, details_path(@report, variant: variant, cell: field)
+          = link_to @report.clients.send(variant).send("spm_#{field}").count, details_homeless_summary_report_warehouse_reports_report_path(@report, variant: variant, cell: field)

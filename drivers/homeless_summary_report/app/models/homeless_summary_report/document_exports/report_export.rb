@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module PerformanceMetrics::DocumentExports
+module HomelessSummaryReport::DocumentExports
   class ReportExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
@@ -25,10 +25,10 @@ module PerformanceMetrics::DocumentExports
 
     def perform
       with_status_progression do
-        template_file = 'performance_metrics/warehouse_reports/report/index_pdf'
+        template_file = 'homeless_summary_report/warehouse_reports/report/index_pdf'
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
-          file_name: "#{_('Performance Metrics')} #{DateTime.current.to_s(:db)}",
+          html: view.render(file: template_file, layout: 'layouts/homeless_summary_report'),
+          file_name: "#{_('Homeless Summary Report')} #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
         end
@@ -36,11 +36,11 @@ module PerformanceMetrics::DocumentExports
     end
 
     protected def report_class
-      PerformanceMetrics::Report
+      HomelessSummaryReport::Report
     end
 
     protected def view
-      context = PerformanceMetrics::WarehouseReports::ReportsController.view_paths
+      context = HomelessSummaryReport::WarehouseReports::ReportsController.view_paths
       view = ReportExportTemplate.new(context, view_assigns)
       view.current_user = user
       view

@@ -13,10 +13,6 @@ module HomelessSummaryReport::WarehouseReports
 
     before_action :require_can_access_some_version_of_clients!, only: [:details]
     before_action :set_report, only: [:show, :destroy, :details]
-    before_action :set_variants, only: [:show, :details]
-    before_action :set_m1_fields, only: [:show, :details]
-    before_action :set_m2_fields, only: [:show]
-    before_action :set_m7_fields, only: [:show, :details]
 
     def index
       @reports = report_scope.ordered.
@@ -27,11 +23,6 @@ module HomelessSummaryReport::WarehouseReports
     end
 
     def show
-      @measures = {
-        'Measure 1': @m1_fields.keys,
-        'Measure 2': @m2_fields,
-        'Measure 7': @m7_fields,
-      }
     end
 
     def create
@@ -56,31 +47,32 @@ module HomelessSummaryReport::WarehouseReports
     end
 
     def details
-      @variant = details_params['variant'] || 'all_persons'
-      @cell = "spm_#{details_params['cell']}" || 'spm_m1a_es_sh_days'
+      params = details_params(@report)
+      @variant = params['variant'] || 'all_persons'
+      @cell = "spm_#{params['cell']}"
       @cell_name = @cell.humanize.split(' ')[1..].join(' ')
-      if report_class.field_measure(details_params['cell']) == 1
+      if @report.field_measure(params['cell']) == 1
         @measure = 'Measure 1'
-        @data_cells = @m1_fields.keys
-      elsif report_class.field_measure(details_params['cell']) == 2
+        @data_cells = @report.m1_fields.keys
+      elsif @report.field_measure(params['cell']) == 2
         @measure = 'Measure 2'
         @data_cells = ['m2_reentry_days']
-      elsif report_class.field_measure(details_params['cell']) == 7
+      elsif @report.field_measure(params['cell']) == 7
         @measure = 'Measure 7'
-        @data_cells = @m7_fields
+        @data_cells = @report.m7_fields
       end
       @detail_clients = @report.clients.send(@variant).send(@cell)
       @spm_id = @detail_clients&.first&.send("spm_#{@variant}")
     end
 
-    def details_params
+    def details_params(report)
       params.permit(
         :variant,
         :cell,
       ).delete_if do |key, value|
-        key == 'variant' && report_class.report_variants.keys.exclude?(value.to_sym)
+        key == 'variant' && report.variants.keys.exclude?(value.to_sym)
       end.delete_if do |key, value|
-        key == 'cell' && (report_class.spm_fields.keys + [
+        key == 'cell' && (report.spm_fields.keys + [
           :m2_reentry_0_to_180_days,
           :m2_reentry_181_to_365_days,
           :m2_reentry_366_to_730_days,
@@ -99,38 +91,6 @@ module HomelessSummaryReport::WarehouseReports
 
     private def set_report
       @report = report_class.find(params[:id].to_i)
-    end
-
-    private def set_variants
-      @variants = ::HomelessSummaryReport::Report.report_variants
-    end
-
-    private def set_m1_fields
-      @m1_fields = report_class.spm_fields.filter { |f| report_class.field_measure(f) == 1 }
-    end
-
-    private def set_m2_fields
-      @m2_fields = [
-        :m2_reentry_days,
-        :m2_reentry_0_to_180_days,
-        :m2_reentry_181_to_365_days,
-        :m2_reentry_366_to_730_days,
-      ]
-    end
-
-    private def set_m7_fields
-      @m7_fields = report_class.spm_fields.keys.filter { |f| report_class.field_measure(f) == 7 }.concat(
-        [
-          :m7a1_c2,
-          :m7a1_c3,
-          :m7a1_c4,
-          :m7b1_c2,
-          :m7b1_c3,
-          :m7b2_c2,
-          :m7b2_c3,
-          :exited_from_homeless_system,
-        ],
-      )
     end
 
     private def report_scope

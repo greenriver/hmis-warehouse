@@ -139,7 +139,7 @@ module HomelessSummaryReport
 
       # Work through all the SPM report variants, building up the `report_clients` as we go.
       spm_reports.each do |variant_name, report|
-        self.class.spm_fields.each do |spm_field, cells|
+        spm_fields.each do |spm_field, cells|
           cells.each do |cell|
             spm_clients = answer_clients(report[:report], *cell)
             spm_clients.each do |spm_client|
@@ -149,7 +149,7 @@ module HomelessSummaryReport
               report_client[:last_name] = spm_client[:last_name]
               report_client[:report_id] = id
               report_client["spm_#{spm_field}"] = spm_client[spm_field]
-              if self.class.field_measure(spm_field) == 7
+              if field_measure(spm_field) == 7
                 field_name = "spm_m#{cell.join('_')}".delete('.').downcase.to_sym
                 report_client[field_name] = true
               end
@@ -202,7 +202,7 @@ module HomelessSummaryReport
       options[:project_type_codes] ||= []
       options[:project_type_codes] += [:es, :so, :sh, :th]
       generator = HudSpmReport::Generators::Fy2020::Generator
-      self.class.report_variants.map do |variant, spec|
+      variants.map do |variant, spec|
         extra_filters = spec[:extra_filters] || {}
         processed_filter = HudSpmReport::Filters::SpmFilter.new(user_id: filter.user_id)
         processed_filter.update(options.deep_merge(extra_filters))
@@ -216,13 +216,49 @@ module HomelessSummaryReport
       end.to_h
     end
 
-    def self.field_measure(field)
+    def measures
+      {
+        'Measure 1': m1_fields.keys,
+        'Measure 2': m2_fields,
+        'Measure 7': m7_fields,
+      }
+    end
+
+    def field_measure(field)
       return 1 if field.start_with?('m1')
       return 2 if field.start_with?('m2')
       return 7 if field.start_with?('m7') || field.start_with?('exited')
     end
 
-    def self.spm_fields
+    def m1_fields
+      spm_fields.filter { |f| field_measure(f) == 1 }
+    end
+
+    def m2_fields
+      [
+        :m2_reentry_days,
+        :m2_reentry_0_to_180_days,
+        :m2_reentry_181_to_365_days,
+        :m2_reentry_366_to_730_days,
+      ]
+    end
+
+    def m7_fields
+      spm_fields.keys.filter { |f| field_measure(f) == 7 }.concat(
+        [
+          :m7a1_c2,
+          :m7a1_c3,
+          :m7a1_c4,
+          :m7b1_c2,
+          :m7b1_c3,
+          :m7b2_c2,
+          :m7b2_c3,
+          :exited_from_homeless_system,
+        ],
+      )
+    end
+
+    def spm_fields
       {
         m1a_es_sh_days: [['1a', 'C2']],
         m1a_es_sh_th_days: [['1a', 'C3']],
@@ -245,6 +281,10 @@ module HomelessSummaryReport
           ['7b.2', 'C3'],
         ],
       }.freeze
+    end
+
+    def variants
+      self.class.report_variants
     end
 
     def self.report_variants

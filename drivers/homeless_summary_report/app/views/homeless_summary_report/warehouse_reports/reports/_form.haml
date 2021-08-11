@@ -1,7 +1,6 @@
 - url = polymorphic_path(@report.report_path_array)
 = simple_form_for @filter, as: :filters, url: url do |f|
   - content_for :filters_col_full do
-    = hidden_field_tag :breakdown, breakdown
     .row
       - @sections.in_groups(2).each do |sections|
         .col-md-6
