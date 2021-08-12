@@ -1,0 +1,9 @@
+ExitID,EnrollmentID,PersonalID,ExitDate,Destination,OtherDestination,AssessmentDisposition,OtherDisposition,HousingAssessment,SubsidyInformation,ProjectCompletionStatus,EarlyExitReason,ExchangeForSex,ExchangeForSexPastThreeMonths,CountOfExchangeForSex,AskedOrForcedToExchangeForSex,AskedOrForcedToExchangeForSexPastThreeMonths,WorkPlaceViolenceThreats,WorkplacePromiseDifference,CoercedToContinueWork,LaborExploitPastThreeMonths,CounselingReceived,IndividualCounseling,FamilyCounseling,GroupCounseling,SessionCountAtExit,PostExitCounselingPlan,SessionsInPlan,DestinationSafeClient,DestinationSafeWorker,PosAdultConnections,PosPeerConnections,PosCommunityConnections,AftercareDate,AftercareProvided,EmailSocialMedia,Telephone,InPersonIndividual,InPersonGroup,CMExitReason,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+X-1,E-1,C-1,2019-06-01,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-06-01 12:00:00,2019-06-01 12:00:00,user,,EXPORT
+X-2,E-3,C-3,2019-11-01,3,,,,1,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-06-01 12:00:00,2019-06-01 12:00:00,user,,EXPORT
+X-3,E-5,C-5,2019-06-01,3,,,,4,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-06-01 12:00:00,2019-06-01 12:00:00,user,,EXPORT
+X-4,E-7,C-7,2019-10-01,3,,,,1,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-06-01 12:00:00,2019-06-01 12:00:00,user,,EXPORT
+X-5,E-10,C-1,2019-06-01,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-06-01 12:00:00,2019-06-01 12:00:00,user,,EXPORT
+X-6,E-12,C-3,2019-06-01,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-06-01 12:00:00,2019-06-01 12:00:00,user,,EXPORT
+X-7,E-14,C-5,2019-12-15,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-15 12:00:00,2019-12-15 12:00:00,user,,EXPORT
+X-8,E-16,C-7,2019-06-01,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-06-01 12:00:00,2019-06-01 12:00:00,user,,EXPORT

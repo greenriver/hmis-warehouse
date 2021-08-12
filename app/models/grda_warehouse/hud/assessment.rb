@@ -23,5 +23,10 @@ module GrdaWarehouse::Hud
     has_many :assessment_questions, **hud_assoc(:AssessmentID, 'AssessmentQuestion')
     has_many :assessment_results, **hud_assoc(:AssessmentID, 'AssessmentResult')
 
+    scope :within_range, ->(range) do
+      # convert the range into a standard range for backwards compatability
+      range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
+      where(AssessmentDate: range)
+    end
   end
 end

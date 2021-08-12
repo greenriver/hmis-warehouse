@@ -29,6 +29,17 @@ module HudApr::HudReports
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
       )
+
+      # duplicate belongs_to to
+      belongs_to(
+        :ce_apr_client,
+        -> do
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudApr::Fy2020::AprClient'))
+        end,
+        class_name: 'HudApr::Fy2020::AprClient',
+        foreign_key: :universe_membership_id,
+        inverse_of: :hud_reports_universe_members,
+      )
     end
   end
 end
