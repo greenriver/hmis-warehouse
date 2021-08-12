@@ -167,36 +167,46 @@ module HmisCsvTwentyTwenty::Loader
         next unless File.file?(source_file_path)
 
         encoding = AutoEncodingCsv.detect_encoding(source_file_path)
+        self.class.fix_bad_line_endings(source_file_path, encoding)
         File.open(source_file_path, 'r', encoding: encoding) do |file|
-          if bad_line_endings?(file)
-            copy_length = file.stat.size - 2
-            begin
-              logger.debug "Correcting bad line ending in #{source_file_path}"
-              tmp_file = ::Tempfile.new(file_name)
-              File.copy_stream(file, tmp_file, copy_length, 0)
-              tmp_file.write("\n")
-              File.open(tmp_file.path, 'r', encoding: encoding) do |tmp_file_io|
-                load_source_file_pg(read_from: tmp_file_io, klass: klass, original_file_path: source_file_path)
-              end
-            ensure
-              tmp_file.close
-              tmp_file.unlink
-            end
-          else
-            load_source_file_pg(read_from: file, klass: klass, original_file_path: source_file_path)
-          end
+          load_source_file_pg(read_from: file, klass: klass, original_file_path: source_file_path)
         end
       end
     end
 
-    private def bad_line_endings?(file)
+    def self.fix_bad_line_endings(filename, encoding)
+      tmp_file = ::Tempfile.new(filename)
+      file_with_bad_line_endings = false
+
+      File.open(filename, 'r', encoding: encoding) do |file|
+        file_with_bad_line_endings = ! valid_line_endings?(file)
+      end
+      if file_with_bad_line_endings
+        File.open(filename, 'r', encoding: encoding) do |file|
+          copy_length = file.stat.size - 2
+          Rails.logger.debug "Correcting bad line ending in #{filename}"
+          File.copy_stream(file, tmp_file, copy_length, 0)
+          tmp_file.write("\n")
+          tmp_file.close
+        end
+        FileUtils.cp(tmp_file, filename)
+      end
+    ensure
+      tmp_file&.close
+      tmp_file&.unlink
+    end
+
+    def self.valid_line_endings?(file)
       return false if file.stat.size < 10
 
       position = file.pos
-      file.seek(file.stat.size - 2)
-      final_characters = file.read == "\r\n"
+      first_line = file.first
+      first_line_final_characters = first_line.last(2)
       file.seek(position)
-      final_characters
+      file.seek(file.stat.size - 2)
+      valid_line_endings = file.read == first_line_final_characters
+      file.seek(position)
+      valid_line_endings
     end
 
     private def load_source_file_pg(read_from:, klass:, original_file_path:)
