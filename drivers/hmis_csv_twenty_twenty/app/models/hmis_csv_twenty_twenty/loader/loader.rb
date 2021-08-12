@@ -181,6 +181,7 @@ module HmisCsvTwentyTwenty::Loader
       File.open(filename, 'r', encoding: encoding) do |file|
         file_with_bad_line_endings = ! valid_line_endings?(file)
       end
+
       if file_with_bad_line_endings
         File.open(filename, 'r', encoding: encoding) do |file|
           copy_length = file.stat.size - 2
@@ -204,9 +205,14 @@ module HmisCsvTwentyTwenty::Loader
       first_line_final_characters = first_line.last(2)
       file.seek(position)
       file.seek(file.stat.size - 2)
-      valid_line_endings = file.read == first_line_final_characters
       file.seek(position)
-      valid_line_endings
+      last_two_chars = file.read
+      # windows
+      return true if last_two_chars == "\r\n" && first_line_final_characters == "\r\n"
+      # unix
+      return true if last_two_chars != "\r\n" && last_two_chars.last == "\n" && first_line_final_characters.last == "\n"
+
+      false
     end
 
     private def load_source_file_pg(read_from:, klass:, original_file_path:)
