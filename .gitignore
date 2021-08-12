@@ -126,3 +126,6 @@ shape_files/**/*
 
 # Claims Reporting Reference data
 config/claims_reporting/*
+
+# Never commit any fixpoints
+**/fixpoints/*.yml
