@@ -684,7 +684,7 @@ class RollOut
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
         },
-        launch_type: 'EC2',
+        #launch_type: 'EC2',
         # placement_constraints: placement_constraints,
         placement_strategy: _placement_strategy,
         load_balancers: load_balancers,
