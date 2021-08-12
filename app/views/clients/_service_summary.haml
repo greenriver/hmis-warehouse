@@ -11,13 +11,14 @@
 
   - if @client.date_of_last_service.present?
     %ul.client__summary-details.list-unstyled
-      %li
-        %h4 Last Seen
-        %span= "#{time_ago_in_words(@client.date_of_last_service)} ago"
-      - if seen_before
+      - unless @client.class.hide_last_seen_info?
         %li
-          %h4 Last Seen Location
-          %span=projects.to_sentence
+          %h4 Last Seen
+          %span= "#{time_ago_in_words(@client.date_of_last_service)} ago"
+        - if seen_before
+          %li
+            %h4 Last Seen Location
+            %span=projects.to_sentence
       %li
         %h4 Days in Last 3 Years
         .client__days-homeless

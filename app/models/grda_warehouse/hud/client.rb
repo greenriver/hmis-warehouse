@@ -869,6 +869,10 @@ module GrdaWarehouse::Hud
       update(sync_with_cas: false)
     end
 
+    def self.hide_last_seen_info?
+      ENV.fetch('CLIENT_HIDE_LAST_SEEN_INFO', false)
+    end
+
     def scope_for_ongoing_residential_enrollments
       service_history_enrollments.
         entry.
@@ -1452,7 +1456,7 @@ module GrdaWarehouse::Hud
       image_directory = File.join('public', 'fake_photos', age_group, gender)
       available = Dir[File.join(image_directory, '*.jpg')]
       image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
-      logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Self/RedundantSelf
+      logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
       image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
     end
 
@@ -2247,7 +2251,7 @@ module GrdaWarehouse::Hud
     # Build a set of potential client matches grouped by criteria
     # FIXME: consolidate this logic with merge_candidates below
     def potential_matches
-      @potential_matches ||= begin
+      @potential_matches ||= begin # rubocop:disable Style/RedundantBegin
         {}.tap do |m|
           c_arel = self.class.arel_table
           # Find anyone with a nickname match
