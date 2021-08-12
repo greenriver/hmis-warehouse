@@ -1,0 +1,19 @@
+EnrollmentID,PersonalID,ProjectID,EntryDate,HouseholdID,RelationshipToHoH,LivingSituation,LengthOfStay,LOSUnderThreshold,PreviousStreetESSH,DateToStreetESSH,TimesHomelessPastThreeYears,MonthsHomelessPastThreeYears,DisablingCondition,DateOfEngagement,MoveInDate,DateOfPATHStatus,ClientEnrolledInPATH,ReasonNotEnrolled,WorstHousingSituation,PercentAMI,LastPermanentStreet,LastPermanentCity,LastPermanentState,LastPermanentZIP,AddressDataQuality,DateOfBCPStatus,EligibleForRHY,ReasonNoServices,RunawayYouth,SexualOrientation,SexualOrientationOther,FormerWardChildWelfare,ChildWelfareYears,ChildWelfareMonths,FormerWardJuvenileJustice,JuvenileJusticeYears,JuvenileJusticeMonths,UnemploymentFam,MentalHealthIssuesFam,PhysicalDisabilityFam,AlcoholDrugAbuseFam,InsufficientIncome,IncarceratedParent,ReferralSource,CountOutreachReferralApproaches,UrgentReferral,TimeToHousingLoss,ZeroIncome,AnnualPercentAMI,FinancialChange,HouseholdChange,EvictionHistory,SubsidyAtRisk,LiteralHomelessHistory,DisabledHoH,CriminalRecord,SexOffender,DependentUnder6,SingleParent,HH5Plus,IraqAfghanistan,FemVet,HPScreeningScore,ThresholdScore,VAMCStation,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+E-1,C-1,DEFAULT-PH,2018-12-01,H-1,1,,,,,,,,1,,2019-02-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-2,C-2,DEFAULT-PH,2019-02-01,H-2,1,,,,,2017-12-01,,,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-02-01 12:00:00,2019-02-01 12:00:00,user,,EXPORT
+E-3,C-3,DEFAULT-PH,2018-12-01,H-3,2,,,,,,,,0,,2019-06-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-4,C-4,DEFAULT-PH,2018-12-01,H-4,1,,,,,,,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-5,C-5,DEFAULT-PH,2018-12-01,H-5,1,,,,,,,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-6,C-6,DEFAULT-PH,2016-02-29,H-6,1,,,,,,,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-7,C-7,DEFAULT-PH,2018-12-01,H-3,1,,,,,,,,0,,2019-06-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-8,C-8,DEFAULT-PH,2018-12-01,H-7,1,,,,,,,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-9,C-9,DEFAULT-PH,2018-12-01,H-8,1,,,,,,,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-10,C-1,NBN,2018-12-01,H-9,1,,,,,,,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-11,C-2,NBN,2018-12-01,H-10,1,,,,,2017-12-01,,,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-12,C-3,NBN,2018-12-01,H-11,2,,,,,,,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-13,C-4,NBN,2018-12-01,H-12,1,,,,,,,,0,2019-02-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-14,C-5,NBN,2018-12-01,H-13,1,,,,,,,,0,2019-02-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-15,C-6,NBN,2018-12-01,H-14,1,,,,,,,,0,2019-02-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-16,C-7,NBN,2018-12-01,H-11,1,,,,,,,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-17,C-8,NBN,2018-12-01,H-15,1,,,,,,,,0,2019-02-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT
+E-18,C-9,NBN,2018-12-01,H-16,1,,,,,,,,0,2019-02-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2018-12-01 12:00:00,2018-12-01 12:00:00,user,,EXPORT

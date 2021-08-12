@@ -57,6 +57,7 @@ module WarehouseReports
       end
       reports['HapReport::Report'] = HapReport::Report if RailsDrivers.loaded.include?(:hap_report)
       reports['PerformanceMetrics::Report'] = PerformanceMetrics::Report if RailsDrivers.loaded.include?(:performance_metrics)
+      reports['HomelessSummaryReport::Report'] = HomelessSummaryReport::Report if RailsDrivers.loaded.include?(:homeless_summary_report)
       reports
     end
   end

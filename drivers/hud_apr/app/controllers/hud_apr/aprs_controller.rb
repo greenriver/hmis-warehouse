@@ -42,6 +42,12 @@ module HudApr
       @path_for_running = running_hud_reports_aprs_path(link_params.except('action', 'controller'))
     end
 
+    def history
+      @questions = generator.questions.keys
+      @contents = @report&.completed_questions
+      @path_for_running = running_hud_reports_aprs_path(link_params.except('action', 'controller'))
+    end
+
     def new
     end
 
@@ -49,7 +55,7 @@ module HudApr
       if @filter.valid?
         @report = report_source.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
         generator.new(@report).queue
-        redirect_to hud_reports_apr_path(0)
+        redirect_to history_hud_reports_aprs_path
       else
         render :new
       end
@@ -58,7 +64,7 @@ module HudApr
     def destroy
       @report.destroy
       flash[:notice] = 'Report removed'
-      redirect_to hud_reports_apr_path(0)
+      redirect_to history_hud_reports_aprs_path
     end
   end
 end
