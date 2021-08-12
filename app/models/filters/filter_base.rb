@@ -52,10 +52,15 @@ module Filters
     attribute :disabilities, Array, default: []
     attribute :indefinite_disabilities, Array, default: []
     attribute :dv_status, Array, default: []
+    attribute :currently_fleeing, Array, default: []
     attribute :chronic_status, Boolean, default: false
     attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
     attribute :limit_to_vispdat, Symbol, default: :all_clients
     attribute :times_homeless_in_last_three_years, Array, default: []
+    attribute :rrh_move_in, Boolean, default: false
+    attribute :psh_move_in, Boolean, default: false
+    attribute :first_time_homeless, Boolean, default: false
+    attribute :returned_to_homelessness_from_permanent_destination, Boolean, default: false
 
     validates_presence_of :start, :end
 
@@ -115,7 +120,12 @@ module Filters
       self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map(&:to_i).presence || disabilities
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map(&:to_i).presence || indefinite_disabilities
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map(&:to_i).presence || dv_status
+      self.currently_fleeing = filters.dig(:currently_fleeing)&.reject(&:blank?)&.map(&:to_i).presence || currently_fleeing
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true]) unless filters.dig(:chronic_status).nil?
+      self.rrh_move_in = filters.dig(:rrh_move_in).in?(['1', 'true', true]) unless filters.dig(:rrh_move_in).nil?
+      self.psh_move_in = filters.dig(:psh_move_in).in?(['1', 'true', true]) unless filters.dig(:psh_move_in).nil?
+      self.first_time_homeless = filters.dig(:first_time_homeless).in?(['1', 'true', true]) unless filters.dig(:first_time_homeless).nil?
+      self.returned_to_homelessness_from_permanent_destination = filters.dig(:returned_to_homelessness_from_permanent_destination).in?(['1', 'true', true]) unless filters.dig(:returned_to_homelessness_from_permanent_destination).nil?
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true]) unless filters.dig(:coordinated_assessment_living_situation_homeless).nil?
       vispdat_limit = filters.dig(:limit_to_vispdat)&.to_sym
       self.limit_to_vispdat = vispdat_limit if vispdat_limit.present? && available_vispdat_limits.values.include?(vispdat_limit)
@@ -158,7 +168,12 @@ module Filters
           disabilities: disabilities,
           indefinite_disabilities: indefinite_disabilities,
           dv_status: dv_status,
+          currently_fleeing: currently_fleeing,
           chronic_status: chronic_status,
+          rrh_move_in: rrh_move_in,
+          psh_move_in: psh_move_in,
+          first_time_homeless: first_time_homeless,
+          returned_to_homelessness_from_permanent_destination: returned_to_homelessness_from_permanent_destination,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
           limit_to_vispdat: limit_to_vispdat,
           enforce_one_year_range: enforce_one_year_range,
@@ -182,6 +197,10 @@ module Filters
         :hoh_only,
         :sub_population,
         :chronic_status,
+        :rrh_move_in,
+        :psh_move_in,
+        :first_time_homeless,
+        :returned_to_homelessness_from_permanent_destination,
         :coordinated_assessment_living_situation_homeless,
         :coc_code,
         :limit_to_vispdat,
@@ -205,6 +224,7 @@ module Filters
         disabilities: [],
         indefinite_disabilities: [],
         dv_status: [],
+        currently_fleeing: [],
         prior_living_situation_ids: [],
         length_of_times: [],
         times_homeless_in_last_three_years: [],
@@ -240,7 +260,12 @@ module Filters
         opts['Disabilities'] = chosen_disabilities if disabilities.any?
         opts['Indefinite and Impairing Disabilities'] = chosen_indefinite_disabilities if indefinite_disabilities.any?
         opts['DV Status'] = chosen_dv_status if dv_status.any?
+        opts['Currently Fleeing DV'] = chosen_currently_fleeing if currently_fleeing.any?
         opts['Chronically Homeless'] = 'Yes' if chronic_status
+        opts['With RRH Move-in'] = 'Yes' if rrh_move_in
+        opts['With PSH Move-in'] = 'Yes' if psh_move_in
+        opts['Fist Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
+        opts['Returned to Homelessness from Permanent Destination'] = 'Yes' if returned_to_homelessness_from_permanent_destination
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
@@ -668,6 +693,8 @@ module Filters
         'Indefinite Disability'
       when :dv_status
         'DV Status'
+      when :currently_fleeing
+        'Currently Fleeing DV'
       when :heads_of_household, :hoh_only
         'Heads of Household Only?'
       when :limit_to_vispdat
@@ -726,6 +753,8 @@ module Filters
         chosen_indefinite_disabilities
       when :dv_status
         chosen_dv_status
+      when :currently_fleeing
+        chosen_currently_fleeing
       when :heads_of_household, :hoh_only
         'Yes' if heads_of_household || hoh_only
       when :limit_to_vispdat
@@ -847,6 +876,12 @@ module Filters
       end.join(', ')
     end
 
+    def chosen_currently_fleeing
+      currently_fleeing.map do |id|
+        available_currently_fleeing.invert[id]
+      end.join(', ')
+    end
+
     def data_source_names
       data_source_options_for_select(user: user).
         select do |_, id|
@@ -911,6 +946,10 @@ module Filters
     end
 
     def available_dv_status
+      HUD.no_yes_reasons_for_missing_data_options.invert
+    end
+
+    def available_currently_fleeing
       HUD.no_yes_reasons_for_missing_data_options.invert
     end
 

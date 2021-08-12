@@ -1,0 +1,15 @@
+- url = polymorphic_path(@report.report_path_array)
+= simple_form_for @filter, as: :filters, url: url do |f|
+  - content_for :filters_col_full do
+    .row
+      - @sections.in_groups(2).each do |sections|
+        .col-md-6
+          - sections.compact.each do |section|
+            - next unless section
+            .form-filters-section-prs1
+              = render 'filters/filter_controls/section_form_fields',
+                section: section, f: f
+  - content_for :filter_actions do
+    = f.submit 'Queue Report', class: ['btn', 'btn-primary']
+
+  = render 'warehouse_reports/filters', f:f

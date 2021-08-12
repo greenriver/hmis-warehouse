@@ -1,0 +1,44 @@
+- title = "Homeless Summary Report Details"
+- content_for :title, title
+= content_for :crumbs do
+  = link_to homeless_summary_report_warehouse_reports_report_path(@report) do
+    &laquo; #{_('Homeless Summary Report')}
+= render 'beta_warning'
+%h1= title
+- unless @detail_clients.present?
+  %p.mt-4 No clients matched the current criteria.
+- else
+  %div
+    SPM Report Variant:
+    %em
+      = "#{@report.variants[@variant.to_sym][:name]}:"
+      = link_to 'view related SPM report', result_hud_reports_spm_measure_path(@spm_id, @measure)
+  %div
+    SPM Report Cell:
+    %em
+      = @cell_name
+  %div.mb-8
+    Total:
+    %em
+      = @detail_clients.count
+  .card
+    .overflow-x-scroll{style: "height: 500px"}
+      %table.table.table-sm.table-bordered.table-fixed
+        %thead.thead-dark
+          %tr
+            %th
+            %th Client
+            %th First Name
+            %th Last Name
+            - @data_cells.each do |cell|
+              %th= cell.to_s.gsub('_', ' ')
+        %tbody.thead-dark
+          - @detail_clients.each_with_index do |client, index|
+            %tr
+              - row_num = index + 1
+              %th= row_num
+              %td= link_to_if can_view_clients?, client.client_id, appropriate_client_path(client.client_id)
+              %td= client.first_name
+              %td= client.last_name
+              - @data_cells.each do |cell|
+                %td= client.send("spm_#{cell}")
