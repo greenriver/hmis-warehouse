@@ -41,17 +41,17 @@ module ClientLocationHistory
     end
 
     def filter_params
-      opts = params.permit(
+      opts = params
+      opts[:filters] ||= {}
+      opts[:filters][:enforce_one_year_range] = false
+      opts[:filters][:start] ||= 6.years.ago
+      opts[:filters][:end] ||= 1.days.ago
+      opts.permit(
         filters: [
           :start,
           :end,
         ],
       )
-      opts[:filters] ||= {}
-      opts[:filters][:enforce_one_year_range] = false
-      opts[:filters][:start] ||= 6.years.ago
-      opts[:filters][:end] ||= 1.days.ago
-      opts
     end
     helper_method :filter_params
 

@@ -86,9 +86,9 @@ module PerformanceMetrics::WarehouseReports
       }
       return { filters: default_options } unless params[:filters].present?
 
-      filters = params.permit(filters: @filter.known_params)
-      filters[:coc_codes] ||= site_coc_codes
-      filters
+      filters = params
+      filters[:filters][:coc_codes] = site_coc_codes if filters[:filters][:coc_codes]&.reject(&:blank?).blank?
+      filters.permit(filters: @filter.known_params)
     end
     helper_method :filter_params
 
