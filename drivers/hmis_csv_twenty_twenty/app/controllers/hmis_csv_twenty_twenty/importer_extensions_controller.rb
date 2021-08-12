@@ -40,6 +40,7 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
       HmisCsvTwentyTwenty::HmisCsvCleanup::PrependOrganizationId,
       HmisCsvTwentyTwenty::Aggregated::CombineEnrollments,
       HmisCsvTwentyTwenty::HmisCsvCleanup::DeleteEmptyEnrollments,
+      HmisCsvTwentyTwenty::HmisCsvCleanup::EnforceRelationshipToHoh,
     ].sort_by(&:associated_model).
       freeze
   end
