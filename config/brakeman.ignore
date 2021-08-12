@@ -1569,6 +1569,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "b16f9b9fa5ec6ee98d24cc67ae42abf131bc179999e5d2a49491b67783f32dce",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
+      "line": 528,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HomelessSummaryReport::Report",
+        "method": "calculate"
+      },
+      "user_input": "field",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "b2c9b6c2e4f603540a84d053a8f50d5208879e95006481a667725bce5fb16b45",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -2215,6 +2235,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-08-11 18:29:00 +0000",
+  "updated": "2021-08-12 15:57:20 +0000",
   "brakeman_version": "5.0.4"
 }
