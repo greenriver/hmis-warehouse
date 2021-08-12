@@ -1,4 +1,4 @@
-- service = ServiceScanning::Service.where(client_id: @client.id).order(provided_at: :desc).first
+- service = ServiceScanning::Service.where(client_id: @client.id).where.not(provided_at: nil).order(provided_at: :desc).first
 - if service.present?
   .w-50
     %ul.client__summary-details.list-unstyled
