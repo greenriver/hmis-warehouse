@@ -168,6 +168,15 @@ module HudApr::Generators::Shared::Fy2020
         a_t[:project_type].in([3, 13]).
           and(a_t[:move_in_date].not_eq(nil)),
       )
+      row_seven_cells.each do |cell|
+        answer = @report.answer(question: table_name, cell: cell[:cell])
+        members = ps_rrh_w_move_in.where(cell[:clause])
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
+    end
+
+    private def row_seven_cells
       [
         # PSH/RRH w/ move in date
         {
@@ -194,12 +203,7 @@ module HudApr::Generators::Shared::Fy2020
           cell: 'F7',
           clause: a_t[:household_type].eq(:unknown),
         },
-      ].each do |cell|
-        answer = @report.answer(question: table_name, cell: cell[:cell])
-        members = ps_rrh_w_move_in.where(cell[:clause])
-        answer.add_members(members)
-        answer.update(summary: members.count)
-      end
+      ]
     end
 
     protected def header_row

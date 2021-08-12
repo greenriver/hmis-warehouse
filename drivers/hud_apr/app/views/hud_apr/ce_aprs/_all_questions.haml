@@ -1,0 +1,12 @@
+.well
+  %p
+    The CE-APR contains 7 questions, labeled 4 through 10.  Each question contains one or more tables of data.  Questions can be run individually below, or can be run all together.  Each report run can be downloaded as a zip file suitable for upload to HUD by following the link in the
+    %strong Status
+    column on subsequent pages.
+  %p
+    = link_to history_hud_reports_ce_aprs_path do
+      See the history of all report runs and download zip files
+  %p
+    = link_to new_hud_reports_ce_apr_path do
+      Generate New Full CE-APR
+= render 'hud_reports/all_questions_table'

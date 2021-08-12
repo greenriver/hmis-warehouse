@@ -452,6 +452,9 @@ GEM
       activerecord
       kaminari-core (= 1.2.1)
     kaminari-core (1.2.1)
+    kiba (4.0.0)
+    kiba-common (1.5.0)
+      kiba (>= 3.0.0, < 5)
     linefit (0.3.4)
     list_matcher (1.1.8)
     listen (3.4.0)
@@ -932,6 +935,8 @@ DEPENDENCIES
   jquery-ui-rails
   json
   kaminari
+  kiba
+  kiba-common
   linefit
   list_matcher
   lograge

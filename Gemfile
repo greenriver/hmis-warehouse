@@ -132,6 +132,9 @@ gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupide
 
 gem 'redcarpet'
 
+gem 'kiba'
+gem 'kiba-common'
+
 # For exporting
 gem 'caxlsx'
 gem 'caxlsx_rails'

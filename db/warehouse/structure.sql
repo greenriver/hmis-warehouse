@@ -516,7 +516,13 @@ CREATE TABLE public."Client" (
     "encrypted_NameSuffix" character varying,
     "encrypted_NameSuffix_iv" character varying,
     soundex_first character varying,
-    soundex_last character varying
+    soundex_last character varying,
+    "Female" integer,
+    "Male" integer,
+    "GenderOther" integer,
+    "Transgender" integer,
+    "Questioning" integer,
+    "GenderNone" integer
 );
 
 
@@ -737,7 +743,8 @@ CREATE TABLE public."Disabilities" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "AntiRetroviral" integer
 );
 
 
@@ -931,7 +938,16 @@ CREATE TABLE public."Enrollment" (
     "SexualOrientationOther" character varying(100),
     history_generated_on date,
     original_household_id character varying,
-    service_history_processing_job_id bigint
+    service_history_processing_job_id bigint,
+    "MentalHealthDisorderFam" integer,
+    "AlcoholDrugUseDisorderFam" integer,
+    "ClientLeaseholder" integer,
+    "HOHLeasesholder" integer,
+    "IncarceratedAdult" integer,
+    "PrisonDischarge" integer,
+    "CurrentPregnant" integer,
+    "CoCPrioritized" integer,
+    "TargetScreenReqd" integer
 );
 
 
@@ -1157,7 +1173,8 @@ CREATE TABLE public."Export" (
     id integer NOT NULL,
     "SourceType" integer,
     effective_export_end_date date,
-    source_hash character varying
+    source_hash character varying,
+    "CSVVersion" character varying
 );
 
 
@@ -1301,7 +1318,11 @@ CREATE TABLE public."HealthAndDV" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "LifeValue" integer,
+    "SupportfromOthers" integer,
+    "BounceBack" integer,
+    "FeelingFrequency" integer
 );
 
 
@@ -1411,7 +1432,9 @@ CREATE TABLE public."IncomeBenefits" (
     "OtherInsuranceIdentify" character varying(50),
     "ConnectionWithSOAR" integer,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "RyanWhiteMedDent" integer,
+    "NoRyanWhiteReason" integer
 );
 
 
@@ -1514,7 +1537,8 @@ CREATE TABLE public."Organization" (
     dmh boolean DEFAULT false NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "VictimServicesProvider" integer
+    "VictimServicesProvider" integer,
+    "VictimServiceProvider" integer
 );
 
 
@@ -1581,7 +1605,8 @@ CREATE TABLE public."Project" (
     hmis_participating_project_override integer,
     target_population_override integer,
     tracking_method_override integer,
-    operating_end_date_override date
+    operating_end_date_override date,
+    "HOPWAMedAssistedLivingFac" integer
 );
 
 
@@ -1678,7 +1703,8 @@ CREATE TABLE public."Services" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "MovingOnOtherType" character varying
 );
 
 
@@ -1768,6 +1794,48 @@ CREATE SEQUENCE public."User_id_seq"
 --
 
 ALTER SEQUENCE public."User_id_seq" OWNED BY public."User".id;
+
+
+--
+-- Name: YouthEducationStatus; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."YouthEducationStatus" (
+    id bigint NOT NULL,
+    "YouthEducationStatusID" character varying(32) NOT NULL,
+    "EnrollmentID" character varying(32) NOT NULL,
+    "PersonalID" character varying(32) NOT NULL,
+    "InformationDate" date NOT NULL,
+    "CurrentSchoolAttend" integer,
+    "MostRecentEdStatus" integer,
+    "CurrentEdStatus" integer,
+    "DataCollectionStage" integer NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying(32) NOT NULL,
+    data_source_id integer
+);
+
+
+--
+-- Name: YouthEducationStatus_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."YouthEducationStatus_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: YouthEducationStatus_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."YouthEducationStatus_id_seq" OWNED BY public."YouthEducationStatus".id;
 
 
 --
@@ -14979,6 +15047,13 @@ ALTER TABLE ONLY public."User" ALTER COLUMN id SET DEFAULT nextval('public."User
 
 
 --
+-- Name: YouthEducationStatus id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."YouthEducationStatus" ALTER COLUMN id SET DEFAULT nextval('public."YouthEducationStatus_id_seq"'::regclass);
+
+
+--
 -- Name: ad_hoc_batches id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -17065,6 +17140,14 @@ ALTER TABLE ONLY public."Services"
 
 ALTER TABLE ONLY public."User"
     ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: YouthEducationStatus YouthEducationStatus_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."YouthEducationStatus"
+    ADD CONSTRAINT "YouthEducationStatus_pkey" PRIMARY KEY (id);
 
 
 --
@@ -28846,6 +28929,20 @@ CREATE UNIQUE INDEX "unk_Site" ON public."Geography" USING btree (data_source_id
 
 
 --
+-- Name: youth_ed_ev_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX youth_ed_ev_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", data_source_id);
+
+
+--
+-- Name: youth_eds_id_e_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX youth_eds_id_e_id_p_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", "EnrollmentID", "PersonalID", data_source_id);
+
+
+--
 -- Name: stats_shs_2000_age_homeless; Type: STATISTICS; Schema: public; Owner: -
 --
 
@@ -31298,6 +31395,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210729201521'),
 ('20210809124146'),
 ('20210809130851'),
+('20210809154208'),
 ('20210809184745'),
 ('20210810182752');
 
