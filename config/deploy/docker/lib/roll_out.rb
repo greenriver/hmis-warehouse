@@ -68,9 +68,9 @@ class RollOut
       exit
     end
 
-    if target_group_name.match?(/production/)
+    if target_group_name.match?(/production|prd/)
       self.rails_env = 'production'
-    elsif target_group_name.match?(/staging/)
+    elsif target_group_name.match?(/staging|stg/)
       self.rails_env = 'staging'
     else
       raise "Cannot figure out environment from target_group_name!"
@@ -684,7 +684,7 @@ class RollOut
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
         },
-        launch_type: 'EC2',
+        #launch_type: 'EC2',
         # placement_constraints: placement_constraints,
         placement_strategy: _placement_strategy,
         load_balancers: load_balancers,

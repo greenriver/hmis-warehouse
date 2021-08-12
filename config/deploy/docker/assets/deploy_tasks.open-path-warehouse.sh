@@ -2,6 +2,21 @@
 
 set -eo pipefail
 
+# strip extension installation to avoid permissions failures
+# use sed -i.bak syntax for cross compatibility with macos and linux
+sed -i.bak '/EXTENSION/d' db/structure.sql
+sed -i.bak '/EXTENSION/d' db/health/structure.sql
+sed -i.bak '/EXTENSION/d' db/reporting/structure.sql
+sed -i.bak '/EXTENSION/d' db/warehouse/structure.sql
+
+# cleanup sed backup files
+rm db/structure.sql.bak
+rm db/health/structure.sql.bak
+rm db/reporting/structure.sql.bak
+rm db/warehouse/structure.sql.bak
+
+./bin/db_prep
+
 echo Storing Themed Maintenance Page
 bundle exec rake maintenance:create
 
