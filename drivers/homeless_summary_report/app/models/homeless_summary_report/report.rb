@@ -144,7 +144,8 @@ module HomelessSummaryReport
 
       # Work through all the SPM report variants, building up the `report_clients` as we go.
       spm_reports.each do |variant_name, report|
-        spm_fields.each do |spm_field, cells|
+        spm_fields.each do |spm_field, parts|
+          cells = parts[:cells]
           cells.each do |cell|
             spm_clients = answer_clients(report[:report], *cell)
             spm_clients.each do |spm_client|
@@ -166,7 +167,6 @@ module HomelessSummaryReport
       end
 
       # With all the fields populated we need to process `exited_from_homeless_system`
-      # TODO: Could we just make this a scope on the client model?
       report_clients = report_clients.transform_values! do |client|
         client.spm_exited_from_homeless_system = (
             client.spm_m7a1_c3 ||
@@ -223,10 +223,48 @@ module HomelessSummaryReport
 
     def measures
       {
-        'Measure 1': m1_fields.keys,
-        'Measure 2': m2_fields,
-        'Measure 7': m7_fields,
+        'Measure 1' => {
+          fields: m1_fields,
+          headers: [
+            'Client Count',
+            'Average Days',
+            'Median Days',
+          ],
+        },
+        'Measure 2' => {
+          fields: m2_fields,
+          headers: [
+            'Client Count',
+            '% in Category',
+          ],
+        },
+        'Measure 7' => {
+          fields: {
+            exited_from_homeless_system: {
+              title: 'Clients',
+              calculations: [:count, :count_destinations],
+            },
+          },
+          headers: [
+            'Client Count',
+            'Permanent Destinations',
+            'Temporary Destinations',
+            'Institutional Destinations',
+          ] + ::HUD.valid_destinations.map { |id, d| "#{d} (#{id})" },
+        },
       }
+      # Measure 1 is table with Client Count, Average Days, Median Days
+      # Measure 2 is table with Client Count, % in each category
+      # Measure 7 is table with Client Count, Permanent Destination Count, Temporary Destination Count, Permanent Unknown count,
+      # Measure 7 is table with Client Count, column for count of every destination
+    end
+
+    def destinations
+      [
+        HUD.permanent_destinations,
+        HUD.temporary_destinations,
+        HUD.institutional_destinations,
+      ] + HUD.valid_destinations.keys
     end
 
     def field_measure(field)
@@ -236,16 +274,32 @@ module HomelessSummaryReport
     end
 
     def m1_fields
-      spm_fields.filter { |f| field_measure(f) == 1 }
+      spm_fields.filter { |f, _| field_measure(f) == 1 }
     end
 
     def m2_fields
-      [
-        :m2_reentry_days,
-        :m2_reentry_0_to_180_days,
-        :m2_reentry_181_to_365_days,
-        :m2_reentry_366_to_730_days,
-      ]
+      {
+        m2_reentry_days: {
+          title: 'Total',
+          calculations: [:count, :percent],
+          total: :spm_m2_reentry_days,
+        },
+        m2_reentry_0_to_180_days: {
+          title: 'Re-entering within 6 months',
+          calculations: [:count, :percent],
+          total: :spm_m2_reentry_days,
+        },
+        m2_reentry_181_to_365_days: {
+          title: 'Re-entering within 6-12 months',
+          calculations: [:count, :percent],
+          total: :spm_m2_reentry_days,
+        },
+        m2_reentry_366_to_730_days: {
+          title: 'Re-entering within 1-2 years',
+          calculations: [:count, :percent],
+          total: :spm_m2_reentry_days,
+        },
+      }
     end
 
     def m7_fields
@@ -265,31 +319,57 @@ module HomelessSummaryReport
 
     def spm_fields
       {
-        m1a_es_sh_days: [['1a', 'C2']],
-        m1a_es_sh_th_days: [['1a', 'C3']],
-        m1b_es_sh_ph_days: [['1b', 'C2']],
-        m1b_es_sh_th_ph_days: [['1b', 'C3']],
-
-        m2_reentry_days: [['2', 'B7']],
-
-        m7a1_destination: [
-          ['7a.1', 'C2'],
-          ['7a.1', 'C3'],
-          ['7a.1', 'C4'],
-        ],
-        m7b1_destination: [
-          ['7b.1', 'C2'],
-          ['7b.1', 'C3'],
-        ],
-        m7b2_destination: [
-          ['7b.2', 'C2'],
-          ['7b.2', 'C3'],
-        ],
+        m1a_es_sh_days: {
+          cells: [['1a', 'C2']],
+          title: 'Clients with ES or SH stays',
+          calculations: [:count, :average, :median],
+        },
+        m1a_es_sh_th_days: {
+          cells: [['1a', 'C3']],
+          title: 'Clients with ES, SH, or TH stays',
+          calculations: [:count, :average, :median],
+        },
+        m1b_es_sh_ph_days: {
+          cells: [['1b', 'C2']],
+          title: 'Clients with ES, SH, or PH stays',
+          calculations: [:count, :average, :median],
+        },
+        m1b_es_sh_th_ph_days: {
+          cells: [['1b', 'C3']],
+          title: 'Clients with ES, SH, TH, or PH stays',
+          calculations: [:count, :average, :median],
+        },
+        m2_reentry_days: {
+          cells: [['2', 'B7']],
+          title: 'Clients Re-Entering Homelessness',
+        },
+        m7a1_destination: {
+          cells: [
+            ['7a.1', 'C2'],
+            ['7a.1', 'C3'],
+            ['7a.1', 'C4'],
+          ],
+          title: 'Exiting SO',
+        },
+        m7b1_destination: {
+          cells: [
+            ['7b.1', 'C2'],
+            ['7b.1', 'C3'],
+          ],
+          title: 'ES, SH, TH, and PH-RRH who exited',
+        },
+        m7b2_destination: {
+          cells: [
+            ['7b.2', 'C2'],
+            ['7b.2', 'C3'],
+          ],
+          title: 'PH projects except PH-RRH who exited after moving into housing',
+        },
       }.freeze
     end
 
     def variants
-      self.class.report_variants
+      @variants ||= self.class.report_variants
     end
 
     def self.report_variants
@@ -433,7 +513,33 @@ module HomelessSummaryReport
         'Measure 2' => [:returned_to_homelessness_from_permanent_destination],
         'Measure 7' => [:returned_to_homelessness_from_permanent_destination],
       }
-      @exclude_variants[measure_name].include?(variant)
+      @exclude_variants[measure_name.to_s]&.include?(variant)
+    end
+
+    def calculate(variant, field, calculation, options)
+      cell = "spm_#{field}"
+      scope = clients.send(variant).send(cell)
+
+      value = case calculation
+
+      when :count
+        scope.count
+      when :average
+        scope.average(cell)
+      when :median
+        scope.median(cell)
+      when :percent
+        denominator = clients.send(variant).send(options[:total]).count
+        (scope.count / denominator.to_f) * 100 unless denominator.zero?
+      when :count_destinations
+        # spm_m7a1_destination
+        rc_t = Client.arel_table
+        scope.where(
+          rc_t[:spm_m7a1_destination].in(Array.wrap(options[:destination])).
+          or(rc_t[:spm_m7b1_destination].in(Array.wrap(options[:destination]))),
+        ).count
+      end
+      value&.round(1) || 0
     end
   end
 end

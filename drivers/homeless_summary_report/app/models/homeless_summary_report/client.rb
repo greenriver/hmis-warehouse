@@ -36,7 +36,7 @@ module HomelessSummaryReport
     scope :spm_m7b1_c3, -> { where(arel_table[:spm_m7b1_c3].eq(true)) }
     scope :spm_m7b2_c2, -> { where(arel_table[:spm_m7b2_c2].eq(true)) }
     scope :spm_m7b2_c3, -> { where(arel_table[:spm_m7b2_c3].eq(true)) }
-    # TODO: might prefer to call this `m7_exited_from_homeless_system`
+
     scope :spm_exited_from_homeless_system, -> { where(arel_table[:spm_exited_from_homeless_system].eq(true)) }
   end
 end
