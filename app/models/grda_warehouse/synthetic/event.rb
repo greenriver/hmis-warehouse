@@ -82,7 +82,7 @@ module GrdaWarehouse::Synthetic
         Event: event,
         ProbSolDivRRResult: client_housed_in_a_safe_alternative,
         ReferralCaseManageAfter: enrolled_in_aftercare_project,
-        LocationCrisisOrPHHousing: location_of_crisis_or_ph_housing,
+        LocationCrisisorPHHousing: location_of_crisis_or_ph_housing, # NOTE: case should LocationCrisisOrPHHousing
         ReferralResult: referral_result,
         ResultDate: result_date,
         DateCreated: source.created_at,
