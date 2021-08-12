@@ -228,6 +228,15 @@ module HudSpmReport::Generators::Fy2020
       scope = filter_for_race(scope)
       scope = filter_for_ethnicity(scope)
       scope = filter_for_sub_population(scope)
+      # Some additional filtering that isn't exposed in the UI but
+      # is used for the homeless summary report
+      scope = filter_for_dv_currently_fleeing(scope)
+      scope = filter_for_veteran_status(scope)
+      scope = filter_for_indefinite_disabilities(scope)
+      scope = filter_for_rrh_move_in(scope)
+      scope = filter_for_psh_move_in(scope)
+      scope = filter_for_first_time_homeless_in_past_two_years(scope)
+      scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
       scope
     end
 
@@ -1360,7 +1369,7 @@ module HudSpmReport::Generators::Fy2020
         # Move new start date back based on contiguous homelessness before the start date above
         new_client_start_date = client_start_date.to_date
         days_before_client_start_date.reverse_each do |d|
-          if d.to_date == new_client_start_date.to_date - 1.day
+          if d.to_date == new_client_start_date.to_date - 1.day # rubocop:disable Style/GuardClause
             new_client_start_date = d.to_date
           else
             # Non-contiguous
@@ -1511,7 +1520,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def in_stop_project_on?(night, date, stop_project_types, consider_move_in_dates)
-      if consider_move_in_dates && PH.include?(night[:project_type])
+      if consider_move_in_dates && PH.include?(night[:project_type]) # rubocop:disable Style/GuardClause
         return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].present? && night[:MoveInDate] <= date))
       else
         return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))

@@ -22,7 +22,7 @@ module
       ]
     end
 
-    protected def build_general_control_section
+    protected def build_general_control_section(include_comparison_period: true)
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
         section.add_control(
           id: 'project_types',
@@ -42,10 +42,12 @@ module
           required: true,
           value: @filter.date_range_words,
         )
-        section.add_control(
-          id: 'comparison_period',
-          value: nil,
-        )
+        if include_comparison_period
+          section.add_control(
+            id: 'comparison_period',
+            value: nil,
+          )
+        end
       end
     end
 
@@ -59,14 +61,14 @@ module
       end
     end
 
-    protected def build_coc_control_section
-      title = if GrdaWarehouse::Config.get(:multi_coc_installation)
+    protected def build_coc_control_section(multi_coc = GrdaWarehouse::Config.get(:multi_coc_installation))
+      title = if multi_coc
         'CoC & Funding'
       else
         'Projects & Funding'
       end
       ::Filters::UiControlSection.new(id: 'coc', title: title).tap do |section|
-        if GrdaWarehouse::Config.get(:multi_coc_installation)
+        if multi_coc
           section.add_control(
             id: 'coc_codes',
             label: 'CoC Codes',
@@ -93,6 +95,16 @@ module
         section.add_control(
           id: 'project_groups',
           value: @filter.project_groups,
+        )
+      end
+    end
+
+    protected def build_hoh_control_section
+      ::Filters::UiControlSection.new(id: 'household').tap do |section|
+        section.add_control(
+          id: 'hoh_only',
+          label: 'Only Heads of Household?',
+          value: @filter.hoh_only ? 'HOH Only' : nil,
         )
       end
     end
