@@ -2,18 +2,7 @@
 
 set -eo pipefail
 
-echo loading the sql structure on first deployment
-echo loading app structure
-bundle exec rake db:structure:conditional_load
-echo loading warehouse structure
-bundle exec rake warehouse:db:structure:conditional_load
-echo loading health structure
-bundle exec rake health:db:structure:conditional_load
-echo loading reporting structure
-bundle exec rake reporting:db:structure:conditional_load
-
-echo done loading all the structure files.
-
+./bin/db_prep
 
 echo Storing Themed Maintenance Page
 bundle exec rake maintenance:create
