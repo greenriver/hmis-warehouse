@@ -17,8 +17,8 @@ rm db/warehouse/structure.sql.bak
 
 ./bin/db_prep
 
-echo Storing Themed Maintenance Page
-bundle exec rake maintenance:create
+#echo Storing Themed Maintenance Page
+#bundle exec rake maintenance:create
 
 echo Migrating with individual rake tasks
 
