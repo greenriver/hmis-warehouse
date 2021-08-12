@@ -1,0 +1,48 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+#
+
+module HudTwentyTwentyToTwentyTwentyTwo::Client
+  class TransformGenderToColumns
+    def process(row)
+      # Default values
+      female = 0
+      male = 0
+      gender_other = 0
+      transgender = 0
+      questioning = 0
+      gender_none = nil
+
+      # Override default values based on 2020 Gender
+      # This is pending HUD guidance
+      case row['Gender']
+      when 0
+        female = 1
+      when 1
+        male = 1
+      when 2
+        female = 1
+        transgender = 1
+      when 3
+        male = 1
+        transgender = 1
+      when 4
+        gender_other = 1
+      when 8, 9, 99, nil
+        gender_none = row['Gender']
+      end
+
+      row['Female'] = female
+      row['Male'] = male
+      row['GenderOther'] = gender_other
+      row['Transgender'] = transgender
+      row['Questioning'] = questioning
+      row['GenderNone'] = gender_none
+
+      row
+    end
+  end
+end

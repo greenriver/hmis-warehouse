@@ -60,6 +60,17 @@ FactoryBot.define do
     end
   end
 
+  factory :ensure_relationships_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Ensure Relationships' }
+    short_name { 'Ensure Relationships' }
+    source_type { :s3 }
+    import_cleanups do
+      {
+        'Enrollment': ['HmisCsvTwentyTwenty::HmisCsvCleanup::EnforceRelationshipToHoh'],
+      }
+    end
+  end
+
   factory :dont_cleanup_ds, class: 'GrdaWarehouse::DataSource' do
     name { 'Dont Clean Up Move In Dates' }
     short_name { 'Move In' }

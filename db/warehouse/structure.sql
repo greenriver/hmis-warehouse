@@ -516,7 +516,13 @@ CREATE TABLE public."Client" (
     "encrypted_NameSuffix" character varying,
     "encrypted_NameSuffix_iv" character varying,
     soundex_first character varying,
-    soundex_last character varying
+    soundex_last character varying,
+    "Female" integer,
+    "Male" integer,
+    "GenderOther" integer,
+    "Transgender" integer,
+    "Questioning" integer,
+    "GenderNone" integer
 );
 
 
@@ -737,7 +743,8 @@ CREATE TABLE public."Disabilities" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "AntiRetroviral" integer
 );
 
 
@@ -931,7 +938,16 @@ CREATE TABLE public."Enrollment" (
     "SexualOrientationOther" character varying(100),
     history_generated_on date,
     original_household_id character varying,
-    service_history_processing_job_id bigint
+    service_history_processing_job_id bigint,
+    "MentalHealthDisorderFam" integer,
+    "AlcoholDrugUseDisorderFam" integer,
+    "ClientLeaseholder" integer,
+    "HOHLeasesholder" integer,
+    "IncarceratedAdult" integer,
+    "PrisonDischarge" integer,
+    "CurrentPregnant" integer,
+    "CoCPrioritized" integer,
+    "TargetScreenReqd" integer
 );
 
 
@@ -1157,7 +1173,8 @@ CREATE TABLE public."Export" (
     id integer NOT NULL,
     "SourceType" integer,
     effective_export_end_date date,
-    source_hash character varying
+    source_hash character varying,
+    "CSVVersion" character varying
 );
 
 
@@ -1301,7 +1318,11 @@ CREATE TABLE public."HealthAndDV" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "LifeValue" integer,
+    "SupportfromOthers" integer,
+    "BounceBack" integer,
+    "FeelingFrequency" integer
 );
 
 
@@ -1411,7 +1432,9 @@ CREATE TABLE public."IncomeBenefits" (
     "OtherInsuranceIdentify" character varying(50),
     "ConnectionWithSOAR" integer,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "RyanWhiteMedDent" integer,
+    "NoRyanWhiteReason" integer
 );
 
 
@@ -1514,7 +1537,8 @@ CREATE TABLE public."Organization" (
     dmh boolean DEFAULT false NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "VictimServicesProvider" integer
+    "VictimServicesProvider" integer,
+    "VictimServiceProvider" integer
 );
 
 
@@ -1581,7 +1605,8 @@ CREATE TABLE public."Project" (
     hmis_participating_project_override integer,
     target_population_override integer,
     tracking_method_override integer,
-    operating_end_date_override date
+    operating_end_date_override date,
+    "HOPWAMedAssistedLivingFac" integer
 );
 
 
@@ -1678,7 +1703,8 @@ CREATE TABLE public."Services" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "MovingOnOtherType" character varying
 );
 
 
@@ -1768,6 +1794,48 @@ CREATE SEQUENCE public."User_id_seq"
 --
 
 ALTER SEQUENCE public."User_id_seq" OWNED BY public."User".id;
+
+
+--
+-- Name: YouthEducationStatus; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."YouthEducationStatus" (
+    id bigint NOT NULL,
+    "YouthEducationStatusID" character varying(32) NOT NULL,
+    "EnrollmentID" character varying(32) NOT NULL,
+    "PersonalID" character varying(32) NOT NULL,
+    "InformationDate" date NOT NULL,
+    "CurrentSchoolAttend" integer,
+    "MostRecentEdStatus" integer,
+    "CurrentEdStatus" integer,
+    "DataCollectionStage" integer NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying(32) NOT NULL,
+    data_source_id integer
+);
+
+
+--
+-- Name: YouthEducationStatus_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."YouthEducationStatus_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: YouthEducationStatus_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."YouthEducationStatus_id_seq" OWNED BY public."YouthEducationStatus".id;
 
 
 --
@@ -9216,6 +9284,77 @@ ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_c
 
 
 --
+-- Name: homeless_summary_report_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.homeless_summary_report_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    report_id bigint,
+    first_name character varying,
+    last_name character varying,
+    spm_m1a_es_sh_days integer,
+    spm_m1a_es_sh_th_days integer,
+    spm_m1b_es_sh_ph_days integer,
+    spm_m1b_es_sh_th_ph_days integer,
+    spm_m2_reentry_days integer,
+    spm_m7a1_destination integer,
+    spm_m7b1_destination integer,
+    spm_m7b2_destination integer,
+    spm_m7a1_c2 boolean DEFAULT false,
+    spm_m7a1_c3 boolean DEFAULT false,
+    spm_m7a1_c4 boolean DEFAULT false,
+    spm_m7b1_c2 boolean DEFAULT false,
+    spm_m7b1_c3 boolean DEFAULT false,
+    spm_m7b2_c2 boolean DEFAULT false,
+    spm_m7b2_c3 boolean DEFAULT false,
+    spm_all_persons integer,
+    spm_without_children integer,
+    spm_with_children integer,
+    spm_only_children integer,
+    spm_without_children_and_fifty_five_plus integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24 integer,
+    spm_white_non_hispanic_latino integer,
+    spm_hispanic_latino integer,
+    spm_black_african_american integer,
+    spm_asian integer,
+    spm_american_indian_alaskan_native integer,
+    spm_native_hawaiian_other_pacific_islander integer,
+    spm_multi_racial integer,
+    spm_fleeing_dv integer,
+    spm_veteran integer,
+    spm_has_disability integer,
+    spm_has_rrh_move_in_date integer,
+    spm_has_psh_move_in_date integer,
+    spm_first_time_homeless integer,
+    spm_returned_to_homelessness_from_permanent_destination integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    spm_exited_from_homeless_system boolean DEFAULT false
+);
+
+
+--
+-- Name: homeless_summary_report_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.homeless_summary_report_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: homeless_summary_report_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.homeless_summary_report_clients_id_seq OWNED BY public.homeless_summary_report_clients.id;
+
+
+--
 -- Name: housing_resolution_plans; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14908,6 +15047,13 @@ ALTER TABLE ONLY public."User" ALTER COLUMN id SET DEFAULT nextval('public."User
 
 
 --
+-- Name: YouthEducationStatus id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."YouthEducationStatus" ALTER COLUMN id SET DEFAULT nextval('public."YouthEducationStatus_id_seq"'::regclass);
+
+
+--
 -- Name: ad_hoc_batches id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -15808,6 +15954,13 @@ ALTER TABLE ONLY public.hmis_staff ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_x_clients_id_seq'::regclass);
+
+
+--
+-- Name: homeless_summary_report_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_clients ALTER COLUMN id SET DEFAULT nextval('public.homeless_summary_report_clients_id_seq'::regclass);
 
 
 --
@@ -16990,6 +17143,14 @@ ALTER TABLE ONLY public."User"
 
 
 --
+-- Name: YouthEducationStatus YouthEducationStatus_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."YouthEducationStatus"
+    ADD CONSTRAINT "YouthEducationStatus_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: ad_hoc_batches ad_hoc_batches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18027,6 +18188,14 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: homeless_summary_report_clients homeless_summary_report_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_clients
+    ADD CONSTRAINT homeless_summary_report_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -23958,6 +24127,41 @@ CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_c
 
 
 --
+-- Name: index_homeless_summary_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_client_id ON public.homeless_summary_report_clients USING btree (client_id);
+
+
+--
+-- Name: index_homeless_summary_report_clients_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_created_at ON public.homeless_summary_report_clients USING btree (created_at);
+
+
+--
+-- Name: index_homeless_summary_report_clients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_deleted_at ON public.homeless_summary_report_clients USING btree (deleted_at);
+
+
+--
+-- Name: index_homeless_summary_report_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_report_id ON public.homeless_summary_report_clients USING btree (report_id);
+
+
+--
+-- Name: index_homeless_summary_report_clients_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_clients_on_updated_at ON public.homeless_summary_report_clients USING btree (updated_at);
+
+
+--
 -- Name: index_housing_resolution_plans_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28725,6 +28929,20 @@ CREATE UNIQUE INDEX "unk_Site" ON public."Geography" USING btree (data_source_id
 
 
 --
+-- Name: youth_ed_ev_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX youth_ed_ev_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", data_source_id);
+
+
+--
+-- Name: youth_eds_id_e_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX youth_eds_id_e_id_p_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", "EnrollmentID", "PersonalID", data_source_id);
+
+
+--
 -- Name: stats_shs_2000_age_homeless; Type: STATISTICS; Schema: public; Owner: -
 --
 
@@ -31169,6 +31387,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210714131449'),
 ('20210716144139'),
 ('20210717154701'),
+('20210722155210'),
 ('20210723161722'),
 ('20210726155740'),
 ('20210727134415'),
@@ -31176,6 +31395,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210729201521'),
 ('20210809124146'),
 ('20210809130851'),
+('20210809154208'),
+('20210809184745'),
 ('20210810182752');
 
 
