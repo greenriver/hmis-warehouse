@@ -11,11 +11,11 @@ class AutoEncodingCsv < CSV
       # a Unicode BOM is a strong signal
       magic = File.read(filename, 3, mode: 'rb')
       guessed_encoding = if magic.first(3) == UTF8_BOM
-         'bom|UTF-8'
+        'bom|UTF-8'
       elsif magic.first(2) == UTF16LE_BOM
-         'bom|UTF-16LE'
+        'bom|UTF-16LE'
       elsif magic.first(2) == UTF16BE_BOM
-         'bom|UTF-16BE'
+        'bom|UTF-16BE'
       end
 
       # no BOM we have to try for a statistical match
@@ -37,10 +37,11 @@ class AutoEncodingCsv < CSV
       guessed_encoding
     end
 
-    def open(filename, mode="r", **options)
+    def open(filename, mode = 'r', **options)
       options ||= {}
-
       options[:encoding] = detect_encoding(filename) if mode.start_with?('r') && options[:encoding].nil?
+
+      HmisCsvTwentyTwenty::Loader::Loader.fix_bad_line_endings(filename, options[:encoding]) if mode.start_with?('r')
 
       super filename, mode, **options
     end
