@@ -207,6 +207,9 @@ module HmisCsvTwentyTwenty::Loader
       file.seek(file.stat.size - 2)
       last_two_chars = file.read
       file.seek(position)
+
+      # sometimes the final return is missing
+      return true unless last_two_chars.include?("\n") || last_two_chars.include?("\r")
       # windows
       return true if last_two_chars == "\r\n" && first_line_final_characters == "\r\n"
       # unix
