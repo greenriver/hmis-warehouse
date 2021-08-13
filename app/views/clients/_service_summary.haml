@@ -11,7 +11,7 @@
 
   - if @client.date_of_last_service.present?
     %ul.client__summary-details.list-unstyled
-      - unless @client.class.hide_last_seen_info?
+      - if @client.class.show_last_seen_info?
         %li
           %h4 Last Seen
           %span= "#{time_ago_in_words(@client.date_of_last_service)} ago"

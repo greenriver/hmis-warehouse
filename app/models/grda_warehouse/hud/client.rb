@@ -869,8 +869,8 @@ module GrdaWarehouse::Hud
       update(sync_with_cas: false)
     end
 
-    def self.hide_last_seen_info?
-      ENV.fetch('CLIENT_HIDE_LAST_SEEN_INFO', false)
+    def self.show_last_seen_info?
+      GrdaWarehouse::Config.get(:show_client_last_seen_info_in_client_details)
     end
 
     def scope_for_ongoing_residential_enrollments
