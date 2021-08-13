@@ -9,6 +9,7 @@ BostonHmis::Application.routes.draw do
     resources :aprs do
       get :running, on: :collection
       get :running_all_questions, on: :collection
+      get :history, on: :collection
       resources :questions, only: [:show, :create], controller: 'apr/questions' do
         get :result, on: :member
         get :running, on: :member
@@ -19,10 +20,22 @@ BostonHmis::Application.routes.draw do
     resources :capers do
       get :running, on: :collection
       get :running_all_questions, on: :collection
+      get :history, on: :collection
       resources :questions, only: [:show, :create], controller: 'caper/questions' do
         get :result, on: :member
         get :running, on: :member
         resources :cells, only: :show, controller: 'caper/cells'
+      end
+    end
+
+    resources :ce_aprs do
+      get :running, on: :collection
+      get :running_all_questions, on: :collection
+      get :history, on: :collection
+      resources :questions, only: [:show, :create], controller: 'ce_apr/questions' do
+        get :result, on: :member
+        get :running, on: :member
+        resources :cells, only: :show, controller: 'ce_apr/cells'
       end
     end
   end

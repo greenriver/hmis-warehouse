@@ -7,6 +7,7 @@
 class GrdaWarehouse::Utility
   def self.clear!
     raise 'Refusing to wipe a production warehouse' if Rails.env.production?
+
     tables = [
       GrdaWarehouse::ServiceHistoryEnrollment,
       GrdaWarehouse::WarehouseClientsProcessed,
@@ -62,14 +63,27 @@ class GrdaWarehouse::Utility
       ReportResult,
       AccessGroup,
     ]
+    if RailsDrivers.loaded.include?(:hud_apr)
+      tables << HudApr::Fy2020::AprClient
+      tables << HudApr::Fy2020::AprLivingSituation
+      tables << HudApr::Fy2020::CeAssessment
+      tables << HudApr::Fy2020::CeEvent
+    end
     tables.each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
     end
 
     nil
   end
+
   def self.modifier(model)
-    return 'CASCADE' if [GrdaWarehouse::DataSource,GrdaWarehouse::Hud::Client,GrdaWarehouse::ServiceHistoryEnrollment].include?(model)
+    cascade_models = [
+      GrdaWarehouse::DataSource,
+      GrdaWarehouse::Hud::Client,
+      GrdaWarehouse::ServiceHistoryEnrollment,
+    ]
+    return 'CASCADE' if cascade_models.include?(model)
+
     'RESTRICT'
   end
 end

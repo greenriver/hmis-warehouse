@@ -1,0 +1,44 @@
+= render 'breadcrumbs'
+= render 'beta_warning'
+
+- title = "Homeless Summary Report"
+- content_for :title, title
+%h1= content_for :title
+.well.report-listing.warehouse-reports__completed
+  = @report.filter.describe_filter_as_html
+
+- @report.measures.each do |measure, data|
+  %h2= measure
+  - @report.variants.each do |variant, details|
+    - next if @report.exclude_variants(measure, variant)
+
+    - client = @report.clients.send(variant)&.first
+    %h3= details[:name]
+    - # TODO
+    - # Measure 1 is table with Client Count, Average Days, Median Days
+    - # Measure 2 is table with Client Count, % in each category
+    - # Measure 7 is table with Client Count, Permanent Destination Count, Temporary Destination Count, Permanent Unknown Count,
+    - # Measure 7 is table with Client Count, column for count of every destination
+    - if client
+      - spm_id = client.send("spm_#{variant}")
+      %p= link_to 'view related SPM report', result_hud_reports_spm_measure_path(spm_id, measure)
+      .card.mb-4
+        %table.table.table-striped.mb-0
+          %thead
+            %tr
+              %th
+              - data[:headers].each do |header|
+                %th= header
+          - data[:fields].each do |field, row_data|
+            %tr
+              %th
+                = "#{row_data[:title]}:"
+              - row_data[:calculations].each do |calculation|
+                - if calculation == :count_destinations
+                  - @report.destinations.each do |id|
+                    %td= @report.calculate(variant, field, calculation, row_data.merge(destination: id))
+                - else
+                  %td= link_to_if calculation == :count, @report.calculate(variant, field, calculation, row_data), details_homeless_summary_report_warehouse_reports_report_path(@report, variant: variant, cell: field)
+    - else
+      %p.none-found
+        No Clients found.

@@ -167,6 +167,82 @@ module HMIS::Structure::Project
             null: false,
           },
         }
+      when '2022'
+        {
+          ProjectID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          OrganizationID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          ProjectName: {
+            type: :string,
+            limit: 100,
+            null: false,
+          },
+          ProjectCommonName: {
+            type: :string,
+            limit: 50,
+          },
+          OperatingStartDate: {
+            type: :date,
+            null: false,
+          },
+          OperatingEndDate: {
+            type: :date,
+          },
+          ContinuumProject: {
+            type: :integer,
+            null: false,
+          },
+          ProjectType: {
+            type: :integer,
+          },
+          HousingType: {
+            type: :integer,
+          },
+          ResidentialAffiliation: {
+            type: :integer,
+          },
+          TrackingMethod: {
+            type: :integer,
+          },
+          HMISParticipatingProject: {
+            type: :integer,
+            null: false,
+          },
+          TargetPopulation: {
+            type: :integer,
+          },
+          HOPWAMedAssistedLivingFac: {
+            type: :integer,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
       end
     end
 

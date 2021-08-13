@@ -28,24 +28,11 @@ module HudApr::Generators::Shared::Fy2020
       'Heads of households and adult stayers in the project 365 days or more',
     ].freeze
 
-    private def q5_validations
-      table_name = 'Q5a'
-      metadata = {
-        header_row: TABLE_HEADER,
-        row_labels: ROW_LABELS,
-        first_column: 'B',
-        last_column: 'B',
-        first_row: 1,
-        last_row: 16,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
+    private def intentionally_blank
+      []
+    end
 
-      # Total clients
-      answer = @report.answer(question: table_name, cell: 'B1')
-      members = universe.universe_members
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
+    private def active_questions
       [
         # Number of adults
         {
@@ -128,7 +115,30 @@ module HudApr::Generators::Shared::Fy2020
             or(a_t[:age].eq(nil)).
             and(a_t[:head_of_household].eq(true)),
         },
-      ].each do |cell|
+      ].reject do |q|
+        q[:cell].in?(intentionally_blank)
+      end
+    end
+
+    private def q5_validations
+      table_name = 'Q5a'
+      metadata = {
+        header_row: TABLE_HEADER,
+        row_labels: ROW_LABELS,
+        first_column: 'B',
+        last_column: 'B',
+        first_row: 1,
+        last_row: 16,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      # Total clients
+      answer = @report.answer(question: table_name, cell: 'B1')
+      members = universe.universe_members
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      active_questions.each do |cell|
         answer = @report.answer(question: table_name, cell: cell[:cell])
         members = universe.members.where(cell[:clause])
         answer.add_members(members)
@@ -138,6 +148,8 @@ module HudApr::Generators::Shared::Fy2020
       # HoH and adult stayers in project 365 days or more
       # "...any adult stayer present when the head of household’s stay is 365 days or more,
       # even if that adult has not been in the household that long"
+      return if 'B16'.in?(intentionally_blank)
+
       answer = @report.answer(question: table_name, cell: 'B16')
       members = universe.members.where(
         a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
