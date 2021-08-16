@@ -89,7 +89,7 @@ class RollOut
       SecureRandom.hex(6),
     ].join('::')
 
-    puts "[INFO] DEPLOYMENT_ID=#{self.deployment_id}"
+    puts "[INFO] DEPLOYMENT_ID=#{self.deployment_id} #{target_group_name}"
 
     self.default_environment = [
       { "name" => "ECS", "value" => "true" },
@@ -296,7 +296,7 @@ class RollOut
   end
 
   def _register_task!(name:, image:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30)
-    puts "[INFO] Registering #{name} task"
+    puts "[INFO] Registering #{name} task #{target_group_name}"
 
     environment ||= default_environment.dup
 
@@ -364,8 +364,8 @@ class RollOut
       },
     }
 
-    puts "[INFO] hard RAM limit: #{container_definition[:memory]}"
-    puts "[INFO] soft RAM limit: #{container_definition[:memory_reservation]}"
+    puts "[INFO] hard RAM limit: #{container_definition[:memory]} #{target_group_name}"
+    puts "[INFO] soft RAM limit: #{container_definition[:memory_reservation]} #{target_group_name}"
 
     if !command.nil?
       container_definition[:command] = command
@@ -429,7 +429,7 @@ class RollOut
 
     start_time = Time.now
 
-    puts "[INFO] Running task: #{task_definition}"
+    puts "[INFO] Running task: #{task_definition} #{target_group_name}"
 
     incomplete = true
 
@@ -439,7 +439,7 @@ class RollOut
     }
 
     if _capacity_providers.length > 0
-      puts "[INFO] Using spot capacity provider: #{_spot_capacity_provider_name}"
+      puts "[INFO] Using spot capacity provider: #{_spot_capacity_provider_name} #{target_group_name}"
       run_task_payload[:capacity_provider_strategy] = [
         {
           capacity_provider: _spot_capacity_provider_name,
@@ -448,7 +448,7 @@ class RollOut
         },
       ]
     else
-      puts "[ERROR] No dynamic work capacity provider found. Just running the task."
+      puts "[ERROR] No dynamic work capacity provider found. Just running the task. #{target_group_name}"
     end
 
     while (incomplete) do
@@ -466,9 +466,9 @@ class RollOut
         # ]
 
         results.failures.each do |failure|
-          puts "[FATAL] NOT ENOUGH #{failure.reason} on #{failure.arn}"
+          puts "[FATAL] NOT ENOUGH #{failure.reason} on #{failure.arn} #{target_group_name}"
         end
-        puts "[WARN] The last task did not run. Trying again (hopefully more capacity will free up)..."
+        puts "[WARN] The last task did not run. Trying again (hopefully more capacity will free up)... #{target_group_name}"
         sleep 20
         incomplete = true
       else
@@ -479,14 +479,14 @@ class RollOut
     task_arn = results.tasks.first&.task_arn
 
     if task_arn.nil?
-      puts "[FATAL] Something went wrong with the task. exiting"
+      puts "[FATAL] Something went wrong with the task. exiting #{target_group_name}"
       exit
     end
 
-    puts "[INFO] Task arn: #{task_arn || 'unknown'}"
-    puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn}"
+    puts "[INFO] Task arn: #{task_arn || 'unknown'} #{target_group_name}"
+    puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn} #{target_group_name}"
 
-    puts '[INFO] Waiting on the task to start and finish quickly to catch resource-related errors'
+    puts "[INFO] Waiting on the task to start and finish quickly to catch resource-related errors #{target_group_name}"
     begin
       ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 5, delay: 5 })
     rescue Aws::Waiters::Errors::TooManyAttemptsError
@@ -499,14 +499,14 @@ class RollOut
     results = ecs.describe_tasks(cluster: cluster, tasks: [task_arn])
 
     if results.failures.length > 0
-      puts "[FATAL] failures: #{results.failures}"
+      puts "[FATAL] failures: #{results.failures} #{target_group_name}"
       exit
     end
 
     failure_reasons = results.tasks.flat_map { |x| x.containers.map { |c| c.reason } }.compact
 
     if failure_reasons.length > 0
-      puts "[FATAL] failures: #{failures_reasons}"
+      puts "[FATAL] failures: #{failures_reasons} #{target_group_name}"
       exit
     end
 
@@ -534,23 +534,23 @@ class RollOut
       complete = (response.dig('registered_deployment_id') == self.deployment_id)
 
       if complete || self.last_task_completed
-        puts "[INFO] Looks like the deployment tasks ran to completion (#{self.deployment_id})"
+        puts "[INFO] Looks like the deployment tasks ran to completion (#{self.deployment_id}) #{target_group_name}"
         complete = true
       else
-        puts '[WARN] Looks like the deployment task isn\'t done.'
+        puts "[WARN] Looks like the deployment task isn't done. #{target_group_name}"
         puts "[WARN] We expected: #{self.deployment_id}"
         puts "[WARN] We got: #{response.dig('registered_deployment_id')}"
-        puts "[WARN] You can safely (p)roceed if this is the first deployment"
+        puts "[WARN] You can safely (p)roceed if this is the first deployment #{target_group_name}"
         print "\nYou can (w)ait, (p)roceed with deployment anyway, (v)iew log tail, or (a)bort: "
         response = STDIN.gets
         if response.downcase.match(/w/)
-          puts "[INFO] Waiting 30 seconds"
+          puts "[INFO] Waiting 30 seconds #{target_group_name}"
           sleep 30
         elsif response.downcase.match(/p/)
-          puts "[WARN] Continuing on anyway"
+          puts "[WARN] Continuing on anyway #{target_group_name}"
           complete = true
         elsif response.downcase.match(/a/)
-          puts "[WARN] exiting"
+          puts "[WARN] exiting #{target_group_name}"
           exit
         elsif response.downcase.match(/v/)
           begin
@@ -560,14 +560,14 @@ class RollOut
               start_from_head: true,
             })
             resp.events.each do |event|
-              puts "[TASK] #{event.message}"
+              puts "[TASK] #{event.message} #{target_group_name}"
             end
           rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
-            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found"
+            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found #{target_group_name}"
             sleep 30
           end
         else
-          puts "[INFO] Waiting 30 seconds since we didn't understand your response"
+          puts "[INFO] Waiting 30 seconds since we didn't understand your response #{target_group_name}"
           sleep 30
         end
       end
@@ -586,7 +586,7 @@ class RollOut
         start_from_head: false,
       })
     rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
-      puts "[FATAL] The log stream #{log_stream_name} does not exist. At least not yet."
+      puts "[FATAL] The log stream #{log_stream_name} does not exist. At least not yet. #{target_group_name}"
       return
     end
 
@@ -607,7 +607,7 @@ class RollOut
 
     while (resp.events.length > 0 || too_soon.call)
       resp.events.each do |event|
-        puts "[TASK] #{event.message}"
+        puts "[TASK] #{event.message} #{target_group_name}"
         if event.message.match?(/---DONE---/)
           self.last_task_completed = true
           return
@@ -636,7 +636,7 @@ class RollOut
     five_minutes = 5 * 60
 
     if service_exists
-      puts "[INFO] Updating #{name} to #{task_definition.split(/:/).last}: #{desired_count} containers"
+      puts "[INFO] Updating #{name} to #{task_definition.split(/:/).last}: #{desired_count} containers #{target_group_name}"
       payload = {
         cluster: cluster,
         service: name,
@@ -667,7 +667,7 @@ class RollOut
 
       ecs.update_service(payload)
     else
-      puts "[INFO] Creating #{name}"
+      puts "[INFO] Creating #{name} #{target_group_name}"
       payload = {
         cluster: cluster,
         service_name: name,
