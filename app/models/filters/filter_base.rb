@@ -40,7 +40,6 @@ module Filters
     attribute :user_id, Integer, default: nil
     attribute :project_ids, Array, default: []
     attribute :project_group_ids, Array, default: []
-    attribute :uses_default_project_ids, Boolean, default: true
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :funder_ids, Array, default: []
@@ -107,7 +106,6 @@ module Filters
       self.data_source_ids = filters.dig(:data_source_ids)&.reject(&:blank?)&.map(&:to_i).presence || data_source_ids
       self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i).presence || organization_ids
       self.project_ids = filters.dig(:project_ids)&.reject(&:blank?)&.map(&:to_i).presence || project_ids
-      self.uses_default_project_ids = filters.dig(:project_ids).nil?
       self.funder_ids = filters.dig(:funder_ids)&.reject(&:blank?)&.map(&:to_i).presence || funder_ids
       self.veteran_statuses = filters.dig(:veteran_statuses)&.reject(&:blank?)&.map(&:to_i).presence || veteran_statuses
       self.age_ranges = filters.dig(:age_ranges)&.reject(&:blank?)&.map(&:to_sym).presence || age_ranges
@@ -116,7 +114,6 @@ module Filters
       self.races = filters.dig(:races)&.select { |race| HUD.races(multi_racial: true).keys.include?(race) }.presence || races
       self.ethnicities = filters.dig(:ethnicities)&.reject(&:blank?)&.map(&:to_i).presence || ethnicities
       self.project_group_ids = filters.dig(:project_group_ids)&.reject(&:blank?)&.map(&:to_i).presence || project_group_ids
-      self.uses_default_project_ids = filters.dig(:project_group_ids).nil? || uses_default_project_ids
       self.prior_living_situation_ids = filters.dig(:prior_living_situation_ids)&.reject(&:blank?)&.map(&:to_i).presence || prior_living_situation_ids
       self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map(&:to_i).presence || destination_ids
       self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map(&:to_sym).presence || length_of_times
