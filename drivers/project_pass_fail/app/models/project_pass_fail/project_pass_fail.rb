@@ -196,7 +196,9 @@ module ProjectPassFail
     end
 
     private def hmis_projects
-      GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)
+      query = GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)
+      query = query.with_project_type(filter.project_type_ids) unless filter.uses_default_project_type_codes
+      query
     end
 
     def key_for_display(key)
