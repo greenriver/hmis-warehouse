@@ -689,7 +689,6 @@ Layout/EmptyLinesAroundMethodBody:
   Exclude:
     - 'app/jobs/background_render/core_demographics_report_job.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/income_benefit.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/import_remover.rb'
     - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
@@ -789,7 +788,6 @@ Layout/ExtraSpacing:
 # SupportedStyles: consistent, consistent_relative_to_receiver, special_for_inner_method_call, special_for_inner_method_call_in_parentheses
 Layout/FirstArgumentIndentation:
   Exclude:
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/cohort.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
@@ -2625,7 +2623,6 @@ Style/MethodCallWithoutArgsParentheses:
     - 'app/models/grda_warehouse/confidence/source_exits.rb'
     - 'app/models/grda_warehouse/hmis/assessment.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/project.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
@@ -2785,7 +2782,6 @@ Style/NestedParenthesizedCalls:
 Style/Next:
   Exclude:
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/hud/client.rb'
     - 'app/models/grda_warehouse/import_remover.rb'
     - 'app/models/grda_warehouse/shape/installer.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
