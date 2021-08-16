@@ -4785,7 +4785,8 @@ CREATE TABLE public.configs (
     health_claims_data_path character varying,
     enable_youth_hrp boolean DEFAULT true NOT NULL,
     enable_system_cohorts boolean DEFAULT false,
-    currently_homeless_cohort boolean DEFAULT false
+    currently_homeless_cohort boolean DEFAULT false,
+    show_client_last_seen_info_in_client_details boolean DEFAULT true
 );
 
 
@@ -31397,6 +31398,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210809130851'),
 ('20210809154208'),
 ('20210809184745'),
-('20210810182752');
+('20210810182752'),
+('20210813121134');
 
 
