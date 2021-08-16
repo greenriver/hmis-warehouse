@@ -16,12 +16,12 @@ RSpec.shared_context 'ce apr context', shared_context: :metadata do
 
   def default_filter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
-    HudApr::Filters::CeAprFilter.new(shared_filter.merge(project_ids: [project_id]))
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
   end
 
   def race_filter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
-    HudApr::Filters::CeAprFilter.new(shared_filter.merge(project_ids: [project_id])).update(
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id])).update(
       shared_filter.merge(
         { 'races' => ['Asian'] },
       ),
@@ -30,7 +30,7 @@ RSpec.shared_context 'ce apr context', shared_context: :metadata do
 
   def age_filter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
-    HudApr::Filters::CeAprFilter.new(shared_filter.merge(project_ids: [project_id])).update(
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id])).update(
       shared_filter.merge(
         { 'age_ranges' => ['under_eighteen'] },
       ),
@@ -39,12 +39,12 @@ RSpec.shared_context 'ce apr context', shared_context: :metadata do
 
   def night_by_night_shelter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'NBN').id
-    HudApr::Filters::CeAprFilter.new(shared_filter.merge(project_ids: [project_id]))
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
   end
 
   def ph
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-PH').id
-    HudApr::Filters::CeAprFilter.new(shared_filter.merge(project_ids: [project_id]))
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
   end
 
   def run(filter, question_name)
