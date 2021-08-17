@@ -115,8 +115,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::Generator, type: :model do
       expect(report_result.answer(question: 'Q13a2', cell: 'B9').summary).to eq(report_result.answer(question: 'Q5a', cell: 'B1').summary)
 
       # Total in Q13B2 B9 must equal total leavers from Q5A B5.
-      # TODO: Why is this question failing?
-      # expect(report_result.answer(question: 'Q13b2', cell: 'B9').summary).to eq(report_result.answer(question: 'Q5a', cell: 'B5').summary)
+      expect(report_result.answer(question: 'Q13b2', cell: 'B9').summary).to eq(report_result.answer(question: 'Q5a', cell: 'B5').summary)
 
       # Total in Q13C2 B9 must equal total stayer from Q5A B8.
       expect(report_result.answer(question: 'Q13c2', cell: 'B9').summary).to eq(report_result.answer(question: 'Q5a', cell: 'B8').summary)
@@ -237,7 +236,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::Generator, type: :model do
 
       # Total parenting youth in Q27B B2 + B3 must equal parenting youth under 25 with children in Q5A B13.
       # TODO: Not sure why this one is failing
-      # expect(report_result.answer(question: 'Q27b', cell: 'B2').summary + report_result.answer(question: 'Q27b', cell: 'B3').summary).to eq(report_result.answer(question: 'Q5a', cell: 'B13').summary)
+      expect(report_result.answer(question: 'Q27b', cell: 'B2').summary + report_result.answer(question: 'Q27b', cell: 'B3').summary).to eq(report_result.answer(question: 'Q5a', cell: 'B13').summary)
 
       # Total in Q27C B9 must equal youth under age 25 in Q5A B12.
       expect(report_result.answer(question: 'Q27c', cell: 'B9').summary).to eq(report_result.answer(question: 'Q5a', cell: 'B12').summary)
