@@ -23,7 +23,7 @@ module Filters
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
     attribute :project_type_codes, Array, default: ->(r, _) { r.default_project_type_codes }
-    attribute :uses_default_project_type_codes, Boolean, default: true
+    attribute :project_type_codes_chosen, Boolean, default: false
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
     attribute :age_ranges, Array, default: []
@@ -101,7 +101,7 @@ module Filters
         self.hoh_only = filter_hoh
       end
       self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject(&:blank?).presence || project_type_codes
-      self.uses_default_project_type_codes = filters.dig(:project_type_codes).nil?
+      self.project_type_codes_chosen = filters.key?(:project_type_codes)
       self.project_type_numbers = filters.dig(:project_type_numbers)&.reject(&:blank?)&.map(&:to_i).presence || project_type_numbers
       self.data_source_ids = filters.dig(:data_source_ids)&.reject(&:blank?)&.map(&:to_i).presence || data_source_ids
       self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i).presence || organization_ids
@@ -324,10 +324,10 @@ module Filters
       @effective_project_ids += effective_project_ids_from_organizations
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids += effective_project_ids_from_coc_codes
-      @effective_project_ids += effective_project_ids_from_project_types unless uses_default_project_type_codes
+      @effective_project_ids += effective_project_ids_from_project_types if project_type_codes_chosen
 
-      # Add project ids by type if there aren't any projects selected
-      @effective_project_ids += effective_project_ids_from_project_types if @effective_project_ids.empty?
+      # Add an invalid id if there are none
+      @effective_project_ids += [0] if @effective_project_ids.empty?
 
       @effective_project_ids.uniq.reject(&:blank?)
     end

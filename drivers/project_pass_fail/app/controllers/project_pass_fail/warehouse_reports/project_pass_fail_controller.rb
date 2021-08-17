@@ -34,7 +34,8 @@ module ProjectPassFail::WarehouseReports
     end
 
     def create
-      @report = report_class.create(options: filter_params, user_id: @filter.user_id)
+      @filter.update(filter_params)
+      @report = report_class.create(options: @filter.for_params, user_id: @filter.user_id)
 
       ::WarehouseReports::GenericReportJob.perform_later(
         user_id: current_user.id,

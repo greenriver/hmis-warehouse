@@ -10,12 +10,12 @@ RSpec.describe Filters::FilterBase, type: :model do
     user.add_viewable(data_source)
   end
 
-  it 'defaults to homeless projects if no projects are specified' do
+  it 'does not include any projects if nothing is specified' do
     filter_params = {
     }
     filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
-    expect(filter.effective_project_ids).to include es_project.id
     expect(filter.effective_project_ids).not_to include psh_project.id
+    expect(filter.effective_project_ids).not_to include es_project.id
   end
 
   it 'includes the PSH if type ph is specified' do
@@ -34,5 +34,14 @@ RSpec.describe Filters::FilterBase, type: :model do
     filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
     expect(filter.effective_project_ids).not_to include es_project.id
     expect(filter.effective_project_ids).to include psh_project.id
+  end
+
+  it 'defaults to homeless projects if project type codes is empty' do
+    filter_params = {
+      project_type_codes: [],
+    }
+    filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
+    expect(filter.effective_project_ids).to include es_project.id
+    expect(filter.effective_project_ids).not_to include psh_project.id
   end
 end
