@@ -21,7 +21,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::Generator, type: :model do
     import 'fy2020/measure_six', @data_source
     import 'fy2020/measure_seven', @data_source
 
-    filter = HudSpmReport::Filters::SpmFilter.new(
+    filter = ::Filters::HudFilterBase.new(
       shared_filter.merge(
         start: Date.parse('2015-1-1'),
         end: Date.parse('2015-12-31'),
