@@ -74,7 +74,11 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
           # Scope initially to anyone in a family with a youth head of household of the appropriate age
           members = universe.members.where(
-            a_t[:household_id].in(Arel.sql(universe.members.where(response_clause).select(a_t[:household_id]).to_sql)),
+            a_t[:household_id].in(
+              Arel.sql(
+                universe.members.where(response_clause).select(a_t[:household_id]).to_sql,
+              ),
+            ),
           )
 
           source_client_ids = Set.new
@@ -112,8 +116,11 @@ module HudApr::Generators::Shared::Fy2020
               end
             end
           end
-
-          members = members.where(a_t[:client_id].in(source_client_ids)) if source_client_ids.any?
+          members = if source_client_ids.any?
+            members.where(a_t[:client_id].in(source_client_ids))
+          else
+            members.none
+          end
 
           value = members.count
 

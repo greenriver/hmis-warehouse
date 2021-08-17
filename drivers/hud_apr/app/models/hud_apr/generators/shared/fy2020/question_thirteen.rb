@@ -47,9 +47,6 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def disability_at_exit_clause
-      # Check that there is some data in the disability exit
-      # leavers_clause.and(a_t[:physical_disability_exit].not_eq(nil))
-
       # According to the spec, everyone, including children should have this
       # exit assessment, if they don't they should get counted in 'Data Not Collected'
       leavers_clause
