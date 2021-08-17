@@ -248,6 +248,18 @@ module Filter::FilterScopes
         )
     end
 
+    private def filter_for_dv_currently_fleeing(scope)
+      return scope if @filter.currently_fleeing.blank?
+
+      scope.joins(enrollment: :health_and_dvs).
+        merge(
+          GrdaWarehouse::Hud::HealthAndDv.where(
+            InformationDate: @filter.range,
+            CurrentlyFleeing: @filter.currently_fleeing,
+          ),
+        )
+    end
+
     private def filter_for_chronic_status(scope)
       return scope unless @filter.chronic_status
 
@@ -260,6 +272,48 @@ module Filter::FilterScopes
       max_date = chronic_source.where(date: @filter.range).maximum(:date)
 
       scope.where(client_id: chronic_source.where(date: max_date).select(:client_id))
+    end
+
+    private def filter_for_rrh_move_in(scope)
+      return scope unless @filter.rrh_move_in
+
+      scope.in_project_type(13).where(move_in_date: @filter.range)
+    end
+
+    private def filter_for_psh_move_in(scope)
+      return scope unless @filter.psh_move_in
+
+      scope.in_project_type(3).where(move_in_date: @filter.range)
+    end
+
+    private def filter_for_first_time_homeless_in_past_two_years(scope)
+      return scope unless @filter.first_time_homeless
+
+      visible_enrollments = filter_for_user_access(scope)
+      # Homeless enrollments open the two years prior to the report start
+      recent_homeless_enrollments = visible_enrollments.
+        homeless.
+        open_between(start_date: @filter.start - 2.years, end_date: @filter.start)
+      # For a given client, only include rows where they don't have an open homeless
+      # enrollment in the 2 years prior to the report start date
+      scope.homeless.where.not(client_id: recent_homeless_enrollments.select(:client_id))
+    end
+
+    private def filter_for_returned_to_homelessness_from_permanent_destination(scope)
+      return scope unless @filter.returned_to_homelessness_from_permanent_destination
+
+      visible_enrollments = filter_for_user_access(scope)
+      exits = visible_enrollments.
+        select(:id, :client_id, :last_date_in_program, :destination).
+        joins(enrollment: :exit).
+        ended_between(start_date: @filter.start - 2.years, end_date: @filter.start).
+        define_window(:client_window).
+        partition_by(:client_id, order_by: { last_date_in_program: :desc }).
+        select_window(:row_number, over: :client_window, as: :row_id)
+      client_ids_with_recent_permanent_exits = GrdaWarehouse::ServiceHistoryEnrollment.from(exits).
+        where("row_id = 1 and destination in (#{HUD.permanent_destinations.join(', ')})")
+
+      scope.homeless.where(client_id: client_ids_with_recent_permanent_exits.select(:client_id))
     end
 
     # This needs to work correctly with project type filters, where it adds the

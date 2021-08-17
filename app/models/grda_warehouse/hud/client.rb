@@ -869,6 +869,10 @@ module GrdaWarehouse::Hud
       update(sync_with_cas: false)
     end
 
+    def self.show_last_seen_info?
+      GrdaWarehouse::Config.get(:show_client_last_seen_info_in_client_details)
+    end
+
     def scope_for_ongoing_residential_enrollments
       service_history_enrollments.
         entry.
@@ -1452,7 +1456,7 @@ module GrdaWarehouse::Hud
       image_directory = File.join('public', 'fake_photos', age_group, gender)
       available = Dir[File.join(image_directory, '*.jpg')]
       image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
-      logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Self/RedundantSelf
+      logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
       image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
     end
 

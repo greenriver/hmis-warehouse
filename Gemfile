@@ -21,6 +21,7 @@ gem 'activerecord-import'
 # NoMethodError: undefined method `relation' for "DATE_TRUNC('month', date_of_activity)":Arel::Nodes::SqlLiteral
 # on .count for active record queries of Arel
 gem 'active_record_extended', '~> 1.4.0'
+gem 'active_median'
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
@@ -130,6 +131,9 @@ gem 'gmail', require: false
 gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
 
 gem 'redcarpet'
+
+gem 'kiba'
+gem 'kiba-common'
 
 # For exporting
 gem 'caxlsx'

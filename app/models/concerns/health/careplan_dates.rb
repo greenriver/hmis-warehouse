@@ -27,7 +27,7 @@ module Health::CareplanDates
       return requested_date if careplan.provider_signed_on || careplans.count == 1
 
       # Otherwise use the next most recent careplan w/ a signature or request
-      careplan = careplans.drop(1).select { |cp| cp.provider_signed_on.present? || cp.provider_signature_requested_at.present? }
+      careplan = careplans.drop(1).select { |cp| cp.provider_signed_on.present? || cp.provider_signature_requested_at.present? }.first
       return unless careplan.present?
 
       careplan.provider_signature_requested_at&.to_date || careplan.provider_signed_on&.to_date

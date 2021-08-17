@@ -17,6 +17,37 @@ module HudApr::Generators::Shared::Fy2020
       'Unknown Household Type',
     ].freeze
 
+    private def q8a_intentionally_blank
+      []
+    end
+
+    private def q8a4_active_questions
+      [
+        {
+          # w/ no children
+          cell: 'C3',
+          household_type: :adults_only,
+        },
+        {
+          # w/ children
+          cell: 'D3',
+          household_type: :adults_and_children,
+        },
+        {
+          # w/ no adults
+          cell: 'E3',
+          household_type: :children_only,
+        },
+        {
+          # in unknown household type
+          cell: 'F3',
+          household_type: :unknown,
+        },
+      ].reject do |q|
+        q[:cell].in?(q8a_intentionally_blank)
+      end
+    end
+
     private def q8a_persons_served
       table_name = 'Q8a'
       metadata = {
@@ -79,28 +110,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      [
-        {
-          # w/ no children
-          cell: 'C3',
-          household_type: :adults_only,
-        },
-        {
-          # w/ children
-          cell: 'D3',
-          household_type: :adults_and_children,
-        },
-        {
-          # w/ no adults
-          cell: 'E3',
-          household_type: :children_only,
-        },
-        {
-          # in unknown household type
-          cell: 'F3',
-          household_type: :unknown,
-        },
-      ].each do |col|
+      q8a4_active_questions.each do |col|
         answer = @report.answer(question: table_name, cell: col[:cell])
         members = ps_rrh_w_move_in.where(a_t[:household_type].eq(col[:household_type]))
         answer.add_members(members)

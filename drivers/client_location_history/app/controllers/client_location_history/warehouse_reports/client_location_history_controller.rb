@@ -37,16 +37,16 @@ module ClientLocationHistory::WarehouseReports
     end
 
     def filter_params
-      opts = params.permit(
+      opts = params
+      opts[:filters] ||= {}
+      opts[:filters][:start] ||= 6.months.ago
+      opts[:filters][:end] ||= 1.days.ago
+      opts.permit(
         filters: [
           :start,
           :end,
         ],
       )
-      opts[:filters] ||= {}
-      opts[:filters][:start] ||= 6.months.ago
-      opts[:filters][:end] ||= 1.days.ago
-      opts
     end
     helper_method :filter_params
 

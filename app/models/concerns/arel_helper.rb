@@ -33,15 +33,20 @@ module ArelHelper
     # it functions similar to a merge, but can be used when you need two merges with the same key
     # Usage:
     # User.joins(:role).correlated_exists(Role.health)
-    def self.correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
-      where(exists_sql(scope, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name))
+    def self.correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
+      where(exists_sql(scope, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name, negated: negated))
     end
 
-    def self.exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
+    def self.exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
       sql = ar_query.select(column_name).to_sql.
         gsub("#{quoted_table_name}.", "\"#{alias_name}\"."). # alias all columns
         gsub(quoted_table_name, "#{quoted_table_name} as \"#{alias_name}\"") # alias table
-      Arel.sql("EXISTS (#{sql} and #{quoted_table_name}.\"#{column_name}\" = \"#{alias_name}\".\"#{column_name}\") ")
+      exists_type = if negated
+        'NOT EXISTS'
+      else
+        'EXISTS'
+      end
+      Arel.sql("#{exists_type} (#{sql} and #{quoted_table_name}.\"#{column_name}\" = \"#{alias_name}\".\"#{column_name}\") ")
     end
 
     def qt(value)
@@ -222,6 +227,14 @@ module ArelHelper
 
   def af_t
     GrdaWarehouse::Hud::Affiliation.arel_table
+  end
+
+  def as_t
+    GrdaWarehouse::Hud::Assessment.arel_table
+  end
+
+  def ev_t
+    GrdaWarehouse::Hud::Event.arel_table
   end
 
   def ch_t
@@ -551,6 +564,14 @@ module ArelHelper
 
     def af_t
       GrdaWarehouse::Hud::Affiliation.arel_table
+    end
+
+    def as_t
+      GrdaWarehouse::Hud::Assessment.arel_table
+    end
+
+    def ev_t
+      GrdaWarehouse::Hud::Event.arel_table
     end
 
     def ch_t

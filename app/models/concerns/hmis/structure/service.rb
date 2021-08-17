@@ -85,6 +85,75 @@ module HMIS::Structure::Service
             null: false,
           },
         }
+      when '2022'
+        {
+          ServicesID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          EnrollmentID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          PersonalID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateProvided: {
+            type: :date,
+            null: false,
+          },
+          RecordType: {
+            type: :integer,
+            null: false,
+          },
+          TypeProvided: {
+            type: :integer,
+            null: false,
+          },
+          OtherTypeProvided: {
+            type: :string,
+            limit: 50,
+          },
+          MovingOnOtherType: {
+            type: :string,
+            limit: 50,
+          },
+          SubTypeProvided: {
+            type: :integer,
+          },
+          FAAmount: {
+            type: :string,
+            limit: 50,
+          },
+          ReferralOutcome: {
+            type: :integer,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
       end
     end
 
