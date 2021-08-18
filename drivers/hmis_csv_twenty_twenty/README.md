@@ -4,7 +4,7 @@
 
 Exporting logic for HMIS CSV files in the 2020 HUD format.
 
-`HmisCsvTwentyTwenty::Exporter::Base.new(....).export!` will export a specified date range for specifed projects
+`HmisCsvTwentyTwenty::Exporter::Base.new(....).export!` will export a specified date range for specified projects
 
 ### Importer Modules
 
