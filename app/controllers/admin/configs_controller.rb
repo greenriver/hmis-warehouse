@@ -85,6 +85,7 @@ module Admin
         :enable_system_cohorts,
         :currently_homeless_cohort,
         :enable_youth_hrp,
+        :show_client_last_seen_info_in_client_details,
         client_details: [],
       )
     end

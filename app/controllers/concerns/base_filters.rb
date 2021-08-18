@@ -10,6 +10,8 @@ module BaseFilters
     before_action :set_filter
 
     def filters
+      return unless @report
+
       @sections = @report.control_sections
       @chosen_section = @sections.detect do |section|
         section.id == params[:filter_section_id]
