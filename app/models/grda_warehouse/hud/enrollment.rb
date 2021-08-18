@@ -405,7 +405,7 @@ module GrdaWarehouse::Hud
     end
 
     def is_no?(value) # rubocop:disable Naming/PredicateName
-      return :no if value.zero?
+      return :no if value&.zero?
     end
 
     def dk_or_r_or_missing(value)
