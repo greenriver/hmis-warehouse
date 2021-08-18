@@ -8,7 +8,7 @@ module GrdaWarehouse::Tasks
   class PushClientsToCas
     include NotifierConfig
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize()
+    def initialize
       setup_notifier('Warehouse-CAS Sync')
       self.logger = Rails.logger
     end
@@ -21,12 +21,14 @@ module GrdaWarehouse::Tasks
     def sync!
       # Fail gracefully if there's no CAS database setup
       return unless CasBase.db_exists?
+
       if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
         msg = 'Other CAS Sync in progress, exiting.'
         logger.warn msg
         @notifier.ping(msg) if @send_notifications
         return
       end
+
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
         @client_ids = client_source.pluck(:id)
         updated_clients = Cas::ProjectClient.transaction do
@@ -54,10 +56,13 @@ module GrdaWarehouse::Tasks
         end
         maintain_cas_availability_table(@client_ids)
 
-        if updated_clients.size > 0
+        unless updated_clients.empty?
           msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
           @notifier.ping msg if @send_notifications
         end
+
+        # Find CAS Non HMIS clients that should be connected to warehouse clients
+        Cas::NonHmisClient.find_exact_matches
       end
     end
 

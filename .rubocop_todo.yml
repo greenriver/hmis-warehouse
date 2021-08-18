@@ -188,7 +188,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/hud_chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/push_clients_to_cas.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
@@ -2373,7 +2372,6 @@ Style/ColonMethodCall:
 # Cop supports --auto-correct.
 Style/DefWithParentheses:
   Exclude:
-    - 'app/models/grda_warehouse/tasks/push_clients_to_cas.rb'
 
 # Offense count: 33
 # Cop supports --auto-correct.
@@ -2844,7 +2842,6 @@ Style/NumericPredicate:
     - 'app/models/grda_warehouse/shape/installer.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/push_clients_to_cas.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
@@ -3566,7 +3563,6 @@ Style/YodaCondition:
 # Cop supports --auto-correct.
 Style/ZeroLengthPredicate:
   Exclude:
-    - 'app/models/grda_warehouse/tasks/push_clients_to_cas.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
