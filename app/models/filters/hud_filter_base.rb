@@ -8,13 +8,18 @@ module Filters
   class HudFilterBase < FilterBase
     validates_presence_of :coc_codes
 
+    # Force people to choose project types because they are additive with projects
+    def default_project_type_codes
+      []
+    end
+
     # NOTE: This differs from the base filter class because it doesn't include any projects based on CoCCode
     def effective_project_ids
       @effective_project_ids = effective_project_ids_from_projects
       @effective_project_ids += effective_project_ids_from_project_groups
       @effective_project_ids += effective_project_ids_from_organizations
       @effective_project_ids += effective_project_ids_from_data_sources
-      @effective_project_ids += effective_project_ids_from_project_types if project_type_codes_chosen
+      @effective_project_ids += effective_project_ids_from_project_types
 
       # Add an invalid id if there are none
       @effective_project_ids = [0] if @effective_project_ids.empty?

@@ -14,7 +14,6 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   before(:context) do
     cleanup
     # puts "  Setting up DB for #{described_class.question_number}"
-    @user = create(:user, email: SPM_USER_EMAIL)
   end
 
   after(:context) do
@@ -42,6 +41,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
       start: Date.parse('2016-1-1'),
       end: Date.parse('2019-10-01'),
       user_id: @user.id,
+      project_type_codes: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES + [:psh],
     }.freeze
   end
 
@@ -76,8 +76,11 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
 
   def setup(file_path)
     @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-    GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
+    warehouse_ds = GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
     import(file_path, @data_source)
+    @user = create(:user, email: SPM_USER_EMAIL)
+    @user.add_viewable(@data_source)
+    @user.add_viewable(warehouse_ds)
   end
 
   def import(file_path, data_source)
