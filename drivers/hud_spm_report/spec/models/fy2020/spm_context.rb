@@ -75,12 +75,11 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   attr_reader :report_result
 
   def setup(file_path)
-    @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-    warehouse_ds = GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
+    @data_source = GrdaWarehouse::DataSource.where(name: 'Green River', short_name: 'GR', source_type: :sftp).first_or_create!
+    GrdaWarehouse::DataSource.where(name: 'Warehouse', short_name: 'W').first_or_create!
     import(file_path, @data_source)
-    @user = create(:user, email: SPM_USER_EMAIL)
+    @user = User.find_by(email: SPM_USER_EMAIL) || create(:user, email: SPM_USER_EMAIL)
     @user.add_viewable(@data_source)
-    @user.add_viewable(warehouse_ds)
   end
 
   def import(file_path, data_source)
