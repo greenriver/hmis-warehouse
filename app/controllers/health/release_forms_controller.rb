@@ -52,7 +52,6 @@ module Health
     end
 
     def update
-      validate_form unless @release_form.health_file.present?
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.assign_attributes(form_params)
 

@@ -12,7 +12,28 @@ module HomelessSummaryReport
     belongs_to :report
 
     # Create a scope for each report variant
-    Report.report_variants.each_key do |variant|
+    [
+      :all_persons,
+      :without_children,
+      :with_children,
+      :only_children,
+      :without_children_and_fifty_five_plus,
+      :adults_with_children_where_parenting_adult_18_to_24,
+      :white_non_hispanic_latino,
+      :hispanic_latino,
+      :black_african_american,
+      :asian,
+      :american_indian_alaskan_native,
+      :native_hawaiian_other_pacific_islander,
+      :multi_racial,
+      :fleeing_dv,
+      :veteran,
+      :has_disability,
+      :has_rrh_move_in_date,
+      :has_psh_move_in_date,
+      :first_time_homeless,
+      :returned_to_homelessness_from_permanent_destination,
+    ].each do |variant|
       scope variant, -> { where(arel_table["spm_#{variant}".to_sym].gt(0)) }
     end
 
