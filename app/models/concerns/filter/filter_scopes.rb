@@ -147,6 +147,8 @@ module Filter::FilterScopes
       p_types = @project_types.presence || @filter.project_type_ids
       p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless
 
+      return scope if p_types.empty?
+
       scope.in_project_type(p_types)
     end
 
