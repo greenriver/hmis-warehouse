@@ -10,38 +10,79 @@ RSpec.describe Filters::FilterBase, type: :model do
     user.add_viewable(data_source)
   end
 
-  it 'does not include any projects if nothing is specified' do
-    filter_params = {
-    }
-    filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
-    expect(filter.effective_project_ids).not_to include psh_project.id
-    expect(filter.effective_project_ids).not_to include es_project.id
+  describe 'FilterBase' do
+    it 'defaults to homeless projects if nothing is specified' do
+      filter_params = {
+      }
+      filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
+      expect(filter.effective_project_ids).not_to include psh_project.id
+      expect(filter.effective_project_ids).to include es_project.id
+    end
+
+    it 'includes the PSH if type ph is specified' do
+      filter_params = {
+        project_type_codes: [:ph],
+      }
+      filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
+      expect(filter.effective_project_ids).to include psh_project.id
+      expect(filter.effective_project_ids).not_to include es_project.id
+    end
+
+    it 'does not include ES if projects are specified, but includes the specified project' do
+      filter_params = {
+        project_ids: [psh_project.id],
+        project_type_codes: [],
+      }
+      filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
+      expect(filter.effective_project_ids).not_to include es_project.id
+      expect(filter.effective_project_ids).to include psh_project.id
+    end
+
+    it 'does not include any projects if project type codes is empty' do
+      filter_params = {
+        project_type_codes: [],
+      }
+      filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
+      expect(filter.effective_project_ids).not_to include es_project.id
+      expect(filter.effective_project_ids).not_to include psh_project.id
+    end
   end
 
-  it 'includes the PSH if type ph is specified' do
-    filter_params = {
-      project_type_codes: [:ph],
-    }
-    filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
-    expect(filter.effective_project_ids).to include psh_project.id
-    expect(filter.effective_project_ids).not_to include es_project.id
-  end
+  describe 'HudFilterBase' do
+    it 'HUD filter does not include any projects if nothing is specified' do
+      filter_params = {
+      }
+      filter = Filters::HudFilterBase.new(user_id: user.id).update(filter_params)
+      expect(filter.effective_project_ids).not_to include psh_project.id
+      expect(filter.effective_project_ids).not_to include es_project.id
+    end
 
-  it 'does not include ES if projects are specified, but includes the specified project' do
-    filter_params = {
-      project_ids: [psh_project.id],
-    }
-    filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
-    expect(filter.effective_project_ids).not_to include es_project.id
-    expect(filter.effective_project_ids).to include psh_project.id
-  end
+    it 'includes the PSH if type ph is specified' do
+      filter_params = {
+        project_type_codes: [:ph],
+      }
+      filter = Filters::HudFilterBase.new(user_id: user.id).update(filter_params)
+      expect(filter.effective_project_ids).to include psh_project.id
+      expect(filter.effective_project_ids).not_to include es_project.id
+    end
 
-  it 'defaults to homeless projects if project type codes is empty' do
-    filter_params = {
-      project_type_codes: [],
-    }
-    filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
-    expect(filter.effective_project_ids).to include es_project.id
-    expect(filter.effective_project_ids).not_to include psh_project.id
+    it 'does not include ES if projects are specified, but includes the specified project' do
+      filter_params = {
+        project_ids: [psh_project.id],
+        project_type_codes: [],
+      }
+      filter = Filters::HudFilterBase.new(user_id: user.id).update(filter_params)
+      expect(filter.effective_project_ids).not_to include es_project.id
+      expect(filter.effective_project_ids).to include psh_project.id
+    end
+
+    it 'does not include any projects if project type codes is empty' do
+      filter_params = {
+        project_type_codes: [],
+      }
+      filter = Filters::HudFilterBase.new(user_id: user.id).update(filter_params)
+      expect(filter.effective_project_ids).not_to include es_project.id
+      expect(filter.effective_project_ids).not_to include psh_project.id
+    end
   end
 end
