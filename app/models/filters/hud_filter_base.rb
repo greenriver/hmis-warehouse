@@ -16,8 +16,8 @@ module Filters
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids += effective_project_ids_from_project_types if project_type_codes_chosen
 
-      # Add project ids by type if there aren't any projects selected
-      @effective_project_ids += effective_project_ids_from_project_types if @effective_project_ids.empty?
+      # Add an invalid id if there are none
+      @effective_project_ids = [0] if @effective_project_ids.empty?
 
       @effective_project_ids.uniq.reject(&:blank?)
     end
