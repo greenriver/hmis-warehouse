@@ -75,12 +75,15 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
 
     @csv ||= if content_type.in?(['text/plain', 'text/csv', 'application/csv'])
       sheet = ::Roo::CSV.new(StringIO.new(content))
+      @csv_headers = sheet.first
+      sheet.parse(headers: true).drop(1) # rubocop:disable Style/IdenticalConditionalBranches
     else
       sheet = ::Roo::Excelx.new(StringIO.new(content).binmode)
       return nil if sheet&.first_row.blank?
+
+      @csv_headers = sheet.first
+      sheet.parse(headers: true).drop(1) # rubocop:disable Style/IdenticalConditionalBranches
     end
-    @csv_headers = sheet.first
-    sheet.parse(headers: true).drop(1)
   end
 
   private def check_header!
