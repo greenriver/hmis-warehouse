@@ -110,7 +110,7 @@ module WarehouseReports
     def available_disabilities
       exclude = []
       exclude << 'HIV/AIDS' unless can_view_hiv_status?
-      exclude << 'Mental health problem' unless can_view_dmh_status?
+      exclude << 'Mental health disorder' unless can_view_dmh_status?
       ::HUD.disability_types.invert.except(*exclude)
     end
     helper_method :available_disabilities
