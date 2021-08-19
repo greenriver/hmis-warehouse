@@ -12,7 +12,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureFive, type: :model do
 
   before(:all) do
     setup('fy2020/measure_five')
-    filter = HudSpmReport::Filters::SpmFilter.new(
+    filter = ::Filters::HudFilterBase.new(
       shared_filter.merge(
         start: Date.parse('2015-1-1'),
         end: Date.parse('2015-12-31'),
