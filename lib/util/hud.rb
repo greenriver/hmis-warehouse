@@ -92,10 +92,10 @@ module HUD
   # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
   def races(multi_racial: false)
     race_list = {
-      'AmIndAKNative' => 'American Indian or Alaska Native', # 1
-      'Asian' => 'Asian', # 2
-      'BlackAfAmerican' => 'Black or African American', # 3
-      'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander', # 4
+      'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous', # 1
+      'Asian' => 'Asian or Asian American', # 2
+      'BlackAfAmerican' => 'Black, African American, or African', # 3
+      'NativeHIOtherPacific' => 'Native Hawaiian or Pacific Islander', # 4
       'White' => 'White', # 5
       'RaceNone' => 'None', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
     }
@@ -193,15 +193,23 @@ module HUD
     when '4.47.B', 'W4.B' then :t_cell_source_viral_load_source
     when '4.47.3', 'W4.3' then :viral_load_available
     when '4.48.1', 'V7.1' then :no_points_yes
-    when '4.48.2', 'V7.2' then :time_to_housing_loss
-    when '4.48.4', 'V7.4' then :annual_percent_a_m_i
-    when '4.48.7', 'V7.7' then :eviction_history
-    when '4.48.9', 'V7.9' then :literal_homeless_history
+    when '4.48.2', 'V7.2', 'V7.B' then :time_to_housing_loss
+    when '4.48.4', 'V7.4', 'V7.C' then :annual_percent_a_m_i
+    when '4.48.7', 'V7.7', 'V7.H' then :eviction_history
+    when '4.48.9', 'V7.9', 'V7.D' then :literal_homeless_history
+    when 'V7.J' then :incarcerated_adult
+    when 'V7.P' then :dependent_under_6
     when 'V8.1' then :voucher_tracking
     when 'V9.1' then :cm_exit_reason
     when '4.49.1' then :crisis_services_use
     when '5.03.1' then :data_collection_stage
     when 'ad_hoc_yes_no_1' then :ad_hoc_yes_no_1
+    when 'C1.1' then :wellbeing_agreement
+    when 'C1.2' then :feeling_frequency
+    when 'C2.2' then :moving_on_assistance
+    when 'C3.2' then :current_school_attended
+    when 'C3.A' then :most_recent_ed_status
+    when 'C3.B' then :current_ed_status
     else
       raise "unknown controlled vocabulary list: #{number}"
     end
@@ -251,8 +259,8 @@ module HUD
       6 => 'Developmental disability',
       7 => 'Chronic health condition',
       8 => 'HIV/AIDS',
-      9 => 'Mental health problem',
-      10 => 'Substance abuse',
+      9 => 'Mental health disorder',
+      10 => 'Substance use disorder',
     }
   end
 
@@ -492,6 +500,10 @@ module HUD
       46 => 'Local or Other Funding Source',
       47 => 'HUD: ESG – CV',
       48 => 'HUD: HOPWA – CV',
+      49 => 'HUD: CoC – Joint Component RRH/PSH ',
+      50 => 'HUD: HOME',
+      51 => 'HUD: HOME (ARP)',
+      52 => 'HUD: PIH (Emergency Housing Voucher)',
     }
   end
 
@@ -659,8 +671,8 @@ module HUD
 
   def ethnicities
     {
-      0 => 'Non-Hispanic/Non-Latino',
-      1 => 'Hispanic/Latino',
+      0 => 'Non-Hispanic/Non-Latin(a)(o)(x)',
+      1 => 'Hispanic/Latin(a)(o)(x)',
       8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
@@ -675,11 +687,13 @@ module HUD
 
   def genders
     {
-      0 => 'Female',
-      1 => 'Male',
-      2 => 'Trans Female (MTF or Male to Female)',
-      3 => 'Trans Male (FTM or Female to Male)',
-      4 => 'Gender non-conforming (i.e. not exclusively male or female)',
+      0 => 'Female', # retained for backwards compatibility
+      1 => 'Male', # retained for backwards compatibility
+      2 => 'Trans Female (MTF or Male to Female)', # retained for backwards compatibility
+      3 => 'Trans Male (FTM or Female to Male)', # retained for backwards compatibility
+      4 => 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
+      5 => 'Transgender',
+      6 => 'Questioning',
       8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
@@ -1103,7 +1117,7 @@ module HUD
       1 => 'Applied; decision pending',
       2 => 'Applied; client not eligible',
       3 => 'Client did not apply',
-      4 => 'Insurance type n/a for this client',
+      4 => 'Insurance type N/A for this client',
       8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
@@ -1149,9 +1163,9 @@ module HUD
   def disability_responses
     {
       0 => 'No',
-      1 => 'Alcohol abuse',
-      2 => 'Drug abuse',
-      3 => 'Both alcohol and drug abuse',
+      1 => 'Alcohol use disorder',
+      2 => 'Drug use disorder',
+      3 => 'Both alcohol and drug use disorders',
       8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
@@ -1227,8 +1241,8 @@ module HUD
       14 => 'Health/medical care',
       # 15 => 'Psychological or psychiatric care',
       # 16 => 'Recreational activities',
-      17 => 'Substance abuse assessment and/or treatment',
-      18 => 'Substance abuse prevention',
+      17 => 'Substance use disorder treatment',
+      18 => 'Substance use disorder/Prevention Services',
       # 19 => 'Support group',
       # 20 => 'Preventative - overnight interim, respite',
       # 21 => 'Preventative - formal placement in an alternative setting outside of BCP',
@@ -1366,10 +1380,11 @@ module HUD
       8 => 'Transportation services: tokens/vouchers',
       9 => 'Transportation services: vehicle repair/maintenance',
       10 => 'Child care',
-      11 => 'General housing stability assistance - emergency supplies',
-      12 => 'General housing stability assistance - other',
+      11 => 'General housing stability assistance - emergency supplies', # Retired in 2022 (remove later)
+      12 => 'General housing stability assistance ',
       14 => 'Emergency housing assistance',
       15 => 'Extended Shallow Subsidy - Rental Assistance',
+      16 => 'Food Assistance',
     }
 
     _translate map, id, reverse
@@ -1562,6 +1577,9 @@ module HUD
       13 => 'Referral to RRH project resource opening',
       14 => 'Referral to PSH project resource opening',
       15 => 'Referral to Other PH project resource opening',
+      16 => 'Referral to emergency assistance/flex fund/furniture assistance',
+      17 => 'Referral to Emergency Housing Voucher (EHV)',
+      18 => 'Referral to a Housing Stability Voucher',
     }.freeze
   end
 
@@ -2104,54 +2122,73 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.2 / V7.2
+  # 4.48.2 / V7.B TimeToHousingLoss
   def time_to_housing_loss(id, reverse = false)
     map = {
-      0 => '0-6 days',
+      0 => '1-6 days',
       1 => '7-13 days',
       2 => '14-21 days',
-      3 => 'More than 21 days (0 points)',
+      3 => 'More than 21 days',
       99 => 'Data not collected',
     }
 
     _translate map, id, reverse
   end
 
-  # 4.48.4 / V7.4
+  # 4.48.4 / V7.4 / V7.C AnnualPercentAMI
   def annual_percent_a_m_i(id, reverse = false)
     map = {
-      0 => '0-14% of AMI for household size',
-      1 => '15-30% of AMI for household size',
-      2 => 'More than 30% of AMI for household size (0 points)',
+      0 => '$0 (i.e., not employed, not receiving cash benefits, no other current income)',
+      1 => '1-14% of Area Median Income (AMI) for household size',
+      2 => '15-30% of AMI for household size',
+      3 => 'More than 30% of AMI for household size',
       99 => 'Data not collected',
     }
 
     _translate map, id, reverse
   end
 
-  # 4.48.7 / V7.7
+  # 4.48.7 / V7.7 / V7.H EvictionHistory
   def eviction_history(id, reverse = false)
     map = {
-      0 => '4 or more prior rental evictions',
-      1 => '2-3 prior rental evictions',
-      2 => '1 prior rental eviction',
-      3 => 'No prior rental evictions (0 points)',
+      0 => 'No prior rental evictions',
+      1 => '1 prior rental eviction',
+      2 => '2 or more prior rental evictions',
       99 => 'Data not collected',
     }
 
     _translate map, id, reverse
   end
 
-  # 4.48.9 / V7.9
+  # 4.48.9 / V7.9 / V7.D LiteralHomelessHistory
   def literal_homeless_history(id, reverse = false)
     map = {
-      0 => '4 or more times or total of at least 12 months in past three years',
-      1 => '2-3 times in past three years',
-      2 => '1 time in past three years',
-      3 => 'None (0 points)',
+      0 => 'Most recent episode occurred in the last year',
+      1 => 'Most recent episode occurred more than one year ago',
+      2 => 'None',
       99 => 'Data not collected',
     }
 
+    _translate map, id, reverse
+  end
+
+  # V7.J IncarceratedAdult
+  def incarcerated_adult
+    map = {
+      0 => 'Not incarcerated',
+      1 => 'Incarcerated once',
+      2 => 'Incarcerated two or more times',
+    }
+    _translate map, id, reverse
+  end
+
+  # V7.P DependentUnder6
+  def dependent_under_6
+    map = {
+      0 => 'No',
+      1 => 'Youngest child is under 1 year old',
+      2 => 'Youngest child is 1 to 6 years old and/or one or more children (any age) require significant care',
+    }
     _translate map, id, reverse
   end
 
@@ -2217,6 +2254,94 @@ module HUD
   def data_collection_stage(id, reverse = false)
     map = data_collection_stages
 
+    _translate map, id, reverse
+  end
+
+  # C1.1 WellbeingAgreement
+  def wellbeing_agreement
+    map = {
+      0 => 'Strongly disagree',
+      1 => 'Somewhat disagree',
+      2 => 'Neither agree nor disagree',
+      3 => 'Somewhat agree',
+      4 => 'Strongly agree',
+      8 => 'Client doesn’t know',
+      9 => 'Client refused',
+      99 => 'Data not collected',
+    }
+    _translate map, id, reverse
+  end
+
+  # C1.2 FeelingFrequency
+  def feeling_frequency
+    map = {
+      0 => 'Not at all',
+      1 => 'Once a month',
+      2 => 'Several times a month',
+      3 => 'Several times a week',
+      4 => 'At least every day',
+      8 => 'Client doesn’t know',
+      9 => 'Client refused',
+      99 => 'Data not collected',
+    }
+    _translate map, id, reverse
+  end
+
+  # C2.2 MovingOnAssistance
+  def moving_on_assistance
+    map = {
+      1 => 'Subsidized housing application assistance',
+      2 => 'Financial assistance for Moving On (e.g., security deposit, moving expenses)',
+      3 => 'Non-financial assistance for Moving On (e.g., housing navigation, transition support)',
+      4 => 'Housing referral/placement',
+      5 => 'Other (please specify)',
+    }
+    _translate map, id, reverse
+  end
+
+  # C3.2 CurrentSchoolAttend
+  def current_school_attended
+    map = {
+      0 => 'Not currently enrolled in any school or educational course',
+      1 => 'Currently enrolled but NOT attending regularly (when school or the course is in session)',
+      2 => 'Currently enrolled and attending regularly (when school or the course is in session)',
+      8 => 'Client doesn’t know',
+      9 => 'Client refused',
+      99 => 'Data not collected',
+    }
+    _translate map, id, reverse
+  end
+
+  # C3.A MostRecentEdStatus
+  def most_recent_ed_status
+    map = {
+      0 => 'K12: Graduated from high school',
+      1 => 'K12: Obtained GED',
+      2 => 'K12: Dropped out',
+      3 => 'K12: Suspended',
+      4 => 'K12: Expelled',
+      5 => 'Higher education: Pursuing a credential but not currently attending',
+      6 => 'Higher education: Dropped out',
+      7 => 'Higher education: Obtained a credential/degree',
+      8 => "Client doesn't know",
+      9 => 'Client refused',
+      99 => 'Data not collected',
+    }
+    _translate map, id, reverse
+  end
+
+  # C3.B CurrentEdStatus
+  def current_ed_status
+    map = {
+      0 => 'Pursuing a high school diploma or GED',
+      1 => 'Pursuing Associate’s Degree',
+      2 => 'Pursuing Bachelor’s Degree',
+      3 => 'Pursuing Graduate Degree',
+      4 => 'Pursuing other post-secondary credential',
+      8 => "Client doesn't know",
+      9 => 'Client refused',
+      99 => 'Data not collected',
+    }
     _translate map, id, reverse
   end
 
