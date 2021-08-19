@@ -32,6 +32,8 @@
         %p.form-control-static
           = @client.DOB
           = "(#{@client.age})"
+      .col-sm-4
+        = f.input :contact_method, collection: @vispdat.class.contact_options, as: :select_two
     .row
       .col-sm-4
         = f.input :nickname

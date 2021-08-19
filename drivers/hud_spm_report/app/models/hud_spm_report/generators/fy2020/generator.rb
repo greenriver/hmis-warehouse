@@ -33,7 +33,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def self.filter_class
-      HudSpmReport::Filters::SpmFilter
+      ::Filters::HudFilterBase
     end
 
     def self.valid_question_number(question_number)

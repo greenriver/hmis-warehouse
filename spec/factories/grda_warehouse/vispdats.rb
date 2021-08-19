@@ -60,6 +60,7 @@ FactoryBot.define do
     recommendation { nil }
     release_signed_on { nil }
     drug_release { nil }
+    contact_method { :contact_phone }
   end
 
   factory :family_vispdat, class: 'GrdaWarehouse::Vispdat::Family' do
