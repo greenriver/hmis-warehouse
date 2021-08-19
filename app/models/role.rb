@@ -754,6 +754,13 @@ class Role < ApplicationRecord
           'Data Sources & Inventory',
         ],
       },
+      can_manage_own_ad_hoc_data_sources: {
+        description: 'Grants the ability to create and manage Ad-Hoc Data sources they create.',
+        administrative: false,
+        categories: [
+          'Data Sources & Inventory',
+        ],
+      },
       can_view_client_ad_hoc_data_sources: {
         description: 'Can this user see if a client matched Ad-Hoc Data sources?',
         administrative: false,

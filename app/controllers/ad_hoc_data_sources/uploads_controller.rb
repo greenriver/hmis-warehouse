@@ -5,7 +5,7 @@
 ###
 
 class AdHocDataSources::UploadsController < ApplicationController
-  before_action :require_can_manage_ad_hoc_data_sources!
+  before_action :require_can_manage_some_ad_hoc_ds!
   before_action :set_data_source
   before_action :set_upload, only: [:show, :destroy, :download, :update]
 
@@ -31,11 +31,18 @@ class AdHocDataSources::UploadsController < ApplicationController
 
   def update
     update_health_prioritization
+    update_client_ids
     respond_with(@upload, location: ad_hoc_data_source_upload_path(@data_source, @upload))
   end
 
   def download
-    send_data(@upload.content, filename: @upload.name, type: @upload.content_type)
+    # If we didn't ask to download the results, send the original file back
+    if params[:matched].blank? && params[:all].blank? # rubocop:disable Style/GuardClause
+      send_data(@upload.content, filename: @upload.name, type: @upload.content_type)
+      return
+    end
+
+    # Use the default render
   end
 
   def destroy
@@ -58,13 +65,25 @@ class AdHocDataSources::UploadsController < ApplicationController
     GrdaWarehouse::Hud::Client.where(id: un_prioritized_client_ids).update_all(health_prioritized: nil)
   end
 
+  private def update_client_ids
+    to_update = update_params[:clients].select { |_, opts| opts[:client_id].present? }
+    to_update.each do |id, opts|
+      GrdaWarehouse::AdHocClient.where(id: id, ad_hoc_data_source_id: @data_source.id, batch_id: @upload.id).update_all(client_id: opts[:client_id])
+    end
+  end
+
   private def upload_params
     params.require(:grda_warehouse_ad_hoc_batch).
       permit(:file, :description)
   end
 
   private def update_params
-    params.permit(clients: {})
+    params.permit(
+      clients: [
+        :health_prioritized,
+        :client_id,
+      ],
+    )
   end
 
   private def data_source_source
