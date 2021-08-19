@@ -687,8 +687,8 @@ module HUD
 
   def genders
     {
-      0 => 'Female', # retained for backwards compatibility
-      1 => 'Male', # retained for backwards compatibility
+      0 => 'Female',
+      1 => 'Male',
       2 => 'Trans Female (MTF or Male to Female)', # retained for backwards compatibility
       3 => 'Trans Male (FTM or Female to Male)', # retained for backwards compatibility
       4 => 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
@@ -2122,7 +2122,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.2 / V7.B TimeToHousingLoss
+  # 4.48.2 / V7.2 / V7.B TimeToHousingLoss
   def time_to_housing_loss(id, reverse = false)
     map = {
       0 => '1-6 days',
