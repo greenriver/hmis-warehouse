@@ -4,9 +4,18 @@
   .col-sm-8
     %h1= content_for :title
   .col-sm-4.text-right
-    = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload), class: 'btn btn-sm btn-secondary' do
-      %i.icon-download2
-      Download Original
+    .ml-auto.mb-2
+      = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload), class: 'btn btn-sm btn-secondary' do
+        %i.icon-download2
+        Download Original
+    .ml-auto.mb-2
+      = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload, all: true, format: :xlsx), class: 'btn btn-sm btn-secondary ml-auto' do
+        %i.icon-download2
+        Download All Clients
+    .ml-auto.mb-2
+      = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload, matched: true, format: :xlsx), class: 'btn btn-sm btn-secondary ml-auto' do
+        %i.icon-download2
+        Download Matched Clients
 
 .well.d-flex.align-items-center.flex-wrap
   %dl.mr-auto
