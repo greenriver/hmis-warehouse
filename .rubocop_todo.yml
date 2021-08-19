@@ -148,7 +148,6 @@ Layout/ElseAlignment:
     - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/grda_warehouse/us_census_api/variable_importer.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/health/patient_referral.rb'
 
 # Offense count: 1
@@ -190,7 +189,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/grda_warehouse/tasks/hud_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/push_clients_to_cas.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
@@ -249,7 +247,6 @@ Layout/EmptyLineBetweenDefs:
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/recurring_hmis_export.rb'
     - 'app/models/grda_warehouse/report/base.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -505,7 +502,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
     - 'app/models/grda_warehouse/user_client.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/individual.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
@@ -933,7 +929,6 @@ Layout/IndentationWidth:
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/aco_performance.rb'
@@ -1091,7 +1086,6 @@ Layout/SpaceAfterComma:
     - 'app/models/grda_warehouse/hud/disability.rb'
     - 'app/models/grda_warehouse/public_file.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -1219,7 +1213,6 @@ Layout/SpaceAroundOperators:
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/us_census_api/variable_importer.rb'
     - 'app/models/grda_warehouse/user_client.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/warehouse_reports/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
@@ -1412,7 +1405,6 @@ Layout/SpaceInLambdaLiteral:
     - 'app/models/grda_warehouse/service_history_service.rb'
     - 'app/models/grda_warehouse/service_history_service_materialized.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
     - 'app/models/health/claim.rb'
@@ -1583,7 +1575,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
@@ -1720,7 +1711,6 @@ Layout/SpaceInsideParens:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/user_viewable_entity.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/grda_warehouse/warehouse_reports/youth/homeless_youth_report.rb'
     - 'app/models/health/claims/base.rb'
@@ -2447,7 +2437,6 @@ Style/GuardClause:
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/grda_warehouse/us_census_api/state_fips.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/cha_saver.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'
@@ -2544,7 +2533,6 @@ Style/IfUnlessModifier:
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/grda_warehouse/warehouse_reports/outflow_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -2709,7 +2697,6 @@ Style/MutableConstant:
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'
@@ -2848,7 +2835,6 @@ Style/NumericPredicate:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -2906,7 +2892,6 @@ Style/ParenthesesAroundCondition:
 # Configuration parameters: PreferredDelimiters.
 Style/PercentLiteralDelimiters:
   Exclude:
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
@@ -2932,7 +2917,6 @@ Style/RedundantCondition:
 Style/RedundantInterpolation:
   Exclude:
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
 
 # Offense count: 25
@@ -3006,7 +2990,6 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/grda_warehouse/us_census_api/variable_importer.rb'
     - 'app/models/grda_warehouse/user_client.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
@@ -3099,7 +3082,6 @@ Style/RescueStandardError:
     - 'app/models/glacier/tester.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
     - 'app/models/grda_warehouse/non_hmis_upload.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/reporting/rrh_report.rb'
@@ -3196,7 +3178,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
     - 'app/models/grda_warehouse/user_client.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
@@ -3304,7 +3285,6 @@ Style/SymbolProc:
 # SupportedStyles: require_parentheses, require_no_parentheses, require_parentheses_when_complex
 Style/TernaryParentheses:
   Exclude:
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
 
@@ -3437,7 +3417,6 @@ Style/TrailingCommaInArrayLiteral:
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
@@ -3482,7 +3461,6 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/us_census_api/variable_importer.rb'
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
@@ -3548,7 +3526,6 @@ Style/WhileUntilModifier:
 # SupportedStyles: percent, brackets
 Style/WordArray:
   Exclude:
-    - 'app/models/grda_warehouse/vispdat/base.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'

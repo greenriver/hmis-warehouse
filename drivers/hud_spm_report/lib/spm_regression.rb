@@ -41,7 +41,7 @@ puts 'FY2020 building'
 klass = HudSpmReport::Generators::Fy2020::Generator
 generator = klass.new(
   ::HudReports::ReportInstance.from_filter(
-    HudSpmReport::Filters::SpmFilter.new(** s2020),
+    ::Filters::HudFilterBase.new(** s2020),
     klass.title,
     build_for_questions: questions,
   ),
