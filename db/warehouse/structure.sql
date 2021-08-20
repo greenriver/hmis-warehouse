@@ -1936,7 +1936,8 @@ CREATE TABLE public.ad_hoc_data_sources (
     active boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    user_id bigint
 );
 
 
@@ -22826,6 +22827,13 @@ CREATE INDEX index_ad_hoc_data_sources_on_updated_at ON public.ad_hoc_data_sourc
 
 
 --
+-- Name: index_ad_hoc_data_sources_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ad_hoc_data_sources_on_user_id ON public.ad_hoc_data_sources USING btree (user_id);
+
+
+--
 -- Name: index_administrative_events_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -31399,6 +31407,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210809154208'),
 ('20210809184745'),
 ('20210810182752'),
-('20210813121134');
+('20210813121134'),
+('20210819132406'),
+('20210819133035');
 
 

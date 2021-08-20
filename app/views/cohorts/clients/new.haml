@@ -16,6 +16,8 @@
   = render 'active'
   - if GrdaWarehouse::Config.get(:eto_api_available)
     = render 'touchpoint'
+  - if can_manage_some_ad_hoc_ds?
+    = render 'ad_hoc_data_source'
   = render 'batch_add'
 
 .mt-4.mb-4

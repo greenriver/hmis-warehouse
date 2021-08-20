@@ -5,7 +5,7 @@
 ###
 
 class AdHocDataSourcesController < ApplicationController
-  before_action :require_can_manage_ad_hoc_data_sources!
+  before_action :require_can_manage_some_ad_hoc_ds!
   before_action :set_data_source, only: [:show, :update, :edit, :destroy]
 
   def index
@@ -28,12 +28,15 @@ class AdHocDataSourcesController < ApplicationController
   end
 
   def create
-    @data_source = data_source_source.create(data_source_params)
+    @data_source = data_source_source.create(data_source_params.merge(user_id: current_user.id))
     respond_with(@data_source, location: ad_hoc_data_sources_path)
   end
 
   def update
-    @data_source.update!(data_source_params)
+    opts = data_source_params
+    # Because user_id was added at a later date, upgrade any that were unable to be upgrade initially
+    opts[:user_id] = current_user.id if @data_source.id.blank?
+    @data_source.update!(opts)
     respond_with(@data_source, location: ad_hoc_data_source_path(@data_source))
   end
 

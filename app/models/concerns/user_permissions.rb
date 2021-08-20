@@ -45,6 +45,7 @@ module UserPermissions
         :can_access_some_cohorts,
         :can_access_window_search,
         :can_delete_projects_or_data_sources,
+        :can_manage_some_ad_hoc_ds,
       ].freeze
     end
 
@@ -175,6 +176,10 @@ module UserPermissions
 
     def can_access_some_cohorts
       can_manage_cohorts? || can_edit_cohort_clients? || can_edit_assigned_cohorts? || can_view_assigned_cohorts?
+    end
+
+    def can_manage_some_ad_hoc_ds
+      can_manage_ad_hoc_data_sources? || can_manage_own_ad_hoc_data_sources?
     end
 
     # Allow all methods above to respond with or without a ?
