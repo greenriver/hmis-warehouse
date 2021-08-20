@@ -46,7 +46,7 @@ module GrdaWarehouse::Hud
       zip_code = Array(zip_code)
       where(
         pc_t[:Zip].in(zip_code).and(pc_t[:zip_override].eq(nil).or(pc_t[:zip_override].eq(''))).
-        or(pc_t[:zip_override].in(zip_code))
+        or(pc_t[:zip_override].in(zip_code)),
       )
     end
 

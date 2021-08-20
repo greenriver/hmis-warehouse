@@ -1,6 +1,6 @@
 = content_for :crumbs do
-  = link_to path_for_question(@question, report: @report) do
-    = "« #{report_short_name} #{@question} Reports"
+  = link_to path_for_report(@report) do
+    = "« #{report_short_name} Report"
 - content_for :title do
   = "#{report_short_name} #{@question}"
 

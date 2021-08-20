@@ -91,7 +91,18 @@ module HudPathReport::Generators::Fy2020
     end
 
     private def genders
-      h = HUD.genders.map do |k, v|
+      # Hard coding here until we receive 2022 specs
+      # h = HUD.genders.map do |k, v|
+      h = {
+        0 => 'Female',
+        1 => 'Male',
+        2 => 'Trans Female (MTF or Male to Female)',
+        3 => 'Trans Male (FTM or Female to Male)',
+        4 => 'Gender non-conforming (i.e. not exclusively male or female)',
+        8 => 'Client doesn\'t know',
+        9 => 'Client refused',
+        99 => 'Data not collected',
+      }.map do |k, v|
         [
           v,
           a_t[:gender].eq(k),
@@ -118,13 +129,20 @@ module HudPathReport::Generators::Fy2020
     end
 
     private def races
-      h = HUD.races.reject { |k, _| k == 'RaceNone' }.
-        map do |k, v|
-          [
-            v,
-            a_t[k.underscore].eq(1),
-          ]
-        end.to_h
+      # Hard coding here until we receive 2022 specs
+      # h = HUD.races.reject { |k, _| k == 'RaceNone' }.
+      h = {
+        'AmIndAKNative' => 'American Indian or Alaska Native', # 1
+        'Asian' => 'Asian', # 2
+        'BlackAfAmerican' => 'Black or African American', # 3
+        'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander', # 4
+        'White' => 'White', # 5
+      }.map do |k, v|
+        [
+          v,
+          a_t[k.underscore].eq(1),
+        ]
+      end.to_h
       [8, 9, 99].each do |v|
         h[HUD.race_none(v)] = a_t[:race_none].eq(v)
       end

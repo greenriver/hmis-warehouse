@@ -58,3 +58,9 @@
 .incomplete-field {
   background-color: $brand-warning-l;
 }
+.hud-report-options {
+  h2 {
+    padding-bottom: 0.25em;
+    border-bottom: 2px solid $brand-primary-l;
+  }
+}

@@ -30,7 +30,7 @@ module HmisCsvTwentyTwenty::Importer
         ],
         AssessmentType: [
           {
-            class: HmisCsvValidation::NonBlankValidation,
+            class: HmisCsvValidation::NonBlank,
           },
           {
             class: HmisCsvValidation::InclusionInSet,
@@ -39,7 +39,7 @@ module HmisCsvTwentyTwenty::Importer
         ],
         AssessmentLevel: [
           {
-            class: HmisCsvValidation::NonBlankValidation,
+            class: HmisCsvValidation::NonBlank,
           },
           {
             class: HmisCsvValidation::InclusionInSet,
@@ -48,7 +48,7 @@ module HmisCsvTwentyTwenty::Importer
         ],
         PrioritizationStatus: [
           {
-            class: HmisCsvValidation::NonBlankValidation,
+            class: HmisCsvValidation::NonBlank,
           },
           {
             class: HmisCsvValidation::InclusionInSet,

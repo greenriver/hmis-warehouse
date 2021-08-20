@@ -64,7 +64,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def run_4_x(table_name, stayer, income_change_clause)
-      prepare_table table_name, ROWS, CHANGE_TABLE_COLS
+      prepare_table(table_name, ROWS, CHANGE_TABLE_COLS)
 
       universe_members = universe.members.where(t[:m4_stayer].eq(stayer))
       with_increased_income = universe_members.where(income_change_clause)
