@@ -4,9 +4,18 @@
   .col-sm-8
     %h1= content_for :title
   .col-sm-4.text-right
-    = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload), class: 'btn btn-sm btn-secondary' do
-      %i.icon-download2
-      Download Original
+    .ml-auto.mb-2
+      = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload), class: 'btn btn-sm btn-secondary' do
+        %i.icon-download2
+        Download Original
+    .ml-auto.mb-2
+      = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload, all: true, format: :xlsx), class: 'btn btn-sm btn-secondary ml-auto' do
+        %i.icon-download2
+        Download All Clients
+    .ml-auto.mb-2
+      = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload, matched: true, format: :xlsx), class: 'btn btn-sm btn-secondary ml-auto' do
+        %i.icon-download2
+        Download Matched Clients
 
 .well.d-flex.align-items-center.flex-wrap
   %dl.mr-auto
@@ -61,10 +70,12 @@
                 %td= ssn(client.ssn)
                 %td= dob_or_age(client.dob)
                 %td
-                  - if client.client_id
+                  - if client.client_id.present?
                     Exact match
-                  - elsif client.client_id.blank? && possible_matching_clients.blank?
-                    None found
+                  - elsif possible_matching_clients.present?
+                    = f.input :client_id, label: 'No exact match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
+                  - elsif possible_matching_clients.blank?
+                    = f.input :client_id, label: 'No match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
                 %td.text-center
                   - if matched_client
                     = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized_for_cas? } if matched_client

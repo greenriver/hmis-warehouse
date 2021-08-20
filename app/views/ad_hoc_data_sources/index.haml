@@ -15,20 +15,23 @@
 
 %p= paginate(@data_sources)
 .card
-  .table-responsive
-    %table.table
-      %thead
-        %tr
-          %th Name
-          %th Short Name
-          %th Last Upload
-          %th
-      %tbody
-        - @data_sources.each do |data_source|
+  - if @data_sources.present?
+    .table-responsive
+      %table.table
+        %thead
           %tr
-            %td= link_to data_source.name, ad_hoc_data_source_path(data_source)
-            %td= data_source.short_name
-            %td= data_source.ad_hoc_batches.maximum(:created_at)
-            %td
-              = link_to ad_hoc_data_source_path(data_source), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you certain you want to delete #{data_source.name}?" } do
-                %i.icon-cross
+            %th Name
+            %th Short Name
+            %th Last Upload
+            %th
+        %tbody
+          - @data_sources.each do |data_source|
+            %tr
+              %td= link_to data_source.name, ad_hoc_data_source_path(data_source)
+              %td= data_source.short_name
+              %td= data_source.ad_hoc_batches.maximum(:created_at)
+              %td
+                = link_to ad_hoc_data_source_path(data_source), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you certain you want to delete #{data_source.name}?" } do
+                  %i.icon-cross
+  - else
+    %p.none-found No Ad-Hoc Data Sources

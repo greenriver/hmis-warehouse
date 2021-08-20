@@ -1,5 +1,5 @@
 - content_for :title,  _('Data Sources')
-- if can_manage_ad_hoc_data_sources?
+- if can_manage_some_ad_hoc_ds?
   %ul.nav.nav-tabs
     %li.nav-item.active
       = link_to _('HMIS Data Sources'), data_sources_path, class: 'nav-link'

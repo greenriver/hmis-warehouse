@@ -1,0 +1,11 @@
+- content_for :panel_collapse_content_ad_hoc do
+  = simple_form_for :ad_hoc, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+    = f.error_notification
+    .row
+      .col-sm-5
+        = f.input :data_source, collection: GrdaWarehouse::AdHocDataSource.viewable_by(current_user), selected: @ad_hoc.try(:[], :data_source), label: 'Ad-Hoc Data Source', as: :select_two
+
+    .panel-footer
+      = f.button :submit, value: 'Search'
+
+= render 'common/panel_collapse', id: 'ad_hoc', title: 'Clients matched in an Ad-Hoc Data Source', content: '_ad_hoc'
