@@ -179,7 +179,7 @@ module ProjectPassFail
     private def run_apr(p_id)
       return unless RailsDrivers.loaded.include?(:hud_apr)
 
-      apr_filter = ::Filters::FilterBase.new(
+      apr_filter = ::Filters::HudFilterBase.new(
         start: filter.start,
         end: filter.end,
         user_id: user_id,
