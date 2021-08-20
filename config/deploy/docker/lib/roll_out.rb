@@ -399,14 +399,14 @@ class RollOut
   end
 
   def _on_demand_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/on-demand/) }
+    _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
   end
 
   # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html
   def _placement_strategy
     [
       {
-        # distribute across zones first
+        # Distribute across zones first
         "field": "attribute:ecs.availability-zone",
         "type": "spread"
       },
@@ -414,12 +414,6 @@ class RollOut
         # Then try to maximize utilization (minimize number of EC2 instances)
         "field": "memory",
         "type": "binpack"
-      },
-      {
-        # Tie-breaker is to put tasks on difference instances, but I don't know
-        # if we ever would get to this choice
-        "field": "instanceId",
-        "type": "spread"
       }
     ]
   end
