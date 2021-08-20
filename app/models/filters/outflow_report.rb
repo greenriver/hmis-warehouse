@@ -22,6 +22,11 @@ module Filters
       Date.current - 90.day
     end
 
+    # These are not presented in the UI, but need to be set to nothing or all homeless projects are returned
+    def default_project_type_codes
+      []
+    end
+
     def available_sub_populations
       @available_sub_populations = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.dup
       @available_sub_populations['Youth at Search Start'] = :youth_at_search_start
