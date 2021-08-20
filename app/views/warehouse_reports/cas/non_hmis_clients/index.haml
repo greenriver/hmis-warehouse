@@ -1,18 +1,23 @@
 %h1 Non-HMIS to Warehouse Clients
 .row
-  - if @report.candidates.present?
-    .table-responsive
-      %table.table.table-striped.table-sm
-        %thead
-          %tr
-            %th First Name
-            %th Last Name
-            %th SSN
-            %th DOB
-            %th Possible Matches
-        %tbody
-          - @report.candidates.each do |candidate|
-            = render 'client', client: candidate
-  - else
-    %p.none-found
-      No unmatched Non-HMIS clients found.
+  .col-12
+    - if @report.candidates.present?
+      = simple_form_for :matches, url: match_warehouse_reports_cas_non_hmis_clients_path, method: :patch do |f|
+        .table-responsive
+          %table.table.table-striped.table-sm
+            %thead
+              %tr
+                %th First Name
+                %th Last Name
+                %th SSN
+                %th DOB
+                %th Possible Matches
+                %th
+            %tbody
+              - @report.candidates.each do |candidate|
+                = render 'client', client: candidate, f: f
+        .text-right
+          = f.button :submit, 'Update Client IDs'
+    - else
+      %p.none-found
+        No unmatched Non-HMIS clients found.
