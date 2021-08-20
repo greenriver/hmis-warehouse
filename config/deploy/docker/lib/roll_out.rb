@@ -636,7 +636,7 @@ class RollOut
         service: name,
         desired_count: desired_count,
         task_definition: task_definition,
-        # force_new_deployment: true,
+        force_new_deployment: true, # Need this when you change capacity providers. TODO: detect this situation
         capacity_provider_strategy: [
           {
             capacity_provider: capacity_provider,
