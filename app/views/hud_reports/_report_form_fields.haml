@@ -11,14 +11,14 @@
   %p.alert.alert-info Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type.
   .row
     .col-6
-      = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Please Choose' },label: 'Projects'
+      = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects' },label: 'Projects'
     .col-6
-      = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Any Data Source'}, label: 'Data Sources'
+      = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources'}, label: 'Data Sources'
   .row
     .col-6
-      = f.input :project_type_codes, collection: @filter.available_residential_project_types, input_html: { multiple: true, placeholder: 'Any Project Type' }, label: 'Project Types', as: :select_two
+      = f.input :project_type_codes, collection: @filter.available_residential_project_types, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two
     .col-6
-      = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Any Project Group'}, label: 'Project Groups'
+      = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Project Groups'}, label: 'Project Groups'
   %h2 Limits
   .row
     .col-4

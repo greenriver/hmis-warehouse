@@ -14,9 +14,9 @@
       %h2 Project Limits
       .row.mb-2
         .col-sm-6
-          = f.input :project_ids,  as: :grouped_select_two, group_method: :last, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), input_html: {name: 'report_result[options][project_ids][]', multiple: true}, include_blank: true, label: 'Projects', required: false
+          = f.input :project_ids,  as: :grouped_select_two, group_method: :last, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), input_html: {name: 'report_result[options][project_ids][]', multiple: true, placeholder: 'Any Project'}, include_blank: true, label: 'Projects', required: false
         .col-sm-6
-          = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.options_for_select(user: current_user), as: :select_two, input_html: {name: 'report_result[options][project_group_ids][]', multiple: true}, label: 'Project Groups', required: false
+          = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.options_for_select(user: current_user), as: :select_two, input_html: {name: 'report_result[options][project_group_ids][]', multiple: true, placeholder: 'Any Project Group'}, label: 'Project Groups', required: false
 
       %hr
       .row
