@@ -35,58 +35,59 @@
 = simple_form_for :ad_hoc_clients, as: :clients, url: ad_hoc_data_source_upload_path(@data_source, @upload), method: :patch do |f|
   .row.table-utilities
     .col-sm-12
-      .table-responsive
-        %table.table.table-sm
-          %thead
-            %tr
-              %th First Name
-              %th Middle Name
-              %th Last Name
-              %th SSN
-              %th DOB
-              %th Possible Matches
-              %th.text-center= _('Health Priority')
-          %tbody
-            - @upload.ad_hoc_clients.find_each.with_index do |client, i|
-              - odd_class = if i.even? then 'even' else 'odd' end
-              - matched_client = @found_clients[client.client_id]
-              - possible_matching_clients = @possible_matches[client.id]
-              %tr{class: odd_class}
-                %td
-                  - if client.client_id && client.first_name
-                    = link_to client.first_name, client_path(client.client_id), target: :_blank
-                  - else
-                    = client.first_name
-                %td
-                  - if client.client_id && client.middle_name
-                    = link_to client.middle_name, client_path(client.client_id), target: :_blank
-                  - else
-                    = client.middle_name
-                %td
-                  - if client.client_id && client.last_name
-                    = link_to client.last_name, client_path(client.client_id), target: :_blank
-                  - else
-                    = client.last_name
-                %td= ssn(client.ssn)
-                %td= dob_or_age(client.dob)
-                %td
-                  - if client.client_id.present?
-                    Exact match
-                  - elsif possible_matching_clients.present?
-                    = f.input :client_id, label: 'No exact match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
-                  - elsif possible_matching_clients.blank?
-                    = f.input :client_id, label: 'No match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
-                %td.text-center
-                  - if matched_client
-                    = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized_for_cas? } if matched_client
-              - if client.client_id.blank?
-                - possible_matching_clients.each do |possible|
-                  %tr{class: odd_class}
-                    %td{colspan: 5}
-                    %td
-                      = link_to possible.name, client_path(possible), target: :_blank
-                      (#{possible.id})
-                    %td.text-center
-                      = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized_for_cas? }
+      .card
+        .table-responsive
+          %table.table.table-striped.mb-0
+            %thead
+              %tr
+                %th First Name
+                %th Middle Name
+                %th Last Name
+                %th SSN
+                %th DOB
+                %th Possible Matches
+                %th.text-center= _('Health Priority')
+            %tbody
+              - @upload.ad_hoc_clients.find_each.with_index do |client, i|
+                - odd_class = if i.even? then 'even' else 'odd' end
+                - matched_client = @found_clients[client.client_id]
+                - possible_matching_clients = @possible_matches[client.id]
+                %tr{class: odd_class}
+                  %td
+                    - if client.client_id && client.first_name
+                      = link_to client.first_name, client_path(client.client_id), target: :_blank
+                    - else
+                      = client.first_name
+                  %td
+                    - if client.client_id && client.middle_name
+                      = link_to client.middle_name, client_path(client.client_id), target: :_blank
+                    - else
+                      = client.middle_name
+                  %td
+                    - if client.client_id && client.last_name
+                      = link_to client.last_name, client_path(client.client_id), target: :_blank
+                    - else
+                      = client.last_name
+                  %td= ssn(client.ssn)
+                  %td= dob_or_age(client.dob)
+                  %td
+                    - if client.client_id.present?
+                      Exact match
+                    - elsif possible_matching_clients.present?
+                      = f.input :client_id, label: 'No exact match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
+                    - elsif possible_matching_clients.blank?
+                      = f.input :client_id, label: 'No match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
+                  %td.text-center
+                    - if matched_client
+                      = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized_for_cas? } if matched_client
+                - if client.client_id.blank?
+                  - possible_matching_clients.each do |possible|
+                    %tr{class: odd_class}
+                      %td{colspan: 5}
+                      %td
+                        = link_to possible.name, client_path(possible), target: :_blank
+                        (#{possible.id})
+                      %td.text-center
+                        = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized_for_cas? }
   .text-right
     = f.button :submit, 'Update Health Prioritizations'

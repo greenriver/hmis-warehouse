@@ -36,15 +36,14 @@ class AdHocDataSources::UploadsController < ApplicationController
   end
 
   def download
-    # If we didn't ask to download the results, send the original file back
-    if params[:matched].blank? && params[:all].blank?
+    if params[:matched]
+      @clients = @upload.ad_hoc_clients.where.not(client_id: nil)
+    elsif params[:all]
+      @clients = @upload.ad_hoc_clients
+    else
+      # If we didn't ask to download the results, send the original file back
       send_data(@upload.content, filename: @upload.name, type: @upload.content_type)
       return
-    end
-    @clients = if params[:matched]
-      @upload.ad_hoc_clients.where.not(client_id: nil)
-    else
-      @upload.ad_hoc_clients
     end
     # Use the default render
     headers['Content-Disposition'] = "attachment; filename=#{@upload.sanitized_name}.xlsx"
