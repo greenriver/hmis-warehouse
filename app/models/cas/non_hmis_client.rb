@@ -63,9 +63,12 @@ module Cas
       )
     end
 
-    def self.exact_match?(candidate, matches)
+    # An "exact match" is actually 3 out of 4 items
+    def self.exact_match(candidate, matches)
       name_matches = (matches.first_name_matches[candidate[:first_name]] || []) & (matches.last_name_matches[candidate[:last_name]] || [])
-      name_matches.present? && (matches.dob_matches[candidate[:date_of_birth]].present? || matches.ssn_matches[candidate[:ssn]].present?)
+      exact_matches = name_matches & matches.dob_matches[candidate[:date_of_birth]]
+      exact_matches += name_matches & matches.ssn_matches[candidate[:ssn]]
+      exact_matches.uniq.first
     end
 
     MATCH_TYPES = [
@@ -95,11 +98,12 @@ module Cas
 
         new_warehouse_ids = []
         matches.candidates.each do |id, candidate|
-          next unless exact_match?(candidate, matches)
+          exact_match_id = exact_match(candidate, matches)
+          next unless exact_match_id.present?
 
           new_warehouse_ids << {
             id: id,
-            warehouse_client_id: name_matches.first,
+            warehouse_client_id: exact_match_id,
           }
         end
 
