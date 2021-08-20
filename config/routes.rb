@@ -302,8 +302,12 @@ Rails.application.routes.draw do
       resources :incorrect_move_in_dates, only: [:index]
     end
     namespace :client_details do
-      resources :exits, only: [:index]
-      resources :entries, only: [:index]
+      resources :exits, only: [:index] do
+        post :render_section, on: :collection
+      end
+      resources :entries, only: [:index] do
+        post :render_section, on: :collection
+      end
       resources :actives, only: [:index] do
         post :render_section, on: :collection
       end

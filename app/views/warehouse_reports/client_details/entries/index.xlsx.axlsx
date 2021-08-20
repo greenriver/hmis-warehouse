@@ -14,11 +14,11 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
     'Group',
     'Ethnicity',
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }, style: title)
-  @buckets.each do |group, clients|
-    section = @data[group][:label]
+  @report.buckets.each do |group, clients|
+    section = @report.data[group][:label]
     clients.each do |client_id|
-      meta = @enrollments[client_id].first
-      enrollments = @enrollments[client_id]
+      meta = @report.enrollments[client_id].first
+      enrollments = @report.enrollments[client_id]
       enrollments.each do |enrollment|
         row = [
           client_id,
