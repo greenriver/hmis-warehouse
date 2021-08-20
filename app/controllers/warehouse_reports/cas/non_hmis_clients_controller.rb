@@ -10,6 +10,11 @@ module WarehouseReports::Cas
     include WarehouseReportAuthorization
 
     def index
+      @report = ::Cas::NonHmisClient.find_matches(report_source)
+    end
+
+    def report_source
+      ::Cas::NonHmisClient.unassigned
     end
   end
 end

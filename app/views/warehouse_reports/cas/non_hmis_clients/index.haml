@@ -1,0 +1,18 @@
+%h1 Non-HMIS to Warehouse Clients
+.row
+  - if @report.candidates.present?
+    .table-responsive
+      %table.table.table-striped.table-sm
+        %thead
+          %tr
+            %th First Name
+            %th Last Name
+            %th SSN
+            %th DOB
+            %th Possible Matches
+        %tbody
+          - @report.candidates.each do |candidate|
+            = render 'client', client: candidate
+  - else
+    %p.none-found
+      No unmatched Non-HMIS clients found.

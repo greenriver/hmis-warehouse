@@ -63,14 +63,39 @@ module Cas
       )
     end
 
+    def self.exact_match?(candidate, matches)
+      name_matches = (matches.first_name_matches[candidate[:first_name]] || []) & (matches.last_name_matches[candidate[:last_name]] || [])
+      name_matches.present? && (matches.dob_matches[candidate[:date_of_birth]].present? || matches.ssn_matches[candidate[:ssn]].present?)
+    end
+
+    MATCH_TYPES = [
+      [:first_name_matches, :first_name],
+      [:last_name_matches, :last_name],
+      [:dob_matches, :date_of_birth],
+      [:ssn_matches, :ssn],
+    ].freeze
+
+    def self.partial_matches(candidate, matches)
+      partial_matches = []
+      MATCH_TYPES.each do |first_type, first_column|
+        MATCH_TYPES.each do |second_type, second_column|
+          next if first_type == second_type
+
+          partial_matches += matches.send(first_type)[candidate[first_column]] & matches.send(second_type)[candidate[second_column]]
+        rescue TypeError
+          next
+        end
+      end
+      partial_matches.uniq
+    end
+
     def self.find_exact_matches
       unassigned.find_in_batches do |batch|
         matches = find_matches(batch)
 
         new_warehouse_ids = []
         matches.candidates.each do |id, candidate|
-          name_matches = (matches.first_name_matches[candidate[:first_name]] || []) & (matches.last_name_matches[candidate[:last_name]] || [])
-          next unless name_matches.present? && (matches.dob_matches[candidate[:date_of_birth]].present? || matches.ssn_matches[candidate[:ssn]].present?)
+          next unless exact_match?(candidate, matches)
 
           new_warehouse_ids << {
             id: id,
