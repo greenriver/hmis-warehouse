@@ -328,12 +328,15 @@ module Filters
       @effective_project_ids += effective_project_ids_from_organizations
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids += effective_project_ids_from_coc_codes
-      @effective_project_ids += effective_project_ids_from_project_types
 
       # Add an invalid id if there are none
       @effective_project_ids = [0] if @effective_project_ids.empty?
 
       @effective_project_ids.uniq.reject(&:blank?)
+    end
+
+    def any_effective_project_ids?
+      effective_project_ids.reject { |m| m&.zero? }.present?
     end
 
     def anded_effective_project_ids

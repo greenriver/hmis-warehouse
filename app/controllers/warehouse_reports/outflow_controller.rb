@@ -82,7 +82,6 @@ module WarehouseReports
           end: default_end.to_date,
           no_service_after_date: default_no_service_after_date,
           sub_population: :clients,
-          project_type_codes: [:es, :so, :sh, :th],
         }
       end
     end
