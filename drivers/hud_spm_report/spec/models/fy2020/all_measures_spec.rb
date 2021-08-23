@@ -13,6 +13,9 @@ RSpec.describe HudSpmReport::Generators::Fy2020::Generator, type: :model do
   before(:all) do
     GrdaWarehouse::DataSource.where(name: 'Warehouse', short_name: 'W').first_or_create!
     @data_source = GrdaWarehouse::DataSource.where(name: 'Green River', short_name: 'GR', source_type: :sftp).first_or_create!
+    @user = User.find_by(email: SPM_USER_EMAIL) || create(:user, email: SPM_USER_EMAIL)
+    @user.add_viewable(@data_source)
+
     import 'fy2020/measure_one', @data_source
     import 'fy2020/measure_two', @data_source
     import 'fy2020/measure_three', @data_source
@@ -21,7 +24,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::Generator, type: :model do
     import 'fy2020/measure_six', @data_source
     import 'fy2020/measure_seven', @data_source
 
-    filter = HudSpmReport::Filters::SpmFilter.new(
+    filter = ::Filters::HudFilterBase.new(
       shared_filter.merge(
         start: Date.parse('2015-1-1'),
         end: Date.parse('2015-12-31'),

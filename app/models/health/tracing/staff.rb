@@ -77,7 +77,7 @@ module Health::Tracing
         test_result: test_result,
         vaccinated: vaccinated,
         vaccine: vaccine&.reject(&:blank?)&.join(', '),
-        vaccination_dates: vaccination_dates&.map { |v| v.to_date.strftime('%m/%d/%Y') }&.join(', '),
+        vaccination_dates: vaccination_dates&.map { |v| v&.to_date&.strftime('%m/%d/%Y') }&.compact&.join(', '),
         vaccination_complete: vaccination_complete,
         notes: notes,
       }

@@ -13,7 +13,7 @@ class WarehouseReport::Outcomes::Base
     @filter = filter
     @organization_ids = @filter.organization_ids
     @data_source_ids = @filter.data_source_ids
-    @project_ids = @filter.effective_project_ids
+    @project_ids = @filter.effective_project_ids.reject { |m| m&.zero? }
     @coc_codes = @filter.coc_codes
     @start_date = @filter.start
     @end_date = @filter.end

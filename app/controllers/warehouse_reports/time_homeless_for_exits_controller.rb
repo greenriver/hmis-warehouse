@@ -15,7 +15,7 @@ module WarehouseReports
     end
 
     private def set_filter
-      @filter = filter_class.new(user_id: current_user.id)
+      @filter = filter_class.new(user_id: current_user.id, project_type_codes: [])
       if filter_params[:filters].blank?
         @filter.start = 1.month.ago.beginning_of_month.to_date
         @filter.end = @filter.start.end_of_month.to_date

@@ -1936,7 +1936,8 @@ CREATE TABLE public.ad_hoc_data_sources (
     active boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    user_id bigint
 );
 
 
@@ -14390,7 +14391,8 @@ CREATE TABLE public.vispdats (
     time_spent_alone_13_answer integer,
     time_spent_alone_12_answer integer,
     time_spent_helping_siblings_answer integer,
-    number_of_bedrooms integer DEFAULT 0
+    number_of_bedrooms integer DEFAULT 0,
+    contact_method character varying
 );
 
 
@@ -22823,6 +22825,13 @@ CREATE INDEX index_ad_hoc_data_sources_on_deleted_at ON public.ad_hoc_data_sourc
 --
 
 CREATE INDEX index_ad_hoc_data_sources_on_updated_at ON public.ad_hoc_data_sources USING btree (updated_at);
+
+
+--
+-- Name: index_ad_hoc_data_sources_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ad_hoc_data_sources_on_user_id ON public.ad_hoc_data_sources USING btree (user_id);
 
 
 --
@@ -31394,11 +31403,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210727134415'),
 ('20210729175328'),
 ('20210729201521'),
+('20210806202832'),
 ('20210809124146'),
 ('20210809130851'),
 ('20210809154208'),
 ('20210809184745'),
 ('20210810182752'),
-('20210813121134');
+('20210813121134'),
+('20210819132406'),
+('20210819133035');
 
 

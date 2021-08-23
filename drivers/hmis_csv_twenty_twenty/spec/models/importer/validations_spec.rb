@@ -40,7 +40,7 @@ RSpec.describe 'Validate import files', type: :model do
   end
 
   it 'includes expected assessments failures' do
-    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(4)
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(6)
   end
 
   it 'includes expected assessments validations' do

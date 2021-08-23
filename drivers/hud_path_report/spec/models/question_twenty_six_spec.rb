@@ -40,13 +40,15 @@ RSpec.describe HudPathReport::Generators::Fy2020::QuestionTwentySix, type: :mode
     end
   end
 
-  it 'counts by race' do
+  describe 'race' do
     [1, 1, 0, 0, 0, 0, 0, 0].each_with_index do |count, index|
-      expect(report_result.answer(question: 'Q26', cell: 'C' + (index + 22).to_s).summary).to eq(count)
+      it "counts by race: index: #{index}" do
+        expect(report_result.answer(question: 'Q26', cell: 'C' + (index + 22).to_s).summary).to eq(count)
+      end
     end
   end
 
-  describe 'ethicities' do
+  describe 'ethnicities' do
     it 'counts identifies as non-hispanic/latino' do
       expect(report_result.answer(question: 'Q26', cell: 'C31').summary).to eq(1)
     end

@@ -21,7 +21,7 @@
     - # Measure 7 is table with Client Count, column for count of every destination
     - if client
       - spm_id = client.send("spm_#{variant}")
-      %p= link_to 'view related SPM report', result_hud_reports_spm_measure_path(spm_id, measure)
+      %p= link_to 'view related SPM report', hud_reports_spm_path(spm_id)
       .card.mb-4
         %table.table.table-striped.mb-0
           %thead

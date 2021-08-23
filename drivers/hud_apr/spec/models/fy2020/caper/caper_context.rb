@@ -20,12 +20,12 @@ RSpec.shared_context 'caper context', shared_context: :metadata do
 
   def default_filter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
-    HudApr::Filters::AprFilter.new(shared_filter.merge(project_ids: [project_id]))
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
   end
 
   def night_by_night_shelter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'NBN').id
-    HudApr::Filters::AprFilter.new(shared_filter.merge(project_ids: [project_id]))
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
   end
 
   def run(filter, question_name)
