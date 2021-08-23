@@ -1,0 +1,11 @@
+%table.table.table-compressed.table-striped
+  %thead
+    %tr
+      %th Personal ID
+      %th Data source
+  %tbody
+    - @source_client_details.each do |client_id, data_source_id, personal_id| 
+      %tr
+        %td= personal_id
+        %td
+          .ds{class: "ds-color-#{data_source_id}"}= ds_short_name_for(client_id)
