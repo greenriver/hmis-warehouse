@@ -24,26 +24,27 @@
 %p= paginate(@uploads)
 .row.table-utilities
   .col-sm-12
-    .table-responsive
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th Description
-            %th Uploaded On
-            %th Uploaded By
-            %th Status
-            %th.text-center Download Original
-            %th
-        %tbody
-          - @uploads.each do |upload|
+    .card
+      .table-responsive
+        %table.table.table-striped.mb-0
+          %thead
             %tr
-              %td= link_to upload.description, ad_hoc_data_source_upload_path(@data_source, upload)
-              %td= upload.created_at.to_date
-              %td= upload.user&.name
-              %td= upload.status
-              %td.text-center
-                = link_to download_ad_hoc_data_source_upload_path(@data_source, upload), class: 'btn btn-secondary btn-sm btn-icon-only' do
-                  %i.icon-download2
-              %td
-                = link_to ad_hoc_data_source_upload_path(@data_source, upload), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this upload?' } do
-                  %icon.icon-cross
+              %th Description
+              %th Uploaded On
+              %th Uploaded By
+              %th Status
+              %th.text-center Download Original
+              %th
+          %tbody
+            - @uploads.each do |upload|
+              %tr
+                %td= link_to upload.description, ad_hoc_data_source_upload_path(@data_source, upload)
+                %td= upload.created_at.to_date
+                %td= upload.user&.name
+                %td= upload.status
+                %td.text-center
+                  = link_to download_ad_hoc_data_source_upload_path(@data_source, upload), class: 'btn btn-secondary btn-sm btn-icon-only' do
+                    %i.icon-download2
+                %td
+                  = link_to ad_hoc_data_source_upload_path(@data_source, upload), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this upload?' } do
+                    %icon.icon-cross

@@ -42,6 +42,11 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
     completed_at.present?
   end
 
+  def sanitized_name
+    # See https://www.keynotesupport.com/excel-basics/worksheet-names-characters-allowed-prohibited.shtml
+    description.gsub(/['\*\/\\\?\[\]\:]/, '-')
+  end
+
   def self.process!
     return if advisory_lock_exists?('ad_hoc_processing')
 
@@ -71,13 +76,13 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
     @csv ||= if content_type.in?(['text/plain', 'text/csv', 'application/csv'])
       sheet = ::Roo::CSV.new(StringIO.new(content))
       @csv_headers = sheet.first
-      sheet.parse(headers: true).drop(1)
+      sheet.parse(headers: true).drop(1) # rubocop:disable Style/IdenticalConditionalBranches
     else
       sheet = ::Roo::Excelx.new(StringIO.new(content).binmode)
       return nil if sheet&.first_row.blank?
 
       @csv_headers = sheet.first
-      sheet.parse(headers: true).drop(1)
+      sheet.parse(headers: true).drop(1) # rubocop:disable Style/IdenticalConditionalBranches
     end
   end
 
@@ -116,7 +121,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       client.matching_client_ids += dob_matches(client)
       # See if any clients matched more than once
       counts = client.matching_client_ids.
-        each_with_object(Hash.new(0)) { |id, counts| counts[id] += 1 }.
+        each_with_object(Hash.new(0)) { |id, internal_counts| internal_counts[id] += 1 }.
         select { |_, c| c > 1 }
       # If only one client matched more than once, make note
       if counts.count == 1
@@ -126,5 +131,4 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       client.save
     end
   end
-
 end
