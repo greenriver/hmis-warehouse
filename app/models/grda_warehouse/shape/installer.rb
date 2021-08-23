@@ -8,7 +8,7 @@ module GrdaWarehouse
   module Shape
     class Installer
       def self.any_needed?
-        State.none? || ZipCode.none? || County.none? || CoC.none? || BlockGroup.none?
+        State.none? || ZipCode.none? || County.none? || CoC.none? || BlockGroup.none? || Place.none?
       end
 
       def run!
@@ -32,6 +32,7 @@ module GrdaWarehouse
           OpenStruct.new(klass: GrdaWarehouse::Shape::BlockGroup, dir: 'block_groups'),
           OpenStruct.new(klass: GrdaWarehouse::Shape::State, dir: 'states'),
           OpenStruct.new(klass: GrdaWarehouse::Shape::County, dir: 'counties'),
+          OpenStruct.new(klass: GrdaWarehouse::Shape::Place, dir: 'places'),
         ].each do |conf|
           if conf.klass.any?
             Rails.logger.info "Skipping #{conf.klass} since you already have it."
@@ -87,6 +88,7 @@ module GrdaWarehouse
 
         Rails.logger.info 'Pruning out-of-state geometries'
 
+        # Don't need to prune places. They come in on a per-state basis
         [ZipCode, CoC, County, State].each do |klass|
           if klass.not_my_state.count > 0 && (klass.not_my_state.count + klass.my_state.count == klass.count)
             Rails.logger.warn "Deleting #{klass} that are out of state"
