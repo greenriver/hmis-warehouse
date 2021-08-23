@@ -11,8 +11,8 @@ module WarehouseReports
 
     def index
       @projects = GrdaWarehouse::Hud::Project.
-        where(id: @filter.effective_project_ids).
         active_during(@filter.range).distinct
+      @projects = @projects.where(id: @filter.effective_project_ids) if @filter.any_effective_project_ids?
       @projects = @projects.with_project_type(@filter.project_type_ids) if @filter.project_type_numbers.any?
       @organizations = GrdaWarehouse::Hud::Organization.joins(:projects).merge(@projects).distinct
       @inventories = GrdaWarehouse::Hud::Inventory.within_range(@filter.range).joins(:project).merge(@projects).distinct

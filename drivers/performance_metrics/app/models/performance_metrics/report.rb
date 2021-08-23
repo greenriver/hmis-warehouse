@@ -648,7 +648,7 @@ module PerformanceMetrics
         'Question 5',
         'Question 16',
       ]
-      caper_filter = HudApr::Filters::AprFilter.new(user_id: filter.user_id).update(filter.to_h)
+      caper_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(filter.to_h)
       generator = HudApr::Generators::Caper::Fy2020::Generator
       caper_report = HudReports::ReportInstance.from_filter(caper_filter, generator.title, build_for_questions: questions)
       generator.new(caper_report).run!(email: false)
@@ -685,7 +685,7 @@ module PerformanceMetrics
       options[:project_type_codes] ||= []
       options[:project_type_codes] += [:es, :so, :sh, :th]
       options.delete(:comparison_pattern)
-      spm_filter = HudSpmReport::Filters::SpmFilter.new(user_id: filter.user_id).update(options)
+      spm_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(options)
       generator = HudSpmReport::Generators::Fy2020::Generator
       spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
       generator.new(spm_report).run!(email: false)

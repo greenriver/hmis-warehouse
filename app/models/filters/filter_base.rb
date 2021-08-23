@@ -99,7 +99,13 @@ module Filters
         self.heads_of_household = filter_hoh
         self.hoh_only = filter_hoh
       end
-      self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject(&:blank?).presence || project_type_codes
+      if filters.key?(:project_type_codes)
+        self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject(&:blank?)
+      elsif filters.key?(:project_type_numbers)
+        self.project_type_codes = []
+      else
+        project_type_codes
+      end
       self.project_type_numbers = filters.dig(:project_type_numbers)&.reject(&:blank?)&.map(&:to_i).presence || project_type_numbers
       self.data_source_ids = filters.dig(:data_source_ids)&.reject(&:blank?)&.map(&:to_i).presence || data_source_ids
       self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i).presence || organization_ids
@@ -322,9 +328,15 @@ module Filters
       @effective_project_ids += effective_project_ids_from_organizations
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids += effective_project_ids_from_coc_codes
-      @effective_project_ids = all_project_ids if @effective_project_ids.empty?
+
+      # Add an invalid id if there are none
+      @effective_project_ids = [0] if @effective_project_ids.empty?
 
       @effective_project_ids.uniq.reject(&:blank?)
+    end
+
+    def any_effective_project_ids?
+      effective_project_ids.reject { |m| m&.zero? }.present?
     end
 
     def anded_effective_project_ids

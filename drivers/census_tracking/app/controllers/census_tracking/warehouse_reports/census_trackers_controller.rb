@@ -34,7 +34,7 @@ module CensusTracking::WarehouseReports
     end
 
     private def filter
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id)
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id, project_type_codes: [])
       @filter.set_from_params(report_params)
       @show_report = @filter.project_ids.present? || @filter.project_group_ids.present? || @filter.organization_ids.present?
     end

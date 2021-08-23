@@ -14391,7 +14391,8 @@ CREATE TABLE public.vispdats (
     time_spent_alone_13_answer integer,
     time_spent_alone_12_answer integer,
     time_spent_helping_siblings_answer integer,
-    number_of_bedrooms integer DEFAULT 0
+    number_of_bedrooms integer DEFAULT 0,
+    contact_method character varying
 );
 
 
@@ -31402,6 +31403,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210727134415'),
 ('20210729175328'),
 ('20210729201521'),
+('20210806202832'),
 ('20210809124146'),
 ('20210809130851'),
 ('20210809154208'),

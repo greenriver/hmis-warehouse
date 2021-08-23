@@ -19,7 +19,7 @@ module HudApr::Generators::Caper::Fy2020
     end
 
     def self.filter_class
-      HudApr::Filters::AprFilter
+      ::Filters::HudFilterBase
     end
 
     def self.questions

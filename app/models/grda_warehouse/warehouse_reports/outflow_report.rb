@@ -92,7 +92,7 @@ module GrdaWarehouse::WarehouseReports
         distinct.
         select(:client_id, :last_date_in_program).
         index_by(&:client_id).values.
-        group_by{ |x| x.last_date_in_program.end_of_month }
+        group_by { |x| x.last_date_in_program.end_of_month }
 
       hoh_to_ph_count = {}
       months.each { |month| hoh_to_ph_count[month] = 0 }
@@ -105,7 +105,7 @@ module GrdaWarehouse::WarehouseReports
         distinct.
         select(:client_id, :housed_date).
         index_by(&:client_id).values.
-        group_by{ |x| x.housed_date.end_of_month }
+        group_by { |x| x.housed_date.end_of_month }
 
       hoh_to_stabilization_count = {}
       months.each { |month| hoh_to_stabilization_count[month] = 0 }
@@ -134,10 +134,10 @@ module GrdaWarehouse::WarehouseReports
       without_recent_service = scope.
         homeless.
         with_service_between(start_date: @filter.start, end_date: @filter.end, service_scope: :homeless).
-        where.not(client_id: scope.
-          homeless.
-          with_service_between(start_date: @filter.no_service_after_date, end_date: Date.current, service_scope: :homeless).
-          select(:client_id)
+        where.not(
+          client_id: scope.homeless.
+            with_service_between(start_date: @filter.no_service_after_date, end_date: Date.current, service_scope: :homeless).
+            select(:client_id),
         ).
         distinct.
         pluck(:client_id)
@@ -229,12 +229,12 @@ module GrdaWarehouse::WarehouseReports
       scope = filter_for_head_of_household(scope)
       scope = filter_for_age(scope)
       scope = filter_for_veteran_status(scope)
+      scope = filter_for_projects(scope)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      # scope = filter_for_sub_population(scope) # note, non-standard, handled above
 
-      scope = scope.where(p_t[:id].in(@filter.effective_project_ids)) unless @filter.effective_project_ids.empty?
-
-      if @filter.limit_to_vispdats
-        scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids)
-      end
+      scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids) if @filter.limit_to_vispdats
 
       if @filter.require_homeless_enrollment
         homeless_clients = GrdaWarehouse::ServiceHistoryEnrollment.
