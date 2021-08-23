@@ -5,3 +5,5 @@
 #
 # use with caution!
 RailsDrivers.loaded << :hmis_csv_twenty_twenty_two
+
+Filters::HmisExport.register_version('HMIS 2022', '2022', 'HmisCsvTwentyTwentyTwo::ExportJob')
