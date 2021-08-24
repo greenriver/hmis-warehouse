@@ -33,6 +33,7 @@ module WarehouseReports
         :end_date,
         :period_type,
         :include_deleted,
+        :version,
         project_ids: [],
         project_group_ids: [],
         organization_ids: [],
