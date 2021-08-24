@@ -3,7 +3,7 @@
   %td= candidate[:first_name]
   %td= candidate[:last_name]
   - ssn = candidate[:ssn]
-  %td= "#{ssn[0..2]}-#{ssn[3..4]}-#{ssn[5..8]}"
+  %td= ssn(ssn)
   %td= candidate[:date_of_birth]
   %td
     - exact_match_id = Cas::NonHmisClient.exact_match(candidate, @report)
