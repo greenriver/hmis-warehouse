@@ -59,7 +59,7 @@ module HMIS::Structure::ProjectCoc
             null: false,
           },
         }
-      when '2020', nil
+      when '2020', '2022', nil
         {
           ProjectCoCID: {
             type: :string,

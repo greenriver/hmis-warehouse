@@ -82,6 +82,7 @@ module GrdaWarehouse::Hud
     has_many :assessments, through: :enrollments, source: :assessments, inverse_of: :client
     has_many :assessment_questions, through: :assessments, source: :assessment_questions
     has_many :assessment_results, through: :assessments, source: :assessment_results
+    has_many :youth_education_statuses, through: :enrollments
 
     # The following scopes are provided for data cleanup, but should generally not be
     # used, as these relationships should go through enrollments
@@ -97,6 +98,7 @@ module GrdaWarehouse::Hud
     has_many :direct_assessments, **hud_assoc(:PersonalID, 'Assessment'), inverse_of: :direct_client
     has_many :direct_assessment_questions, **hud_assoc(:PersonalID, 'AssessmentQuestion'), inverse_of: :enrollment
     has_many :direct_assessment_results, **hud_assoc(:PersonalID, 'AssessmentResult'), inverse_of: :enrollment
+    has_many :direct_youth_education_statuses, **hud_assoc(:PersonalID, 'YouthEducationStatus'), inverse_of: :direct_client
     # End cleanup relationships
 
     has_many :organizations, -> { order(:OrganizationName).distinct }, through: :enrollments
