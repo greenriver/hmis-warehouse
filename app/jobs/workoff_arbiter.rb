@@ -35,7 +35,7 @@ class WorkoffArbiter
 
   # This is the abstraction that provides EC2 instances as needed to run the
   # workoff job
-  SPOT_CAPACITY_PROVIDER_NAME = 'spot-capacity-provider'.freeze
+  SPOT_CAPACITY_PROVIDER_NAME = 'spt-v2-capacity-provider'.freeze
 
   NOTIFICATION_THRESHOLD = 2
 

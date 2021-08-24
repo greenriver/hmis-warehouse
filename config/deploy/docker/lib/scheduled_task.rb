@@ -114,7 +114,11 @@ class ScheduledTask
           ecs_parameters: {
             task_definition_arn: task_definition_arn,
             task_count: 1,
-            launch_type: "EC2",
+            # Issues with this put_targets working? Try removing capacity
+            # provider line and using launch_type only.
+            # https://github.com/aws/containers-roadmap/issues/937
+            # launch_type: "EC2",
+            capacity_provider_strategy: _default_capacity_provider_strategy,
           },
         },
       ],
@@ -123,6 +127,11 @@ class ScheduledTask
     cloudwatchevents.put_targets(payload)
 
     puts "... Added target to #{name}"
+  end
+
+  def _default_capacity_provider_strategy
+    our_cluster = ecs.describe_clusters(clusters: [cluster_name]).clusters.first
+    our_cluster.default_capacity_provider_strategy.map(&:to_h)
   end
 
   def _container_overrides
