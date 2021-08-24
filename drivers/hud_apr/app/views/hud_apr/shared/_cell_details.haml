@@ -32,25 +32,4 @@
                 %td{style: 'max-width: 600px;'}
                   = formatted_cell(client[k])
                   -if k == 'client_id'
-                    %i.icon-info{ data: { poload: api_client_path(client.client_id) }}
-
-- content_for :page_js do
-  :javascript
-    (function($) {
-      $('*[data-poload]').click(function() {
-        var e=$(this)
-        e.off('click')
-        $.get(e.data('poload'), function(data) {
-          e.popover({
-            content: data,
-            trigger: 'manual',
-            title: 'Personal ID(s)',
-            html: true,
-          }).popover('toggle')
-          // This next bit looks redundant, but it let's us close the popover with one click.
-          e.click(function() {
-            e.popover('toggle')
-          })
-        })
-      })
-    })(jQuery);
+                    %i.icon-info{ data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
