@@ -12,12 +12,9 @@ class App.Popovers
             dataType: 'html'
             success: (data)=>
               $(this).attr('data-content', data)
-              $(this).popover('hide')
-              $(this).popover('show')
+              d = $(this).data('bs.popover')
+              $(d._popper.popper).find('.popover-body').html(data)
           'Loading...'
         else
           $(this).data('content')
     });
-    $('body').on('shown.bs.popover', (e)->
-        $(e.target).data('bs.popover')._activeTrigger.click = true
-    );
