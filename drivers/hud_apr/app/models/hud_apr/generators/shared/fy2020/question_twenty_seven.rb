@@ -74,7 +74,11 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
           # Scope initially to anyone in a family with a youth head of household of the appropriate age
           members = universe.members.where(
-            a_t[:household_id].in(Arel.sql(universe.members.where(response_clause).select(a_t[:household_id]).to_sql)),
+            a_t[:household_id].in(
+              Arel.sql(
+                universe.members.where(response_clause).select(a_t[:household_id]).to_sql,
+              ),
+            ),
           )
 
           source_client_ids = Set.new
@@ -84,7 +88,7 @@ module HudApr::Generators::Shared::Fy2020
             when :parenting_youth
               # We haven't already counted this household, the client is an HoH and all members are youth
               # report HoH and adults (18-24)
-              if ! households.include?(apr_client.household_id) && youth_parent?(apr_client)
+              if ! households.include?(apr_client.household_id) && apr_client.parenting_youth
                 # since apr_client is the HoH and we've already limited to only youth households,
                 # we can safely return the adults and the source client id of the apr_client
                 adult_ids = adult_source_client_ids(apr_client)
@@ -94,26 +98,29 @@ module HudApr::Generators::Shared::Fy2020
               end
             when :children_of_youth_parents
               # Find source client ids where the HoH is a youth and the members are RelationshipToHoH == 2
-              if ! households.include?(apr_client.household_id) && youth_parent?(apr_client)
+              if ! households.include?(apr_client.household_id) && apr_client.parenting_youth
                 source_client_ids += youth_child_source_client_ids(apr_client)
                 households << apr_client.household_id
               end
             when :members_youth_households
               # Return all clients within the household, regardless of relationship
-              if ! households.include?(apr_client.household_id) && youth_parent?(apr_client)
+              if ! households.include?(apr_client.household_id) && apr_client.parenting_youth
                 source_client_ids += apr_client.household_members.map { |m| m['source_client_id'] }
                 households << apr_client.household_id
               end
             when :youth_households
               # Use the HoH as a proxy for household
-              if ! households.include?(apr_client.household_id) && youth_parent?(apr_client)
+              if ! households.include?(apr_client.household_id) && apr_client.parenting_youth
                 source_client_ids << apr_client.client_id
                 households << apr_client.household_id
               end
             end
           end
-
-          members = members.where(a_t[:client_id].in(source_client_ids)) if source_client_ids.any?
+          members = if source_client_ids.any?
+            members.where(a_t[:client_id].in(source_client_ids))
+          else
+            members.none
+          end
 
           value = members.count
 

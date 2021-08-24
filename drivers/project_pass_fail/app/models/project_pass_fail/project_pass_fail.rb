@@ -179,7 +179,7 @@ module ProjectPassFail
     private def run_apr(p_id)
       return unless RailsDrivers.loaded.include?(:hud_apr)
 
-      apr_filter = ::Filters::FilterBase.new(
+      apr_filter = ::Filters::HudFilterBase.new(
         start: filter.start,
         end: filter.end,
         user_id: user_id,
@@ -196,9 +196,7 @@ module ProjectPassFail
     end
 
     private def hmis_projects
-      query = GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)
-      query = query.with_project_type(filter.project_type_ids) if filter.project_type_ids.any?
-      query
+      GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)
     end
 
     def key_for_display(key)

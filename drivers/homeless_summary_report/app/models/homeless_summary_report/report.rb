@@ -209,7 +209,7 @@ module HomelessSummaryReport
       generator = HudSpmReport::Generators::Fy2020::Generator
       variants.map do |variant, spec|
         extra_filters = spec[:extra_filters] || {}
-        processed_filter = HudSpmReport::Filters::SpmFilter.new(user_id: filter.user_id)
+        processed_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id)
         processed_filter.update(options.deep_merge(extra_filters))
         report = HudReports::ReportInstance.from_filter(
           processed_filter,

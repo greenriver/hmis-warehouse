@@ -51,7 +51,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
 
   describe 'measure one additional tests' do
     before(:all) do
-      GrdaWarehouse::Utility.clear!
+      cleanup
       setup('fy2020/measure_one_additional')
 
       # puts described_class.question_number

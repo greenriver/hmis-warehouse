@@ -14,7 +14,6 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   before(:context) do
     cleanup
     # puts "  Setting up DB for #{described_class.question_number}"
-    @user = create(:user, email: SPM_USER_EMAIL)
   end
 
   after(:context) do
@@ -42,11 +41,12 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
       start: Date.parse('2016-1-1'),
       end: Date.parse('2019-10-01'),
       user_id: @user.id,
+      project_type_codes: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES + [:psh],
     }.freeze
   end
 
   def default_filter
-    HudSpmReport::Filters::SpmFilter.new(shared_filter)
+    ::Filters::HudFilterBase.new(shared_filter)
   end
 
   def assert_report_completed
@@ -75,9 +75,11 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   attr_reader :report_result
 
   def setup(file_path)
-    @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-    GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
+    @data_source = GrdaWarehouse::DataSource.where(name: 'Green River', short_name: 'GR', source_type: :sftp).first_or_create!
+    GrdaWarehouse::DataSource.where(name: 'Warehouse', short_name: 'W').first_or_create!
     import(file_path, @data_source)
+    @user = User.find_by(email: SPM_USER_EMAIL) || create(:user, email: SPM_USER_EMAIL)
+    @user.add_viewable(@data_source)
   end
 
   def import(file_path, data_source)

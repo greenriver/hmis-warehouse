@@ -212,7 +212,7 @@ module HudSpmReport::Generators::Fy2020
 
     private def filter
       # this needs to be re-hydrated from the data stored in report
-      @filter ||= HudSpmReport::Filters::SpmFilter.new @report.options.merge(user_id: @report.user_id)
+      @filter ||= ::Filters::HudFilterBase.new @report.options.merge(user_id: @report.user_id)
     end
 
     # Add report filters to the scope

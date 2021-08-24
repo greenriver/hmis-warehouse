@@ -196,7 +196,7 @@ module ProjectScorecard
 
       if RailsDrivers.loaded.include?(:hud_apr)
         # Generate APR
-        filter = ::Filters::FilterBase.new(user_id: user_id)
+        filter = ::Filters::HudFilterBase.new(user_id: user_id)
         if project_id.present?
           project_ids = [project_id]
         else
@@ -314,7 +314,7 @@ module ProjectScorecard
       return unless RailsDrivers.loaded.include?(:hud_spm_report)
 
       # Generate SPM
-      filter = ::Filters::FilterBase.new(user_id: user_id)
+      filter = ::Filters::HudFilterBase.new(user_id: user_id)
       filter.set_from_params(
         {
           start: start_date,

@@ -7,4 +7,4 @@
 RailsDrivers.loaded << :cas_ce_data
 
 GrdaWarehouse::Synthetic.add_event_type('CasCeData::Synthetic::Event')
-GrdaWarehouse::Synthetic.add_event_type('CasCeData::Synthetic::Assessment')
+GrdaWarehouse::Synthetic.add_assessment_type('CasCeData::Synthetic::Assessment')

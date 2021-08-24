@@ -93,8 +93,11 @@ module Importing
         # To keep this manageable, we'll just deal with clients we've seen in the past year
         # When we sanity check and rebuild using the per-client method, this gets correctly maintained
         @notifier.ping('Updating service history summaries') if @send_notifications
-        client_ids = GrdaWarehouse::Hud::Enrollment.open_during_range(range).
-          joins(:project, :destination_client).distinct.pluck(c_t[:id].as('client_id'))
+        client_ids = GrdaWarehouse::Hud::Client.destination.joins(source_enrollments: :project).
+          merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
+          distinct.
+          pluck(:id)
+        client_ids += GrdaWarehouse::CohortClient.distinct.pluck(:client_id)
         GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
 
         @notifier.ping('Updated service history summaries') if @send_notifications

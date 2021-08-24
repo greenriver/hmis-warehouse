@@ -1,23 +1,26 @@
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
 = simple_form_for @filter, as: :filter, url: url do |f|
   - content_for :filters_col_full do
-    .row
-      .col-sm
-        = f.input :start, as: :date_picker, label: 'Start Date', required: true
-      .col-sm
-        = f.input :end, as: :date_picker, label: 'End Date', required: true
-      .col-sm
-        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true}, label: 'CoC Codes', hint: default_coc_code
-    .row
-      .col-sm
-        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true },label: 'Projects', required: true
-      .col-sm
-        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true}, label: 'Data Sources'
-    .row
-      .col-sm
-        = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, input_html: { multiple: true }, label: 'Project Types', as: :select_two
-      .col-sm
-        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true},label: 'Project Groups'
+    .hud-report-options
+      %h2 Required Options
+      .row
+        .col-sm
+          = f.input :start, as: :date_picker, label: 'Start Date', required: true
+        .col-sm
+          = f.input :end, as: :date_picker, label: 'End Date', required: true
+        .col-sm
+          = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true}, label: 'CoC Codes', hint: default_coc_code
+      %h2 Projects to Include
+      .row
+        .col-6
+          = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects' },label: 'Projects'
+        .col-6
+          = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources'}, label: 'Data Sources'
+      .row
+        .col-6
+          = f.input :project_type_codes, collection: @filter.available_residential_project_types, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two
+        .col-6
+          = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Project Groups'}, label: 'Project Groups'
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue Report'
