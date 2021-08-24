@@ -26,14 +26,14 @@ module Cas
         map { |id, *rest| [id, MATCH_COLUMNS.zip(rest).to_h] }.
         to_h
 
-      candidates.each do |_, candidate|
-        candidate[:first_name] = candidate[:first_name].downcase.strip.gsub(/[^a-z0-9]/i, '')
-        candidate[:last_name] = candidate[:last_name].downcase.strip.gsub(/[^a-z0-9]/i, '')
+      candidates.each_value do |candidate|
+        candidate[:lc_first_name] = candidate[:first_name].downcase.strip.gsub(/[^a-z0-9]/i, '')
+        candidate[:lc_last_name] = candidate[:last_name].downcase.strip.gsub(/[^a-z0-9]/i, '')
         candidate[:ssn] = candidate[:ssn].strip.gsub(/[^0-9]/, '')
       end
 
-      by_first_name = candidates.reject { |_, h| h[:first_name].blank? }.group_by { |_, h| h[:first_name] }.transform_values { |c| c.flatten.first }
-      by_last_name = candidates.reject { |_, h| h[:last_name].blank? }.group_by { |_, h| h[:last_name] }.transform_values { |c| c.flatten.first }
+      by_first_name = candidates.reject { |_, h| h[:lc_first_name].blank? }.group_by { |_, h| h[:lc_first_name] }.transform_values { |c| c.flatten.first }
+      by_last_name = candidates.reject { |_, h| h[:lc_last_name].blank? }.group_by { |_, h| h[:lc_last_name] }.transform_values { |c| c.flatten.first }
       by_dob = candidates.reject { |_, h| h[:date_of_birth].blank? }.group_by { |_, h| h[:date_of_birth] }.transform_values { |c| c.flatten.first }
       by_ssn = candidates.reject { |_, h| h[:ssn].blank? }.group_by { |_, h| h[:ssn] }.transform_values { |c| c.flatten.first }
 
@@ -45,6 +45,10 @@ module Cas
         pluck(c_t[:LastName].lower, :id).
         group_by(&:first).
         transform_values { |v| v.map(&:last) }
+      db_names = client_source.where(id: (first_name_matches.values + last_name_matches.values).flatten).
+        pluck(:id, :FirstName, :LastName).
+        map { |id, fn, ln| [id, "#{fn} #{ln}"] }.
+        to_h
       dob_matches = client_source.where(DOB: by_dob.keys).
         pluck(:DOB, :id).
         group_by(&:first).
@@ -60,26 +64,33 @@ module Cas
         last_name_matches: last_name_matches,
         dob_matches: dob_matches,
         ssn_matches: ssn_matches,
+        db_names: db_names,
       )
     end
 
-    # An "exact match" is actually 3 out of 4 items
+    # An "obvious match" from IdentifyDuplicates
     def self.exact_match(candidate, matches)
-      name_matches = (matches.first_name_matches[candidate[:first_name]] || []) & (matches.last_name_matches[candidate[:last_name]] || [])
-      exact_matches = name_matches & matches.dob_matches[candidate[:date_of_birth]]
-      exact_matches += name_matches & matches.ssn_matches[candidate[:ssn]]
-      exact_matches.uniq.first
+      ssn_matches = []
+      ssn_matches = matches.ssn_matches[candidate[:ssn]] if valid_social?(candidate[:ssn])
+      birthdate_matches = []
+      birthdate_matches = matches.dob_matches[candidate[:date_of_birth]] if candidate[:date_of_birth].present?
+      name_matches = (matches.first_name_matches[candidate[:lc_first_name]] || []) & (matches.last_name_matches[candidate[:lc_last_name]] || [])
+
+      all_matches = ssn_matches + birthdate_matches + name_matches
+      exact_matches = all_matches.uniq.select { |i| all_matches.count(i) > 1 }.compact
+
+      exact_matches.first
     end
 
     MATCH_TYPES = [
-      [:first_name_matches, :first_name],
-      [:last_name_matches, :last_name],
+      [:first_name_matches, :lc_first_name],
+      [:last_name_matches, :lc_last_name],
       [:dob_matches, :date_of_birth],
-      [:ssn_matches, :ssn],
     ].freeze
 
+    # SSN or 2 of first, last, DOB...
     def self.partial_matches(candidate, matches)
-      partial_matches = []
+      partial_matches = matches.ssn_matches[candidate[:ssn]]
       MATCH_TYPES.each do |first_type, first_column|
         MATCH_TYPES.each do |second_type, second_column|
           next if first_type == second_type
@@ -119,6 +130,10 @@ module Cas
 
     def self.client_source
       GrdaWarehouse::Hud::Client.destination
+    end
+
+    def self.valid_social? ssn
+      ::HUD.valid_social? ssn
     end
   end
 end

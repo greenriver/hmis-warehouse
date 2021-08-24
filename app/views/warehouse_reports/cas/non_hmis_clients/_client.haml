@@ -1,24 +1,23 @@
 - candidate = client.last
 %tr
-  %td= candidate[:first_name]&.capitalize
-  %td= candidate[:last_name]&.capitalize
+  %td= candidate[:first_name]
+  %td= candidate[:last_name]
   - ssn = candidate[:ssn]
   %td= "#{ssn[0..2]}-#{ssn[3..4]}-#{ssn[5..8]}"
   %td= candidate[:date_of_birth]
   %td
     - exact_match_id = Cas::NonHmisClient.exact_match(candidate, @report)
-    - if ! exact_match_id.present?
+    - if exact_match_id.present?
       = link_to 'Exact Match', client_path(exact_match_id)
       = " (#{exact_match_id})"
       %td
     - else
       - partial_match_ids = Cas::NonHmisClient.partial_matches(candidate, @report)
       - if partial_match_ids.present?
-        - partial_matches = GrdaWarehouse::Hud::Client.where(id: partial_match_ids).pluck(:id, :FirstName, :LastName).map{ |id, fn, ln| [id, "#{fn} #{ln}"]}.to_h
         %ul.list-unstyled.mb-0
           - partial_match_ids.each do |partial_match_id|
             %li
-              = link_to partial_matches[partial_match_id], client_path(partial_match_id)
+              = link_to @report.db_names[partial_match_id], client_path(partial_match_id)
               = " (#{partial_match_id})"
         %td
           = f.input :client_id, label: false, required: false, input_html: { name: "clients[#{client.first}]", style: 'width: 8em;', placeholder: 'Client ID' }
