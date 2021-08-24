@@ -406,7 +406,6 @@ Layout/EmptyLinesAroundBlockBody:
 # SupportedStyles: empty_lines, empty_lines_except_namespace, empty_lines_special, no_empty_lines, beginning_only, ending_only
 Layout/EmptyLinesAroundClassBody:
   Exclude:
-    - 'app/jobs/background_render/active_clients_report_job.rb'
     - 'app/jobs/background_render/core_demographics_report_job.rb'
     - 'app/models/grda_warehouse/cas_availability.rb'
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
@@ -3435,7 +3434,6 @@ Style/TrailingCommaInArrayLiteral:
 # SupportedStylesForMultiline: comma, consistent_comma, no_comma
 Style/TrailingCommaInHashLiteral:
   Exclude:
-    - 'app/jobs/background_render/active_clients_report_job.rb'
     - 'app/models/glacier/archive_runner.rb'
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'

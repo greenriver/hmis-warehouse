@@ -1,0 +1,68 @@
+%h3 Summary
+.d-flex
+  %p
+    The following exit details are for clients who exited from the selected project types between
+    = @filter.start
+    and
+    = "#{@filter.end}."
+
+    %br
+    During that time there were
+    = @report.clients.count
+    exits consisting of
+    #{pluralize(@report.clients.map{ |row| row[:client_id]}.uniq.count, 'unique client')}.
+    %br
+    This report was built to provide supporting details to the "Exiters" and Exits to Permanent Housing" sections of the Population Dashboards.
+  .ml-auto.mb-2
+    - if current_user.can_view_clients?
+      = link_to(warehouse_reports_client_details_exits_path({format: :xlsx}.merge(link_params)),{class: 'btn btn-secondary'}) do
+        Download Excel
+= render 'common/population_warnings'
+= render 'warehouse_reports/limited_by_project_note'
+.card.mb-4
+  %table.mb-0.table.table-striped
+    %thead
+      %tr
+        %th
+          Destination
+        %th
+          Count
+    %tbody
+      - @report.buckets.each do |destination_id, count|
+        %tr
+          %td
+            = HUD.destination(destination_id)
+
+          %td
+            = count
+    %tfoot
+      %tr
+        %th
+          Total
+        %th
+          = @report.buckets.values.sum
+- if current_user.can_view_clients?
+  %h3 Exit Details
+  .card
+    %table.mb-0.table.table-striped
+      %thead
+        %tr
+          %th
+            Client
+          %th
+            Date
+          %th
+            Destination
+          %th
+            Exit From
+      %tbody
+        - @report.clients.each do |client|
+          %tr
+            %td
+              = link_to_if current_user.can_view_clients?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(id: client[:client_id])
+            %td
+              = client[:date]
+            %td
+              = HUD.destination(client[:destination])
+            %td
+              = client[:project_name]
