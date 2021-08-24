@@ -36,11 +36,9 @@
       - span = enrollments.size+ 1
       %tr
         %td{rowspan: span}
-          = link_to_if can_view_clients?, appropriate_client_path(id: client['id']) do
-            = client['id']
+          = link_to_if can_view_clients?, client['id'], appropriate_client_path(id: client['id'])
         %td{rowspan: span}
-          = link_to_if can_view_clients?, appropriate_client_path(id: client['id']) do
-            = client['name']
+          = link_to_if can_view_clients?, client['name'], appropriate_client_path(id: client['id'])
         %td{rowspan: span}= client['first_service_history']
         %td{rowspan: span}= dob_or_age(client['DOB']&.to_date)
         %td.nobr{rowspan: span}= ssn client['SSN']

@@ -1,9 +1,9 @@
-class BackgroundRender::ActiveClientsReportJob < BackgroundRenderJob
+class BackgroundRender::EntryClientsReportJob < BackgroundRenderJob
   def render_html(filter:, user_id:)
     current_user = User.find(user_id)
     @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filter).with_indifferent_access[:filters])
     @report = report_source.new(filter: @filter, user: current_user)
-    WarehouseReports::ClientDetails::ActivesController.render(
+    WarehouseReports::ClientDetails::EntriesController.render(
       partial: 'report',
       assigns: {
         filter: @filter,
@@ -27,6 +27,6 @@ class BackgroundRender::ActiveClientsReportJob < BackgroundRenderJob
   end
 
   def report_source
-    ActiveClientReport
+    EntryClientReport
   end
 end

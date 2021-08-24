@@ -113,14 +113,14 @@ GEM
     auto-session-timeout (0.9.6)
     autoprefixer-rails (10.2.0.0)
       execjs
-    aws-eventstream (1.1.0)
-    aws-partitions (1.416.0)
+    aws-eventstream (1.1.1)
+    aws-partitions (1.489.0)
     aws-record (2.5.0)
       aws-sdk-dynamodb (~> 1.18)
-    aws-sdk-cloudwatchevents (1.40.0)
-      aws-sdk-core (~> 3, >= 3.109.0)
+    aws-sdk-cloudwatchevents (1.49.0)
+      aws-sdk-core (~> 3, >= 3.119.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-core (3.111.0)
+    aws-sdk-core (3.119.0)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.239.0)
       aws-sigv4 (~> 1.1)
@@ -172,7 +172,7 @@ GEM
     aws-sessionstore-dynamodb (2.0.1)
       aws-sdk-dynamodb (~> 1)
       rack (~> 2)
-    aws-sigv4 (1.2.2)
+    aws-sigv4 (1.2.4)
       aws-eventstream (~> 1, >= 1.0.2)
     axiom-types (0.1.1)
       descendants_tracker (~> 0.0.4)
@@ -1020,4 +1020,4 @@ DEPENDENCIES
   with_advisory_lock
 
 BUNDLED WITH
-   2.2.18
+   2.2.19

@@ -11,20 +11,20 @@ RSpec.describe Filters::FilterBase, type: :model do
   end
 
   describe 'FilterBase' do
-    it 'defaults to homeless projects if nothing is specified' do
+    it 'defaults to nothing if nothing is specified' do
       filter_params = {
       }
       filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
       expect(filter.effective_project_ids).not_to include psh_project.id
-      expect(filter.effective_project_ids).to include es_project.id
+      expect(filter.effective_project_ids).not_to include es_project.id
     end
 
-    it 'includes the PSH if type ph is specified' do
+    it 'only includes projects if they are included somehow, even if ph is specified' do
       filter_params = {
         project_type_codes: [:ph],
       }
       filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
-      expect(filter.effective_project_ids).to include psh_project.id
+      expect(filter.effective_project_ids).not_to include psh_project.id
       expect(filter.effective_project_ids).not_to include es_project.id
     end
 

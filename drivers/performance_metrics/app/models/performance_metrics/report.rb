@@ -685,7 +685,7 @@ module PerformanceMetrics
       options[:project_type_codes] ||= []
       options[:project_type_codes] += [:es, :so, :sh, :th]
       options.delete(:comparison_pattern)
-      spm_filter = HudSpmReport::Filters::SpmFilter.new(user_id: filter.user_id).update(options)
+      spm_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(options)
       generator = HudSpmReport::Generators::Fy2020::Generator
       spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
       generator.new(spm_report).run!(email: false)

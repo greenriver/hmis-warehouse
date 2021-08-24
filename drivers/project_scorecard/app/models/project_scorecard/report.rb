@@ -196,7 +196,7 @@ module ProjectScorecard
 
       if RailsDrivers.loaded.include?(:hud_apr)
         # Generate APR
-        filter = ::Filters::FilterBase.new(user_id: user_id)
+        filter = ::Filters::HudFilterBase.new(user_id: user_id)
         if project_id.present?
           project_ids = [project_id]
         else
@@ -314,12 +314,15 @@ module ProjectScorecard
       return unless RailsDrivers.loaded.include?(:hud_spm_report)
 
       # Generate SPM
-      filter = ::Filters::FilterBase.new(user_id: user_id)
+      filter = ::Filters::HudFilterBase.new(user_id: user_id)
+      # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
+      # so that the returns calculation will work.
       filter.set_from_params(
         {
           start: start_date,
           end: end_date,
           project_ids: project_ids,
+          project_type_codes: [:es, :so, :sh, :th],
         },
       )
       questions = [

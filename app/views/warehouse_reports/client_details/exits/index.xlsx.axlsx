@@ -10,7 +10,7 @@ wb.add_worksheet(name: "Exit Detail #{GrdaWarehouse::WarehouseReports::Dashboard
     'Exit From',
     'Ethnicity',
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }, style: title)
-  @clients.each do |client|
+  @report.clients.each do |client|
     row = [
       client[:client_id],
       client[:first_name],

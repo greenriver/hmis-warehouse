@@ -64,7 +64,6 @@ Layout/ClosingParenthesisIndentation:
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud/funder.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/outflow_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/eligibility_inquiry.rb'
@@ -166,7 +165,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/concerns/performance_dashboard/overview/entering/lot_homeless.rb'
     - 'app/models/concerns/performance_dashboard/overview/exiting/lot_homeless.rb'
     - 'app/models/glacier/tester.rb'
-    - 'app/models/grda_warehouse/ad_hoc_data_source.rb'
     - 'app/models/grda_warehouse/cohort.rb'
     - 'app/models/grda_warehouse/confidence/days_homeless.rb'
     - 'app/models/grda_warehouse/confidence/source_enrollments.rb'
@@ -406,10 +404,7 @@ Layout/EmptyLinesAroundBlockBody:
 # SupportedStyles: empty_lines, empty_lines_except_namespace, empty_lines_special, no_empty_lines, beginning_only, ending_only
 Layout/EmptyLinesAroundClassBody:
   Exclude:
-    - 'app/jobs/background_render/active_clients_report_job.rb'
     - 'app/jobs/background_render/core_demographics_report_job.rb'
-    - 'app/models/grda_warehouse/ad_hoc_batch.rb'
-    - 'app/models/grda_warehouse/ad_hoc_data_source.rb'
     - 'app/models/grda_warehouse/cas_availability.rb'
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
     - 'app/models/grda_warehouse/cas_report.rb'
@@ -985,7 +980,6 @@ Layout/MultilineMethodCallBraceLayout:
   Exclude:
     - 'app/models/grda_warehouse/hud/funder.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/outflow_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
@@ -1275,7 +1269,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/outflow_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
@@ -1368,7 +1361,6 @@ Layout/SpaceBeforeSemicolon:
 Layout/SpaceInLambdaLiteral:
   Exclude:
     - 'app/models/agency.rb'
-    - 'app/models/grda_warehouse/ad_hoc_data_source.rb'
     - 'app/models/grda_warehouse/cas_availability.rb'
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
     - 'app/models/grda_warehouse/cas_report.rb'
@@ -1895,7 +1887,6 @@ Lint/SelfAssignment:
 # Offense count: 77
 Lint/ShadowingOuterLocalVariable:
   Exclude:
-    - 'app/models/grda_warehouse/ad_hoc_batch.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/geography.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project_coc.rb'
@@ -2464,7 +2455,6 @@ Style/HashSyntax:
 # Offense count: 18
 Style/IdenticalConditionalBranches:
   Exclude:
-    - 'app/models/grda_warehouse/ad_hoc_batch.rb'
     - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -2520,7 +2510,6 @@ Style/IfUnlessModifier:
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/outflow_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
@@ -3315,7 +3304,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/user_viewable_entity.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/outflow_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
@@ -3393,7 +3381,6 @@ Style/TrailingCommaInArrayLiteral:
   Exclude:
     - 'app/models/activity_log.rb'
     - 'app/models/glacier/runner.rb'
-    - 'app/models/grda_warehouse/ad_hoc_data_source.rb'
     - 'app/models/grda_warehouse/hmis/assessment.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
@@ -3429,7 +3416,6 @@ Style/TrailingCommaInArrayLiteral:
 # SupportedStylesForMultiline: comma, consistent_comma, no_comma
 Style/TrailingCommaInHashLiteral:
   Exclude:
-    - 'app/jobs/background_render/active_clients_report_job.rb'
     - 'app/models/glacier/archive_runner.rb'
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'

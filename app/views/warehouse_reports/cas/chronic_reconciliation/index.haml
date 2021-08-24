@@ -33,9 +33,7 @@
         - @missing_in_cas.each do |client|
           %tr
             %td
-              = link_to_if can_view_clients?,appropriate_client_path(client[:client_id]) do
-                = client[:first_name]
-                = client[:last_name]
+              = link_to_if can_view_clients?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(client[:client_id])
             %td
               = client[:days]
             %td
@@ -61,9 +59,7 @@
             %td
               = link_to 'Remove', cas_active_path(id: client[:id]), method: :patch, remote: true, class: 'btn btn-sm btn-secondary jRemoveCasActive'
             %td
-              = link_to_if can_view_clients?, appropriate_client_path(client[:id]) do
-                = client[:FirstName]
-                = client[:LastName]
+              = link_to_if can_view_clients?, "#{client[:FirstName]} #{client[:LastName]}", appropriate_client_path(client[:id])
             %td
               = client.site_chronics.find_by_date(@date)&.days_in_last_three_years
             %td
