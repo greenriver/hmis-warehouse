@@ -395,7 +395,7 @@ class RollOut
   end
 
   def _spot_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/spot/) }
+    _capacity_providers.find { |cp| cp.match(/spt-v2/) }
   end
 
   def _on_demand_capacity_provider_name

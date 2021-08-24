@@ -315,11 +315,14 @@ module ProjectScorecard
 
       # Generate SPM
       filter = ::Filters::HudFilterBase.new(user_id: user_id)
+      # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
+      # so that the returns calculation will work.
       filter.set_from_params(
         {
           start: start_date,
           end: end_date,
           project_ids: project_ids,
+          project_type_codes: [:es, :so, :sh, :th],
         },
       )
       questions = [
