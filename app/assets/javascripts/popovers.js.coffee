@@ -18,3 +18,6 @@ class App.Popovers
         else
           $(this).data('content')
     });
+    $('body').on('shown.bs.popover', (e)->
+        $(e.target).data('bs.popover')._activeTrigger.click = true
+    );
