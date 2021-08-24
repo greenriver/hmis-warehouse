@@ -4,6 +4,7 @@ class CreatePlaces < ActiveRecord::Migration[5.2]
       t.string :statefp
       t.string :placefp
       t.string :placens
+      t.string :full_geoid
       t.string :geoid
       t.string :name
       t.string :namelsad
@@ -30,7 +31,7 @@ class CreatePlaces < ActiveRecord::Migration[5.2]
     add_index :shape_places, :simplified_geom, using: :gist
     add_index :shape_places, :geom, using: :gist
 
-    # add_index :shape_places, :geoid, unique: true
-    # add_index :shape_places, :full_geoid
+    add_index :shape_places, :geoid, unique: true
+    add_index :shape_places, :full_geoid
   end
 end

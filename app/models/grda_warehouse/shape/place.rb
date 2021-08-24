@@ -9,6 +9,10 @@ module GrdaWarehouse
     class Place < GrdaWarehouseBase
       include SharedBehaviors
 
+      def name
+        read_attribute(:name)
+      end
+
       def self._full_geoid_prefix
         "1600000"
       end
