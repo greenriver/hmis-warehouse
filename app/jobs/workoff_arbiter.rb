@@ -125,7 +125,7 @@ class WorkoffArbiter
   end
 
   def _default_capacity_provider_strategy
-    cluster_name = ENV.fetch('CLUSTER_NAME'),
+    cluster_name = ENV.fetch('CLUSTER_NAME')
     our_cluster = ecs.describe_clusters(clusters: [cluster_name]).clusters.first
     our_cluster.default_capacity_provider_strategy.map(&:to_h)
   end
