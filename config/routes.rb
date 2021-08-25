@@ -94,6 +94,7 @@ Rails.application.routes.draw do
         get :print
         get :revise, on: :member
         get :coversheet, on: :member
+        get :pctp, on: :member
         member do
           delete :remove_file
           get :download
