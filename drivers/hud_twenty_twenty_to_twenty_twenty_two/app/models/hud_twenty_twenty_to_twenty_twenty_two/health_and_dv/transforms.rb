@@ -6,7 +6,7 @@
 
 module HudTwentyTwentyToTwentyTwentyTwo::HealthAndDv
   class Transforms
-    def self.transforms
+    def self.transforms(csv: false, db: false) # rubocop:disable Lint/UnusedMethodArgument, Naming/MethodParameterName
       [
         HudTwentyTwentyToTwentyTwentyTwo::HealthAndDv::AddC1Columns,
       ]
