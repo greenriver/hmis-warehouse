@@ -5,6 +5,7 @@ BostonHmis::Application.routes.draw do
       get :simple
       get :image
       get :enrollment_details
+      get :from_source
     end
     resource :history, only: [:show], controller: 'client_access_control/history' do
       get :pdf, on: :collection

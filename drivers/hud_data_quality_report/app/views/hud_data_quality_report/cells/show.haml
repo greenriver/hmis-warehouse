@@ -29,4 +29,10 @@
             %tr
               %th= i + 1
               - HudDataQualityReport::Fy2020::DqClient.detail_headers.each_key do |k|
-                %td{style: 'max-width: 600px;'}= formatted_cell(client[k])
+                %td{style: 'max-width: 600px;'}
+                  - if k == 'client_id'
+                    = link_to from_source_client_path(client[k]) do
+                      = client[k]
+                    %i.icon-info{ data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                  - else
+                    = formatted_cell(client[k])

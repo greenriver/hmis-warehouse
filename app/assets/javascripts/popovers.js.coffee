@@ -6,6 +6,7 @@ class App.Popovers
       selector: '[data-toggle="popover"]',
       content: ()->
         url = $(this).data('url')
+        console.log('hi')
         if url
           $.ajax url,
             type: 'GET'

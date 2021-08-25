@@ -30,6 +30,9 @@
               %th= i + 1
               - HudApr::Fy2020::AprClient.detail_headers.each_key do |k|
                 %td{style: 'max-width: 600px;'}
-                  = formatted_cell(client[k])
-                  -if k == 'client_id'
+                  - if k == 'client_id'
+                    = link_to from_source_client_path(client[k]) do
+                      = client[k]
                     %i.icon-info{ data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                  - else
+                    = formatted_cell(client[k])
