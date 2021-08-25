@@ -21,9 +21,7 @@
         - client = assessment.destination_client
         %tr
           %td
-            = link_to_if can_view_clients?, appropriate_client_path(client) do
-              = client.FirstName
-              = client.LastName
+            = link_to_if can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(client)
           %td= assessment.collected_at.to_date
           %td= assessment.collection_location
           %td= assessment.staff

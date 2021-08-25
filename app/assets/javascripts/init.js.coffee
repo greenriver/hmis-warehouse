@@ -4,9 +4,9 @@ App.init = ->
   $('body').tooltip({
     selector: '[data-toggle="tooltip"]'
   });
-  $('body').popover({
-    selector: '[data-toggle="popover"]'
-  });
+
+  popovers = new App.Popovers
+  popovers.init()
   $.fn.datepicker.defaults.format = "M d, yyyy";
   $('.nav-tabs .active-tab').on 'click', 'a', (e)->
     e.preventDefault()

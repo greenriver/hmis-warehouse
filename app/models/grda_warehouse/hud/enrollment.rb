@@ -45,6 +45,7 @@ module GrdaWarehouse::Hud
     has_many :direct_assessment_results, **hud_enrollment_belongs('AssessmentResult'), inverse_of: :enrollment
     has_many :assessment_results, through: :assessments
     has_many :current_living_situations, **hud_enrollment_belongs('CurrentLivingSituation'), inverse_of: :enrollment
+    has_many :youth_education_statuses, **hud_enrollment_belongs('YouthEducationStatus'), inverse_of: :enrollment
 
     has_one :enrollment_coc_at_entry, -> do
       where(DataCollectionStage: 1)
@@ -89,9 +90,8 @@ module GrdaWarehouse::Hud
       at_update.all_sources_missing
     end, **hud_enrollment_belongs('IncomeBenefit')
 
-
     # NOTE: you will want to limit this to a particular record_type
-    has_one :service_history_enrollment, -> {where(record_type: :entry)}, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
+    has_one :service_history_enrollment, -> { where(record_type: :entry) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
 
     scope :residential, -> do
       joins(:project).merge(Project.residential)
@@ -154,10 +154,10 @@ module GrdaWarehouse::Hud
         and(e_t[:PersonalID].eq(ex_t[:PersonalID]).
         and(e_t[:data_source_id].eq(ex_t[:data_source_id])))).
         join_sources).
-      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
+        where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
-    scope :open_on_date, -> (date=Date.current) do
+    scope :open_on_date, ->(date = Date.current) do
       open_during_range(date..date)
     end
 
@@ -186,8 +186,8 @@ module GrdaWarehouse::Hud
 
     scope :any_address, -> {
       at = arel_table
-      conditions = ADDRESS_FIELDS.map{ |f| at[f].not_eq(nil).and( at[f].not_eq('')) }
-      condition = conditions.reduce(conditions.shift){ |c1, c2| c1.or c2 }
+      conditions = ADDRESS_FIELDS.map { |f| at[f].not_eq(nil).and(at[f].not_eq('')) }
+      condition = conditions.reduce(conditions.shift) { |c1, c2| c1.or c2 }
       where condition
     }
 
@@ -240,8 +240,8 @@ module GrdaWarehouse::Hud
     # attempt to collect something like an address out of the LastX fields
     def address
       @address ||= begin
-        street, city, state, zip = ADDRESS_FIELDS.map{ |f| send f }.map(&:presence)
-        prezip = [ street, city, state ].compact.join(', ').presence
+        street, city, state, zip = ADDRESS_FIELDS.map { |f| send f }.map(&:presence)
+        prezip = [street, city, state].compact.join(', ').presence
         zip = zip.try(:rjust, 5, '0')
         if Rails.env.production?
           if prezip
@@ -262,12 +262,10 @@ module GrdaWarehouse::Hud
     def address_lat_lon
       begin
         result = Nominatim.search(address).country_codes('us').first
-        if result.present?
-          return {address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox}
-        end
+        return { address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
       rescue StandardError
         setup_notifier('NominatimWarning')
-        @notifier.ping("Error contacting the OSM Nominatim API") if @send_notifications
+        @notifier.ping('Error contacting the OSM Nominatim API') if @send_notifications
       end
       return nil
     end
@@ -318,7 +316,8 @@ module GrdaWarehouse::Hud
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
     # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode?
-      return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(self.project.ProjectType)
+      return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.ProjectType)
+
       thirty_days_ago = self.EntryDate - 30.days
       ninety_days_ago = self.EntryDate - 90.days
 
@@ -327,8 +326,8 @@ module GrdaWarehouse::Hud
         joins(:service_history_services).
         merge(
           GrdaWarehouse::ServiceHistoryService.where(
-            record_type: 'service', date: self.EntryDate
-          )
+            record_type: 'service', date: self.EntryDate,
+          ),
         ).
         where(project_type: non_homeless_residential).exists?
 
@@ -336,8 +335,8 @@ module GrdaWarehouse::Hud
         joins(:service_history_services).
         merge(
           GrdaWarehouse::ServiceHistoryService.where(
-            record_type: 'service', date: (ninety_days_ago...self.EntryDate)
-          )
+            record_type: 'service', date: (ninety_days_ago...self.EntryDate),
+          ),
         ).
         where(project_type: non_homeless_residential).
         count >= 7
@@ -347,8 +346,8 @@ module GrdaWarehouse::Hud
         merge(
           GrdaWarehouse::ServiceHistoryService.where(
             record_type: 'service',
-            date: thirty_days_ago...self.EntryDate
-          )
+            date: thirty_days_ago...self.EntryDate,
+          ),
         ).
         where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES).
         where.not(enrollment_group_id: self.EnrollmentID).
@@ -405,8 +404,8 @@ module GrdaWarehouse::Hud
       return :no # Not included in flow -- added as fail safe
     end
 
-    def is_no?(value)
-      return :no if value == 0
+    def is_no?(value) # rubocop:disable Naming/PredicateName
+      return :no if value&.zero?
     end
 
     def dk_or_r_or_missing(value)
@@ -421,12 +420,12 @@ module GrdaWarehouse::Hud
       return :no if @three_or_fewer_times_homeless.include?(self.TimesHomelessPastThreeYears)
       return dk_or_r_or_missing(self.TimesHomelessPastThreeYears) if dk_or_r_or_missing(self.TimesHomelessPastThreeYears)
 
-      @twelve_or_more_months_homeless ||= [112, 113].freeze  # 112 = 12 months, 113 = 13+ months
+      @twelve_or_more_months_homeless ||= [112, 113].freeze # 112 = 12 months, 113 = 13+ months
       return :yes if @twelve_or_more_months_homeless.include?(self.MonthsHomelessPastThreeYears)
 
       return dk_or_r_or_missing(self.MonthsHomelessPastThreeYears) if dk_or_r_or_missing(self.MonthsHomelessPastThreeYears)
     end
-    #NOTE: this must be included at the end of the class so that scopes can override correctly
+    # NOTE: this must be included at the end of the class so that scopes can override correctly
     include RailsDrivers::Extensions
   end # End Enrollment
 end

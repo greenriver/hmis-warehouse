@@ -36,9 +36,28 @@ module HudTwentyTwentyToTwentyTwentyTwo::Enrollment
       COLUMNS.each do |column|
         row[column] ||= nil
       end
+      row['AnnualPercentAMI'] = annual_percent_ami(row)
+      row['EvictionHistory'] = eviction_history(row)
+      row['DependentUnder6'] = 2 if row['DependentUnder6'] == 1
       row['TargetScreenReqd'] = screening_required?(row)
 
       row
+    end
+
+    def annual_percent_ami(row)
+      return 0 if row['ZeroIncome'] == 1
+      return 2 if row['AnnualPercentAMI'] == 1
+      return 3 if row['AnnualPercentAMI'] == 2
+
+      row['AnnualPercentAMI']
+    end
+
+    def eviction_history(row)
+      return 2 if row['EvictionHistory'] == 0 || row['EvictionHistory'] == 1 # rubocop:disable Style/NumericPredicate
+      return 1 if row['EvictionHistory'] == 2
+      return 0 if row['EvictionHistory'] == 3
+
+      row['SubsidyAtRisk']
     end
 
     def screening_required?(row)
