@@ -19,5 +19,5 @@
             %li
               = link_to @report.db_names[partial_match_id], client_path(partial_match_id)
               = " (#{partial_match_id})"
-        %td
-          = f.input :client_id, label: false, required: false, input_html: { name: "clients[#{client.first}]", style: 'width: 8em;', placeholder: 'Client ID' }
+      %td
+        = f.input :client_id, label: false, required: false, input_html: { name: "clients[#{client.first}]", style: 'width: 8em;', placeholder: 'Client ID' }
