@@ -52,6 +52,7 @@
 //= require namespace
 //= require polyfills
 //= require ajax_modal_rails
+//= require popovers
 //= require util
 //= require site_menu
 //= require ssm
