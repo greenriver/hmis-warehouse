@@ -556,7 +556,16 @@ module PublicReports
           end_date = date.end_of_quarter
           charts[date.iso8601] = {}
           place_codes.each do |code|
-            population_overall = population_by_place.try(:[], date.year).try(:[], code) || 0
+            # NOTE: this uses census data, switching to rate of clients in location to state
+            # population_overall = population_by_place.try(:[], date.year).try(:[], code) || 0
+            population_overall = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).count
+            else
+              500
+            end
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -977,7 +986,7 @@ module PublicReports
     end
 
     private def place_geometries
-      @place_geometries ||= GrdaWarehouse::Shape::Place.where(name: place_codes)
+      @place_geometries ||= GrdaWarehouse::Shape::Town.where(name: place_codes)
     end
 
     private def place_codes
@@ -985,7 +994,7 @@ module PublicReports
     end
 
     private def state_place_shapes
-      @state_place_shapes ||= GrdaWarehouse::Shape::Place.my_state
+      @state_place_shapes ||= GrdaWarehouse::Shape::Town.my_state
     end
 
     private def population_by_place

@@ -27,6 +27,7 @@ namespace :us_census_api do
       GrdaWarehouse::Shape::State,
       GrdaWarehouse::Shape::ZipCode,
       GrdaWarehouse::Shape::Place, # Census designated places, etc. (Towns/Cities)
+      GrdaWarehouse::Shape::Town, # must be fetched from individual states
     ].each do |klass|
       klass.set_full_geoid!
       klass.simplify!

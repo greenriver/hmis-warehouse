@@ -13650,6 +13650,43 @@ ALTER SEQUENCE public.shape_states_id_seq OWNED BY public.shape_states.id;
 
 
 --
+-- Name: shape_towns; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_towns (
+    id bigint NOT NULL,
+    fy integer,
+    town_id integer,
+    town character varying,
+    shape_area numeric,
+    shape_len numeric,
+    full_geoid character varying,
+    geoid character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_towns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.shape_towns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shape_towns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.shape_towns_id_seq OWNED BY public.shape_towns.id;
+
+
+--
 -- Name: shape_zip_codes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -16798,6 +16835,13 @@ ALTER TABLE ONLY public.shape_states ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: shape_towns id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_towns ALTER COLUMN id SET DEFAULT nextval('public.shape_towns_id_seq'::regclass);
+
+
+--
 -- Name: shape_zip_codes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -18741,6 +18785,14 @@ ALTER TABLE ONLY public.shape_places
 
 ALTER TABLE ONLY public.shape_states
     ADD CONSTRAINT shape_states_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shape_towns shape_towns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_towns
+    ADD CONSTRAINT shape_towns_pkey PRIMARY KEY (id);
 
 
 --
@@ -25620,6 +25672,34 @@ CREATE INDEX index_shape_states_on_stusps ON public.shape_states USING btree (st
 
 
 --
+-- Name: index_shape_towns_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_towns_on_full_geoid ON public.shape_towns USING btree (full_geoid);
+
+
+--
+-- Name: index_shape_towns_on_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_towns_on_geoid ON public.shape_towns USING btree (geoid);
+
+
+--
+-- Name: index_shape_towns_on_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_towns_on_geom ON public.shape_towns USING gist (geom);
+
+
+--
+-- Name: index_shape_towns_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_towns_on_simplified_geom ON public.shape_towns USING gist (simplified_geom);
+
+
+--
 -- Name: index_shape_zip_codes_on_full_geoid; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -31502,6 +31582,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210813121134'),
 ('20210819132406'),
 ('20210819133035'),
-('20210823203031');
+('20210823203031'),
+('20210825182548');
 
 

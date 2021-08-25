@@ -51,7 +51,8 @@ module GrdaWarehouse::Hud
     end
 
     scope :in_place, ->(place:) do
-      where(City: place)
+      place = Array(place)
+      where(arel_table[:City].lower.in(place.map(&:downcase)))
     end
 
     scope :viewable_by, ->(user) do
