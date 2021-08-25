@@ -50,6 +50,10 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :in_place, ->(place:) do
+      where(City: place)
+    end
+
     scope :viewable_by, ->(user) do
       if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope

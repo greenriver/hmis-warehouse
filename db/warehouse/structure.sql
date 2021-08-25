@@ -13558,6 +13558,53 @@ ALTER SEQUENCE public.shape_counties_id_seq OWNED BY public.shape_counties.id;
 
 
 --
+-- Name: shape_places; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_places (
+    id bigint NOT NULL,
+    statefp character varying,
+    placefp character varying,
+    placens character varying,
+    full_geoid character varying,
+    geoid character varying,
+    name character varying,
+    namelsad character varying,
+    lsad character varying,
+    classfp character varying,
+    pcicbsa character varying,
+    pcinecta character varying,
+    mtfcc character varying,
+    funcstat character varying,
+    aland double precision,
+    awater double precision,
+    intptlat character varying,
+    intptlon character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_places_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.shape_places_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shape_places_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.shape_places_id_seq OWNED BY public.shape_places.id;
+
+
+--
 -- Name: shape_states; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -16737,6 +16784,13 @@ ALTER TABLE ONLY public.shape_counties ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: shape_places id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_places ALTER COLUMN id SET DEFAULT nextval('public.shape_places_id_seq'::regclass);
+
+
+--
 -- Name: shape_states id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -18671,6 +18725,14 @@ ALTER TABLE ONLY public.shape_cocs
 
 ALTER TABLE ONLY public.shape_counties
     ADD CONSTRAINT shape_counties_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shape_places shape_places_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shape_places
+    ADD CONSTRAINT shape_places_pkey PRIMARY KEY (id);
 
 
 --
@@ -25495,6 +25557,34 @@ CREATE INDEX index_shape_counties_on_statefp ON public.shape_counties USING btre
 
 
 --
+-- Name: index_shape_places_on_full_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_places_on_full_geoid ON public.shape_places USING btree (full_geoid);
+
+
+--
+-- Name: index_shape_places_on_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shape_places_on_geoid ON public.shape_places USING btree (geoid);
+
+
+--
+-- Name: index_shape_places_on_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_places_on_geom ON public.shape_places USING gist (geom);
+
+
+--
+-- Name: index_shape_places_on_simplified_geom; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_places_on_simplified_geom ON public.shape_places USING gist (simplified_geom);
+
+
+--
 -- Name: index_shape_states_on_full_geoid; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -31411,6 +31501,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210810182752'),
 ('20210813121134'),
 ('20210819132406'),
-('20210819133035');
+('20210819133035'),
+('20210823203031');
 
 
