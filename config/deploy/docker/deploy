@@ -8,9 +8,12 @@ args = CommandArgs.new
 args.deployments.each do |deployment|
   puts "Deploying #{deployment[:target_group_name]}..."
   Deployer.new(**deployment).run!
-end
 
-EcsTools.new.poll_state_until_stable!(CommandArgs.cluster)
+  # poll between deployments to prevent scaling out too much while we have
+  # double the web containers.
+  # i.e. don't proceed until it has stabilized
+  EcsTools.new.poll_state_until_stable!(CommandArgs.cluster)
+end
 
 puts "Updating one ECS instance agent if needed."
 EcsTools.new.update_ecs_agents!(CommandArgs.cluster)
