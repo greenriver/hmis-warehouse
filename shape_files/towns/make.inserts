@@ -38,3 +38,5 @@ system(<<~EOS)
     | grep INSERT \
     > inserts.sql
 EOS
+# Set statefp value since this isn't included in this file type, but is known
+system("echo 'UPDATE shape_towns set statefp = #{fips_code} where statefp IS NULL;' >> inserts.sql")

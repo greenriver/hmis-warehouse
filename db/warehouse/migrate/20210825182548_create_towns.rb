@@ -1,6 +1,7 @@
 class CreateTowns < ActiveRecord::Migration[5.2]
   def change
     create_table :shape_towns do |t|
+      t.string :statefp
       t.integer :fy
       t.integer :town_id
       t.string :town

@@ -13655,6 +13655,7 @@ ALTER SEQUENCE public.shape_states_id_seq OWNED BY public.shape_states.id;
 
 CREATE TABLE public.shape_towns (
     id bigint NOT NULL,
+    statefp character varying,
     fy integer,
     town_id integer,
     town character varying,
