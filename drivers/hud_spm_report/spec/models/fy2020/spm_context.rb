@@ -42,6 +42,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
       end: Date.parse('2019-10-01'),
       user_id: @user.id,
       project_type_codes: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES + [:psh],
+      coc_codes: ['KY-500'],
     }.freeze
   end
 

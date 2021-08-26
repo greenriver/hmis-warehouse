@@ -1,0 +1,7 @@
+ProjectID,OrganizationID,ProjectName,ProjectCommonName,OperatingStartDate,OperatingEndDate,ContinuumProject,ProjectType,HousingType,ResidentialAffiliation,TrackingMethod,HMISParticipatingProject,TargetPopulation,PITCount,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+1,109,PH1,,,,0,3,,,0,,,,2013-1-1,2013-1-1,user,,31a77b417911747e41ef9936f9a4b657
+2,109,ES1,,,,0,1,,,0,,,,2013-1-1,2013-1-1,user,,31a77b417911747e41ef9936f9a4b657
+3,109,TH1,,,,0,2,,,0,,,,2013-1-1,2013-1-1,user,,31a77b417911747e41ef9936f9a4b657
+4,109,SH1,,,,0,8,,,0,,,,2013-1-1,2013-1-1,user,,31a77b417911747e41ef9936f9a4b657
+5,109,PH5,,,,0,3,,,0,,,,2013-1-1,2013-1-1,user,,31a77b417911747e41ef9936f9a4b657
+6,109,SH6,,,,0,8,,,0,,,,2013-1-1,2013-1-1,user,,31a77b417911747e41ef9936f9a4b657
