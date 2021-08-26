@@ -136,7 +136,6 @@ Layout/DotPosition:
   Exclude:
     - 'app/models/grda_warehouse/shape/coc.rb'
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
 
@@ -147,7 +146,6 @@ Layout/ElseAlignment:
     - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/grda_warehouse/us_census_api/variable_importer.rb'
-    - 'app/models/health/patient_referral.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -203,7 +201,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/enrollment_reasons.rb'
     - 'app/models/health/health_file.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/tasks/check_patient_eligibility.rb'
     - 'app/models/health/team/member.rb'
     - 'app/models/health/tracking_sheet.rb'
@@ -935,7 +932,6 @@ Layout/IndentationWidth:
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/epic_team_member.rb'
     - 'app/models/health/expiring_item_report.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/soap/soap_response.rb'
     - 'app/models/report.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
@@ -971,7 +967,6 @@ Layout/LeadingCommentSpace:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/epic_case_note.rb'
     - 'app/models/health/epic_case_note_qualifying_activity.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
@@ -1296,7 +1291,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/health/epic_patient.rb'
     - 'app/models/health/epic_team_member.rb'
     - 'app/models/health/exporter/health_exporter.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
@@ -1362,7 +1356,6 @@ Layout/SpaceBeforeFirstArg:
 # Cop supports --auto-correct.
 Layout/SpaceBeforeSemicolon:
   Exclude:
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/report.rb'
 
 # Offense count: 115
@@ -1408,7 +1401,6 @@ Layout/SpaceInLambdaLiteral:
     - 'app/models/health/epic_case_note.rb'
     - 'app/models/health/epic_housing_status.rb'
     - 'app/models/health/epic_ssm.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
     - 'app/models/message.rb'
@@ -1506,7 +1498,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/health/epic_team_member.rb'
     - 'app/models/health/exporter/health_exporter.rb'
     - 'app/models/health/goal/base.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
@@ -2094,7 +2085,6 @@ Lint/UselessAssignment:
     - 'app/models/health/eligibility_inquiry.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/participation_saver.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
@@ -2441,7 +2431,6 @@ Style/GuardClause:
     - 'app/models/health/ed_ip_visit_file.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/enrollment.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
@@ -2489,7 +2478,6 @@ Style/IfInsideElse:
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/import.rb'
     - 'app/models/report_generators/data_quality/fy2017/q4.rb'
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
@@ -2539,7 +2527,6 @@ Style/IfUnlessModifier:
     - 'app/models/health/comprehensive_health_assessment.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/enrollment.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
@@ -2578,7 +2565,6 @@ Style/IfUnlessModifier:
 # Configuration parameters: InverseMethods, InverseBlocks.
 Style/InverseMethods:
   Exclude:
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
 
@@ -2837,7 +2823,6 @@ Style/NumericPredicate:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/tasks/check_patient_eligibility.rb'
     - 'app/models/import.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
@@ -2999,7 +2984,6 @@ Style/RedundantSelf:
     - 'app/models/health/epic_qualifying_activity.rb'
     - 'app/models/health/goal/base.rb'
     - 'app/models/health/health_file.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
     - 'app/models/health/team/member.rb'
@@ -3055,7 +3039,6 @@ Style/RescueModifier:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/appointment.rb'
     - 'app/models/health/claims/view_model.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/old_warehouse_base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
@@ -3098,7 +3081,6 @@ Style/SelfAssignment:
   Exclude:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/eligibility_inquiry.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
 
 # Offense count: 13
@@ -3347,7 +3329,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/health/expiring_item_report.rb'
     - 'app/models/health/exporter/health_exporter.rb'
     - 'app/models/health/participation_saver.rb'
-    - 'app/models/health/patient_referral.rb'
     - 'app/models/health/release_saver.rb'
     - 'app/models/health/self_sufficiency_matrix_form.rb'
     - 'app/models/health/service_saver.rb'
