@@ -50,18 +50,25 @@ module Health
     end
 
     def patient_scope
-      if current_user.can_manage_care_coordinators?
+      population = if current_user.can_manage_care_coordinators?
         ids = [current_user.id] + current_user.user_care_coordinators.pluck(:care_coordinator_id)
-        patient_source.where(care_coordinator_id: ids).
-          or(patient_source.where(nurse_care_manager_id: ids)).
-          joins(:patient_referral).
-          merge(Health::PatientReferral.not_confirmed_rejected)
+        patient_source.
+          where(care_coordinator_id: ids).
+          or(patient_source.where(nurse_care_manager_id: ids))
       else
-        patient_source.where(care_coordinator_id: current_user.id).
-          or(patient_source.where(nurse_care_manager_id: current_user.id)).
-          joins(:patient_referral).
-          merge(Health::PatientReferral.not_confirmed_rejected)
+        patient_source.
+          where(care_coordinator_id: current_user.id).
+          or(patient_source.where(nurse_care_manager_id: current_user.id))
       end
+
+      population.
+        joins(:patient_referral).
+        merge(Health::PatientReferral.assigned.not_disenrolled).
+        or(
+          population.
+            joins(:patient_referral).
+            merge(Health::PatientReferral.pending_disenrollment.not_confirmed_rejected),
+        )
     end
 
     def set_patients
