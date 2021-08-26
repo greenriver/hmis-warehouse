@@ -280,7 +280,7 @@ module HomelessSummaryReport
     def m2_fields
       {
         m2_reentry_days: {
-          title: 'Total',
+          title: 'Clients exiting to Permanent Destinations',
           calculations: [:count, :percent],
           total: :spm_m2_reentry_days,
         },
