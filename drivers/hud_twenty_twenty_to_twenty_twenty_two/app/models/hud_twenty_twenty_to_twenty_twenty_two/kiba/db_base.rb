@@ -12,7 +12,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba::DbBase
       HudTwentyTwentyToTwentyTwentyTwo::Kiba::Transform.up(
         HudTwentyTwentyToTwentyTwentyTwo::Kiba::RailsSource,
         target_class,
-        transforms,
+        transforms(db: true),
         HudTwentyTwentyToTwentyTwentyTwo::Kiba::RailsDestination,
         target_class,
       )

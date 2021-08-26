@@ -443,6 +443,13 @@ module GrdaWarehouse::WarehouseReports
         ],
         'CAS' => [
           {
+            url: 'warehouse_reports/cas/non_hmis_clients',
+            name: 'Non-HMIS to Warehouse Clients',
+            description: 'Mapping of Non-HMIS to Warehouse Clients',
+            limitable: false,
+            health: false,
+          },
+          {
             url: 'warehouse_reports/manage_cas_flags',
             name: 'Manage CAS Flags',
             description: 'Use this report to bulk update <b>available in cas, disability verification on file, and HAN release on file</b>',

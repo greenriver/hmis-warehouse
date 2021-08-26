@@ -21,7 +21,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
             skip_blanks: true,
           },
         },
-        transforms,
+        transforms(csv: true),
         Kiba::Common::Destinations::CSV,
         {
           filename: destination_name,

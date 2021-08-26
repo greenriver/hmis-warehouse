@@ -7,64 +7,6 @@
 
 = render 'filter'
 
-.d-flex
-  %p
-    = pluralize(@enrollments.count, 'Client')
-    have entries in
-    = @filter.selected_project_type_names.join(', ')
-    between
-    = @filter.start
-    and
-    = "#{@filter.end}."
-    %br
-    This report was built to provide supporting details to the "Enterers" section of the Population Dashboards.
-  .ml-auto.mb-2
-    - if  can_view_clients?
-      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-        Download Excel
-= render 'common/population_warnings'
-= render 'warehouse_reports/limited_by_project_note'
-
-- @buckets.each do |group, clients|
-  .mb-1
-    %h3
-      = @data[group][:label]
-      = "(#{clients.count})"
-    .card
-      %table.mb-0.table
-        %thead
-          %tr
-            %th
-              Client
-            %th
-              Entry
-            %th
-              Exit
-            %th
-              Project Type
-            %th
-              Project
-            %th
-              Organization
-        %tbody
-          - clients.each_with_index do |client_id, i|
-            - meta = @enrollments[client_id].first
-            - enrollments = @enrollments[client_id]
-            - odd_class = if i % 2 == 0 then 'odd' else 'even' end
-            %tr{class: odd_class}
-              %td{rowspan: enrollments.count + 1}
-                = link_to_if can_view_clients?, "#{meta[:first_name]} #{meta[:last_name]}", appropriate_client_path(client_id)
-            - enrollments.each_with_index do |enrollment, index|
-              - highlight = ''
-              - highlight = 'warehouse-reports__enrollment-highlighted' if index == 0
-              %tr{class: [highlight, odd_class]}
-                %td
-                  = enrollment[:first_date_in_program]
-                %td
-                  = enrollment[:last_date_in_program]
-                %td
-                  = HUD.project_type(enrollment[:project_type])
-                %td
-                  = enrollment[:project_name]
-                %td
-                  = enrollment[:organization_name]
+= render 'background_render', url: render_section_warehouse_reports_client_details_entries_path, fetch_params: { filter: @filter.for_params[:filters] } do
+  .rollup
+    .rollup-container.well
