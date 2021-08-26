@@ -557,6 +557,7 @@ module HudSpmReport::Generators::Fy2020
       m7_stays = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(
         on_date: @report.end_date,
       )
+      filter # force @filter to be set
       m7_stays = filter_for_user_access(m7_stays)
       m7_stays = filter_for_cocs(m7_stays)
 
@@ -1008,6 +1009,7 @@ module HudSpmReport::Generators::Fy2020
         grant_funded_between(start_date: @report.start_date, end_date: @report.end_date + 1.day).
         where(Funder: { Funder: funding_sources }).
         hud_project_type(PH + SH + TH)
+      filter # force @filter to be set
       funded = filter_for_user_access(funded)
       funded = filter_for_cocs(funded)
       funded
@@ -1266,7 +1268,7 @@ module HudSpmReport::Generators::Fy2020
     def hoh_destinations(project_types)
       # PERF: batch this... right now it loads ALL enrollments with service during the report range
       @hoh_destinations ||= {}
-      @hoh_destinations[project_types] ||= begin # rubocop:disable Style/RedundantBegin
+      @hoh_destinations[project_types] ||= begin
         GrdaWarehouse::ServiceHistoryEnrollment.entry.
           hud_project_type(project_types).
           open_between(start_date: @report.start_date - 2.years, end_date: @report.end_date).
@@ -1333,6 +1335,7 @@ module HudSpmReport::Generators::Fy2020
       exits = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:project).hud_project_type(SO + ES + TH + SH + PH).
         where(last_date_in_program: lookback_range)
+      filter # force @filter to be set
       exits = filter_for_user_access(exits)
       exits = filter_for_cocs(exits)
       exits
@@ -1675,7 +1678,7 @@ module HudSpmReport::Generators::Fy2020
 
     private def hoh_client_ids(project_types)
       @hoh_to_client_id ||= {}
-      @hoh_to_client_id[project_types] ||= begin # rubocop:disable Style/RedundantBegin
+      @hoh_to_client_id[project_types] ||= begin
         GrdaWarehouse::ServiceHistoryEnrollment.entry.
           hud_project_type(project_types).
           open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
