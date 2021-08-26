@@ -83,7 +83,7 @@ module ClaimsReporting
     def content_as_details
       roo = ::Roo::Excelx.new(StringIO.new(content).binmode)
 
-      required_cols = DETAIL_COLS.map { |c| [c.downcase, c] }.to_h
+      required_cols = DETAIL_COLS.map { |c| [c.downcase, Regexp.new("^#{c}$", true)] }.to_h
       roo.sheet('DETAIL').parse(
         required_cols,
       ).map(&:symbolize_keys)
