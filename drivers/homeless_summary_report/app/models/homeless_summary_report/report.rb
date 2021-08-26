@@ -87,6 +87,10 @@ module HomelessSummaryReport
       true
     end
 
+    def default_project_types
+      [:ph, :es, :th, :sh, :so]
+    end
+
     private def build_control_sections
       # ensure filter has been set
       filter
