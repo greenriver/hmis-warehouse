@@ -366,6 +366,9 @@ Rails.application.routes.draw do
           patch :client
         end
       end
+      resources :non_hmis_clients, only: [:index] do
+        patch :match, on: :collection
+      end
     end
     namespace :health do
       resources :overview, only: [:index]
