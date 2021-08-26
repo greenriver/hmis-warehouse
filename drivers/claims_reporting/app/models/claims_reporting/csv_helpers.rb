@@ -77,6 +77,8 @@ module ClaimsReporting::CsvHelpers
           FROM STDIN
           WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER '|',FORCE_NULL(#{force_null_cols.join(',')}))
         SQL
+        copy_sql << " WHERE #{csv_constraints}" if respond_to?(:csv_constraints)
+
         # logger.debug { copy_sql }
         pg_conn = connection.raw_connection
         pg_result = pg_conn.copy_data copy_sql do

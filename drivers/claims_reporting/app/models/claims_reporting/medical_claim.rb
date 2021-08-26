@@ -293,6 +293,10 @@ module ClaimsReporting
       ['member_id', 'claim_number', 'line_number']
     end
 
+    def self.csv_constraints
+      'service_start_date <= service_end_date'
+    end
+
     def self.schema_def
       <<~CSV.freeze
         ID,Field name,Description,Length,Data type,PRIVACY: Encounter pricing
