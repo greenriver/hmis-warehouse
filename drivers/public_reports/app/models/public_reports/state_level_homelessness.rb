@@ -572,13 +572,13 @@ module PublicReports
                 end_date: end_date,
               ).in_place(place: code).count
             else
-              max = [population_overall, 1].compact.max / 10_000
+              max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
             end
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
-            # rate per 10,000
+            # % of population
             rate = 0
-            rate = count / population_overall.to_f * 10_000.0 if population_overall.positive?
+            rate = count / population_overall.to_f * 100.0 if population_overall.positive?
             charts[date.iso8601][code] = {
               count: count,
               overall_population: population_overall.to_i,
@@ -986,7 +986,7 @@ module PublicReports
     end
 
     private def place_geometries
-      @place_geometries ||= GrdaWarehouse::Shape::Town.where(name: place_codes)
+      @place_geometries ||= GrdaWarehouse::Shape::Town.where(town: place_codes)
     end
 
     private def place_codes

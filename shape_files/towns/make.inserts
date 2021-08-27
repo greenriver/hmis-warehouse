@@ -27,13 +27,21 @@ rescue Zip::Error
   puts 'ERROR: Unable to extract zip file'
   return
 end
+# bin/rake grda_warehouse:get_shapes
 # https://spatialreference.org/ref/?search=NAD_1983_StatePlane_Massachusetts_Mainland_FIPS_2001
-# SR-ORG:7406
+# SR-ORG:7092: Drew - nope
+# SR-ORG:7406: NAD_1983_StatePlane_Massachusetts_Mainland_FIPS_2001 - nope
+# SR-ORG:8414: unknown ma - nope
+# SR-ORG:9032: NAD_1983_StatePlane_Massachusetts_Mainland_FIPS_2001 - nope
+# SR-ORG:9068: Belmont MA unknown - nope
+# SR-ORG:9069: Belmont MA unknown - nope
+# ESRI:102686: NAD 1983 StatePlane Massachusetts Mainland FIPS 2001 Feet - almost
+# 26986 - YES
 
-system("shp2pgsql -s 7406:4326 -p -I #{basename}.shp shape_towns > towns.structure.sql")
+system("shp2pgsql -s 26986:4326 -p -I #{basename}.shp shape_towns > towns.structure.sql")
 
 system(<<~EOS)
-  shp2pgsql -s 7406:4326 -c -I #{basename}.shp shape_towns \
+  shp2pgsql -s 26986:4326 -c -I #{basename}.shp shape_towns \
     | sed -e 's/gid/id/' \
     | grep INSERT \
     > inserts.sql

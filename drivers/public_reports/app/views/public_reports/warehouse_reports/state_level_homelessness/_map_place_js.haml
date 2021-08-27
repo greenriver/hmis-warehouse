@@ -35,10 +35,10 @@
         .addTo(this.map);
 
       // Do not show basemap
-      const osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-      const osmAttrib = 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-      const osm = new L.TileLayer(osmUrl, {attribution: osmAttrib})
-      this.map.addLayer(osm)
+      // const osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      // const osmAttrib = 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+      // const osm = new L.TileLayer(osmUrl, {attribution: osmAttrib})
+      // this.map.addLayer(osm)
 
       const geoJSONOptions = {
         style: this.style,
@@ -62,7 +62,7 @@
           const rate = this.metrics[name]?.rate
           const count = this.metrics[name]?.count
           const population = this.metrics[name]?.overall_population
-          innerHTML = `<h4>${name} (${name})</h4><div class="rate">${rate} per 10,000 people</div><div class="count">${count?.toLocaleString()} clients of ${population?.toLocaleString()} people</div>`;
+          innerHTML = `<h4>${name}</h4><div class="rate">${rate}% of overall homeless population</div><div class="count">${count?.toLocaleString()} of ${population?.toLocaleString()} people</div>`;
 
           hidden = false;
         }
