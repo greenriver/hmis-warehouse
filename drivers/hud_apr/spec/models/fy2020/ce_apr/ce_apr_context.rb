@@ -10,7 +10,7 @@ RSpec.shared_context 'ce apr context', shared_context: :metadata do
       start: Date.parse('2019-01-01'),
       end: Date.parse('2019-12-31'),
       coc_codes: ['XX-500'],
-      user_id: User.setup_system_user,
+      user_id: User.setup_system_user.id,
     }.freeze
   end
 

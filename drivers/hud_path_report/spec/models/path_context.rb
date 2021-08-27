@@ -14,7 +14,7 @@ RSpec.shared_context 'path context', shared_context: :metadata do
       start: Date.parse('2020-01-01'),
       end: Date.parse('2020-12-31'),
       coc_codes: ['XX-500'],
-      user_id: User.setup_system_user,
+      user_id: User.setup_system_user.id,
     }.freeze
   end
 
