@@ -69,7 +69,7 @@ module Health
     phi_attr :eoea, Phi::NeedsReview
     phi_attr :ed_visits, Phi::NeedsReview
     phi_attr :snf_discharge, Phi::NeedsReview
-    phi_attr :identification, Phi::LicenceNumber #Phi::NeedsReview ??
+    phi_attr :identification, Phi::LicenceNumber # Phi::NeedsReview ??
     # phi_attr :record_status
     phi_attr :record_updated_on, Phi::Date
     phi_attr :exported_on, Phi::Date
@@ -119,10 +119,10 @@ module Health
     scope :rejection_confirmed, -> { current.where(removal_acknowledged: true) }
     scope :not_confirmed_rejected, -> { current.where(removal_acknowledged: false) }
     scope :pending_disenrollment, -> { current.where.not(pending_disenrollment_date: nil) }
-    scope :not_disenrolled, -> { current.where(pending_disenrollment_date: nil, disenrollment_date: nil)}
+    scope :not_disenrolled, -> { current.where(pending_disenrollment_date: nil, disenrollment_date: nil) }
 
     # Note: respects pending_disenrollment_date if there is no disenrollment_date
-    scope :active_within_range, -> (start_date:, end_date:) do
+    scope :active_within_range, ->(start_date:, end_date:) do
       at = arel_table
       # Excellent discussion of why this works:
       # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -134,11 +134,11 @@ module Health
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
-    scope :referred_on, -> (date) do
+    scope :referred_on, ->(date) do
       where(enrollment_start_date: date)
     end
 
-    scope :at_acos, -> (aco_ids) do
+    scope :at_acos, ->(aco_ids) do
       where(accountable_care_organization_id: aco_ids)
     end
 
@@ -181,17 +181,15 @@ module Health
             removal_acknowledged: true, # Synthetic removals do not need to be acknowledged
           )
           referral = create(referral_args)
+        elsif (enrollment_start_date - last_disenrollment_date.next_day).to_i > REENROLLMENT_REQUIRED_AFTER_DAYS
+          # It has been more than REENROLLMENT_REQUIRED_AFTER_DAYS days, so this is a "reenrollment", so close the contributing range
+          patient.patient_referrals.contributing.update_all(contributing: false)
+          referral = create(referral_args)
+          patient.reenroll!(referral)
         else
-          if (enrollment_start_date - last_disenrollment_date).to_i > REENROLLMENT_REQUIRED_AFTER_DAYS
-            # It has been more than REENROLLMENT_REQUIRED_AFTER_DAYS days, so this is a "reenrollment", so close the contributing range
-            patient.patient_referrals.contributing.update_all(contributing: false)
-            referral = create(referral_args)
-            patient.reenroll!(referral)
-          else
-            # This is an "auto-reenrollment"
-            # current was set to false above, remains contributing...
-            referral = create(referral_args)
-          end
+          # This is an "auto-reenrollment"
+          # current was set to false above, remains contributing...
+          referral = create(referral_args)
         end
       else
         referral = create(referral_args)
@@ -214,7 +212,7 @@ module Health
     accepts_nested_attributes_for :relationships
 
     def update_rejected_from_reason
-      if self.rejected_reason_none?
+      if rejected_reason_none?
         self.rejected = false
       else
         self.rejected = true
@@ -223,7 +221,7 @@ module Health
     end
 
     def relationship_to(agency)
-      relationships.select{|r| r.agency_id == agency.id}&.last
+      relationships.select { |r| r.agency_id == agency.id }&.last
     end
 
     def assigned?
@@ -279,16 +277,20 @@ module Health
     # Deceased
     def outreach_status
       # outreach status needs to include patient values including some from patients that may have been deleted
-      if patient.blank? && self.patient_id.present?
-        patient = Health::Patient.only_deleted.find(self.patient_id) rescue nil
+      if patient.blank? && patient_id.present?
+        patient = begin
+                    Health::Patient.only_deleted.find(patient_id)
+                  rescue StandardError
+                    nil
+                  end
       else
         patient = self.patient
       end
       if patient&.death_date || patient&.epic_patients&.map(&:death_date)&.any? || (rejected && rejected_reason == 'Deceased')
-         'Deceased'
+        'Deceased'
       elsif rejected && rejected_reason == 'Declined'
         'Declined Participation'
-       elsif rejected && rejected_reason.in?(['Unreachable'])
+      elsif rejected && rejected_reason.in?(['Unreachable'])
         'Unreachable/Unable to Contact'
       elsif patient&.engaged?
         'Engaged'
@@ -324,6 +326,7 @@ module Health
 
     private def was_active_range
       return nil unless enrollment_start_date
+
       # disenrollment_date date might be nil but Range handles that for us
       (enrollment_start_date ..actual_or_pending_disenrollment_date)
     end
@@ -344,13 +347,11 @@ module Health
 
     def display_claimed_by_other(agencies)
       cb = display_claimed_by
-      other_size = cb.select{|c| c != 'Unknown'}.size
-      if other_size > 0
+      other_size = cb.reject { |c| c == 'Unknown' }.size
+      if other_size.positive?
         claimed_by_agencies = (cb & agencies.map(&:name))
-        if claimed_by_agencies.any?
-          other_size = other_size - claimed_by_agencies.size
-        end
-        if other_size > 0
+        other_size -= claimed_by_agencies.size if claimed_by_agencies.any?
+        if other_size.positive?
           agency = 'Agency'.pluralize(other_size)
           "#{other_size} Other #{agency}"
         end
@@ -362,7 +363,7 @@ module Health
     def display_claimed_by
       claimed = relationships_claimed
       if claimed.any?
-        claimed.map{|r| r.agency.name}
+        claimed.map { |r| r.agency.name }
       else
         ['Unknown']
       end
@@ -370,7 +371,7 @@ module Health
 
     def display_unclaimed_by
       unclaimed = relationships_unclaimed
-      unclaimed.map{|r| r.agency.name}
+      unclaimed.map { |r| r.agency.name }
     end
 
     def convert_to_patient
@@ -392,7 +393,8 @@ module Health
     def create_source_client
       data_source = GrdaWarehouse::DataSource.find_by(short_name: 'Health')
       raise 'Data Source Not Available' if data_source.blank?
-      client = GrdaWarehouse::Hud::Client.create(
+
+      GrdaWarehouse::Hud::Client.create(
         data_source_id: data_source.id,
         PersonalID: id,
         FirstName: first_name,
@@ -400,20 +402,20 @@ module Health
         SSN: ssn,
         DOB: birthdate,
         DateCreated: Time.now,
-        DateUpdated: Time.now
+        DateUpdated: Time.now,
       )
     end
 
     # we aren't receiving SSN, use full name, case insensitive and birth date
     def matching_destination_client
-      if birthdate.present? && first_name.present? && last_name.present?
-        GrdaWarehouse::Hud::Client.destination.
-          where(
-            c_t[:FirstName].lower.eq(first_name.downcase).
-            and(c_t[:LastName].lower.eq(last_name.downcase))
-          ).
-          where(DOB: birthdate).first
-      end
+      return unless birthdate.present? && first_name.present? && last_name.present?
+
+      GrdaWarehouse::Hud::Client.destination.
+        where(
+          c_t[:FirstName].lower.eq(first_name.downcase).
+          and(c_t[:LastName].lower.eq(last_name.downcase)),
+        ).
+        where(DOB: birthdate).first
     end
 
     def connect_destination_client source_client
@@ -423,7 +425,7 @@ module Health
         id_in_source: source_client.PersonalID,
         source_id: source_client.id,
         destination_id: destination_client.id,
-        data_source_id: source_client.data_source_id
+        data_source_id: source_client.data_source_id,
       )
       return destination_client
     end
@@ -438,50 +440,50 @@ module Health
         SSN: source_client.SSN,
         DOB: source_client.DOB,
         DateCreated: Time.now,
-        DateUpdated: Time.now
+        DateUpdated: Time.now,
       )
     end
 
     def create_patient destination_client
       linked_patient = Health::Patient.with_deleted.find_by(client_id: destination_client.id)
       patient = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
-      if linked_patient.present? && patient.client_id != linked_patient.id
-        # The medicaid id has changed, or points to a different client!
-        raise MedicaidIdConflict, "Patient: #{patient.client_id}, linked_patient: #{linked_patient.id}"
-      else
-        patient.assign_attributes(
-          id_in_source: id,
-          first_name: first_name,
-          last_name: last_name,
-          birthdate: birthdate,
-          ssn: ssn,
-          client_id: destination_client.id,
-          medicaid_id: medicaid_id,
-          pilot: false,
-          # engagement_date: engagement_date,
-          data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first,
-          deleted_at: nil,
-        )
-        patient.save!
-        patient.import_epic_team_members
-        update(patient_id: patient.id)
-      end
+
+      # The medicaid id has changed, or points to a different client!
+      raise MedicaidIdConflict, "Patient: #{patient.client_id}, linked_patient: #{linked_patient.id}" if linked_patient.present? && patient.client_id != linked_patient.id
+
+      patient.assign_attributes(
+        id_in_source: id,
+        first_name: first_name,
+        last_name: last_name,
+        birthdate: birthdate,
+        ssn: ssn,
+        client_id: destination_client.id,
+        medicaid_id: medicaid_id,
+        pilot: false,
+        # engagement_date: engagement_date,
+        data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first,
+        deleted_at: nil,
+      )
+      patient.save!
+      patient.import_epic_team_members
+      update(patient_id: patient.id)
     end
 
     def self.text_search(text)
       return none unless text.present?
+
       text.strip!
       pr_t = arel_table
       # Explicitly search for only last, first if there's a comma in the search
       if text.include?(',')
         last, first = text.split(',').map(&:strip)
-        where = pr_t[:first_name].lower.matches("#{first.downcase}%")
-          .and(pr_t[:last_name].lower.matches("#{last.downcase}%"))
+        where = pr_t[:first_name].lower.matches("#{first.downcase}%").
+          and(pr_t[:last_name].lower.matches("#{last.downcase}%"))
         # Explicity search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
-        where = pr_t[:first_name].lower.matches("#{first.downcase}%")
-          .and(pr_t[:last_name].lower.matches("#{last.downcase}%"))
+        where = pr_t[:first_name].lower.matches("#{first.downcase}%").
+          and(pr_t[:last_name].lower.matches("#{last.downcase}%"))
       else
         query = "%#{text.downcase}%"
 
@@ -603,5 +605,5 @@ module Health
     end
   end
 
-  class MedicaidIdConflict < StandardError ; end
+  class MedicaidIdConflict < StandardError; end
 end
