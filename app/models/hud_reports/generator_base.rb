@@ -55,6 +55,7 @@ module HudReports
       ).update(@report.options)
 
       she_scope = GrdaWarehouse::ServiceHistoryEnrollment.all
+      she_scope = filter_for_user_access(she_scope)
       she_scope = filter_for_projects(she_scope)
       she_scope = filter_for_cocs(she_scope)
       she_scope = filter_for_veteran_status(she_scope)

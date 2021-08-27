@@ -220,6 +220,7 @@ module HudSpmReport::Generators::Fy2020
       project_ids = filter.effective_project_ids
       scope = scope.joins(:project).where(p_t[:id].in(project_ids)) if project_ids.any?
 
+      scope = filter_for_cocs(scope)
       scope = filter_for_veteran_status(scope)
       scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)
@@ -552,9 +553,14 @@ module HudSpmReport::Generators::Fy2020
         start_date: @report.start_date,
         end_date: @report.end_date + 1.day,
       )
+
       m7_stays = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(
         on_date: @report.end_date,
       )
+      filter # force @filter to be set
+      m7_stays = filter_for_user_access(m7_stays)
+      m7_stays = filter_for_cocs(m7_stays)
+
       m7a1_exits = add_filters m7_exits.
         hud_project_type(SO).
         where.not(client_id: m7_stays.hud_project_type(SO).select(:client_id))
@@ -999,10 +1005,14 @@ module HudSpmReport::Generators::Fy2020
     private def m4_coc_program_funded_enrollments
       funding_sources = [2, 3, 4, 5, 43, 44]
 
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client).
+      funded = GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client).
         grant_funded_between(start_date: @report.start_date, end_date: @report.end_date + 1.day).
         where(Funder: { Funder: funding_sources }).
         hud_project_type(PH + SH + TH)
+      filter # force @filter to be set
+      funded = filter_for_user_access(funded)
+      funded = filter_for_cocs(funded)
+      funded
     end
 
     # A “system stayer” is a client active in any one or more of the relevant
@@ -1322,9 +1332,13 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def exits_scope
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+      exits = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:project).hud_project_type(SO + ES + TH + SH + PH).
         where(last_date_in_program: lookback_range)
+      filter # force @filter to be set
+      exits = filter_for_user_access(exits)
+      exits = filter_for_cocs(exits)
+      exits
     end
 
     private def enrollments_scope

@@ -84,7 +84,6 @@ module HudApr::Generators::CeApr::Fy2020
 
       scope.select(:id)
     end
-    memoize :client_scope
 
     private def clients_with_enrollments(batch)
       enrollment_scope.
