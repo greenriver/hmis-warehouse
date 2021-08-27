@@ -6,9 +6,10 @@
 
 module HudTwentyTwentyToTwentyTwentyTwo::Service
   class Transforms
-    def self.transforms
+    def self.transforms(csv: false, db: false) # rubocop:disable Lint/UnusedMethodArgument, Naming/MethodParameterName
       [
         HudTwentyTwentyToTwentyTwentyTwo::Service::AddMovingOnOtherType,
+        HudTwentyTwentyToTwentyTwentyTwo::Service::RemoveV3Code11,
       ]
     end
 

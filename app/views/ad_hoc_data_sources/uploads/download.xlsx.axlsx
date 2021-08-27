@@ -1,0 +1,30 @@
+wb = xlsx_package.workbook
+fields = {
+  id: '',
+  client_id: 'Client ID',
+  first_name: 'First Name',
+  middle_name: 'Middle Name',
+  last_name: 'Last Name',
+  ssn: 'SSN',
+  dob: 'DOB',
+}
+wb.add_worksheet(name: @upload.sanitized_name.slice(0, 30)) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    fields.values.drop(1),
+    style: title,
+  )
+
+  @clients.distinct.find_each do |client|
+    sheet.add_row(
+      [
+        client.client_id,
+        client.first_name,
+        client.middle_name,
+        client.last_name,
+        client.ssn,
+        client.dob,
+      ],
+    )
+  end
+end

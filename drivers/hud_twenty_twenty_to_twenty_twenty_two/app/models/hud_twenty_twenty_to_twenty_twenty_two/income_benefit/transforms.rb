@@ -6,7 +6,7 @@
 
 module HudTwentyTwentyToTwentyTwentyTwo::IncomeBenefit
   class Transforms
-    def self.transforms
+    def self.transforms(csv: false, db: false) # rubocop:disable Lint/UnusedMethodArgument, Naming/MethodParameterName
       [
         HudTwentyTwentyToTwentyTwentyTwo::IncomeBenefit::AddRyanWhiteMedDent,
       ]

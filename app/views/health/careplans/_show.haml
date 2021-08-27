@@ -89,9 +89,10 @@
         ___
     Member verbalizes understanding and accepts care plan. (Note: signature needed within 3 mos. of verbal approval.)
 
-  %article.health-care-plan__ssm
-    %h1 Self-Sufficiency Matrix
-    - if @form.is_a? GrdaWarehouse::HmisForm
-      .ssm-print= render @ssm_partial
-    - elsif @ssm_partial
-      = render @ssm_partial
+  - unless @document == 'pctp'
+    %article.health-care-plan__ssm
+      %h1 Self-Sufficiency Matrix
+      - if @form.is_a? GrdaWarehouse::HmisForm
+        .ssm-print= render @ssm_partial
+      - elsif @ssm_partial
+        = render @ssm_partial

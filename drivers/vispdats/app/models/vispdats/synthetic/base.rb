@@ -33,7 +33,7 @@ module Vispdats::Synthetic
       2 # Housing Needs Assessment
     end
 
-    def priortization_status
+    def prioritization_status
       return 1 if source.score >= 4 # Placed on prioritization list
 
       2 # Not placed on prioritization list

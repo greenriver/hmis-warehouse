@@ -20,7 +20,7 @@ module HMIS::Structure::AssessmentQuestion
 
     def hmis_configuration(version: nil)
       case version
-      when '2020', nil
+      when '2020', '2022', nil
         {
           AssessmentQuestionID: {
             type: :string,

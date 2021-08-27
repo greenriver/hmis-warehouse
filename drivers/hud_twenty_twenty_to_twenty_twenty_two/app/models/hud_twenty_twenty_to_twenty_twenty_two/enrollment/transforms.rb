@@ -6,11 +6,13 @@
 
 module HudTwentyTwentyToTwentyTwentyTwo::Enrollment
   class Transforms
-    def self.transforms
-      [
+    def self.transforms(csv: false, db: false) # rubocop:disable Lint/UnusedMethodArgument, Naming/MethodParameterName
+      classes = [
         HudTwentyTwentyToTwentyTwentyTwo::Enrollment::RenameR13Columns,
         HudTwentyTwentyToTwentyTwentyTwo::Enrollment::UpdateR7Columns,
       ]
+      classes << HudTwentyTwentyToTwentyTwentyTwo::Enrollment::FilterLiteralHomelessHistory if csv
+      classes
     end
 
     def self.target_class
