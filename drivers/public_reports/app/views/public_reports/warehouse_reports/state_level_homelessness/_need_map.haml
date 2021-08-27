@@ -25,11 +25,12 @@
   Rate per 10,000 people
 
 - # include the map class directly
-- map_type = if @report.map_by_zip? then 'map_zip_js' else 'map_js' end
+- map_type = @report.map_type
 = render map_type
 
 :javascript
   (function() {
+    const state = #{@report.state_shape.to_json.html_safe}
     const shapes = #{@report.map_shapes.to_json.html_safe}
     const data = #{data.to_json.html_safe}
     const comparison_colors = #{@report.chart_color_shades(:youth_primary_color)}
@@ -40,6 +41,7 @@
     const comparison_map = new CocMap({
       elementId: "comparison-map",
       shapes: shapes,
+      state: state,
       metrics: comparison_data[selected_date],
       colors: comparison_colors,
       max_rate: #{max_rate},

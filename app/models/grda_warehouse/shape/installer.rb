@@ -8,7 +8,7 @@ module GrdaWarehouse
   module Shape
     class Installer
       def self.any_needed?
-        State.none? || ZipCode.none? || County.none? || CoC.none? || BlockGroup.none?
+        State.none? || ZipCode.none? || County.none? || CoC.none? || BlockGroup.none? || Place.none? || Town.none?
       end
 
       def run!
@@ -17,7 +17,7 @@ module GrdaWarehouse
         system('./sync.from.s3')
 
         num_zips = `find . -name '*zip'`.split(/\n/).length
-        if num_zips == 0
+        if num_zips.zero?
           # If you don't care about CoC/ZipCode shapes and want to just get through
           # the migration, just comment out this whole rake task. You can run it
           # later
@@ -32,6 +32,8 @@ module GrdaWarehouse
           OpenStruct.new(klass: GrdaWarehouse::Shape::BlockGroup, dir: 'block_groups'),
           OpenStruct.new(klass: GrdaWarehouse::Shape::State, dir: 'states'),
           OpenStruct.new(klass: GrdaWarehouse::Shape::County, dir: 'counties'),
+          OpenStruct.new(klass: GrdaWarehouse::Shape::Place, dir: 'places'),
+          OpenStruct.new(klass: GrdaWarehouse::Shape::Town, dir: 'towns'),
         ].each do |conf|
           if conf.klass.any?
             Rails.logger.info "Skipping #{conf.klass} since you already have it."
@@ -44,7 +46,7 @@ module GrdaWarehouse
           # easier to just pass it along for all
           system("./shape_files/#{conf.dir}/make.inserts #{ENV['RELEVANT_COC_STATE']}")
 
-          if File.exists?("shape_files/#{conf.dir}/inserts.sql")
+          if File.exist?("shape_files/#{conf.dir}/inserts.sql")
             Rails.logger.info "Inserting #{conf.klass} into the database, conserving RAM"
           else
             Rails.logger.warn "Skipping #{conf.klass}: cannot find inserts.sql file"
@@ -62,9 +64,7 @@ module GrdaWarehouse
                   Rails.logger.error e.message
                 end
 
-                if i % 100 == 0 && i > 0
-                  Rails.logger.info "Inserted another 100 #{conf.klass} into the database"
-                end
+                Rails.logger.info "Inserted another 100 #{conf.klass} into the database" if (i % 100).zero? && i.positive?
               end
             end
           end
@@ -87,12 +87,13 @@ module GrdaWarehouse
 
         Rails.logger.info 'Pruning out-of-state geometries'
 
+        # Don't need to prune places or towns. They come in on a per-state basis
         [ZipCode, CoC, County, State].each do |klass|
-          if klass.not_my_state.count > 0 && (klass.not_my_state.count + klass.my_state.count == klass.count)
-            Rails.logger.warn "Deleting #{klass} that are out of state"
-            klass.not_my_state.delete_all
-            klass.connection.exec_query("VACUUM ANALYZE #{klass.table_name}")
-          end
+          next unless klass.not_my_state.count.positive? && (klass.not_my_state.count + klass.my_state.count == klass.count)
+
+          Rails.logger.warn "Deleting #{klass} that are out of state"
+          klass.not_my_state.delete_all
+          klass.connection.exec_query("VACUUM ANALYZE #{klass.table_name}")
         end
       end
     end
