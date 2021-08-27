@@ -33,10 +33,6 @@ class WorkoffArbiter
   # dynamodb and make it different for each installation.
   MAX_WORKOFF_WORKERS = 6
 
-  # This is the abstraction that provides EC2 instances as needed to run the
-  # workoff job
-  SPOT_CAPACITY_PROVIDER_NAME = 'spot-capacity-provider'.freeze
-
   NOTIFICATION_THRESHOLD = 2
 
   def initialize
@@ -53,14 +49,7 @@ class WorkoffArbiter
     payload = {
       cluster: ENV.fetch('CLUSTER_NAME'),
       task_definition: _task_definition,
-      capacity_provider_strategy: [
-        {
-          capacity_provider: ENV.fetch('WORKOFF_CAPACITY_PROVIDER') { SPOT_CAPACITY_PROVIDER_NAME },
-
-          weight: 1,
-          base: 1,
-        },
-      ],
+      capacity_provider_strategy: _default_capacity_provider_strategy,
     }
 
     ecs.run_task(payload)
@@ -133,6 +122,12 @@ class WorkoffArbiter
 
   def _task_family
     _task_definition.split(/\//).last.split(/:/).first
+  end
+
+  def _default_capacity_provider_strategy
+    cluster_name = ENV.fetch('CLUSTER_NAME')
+    our_cluster = ecs.describe_clusters(clusters: [cluster_name]).clusters.first
+    our_cluster.default_capacity_provider_strategy.map(&:to_h)
   end
 
   def _task_definition

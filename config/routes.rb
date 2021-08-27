@@ -94,6 +94,7 @@ Rails.application.routes.draw do
         get :print
         get :revise, on: :member
         get :coversheet, on: :member
+        get :pctp, on: :member
         member do
           delete :remove_file
           get :download
@@ -302,8 +303,12 @@ Rails.application.routes.draw do
       resources :incorrect_move_in_dates, only: [:index]
     end
     namespace :client_details do
-      resources :exits, only: [:index]
-      resources :entries, only: [:index]
+      resources :exits, only: [:index] do
+        post :render_section, on: :collection
+      end
+      resources :entries, only: [:index] do
+        post :render_section, on: :collection
+      end
       resources :actives, only: [:index] do
         post :render_section, on: :collection
       end
@@ -361,6 +366,9 @@ Rails.application.routes.draw do
         member do
           patch :client
         end
+      end
+      resources :non_hmis_clients, only: [:index] do
+        patch :match, on: :collection
       end
     end
     namespace :health do
@@ -710,6 +718,7 @@ Rails.application.routes.draw do
     resources :projects, only: [:none] do
       post :index, on: :collection
     end
+    resources :clients, only: [:show]
   end
 
   namespace :admin do

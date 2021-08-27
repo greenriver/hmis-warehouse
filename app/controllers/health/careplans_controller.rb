@@ -15,7 +15,7 @@ module Health
 
     before_action :set_client
     before_action :set_hpc_patient
-    before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy, :download, :remove_file, :upload]
+    before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy, :download, :remove_file, :upload, :pctp]
     before_action :set_medications, only: [:show]
     before_action :set_problems, only: [:show]
     before_action :set_upload_object, only: [:edit, :update, :revise, :remove_file, :download, :upload]
@@ -121,6 +121,14 @@ module Health
     def coversheet
       pdf = careplan_pdf_coversheet
       file_name = 'care_plan_coversheet'
+      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+    end
+
+    def pctp
+      @document = 'pctp'
+      pdf = careplan_pdf_coversheet
+      pdf << careplan_pdf_pctp
+      file_name = 'care_plan_pctp'
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 

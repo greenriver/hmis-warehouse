@@ -1,5 +1,4 @@
 class BackgroundRender::ActiveClientsReportJob < BackgroundRenderJob
-
   def render_html(filter:, user_id:)
     current_user = User.find(user_id)
     @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filter).with_indifferent_access[:filters])
@@ -10,7 +9,7 @@ class BackgroundRender::ActiveClientsReportJob < BackgroundRenderJob
         filter: @filter,
         report: @report,
         limited: limited(current_user),
-        visible_projects: visible_projects(current_user)
+        visible_projects: visible_projects(current_user),
       },
       locals: {
         current_user: current_user,

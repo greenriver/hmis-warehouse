@@ -17,10 +17,10 @@ class ClientAccessControl::ClientsController < ApplicationController
   before_action :require_can_access_some_client_search!, only: [:index, :simple]
   before_action :require_can_view_clients!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details_tab!, only: [:enrollment_details]
-  before_action :require_can_see_this_client_demographics!, except: [:index, :simple, :appropriate, :new]
+  before_action :require_can_see_this_client_demographics!, except: [:index, :simple, :appropriate, :new, :from_source]
   before_action :set_client, only: [:show, :service_range, :rollup, :image, :enrollment_details]
   before_action :require_can_create_clients!, only: [:new]
-  before_action :set_search_client, only: [:simple, :appropriate]
+  before_action :set_search_client, only: [:simple, :appropriate, :from_source]
   before_action :set_client_start_date, only: [:show, :rollup]
   after_action :log_client, only: [:show]
 
@@ -86,6 +86,12 @@ class ClientAccessControl::ClientsController < ApplicationController
   # It can be expensive to calculate the appropriate link to show a user for a batch of clients
   # instead, just provide one where we can make that determination on a per-client basis
   def appropriate
+    redirect_to @client.appropriate_path_for?(current_user)
+  end
+
+  def from_source
+    source_client = GrdaWarehouse::Hud::Client.source_visible_to(current_user).find(params[:id])
+    @client = source_client.destination_client
     redirect_to @client.appropriate_path_for?(current_user)
   end
 

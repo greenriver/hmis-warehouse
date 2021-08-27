@@ -107,6 +107,7 @@ module Cohorts
       @populations = chosen_populations
       @actives = actives_params
       @touchpoints = touch_point_params
+      @ad_hoc = ad_hoc_params
       @client_ids = params.dig(:batch, :client_ids)
 
       @q = client_scope.none.ransack(params[:q])
@@ -121,6 +122,12 @@ module Cohorts
       elsif @actives
         @hoh_only = _debool(@actives[:hoh])
         @clients = clients_from_actives
+      elsif @ad_hoc
+        client_ids = GrdaWarehouse::AdHocClient.joins(:ad_hoc_data_source).
+          where.not(client_id: nil).
+          merge(GrdaWarehouse::AdHocDataSource.viewable_by(current_user).where(id: @ad_hoc[:data_source].to_i)).
+          distinct.pluck(:client_id)
+        @clients = client_scope.where(id: client_ids)
       elsif @client_ids.present?
         @client_ids = @client_ids.strip.split(/\s+/).map { |m| m[/\d+/].to_i }
         @clients = client_scope.where(id: @client_ids)
@@ -463,6 +470,13 @@ module Cohorts
         :hoh,
         population: [],
       )
+    end
+
+    def ad_hoc_params
+      return {} unless params[:ad_hoc].present?
+
+      params.require(:ad_hoc).
+        permit(:data_source)
     end
 
     def actives_params

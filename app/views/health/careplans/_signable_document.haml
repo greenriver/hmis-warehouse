@@ -7,6 +7,11 @@
   = link_to url do
     PDF: Care Plan
 
+.patient__file-link.mb-2
+  - pctp_url = polymorphic_path([:pctp] + careplan_path_generator, id: careplan)
+  = link_to pctp_url do
+    PDF: PCTP
+
 - if patient_sig = careplan.patient_signed_health_files.order(updated_at: :desc).select(:id, :updated_at).limit(1).first
   .patient__file-link.mb-2
     = link_to polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: patient_sig.id) do
