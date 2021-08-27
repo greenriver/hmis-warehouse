@@ -46,7 +46,7 @@ module GrdaWarehouse
           # easier to just pass it along for all
           system("./shape_files/#{conf.dir}/make.inserts #{ENV['RELEVANT_COC_STATE']}")
 
-          if File.exist?("shape_files/#{conf.dir}/inserts.sql")
+          if File.exists?("shape_files/#{conf.dir}/inserts.sql") # rubocop:disable Lint/DeprecatedClassMethods
             Rails.logger.info "Inserting #{conf.klass} into the database, conserving RAM"
           else
             Rails.logger.warn "Skipping #{conf.klass}: cannot find inserts.sql file"
