@@ -11,6 +11,7 @@ end
 RSpec.shared_context 'path context', shared_context: :metadata do
   def shared_filter
     @user = User.setup_system_user
+    @user.save!
     {
       start: Date.parse('2020-01-01'),
       end: Date.parse('2020-12-31'),
@@ -64,6 +65,7 @@ RSpec.shared_context 'path context', shared_context: :metadata do
       run_jobs: true,
     )
     @user = User.setup_system_user
+    @user.access_group.save
     @user.add_viewable(@data_source)
   end
 
