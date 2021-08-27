@@ -70,7 +70,6 @@ module HudReports
 
       scope.select(:id)
     end
-    memoize :client_scope
 
     def client_source
       GrdaWarehouse::Hud::Client

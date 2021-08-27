@@ -10,13 +10,11 @@ end
 
 RSpec.shared_context 'apr context', shared_context: :metadata do
   def shared_filter
-    @user = User.setup_system_user
-    @user.save!
     {
       start: Date.parse('2019-01-01'),
       end: Date.parse('2019-12-31'),
       coc_codes: ['XX-500'],
-      user_id: @user.id,
+      user_id: User.setup_system_user.id,
     }.freeze
   end
 
@@ -84,12 +82,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
   def setup(file_path)
     HmisCsvTwentyTwenty::Utility.clear!
     GrdaWarehouse::Utility.clear!
-    @data_source = GrdaWarehouse::DataSource.where(name: 'Green River', short_name: 'GR', source_type: :sftp).first_or_create!
-    GrdaWarehouse::DataSource.where(name: 'Warehouse', short_name: 'W').first_or_create!
     import_hmis_csv_fixture(file_path)
-    @user = User.setup_system_user
-    @user.access_group.save
-    @user.add_viewable(@data_source)
   end
 
   def cleanup
