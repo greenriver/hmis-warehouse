@@ -62,7 +62,7 @@ module HmisCsvFixtures
       Delayed::Worker.new.work_off
     end
 
-    Rails.cache.delete([user, 'access_groups'])
+    Rails.cache.delete([user, 'access_groups']) # These are cached in project.rb etc for one minute, which is too long for tests
     importer
   end
 
