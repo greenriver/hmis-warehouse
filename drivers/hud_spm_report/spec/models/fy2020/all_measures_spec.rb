@@ -11,18 +11,13 @@ RSpec.describe HudSpmReport::Generators::Fy2020::Generator, type: :model do
   include_context 'HudSpmReport context'
 
   before(:all) do
-    GrdaWarehouse::DataSource.where(name: 'Warehouse', short_name: 'W').first_or_create!
-    @data_source = GrdaWarehouse::DataSource.where(name: 'Green River', short_name: 'GR', source_type: :sftp).first_or_create!
-    @user = User.find_by(email: SPM_USER_EMAIL) || create(:user, email: SPM_USER_EMAIL)
-    @user.add_viewable(@data_source)
-
-    import 'fy2020/measure_one', @data_source
-    import 'fy2020/measure_two', @data_source
-    import 'fy2020/measure_three', @data_source
-    import 'fy2020/measure_four', @data_source
-    import 'fy2020/measure_five', @data_source
-    import 'fy2020/measure_six', @data_source
-    import 'fy2020/measure_seven', @data_source
+    import('fy2020/measure_one')
+    import('fy2020/measure_two')
+    import('fy2020/measure_three')
+    import('fy2020/measure_four')
+    import('fy2020/measure_five')
+    import('fy2020/measure_six')
+    import('fy2020/measure_seven')
 
     filter = ::Filters::HudFilterBase.new(
       shared_filter.merge(

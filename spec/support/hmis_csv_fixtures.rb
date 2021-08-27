@@ -4,6 +4,7 @@ module HmisCsvFixtures
     data_source: nil,
     version: '2020',
     run_jobs: true,
+    user: User.setup_system_user,
     allowed_projects: nil,
     deidentified: nil
   )
@@ -50,17 +51,18 @@ module HmisCsvFixtures
     FileUtils.rm_rf(tmp_path) if tmp_path
 
     if run_jobs
-      # 2020 always runs this so we dont need to do it twice
+      # 2020 always runs this so we don't need to do it twice
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run! unless version == '2020'
 
       GrdaWarehouse::Tasks::ProjectCleanup.new.run!
       GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
       GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
       AccessGroup.maintain_system_groups
-
+      AccessGroup.where(name: 'All Data Sources').first.add(user)
       Delayed::Worker.new.work_off
     end
 
+    Rails.cache.delete([user, 'access_groups']) # These are cached in project.rb etc for one minute, which is too long for tests
     importer
   end
 

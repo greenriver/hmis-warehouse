@@ -86,7 +86,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
   end
 
   def cleanup
-    # We dont need to do anything here currently
+    # We don't need to do anything here currently
   end
 end
 
