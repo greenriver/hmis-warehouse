@@ -360,7 +360,6 @@ Layout/EmptyLines:
     - 'app/models/reports/system_performance/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2019/base.rb'
     - 'app/models/talentlms/config.rb'
-    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
@@ -2438,7 +2437,6 @@ Style/GuardClause:
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/talentlms/config.rb'
-    - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
 
 # Offense count: 6
 # Cop supports --auto-correct.
