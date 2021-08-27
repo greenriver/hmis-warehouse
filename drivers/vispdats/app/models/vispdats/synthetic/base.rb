@@ -11,11 +11,11 @@ module Vispdats::Synthetic
     validates_presence_of :source
 
     def assessment_date
-      source.submitted_at&.to_date
+      source.submitted_at.to_date
     end
 
     def assessment_location
-      source.user&.agency&.name
+      source.user&.agency&.name || 'Unknown'
     end
 
     def assessment_type
@@ -26,6 +26,8 @@ module Vispdats::Synthetic
         2
       when 'contact_in_person'
         3
+      else
+        2 # default to virtual
       end
     end
 
@@ -56,10 +58,11 @@ module Vispdats::Synthetic
     end
 
     def self.add_new
-      new_vispdats = GrdaWarehouse::Vispdat::Base.where.not(id: self.select(:source_id))
+      new_vispdats = GrdaWarehouse::Vispdat::Base.
+        joins(:client).
+        completed.
+        where.not(id: self.select(:source_id))
       new_vispdats.find_each do |vispdat|
-        next unless vispdat.client.present? && vispdat.submitted_at.present?
-
         create(enrollment: find_enrollment(vispdat), client: vispdat.client, source: vispdat)
       end
     end
