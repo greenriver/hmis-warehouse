@@ -9,21 +9,22 @@ if ENV['OKTA_DOMAIN'].present?
       end
     end
 
-    describe 'POST /auth/:provider without CSRF token protects against CVE-2015-9284' do
-      before do
-        @allow_forgery_protection = ActionController::Base.allow_forgery_protection
-        ActionController::Base.allow_forgery_protection = true
-      end
+    # Fixed with update to 2.0.4
+    # describe 'POST /auth/:provider without CSRF token protects against CVE-2015-9284' do
+    #   before do
+    #     @allow_forgery_protection = ActionController::Base.allow_forgery_protection
+    #     ActionController::Base.allow_forgery_protection = true
+    #   end
 
-      it do
-        expect do
-          post '/users/auth/okta'
-        end.to raise_error(ActionController::InvalidAuthenticityToken)
-      end
+    #   it do
+    #     expect do
+    #       post '/users/auth/okta'
+    #     end.to raise_error(ActionController::InvalidAuthenticityToken)
+    #   end
 
-      after do
-        ActionController::Base.allow_forgery_protection = @allow_forgery_protection
-      end
-    end
+    #   after do
+    #     ActionController::Base.allow_forgery_protection = @allow_forgery_protection
+    #   end
+    # end
   end
 end
