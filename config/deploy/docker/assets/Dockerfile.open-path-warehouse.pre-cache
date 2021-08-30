@@ -2,7 +2,7 @@
 ## stage build for the self-signed certificate we need ##
 #########################################################
 
-FROM ruby:2.7.4-alpine AS cert
+FROM ruby:2.7.2-alpine AS cert
 
 RUN apk add --no-cache \
   openssl
@@ -17,7 +17,7 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
 ## Stage for the code ##
 ########################
 
-FROM ruby:2.7.4-alpine AS code
+FROM ruby:2.7.2-alpine AS code
 
 RUN mkdir -p /app \
     /app/app/assets /app/tmp/pids /app/lib/assets /app/vendor/assets \
@@ -50,7 +50,7 @@ COPY --from=cert /key.pem /cert.pem /app/config/
 ## Actual Build ##
 ##################
 
-FROM ruby:2.7.4-alpine
+FROM ruby:2.7.2-alpine
 
 WORKDIR /app
 
@@ -92,12 +92,12 @@ RUN apk add --no-cache \
     libmagic file-dev file \
     build-base libxml2-dev libxslt-dev postgresql-dev \
     wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl \
-    ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
-    chromium nss freetype freetype-dev harfbuzz ca-certificates \
-    lftp postgresql tmux postgis geos geos-dev proj-dev proj-bin proj-util libproj \
+    ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
+    chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+    lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util \
     shared-mime-info \
   && rm -rf /var/cache/apk/* \
-  && gem install bundler --version=2.2.26 \
+  && gem install bundler --version=2.2.6 \
   && bundle config without development test doc \
   && bundle install \
   && find /usr/local/bundle -name "*.o" -exec rm {} \; \
@@ -105,6 +105,5 @@ RUN apk add --no-cache \
   && RAILS_ENV=production bundle exec rake assets:precompile \
   && cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml \
   && rm -rf tmp/* \
-  && mkdir tmp/pids
-
-RUN ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
+  && mkdir tmp/pids \
+  && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
