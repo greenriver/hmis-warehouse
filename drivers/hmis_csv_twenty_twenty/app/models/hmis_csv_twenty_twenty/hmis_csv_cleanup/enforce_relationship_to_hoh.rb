@@ -16,6 +16,7 @@
 module HmisCsvTwentyTwenty::HmisCsvCleanup
   class EnforceRelationshipToHoh < Base
     def cleanup!
+      rewrite_reused_household_ids
       # Set anyone with a blank HouseholdID to RelationshipToHoH = 1
       # These clients are not in households
       enrollment_scope.where(HouseholdID: nil).
@@ -148,6 +149,29 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
               ],
             },
           )
+        end
+    end
+
+    def rewrite_reused_household_ids
+      # In the situation where you have a HouseholdID re-used across projects
+      # 1. Find any where the household ID occurs in more than one project
+      # 2. Update by project with a unique HouseholdID
+      enrollment_scope.
+        where.not(HouseholdID: nil).
+        distinct.
+        pluck(:ProjectID, :HouseholdID).
+        group_by(&:last).
+        select { |_, rows| rows.count > 1 }.
+        each do |_, rows|
+          rows.each do |project_id, hh_id|
+            # This is going to issue one query per household, project pair, but generally will only be a few dozen
+            # per import
+            enrollment_scope.where(
+              HouseholdID: hh_id,
+              ProjectID: project_id,
+            ).
+              update_all(HouseholdID: Digest::MD5.hexdigest("#{@importer_log.data_source.id}_#{project_id}_#{hh_id}"))
+          end
         end
     end
 

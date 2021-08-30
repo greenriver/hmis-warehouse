@@ -18,7 +18,6 @@ require 'memoist'
 # https://www.medicaid.gov/medicaid/quality-of-care/downloads/pcr-ta-resource.pdf
 # Both As of May 28, 2021
 
-
 # TODO: Calling this a Report is a misnomer now. Its really a bunch of calculators/classifiers
 # and some metadata for each.
 # When we next update this, we should move each measure and calculate_bh_cp* method to
@@ -344,7 +343,6 @@ module ClaimsReporting
 
       e_t = scope.quoted_table_name
 
-
       scope = scope.where(
         ["#{e_t}.cp_enroll_dt <= :max and (#{e_t}.cp_disenroll_dt IS NULL OR #{e_t}.cp_disenroll_dt > :max)", {
           min: cp_enollment_date_range.min,
@@ -664,11 +662,18 @@ module ClaimsReporting
       # > Exclude: Members who decline to engage with the BH CP.
       return [] if declined_to_engage?(enrollments)
 
-      servicing_provider_types = ['70', '71', '73', '74', '09', '26', '28']
-      billing_provider_type = ['6', '3', '246', '248', '20', '21', '30', '31', '22', '332']
-
-      billing_provider_type2 = ['1', '40', '301', '25']
-      servicing_provider_types2 = ['35']
+      # Table from measure spec dated 1/7/2020
+      # Assuming the language '(include XXX Inpatient Hospital IDs Only)' is redundant with the servicing provider type
+      service_to_billing = {
+        '70' => ['1', '6', '40', '301'],
+        '71' => ['3', '25', '246'],
+        '73' => ['248'],
+        '74' => ['20', '21'],
+        '09' => ['30', '31'],
+        '26' => ['20', '21'],
+        '28' => ['22', '332'],
+      }
+      claim_type_inpatient_servicing_provider_types = ['35']
 
       # "on or between January 1 and more than 3 business days before the end of the measurement year."
       discharge_date_range = measurement_year.min .. 3.business_days.before(measurement_year.max)
@@ -699,13 +704,11 @@ module ClaimsReporting
         next unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: c.discharge_date)
 
         # Event/Diagnosis: A discharge from any facility setting listed below"
-        next unless (
-          c.servicing_provider_type.in?(servicing_provider_types) ||
-          c.billing_provider_type.in?(billing_provider_type) ||
-          (acute_inpatient_hospital?(c) && c.billing_provider_type.in?(billing_provider_type2))
-        ) || (
-          c.claim_type == 'inpatient' && c.servicing_provider_type.in?(servicing_provider_types2)
-        )
+        include_claim = c.claim_type == 'inpatient' && c.servicing_provider_type.in?(claim_type_inpatient_servicing_provider_types)
+        include_claim ||= service_to_billing.each do |servicing_provider_type, billing_provider_types|
+          break true if c.servicing_provider_type == servicing_provider_type && c.billing_provider_type.in?(billing_provider_types)
+        end
+        next unless include_claim
 
         # Continuous Enrollment/Allowable Gap/Anchor Date/Exclusions:
         # Continuously enrolled with BH CP from date of discharge through 3 business days after discharge.
@@ -788,7 +791,7 @@ module ClaimsReporting
         return trace_set_match!(vs_name, claim, :ICD9CM) if claim.matches_icd9cm?(code_pattern, dx1_only)
       end
 
-      if (code_pattern = codes_by_system['ICD9PCS'])
+      if (code_pattern = codes_by_system['ICD9PCS']) # rubocop:disable Style/GuardClause
         return trace_set_match!(vs_name, claim, :ICD9PCS) if claim.matches_icd9pcs? code_pattern
       end
     end
@@ -799,7 +802,7 @@ module ClaimsReporting
       # TODO? RxNorm, CVX might also show up lookup code but we dont have any claims data with that info, nor a crosswalk handy
       # TODO? raise/warn on an unrecognised code_system_name?
 
-      if (ndc_codes = codes_by_system['NDC']).present?
+      if (ndc_codes = codes_by_system['NDC']).present? # rubocop:disable Style/GuardClause
         return trace_set_match!(vs_name, claim, :NDC) if ndc_codes.include?(claim.ndc_code)
       end
     end
@@ -1229,7 +1232,7 @@ module ClaimsReporting
       diabetes_rx = rx_claims.detect do |c|
         measurement_and_prior_year.cover?(c.service_start_date) && rx_in_set?('Diabetes Medications', c)
       end
-      if diabetes_rx
+      if diabetes_rx # rubocop:disable Style/GuardClause
         trace_exclusion do
           "BH_CP_10: Excludes MemberRoster#id=#{member.id} Enrollees with diabetes due to diabetes_rx RxClaim#id=#{diabetes_rx.inspect}"
         end

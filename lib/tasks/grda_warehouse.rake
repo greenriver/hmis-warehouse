@@ -353,7 +353,7 @@ namespace :grda_warehouse do
     Rails.logger.tagged('shapes') do
       installer = GrdaWarehouse::Shape::Installer.new
       installer.run!
-      installer.prune!
+      installer.prune! unless Rails.env.development?
     end
   end
 end

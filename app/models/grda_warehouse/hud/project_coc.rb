@@ -50,6 +50,11 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :in_place, ->(place:) do
+      place = Array(place)
+      where(arel_table[:City].lower.in(place.map(&:downcase)))
+    end
+
     scope :viewable_by, ->(user) do
       if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope

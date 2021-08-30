@@ -16,7 +16,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   has_one :enrollment_coc_at_entry, through: :enrollment, autosave: false
   has_one :head_of_household, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], autosave: false
   belongs_to :data_source, autosave: false
-  belongs_to :processed_client, -> { where(routine: 'service_history')}, class_name: 'GrdaWarehouse::WarehouseClientsProcessed', foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false
+  belongs_to :processed_client, -> { where(routine: 'service_history') }, class_name: 'GrdaWarehouse::WarehouseClientsProcessed', foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false
   has_many :service_history_services, inverse_of: :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id]
   has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
 
@@ -31,7 +31,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     scope k, -> { where project_type_column => v }
     define_method "#{k}?" do
-      v.include? self.project_type
+      v.include? self.project_type # rubocop:disable Style/RedundantSelf
     end
   end
 
@@ -109,7 +109,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   # this is always only chronic
-  scope :hud_homeless, ->(chronic_types_only: true) do
+  scope :hud_homeless, ->(chronic_types_only: true) do # rubocop:disable Lint/UnusedBlockArgument
     hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
 
@@ -164,11 +164,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :entry_within_date_range, ->(start_date:, end_date:) do
-    self.entry.started_between(start_date: start_date, end_date: end_date)
+    self.entry.started_between(start_date: start_date, end_date: end_date) # rubocop:disable Style/RedundantSelf
   end
 
   scope :exit_within_date_range, ->(start_date:, end_date:) do
-    self.entry.ended_between(start_date: start_date, end_date: end_date)
+    self.entry.ended_between(start_date: start_date, end_date: end_date) # rubocop:disable Style/RedundantSelf
   end
 
   scope :service_in_last_three_years, -> {
@@ -185,7 +185,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     t = DateTime.current - years.years
     at = arel_table
     where(
-      at[:last_date_in_program].eq(nil).or(at[:first_date_in_program].gt(t)).or(at[:last_date_in_program].gt(t))
+      at[:last_date_in_program].eq(nil).or(at[:first_date_in_program].gt(t)).or(at[:last_date_in_program].gt(t)),
     )
   end
 
@@ -216,11 +216,17 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       merge(GrdaWarehouse::Hud::ProjectCoc.in_zip(zip_code: zip_code))
   end
 
+  scope :in_place, ->(place:) do
+    joins(project: :project_cocs).
+      merge(GrdaWarehouse::Hud::ProjectCoc.in_place(place: place))
+  end
+
   # Category 3 is "Homeless only under other federal statuses" and
   # is defined as a housing status of value 5
   scope :category_3, -> do
-    where(arel_table[:housing_status_at_entry].eq(5).
-      or(arel_table[:housing_status_at_exit].eq(5))
+    where(
+      arel_table[:housing_status_at_entry].eq(5).
+        or(arel_table[:housing_status_at_exit].eq(5)),
     )
   end
 
@@ -260,7 +266,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
         shs_t[:service_history_enrollment_id].eq(she_t[:id]).
         and(shs_t[:client_id].eq(she_t[:client_id])),
       ).
-      arel.exists
+      arel.exists,
     )
     # joins(:service_history_services).
     #   merge(GrdaWarehouse::ServiceHistoryService.service_between(start_date: start_date, end_date: end_date, service_scope: service_scope))
