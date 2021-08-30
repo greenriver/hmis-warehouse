@@ -31,7 +31,7 @@ RUN apk add --no-cache \
   imagemagick \
   libmagic file-dev file \
   build-base libxml2-dev libxslt-dev postgresql-dev \
-  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
   chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
   lftp postgresql tmux postgis geos geos-dev proj proj-dev \
   shared-mime-info \

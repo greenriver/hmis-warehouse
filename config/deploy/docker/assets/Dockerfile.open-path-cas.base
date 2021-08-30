@@ -32,7 +32,7 @@ ENV RAILS_LOG_TO_STDOUT=true \
 ARG BUILDER
 
 LABEL "app"=open-path-cas
-LABEL "ruby-version"=2.7.2
+LABEL "ruby-version"=2.7.4
 
 # Get self-signed cert
 COPY --from=builder /key.pem /cert.pem /app/config/
