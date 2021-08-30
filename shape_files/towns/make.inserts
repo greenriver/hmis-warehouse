@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+require 'pathname'
+require 'zip'
+require_relative "../../app/models/grda_warehouse/us_census_api/state_fips"
+
+if ARGV[0].to_s.length != 2
+  puts "Set first arg to the two-letter state postal code"
+  exit
+end
+
+FileUtils.chdir(Pathname.new(__FILE__).dirname)
+
+fips_code = GrdaWarehouse::UsCensusApi::StateFIPS.new(ARGV[0]).code
+
+basename = "state_#{fips_code}_town"
+puts "Using #{basename}.zip"
+
+begin
+  Zip::File.open(basename+".zip") do |zipfile|
+    zipfile.each do |file|
+      zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)
+    end
+  end
+rescue Zip::Error
+  puts 'ERROR: Unable to extract zip file'
+  return
+end
+# bin/rake grda_warehouse:get_shapes
+# https://spatialreference.org/ref/?search=NAD_1983_StatePlane_Massachusetts_Mainland_FIPS_2001
+# SR-ORG:7092: Drew - nope
+# SR-ORG:7406: NAD_1983_StatePlane_Massachusetts_Mainland_FIPS_2001 - nope
+# SR-ORG:8414: unknown ma - nope
+# SR-ORG:9032: NAD_1983_StatePlane_Massachusetts_Mainland_FIPS_2001 - nope
+# SR-ORG:9068: Belmont MA unknown - nope
+# SR-ORG:9069: Belmont MA unknown - nope
+# ESRI:102686: NAD 1983 StatePlane Massachusetts Mainland FIPS 2001 Feet - almost
+# 26986 - YES
+
+system("shp2pgsql -s 26986:4326 -p -I #{basename}.shp shape_towns > towns.structure.sql")
+
+system(<<~EOS)
+  shp2pgsql -s 26986:4326 -c -I #{basename}.shp shape_towns \
+    | sed -e 's/gid/id/' \
+    | grep INSERT \
+    > inserts.sql
+EOS
+# Set statefp value since this isn't included in this file type, but is known
+system("echo 'UPDATE shape_towns set statefp = #{fips_code} where statefp IS NULL;' >> inserts.sql")

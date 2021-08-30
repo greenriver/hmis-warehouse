@@ -13,7 +13,8 @@ module HudPathReport::Generators::Fy2020
 
     def initialize(generator = nil, report = nil, options: {})
       super
-      @filter = HudPathReport::Filters::PathFilter.new.set_from_params(options)
+      options = report.options.with_indifferent_access.merge(user_id: report.user_id) if options.blank?
+      @filter = HudPathReport::Filters::PathFilter.new(user_id: report.user_id).set_from_params(options)
     end
 
     private def universe

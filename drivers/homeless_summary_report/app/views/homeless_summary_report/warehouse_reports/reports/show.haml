@@ -4,6 +4,7 @@
 - title = "Homeless Summary Report"
 - content_for :title, title
 %h1= content_for :title
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}" 
 .well.report-listing.warehouse-reports__completed
   = @report.filter.describe_filter_as_html
 

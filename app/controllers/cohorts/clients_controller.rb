@@ -122,7 +122,7 @@ module Cohorts
       elsif @actives
         @hoh_only = _debool(@actives[:hoh])
         @clients = clients_from_actives
-      elsif @ad_hoc
+      elsif @ad_hoc.present?
         client_ids = GrdaWarehouse::AdHocClient.joins(:ad_hoc_data_source).
           where.not(client_id: nil).
           merge(GrdaWarehouse::AdHocDataSource.viewable_by(current_user).where(id: @ad_hoc[:data_source].to_i)).

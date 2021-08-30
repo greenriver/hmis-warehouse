@@ -120,6 +120,12 @@ shape_files/**/*
 !/shape_files/zip_codes.census.2018
 !/shape_files/zip_codes.census.2018/README.md
 !/shape_files/zip_codes.census.2018/make.inserts
+!/shape_files/places
+!/shape_files/places/README.md
+!/shape_files/places/make.inserts
+!/shape_files/towns
+!/shape_files/towns/README.md
+!/shape_files/towns/make.inserts
 
 # vendor cache folder
 /vendor/cache

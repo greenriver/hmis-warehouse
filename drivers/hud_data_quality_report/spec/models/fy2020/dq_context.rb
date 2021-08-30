@@ -10,12 +10,11 @@ end
 
 RSpec.shared_context 'dq context', shared_context: :metadata do
   def shared_filter
-    user = User.setup_system_user
     {
       start: Date.parse('2019-01-01'),
       end: Date.parse('2019-12-31'),
       coc_codes: ['XX-500'],
-      user_id: user.id,
+      user_id: User.setup_system_user.id,
     }.freeze
   end
 

@@ -32,16 +32,15 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     reports.delete_all
 
     GrdaWarehouse::Utility.clear!
-
-    User.with_deleted.where(email: SPM_USER_EMAIL).delete_all
   end
 
   def shared_filter
     {
       start: Date.parse('2016-1-1'),
       end: Date.parse('2019-10-01'),
-      user_id: @user.id,
+      user_id: User.setup_system_user.id,
       project_type_codes: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES + [:psh],
+      coc_codes: ['KY-500'],
     }.freeze
   end
 
@@ -75,18 +74,14 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   attr_reader :report_result
 
   def setup(file_path)
-    @data_source = GrdaWarehouse::DataSource.where(name: 'Green River', short_name: 'GR', source_type: :sftp).first_or_create!
-    GrdaWarehouse::DataSource.where(name: 'Warehouse', short_name: 'W').first_or_create!
-    import(file_path, @data_source)
-    @user = User.find_by(email: SPM_USER_EMAIL) || create(:user, email: SPM_USER_EMAIL)
-    @user.add_viewable(@data_source)
+    import(file_path)
   end
 
-  def import(file_path, data_source)
+  def import(file_path)
     # relative to our own spec fixture files
     file_path = File.join('drivers/hud_spm_report/spec/fixtures/files', file_path)
 
-    import_hmis_csv_fixture(file_path, data_source: data_source)
+    import_hmis_csv_fixture(file_path)
     GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
   end
 end

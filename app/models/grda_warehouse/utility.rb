@@ -62,6 +62,7 @@ class GrdaWarehouse::Utility
       Reporting::Return,
       ReportResult,
       AccessGroup,
+      AccessGroupMember,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient

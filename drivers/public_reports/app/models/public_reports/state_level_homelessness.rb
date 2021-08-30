@@ -15,7 +15,7 @@ module PublicReports
     acts_as_paranoid
 
     MIN_THRESHOLD = 11
-    GEOMETRY = :zip
+    GEOMETRY = :place
 
     attr_accessor :map_max_rate, :map_max_count
 
@@ -420,6 +420,8 @@ module PublicReports
       scope = homeless_scope
       if map_by_zip?
         census_comparison_by_zip(scope)
+      elsif map_by_place?
+        census_comparison_by_place(scope)
       else
         census_comparison(scope)
       end
@@ -432,6 +434,8 @@ module PublicReports
 
       if map_by_zip?
         census_comparison_by_zip(scope)
+      elsif map_by_place?
+        census_comparison_by_place(scope)
       else
         census_comparison(scope)
       end
@@ -442,6 +446,8 @@ module PublicReports
 
       if map_by_zip?
         census_comparison_by_zip(scope)
+      elsif map_by_place?
+        census_comparison_by_place(scope)
       else
         census_comparison(scope)
       end
@@ -452,6 +458,8 @@ module PublicReports
 
       if map_by_zip?
         census_comparison_by_zip(scope)
+      elsif map_by_place?
+        census_comparison_by_place(scope)
       else
         census_comparison(scope)
       end
@@ -462,6 +470,8 @@ module PublicReports
 
       if map_by_zip?
         census_comparison_by_zip(scope)
+      elsif map_by_place?
+        census_comparison_by_place(scope)
       else
         census_comparison(scope)
       end
@@ -525,6 +535,50 @@ module PublicReports
             # rate per 10,000
             rate = 0
             rate = count / population_overall.to_f * 10_000.0 if population_overall.positive?
+            charts[date.iso8601][code] = {
+              count: count,
+              overall_population: population_overall.to_i,
+              rate: rate.round(1),
+            }
+            self.map_max_rate = rate if rate > self.map_max_rate
+            self.map_max_count = count if count > self.map_max_count
+          end
+        end
+      end
+    end
+
+    private def census_comparison_by_place(scope)
+      self.map_max_rate ||= 0
+      self.map_max_count ||= 0
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+          charts[date.iso8601] = {}
+          place_codes.each do |code|
+            # NOTE: this uses census data, switching to rate of clients in location to state
+            # population_overall = population_by_place.try(:[], date.year).try(:[], code) || 0
+            population_overall = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).count
+            else
+              500
+            end
+            count = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).in_place(place: code).count
+            else
+              max = [population_overall, 1].compact.max / 5
+              (0..max).to_a.sample
+            end
+            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            # % of population
+            rate = 0
+            rate = count / population_overall.to_f * 100.0 if population_overall.positive?
             charts[date.iso8601][code] = {
               count: count,
               overall_population: population_overall.to_i,
@@ -826,6 +880,8 @@ module PublicReports
     def map_shapes
       if map_by_zip?
         GrdaWarehouse::Shape.geo_collection_hash(state_zip_shapes)
+      elsif map_by_place?
+        GrdaWarehouse::Shape.geo_collection_hash(state_place_shapes)
       else
         GrdaWarehouse::Shape.geo_collection_hash(state_coc_shapes)
       end
@@ -862,6 +918,10 @@ module PublicReports
       results.map(&:val).sum
     end
 
+    def state_shape
+      GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::State.my_state)
+    end
+
     # COC CODES
     private def geometries
       @geometries ||= GrdaWarehouse::Shape::CoC.where(cocnum: coc_codes)
@@ -891,6 +951,17 @@ module PublicReports
       GEOMETRY == :zip
     end
 
+    def map_by_place?
+      GEOMETRY == :place
+    end
+
+    def map_type
+      return 'map_zip_js' if map_by_zip?
+      return 'map_place_js' if map_by_place?
+
+      'map_js'
+    end
+
     private def zip_geometries
       @zip_geometries ||= GrdaWarehouse::Shape::ZipCode.where(zcta5ce10: zip_codes)
     end
@@ -909,6 +980,29 @@ module PublicReports
           charts[year] = {}
           zip_geometries.each do |geo|
             charts[year][geo.zcta5ce10] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
+          end
+        end
+      end
+    end
+
+    private def place_geometries
+      @place_geometries ||= GrdaWarehouse::Shape::Town.where(town: place_codes)
+    end
+
+    private def place_codes
+      @place_codes ||= state_place_shapes.map(&:name)
+    end
+
+    private def state_place_shapes
+      @state_place_shapes ||= GrdaWarehouse::Shape::Town.my_state
+    end
+
+    private def population_by_place
+      @population_by_place ||= {}.tap do |charts|
+        quarter_dates.map(&:year).uniq.each do |year|
+          charts[year] = {}
+          place_geometries.each do |geo|
+            charts[year][geo.name] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
           end
         end
       end
