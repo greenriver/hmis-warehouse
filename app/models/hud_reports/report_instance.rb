@@ -16,6 +16,8 @@ module HudReports
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
+    scope :manual, -> { where manual: true }
+    scope :automated, -> { where manual: false }
 
     def self.from_filter(filter, report_name, build_for_questions:)
       new(
@@ -125,13 +127,13 @@ module HudReports
     def _purge_universe
       # clear the polymorphic graph of universe membership
       universe_members = HudReports::UniverseMember.with_deleted.where(
-        report_cell_id: report_cells
+        report_cell_id: report_cells,
       )
 
       # universe_membership_type
       universe_members.distinct.pluck(
         :universe_membership_type,
-        :universe_membership_id
+        :universe_membership_id,
       ).group_by(&:first).each do |sti_type, joins|
         klass = sti_type.constantize
         ids = joins.map(&:second)
@@ -168,22 +170,21 @@ module HudReports
       table.match(/[A-Z0-9-]+/i).to_s
     end
 
-
     def as_markdown
       io = StringIO.new
       question_names.each do |question|
         metadata = existing_universe(question)&.metadata
-        if metadata
-          io << "## #{question}\n"
-          Array(metadata['tables']).compact.each do |table|
-            io.puts "### Table: #{table}\n"
+        next unless metadata
 
-            exporter = HudReports::CsvExporter.new(self, table)
-            columns = exporter.display_column_names.to_a
-            rows = exporter.as_array.map{|row| row.map{|c| c.to_s.gsub(/\n/,'') } }
+        io << "## #{question}\n"
+        Array(metadata['tables']).compact.each do |table|
+          io.puts "### Table: #{table}\n"
 
-            io.puts "#{ANSI::Table.new [columns]+rows[1..]}\n"
-          end
+          exporter = HudReports::CsvExporter.new(self, table)
+          columns = exporter.display_column_names.to_a
+          rows = exporter.as_array.map { |row| row.map { |c| c.to_s.gsub(/\n/, '') } }
+
+          io.puts "#{ANSI::Table.new [columns] + rows[1..]}\n"
         end
       end
 

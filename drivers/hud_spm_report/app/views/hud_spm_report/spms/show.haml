@@ -17,4 +17,6 @@
 .text-right
   = link_to 'Generate New Reports for all System Performance Measures', new_hud_reports_spm_path, class: 'btn btn-secondary'
 
+= render 'hud_reports/view_filter'
+
 = render 'hud_reports/reports_wrapper'

@@ -1,0 +1,49 @@
+:ruby
+  if @report.present?
+    path_for_clear = path_for_report(@report)
+  else
+    path_for_clear = path_for_report(0)
+  end
+
+- filter_class = if @active_filter then 'filter-active' else 'filter' end
+.dropdown.o-filtration{class: filter_class}
+  %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { toggle: 'dropdown' }, aria: { haspopup: 'true', expanded: 'false' }}
+    %span Filter
+    %span.caret
+
+  .o-filtration__container.dropdown-menu.dropdown-menu-left.options
+    .o-filtration__header
+      %h3.client__filter-header Filter report list
+
+    = form_tag(nil, method: 'get') do
+
+      .o-filtration__option.row
+        .col-sm-12
+          .o-filtration__option-row
+            - type_options = options_for_select({'Normal (on-demand)' => :manual, 'Background (automated)' => :automated}, @view_filter[:initiator])
+            = render 'inputs/select', field_name: :initiator, label: 'Report Type', options: type_options
+            - if can_view_all_hud_reports?
+              - creator_options = options_from_collection_for_select(User.active, :id, :name, @view_filter[:creator])
+              = render 'inputs/select', field_name: :creator, label: 'Creator', options: creator_options
+
+      .o-filtration__option.row
+        .col-sm-12
+          %label Date Range
+          .o-filtration__option-row
+            .input-group.date{ data: { provide: :datepicker }}
+              %input.form-control{ name: :start, type: :text, value: @view_filter[:start] }
+              .input-group-append
+                %button.icon-calendar.btn.btn-secondary{ type: 'button' }
+            .o-filtration__separator to
+            .input-group.date{ data: {provide: :datepicker }}
+              %input.form-control{ name: :end, type: :text, value: @view_filter[:end] }
+              %span.input-group-append
+                %button.icon-calendar.btn.btn-secondary{ type: 'button' }
+
+      .o-filtration__actions.form__actions
+        = link_to path_for_clear, class:'btn btn-secondary' do
+          %span.icon-cross.icon-inline
+          Clear Filters
+        %button.btn.btn-primary.ml-auto{type: :submit}
+          %span.icon-filter.icon-inline.mr-1
+          Filter

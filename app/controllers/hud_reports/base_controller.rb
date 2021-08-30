@@ -7,12 +7,24 @@
 module HudReports
   class BaseController < ApplicationController
     before_action :require_can_view_hud_reports!
+    before_action :set_view_filter, only: [:show]
 
     def set_reports
       title = generator.title
       @reports = report_scope.where(report_name: title).
         preload(:user, :universe_cells)
-      @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
+      if can_view_all_hud_reports? && @view_filter.present?
+        @reports = @reports.where(user_id: @view_filter[:creator])
+      else
+        @reports = @reports.where(user_id: current_user.id)
+      end
+      if @view_filter.present? && @view_filter[:initiator] == 'automated'
+        @reports = @reports.automated
+      else
+        @reports = @reports.manual
+      end
+      @reports = @reports.where(created_at: @view_filter[:start].to_date..(@view_filter[:end].to_date + 1.days)) if @view_filter.present?
+      # TODO: add view filter @view_filter
       @reports = @reports.order(created_at: :desc).
         page(params[:page]).per(25)
     end
@@ -57,6 +69,24 @@ module HudReports
       generator.title
     end
     helper_method :report_name
+
+    private def view_filter_params
+      params.permit(
+        :initiator,
+        :creator,
+        :start,
+        :end,
+      )
+    end
+
+    private def set_view_filter
+      @view_filter = {}
+      @view_filter[:initiator] = view_filter_params[:initiator] || :manual
+      @view_filter[:creator] = view_filter_params[:creator] || current_user.id
+      @view_filter[:start] = view_filter_params[:start] || (Date.current - 1.month)
+      @view_filter[:end] = view_filter_params[:end] || Date.current
+      @active_filter = view_filter_params.present?
+    end
 
     # Required methods in subclasses:
     #

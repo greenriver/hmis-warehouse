@@ -688,6 +688,7 @@ module PerformanceMetrics
       spm_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(options)
       generator = HudSpmReport::Generators::Fy2020::Generator
       spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
+      spm_report.manual = false
       generator.new(spm_report).run!(email: false)
       spm_report
     end
