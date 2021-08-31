@@ -6,7 +6,7 @@
 
 module Health
   class ConvertPaymentPremiumFileJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform
       Health::PremiumPayment.with_advisory_lock('health_premium_processing') do

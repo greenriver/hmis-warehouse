@@ -6,7 +6,7 @@
 
 module Importing
   class NonHmisJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def initialize(upload:, data_source_id:)
       @upload = upload

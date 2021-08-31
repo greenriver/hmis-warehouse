@@ -6,7 +6,7 @@
 
 module Reporting
   class RunHudChronicJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(client_ids, date)
       # ActiveJob can't serialize a date, so passing string

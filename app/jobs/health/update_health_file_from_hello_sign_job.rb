@@ -6,7 +6,7 @@
 
 module Health
   class UpdateHealthFileFromHelloSignJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(signable_document_id)
       doc = Health::SignableDocument.un_fetched_document.where(id: signable_document_id)&.first

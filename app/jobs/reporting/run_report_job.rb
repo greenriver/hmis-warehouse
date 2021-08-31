@@ -9,7 +9,7 @@ module Reporting
     attr_accessor :result_id
     attr_accessor :report
 
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def initialize(report:, result_id:, options:)
       @report = report

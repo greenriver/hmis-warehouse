@@ -8,7 +8,7 @@ module HmisCsvTwentyTwenty
   class ExportJob < ::BaseJob
     include ::ArelHelper
 
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(options, report_url: warehouse_reports_hmis_exports_url)
       options = options.with_indifferent_access
