@@ -38,7 +38,8 @@ module CasCeData::Synthetic
       new_assessments.find_each do |assessment|
         next unless assessment.client.present?
 
-        create(enrollment: find_enrollment(assessment), client: assessment.client, source: assessment)
+        enrollment = find_enrollment(assessment)
+        create(enrollment: enrollment, client: assessment.client, source: assessment) if enrollment.present?
       end
     end
 
