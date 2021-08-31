@@ -35,7 +35,7 @@ module Cas
       by_first_name = candidates.reject { |_, h| h[:lc_first_name].blank? }.group_by { |_, h| h[:lc_first_name] }.transform_values { |c| c.flatten.first }
       by_last_name = candidates.reject { |_, h| h[:lc_last_name].blank? }.group_by { |_, h| h[:lc_last_name] }.transform_values { |c| c.flatten.first }
       by_dob = candidates.reject { |_, h| h[:date_of_birth].blank? }.group_by { |_, h| h[:date_of_birth] }.transform_values { |c| c.flatten.first }
-      by_ssn = candidates.reject { |_, h| h[:ssn].blank? }.group_by { |_, h| h[:ssn] }.transform_values { |c| c.flatten.first }
+      by_ssn = candidates.reject { |_, h| h[:ssn].blank? || !valid_social?(h[:ssn]) }.group_by { |_, h| h[:ssn] }.transform_values { |c| c.flatten.first }
 
       first_name_matches = {}
       client_source.where(c_t[:FirstName].lower.in(by_first_name.keys)).
@@ -111,7 +111,7 @@ module Cas
           next
         end
       end
-      partial_matches.uniq
+      partial_matches.uniq[...7]
     end
 
     def self.find_exact_matches
@@ -143,8 +143,8 @@ module Cas
       GrdaWarehouse::Hud::Client.destination
     end
 
-    def self.valid_social? ssn
-      ::HUD.valid_social? ssn
+    def self.valid_social?(ssn)
+      ::HUD.valid_social?(ssn)
     end
   end
 end
