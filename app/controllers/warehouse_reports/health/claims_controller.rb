@@ -111,7 +111,7 @@ module WarehouseReports::Health
             max_date: @report.max_date,
             test_file: @report.test_file,
           ),
-          queue: :long_running,
+          queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
         )
         @report.update(job_id: job.id)
         redirect_to action: :index
@@ -143,7 +143,7 @@ module WarehouseReports::Health
           max_date: @report.max_date,
           test_file: @report.test_file,
         ),
-        queue: :long_running,
+        queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
       )
       @report.update(job_id: job.id, started_at: Time.now)
       respond_with @report, location: warehouse_reports_health_claims_path

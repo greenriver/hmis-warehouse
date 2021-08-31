@@ -7,7 +7,7 @@
 module WarehouseReports
   class DashboardReportJob < BaseJob
     include ArelHelper
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(report_type, sub_population)
       klass = GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym][sub_population.to_sym]

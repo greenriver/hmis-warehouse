@@ -129,7 +129,7 @@ class ReportResultsController < ApplicationController
       report: @report,
       result_id: @result.id,
       options: options,
-    ), queue: :long_running
+    ), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     @result.update(delayed_job_id: job.id)
   end
 
