@@ -54,7 +54,8 @@ module CasCeData::Synthetic
       new_events.find_each do |event|
         next unless event.client.present?
 
-        create(enrollment: find_enrollment(event), client: event.client, source: event)
+        enrollment = find_enrollment(event)
+        create(enrollment: enrollment, client: event.client, source: event) if enrollment.present?
       end
     end
 
