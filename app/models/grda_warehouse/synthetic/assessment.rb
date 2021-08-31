@@ -21,7 +21,7 @@ module GrdaWarehouse::Synthetic
 
     # Subclasses may override
     def assessment_location
-      ''
+      'Unknown'
     end
     alias AssessmentLocation assessment_location
 
@@ -53,6 +53,14 @@ module GrdaWarehouse::Synthetic
     end
 
     def hud_assessment_hash
+      return nil unless enrollment.present? &&
+        client.present? &&
+        assessment_date.present? &&
+        assessment_location.present? &&
+        assessment_type.present? &&
+        assessment_level.present? &&
+        prioritization_status.present?
+
       {
         AssessmentID: hud_assessment&.AssessmentID || SecureRandom.uuid.gsub(/-/, ''),
         EnrollmentID: enrollment.EnrollmentID,
