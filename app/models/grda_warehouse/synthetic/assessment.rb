@@ -43,7 +43,7 @@ module GrdaWarehouse::Synthetic
     def self.create_hud_assessments
       preload(:enrollment, :client, :source).find_in_batches do |batch|
         assessment_source.import(
-          batch.map(&:hud_assessment_hash),
+          batch.map(&:hud_assessment_hash).compact,
           on_duplicate_key_update: {
             conflict_target: ['"AssessmentID"', :data_source_id],
             columns: assessment_source.hmis_configuration.keys,

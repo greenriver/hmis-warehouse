@@ -63,7 +63,8 @@ module Vispdats::Synthetic
         completed.
         where.not(id: self.select(:source_id))
       new_vispdats.find_each do |vispdat|
-        create(enrollment: find_enrollment(vispdat), client: vispdat.client, source: vispdat)
+        enrollment = find_enrollment(vispdat)
+        create(enrollment: enrollment, client: vispdat.client, source: vispdat) if enrollment.present?
       end
     end
 
