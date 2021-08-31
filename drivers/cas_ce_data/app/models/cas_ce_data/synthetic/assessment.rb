@@ -44,11 +44,14 @@ module CasCeData::Synthetic
     end
 
     def self.find_enrollment(assessment)
-      assessment.client.source_enrollments.
-        joins(:project).
-        where(p_t[:id].in(assessment.projects.pluck(:project_id))).
+      scope = assessment.client.source_enrollments.
         open_on_date(assessment.assessment_date).
-        first
+        order(EntryDate: :desc)
+      if assessment.projects.exists?
+        scope = scope.joins(:project).
+          where(p_t[:id].in(assessment.projects.pluck(:project_id)))
+      end
+      scope.first
     end
   end
 end
