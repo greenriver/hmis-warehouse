@@ -2,7 +2,7 @@
 ## Multi-stage build to speed up subsequent builds ##
 #####################################################
 
-FROM ruby:2.7.2-alpine
+FROM ruby:2.7.4-alpine
 
 #freetds-dev \
 # maybe can get rid of icu?
@@ -14,24 +14,20 @@ RUN apk add --no-cache \
   icu icu-dev \
   curl libcurl curl-dev \
   libmagic file-dev file \
-  build-base libxml2-dev libxslt-dev postgresql-dev tmux postgresql
+  build-base libxml2-dev libxslt-dev postgresql-dev tmux postgresql shared-mime-info
 
 WORKDIR /app
 
-RUN gem install bundler --version=2.2.4 && \
-  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var drivers shape_files
+RUN gem install bundler --version=1.17.3 && \
+  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var
 
 COPY Gemfile Gemfile.lock Rakefile config.ru ./
 COPY bin ./bin
 COPY public ./public
 COPY lib ./lib
 COPY config ./config
-#COPY spec ./spec
-#COPY db ./db
 COPY app ./app
 COPY vendor ./vendor
-COPY drivers ./drivers
-COPY shape_files ./shape_files
 COPY config/deploy/docker/assets/dotenv.temporary ./.env
 
 # https://github.com/sass/sassc-ruby/issues/146#issuecomment-542288556
@@ -40,11 +36,10 @@ COPY config/deploy/docker/assets/dotenv.temporary ./.env
 ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native
 
 # If assets or gems don't change, those steps in the final build should be fast
-RUN bundle config set --local without 'development' && \
-    bundle install --jobs `nproc` && \
-    mkdir -p app/assets/stylesheets/theme/styles && \
-    touch app/assets/stylesheets/theme/styles/_variables.scss && \
-    RAILS_ENV=production bundle exec rake assets:precompile && \
-    cp config/deploy/docker/assets/database.open-path-cas.yml config/database.yml && \
-    rm -rf tmp/* && \
-    mkdir tmp/pids
+RUN mkdir -p app/assets/stylesheets/theme/styles && \
+  touch app/assets/stylesheets/theme/styles/_variables.scss && \
+  bundle install --without=development && \
+  RAILS_ENV=production bundle exec rake assets:precompile && \
+  cp config/deploy/docker/assets/database.open-path-cas.yml config/database.yml && \
+  rm -rf tmp/* && \
+  mkdir tmp/pids

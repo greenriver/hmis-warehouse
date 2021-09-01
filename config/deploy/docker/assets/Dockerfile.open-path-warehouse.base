@@ -4,7 +4,7 @@
 ## Stage for the code ##
 ########################
 
-FROM ruby:2.7.2-alpine AS code
+FROM ruby:2.7.4-alpine AS code
 
 RUN mkdir -p /app /app/shape_files/CoC /etc/ssl/certs \
     /app/shape_files/CoC /app/shape_files/zip_codes.census.2018 \
@@ -57,7 +57,7 @@ ARG BUILDER
 ###########################################
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=2.7.2
+LABEL "ruby-version"=2.7.4
 
 COPY config/deploy/docker/assets/entrypoint.sh /usr/bin/
 COPY --from=code /app /app/
