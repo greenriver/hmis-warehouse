@@ -12,7 +12,7 @@ args.deployments.each do |deployment|
   # poll between deployments to prevent scaling out too much while we have
   # double the web containers.
   # i.e. don't proceed until it has stabilized
-  EcsTools.new.poll_state_until_stable!(CommandArgs.cluster, max_running: 3)
+  EcsTools.new.poll_state_until_stable!(CommandArgs.cluster, max_unfinished: 3)
 end
 
 puts "Updating one ECS instance agent if needed."
