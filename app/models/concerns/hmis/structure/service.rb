@@ -20,7 +20,7 @@ module HMIS::Structure::Service
 
     def hmis_configuration(version: nil)
       case version
-      when '6.11', '6.12', '2020', nil
+      when '6.11', '6.12', '2020'
         {
           ServicesID: {
             type: :string,
@@ -85,7 +85,7 @@ module HMIS::Structure::Service
             null: false,
           },
         }
-      when '2022'
+      when '2022', nil
         {
           ServicesID: {
             type: :string,

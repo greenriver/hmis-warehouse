@@ -20,7 +20,7 @@ module HMIS::Structure::IncomeBenefit
 
     def hmis_configuration(version: nil)
       case version
-      when '6.11', '6.12', '2020', nil
+      when '6.11', '6.12', '2020'
         {
           IncomeBenefitsID: {
             type: :string,
@@ -301,7 +301,7 @@ module HMIS::Structure::IncomeBenefit
             null: false,
           },
         }
-      when '2022'
+      when '2022', nil
         {
           IncomeBenefitsID: {
             type: :string,

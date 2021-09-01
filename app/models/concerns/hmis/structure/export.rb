@@ -19,7 +19,7 @@ module HMIS::Structure::Export
 
     def hmis_configuration(version: nil)
       case version
-      when '6.11', '6.12', '2020', nil
+      when '6.11', '6.12', '2020'
         {
           ExportID: {
             type: :string,
@@ -92,7 +92,7 @@ module HMIS::Structure::Export
             null: false,
           },
         }
-      when '2022'
+      when '2022', nil
         {
           ExportID: {
             type: :string,

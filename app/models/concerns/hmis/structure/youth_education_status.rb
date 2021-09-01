@@ -16,7 +16,7 @@ module HMIS::Structure::YouthEducationStatus
   module ClassMethods
     def hmis_configuration(version: nil)
       case version
-      when '2022'
+      when '2022', nil
         {
           YouthEducationStatusID: {
             type: :string,

@@ -251,7 +251,7 @@ module HMIS::Structure::Enrollment
             null: false,
           },
         }
-      when '2020', nil
+      when '2020'
         {
           EnrollmentID: {
             type: :string,
@@ -488,7 +488,7 @@ module HMIS::Structure::Enrollment
             null: false,
           },
         }
-      when '2022'
+      when '2022', nil
         {
           EnrollmentID: {
             type: :string,

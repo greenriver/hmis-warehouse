@@ -54,7 +54,7 @@ module HMIS::Structure::Organization
             null: false,
           },
         }
-      when '2020', nil
+      when '2020'
         {
           OrganizationID: {
             type: :string,
@@ -96,7 +96,7 @@ module HMIS::Structure::Organization
             null: false,
           },
         }
-      when '2022'
+      when '2022', nil
         {
           OrganizationID: {
             type: :string,

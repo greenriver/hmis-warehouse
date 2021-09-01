@@ -20,7 +20,7 @@ module HMIS::Structure::HealthAndDv
 
     def hmis_configuration(version: nil)
       case version
-      when '6.11', '6.12', '2020', nil
+      when '6.11', '6.12', '2020'
         {
           HealthAndDVID: {
             type: :string,
@@ -91,7 +91,7 @@ module HMIS::Structure::HealthAndDv
             null: false,
           },
         }
-      when '2022'
+      when '2022', nil
         {
           HealthAndDVID: {
             type: :string,
