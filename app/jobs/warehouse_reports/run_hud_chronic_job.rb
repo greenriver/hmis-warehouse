@@ -9,7 +9,7 @@ module WarehouseReports
     include ArelHelper
     include HudChronic
 
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     attr_accessor :params
 
