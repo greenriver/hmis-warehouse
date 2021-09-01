@@ -23023,7 +23023,7 @@ CREATE INDEX index_cas_ce_assessments_on_cas_client_id ON public.cas_ce_assessme
 -- Name: index_cas_ce_assessments_on_cas_non_hmis_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_cas_ce_assessments_on_cas_non_hmis_assessment_id ON public.cas_ce_assessments USING btree (cas_non_hmis_assessment_id);
+CREATE UNIQUE INDEX index_cas_ce_assessments_on_cas_non_hmis_assessment_id ON public.cas_ce_assessments USING btree (cas_non_hmis_assessment_id);
 
 
 --
@@ -31584,6 +31584,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210819132406'),
 ('20210819133035'),
 ('20210823203031'),
-('20210825182548');
+('20210825182548'),
+('20210901200255');
 
 
