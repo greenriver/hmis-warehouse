@@ -11,6 +11,18 @@ module HudSpmReport::Generators::Fy2020
       'Measure 4'.freeze
     end
 
+    def self.table_descriptions
+      {
+        'Measure 4' => 'Employment and Income Growth for Homeless Persons in CoC Program–funded Projects',
+        '4.1' => 'Change in earned income for adult system stayers during the reporting period',
+        '4.2' => 'Change in non-employment cash income for adult system stayers during the reporting period',
+        '4.3' => 'Change in total income for adult system stayers during the reporting period',
+        '4.4' => 'Change in earned income for adult system leavers',
+        '4.5' => 'Change in non-employment cash income for adult system leavers',
+        '4.6' => 'Change in total income for adult system leavers',
+      }.freeze
+    end
+
     def run_question!
       tables = [
         ['4.1', :run_4_1, 'Change in earned income for adult system stayers during the reporting period'],

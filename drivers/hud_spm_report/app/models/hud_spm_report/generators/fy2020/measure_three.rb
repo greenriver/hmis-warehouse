@@ -11,6 +11,14 @@ module HudSpmReport::Generators::Fy2020
       'Measure 3'.freeze
     end
 
+    def self.table_descriptions
+      {
+        'Measure 3' => 'Number of Homeless Persons',
+        '3.1' => 'Change in PIT counts of sheltered and unsheltered homeless persons',
+        '3.2' => 'Change in annual counts of sheltered homeless persons in HMIS',
+      }.freeze
+    end
+
     def run_question!
       tables = [
         ['3.1', :run_3_1, 'Change in PIT counts of sheltered and unsheltered homeless persons'],
