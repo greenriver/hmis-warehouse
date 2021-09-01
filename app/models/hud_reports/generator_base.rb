@@ -79,5 +79,17 @@ module HudReports
     def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
+
+    def self.table_descriptions
+      {}.tap do |descriptions|
+        questions.each_value do |klass|
+          descriptions.merge!(klass.table_descriptions)
+        end
+      end
+    end
+
+    def self.describe_table(table_name)
+      table_descriptions[table_name]
+    end
   end
 end

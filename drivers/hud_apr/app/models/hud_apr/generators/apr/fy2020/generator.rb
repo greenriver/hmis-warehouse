@@ -56,17 +56,5 @@ module HudApr::Generators::Apr::Fy2020
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 4'
     end
-
-    def self.describe_table(table_name)
-      table_descriptions[table_name]
-    end
-
-    def self.table_descriptions
-      {}.tap do |descriptions|
-        questions.each_value do |klass|
-          descriptions.merge!(klass.table_descriptions)
-        end
-      end
-    end
   end
 end
