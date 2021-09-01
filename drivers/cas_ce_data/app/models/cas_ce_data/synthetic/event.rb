@@ -62,14 +62,13 @@ module CasCeData::Synthetic
     def self.find_enrollment(event)
       scope = event.client.source_enrollments.
         open_on_date(event.referral_date).
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.ph).
         order(EntryDate: :desc)
       # If we have an enrollment with an assessment, use it
       # NOTE: this would be more efficient as left_outer_joins with nulls last
       scope = scope.joins(:assessments) if scope.joins(:assessments).exists?
-      if event.projects.exists?
-        scope = scope.joins(:project).
-          where(p_t[:id].in(event.projects.pluck(:project_id)))
-      end
+      scope = scope.where(p_t[:id].in(event.projects.pluck(:project_id))) if event.projects.exists?
 
       scope.first
     end
