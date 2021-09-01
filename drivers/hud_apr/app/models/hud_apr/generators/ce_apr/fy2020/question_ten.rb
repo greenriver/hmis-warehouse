@@ -8,6 +8,13 @@ module HudApr::Generators::CeApr::Fy2020
   class QuestionTen < HudApr::Generators::Shared::Fy2020::QuestionTen
     QUESTION_TABLE_NUMBERS = ['Q10'].freeze
 
+    def self.table_descriptions
+      {
+        'Question 10' => 'Total Coordinated Entry Activity During the Year',
+        'Q10' => 'Total Coordinated Entry Activity During the Year',
+      }.freeze
+    end
+
     def needs_ce_assessments?
       true
     end
