@@ -44,6 +44,7 @@ module HudApr::Generators::Apr::Fy2020
         HudApr::Generators::Apr::Fy2020::QuestionTwentyOne, # Health Insurance
         HudApr::Generators::Apr::Fy2020::QuestionTwentyTwo, # Length of participation
         HudApr::Generators::Apr::Fy2020::QuestionTwentyThree, # Destination
+        HudApr::Generators::Apr::Fy2020::QuestionTwentyFour, # Homelessness Prevention Housing Assessment at Exit
         HudApr::Generators::Apr::Fy2020::QuestionTwentyFive, # Veterans
         HudApr::Generators::Apr::Fy2020::QuestionTwentySix, # Chronically Homeless
         HudApr::Generators::Apr::Fy2020::QuestionTwentySeven, # Youth
@@ -54,6 +55,18 @@ module HudApr::Generators::Apr::Fy2020
 
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 4'
+    end
+
+    def self.describe_table(table_name)
+      table_descriptions[table_name]
+    end
+
+    def self.table_descriptions
+      {}.tap do |descriptions|
+        questions.each_value do |klass|
+          descriptions.merge!(klass.table_descriptions)
+        end
+      end
     end
   end
 end

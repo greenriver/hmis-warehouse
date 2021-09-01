@@ -8,6 +8,14 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionTwenty < Base
     QUESTION_NUMBER = 'Question 20'.freeze
 
+    def self.table_descriptions
+      {
+        'Question 20' => 'Non-Cash Benefits',
+        'Q20a' => 'Type of Non-Cash Benefit Sources',
+        'Q20b' => 'Number of Non-Cash Benefit Sources',
+      }.freeze
+    end
+
     private def q20a_types
       table_name = 'Q20a'
       metadata = {

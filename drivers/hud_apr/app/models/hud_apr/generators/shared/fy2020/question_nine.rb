@@ -8,6 +8,14 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionNine < Base
     QUESTION_NUMBER = 'Question 9'.freeze
 
+    def self.table_descriptions
+      {
+        'Question 9' => 'Contacts and Engagements',
+        'Q9a' => 'Number of Persons Contacted',
+        'Q9b' => 'Number of Persons Engaged',
+      }.freeze
+    end
+
     private def a_t
       @a_t ||= report_client_universe.arel_table
     end
