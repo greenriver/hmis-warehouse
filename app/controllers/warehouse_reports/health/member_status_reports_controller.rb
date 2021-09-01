@@ -51,7 +51,7 @@ module WarehouseReports::Health
             report_id: @report.id, current_user_id: current_user.id,
           ),
         ),
-        queue: :long_running,
+        queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
       )
       @report.update(job_id: job.id)
       respond_with @report, location: warehouse_reports_health_member_status_reports_path

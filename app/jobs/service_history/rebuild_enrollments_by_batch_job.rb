@@ -7,7 +7,7 @@
 module ServiceHistory
   class RebuildEnrollmentsByBatchJob < BaseJob
     include ArelHelper
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def initialize(enrollment_ids:)
       @enrollment_ids = enrollment_ids
@@ -25,7 +25,7 @@ module ServiceHistory
       end
     end
 
-    def enqueue(job, queue: :long_running)
+    def enqueue(job, queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))
     end
 
     def max_attempts

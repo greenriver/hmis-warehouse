@@ -8,7 +8,7 @@ module ServiceHistory
   class ChronicVerificationJob < BaseJob
     include ArelHelper
     include Rails.application.routes.url_helpers
-    queue_as :short_running
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
     def perform(client_id:, years:)
       @client_id = client_id

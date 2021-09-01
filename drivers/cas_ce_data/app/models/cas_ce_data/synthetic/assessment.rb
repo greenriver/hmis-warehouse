@@ -38,16 +38,20 @@ module CasCeData::Synthetic
       new_assessments.find_each do |assessment|
         next unless assessment.client.present?
 
-        create(enrollment: find_enrollment(assessment), client: assessment.client, source: assessment)
+        enrollment = find_enrollment(assessment)
+        create(enrollment: enrollment, client: assessment.client, source: assessment) if enrollment.present?
       end
     end
 
     def self.find_enrollment(assessment)
-      assessment.client.source_enrollments.
-        joins(:project).
-        where(p_t[:id].in(assessment.projects.pluck(:project_id))).
+      scope = assessment.client.source_enrollments.
         open_on_date(assessment.assessment_date).
-        first
+        order(EntryDate: :desc)
+      if assessment.projects.exists?
+        scope = scope.joins(:project).
+          where(p_t[:id].in(assessment.projects.pluck(:project_id)))
+      end
+      scope.first
     end
   end
 end

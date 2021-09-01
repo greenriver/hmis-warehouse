@@ -6,7 +6,7 @@
 
 module Confidence
   class AddEnrollmentChangeHistoryJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(client_ids:, date:)
       @client_ids = client_ids

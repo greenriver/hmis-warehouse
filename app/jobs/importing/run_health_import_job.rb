@@ -6,7 +6,7 @@
 
 module Importing
   class RunHealthImportJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform
       change_counts = Health::Tasks::ImportEpic.new.run!

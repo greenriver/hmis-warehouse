@@ -1,6 +1,6 @@
 class BackgroundRenderJob < BaseJob
   include CableReady::Broadcaster
-  queue_as :short_running
+  queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
   def perform(render_id, **options)
     # Before we run this, let's make sure someone still wants it.

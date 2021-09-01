@@ -55,7 +55,7 @@ module PublicReports
     end
 
     def chart_color_shades(category = nil)
-      settings.color_shades(category).to_json.html_safe
+      (settings.color_shades(category) + ['#FFFFFF']).reverse
     end
 
     def filter_object

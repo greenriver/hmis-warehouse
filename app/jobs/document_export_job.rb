@@ -6,7 +6,7 @@
 
 class DocumentExportJob < ApplicationJob
   include DocumentExportJobBehavior
-  queue_as :short_running
+  queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
   protected def export_scope
     GrdaWarehouse::DocumentExport
