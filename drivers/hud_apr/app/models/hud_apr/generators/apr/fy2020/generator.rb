@@ -44,7 +44,6 @@ module HudApr::Generators::Apr::Fy2020
         HudApr::Generators::Apr::Fy2020::QuestionTwentyOne, # Health Insurance
         HudApr::Generators::Apr::Fy2020::QuestionTwentyTwo, # Length of participation
         HudApr::Generators::Apr::Fy2020::QuestionTwentyThree, # Destination
-        HudApr::Generators::Apr::Fy2020::QuestionTwentyFour, # Homelessness Prevention Housing Assessment at Exit
         HudApr::Generators::Apr::Fy2020::QuestionTwentyFive, # Veterans
         HudApr::Generators::Apr::Fy2020::QuestionTwentySix, # Chronically Homeless
         HudApr::Generators::Apr::Fy2020::QuestionTwentySeven, # Youth
