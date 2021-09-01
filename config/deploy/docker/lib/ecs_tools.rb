@@ -77,7 +77,6 @@ class EcsTools
         finished_deployment = finished.call(service) #deployments.length == 1 && deployments[0].status == 'PRIMARY' && deployments[0].desired_count == deployments[0].running_count
 
         # Skip printing anything if we have finished this deployment, or if we're under the acceptable threshold
-        # FIXME the right-hand of the OR needs to only happen if this isn't the last service
         next if failures && finished_deployment || failures && unfinished_count <= max_unfinished
 
         bad ||= !finished_deployment
