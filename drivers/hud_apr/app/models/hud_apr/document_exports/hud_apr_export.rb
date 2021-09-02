@@ -13,6 +13,10 @@ module HudApr::DocumentExports
       user.can_view_hud_reports? && report.present?
     end
 
+    def generator_url
+      hud_reports_apr_path(report)
+    end
+
     private def report_scope
       scope = report_class.
         where(report_name: 'Annual Performance Report - FY 2020')

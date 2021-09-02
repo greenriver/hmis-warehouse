@@ -39,10 +39,12 @@ module HudApr
     end
 
     def download
-      # format.html do
-      # end
-      # format.xlsx do
-      # end
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=#{@report.report_name}.xlsx"
+        end
+      end
     end
 
     def running
