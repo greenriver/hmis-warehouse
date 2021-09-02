@@ -11,6 +11,15 @@ module HudSpmReport::Generators::Fy2020
       'Measure 6'.freeze
     end
 
+    def self.table_descriptions
+      {
+        'Measure 6' => 'Homeless Prevention and Housing Placement of Persons Defined by Category 3 of HUD’s Homeless Definition in CoC Program-funded Projects',
+        '6a.1 and 6b.1' => 'Returns to ES, SH, TH, and PH projects after exits to permanent housing destinations within 6 and 12 months (and 24 months in a separate calculation)',
+        '6c.1' => 'Change in exits to permanent housing destinations',
+        '6c.2' => 'Change in exit to or retention of permanent housing',
+      }.freeze
+    end
+
     def run_question!
       tables = [
         ['6a.1 and 6b.1', :run_6a_and_6b, 'Returns to ES, SH, TH, and PH projects after exits to permanent housing destinations within 6 and 12 months (and 24 months in a separate calculation)'],
