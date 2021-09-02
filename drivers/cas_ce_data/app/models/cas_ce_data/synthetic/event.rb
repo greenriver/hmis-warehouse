@@ -46,6 +46,7 @@ module CasCeData::Synthetic
       new_events = CasCeData::GrdaWarehouse::CasReferralEvent.where.not(id: self.select(:source_id))
       new_events.find_each do |event|
         next unless event.client.present?
+        next unless event.referral_date.present?
 
         enrollment = find_enrollment(event)
         create(enrollment: enrollment, client: event.client, source: event) if enrollment.present?
@@ -54,7 +55,7 @@ module CasCeData::Synthetic
 
     def self.find_enrollment(event)
       scope = event.client.source_enrollments.
-        open_on_date(event.referral_date).
+        open_during_range(event.referral_date - 90.days .. event.referral_date).
         joins(:project).
         order(EntryDate: :desc)
       # If we have an enrollment with an assessment, use it
