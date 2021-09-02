@@ -37,6 +37,7 @@ module CasCeData::Synthetic
       new_assessments = CasCeData::GrdaWarehouse::CasCeAssessment.where.not(id: self.select(:source_id))
       new_assessments.find_each do |assessment|
         next unless assessment.client.present?
+        next unless assessment.assessment_date.present?
 
         enrollment = find_enrollment(assessment)
         create(enrollment: enrollment, client: assessment.client, source: assessment) if enrollment.present?
