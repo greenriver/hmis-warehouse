@@ -12,6 +12,12 @@ module HudDataQualityReport::Generators::Fy2020
     QUESTION_TABLE_NUMBER = 'Q4'.freeze
     QUESTION_TABLE_NUMBERS = [QUESTION_TABLE_NUMBER].freeze
 
+    def self.table_descriptions
+      {
+        'Question 4' => 'Income and Housing Data Quality',
+      }.freeze
+    end
+
     def self.question_number
       QUESTION_NUMBER
     end
