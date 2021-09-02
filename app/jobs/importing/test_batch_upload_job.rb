@@ -6,7 +6,7 @@
 
 module Importing
   class TestBatchUploadJob < BaseJob
-    queue_as :short_running
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
     def perform
       GrdaWarehouse::HealthEmergency::TestBatch.un_started.each(&:process!)

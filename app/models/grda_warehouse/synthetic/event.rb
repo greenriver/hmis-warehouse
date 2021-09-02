@@ -64,7 +64,7 @@ module GrdaWarehouse::Synthetic
     def self.create_hud_events
       preload(:enrollment, :client, :source).find_in_batches do |batch|
         event_source.import(
-          batch.map(&:hud_event_hash),
+          batch.map(&:hud_event_hash).compact,
           on_duplicate_key_update: {
             conflict_target: ['"EventID"', :data_source_id],
             columns: event_source.hmis_configuration.keys,
@@ -74,6 +74,11 @@ module GrdaWarehouse::Synthetic
     end
 
     def hud_event_hash
+      return nil unless enrollment.present? &&
+        client.present? &&
+        event_date.present? &&
+        event.present?
+
       {
         EventID: hud_event&.EventID || SecureRandom.uuid.gsub(/-/, ''),
         EnrollmentID: enrollment.EnrollmentID,
