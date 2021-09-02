@@ -35,5 +35,9 @@ module HudApr::CeApr::CeAprConcern
     private def path_for_cell(report:, question:, cell_label:, table:)
       hud_reports_ce_apr_question_cell_path(ce_apr_id: report&.id || 0, question_id: question, id: cell_label, table: table)
     end
+
+    private def set_pdf_export
+      @pdf_export = HudApr::DocumentExports::HudCeAprExport.new
+    end
   end
 end

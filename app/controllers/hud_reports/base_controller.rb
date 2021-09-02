@@ -8,6 +8,16 @@ module HudReports
   class BaseController < ApplicationController
     before_action :require_can_view_hud_reports!
 
+    def download
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=#{@report.report_name}.xlsx"
+          render template: 'hud_reports/download'
+        end
+      end
+    end
+
     def set_reports
       title = generator.title
       @reports = report_scope.where(report_name: title).

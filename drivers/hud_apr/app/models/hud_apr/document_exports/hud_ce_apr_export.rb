@@ -5,7 +5,7 @@
 ###
 
 module HudApr::DocumentExports
-  class HudAprExport < ::GrdaWarehouse::DocumentExport
+  class HudCeAprExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
       return true if user.can_view_all_hud_reports?
@@ -14,7 +14,7 @@ module HudApr::DocumentExports
     end
 
     def generator_url
-      hud_reports_apr_path(report)
+      hud_reports_ce_apr_path(report)
     end
 
     private def report_scope
@@ -37,7 +37,7 @@ module HudApr::DocumentExports
     end
 
     private def report_generator_class
-      HudApr::Generators::Apr::Fy2020::Generator
+      HudApr::Generators::CeApr::Fy2020::Generator
     end
 
     def perform
@@ -45,7 +45,7 @@ module HudApr::DocumentExports
         template_file = 'hud_reports/download'
         PdfGenerator.new.perform(
           html: view.render(file: template_file, layout: 'layouts/hud_report_export'),
-          file_name: "APR 2020 #{DateTime.current.to_s(:db)}",
+          file_name: "CE APR 2020 #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
         end
@@ -57,7 +57,7 @@ module HudApr::DocumentExports
     end
 
     protected def view
-      context = HudApr::AprsController.view_paths
+      context = HudApr::CeAprsController.view_paths
       view = PdfExportTemplateBase.new(context, view_assigns)
       view.current_user = user
       view

@@ -75,5 +75,9 @@ module HudDataQualityReport
     private def path_for_cell(report:, question:, cell_label:, table:)
       hud_reports_dq_question_cell_path(dq_id: report.id, question_id: question, id: cell_label, table: table)
     end
+
+    private def set_pdf_export
+      @pdf_export = HudDataQualityReport::DocumentExports::HudDataQualityReportExport.new
+    end
   end
 end

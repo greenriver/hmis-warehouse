@@ -38,15 +38,6 @@ module HudApr
       end
     end
 
-    def download
-      respond_to do |format|
-        format.html {}
-        format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=#{@report.report_name}.xlsx"
-        end
-      end
-    end
-
     def running
       @questions = generator.questions.keys
       @contents = @report&.completed_questions

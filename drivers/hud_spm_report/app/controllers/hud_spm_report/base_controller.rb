@@ -75,5 +75,9 @@ module HudSpmReport
     private def path_for_cell(report:, question:, cell_label:, table:)
       hud_reports_spm_measure_cell_path(spm_id: report&.to_param || 0, measure_id: question, id: cell_label, table: table)
     end
+
+    private def set_pdf_export
+      @pdf_export = HudSpmReport::DocumentExports::HudSpmReportExport.new
+    end
   end
 end

@@ -7,8 +7,10 @@
 module HudApr
   class CeAprsController < BaseController
     include CeApr::CeAprConcern
-    before_action :set_report, only: [:show, :destroy, :running]
+    before_action :generator, only: [:download]
+    before_action :set_report, only: [:show, :destroy, :running, :download]
     before_action :set_reports, except: [:index, :running_all_questions]
+    before_action :set_pdf_export, only: [:show, :download]
 
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq

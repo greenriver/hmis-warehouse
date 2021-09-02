@@ -7,9 +7,11 @@
   .d-flex
     %h2 Annual PATH Report
     .ml-auto
-      = link_to({format: :zip},{class: 'btn btn-primary'}) do
-        %span.icon-download2
-        Download Zip File
+      = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: download_hud_reports_path_path(@report, format: :xlsx)
+      .mt-4
+        = link_to({format: :zip},{class: 'btn btn-primary'}) do
+          %span.icon-download2
+          Download Zip File
 
   = render 'hud_reports/questions'
 

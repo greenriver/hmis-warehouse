@@ -35,5 +35,9 @@ module HudApr::Caper::CaperConcern
     private def path_for_cell(report:, question:, cell_label:, table:)
       hud_reports_caper_question_cell_path(caper_id: report&.id || 0, question_id: question, id: cell_label, table: table)
     end
+
+    private def set_pdf_export
+      @pdf_export = HudApr::DocumentExports::HudCaperExport.new
+    end
   end
 end

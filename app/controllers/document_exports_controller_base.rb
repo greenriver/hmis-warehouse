@@ -82,6 +82,11 @@ class DocumentExportsControllerBase < ApplicationController
       'Health::DocumentExports::AgencyPerformanceExport',
       'ProjectScorecard::DocumentExports::ScorecardExport',
       'HudApr::DocumentExports::HudAprExport',
+      'HudApr::DocumentExports::HudCaperExport',
+      'HudApr::DocumentExports::HudCeAprExport',
+      'HudPathReport::DocumentExports::HudPathReportExport',
+      'HudSpmReport::DocumentExports::HudSpmReportExport',
+      'HudDataQualityReport::DocumentExports::HudDataQualityReportExport',
     ]
   end
 end
