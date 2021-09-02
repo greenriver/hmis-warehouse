@@ -14,16 +14,16 @@ module CasCeData::Synthetic
       source.referral_date
     end
 
-    def event
-      case enrollment.project.ProjectType
-      when 13 # RRH
-        13
-      when 3, 10 # PSH
-        14
-      when 9 # Other PH
-        15
-      end
-    end
+    # def event
+    #   case enrollment.project.ProjectType
+    #   when 13 # RRH
+    #     13
+    #   when 3, 10 # PSH
+    #     14
+    #   when 9 # Other PH
+    #     15
+    #   end
+    # end
 
     def data_source
       'CAS'
@@ -63,7 +63,6 @@ module CasCeData::Synthetic
       scope = event.client.source_enrollments.
         open_on_date(event.referral_date).
         joins(:project).
-        merge(GrdaWarehouse::Hud::Project.ph).
         order(EntryDate: :desc)
       # If we have an enrollment with an assessment, use it
       # NOTE: this would be more efficient as left_outer_joins with nulls last

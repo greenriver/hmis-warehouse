@@ -3594,7 +3594,8 @@ CREATE TABLE public.cas_referral_events (
     referral_result integer,
     referral_result_date date,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    event integer
 );
 
 
@@ -31585,6 +31586,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210819133035'),
 ('20210823203031'),
 ('20210825182548'),
-('20210901200255');
+('20210901200255'),
+('20210902113909');
 
 
