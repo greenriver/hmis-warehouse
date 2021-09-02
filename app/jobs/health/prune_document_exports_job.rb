@@ -6,7 +6,7 @@
 
 module Health
   class PruneDocumentExportsJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform
       Health::DocumentExport.with_advisory_lock(

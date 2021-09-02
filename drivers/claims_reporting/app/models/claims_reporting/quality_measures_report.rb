@@ -664,16 +664,27 @@ module ClaimsReporting
 
       # Table from measure spec dated 1/7/2020
       # Assuming the language '(include XXX Inpatient Hospital IDs Only)' is redundant with the servicing provider type
-      service_to_billing = {
-        '70' => ['1', '6', '40', '301'],
-        '71' => ['3', '25', '246'],
-        '73' => ['248'],
-        '74' => ['20', '21'],
-        '09' => ['30', '31'],
-        '26' => ['20', '21'],
-        '28' => ['22', '332'],
-      }
-      claim_type_inpatient_servicing_provider_types = ['35']
+      # service_to_billing = {
+      #   '70' => ['1', '6', '40', '301'],
+      #   '71' => ['3', '25', '246'],
+      #   '73' => ['248'],
+      #   '74' => ['20', '21'],
+      #   '09' => ['30', '31'],
+      #   '26' => ['20', '21'],
+      #   '28' => ['22', '332'],
+      # }
+      # claim_type_inpatient_servicing_provider_types = ['35']
+
+      servicing_provider_types = [
+        '70', '1', '6', '40', '301',
+        '71', '3', '25', '246',
+        '73', '248',
+        '74', '20', '21',
+        '09', '30', '31',
+        '26', '20', '21',
+        '28', '22', '332',
+        '35'
+      ]
 
       # "on or between January 1 and more than 3 business days before the end of the measurement year."
       discharge_date_range = measurement_year.min .. 3.business_days.before(measurement_year.max)
@@ -704,11 +715,10 @@ module ClaimsReporting
         next unless in_age_range?(c.member_dob, 18.years .. 64.years, as_of: c.discharge_date)
 
         # Event/Diagnosis: A discharge from any facility setting listed below"
-        include_claim = c.claim_type == 'inpatient' && c.servicing_provider_type.in?(claim_type_inpatient_servicing_provider_types)
-        include_claim ||= service_to_billing.each do |servicing_provider_type, billing_provider_types|
-          break true if c.servicing_provider_type == servicing_provider_type && c.billing_provider_type.in?(billing_provider_types)
-        end
-        next unless include_claim
+        next unless c.claim_type == 'I' && servicing_provider_types.include?(c.servicing_provider_type)
+
+        # next unless (c.claim_type == 'inpatient' && c.servicing_provider_type.in?(claim_type_inpatient_servicing_provider_types)) ||
+        #  service_to_billing[c.servicing_provider_type]&.include?(c.billing_provider_type)
 
         # Continuous Enrollment/Allowable Gap/Anchor Date/Exclusions:
         # Continuously enrolled with BH CP from date of discharge through 3 business days after discharge.

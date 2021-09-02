@@ -48,7 +48,7 @@ module GrdaWarehouse::Confidence
       queued.distinct.pluck(:resource_id).each_slice(250) do |batch|
         Delayed::Job.enqueue(
           ::Confidence::SourceEnrollmentsJob.new(client_ids: batch),
-          queue: :long_running,
+          queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
           priority: 10,
         )
       end

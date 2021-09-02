@@ -8,7 +8,7 @@ module WarehouseReports
   class GenericReportJob < BaseJob
     include ArelHelper
 
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     # NOTE: instances of report_class must provide `title`, `url`, and `run_and_save!` methods
     # `title` should return a string suitable for an email subject

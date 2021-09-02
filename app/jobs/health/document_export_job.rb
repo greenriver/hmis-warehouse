@@ -7,7 +7,7 @@
 module Health
   class DocumentExportJob < BaseJob
     include DocumentExportJobBehavior
-    queue_as :default
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
     protected def export_scope
       Health::DocumentExport

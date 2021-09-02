@@ -15,14 +15,7 @@ module CasCeData::Synthetic
     end
 
     def event
-      case enrollment.project.ProjectType
-      when 13 # RRH
-        13
-      when 3, 10 # PSH
-        14
-      when 9 # Other PH
-        15
-      end
+      source.event
     end
 
     def data_source
@@ -53,17 +46,24 @@ module CasCeData::Synthetic
       new_events = CasCeData::GrdaWarehouse::CasReferralEvent.where.not(id: self.select(:source_id))
       new_events.find_each do |event|
         next unless event.client.present?
+        next unless event.referral_date.present?
 
-        create(enrollment: find_enrollment(event), client: event.client, source: event)
+        enrollment = find_enrollment(event)
+        create(enrollment: enrollment, client: event.client, source: event) if enrollment.present?
       end
     end
 
     def self.find_enrollment(event)
-      event.client.source_enrollments.
+      scope = event.client.source_enrollments.
+        open_during_range(event.referral_date - 90.days .. event.referral_date).
         joins(:project).
-        where(p_t[:id].in(event.projects.pluck(:project_id))).
-        open_on_date(event.referral_date).
-        first
+        order(EntryDate: :desc)
+      # If we have an enrollment with an assessment, use it
+      # NOTE: this would be more efficient as left_outer_joins with nulls last
+      scope = scope.joins(:assessments) if scope.joins(:assessments).exists?
+      scope = scope.where(p_t[:id].in(event.projects.pluck(:project_id))) if event.projects.exists?
+
+      scope.first
     end
   end
 end

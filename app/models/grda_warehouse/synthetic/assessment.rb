@@ -21,7 +21,7 @@ module GrdaWarehouse::Synthetic
 
     # Subclasses may override
     def assessment_location
-      ''
+      'Unknown'
     end
     alias AssessmentLocation assessment_location
 
@@ -43,7 +43,7 @@ module GrdaWarehouse::Synthetic
     def self.create_hud_assessments
       preload(:enrollment, :client, :source).find_in_batches do |batch|
         assessment_source.import(
-          batch.map(&:hud_assessment_hash),
+          batch.map(&:hud_assessment_hash).compact,
           on_duplicate_key_update: {
             conflict_target: ['"AssessmentID"', :data_source_id],
             columns: assessment_source.hmis_configuration.keys,
@@ -53,6 +53,14 @@ module GrdaWarehouse::Synthetic
     end
 
     def hud_assessment_hash
+      return nil unless enrollment.present? &&
+        client.present? &&
+        assessment_date.present? &&
+        assessment_location.present? &&
+        assessment_type.present? &&
+        assessment_level.present? &&
+        prioritization_status.present?
+
       {
         AssessmentID: hud_assessment&.AssessmentID || SecureRandom.uuid.gsub(/-/, ''),
         EnrollmentID: enrollment.EnrollmentID,

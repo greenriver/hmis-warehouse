@@ -21,7 +21,7 @@ module HudReports::Ahar::Fy2017
         report_id: @report.id,
         result_id: @result.id,
         options: options,
-      ), queue: :long_running
+      ), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
       @result.update(delayed_job_id: job.id)
       if @result.errors.full_messages.present?
         flash[:error] = @result.errors.full_messages.join(' ')

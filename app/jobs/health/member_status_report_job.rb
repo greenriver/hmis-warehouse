@@ -6,7 +6,7 @@
 
 module Health
   class MemberStatusReportJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     attr_accessor :params, :report_start_date, :report_end_date, :report_id, :current_user_id
 
@@ -23,7 +23,7 @@ module Health
       NotifyUser.health_member_status_report_finished(@current_user_id).deliver_later
     end
 
-    def enqueue(job, queue: :long_running)
+    def enqueue(job, queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))
     end
 
     def max_attempts

@@ -6,7 +6,7 @@
 
 module Reporting
   class RunProjectDataQualityJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(report_id:, generate:, send_email:)
       @report_id = report_id.to_i

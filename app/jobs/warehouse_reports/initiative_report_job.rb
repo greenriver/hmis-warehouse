@@ -8,7 +8,7 @@ module WarehouseReports
   class InitiativeReportJob < BaseJob
     include ArelHelper
 
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(options)
       options = options.with_indifferent_access

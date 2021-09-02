@@ -8,19 +8,19 @@
         %thead
           %tr
             %th Status
-            %th Options
             %th Requested
+            %th Options
             %th
         %tbody.report-listing.warehouse-reports__completed
           - @reports.each do |report|
             %tr
               %td
                 = link_to_if(report.completed?, report.status, project_pass_fail_warehouse_reports_project_pass_fail_path(report))
-              %th
-                = render 'filters/report_parameters', options: report.options['filters'], report: report
               %td.text-nowrap
                 = report.created_at
                 .text-sm.text-muted by #{report.user&.name}
+              %th
+                = render 'filters/report_parameters', options: report.options['filters'], report: report
               %td
                 = link_to project_pass_fail_warehouse_reports_project_pass_fail_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
                   %i.icon-cross
