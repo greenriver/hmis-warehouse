@@ -30,9 +30,9 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def run_question!
-      @report.start(self.class.question_number, tables.map(&:first))
+      @report.start(self.class.question_number, self.class.tables.map(&:first))
 
-      tables.each do |name, msg, _title|
+      self.class.tables.each do |name, msg, _title|
         send(msg, name)
       end
 
