@@ -96,7 +96,7 @@ module HMIS::Structure::Disability
             null: false,
           },
         }.freeze
-      when '2022', nil
+      when '2022'
         {
           DisabilitiesID: {
             type: :string,

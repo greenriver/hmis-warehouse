@@ -488,7 +488,7 @@ module HMIS::Structure::Enrollment
             null: false,
           },
         }
-      when '2022', nil
+      when '2022'
         {
           EnrollmentID: {
             type: :string,

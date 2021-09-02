@@ -152,7 +152,7 @@ module HMIS::Structure::Client
             null: false,
           },
         }
-      when '2022', nil
+      when '2022'
         {
           PersonalID: {
             type: :string,

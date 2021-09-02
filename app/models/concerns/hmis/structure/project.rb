@@ -167,7 +167,7 @@ module HMIS::Structure::Project
             null: false,
           },
         }
-      when '2022', nil
+      when '2022'
         {
           ProjectID: {
             type: :string,

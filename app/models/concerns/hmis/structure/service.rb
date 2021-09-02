@@ -85,7 +85,7 @@ module HMIS::Structure::Service
             null: false,
           },
         }
-      when '2022', nil
+      when '2022'
         {
           ServicesID: {
             type: :string,

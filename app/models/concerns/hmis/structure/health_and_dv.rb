@@ -91,7 +91,7 @@ module HMIS::Structure::HealthAndDv
             null: false,
           },
         }
-      when '2022', nil
+      when '2022'
         {
           HealthAndDVID: {
             type: :string,

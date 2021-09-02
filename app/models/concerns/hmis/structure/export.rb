@@ -92,7 +92,7 @@ module HMIS::Structure::Export
             null: false,
           },
         }
-      when '2022', nil
+      when '2022'
         {
           ExportID: {
             type: :string,

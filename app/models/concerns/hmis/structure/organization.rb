@@ -96,7 +96,7 @@ module HMIS::Structure::Organization
             null: false,
           },
         }
-      when '2022', nil
+      when '2022'
         {
           OrganizationID: {
             type: :string,
