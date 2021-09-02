@@ -11,19 +11,24 @@ module HudSpmReport::Generators::Fy2020
       'Measure 5'.freeze
     end
 
-    def self.table_descriptions
-      {
-        'Measure 5' => 'Number of Persons who Become Homeless for the First Time',
-        '5.1' => 'Change in the number of persons entering ES, SH, and TH projects with no prior enrollments in HMIS',
-        '5.2' => 'Change in the number of persons entering ES, SH, TH, and PH projects with no prior enrollments in HMIS',
-      }.freeze
-    end
-
-    def run_question!
-      tables = [
+    def self.tables
+      [
         ['5.1', :run_5_1, 'Change in the number of persons entering ES, SH, and TH projects with no prior enrollments in HMIS'],
         ['5.2', :run_5_2, 'Change in the number of persons entering ES, SH, TH, and PH projects with no prior enrollments in HMIS'],
       ]
+    end
+
+    def self.table_descriptions
+      {
+        'Measure 5' => 'Number of Persons who Become Homeless for the First Time',
+      }.merge(
+        tables.map do |table|
+          [table.first, table.last]
+        end.to_h,
+      ).freeze
+    end
+
+    def run_question!
       @report.start(self.class.question_number, tables.map(&:first))
 
       tables.each do |name, msg, _title|

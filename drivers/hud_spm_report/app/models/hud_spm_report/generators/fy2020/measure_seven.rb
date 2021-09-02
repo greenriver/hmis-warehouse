@@ -11,21 +11,25 @@ module HudSpmReport::Generators::Fy2020
       'Measure 7'.freeze
     end
 
-    def self.table_descriptions
-      {
-        'Measure 7' => 'Successful Placement from Street Outreach and Successful Placement in or Retention of Permanent Housing',
-        '7a.1' => 'Change in exits to permanent housing destinations',
-        '7b.1' => 'Change in exits to permanent housing destinations',
-        '7b.2' => 'Change in exit to or retention of permanent housing',
-      }.freeze
-    end
-
-    def run_question!
-      tables = [
+    def self.tables
+      [
         ['7a.1', :run_7a1, 'Change in exits to permanent housing destinations'],
         ['7b.1', :run_7b1, 'Change in exits to permanent housing destinations'],
         ['7b.2', :run_7b2, 'Change in exit to or retention of permanent housing'],
       ]
+    end
+
+    def self.table_descriptions
+      {
+        'Measure 7' => 'Successful Placement from Street Outreach and Successful Placement in or Retention of Permanent Housing',
+      }.merge(
+        tables.map do |table|
+          [table.first, table.last]
+        end.to_h,
+      ).freeze
+    end
+
+    def run_question!
       @report.start(self.class.question_number, tables.map(&:first))
 
       tables.each do |name, msg, _title|
