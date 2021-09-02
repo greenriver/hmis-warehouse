@@ -7,8 +7,10 @@
 module HudApr
   class AprsController < BaseController
     include Apr::AprConcern
-    before_action :set_report, only: [:show, :destroy, :running]
+    before_action :generator, only: [:download]
+    before_action :set_report, only: [:show, :destroy, :running, :download]
     before_action :set_reports, except: [:index, :running_all_questions]
+    before_action :set_pdf_export, only: [:show, :download]
 
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
@@ -34,6 +36,13 @@ module HudApr
           send_data exporter.export!, filename: "apr-#{date}.zip"
         end
       end
+    end
+
+    def download
+      # format.html do
+      # end
+      # format.xlsx do
+      # end
     end
 
     def running

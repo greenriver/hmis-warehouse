@@ -81,6 +81,7 @@ class DocumentExportsControllerBase < ApplicationController
       'Health::DocumentExports::HousingStatusChangesExport',
       'Health::DocumentExports::AgencyPerformanceExport',
       'ProjectScorecard::DocumentExports::ScorecardExport',
+      'HudApr::DocumentExports::HudAprExport',
     ]
   end
 end

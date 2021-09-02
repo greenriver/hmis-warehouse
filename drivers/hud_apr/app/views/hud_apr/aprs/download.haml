@@ -1,0 +1,15 @@
+- @report ||= report if defined?(report)
+%h1= @report.report_name
+%p
+  Run by #{@report.user.name} at
+  %strong
+    #{@report.completed_at}
+  with the following options:
+.mt-2
+  = render 'hud_reports/parameters', report: @report
+
+- @generator.questions.each_key do |question|
+  - if @report&.completed_questions.include?(question)
+    %h2= "#{@generator.short_name} #{question}: #{@generator.describe_table(question)}"
+    .summary-tables
+      = render 'hud_reports/tables', report: @report, question: question
