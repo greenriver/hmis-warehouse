@@ -14,16 +14,9 @@ module CasCeData::Synthetic
       source.referral_date
     end
 
-    # def event
-    #   case enrollment.project.ProjectType
-    #   when 13 # RRH
-    #     13
-    #   when 3, 10 # PSH
-    #     14
-    #   when 9 # Other PH
-    #     15
-    #   end
-    # end
+    def event
+      source.event
+    end
 
     def data_source
       'CAS'

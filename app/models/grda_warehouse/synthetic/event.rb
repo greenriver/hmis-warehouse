@@ -77,14 +77,14 @@ module GrdaWarehouse::Synthetic
       return nil unless enrollment.present? &&
         client.present? &&
         event_date.present? &&
-        source.event.present?
+        event.present?
 
       {
         EventID: hud_event&.EventID || SecureRandom.uuid.gsub(/-/, ''),
         EnrollmentID: enrollment.EnrollmentID,
         PersonalID: client.PersonalID,
         EventDate: event_date,
-        Event: source.event,
+        Event: event,
         ProbSolDivRRResult: client_housed_in_a_safe_alternative,
         ReferralCaseManageAfter: enrolled_in_aftercare_project,
         LocationCrisisorPHHousing: location_of_crisis_or_ph_housing, # NOTE: case should LocationCrisisOrPHHousing
