@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudApr::Generators::Shared::Fy2020
+module HudApr::Generators::Shared::Fy2021
   class QuestionTwentySix < Base
     QUESTION_NUMBER = 'Question 26'.freeze
 

@@ -9,7 +9,14 @@ module HudApr::CeApr::CeAprConcern
 
   included do
     def generator
-      @generator ||= HudApr::Generators::CeApr::Fy2020::Generator
+      @generator ||= begin
+        case @filter&.report_version || default_report_version
+        when :fy2020
+          HudApr::Generators::CeApr::Fy2020::Generator
+        when :fy2021
+          HudApr::Generators::CeApr::Fy2021::Generator
+        end
+      end
     end
 
     private def path_for_question(question, report: nil)
@@ -36,8 +43,27 @@ module HudApr::CeApr::CeAprConcern
       hud_reports_ce_apr_question_cell_path(ce_apr_id: report&.id || 0, question_id: question, id: cell_label, table: table)
     end
 
+    private def path_for_running_all_questions
+      running_all_questions_hud_reports_ce_aprs_path
+    end
+
+    private def path_for_running_question
+      running_hud_reports_ce_aprs_path(link_params.except('action', 'controller'))
+    end
+
+    private def path_for_history(args = nil)
+      history_hud_reports_ce_aprs_path(args)
+    end
+
     private def set_pdf_export
       @pdf_export = HudApr::DocumentExports::HudCeAprExport.new
+    end
+
+    private def possible_generator_classes
+      [
+        HudApr::Generators::CeApr::Fy2020::Generator,
+        HudApr::Generators::CeApr::Fy2021::Generator,
+      ]
     end
   end
 end

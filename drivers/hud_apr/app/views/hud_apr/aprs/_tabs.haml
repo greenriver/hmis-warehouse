@@ -1,0 +1,6 @@
+%ul.nav.nav-tabs{role: :tablist}
+  - report_version_urls.each do |(category, slug)|
+    - classes = []
+    - classes << 'active' if slug == @filter.report_version
+    %li.nav-item{role: :presentation, class: classes}
+      = link_to category, {filter: {report_version: slug}}, role: :tab, aria: {controls: category}, class: 'nav-link'

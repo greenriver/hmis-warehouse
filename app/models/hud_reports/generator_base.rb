@@ -27,6 +27,18 @@ module HudReports
       HudReports::ReportInstance.where(user_id: user.id, report_name: title).last || HudReports::ReportInstance.new(user_id: user.id, report_name: title)
     end
 
+    def self.file_prefix
+      "#{short_name} #{fiscal_year}"
+    end
+
+    def self.title
+      "#{generic_title} - #{fiscal_year}"
+    end
+
+    def self.report_year_slug
+      fiscal_year.downcase.delete(' ').to_sym
+    end
+
     def queue
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys

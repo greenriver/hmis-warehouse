@@ -12,7 +12,7 @@ module HudReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=#{@report.report_name}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{generator.file_prefix} - #{DateTime.current.to_s(:db)}.xlsx"
           render template: 'hud_reports/download'
         end
       end
@@ -28,7 +28,7 @@ module HudReports
     end
 
     def report_urls
-      @report_urls ||= Rails.application.config.hud_reports.map { |_, report| [report[:title], public_send(report[:helper])] }
+      @report_urls ||= Rails.application.config.hud_reports.values.map { |report| [report[:title], public_send(report[:helper])] }.uniq
     end
 
     private def report_param_name

@@ -6,8 +6,12 @@
 
 module HudApr::Generators::CeApr::Fy2020
   class Generator < ::HudReports::GeneratorBase
-    def self.title
-      'Coordinated Entry Annual Performance Report - FY 2020'
+    def self.fiscal_year
+      'FY 2020'
+    end
+
+    def self.generic_title
+      'Coordinated Entry Annual Performance Report'
     end
 
     def self.short_name
