@@ -9677,7 +9677,8 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_event integer,
     ce_event_problem_sol_div_rr_result integer,
     ce_event_referral_case_manage_after integer,
-    ce_event_referral_result integer
+    ce_event_referral_result integer,
+    gender_multi jsonb DEFAULT '[]'::jsonb
 );
 
 
@@ -31587,6 +31588,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210823203031'),
 ('20210825182548'),
 ('20210901200255'),
-('20210902113909');
+('20210902113909'),
+('20210903113401');
 
 

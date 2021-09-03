@@ -2050,6 +2050,21 @@ module GrdaWarehouse::Hud
       ::HUD.gender(self.Gender)
     end
 
+    # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
+    def gender_multi
+      @gender_multi ||= [].tap do |gm|
+        if self.GenderNone.in?([8, 9, 99])
+          gm << self.GenderNone
+        else
+          gm << 0 if self.Female
+          gm << 1 if self.Male
+          gm << 4 if self.GenderOther
+          gm << 5 if self.Transgender
+          gm << 6 if self.Questioning
+        end
+      end
+    end
+
     def self.age(date:, dob:)
       return nil unless date.present? && dob.present?
 
