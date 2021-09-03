@@ -6,6 +6,7 @@
 
 module HudApr::Generators::CeApr::Fy2021
   class QuestionTen < HudApr::Generators::Shared::Fy2021::QuestionTen
+    include HudApr::Generators::CeApr::Fy2021::QuestionConcern
     QUESTION_TABLE_NUMBERS = ['Q10'].freeze
 
     def self.table_descriptions
@@ -28,11 +29,11 @@ module HudApr::Generators::CeApr::Fy2021
     end
 
     private def ce_a_t
-      @ce_a_t ||= HudApr::Fy2021::CeAssessment.arel_table
+      @ce_a_t ||= HudApr::Fy2020::CeAssessment.arel_table
     end
 
     private def ce_e_t
-      @ce_e_t ||= HudApr::Fy2021::CeEvent.arel_table
+      @ce_e_t ||= HudApr::Fy2020::CeEvent.arel_table
     end
 
     private def columns
@@ -60,9 +61,9 @@ module HudApr::Generators::CeApr::Fy2021
 
     private def intentionally_blank
       [
-        'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12',
-        'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12',
-        'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9', 'E10', 'E11', 'E12',
+        'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C19',
+        'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12', 'D19',
+        'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9', 'E10', 'E11', 'E12', 'E19',
         'F2', 'F3', 'F4', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 'F13', 'F14', 'F15', 'F16', 'F17', 'F18',
         'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G9', 'G10', 'G11', 'G12', 'G13', 'G14', 'G15', 'G16', 'G17', 'G18'
       ]
@@ -87,6 +88,9 @@ module HudApr::Generators::CeApr::Fy2021
         'Referral to RRH project resource opening' => ce_e_t[:event].eq(13),
         'Referral to PSH project resource opening' => ce_e_t[:event].eq(14),
         'Referral to Other PH project/unit/resource opening' => ce_e_t[:event].eq(15),
+        'Referral to emergency assistance/flex fund/furniture assistance' => ce_e_t[:event].eq(16),
+        'Referral to Emergency Housing Voucher (EHV)' => ce_e_t[:event].eq(17),
+        'Referral to a Housing Stability Voucher' => ce_e_t[:event].eq(18),
       }.freeze
     end
 
@@ -99,7 +103,7 @@ module HudApr::Generators::CeApr::Fy2021
         first_column: 'B',
         last_column: columns.keys.last,
         first_row: 2,
-        last_row: 18,
+        last_row: 21,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 

@@ -51,7 +51,7 @@ module HudApr::Generators::Shared::Fy2021
       q27_populations.values.each_with_index do |population_clause, col_index|
         youth_age_ranges.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
+          next if intentionally_blank_27a.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
 
@@ -560,13 +560,13 @@ module HudApr::Generators::Shared::Fy2021
 
     private def q27c_responses
       {
-        'Male' => a_t[:gender].eq(1),
-        'Female' => a_t[:gender].eq(0),
-        'Trans Female (MTF or Male to Female)' => a_t[:gender].eq(2),
-        'Trans Male (FTM or Female to Male)' => a_t[:gender].eq(3),
-        'Gender Non-Conforming (i.e. not exclusively male or female)' => a_t[:gender].eq(4),
-        "Client Doesn't Know/Client Refused" => a_t[:gender].in([8, 9]),
-        'Data Not Collected' => a_t[:gender].eq(99).or(a_t[:gender].eq(nil)),
+        'Male' => a_t[:gender_multi].eq('1'),
+        'Female' => a_t[:gender_multi].eq('0'),
+        'No Single Gender' => a_t[:gender_multi].in(::HUD.no_single_gender_queries),
+        'Questioning' => a_t[:gender_multi].in(::HUD.questioning_gender_queries),
+        'Transgender' => a_t[:gender_multi].in(::HUD.transgender_gender_queries),
+        'Client Doesn\'t Know/Client Refused' => a_t[:gender_multi].in(['8', '9']),
+        'Data Not Collected' => a_t[:gender_multi].eq('99'),
         'Total' => Arel.sql('1=1'),
       }.freeze
     end
@@ -666,6 +666,25 @@ module HudApr::Generators::Shared::Fy2021
 
     private def intentionally_blank
       [].freeze
+    end
+
+    private def intentionally_blank_27a
+      [
+        'B4',
+        'B5',
+        'C2',
+        'C4',
+        'C5',
+        'D4',
+        'D5',
+        'E3',
+        'E4',
+        'E5',
+        'F3',
+        'F4',
+        'F5',
+        'F6',
+      ].freeze
     end
 
     private def intentionally_blank_27d

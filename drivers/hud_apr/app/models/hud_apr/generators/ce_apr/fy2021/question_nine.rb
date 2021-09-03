@@ -6,6 +6,7 @@
 
 module HudApr::Generators::CeApr::Fy2021
   class QuestionNine < HudApr::Generators::Shared::Fy2021::QuestionNine
+    include HudApr::Generators::CeApr::Fy2021::QuestionConcern
     QUESTION_TABLE_NUMBERS = ['Q9a', 'Q9b', 'Q9c', 'Q9d'].freeze
 
     def self.table_descriptions
@@ -130,7 +131,10 @@ module HudApr::Generators::CeApr::Fy2021
         'RRH project resource opening' => a_t[:ce_event_event].eq(13),
         'PSH project resource opening' => a_t[:ce_event_event].eq(14),
         'Other PH project' => a_t[:ce_event_event].eq(15),
-        'Total' => a_t[:ce_event_event].in((5..15).to_a),
+        'Referral to emergency assistance/flex fund/furniture assistance' => a_t[:ce_event_event].eq(16),
+        'Referral to Emergency Housing Voucher (EHV)' => a_t[:ce_event_event].eq(17),
+        'Referral to a Housing Stability Voucher' => a_t[:ce_event_event].eq(18),
+        'Total' => a_t[:ce_event_event].in((5..18).to_a),
         'Of the total HH prioritized (Q9b row 1) what percentage received a referral' => Arel.sql('0=1'), # This will be calculated as a separate step
         'Result: successful referral: client accepted' => a_t[:ce_event_referral_result].eq(1),
         'Result: Unsuccessful referral: client rejected' => a_t[:ce_event_referral_result].eq(2),
@@ -144,7 +148,7 @@ module HudApr::Generators::CeApr::Fy2021
     private def q9d_referral_events
       table_name = 'Q9d'
 
-      generate_table(table_name, q9d_table_rows, { last_row: 20 })
+      generate_table(table_name, q9d_table_rows, { last_row: 23 })
 
       # Populate rows 13 and 19 with calculated values
       columns.each do |col, _|

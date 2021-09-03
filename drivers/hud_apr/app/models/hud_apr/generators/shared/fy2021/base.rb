@@ -161,7 +161,7 @@ module HudApr::Generators::Shared::Fy2021
             exit_created: exit_record&.exit&.DateCreated,
             first_date_in_program: last_service_history_enrollment.first_date_in_program,
             first_name: source_client.FirstName,
-            gender: source_client.gender_multi,
+            gender: source_client.gender_multi.sort.join(','),
             head_of_household_id: last_service_history_enrollment.head_of_household_id,
             head_of_household: last_service_history_enrollment[:head_of_household],
             hiv_aids_entry: disabilities_at_entry.detect(&:hiv?)&.DisabilityResponse,
@@ -417,6 +417,52 @@ module HudApr::Generators::Shared::Fy2021
       @a_t ||= report_client_universe.arel_table
     end
 
+    private def ethnicities
+      {
+        '0' => {
+          order: 1,
+          label: 'Non-Hispanic/Non-Latin(a)(o)(x)',
+          clause: a_t[:ethnicity].eq(0),
+        },
+        '1' => {
+          order: 2,
+          label: 'Hispanic/Latin(a)(o)(x)',
+          clause: a_t[:ethnicity].eq(1),
+        },
+        '8 or 9' => {
+          order: 3,
+          label: 'Client Doesn’t Know/Client Refused',
+          clause: a_t[:ethnicity].in([8, 9]),
+        },
+        '99' => {
+          order: 4,
+          label: 'Data Not Collected',
+          clause: a_t[:ethnicity].eq(99).or(a_t[:ethnicity].eq(nil)),
+        },
+        'Total' => {
+          order: 5,
+          label: 'Total',
+          clause: Arel.sql('1=1'),
+        },
+      }.sort_by { |_, m| m[:order] }.freeze
+    end
+
+    private def disability_clauses(suffix)
+      {
+        'Mental Health Disorder' => a_t["mental_health_problem_#{suffix}".to_sym].eq(1),
+        'Alcohol Use Disorder' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true).
+          and(a_t["drug_abuse_#{suffix}".to_sym].eq(false)),
+        'Drug Use Disorder' => a_t["drug_abuse_#{suffix}".to_sym].eq(true).
+          and(a_t["alcohol_abuse_#{suffix}".to_sym].eq(false)),
+        'Both Alcohol and Drug Use Disorders' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true).
+          and(a_t["drug_abuse_#{suffix}".to_sym].eq(true)),
+        'Chronic Health Condition' => a_t["chronic_disability_#{suffix}".to_sym].eq(1),
+        'HIV/AIDS' => a_t["hiv_aids_#{suffix}".to_sym].eq(1),
+        'Developmental Disability' => a_t["developmental_disability_#{suffix}".to_sym].eq(1),
+        'Physical Disability' => a_t["physical_disability_#{suffix}".to_sym].eq(1),
+      }
+    end
+
     # NOTE: HMIS allows for clients to report multiple races. The APR however, does not, and has a single
     # race field. The order that the races appear in the report is encoded in the 'order' of this hash.
     # This practice is very brittle, so we'll copy those here and hard code those relationships
@@ -424,22 +470,22 @@ module HudApr::Generators::Shared::Fy2021
       {
         'AmIndAKNative' => {
           order: 4,
-          label: 'American Indian or Alaska Native',
+          label: 'American Indian, Alaska Native, or Indigenous',
           clause: a_t[:race].eq(race_number('AmIndAKNative')),
         },
         'Asian' => {
           order: 3,
-          label: 'Asian',
+          label: 'Asian or Asian American',
           clause: a_t[:race].eq(race_number('Asian')),
         },
         'BlackAfAmerican' => {
           order: 2,
-          label: 'Black or African American',
+          label: 'Black, African American, or African',
           clause: a_t[:race].eq(race_number('BlackAfAmerican')),
         },
         'NativeHIOtherPacific' => {
           order: 5,
-          label: 'Native Hawaiian or Other Pacific Islander',
+          label: 'Native Hawaiian or Pacific Islander',
           clause: a_t[:race].eq(race_number('NativeHIOtherPacific')),
         },
         'White' => {

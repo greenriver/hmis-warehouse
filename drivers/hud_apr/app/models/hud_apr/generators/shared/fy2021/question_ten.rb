@@ -10,14 +10,14 @@ module HudApr::Generators::Shared::Fy2021
 
     private def table_rows
       {
-        'Male' => [2, a_t[:gender].eq(1)],
-        'Female' => [3, a_t[:gender].eq(0)],
-        'Trans Female (MTF or Male to Female)' => [4, a_t[:gender].eq(2)],
-        'Trans Male (FTM or Female to Male)' => [5, a_t[:gender].eq(3)],
-        'Gender Non-Conforming (i.e. not exclusively male or female)' => [6, a_t[:gender].eq(4)],
-        'Client Doesn\'t Know/Client Refused' => [7, a_t[:gender].in([8, 9])],
-        'Data Not Collected' => [8, a_t[:gender].eq(99)],
-        'Subtotal' => [9, Arel.sql('1=1')],
+        'Male' => [2, a_t[:gender_multi].eq('1')],
+        'Female' => [3, a_t[:gender_multi].eq('0')],
+        'No Single Gender' => [4, a_t[:gender_multi].in(::HUD.no_single_gender_queries)],
+        'Questioning' => [5, a_t[:gender_multi].in(::HUD.questioning_gender_queries)],
+        'Transgender' => [6, a_t[:gender_multi].in(::HUD.transgender_gender_queries)],
+        'Client Doesn\'t Know/Client Refused' => [7, a_t[:gender_multi].in(['8', '9'])],
+        'Data Not Collected' => [8, a_t[:gender_multi].eq('99')],
+        'Total' => [9, Arel.sql('1=1')],
       }.freeze
     end
 

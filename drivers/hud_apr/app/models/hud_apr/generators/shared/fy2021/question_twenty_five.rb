@@ -451,13 +451,13 @@ module HudApr::Generators::Shared::Fy2021
 
     private def q25c_responses
       {
-        'Male' => a_t[:gender].eq(1),
-        'Female' => a_t[:gender].eq(0),
-        'Trans Female (MTF or Male to Female)' => a_t[:gender].eq(2),
-        'Trans Male (FTM or Female to Male)' => a_t[:gender].eq(3),
-        'Gender Non-Conforming (i.e. not exclusively male or female)' => a_t[:gender].eq(4),
-        "Client Doesn't Know/Client Refused" => a_t[:gender].in([8, 9]),
-        'Data Not Collected' => a_t[:gender].eq(99).or(a_t[:gender].eq(nil)),
+        'Male' => a_t[:gender_multi].eq('1'),
+        'Female' => a_t[:gender_multi].eq('0'),
+        'No Single Gender' => a_t[:gender_multi].in(::HUD.no_single_gender_queries),
+        'Questioning' => a_t[:gender_multi].in(::HUD.questioning_gender_queries),
+        'Transgender' => a_t[:gender_multi].in(::HUD.transgender_gender_queries),
+        'Client Doesn\'t Know/Client Refused' => a_t[:gender_multi].in(['8', '9']),
+        'Data Not Collected' => a_t[:gender_multi].eq('99'),
         'Total' => Arel.sql('1=1'),
       }.freeze
     end

@@ -6,6 +6,7 @@
 
 module HudApr::Generators::CeApr::Fy2020
   class QuestionTen < HudApr::Generators::Shared::Fy2020::QuestionTen
+    include HudApr::Generators::CeApr::Fy2020::QuestionConcern
     QUESTION_TABLE_NUMBERS = ['Q10'].freeze
 
     def self.table_descriptions

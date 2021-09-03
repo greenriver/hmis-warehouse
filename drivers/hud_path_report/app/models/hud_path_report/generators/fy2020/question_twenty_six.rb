@@ -151,14 +151,13 @@ module HudPathReport::Generators::Fy2020
     end
 
     private def ethnicities
-      h = HUD.ethnicities.map do |k, v|
-        [
-          v,
-          a_t[:ethnicity].eq(k),
-        ]
-      end.to_h
-      h['Total'] = :total
-      h.freeze
+      {
+        'Non-Hispanic/Non-Latino' => a_t[:ethnicity].eq(0),
+        'Hispanic/Latino' => a_t[:ethnicity].eq(1),
+        'Client Doesn\'t Know/Client Refused' => a_t[:ethnicity].in([8, 9]),
+        'Data Not Collected' => a_t[:ethnicity].eq(99),
+        'Total' => :total,
+      }.freeze
     end
 
     private def veteran_statuses

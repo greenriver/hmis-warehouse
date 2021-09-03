@@ -9678,7 +9678,7 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_problem_sol_div_rr_result integer,
     ce_event_referral_case_manage_after integer,
     ce_event_referral_result integer,
-    gender_multi jsonb DEFAULT '[]'::jsonb
+    gender_multi character varying
 );
 
 
