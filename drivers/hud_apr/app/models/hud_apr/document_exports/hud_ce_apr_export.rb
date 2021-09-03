@@ -7,7 +7,7 @@
 module HudApr::DocumentExports
   class HudCeAprExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
-    include ExportShared
+    include HudReports::HudPdfExportConcern
 
     def generator_url
       hud_reports_ce_apr_path(report)

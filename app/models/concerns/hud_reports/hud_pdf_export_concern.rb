@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudApr::DocumentExports::ExportShared
+module HudReports::HudPdfExportConcern
   extend ActiveSupport::Concern
 
   included do

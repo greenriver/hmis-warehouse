@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudPathReport::Generators::Fy2020
+module HudPathReport::Generators::Fy2021
   class QuestionEightToSixteen < Base
     include ArelHelper
 

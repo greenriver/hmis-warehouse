@@ -4,11 +4,13 @@
     .hud-report-options
       %h2 Required Options
       .row
-        .col-sm
+        .col-sm-3
           = f.input :start, as: :date_picker, label: 'Start Date', required: true
-        .col-sm
+        .col-sm-3
           = f.input :end, as: :date_picker, label: 'End Date', required: true
-        .col-sm
+        .col-sm-3
+          = f.input :report_version, collection: available_report_versions, as: :select_two, include_blank: false, label: 'Report Year'
+        .col-sm-3
           = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true}, label: 'CoC Codes', hint: default_coc_code
       %h2 Projects to Include
       .row
