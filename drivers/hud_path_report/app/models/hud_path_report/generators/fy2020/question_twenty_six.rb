@@ -154,7 +154,8 @@ module HudPathReport::Generators::Fy2020
       {
         'Non-Hispanic/Non-Latino' => a_t[:ethnicity].eq(0),
         'Hispanic/Latino' => a_t[:ethnicity].eq(1),
-        'Client Doesn\'t Know/Client Refused' => a_t[:ethnicity].in([8, 9]),
+        'Client Doesn\'t Know' => a_t[:ethnicity].eq(8),
+        'Client Refused' => a_t[:ethnicity].eq(9),
         'Data Not Collected' => a_t[:ethnicity].eq(99),
         'Total' => :total,
       }.freeze
