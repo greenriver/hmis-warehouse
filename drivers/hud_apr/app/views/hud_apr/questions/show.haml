@@ -9,7 +9,8 @@
 = render 'hud_apr/shared/report_form', url: path_for_questions(@question)
 
 - if @reports.present?
+  = render 'hud_reports/year_tabs'
   %p= paginate @reports
-.jReportListing
-  = render 'hud_reports/reports'
-= render 'hud_reports/list_refresher'
+  .jReportListing
+    = render 'hud_reports/reports'
+  = render 'hud_reports/list_refresher'

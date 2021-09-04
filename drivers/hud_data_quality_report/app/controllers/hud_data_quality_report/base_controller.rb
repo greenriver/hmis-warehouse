@@ -75,9 +75,14 @@ module HudDataQualityReport
     helper_method :path_for_history
 
     def path_for_report_download(report, args)
-      download_hud_reports_spm_path(report, args)
+      download_hud_reports_dqs_path(report, args)
     end
     helper_method :path_for_report_download
+
+    private def path_for_new
+      new_hud_reports_dq_path
+    end
+    helper_method :path_for_new
 
     private def set_pdf_export
       @pdf_export = HudDataQualityReport::DocumentExports::HudDataQualityReportExport.new

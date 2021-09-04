@@ -62,6 +62,11 @@ module HudApr::Caper::CaperConcern
     end
     helper_method :path_for_report_download
 
+    private def path_for_new
+      new_hud_reports_caper_path
+    end
+    helper_method :path_for_new
+
     private def set_pdf_export
       @pdf_export = HudApr::DocumentExports::HudCaperExport.new
     end

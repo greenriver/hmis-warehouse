@@ -62,6 +62,11 @@ module HudApr::CeApr::CeAprConcern
     end
     helper_method :path_for_report_download
 
+    private def path_for_new
+      new_hud_reports_ce_apr_path
+    end
+    helper_method :path_for_new
+
     private def set_pdf_export
       @pdf_export = HudApr::DocumentExports::HudCeAprExport.new
     end

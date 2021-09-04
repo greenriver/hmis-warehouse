@@ -83,6 +83,11 @@ module HudSpmReport
     end
     helper_method :path_for_report_download
 
+    private def path_for_new
+      new_hud_reports_spm_path
+    end
+    helper_method :path_for_new
+
     private def possible_generator_classes
       [
         HudSpmReport::Generators::Fy2020::Generator,
