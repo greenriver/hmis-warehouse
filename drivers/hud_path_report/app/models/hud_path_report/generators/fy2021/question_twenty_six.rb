@@ -91,25 +91,17 @@ module HudPathReport::Generators::Fy2021
     end
 
     private def genders
-      # Hard coding here until we receive 2022 specs
-      # h = HUD.genders.map do |k, v|
-      h = {
-        0 => 'Female',
-        1 => 'Male',
-        2 => 'Trans Female (MTF or Male to Female)',
-        3 => 'Trans Male (FTM or Female to Male)',
-        4 => 'Gender non-conforming (i.e. not exclusively male or female)',
-        8 => 'Client doesn\'t know',
-        9 => 'Client refused',
-        99 => 'Data not collected',
-      }.map do |k, v|
-        [
-          v,
-          a_t[:gender].eq(k),
-        ]
-      end.to_h
-      h['Total'] = :total
-      h.freeze
+      {
+        'Female' => a_t[:gender_multi].eq(0),
+        'Male' => a_t[:gender_multi].eq(1),
+        'No Single Gender' => a_t[:gender_multi].in(::HUD.no_single_gender_queries),
+        'Questioning' => a_t[:gender_multi].in(::HUD.questioning_gender_queries),
+        'Transgender' => a_t[:gender_multi].in(::HUD.transgender_gender_queries),
+        'Client doesn\'t know' => a_t[:gender_multi].eq(8),
+        'Client refused' => a_t[:gender_multi].eq(9),
+        'Data not collected' => a_t[:gender_multi].eq(99),
+        'Total' => :total,
+      }.freeze
     end
 
     private def age_ranges
@@ -132,10 +124,10 @@ module HudPathReport::Generators::Fy2021
       # Hard coding here until we receive 2022 specs
       # h = HUD.races.reject { |k, _| k == 'RaceNone' }.
       h = {
-        'AmIndAKNative' => 'American Indian or Alaska Native', # 1
-        'Asian' => 'Asian', # 2
-        'BlackAfAmerican' => 'Black or African American', # 3
-        'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander', # 4
+        'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous', # 1
+        'Asian' => 'Asian or Asian American', # 2
+        'BlackAfAmerican' => 'Black, African American, or African', # 3
+        'NativeHIOtherPacific' => 'Native Hawaiian or Pacific Islander', # 4
         'White' => 'White', # 5
       }.map do |k, v|
         [
@@ -152,8 +144,8 @@ module HudPathReport::Generators::Fy2021
 
     private def ethnicities
       {
-        'Non-Hispanic/Non-Latino' => a_t[:ethnicity].eq(0),
-        'Hispanic/Latino' => a_t[:ethnicity].eq(1),
+        'Non-Hispanic/Non-Latin(a)(o)(x)' => a_t[:ethnicity].eq(0),
+        'Hispanic/Latin(a)(o)(x)' => a_t[:ethnicity].eq(1),
         'Client Doesn\'t Know' => a_t[:ethnicity].eq(8),
         'Client Refused' => a_t[:ethnicity].eq(9),
         'Data Not Collected' => a_t[:ethnicity].eq(99),

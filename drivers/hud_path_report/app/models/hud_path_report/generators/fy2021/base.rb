@@ -49,7 +49,7 @@ module HudPathReport::Generators::Fy2021
             age: source_client.age_on([@report.start_date, enrollment.EntryDate].max),
             dob: source_client.DOB,
             dob_quality: source_client.DOBDataQuality,
-            gender: source_client.Gender,
+            gender_multi: source_client.gender_multi,
             am_ind_ak_native: source_client.AmIndAKNative,
             asian: source_client.Asian,
             black_af_american: source_client.BlackAfAmerican,

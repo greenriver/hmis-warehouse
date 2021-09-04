@@ -9887,7 +9887,8 @@ CREATE TABLE public.hud_report_dq_clients (
     time_to_move_in integer,
     times_homeless integer,
     veteran_status integer,
-    annual_assessment_in_window boolean
+    annual_assessment_in_window boolean,
+    gender_multi character varying
 );
 
 
@@ -10044,7 +10045,8 @@ CREATE TABLE public.hud_report_path_clients (
     insurance_from_any_source_report_end integer,
     destination integer,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    gender_multi character varying
 );
 
 
@@ -31589,6 +31591,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210825182548'),
 ('20210901200255'),
 ('20210902113909'),
-('20210903113401');
+('20210903113401'),
+('20210904021301');
 
 
