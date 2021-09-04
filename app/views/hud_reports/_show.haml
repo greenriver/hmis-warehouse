@@ -1,0 +1,25 @@
+- version = @report.options['report_version'].presence || @filter.report_version
+= content_for :crumbs do
+  = link_to path_for_history(filter: { report_version: version}) do
+    = "« #{generator.generic_title}"
+- content_for :title, generator.generic_title
+%header.mb-3
+  %h1= content_for :title
+
+- if @show_recent
+  .well
+    .d-flex
+      %h2= generator.file_prefix
+      .ml-auto
+        = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: path_for_report_download(@report, format: :xlsx)
+        .mt-4
+          = link_to({format: :zip},{class: 'btn btn-primary'}) do
+            %span.icon-download2
+            Download Zip File
+
+    = render 'hud_reports/questions', question_label: 'Measure'
+
+-# .text-right
+-#   = link_to 'Generate New Reports for all System Performance Measures', new_hud_reports_spm_path, class: 'btn btn-secondary'
+
+-# = render 'hud_reports/reports_wrapper'

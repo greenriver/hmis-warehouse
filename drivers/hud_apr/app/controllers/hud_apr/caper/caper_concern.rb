@@ -10,7 +10,8 @@ module HudApr::Caper::CaperConcern
   included do
     def generator
       @generator ||= begin
-        case @filter&.report_version || default_report_version
+        version = filter_params[:report_version]&.to_sym || @report&.options&.try(:[], 'report_version') || @filter&.report_version || default_report_version
+        case version.to_sym
         when :fy2020
           HudApr::Generators::Caper::Fy2020::Generator
         when :fy2021
@@ -54,6 +55,12 @@ module HudApr::Caper::CaperConcern
     private def path_for_history(args = nil)
       history_hud_reports_capers_path(args)
     end
+    helper_method :path_for_history
+
+    def path_for_report_download(report, args)
+      download_hud_reports_caper_path(report, args)
+    end
+    helper_method :path_for_report_download
 
     private def set_pdf_export
       @pdf_export = HudApr::DocumentExports::HudCaperExport.new

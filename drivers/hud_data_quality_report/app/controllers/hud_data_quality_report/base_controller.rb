@@ -11,7 +11,7 @@ module HudDataQualityReport
     def available_report_versions
       {
         'FY 2020' => :fy2020,
-        'FY 2021' => :fy2021,
+        # 'FY 2021' => :fy2021,
       }.freeze
     end
     helper_method :available_report_versions
@@ -26,7 +26,8 @@ module HudDataQualityReport
 
     def generator
       @generator ||= begin
-        case filter_params[:report_version]&.to_sym || @filter&.report_version || default_report_version
+        version = filter_params[:report_version]&.to_sym || @report&.options&.try(:[], 'report_version') || @filter&.report_version || default_report_version
+        case version.to_sym
         when :fy2020
           HudDataQualityReport::Generators::Fy2020::Generator
         when :fy2021
@@ -71,6 +72,13 @@ module HudDataQualityReport
     private def path_for_history(args = nil)
       history_hud_reports_dqs_path(args)
     end
+    helper_method :path_for_history
+
+    def path_for_report_download(report, args)
+      download_hud_reports_spm_path(report, args)
+    end
+    helper_method :path_for_report_download
+
     private def set_pdf_export
       @pdf_export = HudDataQualityReport::DocumentExports::HudDataQualityReportExport.new
     end

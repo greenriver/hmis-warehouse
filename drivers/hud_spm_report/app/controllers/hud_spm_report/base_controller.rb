@@ -26,7 +26,8 @@ module HudSpmReport
 
     def generator
       @generator ||= begin
-        case filter_params[:report_version]&.to_sym || @filter&.report_version || default_report_version
+        version = filter_params[:report_version]&.to_sym || @report&.options&.try(:[], 'report_version') || @filter&.report_version || default_report_version
+        case version.to_sym
         when :fy2020
           HudSpmReport::Generators::Fy2020::Generator
         when :fy2021
@@ -71,9 +72,16 @@ module HudSpmReport
     private def path_for_history(args = nil)
       history_hud_reports_spms_path(args)
     end
+    helper_method :path_for_history
+
     private def set_pdf_export
       @pdf_export = HudSpmReport::DocumentExports::HudSpmReportExport.new
     end
+
+    def path_for_report_download(report, args)
+      download_hud_reports_spm_path(report, args)
+    end
+    helper_method :path_for_report_download
 
     private def possible_generator_classes
       [

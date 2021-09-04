@@ -122,6 +122,12 @@ module HudPathReport
     private def path_for_history(args = nil)
       history_hud_reports_paths_path(args)
     end
+    helper_method :path_for_history
+
+    def path_for_report_download(report, args)
+      download_hud_reports_path_path(report, args)
+    end
+    helper_method :path_for_report_download
 
     private def set_pdf_export
       @pdf_export = HudPathReport::DocumentExports::HudPathReportExport.new

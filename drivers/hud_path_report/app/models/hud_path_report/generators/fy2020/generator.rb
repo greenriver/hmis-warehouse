@@ -11,7 +11,7 @@ module HudPathReport::Generators::Fy2020
     end
 
     def self.generic_title
-      'PATH Report'
+      'Annual PATH Report'
     end
 
     def self.short_name

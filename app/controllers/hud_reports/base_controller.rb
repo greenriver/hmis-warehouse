@@ -100,6 +100,9 @@ module HudReports
       else
         report_scope.where(user_id: current_user.id).find(report_id)
       end
+      # Force a re-calculation of generator if we have a report so we get the appropriate year
+      @generator = nil
+      generator
     end
 
     private def report_source
