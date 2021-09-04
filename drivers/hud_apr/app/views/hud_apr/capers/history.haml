@@ -1,7 +1,9 @@
 = render 'breadcrumbs'
 - content_for :title, @generator.title
-%header.mb-3
+%header.mb-3.d-flex
   %h1= content_for :title
+  .ml-auto
+    = link_to 'Generate New Full CAPER', new_hud_reports_caper_path, class: 'btn btn-secondary'
 
 - if @show_recent
   .well
@@ -13,8 +15,6 @@
           Download Zip File
 
     = render 'questions'
-.text-right
-  = link_to 'Generate New Full CAPER', new_hud_reports_caper_path, class: 'btn btn-secondary'
 
 = render 'hud_reports/year_tabs'
 = render 'hud_reports/reports_wrapper'

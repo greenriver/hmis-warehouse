@@ -2,9 +2,10 @@
 %header.mb-3
   %h1= content_for :title
 
-= render 'hud_reports/tabs', tab_name: 'Coordinated Entry Annual Performance Report'
-
-
-.jReportListing
-  = render 'all_questions'
-= render 'hud_reports/list_refresher'
+.row
+  .col-sm-3
+    = render 'hud_reports/tabs', tab_name: generator.generic_title
+  .col-sm-9
+    .jReportListing
+      = render 'all_questions'
+    = render 'hud_reports/list_refresher'

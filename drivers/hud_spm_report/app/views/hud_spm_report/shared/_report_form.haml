@@ -1,7 +1,7 @@
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
 = simple_form_for @filter, as: :filter, url: url do |f|
   - content_for :filters_col_full do
-    = render 'hud_reports/report_form_fields', f: f, default_coc_code: default_coc_code
+    = render 'hud_reports/report_form_fields', f: f, default_coc_code: default_coc_code, report_versions: available_report_versions
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue Report'
