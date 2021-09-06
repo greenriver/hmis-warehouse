@@ -17,7 +17,11 @@ class AdHocDataSourcesController < ApplicationController
   end
 
   def download
-    send_data data_source_source.blank_csv, filename: 'ad-hoc-template.csv'
+    respond_to do |format|
+      format.xlsx do
+        headers['Content-Disposition'] = 'attachment; filename=ad-hoc-template.xlsx'
+      end
+    end
   end
 
   def edit

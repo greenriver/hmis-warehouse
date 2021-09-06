@@ -90,4 +90,4 @@
                       %td.text-center
                         = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized_for_cas? }
   .text-right
-    = f.button :submit, 'Update Health Prioritizations'
+    = f.button :submit, 'Save'
