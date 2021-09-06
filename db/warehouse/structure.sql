@@ -9677,7 +9677,8 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_event integer,
     ce_event_problem_sol_div_rr_result integer,
     ce_event_referral_case_manage_after integer,
-    ce_event_referral_result integer
+    ce_event_referral_result integer,
+    gender_multi character varying
 );
 
 
@@ -9886,7 +9887,8 @@ CREATE TABLE public.hud_report_dq_clients (
     time_to_move_in integer,
     times_homeless integer,
     veteran_status integer,
-    annual_assessment_in_window boolean
+    annual_assessment_in_window boolean,
+    gender_multi character varying
 );
 
 
@@ -10043,7 +10045,8 @@ CREATE TABLE public.hud_report_path_clients (
     insurance_from_any_source_report_end integer,
     destination integer,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    gender_multi character varying
 );
 
 
@@ -13850,7 +13853,7 @@ CREATE TABLE public.synthetic_assessments (
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    hud_assessment_id bigint
+    hud_assessment_assessment_id character varying
 );
 
 
@@ -13886,7 +13889,7 @@ CREATE TABLE public.synthetic_events (
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    hud_event_id bigint
+    hud_event_event_id character varying
 );
 
 
@@ -28404,13 +28407,6 @@ CREATE INDEX index_synthetic_assessments_on_enrollment_id ON public.synthetic_as
 
 
 --
--- Name: index_synthetic_assessments_on_hud_assessment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_synthetic_assessments_on_hud_assessment_id ON public.synthetic_assessments USING btree (hud_assessment_id);
-
-
---
 -- Name: index_synthetic_assessments_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28429,13 +28425,6 @@ CREATE INDEX index_synthetic_events_on_client_id ON public.synthetic_events USIN
 --
 
 CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events USING btree (enrollment_id);
-
-
---
--- Name: index_synthetic_events_on_hud_event_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_synthetic_events_on_hud_event_id ON public.synthetic_events USING btree (hud_event_id);
 
 
 --
@@ -31587,6 +31576,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210823203031'),
 ('20210825182548'),
 ('20210901200255'),
-('20210902113909');
+('20210902113909'),
+('20210903113401'),
+('20210904021301'),
+('20210906163956');
 
 

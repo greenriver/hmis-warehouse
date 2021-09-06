@@ -60,9 +60,6 @@ module GrdaWarehouse::Tasks
           msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
           @notifier.ping msg if @send_notifications
         end
-
-        # Find CAS Non HMIS clients that should be connected to warehouse clients
-        Cas::NonHmisClient.find_exact_matches
       end
     end
 
