@@ -1,8 +1,5 @@
 wb = xlsx_package.workbook
-csv = [
-  'First Name,Middle Name,Last Name,SSN,DOB',
-  'First,Middle,Last,000-00-000,2000-01-30',
-]
+csv = GrdaWarehouse::AdHocDataSource.blank_csv
 
 wb.add_worksheet(name: 'Template'.slice(0, 30)) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})

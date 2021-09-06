@@ -30,6 +30,6 @@ class GrdaWarehouse::AdHocDataSource < GrdaWarehouseBase
     [
       'First Name,Middle Name,Last Name,SSN,DOB',
       'First,Middle,Last,000-00-000,2000-01-30',
-    ].join("\n")
+    ]
   end
 end
