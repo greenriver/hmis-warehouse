@@ -6,7 +6,7 @@
 
 module Importing::HudZip
   class FetchAndImportJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(klass:, options:)
       safe_klass = known_classes.detect { |m| klass == m }

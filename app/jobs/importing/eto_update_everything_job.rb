@@ -6,7 +6,7 @@
 
 module Importing
   class EtoUpdateEverythingJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(start_date: 2.years.ago, data_source_id:)
       # Ensure we know about all the available touch points

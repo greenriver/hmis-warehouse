@@ -8,7 +8,7 @@ module Health
   class ProcessEnrollmentChangesJob < BaseJob
     include HealthEnrollment
 
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(enrollment_id)
       enrollment = Health::Enrollment.find(enrollment_id)
@@ -43,7 +43,7 @@ module Health
                 begin
                   re_enroll_patient(referral, transaction)
                   returning_patients += 1
-                rescue Health::MedicaidIdConflict # rubocop:disable Metrics/BlockNesting
+                rescue Health::MedicaidIdConflict
                   errors << conflict_message(transaction)
                 end
               end

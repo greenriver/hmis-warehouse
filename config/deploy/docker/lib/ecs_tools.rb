@@ -38,10 +38,10 @@ class EcsTools
     exec("awslogs get #{group} ALL --watch")
   end
 
-  def poll_state_until_stable!(cluster, failures: true)
+  def poll_state_until_stable!(cluster, failures: true, max_unfinished: 0)
     puts 'These are only services, not tasks (e.g. migrations won\'t appear here)'
     puts 'PRIMARY: The most recently pushed task definition. These are the desired things we want or are deployed'
-    puts 'ACTIVE: This is what\'s currently running and will show up when we have not yet transfered all the containers to be primary'
+    puts 'ACTIVE: This is what\'s currently running and will show up when we have not yet transferred all the containers to be primary'
     puts 'INACTIVE: An old deployment. You might never see this. They\'re ephemeral.'
     puts ''
 
@@ -69,12 +69,15 @@ class EcsTools
 
       bad = false
 
+      unfinished_count = services.map { |service| finished.call(service) }.count(false)
+
       services.each do |service|
         deployments = service.deployments
 
         finished_deployment = finished.call(service) #deployments.length == 1 && deployments[0].status == 'PRIMARY' && deployments[0].desired_count == deployments[0].running_count
 
-        next if failures && finished_deployment
+        # Skip printing anything if we have finished this deployment, or if we're under the acceptable threshold
+        next if failures && finished_deployment || failures && unfinished_count <= max_unfinished
 
         bad ||= !finished_deployment
 

@@ -284,7 +284,7 @@ namespace :grda_warehouse do
 
   desc 'Warm Cohort Cache'
   task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do |task, args|
-    GrdaWarehouse::Cohort.delay(queue: :long_running).prepare_active_cohorts
+    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).prepare_active_cohorts
   end
 
   desc 'Process Recurring HMIS Exports'
@@ -338,7 +338,7 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.invalidate_processing!
 
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
-    GrdaWarehouse::ServiceHistoryServiceMaterialized.delay(queue: :long_running).rebuild!
+    GrdaWarehouse::ServiceHistoryServiceMaterialized.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).rebuild!
   end
 
   desc 'Send Health Emergency Notifications'
