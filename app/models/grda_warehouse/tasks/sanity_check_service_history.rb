@@ -39,7 +39,6 @@ module GrdaWarehouse::Tasks
         # load_source_service_counts(batch)
       end
       sanity_check
-      double_check_materialized_view
       logger.info '...sanity check complete'
       @dirty
     end
@@ -68,25 +67,6 @@ module GrdaWarehouse::Tasks
       end
       logger.info rebuilding_message
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
-    end
-
-    def double_check_materialized_view
-      ids = @client_ids.sample(250)
-      materialized_dates = GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
-        in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
-        where(client_id: ids).
-        group(:client_id).
-        maximum(:date)
-      shs_dates = GrdaWarehouse::ServiceHistoryService.homeless.
-        in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
-        where(client_id: ids).
-        group(:client_id).
-        maximum(:date)
-      incorrect_dates = materialized_dates.reject { |client_id, date| shs_dates[client_id] == date }
-      return if incorrect_dates.blank?
-
-      msg = "Found a discrepency (#{incorrect_dates.count}) in SHS and Materialized View #{incorrect_dates.inspect}"
-      @notifier.ping msg
     end
 
     def attempts
