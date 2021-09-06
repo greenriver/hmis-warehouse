@@ -21,18 +21,17 @@ module Reporting
 
     def source_data(ids)
       source_data_scope(ids).
-        pluck(*source_columns.values).map do |row|
-          Hash[source_columns.keys.zip(row)]
-        end
+        order(service_history_enrollment_id: :asc, date: :asc)
     end
 
     private def source_data_scope(ids)
-      GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: [:project, :organization, :client]).
+      GrdaWarehouse::ServiceHistoryService.
+        # joins(service_history_enrollment: [:project, :organization, :client]).
+        preload(service_history_enrollment: [:project, :organization, :client]).
         homeless.
         # in_project_type([1,2,4,8]).
         where(client_id: ids).
-        where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current)).
-        order(service_history_enrollment_id: :asc, date: :asc)
+        where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current))
     end
 
     # Collapse all days into consecutive stays
@@ -46,13 +45,15 @@ module Reporting
           cache_client = GrdaWarehouse::Hud::Client.new
           client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
           data = source_data(ids)
-          last_day = data.first
+          last_day = row_to_hash(data.first)
 
           start_date = nil
           end_date = nil
           length_of_stay = 0
           # create an array with a record for each enrollment that includes the first and last date seen
-          data.each do |day|
+          data.find_each_with_order(batch_size: 5_000) do |row|
+            day = row_to_hash(row)
+
             # add a new row
             if day[:service_history_enrollment_id] != last_day[:service_history_enrollment_id] || last_day[:date] < (day[:date] - 1.day)
               # save off the previous stay
@@ -103,6 +104,30 @@ module Reporting
         ethnicity: c_t[:Ethnicity],
         gender: c_t[:Gender],
       }.freeze
+    end
+
+    private def row_to_hash(row)
+      # Hash[source_columns.keys.zip(row)]
+      {
+        service_history_enrollment_id: row.service_history_enrollment_id,
+        record_type: row.record_type,
+        date: row.date,
+        age: row.age,
+        service_type: row.service_type,
+        client_id: row.client_id,
+        project_type: row.project_type,
+        first_date_in_program: row.service_history_enrollment.first_date_in_program,
+        last_date_in_program: row.service_history_enrollment.last_date_in_program,
+        project_id: row.service_history_enrollment.project.id,
+        hmis_project_id: row.service_history_enrollment.project.ProjectID,
+        destination: row.service_history_enrollment.destination,
+        project_name: row.service_history_enrollment.project_name,
+        organization_id: row.service_history_enrollment.organization.id,
+        unaccompanied_youth: row.service_history_enrollment.unaccompanied_youth,
+        parenting_youth: row.service_history_enrollment.parenting_youth,
+        ethnicity: row.service_history_enrollment.client.Ethnicity,
+        gender: row.service_history_enrollment.client.Gender,
+      }
     end
 
     def client_ids
