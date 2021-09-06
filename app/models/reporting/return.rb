@@ -51,7 +51,7 @@ module Reporting
           end_date = nil
           length_of_stay = 0
           # create an array with a record for each enrollment that includes the first and last date seen
-          data.find_each_with_order(batch_size: 5_000) do |row|
+          data.find_each_with_order(batch_size: 25_000) do |row|
             day = row_to_hash(row)
 
             # add a new row
