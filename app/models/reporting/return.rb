@@ -108,31 +108,8 @@ module Reporting
       }.freeze
     end
 
-    private def row_to_hash(row, instance: false)
-      if instance
-        {
-          service_history_enrollment_id: row.service_history_enrollment_id,
-          record_type: row.record_type,
-          date: row.date,
-          age: row.age,
-          service_type: row.service_type,
-          client_id: row.client_id,
-          project_type: row.project_type,
-          first_date_in_program: row.service_history_enrollment.first_date_in_program,
-          last_date_in_program: row.service_history_enrollment.last_date_in_program,
-          project_id: row.service_history_enrollment.project.id,
-          hmis_project_id: row.service_history_enrollment.project.ProjectID,
-          destination: row.service_history_enrollment.destination,
-          project_name: row.service_history_enrollment.project_name,
-          organization_id: row.service_history_enrollment.organization.id,
-          unaccompanied_youth: row.service_history_enrollment.unaccompanied_youth,
-          parenting_youth: row.service_history_enrollment.parenting_youth,
-          ethnicity: row.service_history_enrollment.client.Ethnicity,
-          gender: row.service_history_enrollment.client.Gender,
-        }
-      else
-        Hash[source_columns.keys.zip(row)]
-      end
+    private def row_to_hash(row)
+      Hash[source_columns.keys.zip(row)]
     end
 
     def client_ids
