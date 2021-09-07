@@ -11,7 +11,7 @@ module HudSpmReport
     def available_report_versions
       {
         'FY 2020' => :fy2020,
-        'FY 2021' => :fy2021,
+        # 'FY 2021' => :fy2021,
       }.freeze
     end
     helper_method :available_report_versions

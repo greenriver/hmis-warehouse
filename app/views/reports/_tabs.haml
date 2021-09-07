@@ -1,4 +1,4 @@
-%ul.nav.nav-pills.flex-column{role: :tablist, aria: {orientation: :vertical}}
+%ul.nav.nav-pills.report-nav.flex-column{role: :tablist, aria: {orientation: :vertical}}
   - @reports.each_with_index do |(category,_), index|
     %li.nav-item{role: :presentation}
       %a{href: "##{category.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{category}'}, class: ['nav-link', (index == 0 ? 'active' : '')]}

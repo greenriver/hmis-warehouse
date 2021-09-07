@@ -10,6 +10,7 @@ module Filters
     include AvailableSubPopulations
     include ArelHelper
     include ApplicationHelper
+    include Filter::FilterScopes
     include ActionView::Helpers::TagHelper
     include ActionView::Context
 

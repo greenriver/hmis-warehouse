@@ -66,19 +66,10 @@ module HudReports
         enforce_one_year_range: false,
       ).update(@report.options)
 
-      she_scope = GrdaWarehouse::ServiceHistoryEnrollment.all
-      she_scope = filter_for_user_access(she_scope)
-      she_scope = filter_for_projects(she_scope)
-      she_scope = filter_for_cocs(she_scope)
-      she_scope = filter_for_veteran_status(she_scope)
-      she_scope = filter_for_household_type(she_scope)
-      she_scope = filter_for_head_of_household(she_scope)
-      she_scope = filter_for_age(she_scope)
-      she_scope = filter_for_gender(she_scope)
-      she_scope = filter_for_race(she_scope)
-      she_scope = filter_for_ethnicity(she_scope)
-      she_scope = filter_for_sub_population(she_scope)
-      scope = scope.merge(she_scope)
+      # Make sure we take advantage of the additive nature of HUD report filters
+      @filter.project_ids = @report.project_ids
+
+      scope = scope.merge(@filter.apply(GrdaWarehouse::ServiceHistoryEnrollment.all))
 
       scope.select(:id)
     end
