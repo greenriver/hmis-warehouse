@@ -10,7 +10,7 @@ module HudApr::Generators::Shared::Fy2020
 
     def self.table_descriptions
       {
-        'Question 13' => 'PhysicalandMentalHealthConditions',
+        'Question 13' => 'Physical and Mental Health Conditions',
         'Q13a1' => 'Physical and Mental Health Conditions at Start',
         'Q13b1' => 'Physical and Mental Health Conditions at Exit',
         'Q13c1' => 'Physical and Mental Health Conditions for Stayers',
