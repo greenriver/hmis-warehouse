@@ -8,18 +8,6 @@ module HudApr::Apr::AprConcern
   extend ActiveSupport::Concern
 
   included do
-    def generator
-      @generator ||= begin
-        version = filter_params[:report_version]&.to_sym || @report&.options&.try(:[], 'report_version') || @filter&.report_version || default_report_version
-        case version.to_sym
-        when :fy2020
-          HudApr::Generators::Apr::Fy2020::Generator
-        when :fy2021
-          HudApr::Generators::Apr::Fy2021::Generator
-        end
-      end
-    end
-
     private def path_for_question(question, report: nil)
       hud_reports_apr_question_path(apr_id: report&.id || 0, id: question)
     end
@@ -72,10 +60,10 @@ module HudApr::Apr::AprConcern
     end
 
     private def possible_generator_classes
-      [
-        HudApr::Generators::Apr::Fy2020::Generator,
-        HudApr::Generators::Apr::Fy2021::Generator,
-      ]
+      {
+        fy2020: HudApr::Generators::Apr::Fy2020::Generator,
+        fy2021: HudApr::Generators::Apr::Fy2021::Generator,
+      }
     end
   end
 end

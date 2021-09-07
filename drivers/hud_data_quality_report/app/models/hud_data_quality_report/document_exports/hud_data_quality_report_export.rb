@@ -10,7 +10,7 @@ module HudDataQualityReport::DocumentExports
     include HudReports::HudPdfExportConcern
 
     def generator_url
-      hud_reports_spm_path(report)
+      hud_reports_dq_path(report)
     end
 
     private def controller_class

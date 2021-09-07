@@ -43,5 +43,9 @@ module Filters
       scope = filter_for_sub_population(scope)
       scope
     end
+
+    private def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
+    end
   end
 end

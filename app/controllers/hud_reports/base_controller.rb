@@ -158,8 +158,6 @@ module HudReports
       filter_p = params.require(:filter).permit(filter_class.new.known_params)
       filter_p[:user_id] = current_user.id
       filter_p[:enforce_one_year_range] = false
-      # filter[:project_ids] = filter[:project_ids].reject(&:blank?).map(&:to_i)
-      # filter[:project_group_ids] = filter[:project_group_ids].reject(&:blank?).map(&:to_i)
       filter_p
     end
 
@@ -171,8 +169,16 @@ module HudReports
       report_source.where(report_name: possible_titles)
     end
 
+    def generator
+      @generator ||= begin
+        version = filter_params[:report_version]&.to_sym || @report&.options&.try(:[], 'report_version') || @filter&.report_version || default_report_version
+        possible_generator_classes[version.to_sym]
+      end
+    end
+    helper_method :generator
+
     private def possible_titles
-      possible_generator_classes.map(&:title)
+      possible_generator_classes.values.map(&:title)
     end
 
     def report_version_urls

@@ -24,19 +24,6 @@ module HudSpmReport
       ::Filters::HudFilterBase
     end
 
-    def generator
-      @generator ||= begin
-        version = filter_params[:report_version]&.to_sym || @report&.options&.try(:[], 'report_version') || @filter&.report_version || default_report_version
-        case version.to_sym
-        when :fy2020
-          HudSpmReport::Generators::Fy2020::Generator
-        when :fy2021
-          HudSpmReport::Generators::Fy2021::Generator
-        end
-      end
-    end
-    helper_method :generator
-
     private def path_for_question(question, report: nil)
       hud_reports_spm_measure_path(spm_id: report&.to_param || 0, id: question)
     end
@@ -89,10 +76,10 @@ module HudSpmReport
     helper_method :path_for_new
 
     private def possible_generator_classes
-      [
-        HudSpmReport::Generators::Fy2020::Generator,
-        HudSpmReport::Generators::Fy2021::Generator,
-      ]
+      {
+        fy2020: HudSpmReport::Generators::Fy2020::Generator,
+        fy2021: HudSpmReport::Generators::Fy2021::Generator,
+      }
     end
   end
 end

@@ -24,19 +24,6 @@ module HudDataQualityReport
       ::HudDataQualityReport::Filters::DqFilter
     end
 
-    def generator
-      @generator ||= begin
-        version = filter_params[:report_version]&.to_sym || @report&.options&.try(:[], 'report_version') || @filter&.report_version || default_report_version
-        case version.to_sym
-        when :fy2020
-          HudDataQualityReport::Generators::Fy2020::Generator
-        when :fy2021
-          HudDataQualityReport::Generators::Fy2021::Generator
-        end
-      end
-    end
-    helper_method :generator
-
     private def path_for_question(question, report: nil)
       hud_reports_dq_question_path(dq_id: report&.id || 0, id: question)
     end
@@ -89,10 +76,10 @@ module HudDataQualityReport
     end
 
     private def possible_generator_classes
-      [
-        HudDataQualityReport::Generators::Fy2020::Generator,
-        HudDataQualityReport::Generators::Fy2021::Generator,
-      ]
+      {
+        fy2020: HudDataQualityReport::Generators::Fy2020::Generator,
+        fy2021: HudDataQualityReport::Generators::Fy2021::Generator,
+      }
     end
   end
 end

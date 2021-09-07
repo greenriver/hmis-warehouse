@@ -75,18 +75,6 @@ module HudPathReport
       HudPathReport::Filters::PathFilter
     end
 
-    def generator
-      @generator ||= begin
-        case filter_params[:report_version]&.to_sym || @filter&.report_version || default_report_version
-        when :fy2020
-          HudPathReport::Generators::Fy2020::Generator
-        when :fy2021
-          HudPathReport::Generators::Fy2021::Generator
-        end
-      end
-    end
-    helper_method :generator
-
     private def path_for_question(question, report: nil)
       hud_reports_path_question_path(path_id: report&.id || 0, id: question)
     end
@@ -139,10 +127,10 @@ module HudPathReport
     end
 
     private def possible_generator_classes
-      [
-        HudPathReport::Generators::Fy2020::Generator,
-        HudPathReport::Generators::Fy2021::Generator,
-      ]
+      {
+        fy2020: HudPathReport::Generators::Fy2020::Generator,
+        fy2021: HudPathReport::Generators::Fy2021::Generator,
+      }
     end
   end
 end
