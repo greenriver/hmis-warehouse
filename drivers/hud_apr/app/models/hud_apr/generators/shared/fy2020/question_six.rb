@@ -11,12 +11,12 @@ module HudApr::Generators::Shared::Fy2020
     def self.table_descriptions
       {
         'Question 6' => 'Data Quality',
-        'Q6a' => 'Data Quality: Personally Identifiable Information',
-        'Q6b' => 'Data Quality: Universal Data Elements',
-        'Q6c' => 'Data Quality: Income and Housing Data Quality',
-        'Q6d' => 'Data Quality: Chronic Homelessness',
-        'Q6e' => 'Data Quality: Timeliness',
-        'Q6f' => 'Data Quality: Inactive Records: Street Outreach and Emergency Shelter',
+        'Q6a' => 'Personally Identifiable Information',
+        'Q6b' => 'Universal Data Elements',
+        'Q6c' => 'Income and Housing Data Quality',
+        'Q6d' => 'Chronic Homelessness',
+        'Q6e' => 'Timeliness',
+        'Q6f' => 'Inactive Records: Street Outreach and Emergency Shelter',
       }.freeze
     end
 

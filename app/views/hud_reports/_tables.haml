@@ -1,5 +1,9 @@
 - metadata = report&.existing_universe(question)&.metadata
 - if metadata.present?
   - Array(metadata['tables']).each do |table|
-    %h3= "Table #{table}: #{@generator.describe_table(table)}"
+    %h3
+      - if @generator.describe_table(table).present?
+        = "Table #{table}: #{@generator.describe_table(table)}"
+      - else
+        = "Table #{table}"
     = render 'hud_reports/table', report: report, question: question, table: table
