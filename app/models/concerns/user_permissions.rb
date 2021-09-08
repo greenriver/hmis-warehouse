@@ -43,6 +43,7 @@ module UserPermissions
         :can_manage_an_agency,
         :can_view_hud_reports,
         :can_access_some_cohorts,
+        :can_manage_some_cohorts,
         :can_access_window_search,
         :can_delete_projects_or_data_sources,
         :can_manage_some_ad_hoc_ds,
@@ -176,6 +177,10 @@ module UserPermissions
 
     def can_access_some_cohorts
       can_manage_cohorts? || can_edit_cohort_clients? || can_edit_assigned_cohorts? || can_view_assigned_cohorts?
+    end
+
+    def can_manage_some_cohorts
+      can_manage_cohorts? || can_edit_assigned_cohorts?
     end
 
     def can_manage_some_ad_hoc_ds

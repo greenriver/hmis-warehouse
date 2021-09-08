@@ -9,7 +9,8 @@ class CohortsController < ApplicationController
   include CohortAuthorization
   include CohortClients
   before_action :some_cohort_access!
-  before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
+  before_action :require_can_manage_cohorts!, only: [:create, :destroy]
+  before_action :require_can_manage_some_cohorts!, only: [:edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
   before_action :set_groups, only: [:edit, :update, :destroy, :show]
