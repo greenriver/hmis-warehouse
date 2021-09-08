@@ -8,10 +8,6 @@ module HudApr::Caper::CaperConcern
   extend ActiveSupport::Concern
 
   included do
-    def generator
-      @generator ||= HudApr::Generators::Caper::Fy2020::Generator
-    end
-
     private def path_for_question(question, report: nil)
       hud_reports_caper_question_path(caper_id: report&.id || 0, id: question)
     end
@@ -36,8 +32,38 @@ module HudApr::Caper::CaperConcern
       hud_reports_caper_question_cell_path(caper_id: report&.id || 0, question_id: question, id: cell_label, table: table)
     end
 
+    private def path_for_running_all_questions
+      running_all_questions_hud_reports_capers_path
+    end
+
+    private def path_for_running_question
+      running_hud_reports_capers_path(link_params.except('action', 'controller'))
+    end
+
+    private def path_for_history(args = nil)
+      history_hud_reports_capers_path(args)
+    end
+    helper_method :path_for_history
+
+    def path_for_report_download(report, args)
+      download_hud_reports_caper_path(report, args)
+    end
+    helper_method :path_for_report_download
+
+    private def path_for_new
+      new_hud_reports_caper_path
+    end
+    helper_method :path_for_new
+
     private def set_pdf_export
       @pdf_export = HudApr::DocumentExports::HudCaperExport.new
+    end
+
+    private def possible_generator_classes
+      {
+        fy2020: HudApr::Generators::Caper::Fy2020::Generator,
+        fy2021: HudApr::Generators::Caper::Fy2021::Generator,
+      }
     end
   end
 end

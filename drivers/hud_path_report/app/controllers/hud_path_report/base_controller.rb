@@ -15,6 +15,7 @@ module HudPathReport
         permit(
           :start,
           :end,
+          :report_version,
           coc_codes: [],
           project_ids: [],
           project_type_codes: [],
@@ -25,7 +26,9 @@ module HudPathReport
 
       filter_p
     end
+    helper_method :available_report_versions
 
+    # NOTE filter differs slightly from the base version
     private def filter
       year = if Date.current.month >= 10
         Date.current.year
@@ -46,23 +49,31 @@ module HudPathReport
           @filter.project_type_codes = options['project_type_codes']
           @filter.project_group_ids = options['project_group_ids']
           @filter.data_source_ids = options['data_source_ids']
+          @filter.report_version = options['report_version'].presence || default_report_version
         else
           @filter.start = Date.new(year - 1, 10, 1)
           @filter.end = Date.new(year, 9, 30)
+          @filter.report_version = default_report_version
         end
       end
       # Override with params if set
       @filter.set_from_params(filter_params) if filter_params.present?
     end
 
+    def available_report_versions
+      {
+        'FY 2020' => :fy2020,
+        'FY 2021' => :fy2021,
+      }.freeze
+    end
+
+    def default_report_version
+      :fy2020
+    end
+
     private def filter_class
       HudPathReport::Filters::PathFilter
     end
-
-    private def generator
-      @generator ||= HudPathReport::Generators::Fy2020::Generator
-    end
-    helper_method :generator
 
     private def path_for_question(question, report: nil)
       hud_reports_path_question_path(path_id: report&.id || 0, id: question)
@@ -88,8 +99,38 @@ module HudPathReport
       hud_reports_path_question_cell_path(path_id: report.id, question_id: question, id: cell_label, table: table)
     end
 
+    private def path_for_running_all_questions
+      running_all_questions_hud_reports_paths_path
+    end
+
+    private def path_for_running_question
+      running_hud_reports_paths_path(link_params.except('action', 'controller'))
+    end
+
+    private def path_for_history(args = nil)
+      history_hud_reports_paths_path(args)
+    end
+    helper_method :path_for_history
+
+    def path_for_report_download(report, args)
+      download_hud_reports_path_path(report, args)
+    end
+    helper_method :path_for_report_download
+
+    private def path_for_new
+      new_hud_reports_path_path
+    end
+    helper_method :path_for_new
+
     private def set_pdf_export
       @pdf_export = HudPathReport::DocumentExports::HudPathReportExport.new
+    end
+
+    private def possible_generator_classes
+      {
+        fy2020: HudPathReport::Generators::Fy2020::Generator,
+        fy2021: HudPathReport::Generators::Fy2021::Generator,
+      }
     end
   end
 end

@@ -700,6 +700,50 @@ module HUD
     }.freeze
   end
 
+  def no_single_gender_queries
+    [
+      '0,1',
+      '0,1,4',
+      '0,1,4,5',
+      '0,1,5',
+      '0,4',
+      '0,4,5',
+      '1,4',
+      '1,4,5',
+      '4',
+      '4,5',
+    ]
+  end
+
+  def questioning_gender_queries
+    [
+      '0,1,4,5',
+      '0,1,4',
+      '0,1,5,6',
+      '0,1,6',
+      '0,4,5,6',
+      '0,4,6',
+      '0,5,6',
+      '0,6',
+      '1,4,5,6',
+      '1,4,6',
+      '1,5,6',
+      '1,6',
+      '4,5,6',
+      '4,6',
+      '5,6',
+      '6',
+    ]
+  end
+
+  def transgender_gender_queries
+    [
+      '0,5',
+      '1,5',
+      '5',
+    ]
+  end
+
   # 3.917.1
   def living_situation(id, reverse = false)
     map = living_situations

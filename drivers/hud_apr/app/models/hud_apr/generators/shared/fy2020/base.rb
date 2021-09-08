@@ -417,6 +417,52 @@ module HudApr::Generators::Shared::Fy2020
       @a_t ||= report_client_universe.arel_table
     end
 
+    private def ethnicities
+      {
+        '0' => {
+          order: 1,
+          label: 'Non-Hispanic/Non-Latino',
+          clause: a_t[:ethnicity].eq(0),
+        },
+        '1' => {
+          order: 2,
+          label: 'Hispanic/Latino',
+          clause: a_t[:ethnicity].eq(1),
+        },
+        '8 or 9' => {
+          order: 3,
+          label: 'Client Doesn’t Know/Client Refused',
+          clause: a_t[:ethnicity].in([8, 9]),
+        },
+        '99' => {
+          order: 4,
+          label: 'Data Not Collected',
+          clause: a_t[:ethnicity].eq(99).or(a_t[:ethnicity].eq(nil)),
+        },
+        'Total' => {
+          order: 5,
+          label: 'Total',
+          clause: Arel.sql('1=1'),
+        },
+      }.sort_by { |_, m| m[:order] }.freeze
+    end
+
+    private def disability_clauses(suffix)
+      {
+        'Mental Health Problem' => a_t["mental_health_problem_#{suffix}".to_sym].eq(1),
+        'Alcohol Abuse' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true).
+          and(a_t["drug_abuse_#{suffix}".to_sym].eq(false)),
+        'Drug Abuse' => a_t["drug_abuse_#{suffix}".to_sym].eq(true).
+          and(a_t["alcohol_abuse_#{suffix}".to_sym].eq(false)),
+        'Both Alcohol and Drug Abuse' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true).
+          and(a_t["drug_abuse_#{suffix}".to_sym].eq(true)),
+        'Chronic Health Condition' => a_t["chronic_disability_#{suffix}".to_sym].eq(1),
+        'HIV/AIDS' => a_t["hiv_aids_#{suffix}".to_sym].eq(1),
+        'Developmental Disability' => a_t["developmental_disability_#{suffix}".to_sym].eq(1),
+        'Physical Disability' => a_t["physical_disability_#{suffix}".to_sym].eq(1),
+      }
+    end
+
     # NOTE: HMIS allows for clients to report multiple races. The APR however, does not, and has a single
     # race field. The order that the races appear in the report is encoded in the 'order' of this hash.
     # This practice is very brittle, so we'll copy those here and hard code those relationships
