@@ -47,6 +47,7 @@ capybara-*.html
 /coverage/
 /brakeman/
 /spec/tmp
+/spec/vcr
 **.orig
 rerun.txt
 pickle-email-*.html

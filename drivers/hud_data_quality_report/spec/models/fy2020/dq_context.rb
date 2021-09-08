@@ -64,13 +64,14 @@ RSpec.shared_context 'dq context', shared_context: :metadata do
 
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
     if Fixpoint.exists? :hud_hmis_export_app
+      HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      restore_fixpoint :hud_hmis_export_app
-      restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+      restore_fixpoint :hud_hmis_export_hud_dq_app
+      restore_fixpoint :hud_hmis_export_hud_dq_warehouse, connection: warehouse
     else
       setup(default_setup_path)
-      store_fixpoint :hud_hmis_export_app
-      store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+      store_fixpoint :hud_hmis_export_hud_dq_app
+      store_fixpoint :hud_hmis_export_hud_dq_warehouse, connection: warehouse
     end
   end
 
