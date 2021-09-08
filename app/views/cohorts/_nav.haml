@@ -44,7 +44,7 @@
           Re-Rank
         %input#rank_order{type: :hidden, name: :rank_order}
 
-  - if ! system_cohort && (can_edit_cohort_clients? || can_manage_cohorts?)
+  - if ! system_cohort && can_edit_some_cohorts?
     %li.nav-item
       = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'nav-link' do
         %i.icon-users
