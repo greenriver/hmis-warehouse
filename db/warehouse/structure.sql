@@ -13853,7 +13853,7 @@ CREATE TABLE public.synthetic_assessments (
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    hud_assessment_assessment_id character varying
+    hud_assessment_id bigint
 );
 
 
@@ -13889,7 +13889,7 @@ CREATE TABLE public.synthetic_events (
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    hud_event_event_id character varying
+    hud_event_id bigint
 );
 
 
@@ -28407,6 +28407,13 @@ CREATE INDEX index_synthetic_assessments_on_enrollment_id ON public.synthetic_as
 
 
 --
+-- Name: index_synthetic_assessments_on_hud_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_assessments_on_hud_assessment_id ON public.synthetic_assessments USING btree (hud_assessment_id);
+
+
+--
 -- Name: index_synthetic_assessments_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28425,6 +28432,13 @@ CREATE INDEX index_synthetic_events_on_client_id ON public.synthetic_events USIN
 --
 
 CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_events_on_hud_event_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_events_on_hud_event_id ON public.synthetic_events USING btree (hud_event_id);
 
 
 --
@@ -31578,7 +31592,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210901200255'),
 ('20210902113909'),
 ('20210903113401'),
-('20210904021301'),
-('20210906163956');
+('20210904021301');
 
 
