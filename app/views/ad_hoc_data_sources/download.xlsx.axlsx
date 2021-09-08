@@ -3,6 +3,8 @@ csv = GrdaWarehouse::AdHocDataSource.blank_csv
 
 wb.add_worksheet(name: 'Template'.slice(0, 30)) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(csv.first.split(','), style: title)
-  sheet.add_row(csv.last.split(','))
+  sheet.add_row(csv.first, style: title)
+  csv.drop(1).each do |row|
+    sheet.add_row(row)
+  end
 end

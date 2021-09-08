@@ -28,8 +28,8 @@ class GrdaWarehouse::AdHocDataSource < GrdaWarehouseBase
 
   def self.blank_csv
     [
-      'First Name,Middle Name,Last Name,SSN,DOB',
-      'First,Middle,Last,000-00-000,2000-01-30',
+      ['First Name', 'Middle Name', 'Last Name', 'SSN', 'DOB'],
+      ['First', 'Middle', 'Last', '000-00-000', '2000-01-30'],
     ]
   end
 end
