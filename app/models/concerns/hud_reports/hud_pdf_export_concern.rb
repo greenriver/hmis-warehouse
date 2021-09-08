@@ -31,7 +31,7 @@ module HudReports::HudPdfExportConcern
     end
 
     private def possible_generators
-      possible_generator_classes.values.map do |rg|
+      possible_generator_classes.map do |rg|
         [
           rg.title,
           rg,

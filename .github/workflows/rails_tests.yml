@@ -163,4 +163,4 @@ jobs:
           WAREHOUSE_DATABASE_USER: postgres
           WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
         run: |
-          bundle exec rspec --color --format p -P "drivers/hud_data_quality_report/spec/models/fy2020/"
+          bundle exec rspec --color --format p -P "drivers/hud_data_quality_report/spec/models/fy2020/*_spec.rb"
