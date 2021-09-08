@@ -6,12 +6,16 @@
 
 module HudSpmReport::Generators::Fy2020
   class Generator < ::HudReports::GeneratorBase
-    def self.title
-      'System Performance Measures - FY 2020'.freeze
+    def self.fiscal_year
+      'FY 2020'
+    end
+
+    def self.generic_title
+      'System Performance Measures'
     end
 
     def self.short_name
-      'System Performance Measures'.freeze
+      'SPM'.freeze
     end
 
     def url

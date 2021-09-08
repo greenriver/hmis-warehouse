@@ -13,6 +13,8 @@
             = link_to name, path_for_question(name, report: answer&.report_instance)
           - else
             = link_to name, path_for_question(name)
+          %br
+          = @generator.describe_table(name)
         %td
           = answer&.created_at
           - if answer&.user

@@ -2,7 +2,7 @@
   = link_to hud_reports_spm_path(@report) do
     = "« #{report_short_name} Report"
 - content_for :title do
-  = "#{report_short_name} #{@question}"
+  = "#{report_short_name} #{@question}: #{@generator.describe_table(@question)}"
 
 %h1= content_for :title
 

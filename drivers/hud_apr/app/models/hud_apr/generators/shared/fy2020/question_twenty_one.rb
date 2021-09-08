@@ -8,6 +8,12 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionTwentyOne < Base
     QUESTION_NUMBER = 'Question 21'.freeze
 
+    def self.table_descriptions
+      {
+        'Question 21' => 'Health Insurance',
+      }.freeze
+    end
+
     private def q21_health_insurance
       table_name = 'Q21'
       metadata = {

@@ -1,0 +1,26 @@
+filter = Filters::FilterBase.new(user_id: @report.user_id).update(@report.options.with_indifferent_access)
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Summary') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row([@report.report_name], style: title)
+  filter.describe_filter.uniq.each do |(k, v)|
+    v = v.join(', ') if v.is_a?(Array)
+    sheet.add_row([k, v])
+  end
+end
+@generator.questions.each_key do |question|
+  next unless @report&.completed_questions&.include?(question)
+
+  metadata = @report&.existing_universe(question)&.metadata
+  next unless metadata.present?
+
+  Array(metadata['tables']).each do |table|
+    title = "Table #{table}: #{@generator.describe_table(table)}".slice(0, 30).gsub(':', ' ')
+    wb.add_worksheet(name: title) do |sheet|
+      exporter = HudReports::CsvExporter.new(@report, table)
+      exporter.as_array.each do |row|
+        sheet.add_row(row)
+      end
+    end
+  end
+end

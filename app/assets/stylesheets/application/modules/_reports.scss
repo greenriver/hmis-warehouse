@@ -64,3 +64,11 @@
     border-bottom: 2px solid $brand-primary-l;
   }
 }
+.report-nav {
+  .nav-link {
+    padding: space(2) calc(#{space(4)} - 5px);
+    &.active {
+      font-weight: bold;
+    }
+  }
+}
