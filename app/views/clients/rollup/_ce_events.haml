@@ -30,6 +30,7 @@
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
             %td.date-cell= event.enrollment.EntryDate
             %td= event.EventDate
+            %td= HUD.event(event.Event)
             %td= HUD.no_yes_missing event.ProbSolDivRRResult
             %td= HUD.no_yes_missing event.ReferralCaseManageAfter
             %td= HUD.referral_result event.ReferralResult

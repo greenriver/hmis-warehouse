@@ -16,8 +16,10 @@ class SyncSyntheticDataJob < BaseJob
   def perform
     @notifier.ping('Processing synthetic data') if @send_notifications
 
-    GrdaWarehouse::Synthetic::Event.hud_sync
+    # Find CAS Non HMIS clients that should be connected to warehouse clients
+    Cas::NonHmisClient.find_exact_matches
     GrdaWarehouse::Synthetic::Assessment.hud_sync
+    GrdaWarehouse::Synthetic::Event.hud_sync
 
     @notifier.ping('Updated synthetic data') if @send_notifications
   end

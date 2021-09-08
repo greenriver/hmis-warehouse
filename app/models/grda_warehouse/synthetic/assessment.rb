@@ -11,7 +11,7 @@ module GrdaWarehouse::Synthetic
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :source, polymorphic: true
-    belongs_to :hud_assessment, class_name: 'GrdaWarehouse::Hud::Assessment', optional: true
+    belongs_to :hud_assessment, class_name: 'GrdaWarehouse::Hud::Assessment', optional: true, primary_key: :hud_assessment_assessment_id, foreign_key: :AssessmentID
 
     validates_presence_of :enrollment
     validates_presence_of :client
@@ -36,35 +36,43 @@ module GrdaWarehouse::Synthetic
       # Clean up orphans in HUD table
       GrdaWarehouse::Hud::Assessment.
         where(synthetic: true).
-        where.not(id: select(:hud_assessment_id)).
+        where.not(AssessmentID: select(:hud_assessment_assessment_id)).
         delete_all
     end
 
     def self.create_hud_assessments
       preload(:enrollment, :client, :source).find_in_batches do |batch|
+        to_import = batch.map(&:hud_assessment_hash)
         assessment_source.import(
-          batch.map(&:hud_assessment_hash).compact,
+          to_import.compact,
           on_duplicate_key_update: {
             conflict_target: ['"AssessmentID"', :data_source_id],
             columns: assessment_source.hmis_configuration.keys,
           },
         )
+        batch.each.with_index do |synthetic, i|
+          added = to_import[i]
+          next if added.blank?
+
+          synthetic.update(hud_assessment_assessment_id: added[:AssessmentID])
+        end
       end
     end
 
     def hud_assessment_hash
       return nil unless enrollment.present? &&
-        client.present? &&
         assessment_date.present? &&
         assessment_location.present? &&
         assessment_type.present? &&
         assessment_level.present? &&
         prioritization_status.present?
 
+      unique_key = [enrollment.EnrollmentID, enrollment.PersonalID, assessment_date, enrollment.data_source_id, source.created_at]
+      assessment_id = hud_assessment&.AssessmentID || Digest::MD5.hexdigest(unique_key.join('_'))
       {
-        AssessmentID: hud_assessment&.AssessmentID || SecureRandom.uuid.gsub(/-/, ''),
+        AssessmentID: assessment_id,
         EnrollmentID: enrollment.EnrollmentID,
-        PersonalID: client.PersonalID,
+        PersonalID: enrollment.PersonalID,
         AssessmentDate: assessment_date,
         AssessmentLocation: assessment_location,
         AssessmentType: assessment_type,
@@ -73,21 +81,13 @@ module GrdaWarehouse::Synthetic
         DateCreated: source.created_at,
         DateUpdated: source.updated_at,
         UserID: user_id,
-        data_source_id: ds.id,
+        data_source_id: enrollment.data_source_id,
         synthetic: true,
       }
     end
 
     private def user_id
       @user_id ||= User.setup_system_user.name
-    end
-
-    private def ds
-      @ds ||= GrdaWarehouse::DataSource.where(short_name: data_source).first_or_create do |ds|
-        ds.name = data_source
-        ds.authoritative = true
-        ds.authoritative_type = :synthetic
-      end
     end
 
     def self.assessment_source

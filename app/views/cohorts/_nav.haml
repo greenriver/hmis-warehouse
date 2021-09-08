@@ -6,12 +6,12 @@
       Cohort
   - if can_manage_cohorts?
     %li.nav-item
-      = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'nav-link' do
+      = link_to edit_cohort_path(@cohort), title: 'Edit Cohort', class: 'nav-link' do
         %i.icon-pencil
         Edit
 
     %li.nav-item
-      = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_pjax_modal: true}, class: 'nav-link' do
+      = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_ajax_modal: true}, class: 'nav-link' do
         %i.icon-cog
         Edit Visible Columns
 

@@ -42,6 +42,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Hud::AssessmentQuestion,
       GrdaWarehouse::Hud::AssessmentResult,
       GrdaWarehouse::Hud::Event,
+      GrdaWarehouse::Hud::YouthEducationStatus,
       GrdaWarehouse::Hud::User,
       GrdaWarehouse::Hud::Export,
       GrdaWarehouse::ClientMatch,
@@ -73,6 +74,19 @@ class GrdaWarehouse::Utility
       tables << HudApr::Fy2020::CeAssessment
       tables << HudApr::Fy2020::CeEvent
     end
+
+    tables << HudPathReport::Fy2020::PathClient if RailsDrivers.loaded.include?(:hud_path_report)
+    tables << HudSpmReport::Fy2020::SpmClient if RailsDrivers.loaded.include?(:hud_spm_report)
+
+    if RailsDrivers.loaded.include?(:hud_data_quality_report)
+      tables << HudDataQualityReport::Fy2020::DqClient
+      tables << HudDataQualityReport::Fy2020::DqLivingSituation
+    end
+
+    # Remove reports after associated clients
+    tables << HudReports::ReportInstance
+    tables << SimpleReports::ReportInstance
+
     tables.each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
     end

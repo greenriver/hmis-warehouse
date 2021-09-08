@@ -21,15 +21,17 @@ module Importing
 
       return unless change_counts.values.sum.positive?
 
-      User.can_administer_health.each do |user|
-        HealthConsentChangeMailer.consent_changed(
-          new_patients: change_counts[:new_patients],
-          consented: change_counts[:consented],
-          revoked_consent: change_counts[:revoked_consent],
-          unmatched: change_counts[:unmatched],
-          user: user,
-        ).deliver_later
-      end
+      # consent changes are only computed for pilot patients, so this produces confusing messages
+      # if the data in the import from Epic is corrupted.
+      # User.can_administer_health.each do |user|
+      #   HealthConsentChangeMailer.consent_changed(
+      #     new_patients: change_counts[:new_patients],
+      #     consented: change_counts[:consented],
+      #     revoked_consent: change_counts[:revoked_consent],
+      #     unmatched: change_counts[:unmatched],
+      #     user: user,
+      #   ).deliver_later
+      # end
       Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
     end
   end
