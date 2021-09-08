@@ -4,7 +4,8 @@
     - active_class = if active_tab == 'cohort' then 'active' else '' end
     = link_to cohort_path(@cohort), title: 'Cohort', class: ['nav-link', active_class] do
       Cohort
-  - if can_manage_cohorts? || can_edit_assigned_cohorts?
+  - if can_manage_cohorts?
+    -# NOTE: this can be used to assign users to the cohort, so should only be available to managers
     %li.nav-item
       = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'nav-link' do
         %i.icon-pencil
