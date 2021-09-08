@@ -231,6 +231,7 @@ module LsaSqlServer
         :AC3PlusEST,
         :AHAREST,
         :AHARHoHEST,
+        :AHARAdultEST,
         :RRHAgeMin,
         :RRHAgeMax,
         :HHTypeRRH,
@@ -246,6 +247,7 @@ module LsaSqlServer
         :AC3PlusRRH,
         :AHARRRH,
         :AHARHoHRRH,
+        :AHARAdultRRH,
         :PSHAgeMin,
         :PSHAgeMax,
         :HHTypePSH,
@@ -261,6 +263,7 @@ module LsaSqlServer
         :AC3PlusPSH,
         :AHARPSH,
         :AHARHoHPSH,
+        :AHARAdultPSH,
         :ReportID,
       ]
     end
@@ -280,6 +283,7 @@ module LsaSqlServer
         :ReturnTime,
         :HHType,
         :HHVet,
+        :HHChronic,
         :HHDisability,
         :HHFleeingDV,
         :HoHRace,
