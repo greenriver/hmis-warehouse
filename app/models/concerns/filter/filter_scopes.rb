@@ -170,6 +170,12 @@ module Filter::FilterScopes
       scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
     end
 
+    private def filter_for_projects_hud(scope)
+      return scope.none if @filter.project_ids.blank?
+
+      scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+    end
+
     private def filter_for_funders(scope)
       return scope if @filter.funder_ids.blank?
       return scope unless @filter.user.report_filter_visible?(:funder_ids)

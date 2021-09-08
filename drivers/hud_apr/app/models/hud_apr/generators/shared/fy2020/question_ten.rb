@@ -21,6 +21,16 @@ module HudApr::Generators::Shared::Fy2020
       }.freeze
     end
 
+    def self.table_descriptions
+      {
+        'Question 10' => 'Gender',
+        'Q10a' => 'Gender of Adults',
+        'Q10b' => 'Gender of Children',
+        'Q10c' => 'Gender of Persons Missing Age Information',
+        'Q10d' => 'Gender by Age Ranges',
+      }.freeze
+    end
+
     private def q10a_gender_of_adults
       table_name = 'Q10a'
       header_row = [

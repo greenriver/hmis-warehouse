@@ -18,7 +18,7 @@ module HudSpmReport
       @question = generator.valid_question_number params.require(:measure_id)
       @cell = @report.valid_cell_name params.require(:id)
       @table = params.require(:table) # valid_table_name is too strict for the SPM table names
-      @name = "#{report_short_name} #{@question} #{@cell}"
+      @name = "#{generator.file_prefix} #{@question} #{@cell}"
 
       # this is a very wide table. just grab the cols related to this measure
       q_num = @question[/\d+\z/]

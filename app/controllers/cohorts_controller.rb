@@ -101,6 +101,7 @@ class CohortsController < ApplicationController
   end
 
   def edit
+    @modal_size = :xl
   end
 
   def destroy

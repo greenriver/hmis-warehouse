@@ -1,8 +1,12 @@
-- if can_view_imports? || can_view_projects? || can_edit_project_groups? || can_view_organizations? || can_upload_hud_zips?
+- if can_view_imports? || can_view_imports_projects_or_organizations? || can_edit_project_groups? || can_upload_hud_zips? || can_manage_some_ad_hoc_ds?
   %ul.o-menu__group.list-unstyled
-    - if can_view_projects? || can_view_organizations? || can_upload_hud_zips?
+    - if can_view_imports_projects_or_organizations? || can_upload_hud_zips? || can_manage_some_ad_hoc_ds?
+      - if can_view_projects? || can_view_organizations? || can_upload_hud_zips?
+        - path = data_sources_path
+      - else
+        - path = ad_hoc_data_sources_path
       %li.o-menu__item
-        = link_to data_sources_path, class: 'o-menu__link' do
+        = link_to path, class: 'o-menu__link' do
           = _('Data Sources')
     - if current_user.can_see_raw_hmis_data?
       %li.o-menu__item

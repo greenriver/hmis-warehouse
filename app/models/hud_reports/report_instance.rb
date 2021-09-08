@@ -47,7 +47,7 @@ module HudReports
         end
       when 'Completed'
         if started_at.present? && completed_at.present?
-          "#{state} at #{completed_at} in #{distance_of_time_in_words(started_at, completed_at)}"
+          "#{state} in #{distance_of_time_in_words(started_at, completed_at)} <br/> #{completed_at} ".html_safe
         else
           state
         end
@@ -65,7 +65,7 @@ module HudReports
     # @param question [String] the question name (e.g., 'Q1')
     # @param tables [Array<String>] the names of the tables in a question
     # FIXME: maybe a single question column on report_instance to track if this is a single
-    # question run or all questions.... Need bater start/complete logic
+    # question run or all questions.... Need better start/complete logic
     def start(question, tables)
       universe(question).update(status: 'Started', metadata: { tables: Array(tables) })
       start_report if build_for_questions.count == remaining_questions.count
@@ -126,9 +126,8 @@ module HudReports
     # perhaps integrated with start_report, complete_report, start(question), complete(question)
     def _purge_universe
       # clear the polymorphic graph of universe membership
-      universe_members = HudReports::UniverseMember.with_deleted.where(
-        report_cell_id: report_cells,
-      )
+      universe_members = HudReports::UniverseMember.with_deleted.
+        where(report_cell_id: report_cells)
 
       # universe_membership_type
       universe_members.distinct.pluck(
@@ -141,7 +140,7 @@ module HudReports
         klass.with_deleted.where(id: ids).delete_all
       end
 
-      # now we can kill the unverse_members
+      # now we can kill the universe_members
       universe_members.delete_all
 
       # and now the cells

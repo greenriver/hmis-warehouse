@@ -8,6 +8,18 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionSix < Base
     QUESTION_NUMBER = 'Question 6'.freeze
 
+    def self.table_descriptions
+      {
+        'Question 6' => 'Data Quality',
+        'Q6a' => 'Personally Identifiable Information',
+        'Q6b' => 'Universal Data Elements',
+        'Q6c' => 'Income and Housing Data Quality',
+        'Q6d' => 'Chronic Homelessness',
+        'Q6e' => 'Timeliness',
+        'Q6f' => 'Inactive Records: Street Outreach and Emergency Shelter',
+      }.freeze
+    end
+
     private def q6a_pii
       table_name = 'Q6a'
       metadata = {

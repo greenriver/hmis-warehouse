@@ -10,6 +10,7 @@ BostonHmis::Application.routes.draw do
       get :running, on: :collection
       get :running_all_questions, on: :collection
       get :history, on: :collection
+      get :download, on: :member
       resources :questions, only: [:show, :create], controller: 'apr/questions' do
         get :result, on: :member
         get :running, on: :member
@@ -21,6 +22,7 @@ BostonHmis::Application.routes.draw do
       get :running, on: :collection
       get :running_all_questions, on: :collection
       get :history, on: :collection
+      get :download, on: :member
       resources :questions, only: [:show, :create], controller: 'caper/questions' do
         get :result, on: :member
         get :running, on: :member
@@ -32,6 +34,7 @@ BostonHmis::Application.routes.draw do
       get :running, on: :collection
       get :running_all_questions, on: :collection
       get :history, on: :collection
+      get :download, on: :member
       resources :questions, only: [:show, :create], controller: 'ce_apr/questions' do
         get :result, on: :member
         get :running, on: :member

@@ -8,6 +8,12 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionSixteen < Base
     QUESTION_NUMBER = 'Question 16'.freeze
 
+    def self.table_descriptions
+      {
+        'Question 16' => 'Cash Income - Ranges',
+      }.freeze
+    end
+
     private def q16_cash_ranges
       table_name = 'Q16'
       metadata = {

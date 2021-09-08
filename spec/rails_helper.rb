@@ -68,6 +68,10 @@ RSpec.configure do |config|
   config.include FixpointTestHelpers
 
   config.before(:suite) do
+    Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
+      FileUtils.rm(filename)
+    end
+
     GrdaWarehouse::Utility.clear!
     Delayed::Job.delete_all
     GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions

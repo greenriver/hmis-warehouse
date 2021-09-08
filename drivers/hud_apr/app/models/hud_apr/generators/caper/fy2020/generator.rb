@@ -6,8 +6,12 @@
 
 module HudApr::Generators::Caper::Fy2020
   class Generator < ::HudReports::GeneratorBase
-    def self.title
-      'Consolidated Annual Performance and Evaluation Report - FY 2020'
+    def self.fiscal_year
+      'FY 2020'
+    end
+
+    def self.generic_title
+      'Consolidated Annual Performance and Evaluation Report'
     end
 
     def self.short_name

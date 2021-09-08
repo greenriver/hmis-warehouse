@@ -32,6 +32,12 @@ module HudDataQualityReport::Generators::Fy2020
       'Heads of households and adult stayers in the project 365 days or more',
     ].freeze
 
+    def self.table_descriptions
+      {
+        'Question 1' => 'Report Validation Table',
+      }.freeze
+    end
+
     def self.question_number
       QUESTION_NUMBER
     end
