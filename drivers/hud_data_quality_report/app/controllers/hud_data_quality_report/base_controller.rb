@@ -21,7 +21,7 @@ module HudDataQualityReport
     end
 
     private def filter_class
-      ::HudDataQualityReport::Filters::DqFilter
+      ::Filters::HudFilterBase
     end
 
     private def path_for_question(question, report: nil)

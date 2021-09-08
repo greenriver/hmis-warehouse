@@ -37,7 +37,7 @@ module HudDataQualityReport::Generators::Fy2021
     end
 
     def self.filter_class
-      HudDataQualityReport::Filters::DqFilter
+      ::Filters::HudFilterBase
     end
 
     def self.valid_question_number(question_number)
