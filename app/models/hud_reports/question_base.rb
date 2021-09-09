@@ -58,5 +58,9 @@ module HudReports
     def self.question_number
       self::QUESTION_NUMBER
     end
+
+    def self.table_descriptions
+      {}
+    end
   end
 end

@@ -20,12 +20,12 @@ RSpec.shared_context 'dq context', shared_context: :metadata do
 
   def default_filter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
-    HudDataQualityReport::Filters::DqFilter.new(shared_filter.merge(project_ids: [project_id]))
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
   end
 
   def race_filter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
-    HudDataQualityReport::Filters::DqFilter.new(shared_filter.merge(project_ids: [project_id])).update(
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id])).update(
       shared_filter.merge(
         { 'races' => ['Asian'] },
       ),
@@ -34,7 +34,7 @@ RSpec.shared_context 'dq context', shared_context: :metadata do
 
   def age_filter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
-    HudDataQualityReport::Filters::DqFilter.new(shared_filter.merge(project_ids: [project_id])).update(
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id])).update(
       shared_filter.merge(
         { 'age_ranges' => ['under_eighteen'] },
       ),
@@ -43,7 +43,7 @@ RSpec.shared_context 'dq context', shared_context: :metadata do
 
   def night_by_night_shelter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'NBN').id
-    HudDataQualityReport::Filters::DqFilter.new(shared_filter.merge(project_ids: [project_id]))
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
   end
 
   def run(filter, question_name)
@@ -64,13 +64,14 @@ RSpec.shared_context 'dq context', shared_context: :metadata do
 
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
     if Fixpoint.exists? :hud_hmis_export_app
+      HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      restore_fixpoint :hud_hmis_export_app
-      restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+      restore_fixpoint :hud_hmis_export_hud_dq_app
+      restore_fixpoint :hud_hmis_export_hud_dq_warehouse, connection: warehouse
     else
       setup(default_setup_path)
-      store_fixpoint :hud_hmis_export_app
-      store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+      store_fixpoint :hud_hmis_export_hud_dq_app
+      store_fixpoint :hud_hmis_export_hud_dq_warehouse, connection: warehouse
     end
   end
 
@@ -81,7 +82,7 @@ RSpec.shared_context 'dq context', shared_context: :metadata do
   end
 
   def cleanup
-    # We dont need to do anything here currently
+    # We don't need to do anything here currently
   end
 end
 

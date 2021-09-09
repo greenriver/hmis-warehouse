@@ -15,9 +15,8 @@ module Cohorts
     include ActionView::Helpers::TextHelper
 
     before_action :require_can_access_cohort!
-    before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
-    before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
-    before_action :require_can_manage_cohorts!, only: [:re_rank]
+    before_action :require_can_edit_some_cohorts!, only: [:new, :create, :destroy]
+    before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update, :re_rank]
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy, :field]
     before_action :load_cohort_names, only: [:index, :edit, :field, :update]
@@ -54,7 +53,7 @@ module Cohorts
 
       @visible_columns = [CohortColumns::Meta.new]
       @visible_columns += @cohort.visible_columns(user: current_user)
-      @visible_columns << CohortColumns::Delete.new if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+      @visible_columns << CohortColumns::Delete.new if current_user.can_edit_some_cohorts?
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client

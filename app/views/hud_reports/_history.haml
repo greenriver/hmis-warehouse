@@ -1,0 +1,20 @@
+= render 'breadcrumbs'
+- content_for :title, generator.generic_title
+
+%header.mb-3.d-flex
+  %h1= content_for :title
+  .ml-auto
+    = link_to "Generate New Full #{generator.short_name}", path_for_new, class: 'btn btn-secondary'
+- if @show_recent
+  .well
+    .d-flex
+      %h2= "#{generator.short_name} Report"
+      .ml-auto
+        = link_to({format: :zip},{class: 'btn btn-primary'}) do
+          %span.icon-download2
+          Download Zip File
+
+    = render 'questions'
+
+= render 'hud_reports/year_tabs'
+= render 'hud_reports/reports_wrapper'

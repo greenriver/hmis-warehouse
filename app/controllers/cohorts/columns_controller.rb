@@ -7,7 +7,7 @@
 module Cohorts
   class ColumnsController < ApplicationController
     include AjaxModalRails::Controller
-    before_action :require_can_manage_cohorts!
+    before_action :require_can_edit_some_cohorts!
     before_action :set_cohort
 
     def edit

@@ -87,6 +87,7 @@ module Importing
         # Update the materialized view that we use to search by client_id and project_type
         @notifier.ping('Refreshing Service History Materialized View') if @send_notifications
         GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+        GrdaWarehouse::ServiceHistoryServiceMaterialized.new.double_check_materialized_view(dest_clients.sample(500))
         @notifier.ping('Done Refreshing Service History Materialized View') if @send_notifications
 
         # Maintain some summary data to speed up searches and history display and other things

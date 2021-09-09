@@ -8,8 +8,8 @@
       %thead
         %tr
           %th
-          %th Status
-          %th{style: 'width: 50%;'} Limits
+          %th{style: 'width: 20%;'} Status
+          %th{style: 'width: 40%;'} Limits
           %th Included Questions
           %th Delete
       %tbody
@@ -25,10 +25,10 @@
             %td
               - report.build_for_questions&.each do |question|
                 - if report.remaining_questions.include?(question)
-                  .btn.btn-sm.btn-secondary.btn-disabled.mb-2.ml-2
+                  .btn.btn-sm.btn-secondary.btn-disabled.mb-2.ml-2{ data: { toggle: :tooltip, title: @generator.describe_table(question), html: 'true' }}
                     = question
                 - else
-                  = link_to question, path_for_question_result(question, report: report), class: 'btn btn-secondary btn-sm mb-2 ml-2'
+                  = link_to question, path_for_question_result(question, report: report), class: 'btn btn-secondary btn-sm mb-2 ml-2', data: { toggle: :tooltip, title: @generator.describe_table(question), html: 'true' }
             %td
               - unless report.running?
                 = link_to path_for_report(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this report?' }  do

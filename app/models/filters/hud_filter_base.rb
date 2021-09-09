@@ -26,5 +26,26 @@ module Filters
 
       @effective_project_ids.uniq.reject(&:blank?)
     end
+
+    def apply(scope)
+      # @filter is required for these to work
+      @filter = self
+      scope = filter_for_user_access(scope)
+      scope = filter_for_projects_hud(scope)
+      scope = filter_for_cocs(scope)
+      scope = filter_for_veteran_status(scope)
+      scope = filter_for_household_type(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
+      scope = filter_for_sub_population(scope)
+      scope
+    end
+
+    private def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
+    end
   end
 end

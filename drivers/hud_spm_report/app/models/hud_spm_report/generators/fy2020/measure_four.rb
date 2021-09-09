@@ -11,8 +11,8 @@ module HudSpmReport::Generators::Fy2020
       'Measure 4'.freeze
     end
 
-    def run_question!
-      tables = [
+    def self.tables
+      [
         ['4.1', :run_4_1, 'Change in earned income for adult system stayers during the reporting period'],
         ['4.2', :run_4_2, 'Change in non-employment cash income for adult system stayers during the reporting period'],
         ['4.3', :run_4_3, 'Change in total income for adult system stayers during the reporting period'],
@@ -20,9 +20,22 @@ module HudSpmReport::Generators::Fy2020
         ['4.5', :run_4_5, 'Change in non-employment cash income for adult system leavers'],
         ['4.6', :run_4_6, 'Change in earned income for adult system stayers during the reporting period'],
       ]
-      @report.start(self.class.question_number, tables.map(&:first))
+    end
 
-      tables.each do |name, msg, _title|
+    def self.table_descriptions
+      {
+        'Measure 4' => 'Employment and Income Growth for Homeless Persons in CoC Program–funded Projects',
+      }.merge(
+        tables.map do |table|
+          [table.first, table.last]
+        end.to_h,
+      ).freeze
+    end
+
+    def run_question!
+      @report.start(self.class.question_number, self.class.tables.map(&:first))
+
+      self.class.tables.each do |name, msg, _title|
         send(msg, name)
       end
 

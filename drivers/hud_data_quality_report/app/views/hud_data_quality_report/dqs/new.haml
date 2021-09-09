@@ -1,3 +1,4 @@
 = render 'breadcrumbs'
-
+- content_for :title, generator.generic_title
+%h1= content_for :title
 = render 'hud_data_quality_report/shared/report_form', url: path_for_reports

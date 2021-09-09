@@ -11,14 +11,27 @@ module HudSpmReport::Generators::Fy2020
       'Measure 3'.freeze
     end
 
-    def run_question!
-      tables = [
+    def self.tables
+      [
         ['3.1', :run_3_1, 'Change in PIT counts of sheltered and unsheltered homeless persons'],
         ['3.2', :run_3_2, 'Change in annual counts of sheltered homeless persons in HMIS'],
-      ]
-      @report.start(self.class.question_number, tables.map(&:first))
+      ].freeze
+    end
 
-      tables.each do |name, msg, _title|
+    def self.table_descriptions
+      {
+        'Measure 3' => 'Number of Homeless Persons',
+      }.merge(
+        tables.map do |table|
+          [table.first, table.last]
+        end.to_h,
+      ).freeze
+    end
+
+    def run_question!
+      @report.start(self.class.question_number, self.class.tables.map(&:first))
+
+      self.class.tables.each do |name, msg, _title|
         send(msg, name)
       end
 

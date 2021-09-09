@@ -8,6 +8,12 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionEighteen < Base
     QUESTION_NUMBER = 'Question 18'.freeze
 
+    def self.table_descriptions
+      {
+        'Question 18' => 'Client Cash Income Category - Earned/Other Income Category - by Start and Annual Assessment/Exit Status',
+      }.freeze
+    end
+
     private def q18_income
       table_name = 'Q18'
       metadata = {

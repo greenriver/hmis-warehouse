@@ -13,7 +13,7 @@ class AccountDownloadsController < ApplicationController
       completed.limit(limit).order(created_at: :desc).to_a
     @items += @user.health_document_exports.diet_select.
       completed.limit(limit).order(created_at: :desc).to_a
-    @items = @items.sort_by { |e| e.created_at.to_i * -1 }.take(limit)
+    @items = @items.sort_by { |e| e.created_at.to_i * -1 }
   end
 
   private def set_user
