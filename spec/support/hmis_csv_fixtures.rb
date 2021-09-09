@@ -43,6 +43,12 @@ module HmisCsvFixtures
         deidentified: deidentified,
         allowed_projects: allowed_projects,
       )
+    elsif version == 'AutoMigrate'
+      HmisCsvImporter::Loader::Loader.new(
+        file_path: tmp_path,
+        data_source_id: data_source.id,
+        deidentified: deidentified,
+      )
     else
       raise "Unsupported CSV version #{version}"
     end

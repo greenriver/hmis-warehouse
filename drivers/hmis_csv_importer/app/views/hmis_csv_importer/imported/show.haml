@@ -1,0 +1,26 @@
+= content_for :crumbs do
+  = link_to import_path(@import) do
+    &laquo; Import Log
+- entry_name = File.basename(@filename, '.csv')
+%h1= "Imported Data for #{@filename}"
+
+- if @data.present?
+  .d-flex
+    .mr-4
+      = paginate @data
+    .ml-auto
+      = page_entries_info @data, entry_name: entry_name
+  .card
+    .overflow-x-scroll{style: 'max-height: 800px'}
+      %table.table.table-sm.table-bordered.table-fixed
+        %thead.thead-dark
+          %tr
+            - @klass.hmis_structure.each_key do |header|
+              %th= header
+        %tbody
+          - @data.each do |row|
+            %tr
+              - row.hmis_data.each do |key, value|
+                %td= link_to_if key.to_sym == @klass.hud_key, value, hmis_path(search: {type: entry_name, id: value, data_source_id: row.data_source_id })
+- else
+  %p.well.none-found No data found.
