@@ -11,7 +11,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
   extend ActiveSupport::Concern
 
   included do
-    def self.up(source_name, destination_name)
+    def self.up(source_name, destination_name, header_converter)
       HudTwentyTwentyToTwentyTwentyTwo::Kiba::Transform.up(
         Kiba::Common::Sources::CSV,
         {
@@ -19,6 +19,8 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba::CsvBase
           csv_options: {
             headers: :first_row,
             skip_blanks: true,
+            liberal_parsing: true,
+            header_converters: header_converter,
           },
         },
         transforms(csv: true),
