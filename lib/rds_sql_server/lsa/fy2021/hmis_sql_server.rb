@@ -193,7 +193,7 @@ module HmisSqlServer
   end
 
   class YouthEducationStatus < LsaBase
-    self.table_name = :hmis_Event
+    self.table_name = :hmis_YouthEducationStatus
     include ::HMIS::Structure::YouthEducationStatus
   end
 end
