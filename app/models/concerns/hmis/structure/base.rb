@@ -127,7 +127,7 @@ module HMIS::Structure::Base
     end
 
     def hmis_table_create_indices!(version: nil)
-      existing_indices = connection.indexes(:Enrollment).map { |i| [i.name, i.columns] }
+      existing_indices = connection.indexes(table_name).map { |i| [i.name, i.columns] }
       hmis_indices(version: version).each do |columns, _|
         # enforce a short index name
         # cols = columns.map { |c| "#{c[0..5]&.downcase}#{c[-4..]&.downcase}" }

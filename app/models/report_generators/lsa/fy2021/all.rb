@@ -24,6 +24,7 @@ end
 
 module ReportGenerators::Lsa::Fy2021
   class All < Base
+    include TsqlImport
     include NotifierConfig
     include ActionView::Helpers::DateHelper
     attr_accessor :send_notifications, :notifier_config
@@ -249,6 +250,7 @@ module ReportGenerators::Lsa::Fy2021
       HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
         # Delete any existing data
         klass.delete_all
+        klass.reset_column_information
         # Read the file in batches to avoid over RAM usage
         File.open(File.join(extract_path, file_name)) do |file|
           headers = file.first
@@ -261,8 +263,8 @@ module ReportGenerators::Lsa::Fy2021
             content = content.map do |row|
               klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
             end.compact
-
-            klass.import(import_headers, content, batch_size: 1_000)
+            # Using TsqlImport because active_record import doesn't play nice
+            insert_batch(klass, import_headers, content, batch_size: 1_000)
           end
         end
       end
@@ -440,10 +442,10 @@ module ReportGenerators::Lsa::Fy2021
         begin
           CREATE INDEX [IX_tlsa_Enrollment_CH_ProjectType] ON [tlsa_Enrollment] ([CH],[LSAProjectType]) INCLUDE ([PersonalID], [EntryDate], [MoveInDate], [ExitDate])
         end
-        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_CH')
-        begin
-          CREATE INDEX [IX_tlsa_Enrollment_CH] ON [tlsa_Enrollment] ([CH]) INCLUDE ([PersonalID], [LSAProjectType], [TrackingMethod], [EntryDate], [ExitDate])
-        end
+        -- if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_CH')
+        -- begin
+        --  CREATE INDEX [IX_tlsa_Enrollment_CH] ON [tlsa_Enrollment] ([CH]) INCLUDE ([PersonalID], [LSAProjectType], [TrackingMethod], [EntryDate], [ExitDate])
+        -- end
         if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_Active')
         begin
           CREATE INDEX [IX_tlsa_Enrollment_Active] ON [tlsa_Enrollment] ([Active]) INCLUDE ([PersonalID], [HouseholdID], [EntryDate], [ExitDate])
@@ -585,10 +587,10 @@ module ReportGenerators::Lsa::Fy2021
           CREATE INDEX [IX_ch_Include_ESSHStreetDate] ON [ch_Include] ([ESSHStreetDate])
         end
 
-        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_TrackingMethod')
-        begin
-          CREATE INDEX [IX_tlsa_HHID_TrackingMethod] ON [tlsa_HHID] ([TrackingMethod]) INCLUDE ([HoHID], [EnrollmentID], [ExitDate], [ActiveHHType], [Active])
-        end
+        -- if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_TrackingMethod')
+        -- begin
+        --  CREATE INDEX [IX_tlsa_HHID_TrackingMethod] ON [tlsa_HHID] ([TrackingMethod]) INCLUDE ([HoHID], [EnrollmentID], [ExitDate], [ActiveHHType], [Active])
+        -- end
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_EnrollmentID')
         begin
           CREATE INDEX [IX_tlsa_HHID_EnrollmentID] ON [tlsa_HHID] ([EnrollmentID]) INCLUDE ([ExitDate], [ExitDest])
@@ -667,7 +669,7 @@ module ReportGenerators::Lsa::Fy2021
         load 'lib/rds_sql_server/lsa/fy2021/lsa_sql_server.rb'
         tables = LsaSqlServer.models_by_filename.values.map(&:table_name)
         tables += LsaSqlServer.intermediate_models_by_filename.values.map(&:table_name)
-        tables -= ['ref_Populations'] # these already have identity columns
+        tables -= [] # these already have identity columns
         tables.sort
       end
     end

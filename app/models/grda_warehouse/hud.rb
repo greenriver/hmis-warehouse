@@ -13,7 +13,7 @@ module GrdaWarehouse::Hud
 
   # a Hash mapping hud filenames to GrdaWarehouse::Hud models
   module_function def models_by_hud_filename
-    # use an explict allowlist as a security measure
+    # use an explicit allowlist as a security measure
     {
       'Affiliation.csv' => GrdaWarehouse::Hud::Affiliation,
       'Client.csv' => GrdaWarehouse::Hud::Client,
@@ -38,11 +38,12 @@ module GrdaWarehouse::Hud
       'AssessmentResults.csv' => GrdaWarehouse::Hud::AssessmentResult,
       'Event.csv' => GrdaWarehouse::Hud::Event,
       'User.csv' => GrdaWarehouse::Hud::User,
+      'YouthEducationStatus.csv' => GrdaWarehouse::Hud::YouthEducationStatus,
     }.freeze
   end
 
   module_function def hud_csv_names
-    models_by_hud_filename.keys.map{|m| m.gsub('.csv', '')}.sort
+    models_by_hud_filename.keys.map { |m| m.gsub('.csv', '') }.sort
   end
 
   module_function def class_from_csv_name name

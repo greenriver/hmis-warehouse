@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  03_02 to 03_06 HMIS Households and Enrollments.sql 
-Date:  02 SEP 2021
+Date:  08 SEP 2021
 
 
 	3.2 Cohort Dates 
@@ -58,8 +58,12 @@ Date:  02 SEP 2021
 	3.3 HMIS HouseholdIDs 
 */
 delete from tlsa_HHID
--- Note:  Code here and elsewhere uses ProjectType = 0 when ProjectType = 1 and TrackingMethod = 0 (ES entry/exit)	
---		  and ProjectType = 1 when ProjectType = 1 and TrackingMethod = 3
+-- Note:  Code here and elsewhere 
+			-- Uses LSAProjectType = 0 when ProjectType = 1 and TrackingMethod = 0 (ES entry/exit)	
+--				and LSAProjectType = 1 when ProjectType = 1 and TrackingMethod = 3 (ES night-by-night); this differs from the
+--				specs, which reference the HMIS project types.
+			-- When RRH MoveInDate = ExitDate, uses an effective ExitDate of MoveIn + 1 day so that subsequent
+--				sections can use the same logic for RRH and PSH.
 
 insert into tlsa_HHID (
 	  HouseholdID, HoHID, EnrollmentID
@@ -89,6 +93,8 @@ select distinct hoh.HouseholdID, hoh.PersonalID, hoh.EnrollmentID
 		when p.ProjectType = 1 and hx.ExitDate is null 
 			and dateadd(dd, 90, bn.LastBednight) <= rpt.ReportEnd then dateadd(dd, 1, bn.LastBednight) 
 		when p.OperatingEndDate <= rpt.ReportEnd and hx.ExitDate is null then p.OperatingEndDate
+		when p.ProjectType = 13 and hoh.MoveInDate = hx.ExitDate and hx.ExitDate = rpt.ReportEnd then NULL
+		when p.ProjectType = 13 and hoh.MoveInDate = hx.ExitDate then dateadd(dd, 1, hx.ExitDate)
 		else hx.ExitDate end
 	, bn.LastBednight
 	, '3.3.1'
@@ -139,7 +145,9 @@ where hoh.DateDeleted is null
 
 		update hhid
 		set hhid.ExitDest = case	
-				when hx.ExitDate is null or hx.ExitDate <> hhid.ExitDate then 99
+				when hx.ExitDate is null or 
+					(hx.ExitDate <> hhid.ExitDate 
+						and (hhid.MoveInDate is NULL or hhid.MoveInDate <> hx.ExitDate)) then 99
 				when hx.Destination = 3 then 1 --PSH
 				when hx.Destination = 31 then 2	--PH - rent/temp subsidy
 				when hx.Destination in (19,20,21,26,28,33,34) then 3	--PH - rent/own with subsidy
@@ -181,6 +189,8 @@ where hoh.DateDeleted is null
 		, case when hhid.EntryDate > hn.EntryDate then hhid.EntryDate else hn.EntryDate end
 		, case when hx.ExitDate >= hhid.ExitDate then hhid.ExitDate
 			when hx.ExitDate is NULL and hhid.ExitDate is not NULL then hhid.ExitDate
+			when hhid.LSAProjectType = 13 and hhid.MoveInDate = hx.ExitDate and hx.ExitDate = rpt.ReportEnd then NULL
+			when hhid.LSAProjectType = 13 and hhid.MoveInDate = hx.ExitDate then dateadd(dd, 1, hx.ExitDate)
 			else hx.ExitDate end
 		, case when hn.DisablingCondition in (0,1) then hn.DisablingCondition 
 			else null end

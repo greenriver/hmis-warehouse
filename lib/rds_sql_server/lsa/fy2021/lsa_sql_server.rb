@@ -22,7 +22,9 @@ module LsaSqlServer
       'ch_Include.csv' => LsaSqlServer::ChInclude,
       'dq_Enrollment.csv' => LsaSqlServer::DqEnrollment,
       'ref_Calendar.csv' => LsaSqlServer::RefCalendar,
-      'ref_Populations.csv' => LsaSqlServer::RefPopulations,
+      'ref_RowPopulations.csv' => LsaSqlServer::RefRowPopulations,
+      'ref_RowValues.csv' => LsaSqlServer::RefRowValues,
+      'ref_PopHHTypes.csv' => LsaSqlServer::RefPopHhTypes,
       'sys_Time.csv' => LsaSqlServer::SysTime,
       'sys_TimePadded.csv' => LsaSqlServer::SysTimePadded,
       'tlsa_CohortDates.csv' => LsaSqlServer::TlsaCohortDates,
@@ -405,8 +407,16 @@ module LsaSqlServer
     end
   end
 
-  class LsaSqlServer::RefPopulations < SqlServerBase
-    self.table_name = :ref_Populations
+  class LsaSqlServer::RefRowPopulations < SqlServerBase
+    self.table_name = :ref_RowPopulations
+  end
+
+  class LsaSqlServer::RefPopHhTypes < SqlServerBase
+    self.table_name = :ref_PopHHTypes
+  end
+
+  class LsaSqlServer::RefRowValues < SqlServerBase
+    self.table_name = :ref_RowValues
   end
 
   class LsaSqlServer::SysTime < SqlServerBase

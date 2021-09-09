@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  01 Temp Reporting and Reference Tables.sql
-Date:  26 AUG 2021
+Date:  08 SEP 2021
 
 This script drops (if tables exist) and creates the following temp reporting tables:
 
@@ -382,13 +382,20 @@ create table tlsa_Household(
 		)
 		;
 
-	if object_id ('tlsa_Pops') is not null drop table tlsa_Pops;
+	if object_id ('tlsa_AveragePops') is not null drop table tlsa_AveragePops;
 
-	create table tlsa_Pops (
+	create table tlsa_AveragePops (
 		PopID int
 		, Cohort int
 		, HoHID varchar(32)
 		, HHType int
+		, Step varchar(10) not null)
+		;
+
+	if object_id ('tlsa_CountPops') is not null drop table tlsa_CountPops;
+
+	create table tlsa_CountPops (
+		PopID int
 		, PersonalID varchar(32)
 		, HouseholdID varchar(32)
 		, Step varchar(10) not null)
