@@ -121,11 +121,13 @@ module HudTwentyTwentyToTwentyTwentyTwo
 
         case action
         when :copy
-          fix_bad_line_endings(source_file)
+          encoding = AutoEncodingCsv.detect_encoding(source_file)
+          fix_bad_line_endings(source_file, encoding)
           FileUtils.copy(source_file, destination_file)
         when :update
-          fix_bad_line_endings(source_file)
-          ::Kiba.run(transformer.up(source_file, destination_file, header_converter(model)))
+          encoding = AutoEncodingCsv.detect_encoding(source_file)
+          fix_bad_line_endings(source_file, encoding)
+          ::Kiba.run(transformer.up(source_file, destination_file, encoding, header_converter(model)))
         when :create
           CSV.open(
             destination_file, 'w',
@@ -136,8 +138,7 @@ module HudTwentyTwentyToTwentyTwentyTwo
       end
     end
 
-    def self.fix_bad_line_endings(filename)
-      encoding = AutoEncodingCsv.detect_encoding(filename)
+    def self.fix_bad_line_endings(filename, encoding)
       tmp_file = ::Tempfile.new(filename)
       file_with_bad_line_endings = false
 
@@ -183,7 +184,6 @@ module HudTwentyTwentyToTwentyTwentyTwo
 
     def self.header_converter(klass)
       normalized_klass_keys = klass.hmis_configuration(version: '2020').keys.map { |key| [key.to_s.downcase, key.to_s] }.to_h
-
       proc { |header| normalized_klass_keys[header.downcase] || header }
     end
   end
