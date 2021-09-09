@@ -7,7 +7,7 @@
 module HudReports
   class BaseController < ApplicationController
     before_action :require_can_view_hud_reports!
-    before_action :set_view_filter, only: [:history]
+    before_action :set_view_filter, only: [:history, :show]
 
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
@@ -77,28 +77,38 @@ module HudReports
 
     def set_reports
       title = generator.title
-      @reports = report_scope.where(report_name: title).
-        preload(:user, :universe_cells)
+      if @question.present?
+        @reports = report_scope.joins(:report_cells).
+          preload(:universe_cells).
+          merge(report_cell_source.universe.where(question: @question))
+      else
+        @reports = report_scope.where(report_name: title).
+          preload(:user, :universe_cells)
+      end
+      @reports = apply_view_filters(@reports)
+      @reports = @reports.order(created_at: :desc).
+        page(params[:page]).per(25)
+    end
+
+    def apply_view_filters(reports)
       if can_view_all_hud_reports?
         # Only apply a user filter if you have chosen one if you can see all reports
-        @reports = @reports.where(user_id: @view_filter[:creator]) if @view_filter.try(:[], :creator).present? && @view_filter[:creator] != 'all'
+        reports = reports.where(user_id: @view_filter[:creator]) if @view_filter.try(:[], :creator).present? && @view_filter[:creator] != 'all'
       else
-        @reports = @reports.where(user_id: current_user.id)
+        reports = reports.where(user_id: current_user.id)
       end
 
-      @reports = if @view_filter.try(:[], :initiator) == 'automated'
-        @reports.automated
+      reports = if @view_filter.try(:[], :run_type) == 'automated'
+        reports.automated
       else
-        @reports.manual
+        reports.manual
       end
 
       if @view_filter.present?
         filter_range = @view_filter[:start].to_date..(@view_filter[:end].to_date + 1.days)
-        @reports = @reports.where(created_at: filter_range)
+        reports = reports.where(created_at: filter_range)
       end
-      # TODO: add view filter @view_filter
-      @reports = @reports.order(created_at: :desc).
-        page(params[:page]).per(25)
+      reports
     end
 
     def report_urls
@@ -143,7 +153,7 @@ module HudReports
 
     private def view_filter_params
       params.permit(
-        :initiator,
+        :run_type,
         :creator,
         :start,
         :end,
@@ -152,7 +162,7 @@ module HudReports
 
     private def set_view_filter
       @view_filter = {}
-      @view_filter[:initiator] = view_filter_params[:initiator] || 'manual'
+      @view_filter[:run_type] = view_filter_params[:run_type] || 'manual'
       @view_filter[:creator] = view_filter_params[:creator] || 'all'
       @view_filter[:start] = view_filter_params[:start] || (Date.current - 1.month)
       @view_filter[:end] = view_filter_params[:end] || Date.current
@@ -226,6 +236,15 @@ module HudReports
       end
     end
     helper_method :report_version_urls
+
+    private def path_for_clear_view_filter
+      if @question.present?
+        path_for_question(@question, report: @report)
+      else
+        path_for_history
+      end
+    end
+    helper_method :path_for_clear_view_filter
 
     # Required methods in subclasses:
     #

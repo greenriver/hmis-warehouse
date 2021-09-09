@@ -1,10 +1,3 @@
-:ruby
-  if @report.present?
-    path_for_clear = path_for_report(@report)
-  else
-    path_for_clear = path_for_history
-  end
-
 - filter_class = if @active_filter then 'filter-active' else 'filter' end
 .dropdown.o-filtration{class: filter_class}
   %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { toggle: 'dropdown' }, aria: { haspopup: 'true', expanded: 'false' }}
@@ -16,16 +9,6 @@
       %h3.client__filter-header Filter report list
 
     = form_tag(nil, method: 'get') do
-
-      .o-filtration__option.row
-        .col-sm-12
-          .o-filtration__option-row
-            - type_options = options_for_select({'Normal (on-demand)' => :manual, 'Background (automated)' => :automated}, @view_filter[:initiator])
-            = render 'inputs/select', field_name: :initiator, label: 'Report Type', options: type_options
-            - if can_view_all_hud_reports?
-              - users = [['all', 'Any user']] + User.active.map { |u| [u.id, u.name_with_email] }
-              - creator_options = options_from_collection_for_select(users, :first, :last, @view_filter[:creator])
-              = render 'inputs/select', field_name: :creator, label: 'Creator', options: creator_options
 
       .o-filtration__option.row
         .col-sm-12
@@ -41,8 +24,18 @@
               %span.input-group-append
                 %button.icon-calendar.btn.btn-secondary{ type: 'button' }
 
+      .o-filtration__option.row
+        .col-sm-12
+          .o-filtration__option-row
+            - type_options = options_for_select({'Normal (on-demand)' => :manual, 'Background (automated)' => :automated}, @view_filter[:run_type])
+            = render 'inputs/select', field_name: :run_type, label: 'Run Type', options: type_options
+            - if can_view_all_hud_reports?
+              - users = [['all', 'Any user']] + User.active.map { |u| [u.id, u.name_with_email] }
+              - creator_options = options_from_collection_for_select(users, :first, :last, @view_filter[:creator])
+              = render 'inputs/select', field_name: :creator, label: 'Creator', options: creator_options
+
       .o-filtration__actions.form__actions
-        = link_to path_for_clear, class:'btn btn-secondary' do
+        = link_to path_for_clear_view_filter, class:'btn btn-secondary' do
           %span.icon-cross.icon-inline
           Clear Filters
         %button.btn.btn-primary.ml-auto{type: :submit}
