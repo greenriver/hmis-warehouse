@@ -511,21 +511,21 @@ class Role < ApplicationRecord
         ],
       },
       can_manage_cohorts: {
-        description: 'Ability to create, edit, add and remove clients, and see changes to cohorts',
+        description: 'Ability to create, edit, add and remove clients, and see changes to all cohorts',
         administrative: true,
         categories: [
           'Cohorts',
         ],
       },
       can_edit_cohort_clients: {
-        description: 'Ability to add and remove clients from cohorts',
+        description: 'Ability to make changes to client rows on any cohort, but not to change cohort settings or add clients to the cohort',
         administrative: true,
         categories: [
           'Cohorts',
         ],
       },
       can_edit_assigned_cohorts: {
-        description: 'Ability to participate in assigned cohorts',
+        description: 'Ability to participate in assigned cohorts, including adding, editing, and removing clients, but not changing cohort settings',
         administrative: false,
         categories: [
           'Cohorts',
@@ -541,7 +541,9 @@ class Role < ApplicationRecord
       can_download_cohorts: {
         description: 'Ability to download the contents of a cohort',
         administrative: false,
-        categories: [],
+        categories: [
+          'Cohorts',
+        ],
       },
       can_assign_users_to_clients: {
         description: 'Ability to setup user-client relationships',

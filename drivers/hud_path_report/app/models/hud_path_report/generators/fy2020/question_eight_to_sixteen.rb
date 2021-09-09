@@ -60,7 +60,7 @@ module HudPathReport::Generators::Fy2020
         [new_and_active_clients, a_t[:reason_not_enrolled].eq(3)],
         [new_and_active_clients, a_t[:enrolled_client].eq(true)],
         [active_and_enrolled_clients, all_members],
-        [active_and_enrolled_clients, received_service(4)]
+        [active_and_enrolled_clients, received_service(4)],
       ].each_with_index do |(scope, query), index|
         next if scope.nil?
 
@@ -83,7 +83,7 @@ module HudPathReport::Generators::Fy2020
 
       # Contacts in reporting period
       answer = @report.answer(question: table_name, cell: 'B7')
-      members = universe.members.where(active_and_enrolled_clients).where( a_t[:contacts].not_eq([]))
+      members = universe.members.where(active_and_enrolled_clients).where(a_t[:contacts].not_eq([]))
       count = 0
       members.each do |member|
         count += member.universe_membership.contacts.count

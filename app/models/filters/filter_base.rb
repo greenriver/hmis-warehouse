@@ -10,6 +10,7 @@ module Filters
     include AvailableSubPopulations
     include ArelHelper
     include ApplicationHelper
+    include Filter::FilterScopes
     include ActionView::Helpers::TagHelper
     include ActionView::Context
 
@@ -61,6 +62,7 @@ module Filters
     attribute :psh_move_in, Boolean, default: false
     attribute :first_time_homeless, Boolean, default: false
     attribute :returned_to_homelessness_from_permanent_destination, Boolean, default: false
+    attribute :report_version, Symbol
 
     validates_presence_of :start, :end
 
@@ -137,6 +139,7 @@ module Filters
       self.limit_to_vispdat = vispdat_limit if vispdat_limit.present? && available_vispdat_limits.values.include?(vispdat_limit)
       self.ph = filters.dig(:ph).in?(['1', 'true', true]) unless filters.dig(:ph).nil?
       self.times_homeless_in_last_three_years = filters.dig(:times_homeless_in_last_three_years)&.reject(&:blank?)&.map(&:to_i) unless filters.dig(:times_homeless_in_last_three_years).nil?
+      self.report_version = filters.dig(:report_version)&.to_sym
 
       ensure_dates_work if valid?
       self
@@ -184,6 +187,7 @@ module Filters
           limit_to_vispdat: limit_to_vispdat,
           enforce_one_year_range: enforce_one_year_range,
           times_homeless_in_last_three_years: times_homeless_in_last_three_years,
+          report_version: report_version,
         },
       }
     end
@@ -211,6 +215,7 @@ module Filters
         :coc_code,
         :limit_to_vispdat,
         :enforce_one_year_range,
+        :report_version,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],

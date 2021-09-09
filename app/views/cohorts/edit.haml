@@ -1,40 +1,44 @@
 - title = "Edit #{@cohort.name}"
 - content_for :modal_title, title
-
+= content_for :crumbs do
+  = link_to cohort_path(@cohort) do
+    &laquo; Cohort
 = simple_form_for @cohort, url: cohort_path(@cohort) do |f|
-  = f.input :name, disabled: @cohort.system_cohort
-  = f.input :short_name, input_html: {maxlength: 8, style: 'width: 8em;'}
-  = f.input :effective_date, as: :date_picker
-  = f.input :days_of_inactivity, label: 'How many days of client inactivity should trigger a warning?'
-  = f.input :active_cohort, label: 'Active'
-  = f.input :static_column_count, label: 'Number of static columns', input_html: {style: 'width: 6em;'}
-  = f.input :show_on_client_dashboard, label: 'Show cohort in client dashboard?'
-  = f.input :visible_in_cas, label: 'Show cohort in CAS?'
-  = f.input :tag_id, collection: Cas::Tag.available_cohort_tags, label: 'CAS Tag', hint: 'A CAS tag should only be applied to one cohort at a time.  It is used in conjunction with the Rank prioritization scheme to determine which cohort client rank to use for a client.', as: :select_two
-  = f.input :only_window, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
-  - hint = "The cohort will be sorted by the first column".html_safe
-  - if @cohort.column_state.present?
-    - hint += ", currently: <strong>#{@cohort.column_state&.first&.title}</strong>".html_safe
-  - unless @assessment_types.blank?
-    = f.input :assessment_trigger, collection: @assessment_types, label: 'Assessment submission triggers client addition to cohort:', as: :select_two
-  = f.input :default_sort_direction, collection: @cohort.class.sort_directions.invert, include_blank: false, selected: @cohort.default_sort_direction, hint: hint, as: :select_two
-  = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: 'The member of specified the special users or group members who also have "can edit assigned cohorts" or "can view assigned cohorts" will have access this cohort.  Any user with "can manage cohorts" or "can edit cohort clients" access can always access all cohorts.'
-  %h3 Thresholds
-  %p Thresholds are a mechanism to add context to a location on a cohort.  You choose a row number, color, and label and a line of the color chosen will be drawn at that location.  These have no functional purpose, but can be coordinated with a rule in CAS that matches on rank.
-  .well
-    - (1..GrdaWarehouse::Cohort.visible_thresholds).each do |i|
-      .row
-        .col-2= f.input "threshold_row_#{i}", label: 'Threshold'
-        .col-3= f.input "threshold_color_#{i}", label: false, input_html: {class: 'colorpicker mt-no-label'}
-        .col= f.input "threshold_label_#{i}", label: 'Label'
   .row
-    .col-sm-6
-      - unless @cohort.system_cohort
-        = link_to cohort_path(@cohort), method: :delete, data: {confirm: "Are you sure you want to delete cohort \"#{@cohort.name}\"?"}, class: 'btn btn-danger' do
-          %i.icon-cross
-          Delete Cohort
-    .col-sm-6.text-right
-      = f.submit value: 'Update Cohort', class: 'btn btn-primary'
+    .col-sm-8
+      = f.input :name, disabled: @cohort.system_cohort
+      = f.input :short_name, input_html: {maxlength: 8, style: 'width: 8em;'}
+      = f.input :effective_date, as: :date_picker
+      = f.input :days_of_inactivity, label: 'How many days of client inactivity should trigger a warning?', input_html: {style: 'width: 6em;'}
+      = f.input :active_cohort, label: 'Active'
+      = f.input :static_column_count, label: 'Number of static columns', input_html: {style: 'width: 6em;'}
+      = f.input :show_on_client_dashboard, label: 'Show cohort in client dashboard?'
+      = f.input :visible_in_cas, label: 'Show cohort in CAS?'
+      = f.input :tag_id, collection: Cas::Tag.available_cohort_tags, label: 'CAS Tag', hint: 'A CAS tag should only be applied to one cohort at a time.  It is used in conjunction with the Rank prioritization scheme to determine which cohort client rank to use for a client.', as: :select_two
+      = f.input :only_window, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
+      - hint = "The cohort will be sorted by the first column".html_safe
+      - if @cohort.column_state.present?
+        - hint += ", currently: <strong>#{@cohort.column_state&.first&.title}</strong>".html_safe
+      - unless @assessment_types.blank?
+        = f.input :assessment_trigger, collection: @assessment_types, label: 'Assessment submission triggers client addition to cohort:', as: :select_two
+      = f.input :default_sort_direction, collection: @cohort.class.sort_directions.invert, include_blank: false, selected: @cohort.default_sort_direction, hint: hint, as: :select_two
+      = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: 'The member of specified the special users or group members who also have "can edit assigned cohorts" or "can view assigned cohorts" will have access this cohort.  Any user with "can manage cohorts" or "can edit cohort clients" access can always access all cohorts.'
+      %h3 Thresholds
+      %p Thresholds are a mechanism to add context to a location on a cohort.  You choose a row number, color, and label and a line of the color chosen will be drawn at that location.  These have no functional purpose, but can be coordinated with a rule in CAS that matches on rank.
+      .well
+        - (1..GrdaWarehouse::Cohort.visible_thresholds).each do |i|
+          .row
+            .col-2= f.input "threshold_row_#{i}", label: 'Threshold'
+            .col-3= f.input "threshold_color_#{i}", label: false, input_html: {class: 'colorpicker mt-no-label'}
+            .col= f.input "threshold_label_#{i}", label: 'Label'
+      .row
+        .col-sm-6
+          - unless @cohort.system_cohort
+            = link_to cohort_path(@cohort), method: :delete, data: {confirm: "Are you sure you want to delete cohort \"#{@cohort.name}\"?"}, class: 'btn btn-danger' do
+              %i.icon-cross
+              Delete Cohort
+        .col-sm-6.text-right
+          = f.submit value: 'Update Cohort', class: 'btn btn-primary'
 
 = content_for :page_js do
   :javascript

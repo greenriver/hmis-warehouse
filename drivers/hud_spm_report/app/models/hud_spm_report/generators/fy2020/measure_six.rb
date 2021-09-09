@@ -11,15 +11,28 @@ module HudSpmReport::Generators::Fy2020
       'Measure 6'.freeze
     end
 
-    def run_question!
-      tables = [
+    def self.tables
+      [
         ['6a.1 and 6b.1', :run_6a_and_6b, 'Returns to ES, SH, TH, and PH projects after exits to permanent housing destinations within 6 and 12 months (and 24 months in a separate calculation)'],
         ['6c.1', :run_6c1, 'Change in exits to permanent housing destinations'],
         ['6c.2', :run_6c2, 'Change in exit to or retention of permanent housing'],
       ]
-      @report.start(self.class.question_number, tables.map(&:first))
+    end
 
-      tables.each do |name, msg, _title|
+    def self.table_descriptions
+      {
+        'Measure 6' => 'Homeless Prevention and Housing Placement of Persons Defined by Category 3 of HUD’s Homeless Definition in CoC Program-funded Projects',
+      }.merge(
+        tables.map do |table|
+          [table.first, table.last]
+        end.to_h,
+      ).freeze
+    end
+
+    def run_question!
+      @report.start(self.class.question_number, self.class.tables.map(&:first))
+
+      self.class.tables.each do |name, msg, _title|
         send(msg, name)
       end
 

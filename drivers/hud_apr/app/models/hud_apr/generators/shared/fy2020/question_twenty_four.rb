@@ -8,6 +8,12 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionTwentyFour < Base
     QUESTION_NUMBER = 'Question 24'.freeze
 
+    def self.table_descriptions
+      {
+        'Question 24' => 'Homelessness Prevention Housing Assessment at Exit',
+      }.freeze
+    end
+
     private def q24_destination
       table_name = 'Q24'
       metadata = {

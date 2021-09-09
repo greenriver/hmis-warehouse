@@ -10,6 +10,8 @@ BostonHmis::Application.routes.draw do
     resources :spms do
       get :running, on: :collection
       get :running_all_questions, on: :collection
+      get :history, on: :collection
+      get :download, on: :member
       resources :measures, only: [:show, :create] do
         get :result, on: :member
         get :running, on: :member

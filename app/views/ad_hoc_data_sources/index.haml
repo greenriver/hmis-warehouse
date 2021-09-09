@@ -1,10 +1,11 @@
 - content_for :title,  _('Ad-Hoc Data Sources')
 
-%ul.nav.nav-tabs
-  %li.nav-item
-    = link_to _('HMIS Data Sources'), data_sources_path, class: 'nav-link'
-  %li.nav-item.active
-    = link_to _('Ad-Hoc Data Sources'), ad_hoc_data_sources_path, class: 'nav-link'
+- if can_view_imports_projects_or_organizations? || can_upload_hud_zips?
+  %ul.nav.nav-tabs
+    %li.nav-item
+      = link_to _('HMIS Data Sources'), data_sources_path, class: 'nav-link'
+    %li.nav-item.active
+      = link_to _('Ad-Hoc Data Sources'), ad_hoc_data_sources_path, class: 'nav-link'
 .row
   .col-sm-8
     %h1= content_for :title

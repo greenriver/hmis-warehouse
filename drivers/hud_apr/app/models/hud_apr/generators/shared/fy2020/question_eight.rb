@@ -17,6 +17,14 @@ module HudApr::Generators::Shared::Fy2020
       'Unknown Household Type',
     ].freeze
 
+    def self.table_descriptions
+      {
+        'Question 8' => 'Households Served',
+        'Q8a' => 'Number of Households Served',
+        'Q8b' => 'Point-in-Time Count of Households on the Last Wednesday',
+      }.freeze
+    end
+
     private def q8a_intentionally_blank
       []
     end

@@ -11,6 +11,8 @@
   report_params = {
     'filters' => filter_params
   }
+  report_params['id'] = params['id'] if params['id'].present?
+
   if defined?(breakdown) && breakdown.present?
     report_params['breakdown'] = breakdown
   end

@@ -6,12 +6,16 @@
 
 module HudDataQualityReport::Generators::Fy2020
   class Generator < ::HudReports::GeneratorBase
-    def self.title
-      'Data Quality Report - FY 2020'
+    def self.fiscal_year
+      'FY 2020'
+    end
+
+    def self.generic_title
+      'Data Quality Report'
     end
 
     def self.short_name
-      'Data Quality'
+      'DQ'.freeze
     end
 
     def url
@@ -33,7 +37,7 @@ module HudDataQualityReport::Generators::Fy2020
     end
 
     def self.filter_class
-      HudDataQualityReport::Filters::DqFilter
+      ::Filters::HudFilterBase
     end
 
     def self.valid_question_number(question_number)

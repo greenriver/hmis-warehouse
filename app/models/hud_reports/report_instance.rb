@@ -45,7 +45,7 @@ module HudReports
         end
       when 'Completed'
         if started_at.present? && completed_at.present?
-          "#{state} at #{completed_at} in #{distance_of_time_in_words(started_at, completed_at)}"
+          "#{state} in #{distance_of_time_in_words(started_at, completed_at)} <br/> #{completed_at} ".html_safe
         else
           state
         end
@@ -124,14 +124,13 @@ module HudReports
     # perhaps integrated with start_report, complete_report, start(question), complete(question)
     def _purge_universe
       # clear the polymorphic graph of universe membership
-      universe_members = HudReports::UniverseMember.with_deleted.where(
-        report_cell_id: report_cells
-      )
+      universe_members = HudReports::UniverseMember.with_deleted.
+        where(report_cell_id: report_cells)
 
       # universe_membership_type
       universe_members.distinct.pluck(
         :universe_membership_type,
-        :universe_membership_id
+        :universe_membership_id,
       ).group_by(&:first).each do |sti_type, joins|
         klass = sti_type.constantize
         ids = joins.map(&:second)
@@ -139,7 +138,7 @@ module HudReports
         klass.with_deleted.where(id: ids).delete_all
       end
 
-      # now we can kill the unverse_members
+      # now we can kill the universe_members
       universe_members.delete_all
 
       # and now the cells
@@ -168,22 +167,21 @@ module HudReports
       table.match(/[A-Z0-9-]+/i).to_s
     end
 
-
     def as_markdown
       io = StringIO.new
       question_names.each do |question|
         metadata = existing_universe(question)&.metadata
-        if metadata
-          io << "## #{question}\n"
-          Array(metadata['tables']).compact.each do |table|
-            io.puts "### Table: #{table}\n"
+        next unless metadata
 
-            exporter = HudReports::CsvExporter.new(self, table)
-            columns = exporter.display_column_names.to_a
-            rows = exporter.as_array.map{|row| row.map{|c| c.to_s.gsub(/\n/,'') } }
+        io << "## #{question}\n"
+        Array(metadata['tables']).compact.each do |table|
+          io.puts "### Table: #{table}\n"
 
-            io.puts "#{ANSI::Table.new [columns]+rows[1..]}\n"
-          end
+          exporter = HudReports::CsvExporter.new(self, table)
+          columns = exporter.display_column_names.to_a
+          rows = exporter.as_array.map { |row| row.map { |c| c.to_s.gsub(/\n/, '') } }
+
+          io.puts "#{ANSI::Table.new [columns] + rows[1..]}\n"
         end
       end
 

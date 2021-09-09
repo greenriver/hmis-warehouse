@@ -13,6 +13,12 @@ module HudSpmReport::Generators::Fy2020
       'Measure 2'.freeze
     end
 
+    def self.table_descriptions
+      {
+        'Measure 2' => 'The Extent to which Persons Who Exit Homelessness to Permanent Housing Destinations Return to Homelessness within 6, 12, and 24 months',
+      }.freeze
+    end
+
     def run_question!
       table_name = '2'
 

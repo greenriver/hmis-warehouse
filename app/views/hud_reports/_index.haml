@@ -1,0 +1,12 @@
+- content_for :title, _("HUD Reports")
+%header.mb-3
+  %h1= content_for :title
+
+.row
+  .col-sm-3
+    = render 'hud_reports/tabs', tab_name: generator.generic_title
+  .col-sm-9
+    %h2= generator.generic_title
+    .jReportListing
+      = render 'all_questions'
+    = render 'hud_reports/list_refresher'

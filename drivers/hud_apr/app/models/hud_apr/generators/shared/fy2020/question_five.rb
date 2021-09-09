@@ -32,6 +32,13 @@ module HudApr::Generators::Shared::Fy2020
       []
     end
 
+    def self.table_descriptions
+      {
+        'Question 5' => 'Report Validations',
+        'Q5a' => 'Report Validations Table',
+      }.freeze
+    end
+
     private def active_questions
       [
         # Number of adults
