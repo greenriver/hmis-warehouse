@@ -118,6 +118,7 @@ module HudTwentyTwentyToTwentyTwentyTwo
 
         source_file = File.join(source_directory, file)
         destination_file = File.join(destination_directory, file)
+        next unless File.exist?(source_file)
 
         case action
         when :copy
