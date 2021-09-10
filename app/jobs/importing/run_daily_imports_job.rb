@@ -11,7 +11,7 @@ module Importing
     include ArelHelper
     attr_accessor :send_notifications, :notifier_config
 
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def initialize
       setup_notifier('DailyImporter')

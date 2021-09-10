@@ -9,7 +9,7 @@
 
 module Confidence
   class ConfidenceJob < BaseJob
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     # Grab a batch of queued census calculations
     # and update at least one for each client.
@@ -84,7 +84,7 @@ module Confidence
       )
     end
 
-    def enqueue(job, queue: :long_running)
+    def enqueue(job, queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))
     end
 
     def max_attempts

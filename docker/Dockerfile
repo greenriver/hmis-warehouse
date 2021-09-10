@@ -31,11 +31,13 @@ RUN apk add --no-cache \
   imagemagick \
   libmagic file-dev file \
   build-base libxml2-dev libxslt-dev postgresql-dev \
-  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
-  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-  lftp postgresql tmux postgis geos geos-dev proj proj-dev \
+  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl \
+  ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
+  chromium nss freetype freetype-dev harfbuzz ca-certificates \
+  lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util \
   shared-mime-info \
-  vim less
+  vim less \
+  && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
 
 RUN mkdir /app
 WORKDIR /app

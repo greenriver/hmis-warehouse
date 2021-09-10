@@ -8,7 +8,7 @@ module Reporting
   class PopulationDashboardPopulateJob < BaseJob
     include ActionView::Helpers::DateHelper
 
-    queue_as :long_running
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def max_attempts
       1
