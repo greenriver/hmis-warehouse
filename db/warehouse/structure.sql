@@ -218,7 +218,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -1027,7 +1027,7 @@ CREATE TABLE public."Event" (
     "Event" integer NOT NULL,
     "ProbSolDivRRResult" integer,
     "ReferralCaseManageAfter" integer,
-    "LocationCrisisorPHHousing" character varying,
+    "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" integer,
     "ResultDate" date,
     "DateCreated" timestamp without time zone NOT NULL,
@@ -2605,7 +2605,7 @@ CREATE VIEW public."bi_Event" AS
     "Event"."Event",
     "Event"."ProbSolDivRRResult",
     "Event"."ReferralCaseManageAfter",
-    "Event"."LocationCrisisorPHHousing",
+    "Event"."LocationCrisisOrPHHousing",
     "Event"."ReferralResult",
     "Event"."ResultDate",
     "Event"."DateCreated",
@@ -6900,7 +6900,7 @@ CREATE TABLE public.hmis_2020_events (
     "Event" integer,
     "ProbSolDivRRResult" integer,
     "ReferralCaseManageAfter" integer,
-    "LocationCrisisorPHHousing" character varying,
+    "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" integer,
     "ResultDate" date,
     "DateCreated" timestamp without time zone,
@@ -8272,7 +8272,7 @@ CREATE TABLE public.hmis_csv_2020_events (
     "Event" character varying,
     "ProbSolDivRRResult" character varying,
     "ReferralCaseManageAfter" character varying,
-    "LocationCrisisorPHHousing" character varying,
+    "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" character varying,
     "ResultDate" character varying,
     "DateCreated" character varying,
@@ -31580,5 +31580,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210903113401'),
 ('20210904021301'),
 ('20210906163956');
-
-

@@ -454,7 +454,7 @@ module GrdaWarehouse::Hud
     scope :race_native_hi_other_pacific, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:NativeHIOtherPacific].eq(1)).
+          where(c_t[:NativeHIOtherPacific].eq(1).or(c_t[:NativeHIPacific].eq(1))).
           select(:destination_id),
       )
     end

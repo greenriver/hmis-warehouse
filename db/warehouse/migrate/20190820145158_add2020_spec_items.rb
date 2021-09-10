@@ -130,7 +130,7 @@ class Add2020SpecItems < ActiveRecord::Migration[4.2]
       t.integer :Event, null: false
       t.integer :ProbSolDivRRResult
       t.integer :ReferralCaseManageAfter
-      t.string :LocationCrisisorPHHousing
+      t.string :LocationCrisisOrPHHousing
       t.integer :ReferralResult
       t.date :ResultDate
       t.datetime :DateCreated, null: false
