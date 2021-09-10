@@ -11,6 +11,12 @@ module HudSpmReport::Generators::Fy2020
       'Measure 1'.freeze
     end
 
+    def self.table_descriptions
+      {
+        'Measure 1' => 'Length of Time Persons Remain Homeless',
+      }.freeze
+    end
+
     COLS = {
       'B' => 'Previous FY Universe (Persons)', # optional
       'C' => 'Current FY Universe (Persons)',

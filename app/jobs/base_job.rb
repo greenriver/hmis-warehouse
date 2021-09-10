@@ -69,6 +69,7 @@ class BaseJob < ApplicationJob
   end
 
   def notify_on_exception(exception)
+    raise exception if Rails.env.test? # Without this, exceptions are really hard to track down in tests
     return unless File.exist?('config/exception_notifier.yml')
 
     setup_notifier('DelayedJobFailure')

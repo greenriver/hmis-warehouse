@@ -28,15 +28,15 @@
       .percent-loaded
 
 
-- if @cohort.clients.blank? && ! @cohort.system_cohort
+- if @cohort.clients.blank? && (! @cohort.system_cohort && can_edit_some_cohorts?)
   %p.text-center.mt-2
     = link_to new_cohort_cohort_client_path(@cohort), class: 'btn btn-primary' do
       %i.icon-plus
       Add Clients
+- else
+  .row.mt-2
+    .col-sm-12
+      - if @cohort.cohort_clients.preload(:clients).any?
+        = render 'client_table'
 
-.row.mt-2
-  .col-sm-12
-    - if @cohort.cohort_clients.preload(:clients).any?
-      = render 'client_table'
-
-= render 'cohort_client_form'
+  = render 'cohort_client_form'

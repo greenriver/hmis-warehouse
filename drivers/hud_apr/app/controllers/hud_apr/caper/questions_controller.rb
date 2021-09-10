@@ -14,9 +14,5 @@ module HudApr::Caper
     private def report_param_name
       :caper_id
     end
-
-    def show
-      @path_for_running = running_hud_reports_caper_question_path(link_params.except('action', 'controller'))
-    end
   end
 end

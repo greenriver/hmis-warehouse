@@ -5,28 +5,28 @@
     = link_to cohort_path(@cohort), title: 'Cohort', class: ['nav-link', active_class] do
       Cohort
   - if can_manage_cohorts?
+    -# NOTE: this can be used to assign users to the cohort, so should only be available to managers
     %li.nav-item
-      = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'nav-link' do
+      = link_to edit_cohort_path(@cohort), title: 'Edit Cohort', class: 'nav-link' do
         %i.icon-pencil
         Edit
-
+  - if can_manage_cohorts? || can_edit_assigned_cohorts?
     %li.nav-item
-      = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_pjax_modal: true}, class: 'nav-link' do
+      = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_ajax_modal: true}, class: 'nav-link' do
         %i.icon-cog
         Edit Visible Columns
-
+  - if can_manage_cohorts?
     - unless system_cohort
       %li.nav-item
         = link_to new_cohort_copy_path(@cohort), title: 'Import data from another cohort', class: 'nav-link' do
           %i.icon-copy
           Import
-
-    %li.nav-item
-      - active_class =if active_tab == 'report' then  'active' else '' end
-      = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: ['nav-link', active_class] do
-        %i.icon-printer
-        Changes Report
-
+  %li.nav-item
+    - active_class =if active_tab == 'report' then  'active' else '' end
+    = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: ['nav-link', active_class] do
+      %i.icon-printer
+      Changes Report
+  - if can_edit_cohort_clients? || can_manage_cohorts?
     %li.nav-item
       = form_for :cohort_clients, url: re_rank_cohort_cohort_clients_path(@cohort), method: :patch, html: {class: 'inline-form'} do |f|
         - usage_help = 'Re-Rank the the clients in this cohort by the first column in the table'
@@ -44,13 +44,13 @@
           Re-Rank
         %input#rank_order{type: :hidden, name: :rank_order}
 
-    - unless system_cohort
-      %li.nav-item
-        = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'nav-link' do
-          %i.icon-users
-          Add Clients
+  - if ! system_cohort && can_edit_some_cohorts?
+    %li.nav-item
+      = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'nav-link' do
+        %i.icon-users
+        Add Clients
 
-  - if can_download_cohorts?
+  - if can_download_cohorts? || can_manage_cohorts?
     %li.nav-item
       = link_to({format: :xlsx}.merge(link_params),{class: 'nav-link'}) do
         %i.icon-download2

@@ -14,9 +14,5 @@ module HudApr::Apr
     private def report_param_name
       :apr_id
     end
-
-    def show
-      @path_for_running = running_hud_reports_apr_question_path(link_params.except('action', 'controller'))
-    end
   end
 end

@@ -6,8 +6,12 @@
 
 module HudApr::Generators::CeApr::Fy2020
   class Generator < ::HudReports::GeneratorBase
-    def self.title
-      'Coordinated Entry Annual Performance Report - FY 2020'
+    def self.fiscal_year
+      'FY 2020'
+    end
+
+    def self.generic_title
+      'Coordinated Entry Annual Performance Report'
     end
 
     def self.short_name
@@ -69,59 +73,12 @@ module HudApr::Generators::CeApr::Fy2020
         enforce_one_year_range: false,
       ).update(@report.options)
 
-      she_scope = GrdaWarehouse::ServiceHistoryEnrollment.all
-      she_scope = filter_for_projects(she_scope)
-      she_scope = filter_for_cocs(she_scope)
-      she_scope = filter_for_veteran_status(she_scope)
-      she_scope = filter_for_household_type(she_scope)
-      she_scope = filter_for_head_of_household(she_scope)
-      she_scope = filter_for_age(she_scope)
-      she_scope = filter_for_gender(she_scope)
-      she_scope = filter_for_race(she_scope)
-      she_scope = filter_for_ethnicity(she_scope)
-      she_scope = filter_for_sub_population(she_scope)
-      scope = scope.merge(she_scope)
+      # Make sure we take advantage of the additive nature of HUD report filters
+      @filter.project_ids = @report.project_ids
+
+      scope = scope.merge(@filter.apply(GrdaWarehouse::ServiceHistoryEnrollment.all))
 
       scope.select(:id)
-    end
-
-    private def clients_with_enrollments(batch)
-      enrollment_scope.
-        where(client_id: batch.map(&:id)).
-        order(as_t[:AssessmentDate].asc).
-        group_by(&:client_id).
-        reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
-    end
-
-    private def enrollment_scope_without_preloads
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        entry.
-        open_between(start_date: @report.start_date, end_date: @report.end_date).
-        joins(enrollment: :assessments).
-        merge(GrdaWarehouse::Hud::Assessment.within_range(@report.start_date..@report.end_date))
-      scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
-      scope
-    end
-
-    # Only include ages for clients who were present on the assessment date
-    private def ages_for(household_id, date)
-      return [] unless households[household_id]
-
-      households[household_id].reject do |client|
-        client.entry_date > date || client.exit_date.present? && client.exit_date < date
-      end.map do |client|
-        GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob])
-      end
-    end
-
-    # Only include clients who were present on the assessment date
-    private def household_member_data(enrollment, date)
-      # return nil unless enrollment[:head_of_household]
-
-      active_members = households[enrollment.household_id] || []
-      active_members.reject do |client|
-        client.entry_date > date || client.exit_date.present? && client.exit_date < date
-      end
     end
   end
 end

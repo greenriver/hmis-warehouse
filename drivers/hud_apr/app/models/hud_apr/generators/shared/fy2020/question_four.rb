@@ -27,6 +27,13 @@ module HudApr::Generators::Shared::Fy2020
 
     HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
 
+    def self.table_descriptions
+      {
+        'Question 4' => 'HMIS Information',
+        'Q4a' => 'Project Identifiers in HMIS',
+      }.freeze
+    end
+
     private def q4_project_identifiers
       table_name = 'Q4a'
       @report.universe(QUESTION_NUMBER)

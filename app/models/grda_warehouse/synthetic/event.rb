@@ -11,7 +11,7 @@ module GrdaWarehouse::Synthetic
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :source, polymorphic: true
-    belongs_to :hud_event, class_name: 'GrdaWarehouse::Hud::Event', optional: true
+    belongs_to :hud_event, class_name: 'GrdaWarehouse::Hud::Event', optional: true, primary_key: :hud_event_event_id, foreign_key: :EventID
 
     validates_presence_of :enrollment
     validates_presence_of :client
@@ -57,32 +57,40 @@ module GrdaWarehouse::Synthetic
       # Clean up orphans in HUD table
       event_source.
         synthetic.
-        where.not(id: select(:hud_event_id)).
+        where.not(EventID: select(:hud_event_event_id)).
         delete_all
     end
 
     def self.create_hud_events
       preload(:enrollment, :client, :source).find_in_batches do |batch|
+        to_import = batch.map(&:hud_event_hash)
         event_source.import(
-          batch.map(&:hud_event_hash).compact,
+          to_import.compact,
           on_duplicate_key_update: {
             conflict_target: ['"EventID"', :data_source_id],
             columns: event_source.hmis_configuration.keys,
           },
         )
+        batch.each.with_index do |synthetic, i|
+          added = to_import[i]
+          next if added.blank?
+
+          synthetic.update(hud_event_event_id: added[:EventID])
+        end
       end
     end
 
     def hud_event_hash
       return nil unless enrollment.present? &&
-        client.present? &&
         event_date.present? &&
         event.present?
 
+      unique_key = [enrollment.EnrollmentID, enrollment.PersonalID, event_date, enrollment.data_source_id, source.created_at]
+      eventid = hud_event&.EventID || Digest::MD5.hexdigest(unique_key.join('_'))
       {
-        EventID: hud_event&.EventID || SecureRandom.uuid.gsub(/-/, ''),
+        EventID: eventid,
         EnrollmentID: enrollment.EnrollmentID,
-        PersonalID: client.PersonalID,
+        PersonalID: enrollment.PersonalID,
         EventDate: event_date,
         Event: event,
         ProbSolDivRRResult: client_housed_in_a_safe_alternative,
@@ -93,21 +101,13 @@ module GrdaWarehouse::Synthetic
         DateCreated: source.created_at,
         DateUpdated: source.updated_at,
         UserID: user_id,
-        data_source_id: ds.id,
+        data_source_id: enrollment.data_source_id,
         synthetic: true,
       }
     end
 
     private def user_id
       @user_id ||= User.setup_system_user.name
-    end
-
-    private def ds
-      @ds ||= GrdaWarehouse::DataSource.where(short_name: data_source).first_or_create do |ds|
-        ds.name = data_source
-        ds.authoritative = true
-        ds.authoritative_type = :synthetic
-      end
     end
 
     def self.event_source

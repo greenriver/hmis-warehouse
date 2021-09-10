@@ -1,4 +1,4 @@
-%ul.nav.nav-tabs{role: :tablist}
+%ul.nav.nav-pills.report-nav.flex-column{role: :tablist, aria: {orientation: :vertical}}
   - @tab_content_reports.each do |category|
     %li.nav-item{role: :presentation}
       = link_to category, reports_path(anchor: category.parameterize.dasherize), role: :tab, aria: {controls: '#{category}'}, class: 'nav-link'
