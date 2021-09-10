@@ -24,13 +24,16 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
       edi_name: '',
     )
     # match - single race
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     patients << create(:patient,
                        medicaid_id: 'QMTEST000001',
                        birthdate: date_range.min - 41.years,
                        client: create(:hud_client,
+
                                       Gender: 2, Ethnicity: 1, AmIndAKNative: 0, Asian: 1, BlackAfAmerican: 1, NativeHIOtherPacific: 0, White: 0, RaceNone: 0),
                        patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
     # match - MultiRacial
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     patients << create(:patient,
                        medicaid_id: 'QMTEST000002',
                        birthdate: date_range.min - 41.years,
@@ -38,6 +41,7 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
                                       Gender: 3, Ethnicity: 8, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 1, White: 0, RaceNone: 0),
                        patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
     # wrong race
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     patients << create(:patient,
                        medicaid_id: 'QMTEST000003',
                        birthdate: date_range.min - 41.years,
@@ -45,6 +49,7 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
                                       Gender: 2, Ethnicity: 1, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 0, White: 1, RaceNone: 0),
                        patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
     # wrong ethnicity
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     patients << create(:patient,
                        medicaid_id: 'QMTEST000004',
                        birthdate: date_range.min - 41.years,
@@ -52,6 +57,7 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
                                       Gender: 1, Ethnicity: 2, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 0, White: 0, RaceNone: 1),
                        patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
     # wrong age
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     patients << create(:patient,
                        medicaid_id: 'QMTEST000005',
                        birthdate: date_range.min - 60.years,
@@ -59,6 +65,7 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
                                       Gender: 3, Ethnicity: 8, AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIOtherPacific: 1, White: 0, RaceNone: 0),
                        patient_referral: create(:patient_referral, accountable_care_organization_id: aco.id))
     # wrong aco
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     patients << create(:patient,
                        medicaid_id: 'QMTEST000006',
                        birthdate: date_range.min - 41.years,
@@ -67,6 +74,7 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
                        patient_referral: create(:patient_referral, accountable_care_organization_id: wrong_aco.id))
 
     # wrong cp_enroll_dt
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     wrong_enrollment = create(:patient,
                               medicaid_id: 'QMTEST000007',
                               birthdate: date_range.min - 41.years,
@@ -105,6 +113,7 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
 
     expect(Health::Patient.count).to eq(patients.count)
 
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     report = ClaimsReporting::QualityMeasuresReport.new(
       date_range: date_range,
       filter: Filters::QualityMeasuresFilter.new(

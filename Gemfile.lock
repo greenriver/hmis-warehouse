@@ -795,6 +795,7 @@ GEM
     tins (1.28.0)
       sync
     tiny_tds (2.1.3)
+    todo_or_die (0.0.4)
     tzinfo (1.2.9)
       thread_safe (~> 0.1)
     uglifier (4.2.0)
@@ -1008,6 +1009,7 @@ DEPENDENCIES
   text
   timecop
   tiny_tds
+  todo_or_die
   uglifier
   validate_url
   validates_email_format_of

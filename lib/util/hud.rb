@@ -91,6 +91,7 @@ module HUD
 
   # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
   def races(multi_racial: false)
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     race_list = {
       'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous', # 1
       'Asian' => 'Asian or Asian American', # 2
