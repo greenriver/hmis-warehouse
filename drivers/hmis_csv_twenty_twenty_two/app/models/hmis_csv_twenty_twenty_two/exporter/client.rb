@@ -47,6 +47,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         :Transgender,
         :Questioning,
         :VeteranStatus,
+        :NativeHIPacific,
       ].each do |required_column|
         row[required_column] = 99 if row[required_column].blank?
       end
