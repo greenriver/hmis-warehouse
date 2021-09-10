@@ -13,6 +13,8 @@
 # @report.update(percent_complete: 0, job_status: nil)
 # r = ReportGenerators::Lsa::Fy2021::All.new(@report.options.merge(user_id: @report.user_id, test: false, destroy_rds: false))
 # r.run!
+# OR for a non-test run
+# reload!; @report = ReportResult.where( report: Reports::Lsa::Fy2021::All.first, ).last; @report.update(percent_complete: 0, job_status: nil); r = ReportGenerators::Lsa::Fy2021::All.new(@report.options.merge(user_id: @report.user_id, test: false, destroy_rds: false)); r.run!
 
 # This check is a proxy for all the vars you really need in the rds.rb file
 # This if-statement prevents the lack of the vars from killing the app.
