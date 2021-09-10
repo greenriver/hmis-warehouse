@@ -79,6 +79,7 @@ module HudReports
       title = generator.title
       if @question.present?
         @reports = report_scope.joins(:report_cells).
+          where(report_name: title).
           preload(:universe_cells).
           merge(report_cell_source.universe.where(question: @question))
       else
@@ -157,6 +158,9 @@ module HudReports
         :creator,
         :start,
         :end,
+        filter: [
+          :report_version,
+        ],
       )
     end
 
