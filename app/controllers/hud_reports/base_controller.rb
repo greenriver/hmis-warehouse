@@ -77,14 +77,11 @@ module HudReports
 
     def set_reports
       title = generator.title
+      @reports = report_scope.where(report_name: title).
+        preload(:user, :universe_cells)
       if @question.present?
-        @reports = report_scope.joins(:report_cells).
-          where(report_name: title).
-          preload(:universe_cells).
+        @reports = @reports.joins(:report_cells).
           merge(report_cell_source.universe.where(question: @question))
-      else
-        @reports = report_scope.where(report_name: title).
-          preload(:user, :universe_cells)
       end
       @reports = apply_view_filters(@reports)
       @reports = @reports.order(created_at: :desc).
@@ -98,6 +95,7 @@ module HudReports
       else
         reports = reports.where(user_id: current_user.id)
       end
+      return reports unless @view_filter.present?
 
       reports = if @view_filter.try(:[], :run_type) == 'automated'
         reports.automated
@@ -105,11 +103,8 @@ module HudReports
         reports.manual
       end
 
-      if @view_filter.present?
-        filter_range = @view_filter[:start].to_date..(@view_filter[:end].to_date + 1.days)
-        reports = reports.where(created_at: filter_range)
-      end
-      reports
+      filter_range = @view_filter[:start].to_date..(@view_filter[:end].to_date + 1.days)
+      reports.where(created_at: filter_range)
     end
 
     def report_urls
@@ -168,7 +163,7 @@ module HudReports
       @view_filter = {}
       @view_filter[:run_type] = view_filter_params[:run_type] || 'manual'
       @view_filter[:creator] = view_filter_params[:creator] || 'all'
-      @view_filter[:start] = view_filter_params[:start] || (Date.current - 1.month)
+      @view_filter[:start] = view_filter_params[:start] || (Date.current - 1.months)
       @view_filter[:end] = view_filter_params[:end] || Date.current
       @active_filter = view_filter_params.present?
     end
