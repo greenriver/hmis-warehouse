@@ -13,7 +13,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Enrollment
       'AnnualPercentAMI',
       'LiteralHomelessHistory',
       'ClientLeaseholder',
-      'HOHLeasesholder',
+      'HOHLeaseholder',
       'SubsidyAtRisk',
       'EvictionHistory',
       'CriminalRecord',
