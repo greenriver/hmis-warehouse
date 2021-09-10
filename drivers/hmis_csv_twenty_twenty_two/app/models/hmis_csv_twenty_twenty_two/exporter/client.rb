@@ -43,7 +43,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         :GenderNone,
         :Female,
         :Male,
-        :GenderOther,
+        :NoSingleGender,
         :Transgender,
         :Questioning,
         :VeteranStatus,
