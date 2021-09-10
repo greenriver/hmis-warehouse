@@ -49,9 +49,9 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
     HmisCsvImporter::Utility.clear!
 
     data_source = if with_cleanup
-      create(:force_valid_enrollment_cocs)
+      create(:importer_force_valid_enrollment_cocs)
     else
-      create(:dont_cleanup_ds)
+      create(:importer_dont_cleanup_ds)
     end
 
     import_hmis_csv_fixture(

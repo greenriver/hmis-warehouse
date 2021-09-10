@@ -56,9 +56,9 @@ RSpec.describe 'Prepend Organization IDs', type: :model do
     file_path = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twentytwo/cleanup_move_ins'
 
     @data_source = if with_cleanup
-      create(:prepend_organization_ids)
+      create(:importer_prepend_organization_ids)
     else
-      create(:dont_cleanup_ds)
+      create(:importer_dont_cleanup_ds)
     end
 
     source_file_path = File.join(file_path, 'source')

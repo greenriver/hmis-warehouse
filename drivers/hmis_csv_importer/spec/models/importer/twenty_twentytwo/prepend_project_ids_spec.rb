@@ -40,9 +40,9 @@ RSpec.describe 'Prepend Project IDs', type: :model do
     HmisCsvImporter::Utility.clear!
 
     data_source = if with_cleanup
-      create(:prepend_project_ids)
+      create(:importer_prepend_project_ids)
     else
-      create(:dont_cleanup_ds)
+      create(:importer_dont_cleanup_ds)
     end
 
     import_hmis_csv_fixture(

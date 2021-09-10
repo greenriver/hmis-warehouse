@@ -80,9 +80,9 @@ RSpec.describe 'Ensure Relationships', type: :model do
     HmisCsvImporter::Utility.clear!
 
     @data_source = if with_cleanup
-      create(:ensure_relationships_ds)
+      create(:importer_ensure_relationships_ds)
     else
-      create(:dont_cleanup_ds)
+      create(:importer_dont_cleanup_ds)
     end
     import_hmis_csv_fixture(
       'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twentytwo/ensure_relationships',

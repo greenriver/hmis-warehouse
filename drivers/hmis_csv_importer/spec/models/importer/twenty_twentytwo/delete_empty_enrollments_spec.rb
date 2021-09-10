@@ -44,9 +44,9 @@ RSpec.describe 'Delete empty SO enrollments', type: :model do
     HmisCsvImporter::Utility.clear!
 
     data_source = if with_cleanup
-      create(:delete_empty_enrollments_ds)
+      create(:importer_delete_empty_enrollments_ds)
     else
-      create(:dont_cleanup_ds)
+      create(:importer_dont_cleanup_ds)
     end
     import_hmis_csv_fixture(
       'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twentytwo/delete_empty_enrollments',
