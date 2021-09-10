@@ -10,9 +10,9 @@ RSpec.describe 'Combine Enrollments', type: :model do
   before(:all) do
     GrdaWarehouse::Utility.clear!
     HmisCsvImporter::Utility.clear!
-    data_source = create(:combined_enrollments_ds)
+    data_source = create(:unversioned_combined_enrollments_ds)
 
-    create(:combined_enrollment_project, data_source_id: data_source.id)
+    create(:unversioned_combined_enrollment_project, data_source_id: data_source.id)
 
     import_hmis_csv_fixture(
       'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twentytwo/combine_enrollments',

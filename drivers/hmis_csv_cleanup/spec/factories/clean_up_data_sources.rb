@@ -11,7 +11,7 @@ FactoryBot.define do
     source_type { :sftp }
     import_cleanups do
       {
-        'Enrollment': ['HmisCsvTwentyTwenty::HmisCsvCleanup::MoveInOutsideEnrollment'],
+        'Enrollment': ['HmisCsvCleanup::MoveInOutsideEnrollment'],
       }
     end
   end
@@ -22,7 +22,7 @@ FactoryBot.define do
     source_type { :sftp }
     import_cleanups do
       {
-        'Project': ['HmisCsvTwentyTwenty::HmisCsvCleanup::PrependProjectId'],
+        'Project': ['HmisCsvCleanup::PrependProjectId'],
       }
     end
   end
@@ -33,7 +33,7 @@ FactoryBot.define do
     source_type { :sftp }
     import_cleanups do
       {
-        'Organization': ['HmisCsvTwentyTwenty::HmisCsvCleanup::PrependOrganizationId'],
+        'Organization': ['HmisCsvCleanup::PrependOrganizationId'],
       }
     end
   end
@@ -44,7 +44,7 @@ FactoryBot.define do
     source_type { :sftp }
     import_cleanups do
       {
-        'EnrollmentCoc': ['HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc'],
+        'EnrollmentCoc': ['HmisCsvCleanup::ForceValidEnrollmentCoc'],
       }
     end
   end
@@ -55,7 +55,7 @@ FactoryBot.define do
     source_type { :sftp }
     import_cleanups do
       {
-        'Enrollment': ['HmisCsvTwentyTwenty::HmisCsvCleanup::DeleteEmptyEnrollments'],
+        'Enrollment': ['HmisCsvCleanup::DeleteEmptyEnrollments'],
       }
     end
   end
@@ -66,7 +66,7 @@ FactoryBot.define do
     source_type { :s3 }
     import_cleanups do
       {
-        'Enrollment': ['HmisCsvTwentyTwenty::HmisCsvCleanup::EnforceRelationshipToHoh'],
+        'Enrollment': ['HmisCsvCleanup::EnforceRelationshipToHoh'],
       }
     end
   end

@@ -13,7 +13,7 @@
 # If everyone in the household is 17 or younger, and there is a person 10 or younger, set the oldest person to RelationshipToHoH = 1 and set any other RelationshipToHoH == 1 to 99
 # If the household only contains clients between the age of 11 and 17 inclusive, break up the household and set everyone as RelationshipToHoH = 1
 
-module HmisCsvImporter::HmisCsvCleanup
+module HmisCsvCleanup
   class EnforceRelationshipToHoh < Base
     def cleanup!
       rewrite_reused_household_ids
@@ -186,11 +186,11 @@ module HmisCsvImporter::HmisCsvCleanup
             :HouseholdID,
             :PersonalID,
             ic_t[:DOB],
-            ic_t[:Gender],
+            ic_t[:Female],
             :RelationshipToHoH,
             :id,
           ).
-          each do |en_id, project_id, hh_id, personal_id, dob, gender, relationship, id|
+          each do |en_id, project_id, hh_id, personal_id, dob, female, relationship, id|
             hh[hh_id] ||= []
             age = GrdaWarehouse::Hud::Client.age(date: Date.current, dob: dob)
             hh[hh_id] << {
@@ -198,7 +198,7 @@ module HmisCsvImporter::HmisCsvCleanup
               personal_id: personal_id,
               hoh: relationship == 1,
               age: age || -1,
-              female: gender == 0, # rubocop:disable Style/NumericPredicate
+              female: female == 1,
               adult: age.present? && age >= 18,
               enrollment_id: en_id,
               project_id: project_id,

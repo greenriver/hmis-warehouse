@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisCsvImporter::HmisCsvCleanup
+module HmisCsvCleanup
   class PrependProjectId < Base
     def cleanup!
       project_batch = []
