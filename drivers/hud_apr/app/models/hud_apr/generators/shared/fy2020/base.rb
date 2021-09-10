@@ -467,7 +467,6 @@ module HudApr::Generators::Shared::Fy2020
     # race field. The order that the races appear in the report is encoded in the 'order' of this hash.
     # This practice is very brittle, so we'll copy those here and hard code those relationships
     private def races
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       {
         'AmIndAKNative' => {
           order: 4,

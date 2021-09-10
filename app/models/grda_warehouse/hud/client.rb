@@ -452,9 +452,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :race_native_hi_other_pacific, -> do
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:NativeHIOtherPacific].eq(1).or(c_t[:NativeHIPacific].eq(1))).
+          where(c_t[:NativeHIOtherPacific].eq(1)).
           select(:destination_id),
       )
     end
@@ -2167,6 +2168,7 @@ module GrdaWarehouse::Hud
       return 'AmIndAKNative' if @race_am_ind_ak_native.include?(destination_id)
       return 'Asian' if @race_asian.include?(destination_id)
       return 'BlackAfAmerican' if @race_black_af_american.include?(destination_id)
+
       TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       return 'NativeHIOtherPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
