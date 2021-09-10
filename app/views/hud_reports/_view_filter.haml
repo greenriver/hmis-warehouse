@@ -1,9 +1,6 @@
 :ruby
   filter_class = if @active_filter then 'filter-active' else 'filter' end
-  report_version = link_params.try(:[], :filter).try(:[], :report_version)
-  if report_version
-    path_for_clear_view_filter = "#{path_for_clear_view_filter}?filter[report_version]=#{report_version}"
-  end
+  report_version = link_params.try(:[], :filter).try(:[], :report_version) || default_report_version
 
 .dropdown.o-filtration{class: filter_class}
   %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { toggle: 'dropdown' }, aria: { haspopup: 'true', expanded: 'false' }}

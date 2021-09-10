@@ -236,11 +236,18 @@ module HudReports
     end
     helper_method :report_version_urls
 
+    private def default_report_version
+      :fy2020
+    end
+    helper_method :default_report_version
+
     private def path_for_clear_view_filter
+      report_version = link_params.try(:[], :filter).try(:[], :report_version)
+      args = report_version ? { filter: { report_version: report_version } } : {}
       if @question.present?
-        path_for_question(@question, report: @report)
+        path_for_question(@question, report: @report, args: args)
       else
-        path_for_history
+        path_for_history(args)
       end
     end
     helper_method :path_for_clear_view_filter
