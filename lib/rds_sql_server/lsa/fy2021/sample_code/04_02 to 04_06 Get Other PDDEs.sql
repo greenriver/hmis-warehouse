@@ -17,7 +17,7 @@ Date:	26 AUG 2021
 		, DateCreated, DateUpdated, ExportID)
 	select distinct ho.OrganizationID
 		, left(ho.OrganizationName, 100)
-		, ho.VictimServicesProvider	
+		, ho.VictimServiceProvider	
 		, format(ho.DateCreated, 'yyyy-MM-dd HH:mm:ss')
 		, format(ho.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
 		, lp.ExportID
@@ -126,4 +126,3 @@ Date:	26 AUG 2021
 			or (hi.InventoryEndDate >= rpt.ReportStart
 				and hi.InventoryEndDate > hi.InventoryStartDate)
 			)
-

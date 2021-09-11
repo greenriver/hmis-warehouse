@@ -207,21 +207,21 @@ update rpt
 			inner join hmis_Client c on c.PersonalID = n.PersonalID
 			where n.Status1 is not null 
 				and c.RaceNone in (8,9,99)
-					or isnull(c.AmIndAKNative,0) + isnull(c.Asian,0) + isnull(c.BlackAfAmerican,0) + isnull(c.NativeHIOtherPacific,0) + isnull(c.White,0) = 0
+					or isnull(c.AmIndAKNative,0) + isnull(c.Asian,0) + isnull(c.BlackAfAmerican,0) + isnull(c.NativeHIPacific,0) + isnull(c.White,0) = 0
 					or c.AmIndAKNative not in (0,1)
 					or c.Asian not in (0,1)
 					or c.BlackAfAmerican not in (0,1)
-					or c.NativeHIOtherPacific not in (0,1)
+					or c.NativeHIPacific not in (0,1)
 					or c.White not in (0,1))
 	,	Race3 = (select count(distinct n.PersonalID)
 			from dq_Enrollment n
 			inner join hmis_Client c on c.PersonalID = n.PersonalID
 			where c.RaceNone in (8,9,99)
-					or isnull(c.AmIndAKNative,0) + isnull(c.Asian,0) + isnull(c.BlackAfAmerican,0) + isnull(c.NativeHIOtherPacific,0) + isnull(c.White,0) = 0
+					or isnull(c.AmIndAKNative,0) + isnull(c.Asian,0) + isnull(c.BlackAfAmerican,0) + isnull(c.NativeHIPacific,0) + isnull(c.White,0) = 0
 					or c.AmIndAKNative not in (0,1)
 					or c.Asian not in (0,1)
 					or c.BlackAfAmerican not in (0,1)
-					or c.NativeHIOtherPacific not in (0,1)
+					or c.NativeHIPacific not in (0,1)
 					or c.White not in (0,1))
 	,	Ethnicity1 = (select count(distinct n.PersonalID)
 			from dq_Enrollment n

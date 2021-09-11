@@ -768,8 +768,8 @@ select count (distinct HoHID + cast(HHType as nvarchar))
 		when ReturnTime between 366 and 547 then 547
 		when ReturnTime between 548 and 730 then 730
 		else ReturnTime end
-	, HHType, HHVet, HHChronic, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity
-	, HHAdultAge, HHParent, AC3Plus, SystemPath, ReportID
+	, HHType, 1, 1, 1, 1, 1, 1
+	, 1, 1, 1, SystemPath, ReportID
 from tlsa_Exit
 group by Cohort, Stat, ExitFrom, ExitTo
 	, case when ReturnTime between 15 and 30 then 30
