@@ -5,13 +5,10 @@
 ###
 #
 
-module HudTwentyTwentyToTwentyTwentyTwo::HealthAndDv
-  class AddC1Columns
+module HudTwentyTwentyToTwentyTwentyTwo::Client
+  class TransformRace
     def process(row)
-      row['LifeValue'] = nil
-      row['SupportFromOthers'] = nil
-      row['BounceBack'] = nil
-      row['FeelingFrequency'] = nil
+      row['NativeHIPacific'] = row['NativeHIOtherPacific']
 
       row
     end

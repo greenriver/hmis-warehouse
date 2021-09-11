@@ -127,7 +127,7 @@ module HudPathReport::Generators::Fy2021
         'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous', # 1
         'Asian' => 'Asian or Asian American', # 2
         'BlackAfAmerican' => 'Black, African American, or African', # 3
-        'NativeHIOtherPacific' => 'Native Hawaiian or Pacific Islander', # 4
+        'NativeHIPacific' => 'Native Hawaiian or Pacific Islander', # 4
         'White' => 'White', # 5
       }.map do |k, v|
         [
