@@ -31,10 +31,12 @@ module GrdaWarehouse::Tasks
 
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
         @client_ids = client_source.pluck(:id)
-        updated_clients = Set.new
+        updated_clients = []
+        update_columns = (Cas::ProjectClient.column_names - ['id']).map(&:to_sym)
         Cas::ProjectClient.transaction do
           Cas::ProjectClient.update_all(sync_with_cas: false)
           @client_ids.each_slice(1_000) do |client_id_batch|
+            to_update = []
             project_clients = Cas::ProjectClient.
               where(data_source_id: data_source.id, id_in_data_source: client_id_batch).
               index_by(&:id_in_data_source)
@@ -70,9 +72,10 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_es = client.enrolled_in_es(enrollment_types)
               project_client.date_days_homeless_verified = Date.current
               project_client.needs_update = true
-              project_client.save!
-              updated_clients << project_client
+              to_update << project_client
             end
+            Cas::ProjectClient.import(to_update, on_duplicate_key_update: update_columns)
+            updated_clients += to_update
           end
         end
         maintain_cas_availability_table(@client_ids)
