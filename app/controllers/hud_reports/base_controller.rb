@@ -215,9 +215,8 @@ module HudReports
     end
 
     def generator
-      @generator ||= begin
-        version = filter_params[:report_version]&.to_sym || @report&.options&.try(:[], 'report_version') || @filter&.report_version || default_report_version
-        possible_generator_classes[version.to_sym]
+      @generator ||= begin # rubocop:disable Style/RedundantBegin
+        possible_generator_classes[report_version]
       end
     end
     helper_method :generator
@@ -241,8 +240,17 @@ module HudReports
     end
     helper_method :default_report_version
 
+    private def report_version
+      version = filter_params[:report_version] ||
+        @report&.options&.try(:[], 'report_version') ||
+        @filter&.report_version ||
+        link_params.try(:[], :filter).try(:[], :report_version) ||
+        default_report_version
+      version.to_sym
+    end
+    helper_method :report_version
+
     private def path_for_clear_view_filter
-      report_version = link_params.try(:[], :filter).try(:[], :report_version)
       args = report_version ? { filter: { report_version: report_version } } : {}
       if @question.present?
         path_for_question(@question, report: @report, args: args)
