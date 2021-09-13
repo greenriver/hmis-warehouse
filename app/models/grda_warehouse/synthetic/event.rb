@@ -85,7 +85,7 @@ module GrdaWarehouse::Synthetic
         event_date.present? &&
         event.present?
 
-      unique_key = [enrollment.EnrollmentID, enrollment.PersonalID, event_date, enrollment.data_source_id, source.created_at]
+      unique_key = [enrollment.EnrollmentID, enrollment.PersonalID, event_date, enrollment.data_source_id, source.id]
       eventid = hud_event&.EventID || Digest::MD5.hexdigest(unique_key.join('_'))
       {
         EventID: eventid,

@@ -67,7 +67,7 @@ module GrdaWarehouse::Synthetic
         assessment_level.present? &&
         prioritization_status.present?
 
-      unique_key = [enrollment.EnrollmentID, enrollment.PersonalID, assessment_date, enrollment.data_source_id, source.created_at]
+      unique_key = [enrollment.EnrollmentID, enrollment.PersonalID, assessment_date, enrollment.data_source_id, source.id]
       assessment_id = hud_assessment&.AssessmentID || Digest::MD5.hexdigest(unique_key.join('_'))
       {
         AssessmentID: assessment_id,
