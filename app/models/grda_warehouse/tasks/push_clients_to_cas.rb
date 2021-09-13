@@ -31,27 +31,48 @@ module GrdaWarehouse::Tasks
 
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
         @client_ids = client_source.pluck(:id)
-        updated_clients = Cas::ProjectClient.transaction do
+        updated_clients = Set.new
+        Cas::ProjectClient.transaction do
           Cas::ProjectClient.update_all(sync_with_cas: false)
-          client_source.preload(:vispdats, :processed_service_history, cohort_clients: :cohort).
-            where(id: @client_ids).each do |client|
-            project_client = Cas::ProjectClient.
-              where(data_source_id: data_source.id, id_in_data_source: client.id).
-              first_or_initialize
-            project_client_columns.map do |destination, source|
-              project_client[destination] = client.send(source)
-            end
+          @client_ids.each_slice(1_000) do |client_id_batch|
+            project_clients = Cas::ProjectClient.
+              where(data_source_id: data_source.id, id_in_data_source: client_id_batch).
+              index_by(&:id_in_data_source)
+            max_dates = GrdaWarehouse::Hud::Client.date_of_last_homeless_service(client_id_batch)
+            ongoing_enrolled_project_details = GrdaWarehouse::Hud::Client.ongoing_enrolled_project_details(client_id_batch)
+            client_source.preload(
+              :vispdats,
+              :processed_service_history,
+              :hmis_client,
+              :source_disabilities,
+              cohort_clients: :cohort,
+            ).
+              where(id: client_id_batch).find_each do |client|
+              project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
+              project_client_columns.map do |destination, source|
+                puts "Processing: #{destination} from: #{source}"
+                project_client[destination] = client.send(source)
+              end
 
-            case GrdaWarehouse::Config.get(:cas_days_homeless_source)
-            when 'days_homeless_plus_overrides'
-              project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
-            else
-              project_client.days_homeless = client.days_homeless
-            end
+              case GrdaWarehouse::Config.get(:cas_days_homeless_source)
+              when 'days_homeless_plus_overrides'
+                project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
+              else
+                project_client.days_homeless = client.days_homeless
+              end
 
-            project_client.date_days_homeless_verified = Date.current
-            project_client.needs_update = true
-            project_client.save!
+              project_client.calculated_last_homeless_night = max_dates[client.id]
+              project_client.enrolled_project_ids = ongoing_enrolled_project_details[client.id]&.map(&:project_id)
+              enrollment_types = ongoing_enrolled_project_details[client.id]&.map(&:project_type)
+              project_client.enrolled_in_th = client.enrolled_in_th(enrollment_types)
+              project_client.enrolled_in_sh = client.enrolled_in_sh(enrollment_types)
+              project_client.enrolled_in_so = client.enrolled_in_so(enrollment_types)
+              project_client.enrolled_in_es = client.enrolled_in_es(enrollment_types)
+              project_client.date_days_homeless_verified = Date.current
+              project_client.needs_update = true
+              project_client.save!
+              updated_clients << project_client
+            end
           end
         end
         maintain_cas_availability_table(@client_ids)
@@ -118,7 +139,6 @@ module GrdaWarehouse::Tasks
         physical_disability: :physical_response?,
         calculated_chronic_homelessness: :chronically_homeless_for_cas,
         calculated_first_homeless_night: :date_of_first_service,
-        calculated_last_homeless_night: :date_of_last_homeless_service,
         domestic_violence: :domestic_violence?,
         disability_verified_on: :disability_verified_on,
         housing_assistance_network_released_on: :consent_form_signed_on,
@@ -135,8 +155,8 @@ module GrdaWarehouse::Tasks
         meth_production_conviction: :meth_production_conviction,
         family_member: :family_member,
         child_in_household: :child_in_household,
-        days_homeless_in_last_three_years: :days_homeless_in_last_three_years,
-        days_literally_homeless_in_last_three_years: :literally_homeless_last_three_years,
+        days_homeless_in_last_three_years: :days_homeless_in_last_three_years_cached,
+        days_literally_homeless_in_last_three_years: :literally_homeless_last_three_years_cached,
         vispdat_score: :most_recent_vispdat_score,
         vispdat_length_homeless_in_days: :days_homeless_for_vispdat_prioritization,
         vispdat_priority_score: :calculate_vispdat_priority_score,
@@ -146,7 +166,6 @@ module GrdaWarehouse::Tasks
         alternate_names: :alternate_names,
         congregate_housing: :congregate_housing,
         sober_housing: :sober_housing,
-        enrolled_project_ids: :ongoing_enrolled_project_ids,
         active_cohort_ids: :cohort_ids_for_cas,
         assessment_score: :assessment_score_for_cas,
         ssvf_eligible: :ssvf_eligible,
@@ -154,10 +173,6 @@ module GrdaWarehouse::Tasks
         youth_rrh_desired: :youth_rrh_desired,
         rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
         rrh_assessment_collected_at: :rrh_assessment_collected_at,
-        enrolled_in_th: :enrolled_in_th,
-        enrolled_in_sh: :enrolled_in_sh,
-        enrolled_in_so: :enrolled_in_so,
-        enrolled_in_es: :enrolled_in_es,
         requires_wheelchair_accessibility: :requires_wheelchair_accessibility,
         required_number_of_bedrooms: :required_number_of_bedrooms,
         required_minimum_occupancy: :required_minimum_occupancy,
