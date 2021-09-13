@@ -351,6 +351,7 @@ module GrdaWarehouse::YouthIntake
       authoritative_clients = client.source_clients.joins(:data_source).merge(GrdaWarehouse::DataSource.authoritative.youth)
       return unless authoritative_clients.exists?
 
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       data = {
         DOBDataQuality: 1,
         Gender: client_gender,

@@ -21,7 +21,7 @@ module CohortOngoingEnrollments
     # in the form [{project_name: 'Project Name', date: 'last date', project_id: 'Project ID}]
     cohort_client.client.processed_service_history.public_send(column).
       select do |row|
-        row['project_id'].in? user.visible_project_ids
+        row['project_id'].in? user.visible_project_ids_enrollment_context
       end.
       sort do |a, b|
         b['date'].to_date <=> a['date'].to_date
