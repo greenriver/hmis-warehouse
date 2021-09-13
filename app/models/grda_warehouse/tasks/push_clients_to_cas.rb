@@ -52,7 +52,7 @@ module GrdaWarehouse::Tasks
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client_columns.map do |destination, source|
-                puts "Processing: #{destination} from: #{source}"
+                # puts "Processing: #{destination} from: #{source}"
                 project_client[destination] = client.send(source)
               end
 
