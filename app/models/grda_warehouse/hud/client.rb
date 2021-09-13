@@ -452,6 +452,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :race_native_hi_other_pacific, -> do
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
           where(c_t[:NativeHIOtherPacific].eq(1)).
@@ -476,6 +477,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :multi_racial, -> do
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       columns = [
         c_t[:AmIndAKNative],
         c_t[:Asian],
@@ -2055,7 +2057,7 @@ module GrdaWarehouse::Hud
       @gender_multi ||= [].tap do |gm|
         gm << 0 if self.Female == 1
         gm << 1 if self.Male == 1
-        gm << 4 if self.GenderOther == 1
+        gm << 4 if self.NoSingleGender == 1
         gm << 5 if self.Transgender == 1
         gm << 6 if self.Questioning == 1
         # Per the data standards, only look to GenderNone if we don't have a more specific response
@@ -2166,6 +2168,8 @@ module GrdaWarehouse::Hud
       return 'AmIndAKNative' if @race_am_ind_ak_native.include?(destination_id)
       return 'Asian' if @race_asian.include?(destination_id)
       return 'BlackAfAmerican' if @race_black_af_american.include?(destination_id)
+
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       return 'NativeHIOtherPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
 

@@ -10,6 +10,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Enrollment
       classes = [
         HudTwentyTwentyToTwentyTwentyTwo::Enrollment::RenameR13Columns,
         HudTwentyTwentyToTwentyTwentyTwo::Enrollment::UpdateR7Columns,
+        HudTwentyTwentyToTwentyTwentyTwo::Enrollment::RenameV7Columns,
       ]
       classes << HudTwentyTwentyToTwentyTwentyTwo::Enrollment::FilterLiteralHomelessHistory if csv
       classes

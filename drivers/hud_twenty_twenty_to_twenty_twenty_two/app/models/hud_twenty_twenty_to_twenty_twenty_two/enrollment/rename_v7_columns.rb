@@ -5,13 +5,10 @@
 ###
 #
 
-module HudTwentyTwentyToTwentyTwentyTwo::HealthAndDv
-  class AddC1Columns
+module HudTwentyTwentyToTwentyTwentyTwo::Enrollment
+  class RenameV7Columns
     def process(row)
-      row['LifeValue'] = nil
-      row['SupportFromOthers'] = nil
-      row['BounceBack'] = nil
-      row['FeelingFrequency'] = nil
+      row['HOHLeaseholder'] = row['HOHLeasesholder']
 
       row
     end

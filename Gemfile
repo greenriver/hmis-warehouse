@@ -196,6 +196,7 @@ gem 'browser'
 gem 'ansi'
 
 gem 'parallel'
+gem 'todo_or_die'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

@@ -12,6 +12,7 @@ module PerformanceDashboard::Overview::Entering::Race
     @entering_by_race ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = race_buckets.map { |b| [b, []] }.to_h
       counted = {}
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       entering.
         joins(:client).
         order(first_date_in_program: :desc).
