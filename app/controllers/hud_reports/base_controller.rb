@@ -160,12 +160,18 @@ module HudReports
     end
 
     private def set_view_filter
+      defaults = {
+        run_type: 'manual',
+        creator: 'all',
+        start: (Date.current - 1.months).to_s,
+        end: Date.current.to_s,
+      }
       @view_filter = {}
-      @view_filter[:run_type] = view_filter_params[:run_type] || 'manual'
-      @view_filter[:creator] = view_filter_params[:creator] || 'all'
-      @view_filter[:start] = view_filter_params[:start] || (Date.current - 1.months)
-      @view_filter[:end] = view_filter_params[:end] || Date.current
-      @active_filter = view_filter_params.present?
+      @view_filter[:run_type] = view_filter_params[:run_type] || defaults[:run_type]
+      @view_filter[:creator] = view_filter_params[:creator] || defaults[:creator]
+      @view_filter[:start] = view_filter_params[:start] || defaults[:start]
+      @view_filter[:end] = view_filter_params[:end] || defaults[:end]
+      @active_filter = @view_filter != defaults
     end
 
     private def filter
@@ -215,9 +221,7 @@ module HudReports
     end
 
     def generator
-      @generator ||= begin # rubocop:disable Style/RedundantBegin
-        possible_generator_classes[report_version]
-      end
+      @generator ||= possible_generator_classes[report_version]
     end
     helper_method :generator
 
@@ -259,6 +263,11 @@ module HudReports
       end
     end
     helper_method :path_for_clear_view_filter
+
+    private def view_filter_available_users
+      [['all', 'Any user']] + User.active.where(id: report_scope.pluck(:user_id)).map { |u| [u.id, u.name_with_email] }
+    end
+    helper_method :view_filter_available_users
 
     # Required methods in subclasses:
     #

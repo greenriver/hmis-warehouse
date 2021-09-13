@@ -220,8 +220,7 @@ module HomelessSummaryReport
           generator.title,
           build_for_questions: questions,
         )
-        report.manual = false
-        generator.new(report).run!(email: false)
+        generator.new(report).run!(email: false, manual: false)
         [variant, spec.merge(report: report)]
       end.to_h
     end

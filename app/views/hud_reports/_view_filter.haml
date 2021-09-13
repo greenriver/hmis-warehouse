@@ -1,6 +1,5 @@
 :ruby
   filter_class = if @active_filter then 'filter-active' else 'filter' end
-
 .dropdown.o-filtration{class: filter_class}
   %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { toggle: 'dropdown' }, aria: { haspopup: 'true', expanded: 'false' }}
     %span Filter
@@ -34,8 +33,7 @@
             - type_options = options_for_select({'Normal (on-demand)' => :manual, 'Background (automated)' => :automated}, @view_filter[:run_type])
             = render 'inputs/select', field_name: :run_type, label: 'Run Type', options: type_options
             - if can_view_all_hud_reports?
-              - users = [['all', 'Any user']] + User.active.map { |u| [u.id, u.name_with_email] }
-              - creator_options = options_from_collection_for_select(users, :first, :last, @view_filter[:creator])
+              - creator_options = options_from_collection_for_select(view_filter_available_users, :first, :last, @view_filter[:creator])
               = render 'inputs/select', field_name: :creator, label: 'Creator', options: creator_options
 
       .o-filtration__actions.form__actions

@@ -651,7 +651,7 @@ module PerformanceMetrics
       caper_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(filter.to_h)
       generator = HudApr::Generators::Caper::Fy2020::Generator
       caper_report = HudReports::ReportInstance.from_filter(caper_filter, generator.title, build_for_questions: questions)
-      generator.new(caper_report).run!(email: false)
+      generator.new(caper_report).run!(email: false, manual: false)
       caper_report
     end
 
@@ -688,8 +688,7 @@ module PerformanceMetrics
       spm_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(options)
       generator = HudSpmReport::Generators::Fy2020::Generator
       spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
-      spm_report.manual = false
-      generator.new(spm_report).run!(email: false)
+      generator.new(spm_report).run!(email: false, manual: false)
       spm_report
     end
 
