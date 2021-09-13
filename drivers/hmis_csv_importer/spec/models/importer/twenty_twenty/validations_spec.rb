@@ -14,7 +14,7 @@ RSpec.describe 'Validate import files', type: :model do
     data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
     GrdaWarehouse::WhitelistedProjectsForClients.create(ProjectID: 'ALLOW', data_source_id: data_source.id)
     import_hmis_csv_fixture(
-      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twentytwo/validation_files',
+      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty/validation_files',
       data_source: data_source,
       version: 'AutoMigrate',
       run_jobs: false,

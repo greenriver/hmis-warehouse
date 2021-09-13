@@ -132,18 +132,6 @@ module HmisCsvImporter::Loader
       @export_id_addition ||= @range.start.strftime('%Y%m%d')
     end
 
-    # make sure we have an ExportID in every file that
-    # reflects the start date of the export
-    # NOTE: The white-listing process seems to add extra commas to the CSV
-    # These can break the useful export_id, so we need to remove any
-    # from the existing row before tacking on the new value
-    # def set_useful_export_id(row:, export_id:)
-    #   # Make sure there i enough room to append the underscore and suffix
-    #   truncated = row['ExportID'].chomp(', ')[0, EXPORT_ID_FIELD_WIDTH - export_id.length - 1]
-    #   row['ExportID'] = "#{truncated}_#{export_id}"
-    #   row
-    # end
-
     private def expand(file_path:)
       Rails.logger.info "Expanding #{file_path}"
       Zip::File.open(file_path) do |zipped_file|
@@ -161,6 +149,9 @@ module HmisCsvImporter::Loader
 
     private def load_source_files!
       @loader_log.update(status: :loading)
+
+      Importers::HmisAutoMigrate.apply_migrations(@file_path)
+      # TODO: Filter by allow-list if we have one
 
       importable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)

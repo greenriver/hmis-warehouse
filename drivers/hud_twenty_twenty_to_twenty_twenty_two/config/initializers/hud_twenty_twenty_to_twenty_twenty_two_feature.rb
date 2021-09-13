@@ -5,3 +5,5 @@
 #
 # use with caution!
 RailsDrivers.loaded << :hud_twenty_twenty_to_twenty_twenty_two
+
+Importers::HmisAutoMigrate.add_migration('2020', HudTwentyTwentyToTwentyTwentyTwo::CsvTransformer)

@@ -903,7 +903,6 @@ Layout/IndentationConsistency:
 # Configuration parameters: Width, IgnoredPatterns.
 Layout/IndentationWidth:
   Exclude:
-    - 'app/models/auto_encoding_csv.rb'
     - 'app/models/consent_limit.rb'
     - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/generate_service_history_batch_log.rb'
@@ -1129,7 +1128,6 @@ Layout/SpaceAroundBlockParameters:
 # SupportedStyles: space, no_space
 Layout/SpaceAroundEqualsInParameterDefault:
   Exclude:
-    - 'app/models/auto_encoding_csv.rb'
     - 'app/models/aws_s3.rb'
     - 'app/models/grda_warehouse/available_file_tag.rb'
     - 'app/models/grda_warehouse/health_emergency/ama_restriction.rb'
@@ -3062,7 +3060,6 @@ Style/StringLiterals:
     - 'app/channels/application_cable/connection.rb'
     - 'app/channels/test_channel.rb'
     - 'app/models/agency.rb'
-    - 'app/models/auto_encoding_csv.rb'
     - 'app/models/cas/user.rb'
     - 'app/models/consent_limit.rb'
     - 'app/models/glacier/archive_runner.rb'
