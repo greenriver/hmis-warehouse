@@ -164,7 +164,7 @@ module Importing
 
         YouthFollowUpsJob.perform_later
         SystemCohortsJob.perform_later
-        SyncSyntheticDataJob.perform_later
+        SyncSyntheticDataJob.perform_later if CasBase.db_exists?
 
         create_statistical_matches
         generate_logging_info
