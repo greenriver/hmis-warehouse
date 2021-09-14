@@ -88,7 +88,7 @@ module GrdaWarehouse
 
       parsed.group_by { |row| row['ProjectGroupName'] }.each do |group_name, rows|
         group = where(name: group_name).first_or_create
-        incoming_projects = rows.map { |row| [row['ProjectID'].to_s, row['data_source_id']] }
+        incoming_projects = rows.map { |row| [row['ProjectID'].to_s, row['data_source_id'].to_s] }
         project_ids = all_projects.select { |key, _id| incoming_projects.include?(key) }.values
         transaction do
           group.projects.delete_all
