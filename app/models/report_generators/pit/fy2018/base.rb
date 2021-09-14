@@ -607,6 +607,7 @@ module ReportGenerators::Pit::Fy2018
         multiple_races: Set.new,
       }
       client_ids.each do |id|
+        TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
         races = metadata_for_client(client_id: id).slice(
           :AmIndAKNative,
           :Asian,
@@ -623,6 +624,7 @@ module ReportGenerators::Pit::Fy2018
           when :BlackAfAmerican
             makeup['black or african-american'] << id
           when :NativeHIOtherPacific
+            TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
             makeup[:native_hawaiian_or_other_pacific_islander] << id
           when :White
             makeup[:white] << id
@@ -870,6 +872,7 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def client_columns
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       {
         PersonalID: c_t[:PersonalID].as('PersonalID').to_sql,
         data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
