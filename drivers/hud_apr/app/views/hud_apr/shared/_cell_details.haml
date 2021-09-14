@@ -10,8 +10,6 @@
       %i.icon-file-excel
       Download
 
-
-
 - if @clients.blank?
   %p.none-found
     No records found.
@@ -22,13 +20,13 @@
         %thead.thead-dark
           %tr
             %th
-            - HudApr::Fy2020::AprClient.detail_headers.each_value do |header|
+            - column_headings.each_value do |header|
               %th= header
         %tbody.thead-dark
           - @clients.each.with_index do |client, i|
             %tr
               %th= i + 1
-              - HudApr::Fy2020::AprClient.detail_headers.each_key do |k|
+              - column_headings.each_key do |k|
                 %td{style: 'max-width: 600px;'}
                   - if k == 'client_id'
                     = link_to from_source_client_path(client[k]) do

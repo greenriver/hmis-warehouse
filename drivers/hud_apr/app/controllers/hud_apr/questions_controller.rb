@@ -6,6 +6,7 @@
 
 module HudApr
   class QuestionsController < BaseController
+    include HudApr::CellDetailsConcern
     def running
     end
 
@@ -26,5 +27,14 @@ module HudApr
     private def set_question
       @question = generator.valid_question_number(params[:question] || params[:id])
     end
+
+    private def column_headings
+      return HudApr::Fy2020::AprClient.detail_headers unless question_fields(@question).present?
+
+      question_fields(@question).map do |key|
+        [key, HudApr::Fy2020::AprClient.detail_headers[key.to_s]]
+      end.to_h
+    end
+    helper_method :column_headings
   end
 end
