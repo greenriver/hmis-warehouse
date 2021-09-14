@@ -452,6 +452,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :race_native_hi_other_pacific, -> do
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
           where(c_t[:NativeHIOtherPacific].eq(1)).
@@ -476,6 +477,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :multi_racial, -> do
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       columns = [
         c_t[:AmIndAKNative],
         c_t[:Asian],
@@ -1145,8 +1147,11 @@ module GrdaWarehouse::Hud
     GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response".to_sym do
         disability_check = "#{disability_type}?".to_sym
-        source_disabilities.response_present.
-          newest_first.
+        # To allow this to work in batches where we preload source_disabilities, this needs to happen in RAM
+        source_disabilities.
+          select { |d| d.DisabilityResponse.in?([0, 1, 2, 3]) }.
+          sort_by(&:InformationDate).
+          reverse.
           detect(&disability_check).try(:response)
       end
     end
@@ -1818,8 +1823,13 @@ module GrdaWarehouse::Hud
     end
 
     def date_of_last_homeless_service
-      service_history_services.homeless(chronic_types_only: true).
-        from(GrdaWarehouse::ServiceHistoryService.quoted_table_name).
+      self.class.date_of_last_homeless_service([id])
+    end
+
+    def self.date_of_last_homeless_service(client_ids)
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless(chronic_types_only: true).
+        where(client_id: client_ids).
+        group(:client_id).
         maximum(:date)
     end
 
@@ -2055,7 +2065,7 @@ module GrdaWarehouse::Hud
       @gender_multi ||= [].tap do |gm|
         gm << 0 if self.Female == 1
         gm << 1 if self.Male == 1
-        gm << 4 if self.GenderOther == 1
+        gm << 4 if self.NoSingleGender == 1
         gm << 5 if self.Transgender == 1
         gm << 6 if self.Questioning == 1
         # Per the data standards, only look to GenderNone if we don't have a more specific response
@@ -2166,6 +2176,8 @@ module GrdaWarehouse::Hud
       return 'AmIndAKNative' if @race_am_ind_ak_native.include?(destination_id)
       return 'Asian' if @race_asian.include?(destination_id)
       return 'BlackAfAmerican' if @race_black_af_american.include?(destination_id)
+
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       return 'NativeHIOtherPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
 
@@ -2618,6 +2630,14 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def days_homeless_in_last_three_years_cached
+      processed_service_history&.days_homeless_last_three_years
+    end
+
+    def literally_homeless_last_three_years_cached
+      processed_service_history&.literally_homeless_last_three_years
+    end
+
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.current)
       dates_homeless_in_last_three_years_scope(client_id: client_id, on_date: on_date).count
     end
@@ -2914,27 +2934,41 @@ module GrdaWarehouse::Hud
       self.class.service_types
     end
 
-    def ongoing_enrolled_project_ids
-      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id])
+    # NOTE: for CAS sync
+    def self.ongoing_enrolled_project_details(client_ids)
+      {}.tap do |ids|
+        GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).
+          ongoing.
+          joins(:project).
+          pluck(:client_id, p_t[:id], GrdaWarehouse::ServiceHistoryEnrollment.project_type_column).
+          each do |c_id, p_id, p_type|
+            ids[c_id] ||= []
+            ids[c_id] << OpenStruct.new(project_id: p_id, project_type: p_type)
+          end
+      end
     end
 
-    def ongoing_enrolled_project_types
-      @ongoing_enrolled_project_types ||= service_history_enrollments.ongoing.distinct.pluck(GrdaWarehouse::ServiceHistoryEnrollment.project_type_column)
-    end
+    def enrolled_in_th(ongoing_enrolled_project_types)
+      return false unless ongoing_enrolled_project_types
 
-    def enrolled_in_th
       (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th] & ongoing_enrolled_project_types).present?
     end
 
-    def enrolled_in_sh
+    def enrolled_in_sh(ongoing_enrolled_project_types)
+      return false unless ongoing_enrolled_project_types
+
       (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:sh] & ongoing_enrolled_project_types).present?
     end
 
-    def enrolled_in_so
+    def enrolled_in_so(ongoing_enrolled_project_types)
+      return false unless ongoing_enrolled_project_types
+
       (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so] & ongoing_enrolled_project_types).present?
     end
 
-    def enrolled_in_es
+    def enrolled_in_es(ongoing_enrolled_project_types)
+      return false unless ongoing_enrolled_project_types
+
       (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es] & ongoing_enrolled_project_types).present?
     end
 

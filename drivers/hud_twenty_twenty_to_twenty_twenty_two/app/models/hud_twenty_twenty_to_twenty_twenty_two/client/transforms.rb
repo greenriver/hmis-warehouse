@@ -9,6 +9,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Client
     def self.transforms(csv: false, db: false) # rubocop:disable Lint/UnusedMethodArgument, Naming/MethodParameterName
       [
         HudTwentyTwentyToTwentyTwentyTwo::Client::TransformGenderToColumns,
+        HudTwentyTwentyToTwentyTwentyTwo::Client::TransformRace,
       ]
     end
 

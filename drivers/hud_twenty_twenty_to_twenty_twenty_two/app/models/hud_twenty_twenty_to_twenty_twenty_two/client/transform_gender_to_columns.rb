@@ -11,7 +11,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Client
       # Default values
       female = 0
       male = 0
-      gender_other = 0
+      no_single_gender = 0
       transgender = 0
       questioning = 0
       gender_none = nil
@@ -30,14 +30,14 @@ module HudTwentyTwentyToTwentyTwentyTwo::Client
         male = 1
         transgender = 1
       when 4
-        gender_other = 1
+        no_single_gender = 1
       when 8, 9, 99, nil
         gender_none = row['Gender']
       end
 
       row['Female'] = female
       row['Male'] = male
-      row['GenderOther'] = gender_other
+      row['NoSingleGender'] = no_single_gender
       row['Transgender'] = transgender
       row['Questioning'] = questioning
       row['GenderNone'] = gender_none

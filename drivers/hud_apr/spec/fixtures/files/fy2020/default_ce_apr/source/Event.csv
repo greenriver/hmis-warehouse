@@ -1,4 +1,4 @@
-"EventID","EnrollmentID","PersonalID","EventDate","Event","ProbSolDivRRResult","ReferralCaseManageAfter","LocationCrisisorPHHousing","ReferralResult","ResultDate","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"EventID","EnrollmentID","PersonalID","EventDate","Event","ProbSolDivRRResult","ReferralCaseManageAfter","LocationCrisisOrPHHousing","ReferralResult","ResultDate","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
 EV-1,E-1,C-1,2019-03-02,1,2,1,,1,2019-03-02,2019-03-02 00:00:00,2019-03-02 00:00:00,user,,EXPORT
 EV-2,E-2,C-2,2019-03-02,1,1,1,,1,2019-03-02,2019-03-02 00:00:00,2019-03-02 00:00:00,user,,EXPORT
 EV-3,E-3,C-3,2019-03-02,2,1,1,,1,2019-03-02,2019-03-02 00:00:00,2019-03-02 00:00:00,user,,EXPORT
