@@ -27,12 +27,10 @@ module GrdaWarehouse
     scope :viewable_by, ->(user) do
       if user.can_edit_project_groups?
         current_scope
+      elsif current_scope.present?
+        current_scope.merge(user.project_groups)
       else
-        if current_scope.present?
-          current_scope.merge(user.project_groups)
-        else
-          user.project_groups
-        end
+        user.project_groups
       end
     end
     scope :editable_by, ->(user) do
@@ -46,7 +44,7 @@ module GrdaWarehouse
       distinct.left_outer_joins(:projects).
         where(
           arel_table[:name].lower.matches("%#{query.downcase}%").
-          or(p_t[:ProjectName].lower.matches("%#{query.downcase}%"))
+          or(p_t[:ProjectName].lower.matches("%#{query.downcase}%")),
         )
     end
 
@@ -72,7 +70,6 @@ module GrdaWarehouse
         return errors
       end
 
-      input_count = parsed.count
       all_projects = GrdaWarehouse::Hud::Project.pluck(:id, :ProjectID, :data_source_id).map do |id, project_id, data_source_id|
         [
           [project_id.to_s, data_source_id.to_s],
@@ -89,10 +86,10 @@ module GrdaWarehouse
       # errors << "Excluded #{ActionController::Base.helpers.pluralize(input_count - parsed.count, 'project')}" if (input_count - parsed.count).positive?
       return errors if parsed.empty?
 
-      parsed.group_by{|row| row['ProjectGroupName']}.each do |group_name, rows|
+      parsed.group_by { |row| row['ProjectGroupName'] }.each do |group_name, rows|
         group = where(name: group_name).first_or_create
         incoming_projects = rows.map { |row| [row['ProjectID'].to_s, row['data_source_id']] }
-        project_ids = all_projects.select { |key, id| incoming_projects.include?(key) }.values
+        project_ids = all_projects.select { |key, _id| incoming_projects.include?(key) }.values
         transaction do
           group.projects.delete_all
           group.projects = GrdaWarehouse::Hud::Project.where(id: project_ids)
@@ -104,12 +101,12 @@ module GrdaWarehouse
     def self.csv(file)
       if file.content_type.in?(['text/plain', 'text/csv', 'application/csv'])
         sheet = ::Roo::CSV.new(StringIO.new(file.read))
-        sheet.parse(headers: true).drop(1)
+        sheet.parse(headers: true).drop(1) # rubocop:disable Style/IdenticalConditionalBranches
       else
         sheet = ::Roo::Excelx.new(StringIO.new(file.read).binmode)
         return nil if sheet&.first_row.blank?
 
-        sheet.parse(headers: true).drop(1)
+        sheet.parse(headers: true).drop(1) # rubocop:disable Style/IdenticalConditionalBranches
       end
     end
 
