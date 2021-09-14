@@ -30,7 +30,7 @@ module Importers::HmisAutoMigrate
       # Copy CSV dir to temp
       FileUtils.cp_r(File.join(csv_dir, '.'), source_dir)
       # Transform temp over the to the CSV dir
-      available_migrations[version]&.up(source_dir, csv_dir)
+      available_migrations[version]&.constantize&.up(source_dir, csv_dir)
     end
     apply_migrations(csv_dir, recursed: true)
   end
