@@ -28,5 +28,13 @@ module GrdaWarehouse::Hud
       range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
       where(AssessmentDate: range)
     end
+
+    scope :importable, -> do
+      where(synthetic: false)
+    end
+
+    scope :synthetic, -> do
+      where(synthetic: true)
+    end
   end
 end
