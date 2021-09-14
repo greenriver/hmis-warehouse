@@ -75,14 +75,14 @@ module GrdaWarehouse
       input_count = parsed.count
       all_projects = GrdaWarehouse::Hud::Project.pluck(:id, :ProjectID, :data_source_id).map do |id, project_id, data_source_id|
         [
-          [project_id, data_source_id],
+          [project_id.to_s, data_source_id.to_s],
           id,
         ]
       end.to_h
       all_project_keys = all_projects.keys
 
       parsed.reject! { |row| row.values.map(&:blank?).any? }
-      parsed.select! { |row| all_project_keys.include?([row['ProjectID'].to_s, row['data_source_id']]) }
+      parsed.select! { |row| all_project_keys.include?([row['ProjectID'].to_s, row['data_source_id'].to_s]) }
       (original - parsed).each do |row|
         errors << row
       end

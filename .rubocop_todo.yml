@@ -1242,7 +1242,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud.rb'
     - 'app/models/grda_warehouse/lftp_s3_sync.rb'
-    - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/public_file.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
@@ -1444,7 +1443,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/grda_warehouse/hud/with_deleted/project.rb'
     - 'app/models/grda_warehouse/hud/with_deleted/user.rb'
     - 'app/models/grda_warehouse/lftp_s3_sync.rb'
-    - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/identify_duplicates.rb'
@@ -1924,7 +1922,6 @@ Lint/UnusedBlockArgument:
     - 'app/models/glacier/restore.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
-    - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
@@ -2036,7 +2033,6 @@ Lint/UselessAssignment:
     - 'app/models/grda_warehouse/export/hmis_six_one_one/exit.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/hmis/assessment.rb'
-    - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/service_history_service.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
@@ -2429,7 +2425,6 @@ Style/HashSyntax:
 # Offense count: 18
 Style/IdenticalConditionalBranches:
   Exclude:
-    - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/enrollment_reasons.rb'
@@ -2439,7 +2434,6 @@ Style/IdenticalConditionalBranches:
 # Configuration parameters: AllowIfModifier.
 Style/IfInsideElse:
   Exclude:
-    - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/tasks/client_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
@@ -3245,7 +3239,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/service.rb'
-    - 'app/models/grda_warehouse/project_group.rb'
     - 'app/models/grda_warehouse/recurring_hmis_export.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
