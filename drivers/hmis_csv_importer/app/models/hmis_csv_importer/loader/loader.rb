@@ -21,7 +21,7 @@ module HmisCsvImporter::Loader
     include TsqlImport
     include NotifierConfig
     include HmisCsv
-    attr_accessor :logger, :notifier_config, :import, :range, :data_source, :loader_log
+    attr_accessor :logger, :notifier_config, :import, :range, :data_source, :loader_log, :limit_projects
 
     # Prepare a loader for HmisCsvImporter CSVs
     # in the directory `file_path`
@@ -36,7 +36,8 @@ module HmisCsvImporter::Loader
       logger: Rails.logger,
       debug: true,
       remove_files: true,
-      deidentified: false
+      deidentified: false,
+      limit_projects: false
     )
       raise ArgumentError, 'file_path must be a directory containing HMIS csv data' unless File.directory?(file_path)
 
@@ -48,6 +49,7 @@ module HmisCsvImporter::Loader
       @remove_files = remove_files
       @deidentified = deidentified
       @loader_log = build_loader_log(data_source: data_source)
+      @limit_projects = limit_projects
       importable_files.each_key do |file_name|
         setup_summary(file_name)
       end
@@ -151,7 +153,7 @@ module HmisCsvImporter::Loader
       @loader_log.update(status: :loading)
 
       Importers::HmisAutoMigrate.apply_migrations(@file_path)
-      # TODO: Filter by allow-list if we have one
+      ProjectFilter.filter(@file_path, @data_source.id) if @limit_projects
 
       importable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)

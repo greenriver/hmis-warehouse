@@ -48,6 +48,7 @@ module HmisCsvFixtures
         file_path: tmp_path,
         data_source_id: data_source.id,
         deidentified: deidentified,
+        limit_projects: allowed_projects,
       )
     else
       raise "Unsupported CSV version #{version}"
