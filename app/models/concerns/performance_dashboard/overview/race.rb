@@ -32,6 +32,7 @@ module PerformanceDashboard::Overview::Race
     races << 'AmIndAKNative' if am_ind_ak_native == 1
     races << 'Asian' if asian == 1
     races << 'BlackAfAmerican' if black_af_american == 1
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     races << 'NativeHIOtherPacific' if native_hi_other_pacific == 1
     races << 'White' if white == 1
     races << 'RaceNone' if race_none == 1

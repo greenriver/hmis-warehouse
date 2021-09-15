@@ -456,8 +456,9 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def f_two_e
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @f_two_e ||= get_client_ids(all_served.
-          where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
+        where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
     end
 
     def f_two_f
@@ -634,6 +635,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def g_two_e
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @g_two_e ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
@@ -708,6 +710,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def h_two_e
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @h_two_e ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))

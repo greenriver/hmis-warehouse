@@ -24,8 +24,8 @@ module HudSpmReport
       ::Filters::HudFilterBase
     end
 
-    private def path_for_question(question, report: nil)
-      hud_reports_spm_measure_path(spm_id: report&.to_param || 0, id: question)
+    private def path_for_question(question, report: nil, args: {})
+      hud_reports_spm_measure_path({ spm_id: report&.id || 0, id: question }.merge(args))
     end
 
     private def path_for_questions(question)

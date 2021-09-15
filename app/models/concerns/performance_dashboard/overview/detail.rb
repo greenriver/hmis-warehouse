@@ -40,6 +40,7 @@ module PerformanceDashboard::Overview::Detail
     when 'Ethnicity'
       HUD.ethnicity(column)
     when HUD.race('AmIndAKNative'), HUD.race('Asian'), HUD.race('BlackAfAmerican'), HUD.race('NativeHIOtherPacific'), HUD.race('White'), HUD.race('RaceNone')
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       HUD.no_yes_reasons_for_missing_data(column)
     when 'Veteran Status'
       HUD.veteran_status(column)

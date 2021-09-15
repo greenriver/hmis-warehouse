@@ -649,9 +649,6 @@ module HMIS::Structure::Enrollment
           TargetScreenReqd: {
             type: :integer,
           },
-          UrgentReferral: {
-            type: :integer,
-          },
           TimeToHousingLoss: {
             type: :integer,
           },
@@ -664,7 +661,7 @@ module HMIS::Structure::Enrollment
           ClientLeaseholder: {
             type: :integer,
           },
-          HOHLeasesholder: {
+          HOHLeaseholder: {
             type: :integer,
           },
           SubsidyAtRisk: {

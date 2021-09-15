@@ -7,6 +7,7 @@
 module HudReports
   class BaseController < ApplicationController
     before_action :require_can_view_hud_reports!
+    before_action :set_view_filter, only: [:history, :show]
 
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
@@ -78,9 +79,32 @@ module HudReports
       title = generator.title
       @reports = report_scope.where(report_name: title).
         preload(:user, :universe_cells)
-      @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
+      if @question.present?
+        @reports = @reports.joins(:report_cells).
+          merge(report_cell_source.universe.where(question: @question))
+      end
+      @reports = apply_view_filters(@reports)
       @reports = @reports.order(created_at: :desc).
         page(params[:page]).per(25)
+    end
+
+    def apply_view_filters(reports)
+      if can_view_all_hud_reports?
+        # Only apply a user filter if you have chosen one if you can see all reports
+        reports = reports.where(user_id: @view_filter[:creator]) if @view_filter.try(:[], :creator).present? && @view_filter[:creator] != 'all'
+      else
+        reports = reports.where(user_id: current_user.id)
+      end
+      return reports unless @view_filter.present?
+
+      reports = if @view_filter.try(:[], :run_type) == 'automated'
+        reports.automated
+      else
+        reports.manual
+      end
+
+      filter_range = @view_filter[:start].to_date..(@view_filter[:end].to_date + 1.days)
+      reports.where(created_at: filter_range)
     end
 
     def report_urls
@@ -122,6 +146,33 @@ module HudReports
       generator.title
     end
     helper_method :report_name
+
+    private def view_filter_params
+      params.permit(
+        :run_type,
+        :creator,
+        :start,
+        :end,
+        filter: [
+          :report_version,
+        ],
+      )
+    end
+
+    private def set_view_filter
+      defaults = {
+        run_type: 'manual',
+        creator: 'all',
+        start: (Date.current - 1.months).to_s,
+        end: Date.current.to_s,
+      }
+      @view_filter = {}
+      @view_filter[:run_type] = view_filter_params[:run_type] || defaults[:run_type]
+      @view_filter[:creator] = view_filter_params[:creator] || defaults[:creator]
+      @view_filter[:start] = view_filter_params[:start] || defaults[:start]
+      @view_filter[:end] = view_filter_params[:end] || defaults[:end]
+      @active_filter = @view_filter != defaults
+    end
 
     private def filter
       year = if Date.current.month >= 10
@@ -170,10 +221,7 @@ module HudReports
     end
 
     def generator
-      @generator ||= begin
-        version = filter_params[:report_version]&.to_sym || @report&.options&.try(:[], 'report_version') || @filter&.report_version || default_report_version
-        possible_generator_classes[version.to_sym]
-      end
+      @generator ||= possible_generator_classes[report_version]
     end
     helper_method :generator
 
@@ -190,6 +238,36 @@ module HudReports
       end
     end
     helper_method :report_version_urls
+
+    private def default_report_version
+      :fy2020
+    end
+    helper_method :default_report_version
+
+    private def report_version
+      version = filter_params[:report_version] ||
+        @report&.options&.try(:[], 'report_version') ||
+        @filter&.report_version ||
+        link_params.try(:[], :filter).try(:[], :report_version) ||
+        default_report_version
+      version.to_sym
+    end
+    helper_method :report_version
+
+    private def path_for_clear_view_filter
+      args = report_version ? { filter: { report_version: report_version } } : {}
+      if @question.present?
+        path_for_question(@question, report: @report, args: args)
+      else
+        path_for_history(args)
+      end
+    end
+    helper_method :path_for_clear_view_filter
+
+    private def view_filter_available_users
+      [['all', 'Any user']] + User.active.where(id: report_scope.pluck(:user_id)).map { |u| [u.id, u.name_with_email] }
+    end
+    helper_method :view_filter_available_users
 
     # Required methods in subclasses:
     #

@@ -47,7 +47,7 @@ module HMIS::Structure::Event
           ReferralCaseManageAfter: {
             type: :integer,
           },
-          LocationCrisisorPHHousing: {
+          LocationCrisisOrPHHousing: {
             type: :string,
             limit: 250,
           },

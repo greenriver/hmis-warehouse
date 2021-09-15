@@ -206,7 +206,7 @@ module HMIS::Structure::Client
             type: :integer,
             null: false,
           },
-          NativeHIOtherPacific: {
+          NativeHIPacific: {
             type: :integer,
             null: false,
           },
@@ -229,7 +229,7 @@ module HMIS::Structure::Client
             type: :integer,
             null: false,
           },
-          GenderOther: {
+          NoSingleGender: {
             type: :integer,
             null: false,
           },

@@ -297,7 +297,7 @@ CREATE TABLE public."AssessmentQuestions" (
     "AssessmentQuestionGroup" character varying,
     "AssessmentQuestionOrder" integer,
     "AssessmentQuestion" character varying,
-    "AssessmentAnswer" character varying,
+    "AssessmentAnswer" character varying(500),
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "UserID" character varying(32) NOT NULL,
@@ -510,7 +510,9 @@ CREATE TABLE public."Client" (
     "GenderOther" integer,
     "Transgender" integer,
     "Questioning" integer,
-    "GenderNone" integer
+    "GenderNone" integer,
+    "NativeHIPacific" integer,
+    "NoSingleGender" integer
 );
 
 
@@ -663,7 +665,7 @@ CREATE TABLE public."CurrentLivingSituation" (
     "PersonalID" character varying NOT NULL,
     "InformationDate" date NOT NULL,
     "CurrentLivingSituation" integer NOT NULL,
-    "VerifiedBy" character varying,
+    "VerifiedBy" character varying(100),
     "LeaveSituation14Days" integer,
     "SubsequentResidence" integer,
     "ResourcesToObtain" integer,
@@ -935,7 +937,8 @@ CREATE TABLE public."Enrollment" (
     "PrisonDischarge" integer,
     "CurrentPregnant" integer,
     "CoCPrioritized" integer,
-    "TargetScreenReqd" integer
+    "TargetScreenReqd" integer,
+    "HOHLeaseholder" integer
 );
 
 
@@ -1015,7 +1018,7 @@ CREATE TABLE public."Event" (
     "Event" integer NOT NULL,
     "ProbSolDivRRResult" integer,
     "ReferralCaseManageAfter" integer,
-    "LocationCrisisorPHHousing" character varying,
+    "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" integer,
     "ResultDate" date,
     "DateCreated" timestamp without time zone NOT NULL,
@@ -1308,7 +1311,7 @@ CREATE TABLE public."HealthAndDV" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "LifeValue" integer,
-    "SupportfromOthers" integer,
+    "SupportFromOthers" integer,
     "BounceBack" integer,
     "FeelingFrequency" integer
 );
@@ -2238,35 +2241,6 @@ CREATE VIEW public."bi_AssessmentResults" AS
 
 
 --
--- Name: data_sources; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.data_sources (
-    id integer NOT NULL,
-    name character varying,
-    file_path character varying,
-    last_imported_at timestamp without time zone,
-    newest_updated_at date,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    source_type character varying,
-    munged_personal_id boolean DEFAULT false NOT NULL,
-    short_name character varying,
-    visible_in_window boolean DEFAULT false NOT NULL,
-    authoritative boolean DEFAULT false,
-    after_create_path character varying,
-    import_paused boolean DEFAULT false NOT NULL,
-    authoritative_type character varying,
-    source_id character varying,
-    deleted_at timestamp without time zone,
-    service_scannable boolean DEFAULT false NOT NULL,
-    import_aggregators jsonb DEFAULT '{}'::jsonb,
-    import_cleanups jsonb DEFAULT '{}'::jsonb,
-    refuse_imports_with_errors boolean DEFAULT false
-);
-
-
---
 -- Name: bi_Client; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -2309,9 +2283,7 @@ CREATE VIEW public."bi_Client" AS
     "Client"."DateDeleted",
     "Client"."ExportID"
    FROM public."Client"
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-           FROM public.data_sources
-          WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
+  WHERE (("Client"."DateDeleted" IS NULL) AND (1 = 0));
 
 
 --
@@ -2393,9 +2365,7 @@ CREATE VIEW public."bi_Demographics" AS
     "Client".data_source_id
    FROM (public."Client"
      JOIN public.warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-           FROM public.data_sources
-          WHERE ((data_sources.deleted_at IS NULL) AND ((data_sources.source_type IS NOT NULL) OR (data_sources.authoritative = true))))));
+  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = 654));
 
 
 --
@@ -2593,7 +2563,7 @@ CREATE VIEW public."bi_Event" AS
     "Event"."Event",
     "Event"."ProbSolDivRRResult",
     "Event"."ReferralCaseManageAfter",
-    "Event"."LocationCrisisorPHHousing",
+    "Event"."LocationCrisisOrPHHousing",
     "Event"."ReferralResult",
     "Event"."ResultDate",
     "Event"."DateCreated",
@@ -2983,6 +2953,35 @@ CREATE VIEW public."bi_Services" AS
      JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
      JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
   WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateProvided" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateDeleted" IS NULL)));
+
+
+--
+-- Name: data_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_sources (
+    id integer NOT NULL,
+    name character varying,
+    file_path character varying,
+    last_imported_at timestamp without time zone,
+    newest_updated_at date,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    source_type character varying,
+    munged_personal_id boolean DEFAULT false NOT NULL,
+    short_name character varying,
+    visible_in_window boolean DEFAULT false NOT NULL,
+    authoritative boolean DEFAULT false,
+    after_create_path character varying,
+    import_paused boolean DEFAULT false NOT NULL,
+    authoritative_type character varying,
+    source_id character varying,
+    deleted_at timestamp without time zone,
+    service_scannable boolean DEFAULT false NOT NULL,
+    import_aggregators jsonb DEFAULT '{}'::jsonb,
+    import_cleanups jsonb DEFAULT '{}'::jsonb,
+    refuse_imports_with_errors boolean DEFAULT false
+);
 
 
 --
@@ -6897,7 +6896,7 @@ CREATE TABLE public.hmis_2020_events (
     "Event" integer,
     "ProbSolDivRRResult" integer,
     "ReferralCaseManageAfter" integer,
-    "LocationCrisisorPHHousing" character varying,
+    "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" integer,
     "ResultDate" date,
     "DateCreated" timestamp without time zone,
@@ -9775,7 +9774,7 @@ CREATE TABLE public.hmis_csv_2020_events (
     "Event" character varying,
     "ProbSolDivRRResult" character varying,
     "ReferralCaseManageAfter" character varying,
-    "LocationCrisisorPHHousing" character varying,
+    "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" character varying,
     "ResultDate" character varying,
     "DateCreated" character varying,
@@ -12701,7 +12700,8 @@ CREATE TABLE public.hud_report_instances (
     deleted_at timestamp without time zone,
     build_for_questions jsonb,
     remaining_questions jsonb,
-    coc_codes jsonb
+    coc_codes jsonb,
+    manual boolean DEFAULT true NOT NULL
 );
 
 
@@ -37571,12 +37571,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210819133035'),
 ('20210823203031'),
 ('20210825182548'),
+('20210830150500'),
 ('20210901200255'),
 ('20210902113909'),
 ('20210902134959'),
 ('20210903113401'),
 ('20210904021301'),
 ('20210906163956'),
-('20210909160929');
+('20210909160929'),
+('20210910113307'),
+('20210910133606');
 
 

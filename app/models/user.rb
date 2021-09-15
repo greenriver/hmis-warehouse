@@ -9,6 +9,7 @@ class User < ApplicationRecord
   include Rails.application.routes.url_helpers
   include UserPermissions
   include PasswordRules
+  include ArelHelper
   has_paper_trail ignore: [:provider_raw_info]
   acts_as_paranoid
 
@@ -358,8 +359,11 @@ class User < ApplicationRecord
     end
   end
 
-  def visible_project_ids
-    @visible_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id)
+  # Within the context of a client enrollment, what projects can this user see
+  # Note this differs from Project.viewable_by because they may not have access to the actual project
+  def visible_project_ids_enrollment_context
+    @visible_project_ids_enrollment_context ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id) |
+      GrdaWarehouse::DataSource.visible_in_window_for_cohorts_to(self).joins(:projects).pluck(p_t[:id])
   end
 
   def user_care_coordinators

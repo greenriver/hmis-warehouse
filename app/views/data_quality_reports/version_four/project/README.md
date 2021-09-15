@@ -132,7 +132,7 @@ Ethnicity is missing if it is blank.
 ### Race
 
 Computed for all enrollments using `RaceNone`.
-Race is missing if `RaceNone`, `AmIndAKNative`, `Asian`, `BlackAfAmerican`, `NativeHIOtherPacific`, and `White`
+Race is missing if `RaceNone`, `AmIndAKNative`, `Asian`, `BlackAfAmerican`, `NativeHIPacific`, and `White`
 are all blank.
 
 ### Disabling Condition
