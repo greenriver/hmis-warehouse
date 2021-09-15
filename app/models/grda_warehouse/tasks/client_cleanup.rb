@@ -546,7 +546,6 @@ module GrdaWarehouse::Tasks
     end
 
     def client_columns
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @client_columns ||= {
         FirstName: c_t[:FirstName].to_sql,
         LastName: c_t[:LastName].to_sql,
@@ -563,7 +562,7 @@ module GrdaWarehouse::Tasks
         AmIndAKNative: cl(c_t[:AmIndAKNative], 99).as('AmIndAKNative').to_sql,
         Asian: cl(c_t[:Asian], 99).as('Asian').to_sql,
         BlackAfAmerican: cl(c_t[:BlackAfAmerican], 99).as('BlackAfAmerican').to_sql,
-        NativeHIOtherPacific: cl(c_t[:NativeHIOtherPacific], 99).as('NativeHIOtherPacific').to_sql,
+        NativeHIPacific: cl(c_t[:NativeHIPacific], 99).as('NativeHIPacific').to_sql,
         White: cl(c_t[:White], 99).as('White').to_sql,
         RaceNone: cl(c_t[:RaceNone], 99).as('RaceNone').to_sql,
         Ethnicity: cl(c_t[:Ethnicity], 99).as('Ethnicity').to_sql,

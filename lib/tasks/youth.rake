@@ -60,12 +60,11 @@ namespace :youth do
     end
 
     def race(race_string)
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       {
         'AmIndAKNative' => 'American Indian or Alaska Native',
         'Asian' => 'Asian',
         'BlackAfAmerican' => 'Black or African American',
-        'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander',
+        'NativeHIPacific' => 'Native Hawaiian or Pacific Islander',
         'White' => 'White / Caucasian',
       }.invert[race_string]
     end

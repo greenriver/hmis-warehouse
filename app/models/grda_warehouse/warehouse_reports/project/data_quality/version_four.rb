@@ -298,13 +298,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       report_enrollment.set_veteran_completeness(veteran: client.VeteranStatus, entry_date: hud_enrollment.EntryDate)
       report_enrollment.set_ethnicity_completeness(ethnicity: client.Ethnicity)
       report_enrollment.race = client.race_description
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       report_enrollment.set_race_completeness(
         race_none: client.RaceNone,
         american_indian_or_ak_native: client.AmIndAKNative,
         asian: client.Asian,
         black_or_african_american: client.BlackAfAmerican,
-        native_hi_or_other_pacific_islander: client.NativeHIOtherPacific,
+        native_hi_or_other_pacific_islander: client.NativeHIPacific,
         white: client.White,
       )
       report_enrollment.set_disabling_condition_completeness(

@@ -12,14 +12,13 @@ module PerformanceDashboard::Overview::Exiting::Race
     @exiting_by_race ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = race_buckets.map { |b| [b, []] }.to_h
       counted = {}
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       exiting.
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:client_id, :AmIndAKNative, :Asian, :BlackAfAmerican, :NativeHIOtherPacific, :White, :RaceNone, :first_date_in_program).each do |id, am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none, _| # rubocop:disable Metrics/ParameterLists
-          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)] ||= Set.new
-          buckets[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)] << id unless counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)].include?(id)
-          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)] << id
+        pluck(:client_id, :AmIndAKNative, :Asian, :BlackAfAmerican, :NativeHIPacific, :White, :RaceNone, :first_date_in_program).each do |id, am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none, _| # rubocop:disable Metrics/ParameterLists
+          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none)] ||= Set.new
+          buckets[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none)] << id unless counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none)].include?(id)
+          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none)] << id
         end
       buckets
     end

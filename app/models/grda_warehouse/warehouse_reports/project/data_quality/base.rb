@@ -334,7 +334,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def common_client_columns
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @common_client_columns ||= {
         id: c_t[:id].to_sql,
         first_name: c_t[:FirstName].to_sql,
@@ -351,7 +350,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         am_ind_ak_native: c_t[:AmIndAKNative].to_sql,
         asian: c_t[:Asian].to_sql,
         black_af_american: c_t[:BlackAfAmerican].to_sql,
-        native_hi_other_pacific: c_t[:NativeHIOtherPacific].to_sql,
+        native_hi_other_pacific: c_t[:NativeHIPacific].to_sql,
         white: c_t[:White].to_sql,
         data_source_id: c_t[:data_source_id].to_sql,
       }

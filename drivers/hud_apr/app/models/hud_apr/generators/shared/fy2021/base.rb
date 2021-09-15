@@ -467,7 +467,6 @@ module HudApr::Generators::Shared::Fy2021
     # race field. The order that the races appear in the report is encoded in the 'order' of this hash.
     # This practice is very brittle, so we'll copy those here and hard code those relationships
     private def races
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       {
         'AmIndAKNative' => {
           order: 4,
@@ -484,10 +483,10 @@ module HudApr::Generators::Shared::Fy2021
           label: 'Black, African American, or African',
           clause: a_t[:race].eq(race_number('BlackAfAmerican')),
         },
-        'NativeHIOtherPacific' => {
+        'NativeHIPacific' => {
           order: 5,
           label: 'Native Hawaiian or Pacific Islander',
-          clause: a_t[:race].eq(race_number('NativeHIOtherPacific')),
+          clause: a_t[:race].eq(race_number('NativeHIPacific')),
         },
         'White' => {
           order: 1,
@@ -518,12 +517,11 @@ module HudApr::Generators::Shared::Fy2021
     end
 
     private def race_fields
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       {
         'AmIndAKNative' => 1,
         'Asian' => 2,
         'BlackAfAmerican' => 3,
-        'NativeHIOtherPacific' => 4,
+        'NativeHIPacific' => 4,
         'White' => 5,
       }.freeze
     end
