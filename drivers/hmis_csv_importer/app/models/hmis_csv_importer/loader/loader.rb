@@ -37,7 +37,8 @@ module HmisCsvImporter::Loader
       debug: true,
       remove_files: true,
       deidentified: false,
-      limit_projects: false
+      limit_projects: false,
+      post_procesor: nil
     )
       raise ArgumentError, 'file_path must be a directory containing HMIS csv data' unless File.directory?(file_path)
 
@@ -50,6 +51,7 @@ module HmisCsvImporter::Loader
       @deidentified = deidentified
       @loader_log = build_loader_log(data_source: data_source)
       @limit_projects = limit_projects
+      @post_procesor = post_procesor
       importable_files.each_key do |file_name|
         setup_summary(file_name)
       end
@@ -153,7 +155,7 @@ module HmisCsvImporter::Loader
       @loader_log.update(status: :loading)
 
       Importers::HmisAutoMigrate.apply_migrations(@file_path)
-      ProjectFilter.filter(@file_path, @data_source.id) if @limit_projects
+      ProjectFilter.filter(@file_path, @data_source.id, @post_procesor) if @limit_projects
 
       importable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)
