@@ -82,7 +82,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
 
         # min_enrollment_date = clients.map{|c| c[:first_date_in_program]}.min
-        max_exit_date = (clients.map { |c| c[:last_date_in_program]}.compact + [Date.current]).max
+        max_exit_date = (clients.map { |c| c[:last_date_in_program] }.compact + [Date.current]).max
         max_dates = max_dates_served(enrollment_ids, range: (start..max_exit_date))
         clients.each do |client|
           client[:most_recent_service] = max_dates[client[:enrollment_id]] || 'Before report start'
@@ -135,7 +135,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           map do |row|
           Hash[enrollment_columns.keys.zip(row)]
         end.
-          group_by { |m| m[:id]}
+          group_by { |m| m[:id] }
       end
     end
 
@@ -190,7 +190,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def disabilities
-      project_entry_ids = enrollments.values.flatten.map { |en| en[:project_entry_id]}.uniq
+      project_entry_ids = enrollments.values.flatten.map { |en| en[:project_entry_id] }.uniq
       @disabilities ||= disability_source.joins(enrollment: :client).
         where(d_t[:InformationDate].lteq(self.end)).
         where(EnrollmentID: project_entry_ids).
@@ -246,11 +246,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def beds
-      @beds ||= projects.flat_map(&:inventories).map { |i| i[:BedInventory] || 0}.reduce(:+) || 0
+      @beds ||= projects.flat_map(&:inventories).map { |i| i[:BedInventory] || 0 }.reduce(:+) || 0
     end
 
     def hmis_beds
-      @hmis_beds ||= projects.flat_map(&:inventories).map { |i| i[:HMISParticipatingBeds] || 0}.reduce(:+) || 0
+      @hmis_beds ||= projects.flat_map(&:inventories).map { |i| i[:HMISParticipatingBeds] || 0 }.reduce(:+) || 0
     end
 
     def income_columns
@@ -475,7 +475,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def missing_disability? disabilities
       return true if disabilities.blank?
 
-      max_information_date = disabilities.map { |dis| dis[:information_date]}.max
+      max_information_date = disabilities.map { |dis| dis[:information_date] }.max
       disabilities.select do |dis|
         dis[:information_date] == max_information_date
       end.map do |dis|
@@ -486,7 +486,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def refused_diability? disabilities
       return false if disabilities.blank?
 
-      max_information_date = disabilities.map { |dis| dis[:information_date]}.max
+      max_information_date = disabilities.map { |dis| dis[:information_date] }.max
       disabilities.select do |dis|
         dis[:information_date] == max_information_date
       end.map do |dis|
@@ -497,7 +497,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def unknown_disability? disabilities
       return false if disabilities.blank?
 
-      max_information_date = disabilities.map { |dis| dis[:information_date]}.max
+      max_information_date = disabilities.map { |dis| dis[:information_date] }.max
       disabilities.select do |dis|
         dis[:information_date] == max_information_date
       end.map do |dis|

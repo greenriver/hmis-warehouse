@@ -27,7 +27,7 @@ module PerformanceDashboard::Overview::Race
     end.to_h
   end
 
-  def race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none) # rubocop:disable Metrics/ParameterLists
+  def race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)
     races = []
     races << 'AmIndAKNative' if am_ind_ak_native == 1
     races << 'Asian' if asian == 1
