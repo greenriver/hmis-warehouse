@@ -8,8 +8,8 @@ module HudApr::CeApr::CeAprConcern
   extend ActiveSupport::Concern
 
   included do
-    private def path_for_question(question, report: nil)
-      hud_reports_ce_apr_question_path(ce_apr_id: report&.id || 0, id: question)
+    private def path_for_question(question, report: nil, args: {})
+      hud_reports_ce_apr_question_path({ ce_apr_id: report&.id || 0, id: question }.merge(args))
     end
 
     private def path_for_questions(question)

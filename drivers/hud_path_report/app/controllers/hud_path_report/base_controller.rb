@@ -75,8 +75,8 @@ module HudPathReport
       HudPathReport::Filters::PathFilter
     end
 
-    private def path_for_question(question, report: nil)
-      hud_reports_path_question_path(path_id: report&.id || 0, id: question)
+    private def path_for_question(question, report: nil, args: {})
+      hud_reports_path_question_path({ path_id: report&.id || 0, id: question }.merge(args))
     end
 
     private def path_for_questions(question)

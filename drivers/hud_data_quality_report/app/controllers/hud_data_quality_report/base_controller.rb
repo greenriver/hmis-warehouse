@@ -24,8 +24,8 @@ module HudDataQualityReport
       ::Filters::HudFilterBase
     end
 
-    private def path_for_question(question, report: nil)
-      hud_reports_dq_question_path(dq_id: report&.id || 0, id: question)
+    private def path_for_question(question, report: nil, args: {})
+      hud_reports_dq_question_path({ dq_id: report&.id || 0, id: question }.merge(args))
     end
 
     private def path_for_questions(question)

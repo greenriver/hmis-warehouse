@@ -8,8 +8,8 @@ module HudApr::Caper::CaperConcern
   extend ActiveSupport::Concern
 
   included do
-    private def path_for_question(question, report: nil)
-      hud_reports_caper_question_path(caper_id: report&.id || 0, id: question)
+    private def path_for_question(question, report: nil, args: {})
+      hud_reports_caper_question_path({ caper_id: report&.id || 0, id: question }.merge(args))
     end
 
     private def path_for_questions(question)
