@@ -68,7 +68,7 @@ module GrdaWarehouse::Synthetic
           to_import.compact,
           on_duplicate_key_update: {
             conflict_target: ['"EventID"', :data_source_id],
-            columns: event_source.hmis_configuration.keys,
+            columns: event_source.hmis_configuration(version: '2022').keys,
           },
         )
         batch.each.with_index do |synthetic, i|
