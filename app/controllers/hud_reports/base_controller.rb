@@ -103,7 +103,7 @@ module HudReports
         reports.manual
       end
 
-      filter_range = @view_filter[:start].to_date..(@view_filter[:end].to_date + 1.days)
+      filter_range = Time.zone.parse(@view_filter[:start]) .. (Time.zone.parse(@view_filter[:end]) + 1.days)
       reports.where(created_at: filter_range)
     end
 
