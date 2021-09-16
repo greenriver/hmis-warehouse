@@ -700,6 +700,19 @@ module HUD
     }.freeze
   end
 
+  def gender_id_to_field_name
+    {
+      0 => 'Female',
+      1 => 'Male',
+      4 => 'NoSingleGender',
+      5 => 'Transgender',
+      6 => 'Questioning',
+      8 => 'Client doesn\'t know',
+      9 => 'Client refused',
+      99 => 'Data not collected',
+    }.freeze
+  end
+
   def no_single_gender_queries
     [
       '0,1',

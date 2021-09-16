@@ -83,7 +83,11 @@ module Filter::FilterScopes
     private def filter_for_gender(scope)
       return scope unless @filter.genders.present?
 
-      scope.joins(:client).where(c_t[:Gender].in(@filter.genders))
+      scope = scope.joins(:client)
+      HUD.gender_id_to_field_name.values_at(@filter.genders).each do |column|
+        scope = scope.where(c_t[column.to_sym].eq(1))
+      end
+      scope
     end
 
     private def filter_for_race(scope)
