@@ -100,7 +100,7 @@ module HudPathReport
     end
 
     private def path_for_running_all_questions
-      running_all_questions_hud_reports_paths_path
+      running_all_questions_hud_reports_paths_path(link_params.except('action', 'controller'))
     end
 
     private def path_for_running_question
