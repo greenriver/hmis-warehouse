@@ -371,7 +371,13 @@ CREATE TABLE public.warehouse_houseds (
     age_at_housed_date integer,
     age_at_housing_exit integer,
     head_of_household boolean DEFAULT false,
-    hmis_project_id character varying
+    hmis_project_id character varying,
+    female integer,
+    male integer,
+    nosinglegender integer,
+    transgender integer,
+    questioning integer,
+    gendernone integer
 );
 
 
@@ -695,7 +701,13 @@ CREATE TABLE public.warehouse_returns (
     gender integer,
     race character varying,
     ethnicity character varying,
-    hmis_project_id character varying
+    hmis_project_id character varying,
+    female integer,
+    male integer,
+    nosinglegender integer,
+    transgender integer,
+    questioning integer,
+    gendernone integer
 );
 
 
@@ -2872,6 +2884,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200417173338'),
 ('20200620192228'),
 ('20200724150305'),
-('20210405180920');
+('20210405180920'),
+('20210916150948');
 
 

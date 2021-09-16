@@ -1163,7 +1163,10 @@ class WarehouseReport::Outcomes::Base
 
     scope = scope.where(race: @race&.to_s) unless @race == :current_scope
     scope = scope.where(ethnicity: @ethnicity&.to_s&.to_i) unless @ethnicity == :current_scope
-    scope = scope.where(gender: @gender&.to_s&.to_i) unless @gender == :current_scope
+    if @gender != :current_scope
+      gender_column = HUD.gender_id_to_field_name[@gender]
+      scope = scope.where(gender_column.downcase => 1)
+    end
     scope = scope.where(veteran_status: @veteran_status&.to_s&.to_i) unless @veteran_status == :current_scope
     scope = scope.heads_of_households if @filter.hoh_only
 

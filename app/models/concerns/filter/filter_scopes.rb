@@ -84,7 +84,7 @@ module Filter::FilterScopes
       return scope unless @filter.genders.present?
 
       scope = scope.joins(:client)
-      HUD.gender_id_to_field_name.values_at(@filter.genders).each do |column|
+      HUD.gender_id_to_field_name.values_at(*@filter.genders).each do |column|
         scope = scope.where(c_t[column.to_sym].eq(1))
       end
       scope

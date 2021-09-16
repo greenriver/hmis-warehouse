@@ -104,7 +104,12 @@ module Reporting
         unaccompanied_youth: she_t[:unaccompanied_youth],
         parenting_youth: she_t[:parenting_youth],
         ethnicity: c_t[:Ethnicity],
-        gender: c_t[:Gender],
+        female: c_t[:Female],
+        male: c_t[:Male],
+        nosinglegender: c_t[:NoSingleGender],
+        transgender: c_t[:Transgender],
+        questioning: c_t[:Questioning],
+        gendernone: c_t[:GenderNone],
       }.freeze
     end
 

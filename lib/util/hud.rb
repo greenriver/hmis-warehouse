@@ -689,8 +689,8 @@ module HUD
     {
       0 => 'Female',
       1 => 'Male',
-      2 => 'Trans Female (MTF or Male to Female)', # retained for backwards compatibility
-      3 => 'Trans Male (FTM or Female to Male)', # retained for backwards compatibility
+      # 2 => 'Trans Female (MTF or Male to Female)', # retained for backwards compatibility
+      # 3 => 'Trans Male (FTM or Female to Male)', # retained for backwards compatibility
       4 => 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
       5 => 'Transgender',
       6 => 'Questioning',
