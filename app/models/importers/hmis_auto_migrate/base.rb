@@ -60,6 +60,7 @@ module Importers::HmisAutoMigrate
         data_source_id: data_source_id,
         deidentified: deidentified,
         limit_projects: @allowed_projects,
+        post_processor: @post_processor,
       )
 
       loader.load!

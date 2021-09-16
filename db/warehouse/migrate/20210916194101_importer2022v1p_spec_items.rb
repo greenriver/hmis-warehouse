@@ -1,0 +1,33 @@
+class Importer2022v1pSpecItems < ActiveRecord::Migration[5.2]
+  def up
+    add_column :hmis_csv_2022_clients, :NativeHIPacific, :integer
+    add_column :hmis_csv_2022_clients, :NoSingleGender, :integer
+    add_column :hmis_csv_2022_enrollments, :HOHLeaseholder, :integer
+    rename_column :hmis_csv_2022_events, :LocationCrisisorPHHousing, :LocationCrisisOrPHHousing
+    rename_column :hmis_csv_2022_health_and_dvs, :SupportfromOthers, :SupportFromOthers
+
+    add_column :hmis_2022_clients, :NativeHIPacific, :integer
+    add_column :hmis_2022_clients, :NoSingleGender, :integer
+    add_column :hmis_2022_enrollments, :HOHLeaseholder, :integer
+    rename_column :hmis_2022_events, :LocationCrisisorPHHousing, :LocationCrisisOrPHHousing
+    rename_column :hmis_2022_health_and_dvs, :SupportfromOthers, :SupportFromOthers
+
+    add_column :hmis_aggregated_enrollments, :HOHLeaseholder, :integer
+  end
+
+  def down
+    remove_column :hmis_csv_2022_clients, :NativeHIPacific, :integer
+    remove_column :hmis_csv_2022_clients, :NoSingleGender, :integer
+    remove_column :hmis_csv_2022_enrollments, :HOHLeaseholder, :integer
+    rename_column :hmis_csv_2022_events, :LocationCrisisOrPHHousing, :LocationCrisisorPHHousing
+    rename_column :hmis_csv_2022_health_and_dvs, :SupportFromOthers, :SupportfromOthers
+
+    remove_column :hmis_2022_clients, :NativeHIPacific, :integer
+    remove_column :hmis_2022_clients, :NoSingleGender, :integer
+    remove_column :hmis_2022_enrollments, :HOHLeaseholder, :integer
+    rename_column :hmis_2022_events, :LocationCrisisOrPHHousing, :LocationCrisisorPHHousing
+    rename_column :hmis_2022_health_and_dvs, :SupportFromOthers, :SupportfromOthers
+
+    remove_column :hmis_aggregated_enrollments, :HOHLeaseholder, :integer
+  end
+end

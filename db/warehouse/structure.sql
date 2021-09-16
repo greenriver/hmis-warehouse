@@ -7847,7 +7847,9 @@ CREATE TABLE public.hmis_2022_clients (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    "NativeHIPacific" integer,
+    "NoSingleGender" integer
 );
 
 
@@ -8170,7 +8172,8 @@ CREATE TABLE public.hmis_2022_enrollments (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    "HOHLeaseholder" integer
 );
 
 
@@ -8206,7 +8209,7 @@ CREATE TABLE public.hmis_2022_events (
     "Event" integer,
     "ProbSolDivRRResult" integer,
     "ReferralCaseManageAfter" integer,
-    "LocationCrisisorPHHousing" character varying,
+    "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" integer,
     "ResultDate" date,
     "DateCreated" timestamp without time zone,
@@ -8448,7 +8451,7 @@ CREATE TABLE public.hmis_2022_health_and_dvs (
     "PregnancyStatus" integer,
     "DueDate" date,
     "LifeValue" integer,
-    "SupportfromOthers" integer,
+    "SupportFromOthers" integer,
     "BounceBack" integer,
     "FeelingFrequency" integer,
     "DataCollectionStage" integer,
@@ -9003,7 +9006,8 @@ CREATE TABLE public.hmis_aggregated_enrollments (
     source_id integer NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
-    clean_at timestamp without time zone
+    clean_at timestamp without time zone,
+    "HOHLeaseholder" integer
 );
 
 
@@ -10623,7 +10627,9 @@ CREATE TABLE public.hmis_csv_2022_clients (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    "NativeHIPacific" integer,
+    "NoSingleGender" integer
 );
 
 
@@ -10916,7 +10922,8 @@ CREATE TABLE public.hmis_csv_2022_enrollments (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    "HOHLeaseholder" integer
 );
 
 
@@ -10952,7 +10959,7 @@ CREATE TABLE public.hmis_csv_2022_events (
     "Event" character varying,
     "ProbSolDivRRResult" character varying,
     "ReferralCaseManageAfter" character varying,
-    "LocationCrisisorPHHousing" character varying,
+    "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" character varying,
     "ResultDate" character varying,
     "DateCreated" character varying,
@@ -11170,7 +11177,7 @@ CREATE TABLE public.hmis_csv_2022_health_and_dvs (
     "PregnancyStatus" character varying,
     "DueDate" character varying,
     "LifeValue" character varying,
-    "SupportfromOthers" character varying,
+    "SupportFromOthers" character varying,
     "BounceBack" character varying,
     "FeelingFrequency" character varying,
     "DataCollectionStage" character varying,
@@ -37580,6 +37587,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210906163956'),
 ('20210909160929'),
 ('20210910113307'),
-('20210910133606');
+('20210910133606'),
+('20210916194101');
 
 
