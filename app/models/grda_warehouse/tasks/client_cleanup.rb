@@ -333,7 +333,12 @@ module GrdaWarehouse::Tasks
       dest_attr = choose_best_ssn(dest_attr, source_clients)
       dest_attr = choose_best_dob(dest_attr, source_clients)
       dest_attr = choose_best_veteran_status(dest_attr, source_clients)
-      dest_attr = choose_best_gender(dest_attr, source_clients)
+      dest_attr = choose_best_gender(dest_attr, source_clients, :Female)
+      dest_attr = choose_best_gender(dest_attr, source_clients, :Male)
+      dest_attr = choose_best_gender(dest_attr, source_clients, :NoSingleGender)
+      dest_attr = choose_best_gender(dest_attr, source_clients, :Transgender)
+      dest_attr = choose_best_gender(dest_attr, source_clients, :Questioning)
+      dest_attr = choose_best_gender_none(dest_attr, source_clients)
       dest_attr = choose_best_race(dest_attr, source_clients)
       dest_attr = choose_best_ethnicity(dest_attr, source_clients)
 
@@ -409,13 +414,23 @@ module GrdaWarehouse::Tasks
       dest_attr
     end
 
-    def choose_best_gender dest_attr, source_clients
+    def choose_best_gender dest_attr, source_clients, column
       # Get the best Gender (has 0..4, newest breaks the tie)
-      known_values = [0, 1, 2, 3, 4]
-      known_value_gender_clients = source_clients.select { |sc| known_values.include?(sc[:Gender]) }
-      if !known_values.include?(dest_attr[:Gender]) || known_value_gender_clients.any?
+      known_values = [0, 1]
+      known_value_gender_clients = source_clients.select { |sc| known_values.include?(sc[column]) }
+      if !known_values.include?(dest_attr[column]) || known_value_gender_clients.any?
         known_value_gender_clients = source_clients if known_value_gender_clients.none? # if none have known values we consider them all in the sort test
-        dest_attr[:Gender] = known_value_gender_clients.max { |a, b| a[:DateUpdated] <=> b[:DateUpdated] }[:Gender]
+        dest_attr[column] = known_value_gender_clients.max { |a, b| a[:DateUpdated] <=> b[:DateUpdated] }[column]
+      end
+      dest_attr
+    end
+
+    def choose_best_gender_none dest_attr, source_clients
+      known_values = [8, 9, 99]
+      known_value_gender_clients = source_clients.select { |sc| known_values.include?(sc[:GenderNone]) }
+      if !known_values.include?(dest_attr[:GenderNone]) || known_value_gender_clients.any?
+        known_value_gender_clients = source_clients if known_value_gender_clients.none? # if none have known values we consider them all in the sort test
+        dest_attr[:GenderNone] = known_value_gender_clients.max { |a, b| a[:DateUpdated] <=> b[:DateUpdated] }[:GenderNone]
       end
       dest_attr
     end
@@ -498,7 +513,12 @@ module GrdaWarehouse::Tasks
       processed = 0
       changed = {
         dobs: Set.new,
-        genders: Set.new,
+        females: Set.new,
+        males: Set.new,
+        nosinglegenders: Set.new,
+        transgenders: Set.new,
+        questionings: Set.new,
+        gendernones: Set.new,
         veteran_statuses: Set.new,
         new_vets: Set.new,
         newly_not_vets: Set.new,
@@ -527,7 +547,12 @@ module GrdaWarehouse::Tasks
           # updated dates match, there's no need to update the destination
           dest.update(dest_attr) unless @dry_run
           changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
-          changed[:genders] << dest.id if dest.Gender != dest_attr[:Gender]
+          changed[:females] << dest.id if dest.Female != dest_attr[:Female]
+          changed[:males] << dest.id if dest.Male != dest_attr[:Male]
+          changed[:nosinglegenders] << dest.id if dest.NoSingleGender != dest_attr[:NoSingleGender]
+          changed[:transgenders] << dest.id if dest.Transgender != dest_attr[:Transgender]
+          changed[:questionings] << dest.id if dest.Questioning != dest_attr[:Questioning]
+          changed[:gendernones] << dest.id if dest.GenderNone != dest_attr[:GenderNone]
           changed[:veteran_statuses] << dest.id if dest.VeteranStatus != dest_attr[:VeteranStatus]
           changed[:new_vets] << dest.id if dest.VeteranStatus != 1 && dest_attr[:VeteranStatus] == 1
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0 # rubocop:disable Style/NumericPredicate

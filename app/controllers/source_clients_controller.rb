@@ -25,7 +25,7 @@ class SourceClientsController < ApplicationController
     end
     valid_params = validate_new_client_params(clean_params)
     clean_params = clean_params.to_h.with_indifferent_access
-    clean_params[:Gender].each do |k|
+    clean_params[:Gender]&.each do |k|
       next if k.blank?
 
       gender_column = HUD.gender_id_to_field_name[k.to_i]

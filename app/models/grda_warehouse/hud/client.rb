@@ -671,7 +671,7 @@ module GrdaWarehouse::Hud
         if destination_code == 17
           destination_string = last_exit.OtherDestination
         else
-          destination_string = HUD.destination(destination_code)
+          destination_string = ::HUD.destination(destination_code)
         end
         return "#{destination_string} (#{last_exit.ExitDate})"
       else
@@ -2130,7 +2130,7 @@ module GrdaWarehouse::Hud
 
     # those columns that relate to race
     def self.race_fields
-      HUD.races.keys
+      ::HUD.races.keys
     end
 
     # those race fields which are marked as pertinent to the client

@@ -36,7 +36,7 @@ class ClientsController < ApplicationController
     # If we only have one authoritative data source, we don't bother sending it, just use it
     clean_params[:data_source_id] ||= GrdaWarehouse::DataSource.authoritative.first.id if GrdaWarehouse::DataSource.authoritative.count == 1
     # Handle multi gender
-    clean_params[:Gender].each do |k|
+    clean_params[:Gender]&.each do |k|
       next if k.blank?
 
       gender_column = HUD.gender_id_to_field_name[k.to_i]
