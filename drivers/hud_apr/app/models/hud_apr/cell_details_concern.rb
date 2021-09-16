@@ -14,8 +14,8 @@ module HudApr::CellDetailsConcern
       end.to_h
     end
 
-    def self.question_fields(question)
-      extra_fields = {
+    def self.extra_fields
+      {
         'Question 5' => age_fields + parenting_fields + veteran_fields + homeless_fields,
         'Question 6' => pii_fields + universal_data_fields + financial_fields + housing_fields + project_fields + timeliness_fields + inactive_records_fields,
         'Question 7' => household_fields + parenting_fields + project_fields,
@@ -35,10 +35,14 @@ module HudApr::CellDetailsConcern
         'Question 21' => insurance_fields + project_fields,
         'Question 22' => housing_fields + household_fields + project_fields,
         'Question 23' => housing_fields + household_fields + project_fields,
+        'Question 24' => household_fields + financial_fields + assessment_fields + housing_fields,
         'Question 25' => veteran_fields + household_fields + gender_fields + age_fields + health_fields + financial_fields + housing_fields + project_fields,
         'Question 26' => household_fields + homeless_fields + gender_fields + age_fields + health_fields + financial_fields + project_fields,
         'Question 27' => age_fields + household_fields + parenting_fields + gender_fields + health_fields + financial_fields + housing_fields + project_fields,
       }
+    end
+
+    def self.question_fields(question)
       (common_fields + (extra_fields[question] || all_extra_fields)).uniq
     end
 
@@ -99,7 +103,7 @@ module HudApr::CellDetailsConcern
       [
         :veteran_status,
         :relationship_to_hoh,
-        # :client_location ?
+        :enrollment_coc,
         :disabling_condition,
       ].freeze
     end
@@ -121,6 +125,18 @@ module HudApr::CellDetailsConcern
         :non_cash_benefits_from_any_source_at_start,
         :non_cash_benefits_from_any_source_at_annual_assessment,
         :non_cash_benefits_from_any_source_at_exit,
+        :subsidy_information,
+      ].freeze
+    end
+
+    def self.assessment_fields
+      [
+        :annual_assessment_expected,
+        :housing_assessment,
+        :annual_assessment_in_window,
+        :ce_assessment_date,
+        :ce_assessment_type,
+        :ce_assessment_prioritization_status,
       ].freeze
     end
 
@@ -141,7 +157,10 @@ module HudApr::CellDetailsConcern
 
     def self.timeliness_fields
       [
-        # TODO: for Question 6, not sure what goes here
+        :enrollment_created,
+        :first_date_in_program,
+        :last_date_in_program,
+        :exit_created,
       ].freeze
     end
 
