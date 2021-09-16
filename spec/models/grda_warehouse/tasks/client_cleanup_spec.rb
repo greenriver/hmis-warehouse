@@ -6,7 +6,12 @@ DEFAULT_DEST_ATTR = {
   SSN: '555555555',
   DOB: '1978-06-12',
   VeteranStatus: nil,
-  Gender: nil,
+  Female: nil,
+  Male: nil,
+  NoSingleGender: nil,
+  Transgender: nil,
+  Questioning: nil,
+  GenderNone: nil,
 }.freeze
 
 RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do

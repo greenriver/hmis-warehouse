@@ -24,6 +24,15 @@ class SourceClientsController < ApplicationController
       clean_params[:SSN] = @client.SSN
     end
     valid_params = validate_new_client_params(clean_params)
+    clean_params = clean_params.to_h.with_indifferent_access
+    clean_params[:Gender].each do |k|
+      next if k.blank?
+
+      gender_column = HUD.gender_id_to_field_name[k.to_i]
+      clean_params[gender_column] = 1
+    end
+    clean_params.delete(:Gender)
+
     if valid_params
       @client.update(clean_params)
       # also update the destination client, we're assuming this is authoritative
@@ -80,8 +89,10 @@ class SourceClientsController < ApplicationController
         :FirstName,
         :MiddleName,
         :LastName,
-        :Gender,
         :VeteranStatus,
+        :Female,
+        :Male,
+        Gender: [],
       )
   end
 

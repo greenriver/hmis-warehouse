@@ -317,10 +317,12 @@ module HudDataQualityReport::Generators::Fy2020
     # race field.
     def calculate_race(client)
       return client.RaceNone if client.RaceNone.in?([8, 9, 99]) # bad data
-      return 6 if client.race_fields.count > 1 # multi-racial
-      return 99 if client.race_fields.empty?
 
-      race_number(client.race_fields.first) # return the HUD numeral equivalent
+      chosen_races = race_fields.select { |f, _| client.send(f).to_i == 1 }.keys
+      return 6 if chosen_races.count > 1 # multi-racial
+      return 99 if chosen_races.empty?
+
+      race_number(chosen_races.first) # return the HUD numeral equivalent
     end
   end
 end

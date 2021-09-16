@@ -535,11 +535,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_female, -> do
-      where(Gender: 0)
+      where(Female: 1)
     end
 
     scope :gender_male, -> do
-      where(Gender: 1)
+      where(Male: 1)
     end
 
     scope :gender_mtf, -> do
@@ -551,15 +551,15 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_non_conforming, -> do
-      where(Gender: 4)
+      where(NoSingleGender: 1)
     end
 
     scope :gender_transgender, -> do
-      where(Gender: [2, 3])
+      where(Transgender: 1)
     end
 
     scope :gender_unknown, -> do
-      where(Gender: [8, 9, 99, nil])
+      where(GenderNone: [8, 9, 99])
     end
 
     ####################
@@ -2055,7 +2055,7 @@ module GrdaWarehouse::Hud
     end
 
     def gender
-      ::HUD.gender(self.Gender)
+      gender_multi.map { |k| ::HUD.gender(k) }.join(', ')
     end
 
     # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting

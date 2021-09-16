@@ -353,7 +353,7 @@ module GrdaWarehouse::YouthIntake
 
       data = {
         DOBDataQuality: 1,
-        Gender: client_gender,
+
         Ethnicity: client_ethnicity,
         AmIndAKNative: client_race.include?('AmIndAKNative') ? 1 : 0,
         Asian: client_race.include?('Asian') ? 1 : 0,
@@ -363,6 +363,8 @@ module GrdaWarehouse::YouthIntake
         RaceNone: compute_race_none,
         DateUpdated: Time.now,
       }
+      gender_column = HUD.gender_id_to_field_name[client_gender]
+      data[gender_column] = 1 unless gender_column.nil?
       data[:FirstName] = first_name if first_name.present?
       data[:LastName] = last_name if last_name.present?
       data[:SSN] = ssn.gsub('-', '') if ssn.present?
