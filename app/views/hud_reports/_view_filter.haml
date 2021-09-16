@@ -1,6 +1,5 @@
-:ruby
-  filter_class = if @active_filter then 'filter-active' else 'filter' end
-.dropdown.o-filtration{class: filter_class}
+- filter_class = if @active_filter then 'filter-active' else 'filter' end
+#filter-anchor.dropdown.o-filtration{class: filter_class}
   %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { toggle: 'dropdown' }, aria: { haspopup: 'true', expanded: 'false' }}
     %span Filter
     %span.caret
@@ -8,8 +7,7 @@
   .o-filtration__container.dropdown-menu.dropdown-menu-right.options
     .o-filtration__header
       %h3.client__filter-header Filter report list
-
-    = form_tag(nil, method: 'get') do
+    = form_tag(link_params.except('action', 'controller').merge(anchor: 'filter-anchor'), method: 'get') do
 
       %input{ name: 'filter[report_version]', type: 'hidden', value: report_version }
 
