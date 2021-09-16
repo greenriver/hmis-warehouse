@@ -6,7 +6,6 @@
 
 module HudApr
   class QuestionsController < BaseController
-    include HudApr::CellDetailsConcern
     def running
     end
 

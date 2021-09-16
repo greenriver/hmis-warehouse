@@ -7,7 +7,6 @@
 module HudReports
   class QuestionBase
     include NotifierConfig
-    include HudApr::CellDetailsConcern
 
     delegate :report_scope_source, to: :@generator
 

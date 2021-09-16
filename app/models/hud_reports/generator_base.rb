@@ -94,9 +94,5 @@ module HudReports
     def self.describe_table(table_name)
       table_descriptions[table_name]
     end
-
-    def self.question_from_number(question_number)
-      questions[question_number]
-    end
   end
 end

@@ -15,7 +15,6 @@ module HudApr::Generators::Shared::Fy2020
     include HudReports::Veterans
     include HudReports::LengthOfStays
     include HudReports::Incomes
-    include HudApr::CellDetailsConcern
 
     # DEV NOTES: These can be run like so:
     # options = {user_id: 1, coc_code: 'KY-500', start_date: '2018-10-01', end_date: '2019-09-30', project_ids: [1797], generator_class: 'HudApr::Generators::Apr::Fy2020::Generator'}

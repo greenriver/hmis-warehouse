@@ -1,4 +1,4 @@
-- question_instance = @generator.question_from_number(@question).new(generator=@generator, report=@report)
+- column_headings = @generator.column_headings(@question)
 = content_for :crumbs do
   = link_to path_for_question_result(@question, report: @report) do
     = "« #{report_short_name} #{@question} Results"
@@ -21,13 +21,13 @@
         %thead.thead-dark
           %tr
             %th
-            - question_instance.column_headings.each_value do |header|
+            - column_headings.each_value do |header|
               %th= header
         %tbody.thead-dark
           - @clients.each.with_index do |client, i|
             %tr
               %th= i + 1
-              - question_instance.column_headings.each_key do |k|
+              - column_headings.each_key do |k|
                 %td{style: 'max-width: 600px;'}
                   - if k == 'client_id'
                     = link_to from_source_client_path(client[k]) do

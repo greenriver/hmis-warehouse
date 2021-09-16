@@ -8,7 +8,41 @@ module HudApr::CellDetailsConcern
   extend ActiveSupport::Concern
 
   included do
-    def common_fields
+    def self.column_headings(question)
+      question_fields(question).map do |key|
+        [key, HudApr::Fy2020::AprClient.detail_headers[key.to_s]]
+      end.to_h
+    end
+
+    def self.question_fields(question)
+      extra_fields = {
+        'Question 5' => age_fields + parenting_fields + veteran_fields + homeless_fields,
+        'Question 6' => pii_fields + universal_data_fields + financial_fields + housing_fields + project_fields + timeliness_fields + inactive_records_fields,
+        'Question 7' => household_fields + parenting_fields + project_fields,
+        'Question 8' => household_fields + parenting_fields + project_fields,
+        'Question 9' => contacts_and_engagement_fields,
+        'Question 10' => gender_fields + household_fields + age_fields + project_fields,
+        'Question 11' => age_fields + household_fields + project_fields,
+        'Question 12' => race_and_ethnicity_fields + household_fields + project_fields,
+        'Question 13' => health_fields + household_fields + project_fields,
+        'Question 14' => domestic_violence_fields + household_fields + project_fields,
+        'Question 15' => housing_fields + household_fields,
+        'Question 16' => financial_fields + age_fields + project_fields,
+        'Question 17' => financial_fields + age_fields + project_fields,
+        'Question 18' => financial_fields + age_fields + project_fields,
+        'Question 19' => financial_fields + age_fields + health_fields + project_fields,
+        'Question 20' => financial_fields + age_fields + parenting_fields + project_fields,
+        'Question 21' => insurance_fields + project_fields,
+        'Question 22' => housing_fields + household_fields + project_fields,
+        'Question 23' => housing_fields + household_fields + project_fields,
+        'Question 25' => veteran_fields + household_fields + gender_fields + age_fields + health_fields + financial_fields + housing_fields + project_fields,
+        'Question 26' => household_fields + homeless_fields + gender_fields + age_fields + health_fields + financial_fields + project_fields,
+        'Question 27' => age_fields + household_fields + parenting_fields + gender_fields + health_fields + financial_fields + housing_fields + project_fields,
+      }
+      (common_fields + (extra_fields[question] || all_extra_fields)).uniq
+    end
+
+    def self.common_fields
       [
         :client_id,
         :first_name,
@@ -19,27 +53,27 @@ module HudApr::CellDetailsConcern
       ].freeze
     end
 
-    def age_fields
+    def self.age_fields
       [
         :age,
         :dob,
       ].freeze
     end
 
-    def parenting_fields
+    def self.parenting_fields
       [
         :parenting_youth,
         :parenting_juvenile,
       ].freeze
     end
 
-    def veteran_fields
+    def self.veteran_fields
       [
         :veteran_status,
       ].freeze
     end
 
-    def homeless_fields
+    def self.homeless_fields
       [
         :chronically_homeless,
         :date_homeless,
@@ -48,7 +82,7 @@ module HudApr::CellDetailsConcern
       ].freeze
     end
 
-    def pii_fields
+    def self.pii_fields
       [
         :ssn,
         :name_quality,
@@ -61,7 +95,7 @@ module HudApr::CellDetailsConcern
       ].freeze
     end
 
-    def universal_data_fields
+    def self.universal_data_fields
       [
         :veteran_status,
         :relationship_to_hoh,
@@ -70,7 +104,7 @@ module HudApr::CellDetailsConcern
       ].freeze
     end
 
-    def financial_fields
+    def self.financial_fields
       [
         :income_date_at_start,
         :income_from_any_source_at_start,
@@ -90,35 +124,35 @@ module HudApr::CellDetailsConcern
       ].freeze
     end
 
-    def housing_fields
+    def self.housing_fields
       [
-        :destination, 
+        :destination,
         :housing_assessment,
         :prior_living_situation,
       ].freeze
     end
 
-    def project_fields
+    def self.project_fields
       [
         :project_type,
         :project_tracking_method,
       ].freeze
     end
 
-    def timeliness_fields
+    def self.timeliness_fields
       [
         # TODO: for Question 6, not sure what goes here
       ].freeze
     end
 
-    def inactive_records_fields
+    def self.inactive_records_fields
       [
         :date_of_last_bed_night,
         :date_to_street,
       ].freeze
     end
 
-    def household_fields
+    def self.household_fields
       [
         :head_of_household,
         :head_of_household_id,
@@ -129,27 +163,27 @@ module HudApr::CellDetailsConcern
       ].freeze
     end
 
-    def contacts_and_engagement_fields
+    def self.contacts_and_engagement_fields
       [
         # TODO: unclear to me what fields we need for question 9
       ].freeze
     end
 
-    def gender_fields
+    def self.gender_fields
       [
         :gender,
         :gender_multi,
       ].freeze
     end
 
-    def race_and_ethnicity_fields
+    def self.race_and_ethnicity_fields
       [
         :race,
         :ethnicity,
       ].freeze
     end
 
-    def health_fields
+    def self.health_fields
       [
         :mental_health_problem,
         :mental_health_problem_entry,
@@ -184,14 +218,14 @@ module HudApr::CellDetailsConcern
       ].freeze
     end
 
-    def domestic_violence_fields
+    def self.domestic_violence_fields
       [
         :domestic_violence,
         :currently_fleeing,
       ].freeze
     end
 
-    def insurance_fields
+    def self.insurance_fields
       [
         :insurance_from_any_source_at_start,
         :insurance_from_any_source_at_annual_assessment,
@@ -199,42 +233,8 @@ module HudApr::CellDetailsConcern
       ].freeze
     end
 
-    def all_extra_fields
+    def self.all_extra_fields
       HudApr::Fy2020::AprClient::detail_headers.keys.map{ |i| i.to_sym } - common_fields
-    end
-
-    def question_fields
-      extra_fields = {
-        'Question 5' => age_fields + parenting_fields + veteran_fields + homeless_fields,
-        'Question 6' => pii_fields + universal_data_fields + financial_fields + housing_fields + project_fields + timeliness_fields + inactive_records_fields,
-        'Question 7' => household_fields + parenting_fields + project_fields,
-        'Question 8' => household_fields + parenting_fields + project_fields,
-        'Question 9' => contacts_and_engagement_fields,
-        'Question 10' => gender_fields + household_fields + age_fields + project_fields,
-        'Question 11' => age_fields + household_fields + project_fields,
-        'Question 12' => race_and_ethnicity_fields + household_fields + project_fields,
-        'Question 13' => health_fields + household_fields + project_fields,
-        'Question 14' => domestic_violence_fields + household_fields + project_fields,
-        'Question 15' => housing_fields + household_fields,
-        'Question 16' => financial_fields + age_fields + project_fields,
-        'Question 17' => financial_fields + age_fields + project_fields,
-        'Question 18' => financial_fields + age_fields + project_fields,
-        'Question 19' => financial_fields + age_fields + health_fields + project_fields,
-        'Question 20' => financial_fields + age_fields + parenting_fields + project_fields,
-        'Question 21' => insurance_fields + project_fields,
-        'Question 22' => housing_fields + household_fields + project_fields,
-        'Question 23' => housing_fields + household_fields + project_fields,
-        'Question 25' => veteran_fields + household_fields + gender_fields + age_fields + health_fields + financial_fields + housing_fields + project_fields,
-        'Question 26' => household_fields + homeless_fields + gender_fields + age_fields + health_fields + financial_fields + project_fields,
-        'Question 27' => age_fields + household_fields + parenting_fields + gender_fields + health_fields + financial_fields + housing_fields + project_fields,
-      }
-      (common_fields + (extra_fields[self.class.question_number] || all_extra_fields)).uniq
-    end
-
-    def column_headings
-      question_fields.map do |key|
-        [key, HudApr::Fy2020::AprClient.detail_headers[key.to_s]]
-      end.to_h
     end
   end
 end
