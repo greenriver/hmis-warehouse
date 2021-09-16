@@ -7,7 +7,7 @@
 module HudReports
   class BaseController < ApplicationController
     before_action :require_can_view_hud_reports!
-    before_action :set_view_filter, only: [:history, :show]
+    before_action :set_view_filter, only: [:history, :show, :running]
 
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
