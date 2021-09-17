@@ -333,12 +333,7 @@ module GrdaWarehouse::Tasks
       dest_attr = choose_best_ssn(dest_attr, source_clients)
       dest_attr = choose_best_dob(dest_attr, source_clients)
       dest_attr = choose_best_veteran_status(dest_attr, source_clients)
-      dest_attr = choose_best_gender(dest_attr, source_clients, :Female)
-      dest_attr = choose_best_gender(dest_attr, source_clients, :Male)
-      dest_attr = choose_best_gender(dest_attr, source_clients, :NoSingleGender)
-      dest_attr = choose_best_gender(dest_attr, source_clients, :Transgender)
-      dest_attr = choose_best_gender(dest_attr, source_clients, :Questioning)
-      dest_attr = choose_best_gender_none(dest_attr, source_clients)
+      dest_attr = choose_best_gender(dest_attr, source_clients)
       dest_attr = choose_best_race(dest_attr, source_clients)
       dest_attr = choose_best_ethnicity(dest_attr, source_clients)
 
@@ -414,25 +409,44 @@ module GrdaWarehouse::Tasks
       dest_attr
     end
 
-    def choose_best_gender dest_attr, source_clients, column
-      # Get the best Gender (has 0..4, newest breaks the tie)
+    def choose_best_gender dest_attr, source_clients
+      # Most recent 0 or 1 if no 0 or 1 use the most recent value
+      # Valid responses for gender categories are [0, 1, 99]
+      # Valid responses for GenderNone are [8, 9, 99] -- should be null if all other fields are 0 or 99
       known_values = [0, 1]
-      known_value_gender_clients = source_clients.select { |sc| known_values.include?(sc[column]) }
-      if !known_values.include?(dest_attr[column]) || known_value_gender_clients.any?
-        known_value_gender_clients = source_clients if known_value_gender_clients.none? # if none have known values we consider them all in the sort test
-        dest_attr[column] = known_value_gender_clients.max { |a, b| a[:DateUpdated] <=> b[:DateUpdated] }[column]
+      # Sort in reverse chronological order (newest first)
+      sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
+
+      gender_columns.each do |col|
+        sorted_source_clients.each do |source_client|
+          value = source_client[col]
+          current_value = dest_attr[col]
+          # if we have a 0 or 1 use it
+          # otherwise only replace if the current value isn't a 0 or 1
+
+          dest_attr[col] = if current_value.blank?
+            value
+          elsif known_values.include?(value)
+            value
+          elsif !known_values.include?(current_value) && value.present?
+            value
+          else
+            current_value
+          end
+
+          # Since these are sorted in reverse chronological order, if we hit a 1 or 0, we'll consider that
+          # the destination client response
+          break if known_values.include?(value)
+        end
       end
+
+      # if we still don't have any responses, use the most-recent GenderNone response
+      dest_attr[:GenderNone] = sorted_source_clients.first[:GenderNone] if dest_attr.values_at(*gender_columns).any?(1)
       dest_attr
     end
 
-    def choose_best_gender_none dest_attr, source_clients
-      known_values = [8, 9, 99]
-      known_value_gender_clients = source_clients.select { |sc| known_values.include?(sc[:GenderNone]) }
-      if !known_values.include?(dest_attr[:GenderNone]) || known_value_gender_clients.any?
-        known_value_gender_clients = source_clients if known_value_gender_clients.none? # if none have known values we consider them all in the sort test
-        dest_attr[:GenderNone] = known_value_gender_clients.max { |a, b| a[:DateUpdated] <=> b[:DateUpdated] }[:GenderNone]
-      end
-      dest_attr
+    private def gender_columns
+      @gender_columns ||= ::HUD.gender_fields - [:GenderNone]
     end
 
     def choose_best_race dest_attr, source_clients
@@ -449,9 +463,11 @@ module GrdaWarehouse::Tasks
           current_value = dest_attr[col]
           # if we have a 0 or 1 use it
           # otherwise only replace if the current value isn't a 0 or 1
-          dest_attr[col] = if known_values.include?(value)
+          dest_attr[col] = if current_value.blank?
             value
-          elsif !known_values.include?(current_value)
+          elsif known_values.include?(value)
+            value
+          elsif !known_values.include?(current_value) && value.present?
             value
           else
             current_value

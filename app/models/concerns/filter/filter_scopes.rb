@@ -84,22 +84,21 @@ module Filter::FilterScopes
       return scope unless @filter.genders.present?
 
       scope = scope.joins(:client)
+      gender_scope = nil
       HUD.gender_id_to_field_name.values_at(*@filter.genders).each do |column|
-        scope = scope.where(c_t[column.to_sym].eq(1))
+        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(1))
+        gender_scope = add_alternative(gender_scope, gender_query)
       end
-      scope
+      scope.merge(gender_scope)
     end
 
     private def filter_for_race(scope)
       return scope unless @filter.races.present?
 
       race_scope = nil
-      race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if @filter.races.include?('AmIndAKNative')
-      race_scope = add_alternative(race_scope, race_alternative(:Asian)) if @filter.races.include?('Asian')
-      race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if @filter.races.include?('BlackAfAmerican')
-      race_scope = add_alternative(race_scope, race_alternative(:NativeHIPacific)) if @filter.races.include?('NativeHIPacific')
-      race_scope = add_alternative(race_scope, race_alternative(:White)) if @filter.races.include?('White')
-      race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if @filter.races.include?('RaceNone')
+      @filter.races.each do |column|
+        race_scope = add_alternative(race_scope, race_alternative(column.to_sym))
+      end
 
       # Include anyone who has more than one race listed, anded with any previous alternatives
       race_scope ||= scope

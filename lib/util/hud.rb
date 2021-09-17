@@ -700,6 +700,17 @@ module HUD
     }.freeze
   end
 
+  def gender_fields
+    [
+      :Female,
+      :Male,
+      :NoSingleGender,
+      :Transgender,
+      :Questioning,
+      :GenderNone,
+    ]
+  end
+
   def gender_id_to_field_name
     {
       0 => 'Female',
