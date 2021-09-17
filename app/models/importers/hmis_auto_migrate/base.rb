@@ -12,8 +12,6 @@ module Importers::HmisAutoMigrate
     attr_accessor :notifier_config
 
     def import!
-      upload_id = @upload&.id || 0 # rubocop:disable Lint/UselessAssignment
-
       # pre_process should do any cleanup of the zip file contents
       # and present a clean zip file in the @upload variable
       pre_process
