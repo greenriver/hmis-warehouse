@@ -22205,10 +22205,59 @@ CREATE INDEX "index_Assessment_on_pending_date_deleted" ON public."Assessment" U
 
 
 --
+-- Name: index_Client_on_AmIndAKNative; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_AmIndAKNative" ON public."Client" USING btree ("AmIndAKNative");
+
+
+--
+-- Name: index_Client_on_Asian; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_Asian" ON public."Client" USING btree ("Asian");
+
+
+--
+-- Name: index_Client_on_BlackAfAmerican; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_BlackAfAmerican" ON public."Client" USING btree ("BlackAfAmerican");
+
+
+--
 -- Name: index_Client_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "index_Client_on_DateDeleted_and_data_source_id" ON public."Client" USING btree ("DateDeleted", data_source_id);
+
+
+--
+-- Name: index_Client_on_NativeHIOtherPacific; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_NativeHIOtherPacific" ON public."Client" USING btree ("NativeHIOtherPacific");
+
+
+--
+-- Name: index_Client_on_NativeHIPacific; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_NativeHIPacific" ON public."Client" USING btree ("NativeHIPacific");
+
+
+--
+-- Name: index_Client_on_RaceNone; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_RaceNone" ON public."Client" USING btree ("RaceNone");
+
+
+--
+-- Name: index_Client_on_White; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_White" ON public."Client" USING btree ("White");
 
 
 --
@@ -31582,6 +31631,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210904021301'),
 ('20210906163956'),
 ('20210910113307'),
-('20210910133606');
+('20210910133606'),
+('20210917140612');
 
 
