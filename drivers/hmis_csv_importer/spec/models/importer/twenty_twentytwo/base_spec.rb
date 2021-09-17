@@ -26,8 +26,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       import_hmis_csv_fixture(file_path, version: 'AutoMigrate', run_jobs: false)
 
       # icky -- testing for side effects
-      expect(Rails.logger).to have_received(:debug).with(/Correcting bad line ending.*Export.csv/)
-      expect(Rails.logger).to have_received(:debug).with(/Correcting bad line ending.*Project.csv/)
+      # Cleanup/transform passes may do this more than once, hence the 'at_least'
+      expect(Rails.logger).to have_received(:debug).with(/Correcting bad line ending.*Export.csv/).at_least(:once)
+      expect(Rails.logger).to have_received(:debug).with(/Correcting bad line ending.*Project.csv/).at_least(:once)
     end
   end
 
