@@ -35,7 +35,7 @@ module Reporting
       # in batches because the number of service records is.
       # It is safe to batch by client because this only cares about the client level detail
       self.class.where.not(client_id: client_ids).delete_all
-      client_ids.each_slice(5_000) do |ids|
+      client_ids.each_slice(1_000) do |ids|
         batch_of_stays = []
         cache_client = GrdaWarehouse::Hud::Client.new
         client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
