@@ -37,6 +37,8 @@ x-backend: &backend
 services:
   shell:
     <<: *backend
+    profiles:
+      - manual
     command: /bin/bash
     entrypoint: ''
     depends_on:
@@ -45,6 +47,8 @@ services:
 
   spec:
     <<: *backend
+    profiles:
+      - manual
     command: /bin/bash
     entrypoint: ''
     depends_on:
@@ -56,6 +60,8 @@ services:
 
   console:
     <<: *backend
+    profiles:
+      - manual
     stdin_open: true
     tty: true
     command: bundle exec rails console
