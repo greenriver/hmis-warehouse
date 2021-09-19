@@ -17,7 +17,7 @@ class ActiveRecord::Relation
   #
   # Returns
   #   nothing is returned from the function
-  def pluck_in_batches(*columns, batch_size: 1_000)
+  def pluck_in_batches(columns, batch_size: 1_000)
     raise 'There must be at least one column to pluck' if columns.empty?
 
     page = 1

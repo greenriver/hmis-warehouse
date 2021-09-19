@@ -49,7 +49,7 @@ module HudDataQualityReport
     end
 
     private def path_for_running_all_questions
-      running_all_questions_hud_reports_dqs_path
+      running_all_questions_hud_reports_dqs_path(link_params.except('action', 'controller'))
     end
 
     private def path_for_running_question
@@ -62,7 +62,7 @@ module HudDataQualityReport
     helper_method :path_for_history
 
     def path_for_report_download(report, args)
-      download_hud_reports_dqs_path(report, args)
+      download_hud_reports_dq_path(report, args)
     end
     helper_method :path_for_report_download
 
