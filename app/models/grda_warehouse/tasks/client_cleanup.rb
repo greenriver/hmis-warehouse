@@ -546,6 +546,7 @@ module GrdaWarehouse::Tasks
     end
 
     def client_columns
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @client_columns ||= {
         FirstName: c_t[:FirstName].to_sql,
         LastName: c_t[:LastName].to_sql,

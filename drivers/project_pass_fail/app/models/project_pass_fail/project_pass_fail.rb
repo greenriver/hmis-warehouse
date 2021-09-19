@@ -191,7 +191,7 @@ module ProjectPassFail
       ]
       generator = HudApr::Generators::Apr::Fy2020::Generator
       apr = HudReports::ReportInstance.from_filter(apr_filter, generator.title, build_for_questions: questions)
-      generator.new(apr).run!(email: false)
+      generator.new(apr).run!(email: false, manual: false)
       apr
     end
 

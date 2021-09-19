@@ -156,6 +156,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
       # In the situation where you have a HouseholdID re-used across projects
       # 1. Find any where the household ID occurs in more than one project
       # 2. Update by project with a unique HouseholdID
+      batch = []
       enrollment_scope.
         where.not(HouseholdID: nil).
         distinct.
@@ -166,13 +167,27 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
           rows.each do |project_id, hh_id|
             # This is going to issue one query per household, project pair, but generally will only be a few dozen
             # per import
-            enrollment_scope.where(
+            enrollments = enrollment_scope.where(
               HouseholdID: hh_id,
               ProjectID: project_id,
-            ).
-              update_all(HouseholdID: Digest::MD5.hexdigest("#{@importer_log.data_source.id}_#{project_id}_#{hh_id}"))
+            )
+            enrollments.find_each do |en|
+              en.HouseholdID = Digest::MD5.hexdigest("#{@importer_log.data_source.id}_#{project_id}_#{hh_id}")
+              en.set_source_hash
+              batch << en
+            end
           end
         end
+      enrollment_source.import(
+        batch,
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: [
+            :HouseholdID,
+            :source_hash,
+          ],
+        },
+      )
     end
 
     def households

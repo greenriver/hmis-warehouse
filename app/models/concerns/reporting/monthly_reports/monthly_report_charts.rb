@@ -111,6 +111,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if keys.include?('AmIndAKNative')
       race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
       race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
       race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
       race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
@@ -124,6 +125,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def self.multi_racial_clients
       # Looking at all races with responses of 1, where we have a sum > 1
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       columns = [
         c_t[:AmIndAKNative],
         c_t[:Asian],

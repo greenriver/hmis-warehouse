@@ -91,6 +91,7 @@ module HUD
 
   # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
   def races(multi_racial: false)
+    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     race_list = {
       'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous', # 1
       'Asian' => 'Asian or Asian American', # 2
@@ -150,8 +151,8 @@ module HUD
     when '4.14.C', 'W1.2' then :h_o_p_w_a_services
     when '4.14.D', 'V2.2' then :s_s_v_f_services
     when '4.14.D3', 'V2.A' then :s_s_v_f_sub_type3
-    when '4.14.D4', 'V2.4' then :s_s_v_f_sub_type4
-    when '4.14.D5', 'V2.5' then :s_s_v_f_sub_type5
+    when '4.14.D4', 'V2.4', 'V2.B' then :s_s_v_f_sub_type4
+    when '4.14.D5', 'V2.5', 'V2.C' then :s_s_v_f_sub_type5
     when '4.15.A', 'V2.3' then :h_o_p_w_a_financial_assistance
     when '4.14' then :bed_night
     when '4.15.B' then :s_s_v_f_financial_assistance
@@ -193,12 +194,12 @@ module HUD
     when '4.47.B', 'W4.B' then :t_cell_source_viral_load_source
     when '4.47.3', 'W4.3' then :viral_load_available
     when '4.48.1', 'V7.1' then :no_points_yes
-    when '4.48.2', 'V7.2', 'V7.B' then :time_to_housing_loss
-    when '4.48.4', 'V7.4', 'V7.C' then :annual_percent_a_m_i
-    when '4.48.7', 'V7.7', 'V7.H' then :eviction_history
-    when '4.48.9', 'V7.9', 'V7.D' then :literal_homeless_history
-    when 'V7.J' then :incarcerated_adult
-    when 'V7.P' then :dependent_under_6
+    when '4.48.2', 'V7.2', 'V7.A' then :time_to_housing_loss
+    when '4.48.4', 'V7.4', 'V7.B' then :annual_percent_a_m_i
+    when '4.48.7', 'V7.7', 'V7.G' then :eviction_history
+    when '4.48.9', 'V7.9', 'V7.C' then :literal_homeless_history
+    when 'V7.I' then :incarcerated_adult
+    when 'V7.O' then :dependent_under_6
     when 'V8.1' then :voucher_tracking
     when 'V9.1' then :cm_exit_reason
     when '4.49.1' then :crisis_services_use
@@ -1351,7 +1352,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.14.D4 / V2.4
+  # 4.14.D4 / V2.4 / V2.B
   def s_s_v_f_sub_type4(id, reverse = false)
     map = {
       1 => 'Health care services',
@@ -1372,7 +1373,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.14.D5 / V2.5
+  # 4.14.D5 / V2.5 / V2.C
   def s_s_v_f_sub_type5(id, reverse = false)
     map = {
       1 => 'Personal financial planning services',
@@ -1425,7 +1426,7 @@ module HUD
       9 => 'Transportation services: vehicle repair/maintenance',
       10 => 'Child care',
       11 => 'General housing stability assistance - emergency supplies', # Retired in 2022 (remove later)
-      12 => 'General housing stability assistance ',
+      12 => 'General housing stability assistance',
       14 => 'Emergency housing assistance',
       15 => 'Extended Shallow Subsidy - Rental Assistance',
       16 => 'Food Assistance',
@@ -1620,7 +1621,7 @@ module HUD
       12 => 'Referral to Joint TH-RRH project/unit/resource opening',
       13 => 'Referral to RRH project resource opening',
       14 => 'Referral to PSH project resource opening',
-      15 => 'Referral to Other PH project resource opening',
+      15 => 'Referral to Other PH project/unit/resource opening',
       16 => 'Referral to emergency assistance/flex fund/furniture assistance',
       17 => 'Referral to Emergency Housing Voucher (EHV)',
       18 => 'Referral to a Housing Stability Voucher',
@@ -1645,6 +1646,7 @@ module HUD
       2 => 'Ward of the state',
       3 => 'Ward of the criminal justice system',
       4 => 'Other',
+      99 => 'Data not collected',
     }
 
     _translate map, id, reverse
@@ -2166,7 +2168,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.2 / V7.2 / V7.B TimeToHousingLoss
+  # 4.48.2 / V7.2 / V7.A TimeToHousingLoss
   def time_to_housing_loss(id, reverse = false)
     map = {
       0 => '1-6 days',
@@ -2179,7 +2181,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.4 / V7.4 / V7.C AnnualPercentAMI
+  # 4.48.4 / V7.4 / V7.B AnnualPercentAMI
   def annual_percent_a_m_i(id, reverse = false)
     map = {
       0 => '$0 (i.e., not employed, not receiving cash benefits, no other current income)',
@@ -2192,7 +2194,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.7 / V7.7 / V7.H EvictionHistory
+  # 4.48.7 / V7.7 / V7.G EvictionHistory
   def eviction_history(id, reverse = false)
     map = {
       0 => 'No prior rental evictions',
@@ -2204,7 +2206,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.9 / V7.9 / V7.D LiteralHomelessHistory
+  # 4.48.9 / V7.9 / V7.C LiteralHomelessHistory
   def literal_homeless_history(id, reverse = false)
     map = {
       0 => 'Most recent episode occurred in the last year',
@@ -2216,22 +2218,24 @@ module HUD
     _translate map, id, reverse
   end
 
-  # V7.J IncarceratedAdult
+  # V7.I IncarceratedAdult
   def incarcerated_adult
     map = {
       0 => 'Not incarcerated',
       1 => 'Incarcerated once',
       2 => 'Incarcerated two or more times',
+      99 => 'Data not collected',
     }
     _translate map, id, reverse
   end
 
-  # V7.P DependentUnder6
+  # V7.O DependentUnder6
   def dependent_under_6
     map = {
       0 => 'No',
       1 => 'Youngest child is under 1 year old',
       2 => 'Youngest child is 1 to 6 years old and/or one or more children (any age) require significant care',
+      99 => 'Data not collected',
     }
     _translate map, id, reverse
   end

@@ -95,12 +95,12 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(visible_in_window: true)
   end
 
-  scope :visible_in_window_to, ->(user) do
+  scope :visible_in_window_for_cohorts_to, ->(user) do
     return none unless user&.can_view_clients?
 
     ds_ids = user.data_sources.pluck(:id)
     scope = where('0=1')
-    scope = scope.or(where(visible_in_window: true)) if ::GrdaWarehouse::Config.get(:window_access_requires_release)
+    scope = scope.or(where(visible_in_window: true))
     scope = scope.or(where(id: ds_ids)) if ds_ids.any?
     scope
   end

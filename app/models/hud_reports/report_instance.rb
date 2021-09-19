@@ -16,6 +16,8 @@ module HudReports
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
+    scope :manual, -> { where manual: true }
+    scope :automated, -> { where manual: false }
 
     def self.from_filter(filter, report_name, build_for_questions:)
       new(
@@ -63,7 +65,7 @@ module HudReports
     # @param question [String] the question name (e.g., 'Q1')
     # @param tables [Array<String>] the names of the tables in a question
     # FIXME: maybe a single question column on report_instance to track if this is a single
-    # question run or all questions.... Need bater start/complete logic
+    # question run or all questions.... Need better start/complete logic
     def start(question, tables)
       universe(question).update(status: 'Started', metadata: { tables: Array(tables) })
       start_report if build_for_questions.count == remaining_questions.count

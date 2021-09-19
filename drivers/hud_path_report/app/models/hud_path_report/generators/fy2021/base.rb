@@ -53,7 +53,7 @@ module HudPathReport::Generators::Fy2021
             am_ind_ak_native: source_client.AmIndAKNative,
             asian: source_client.Asian,
             black_af_american: source_client.BlackAfAmerican,
-            native_hi_other_pacific: source_client.NativeHIOtherPacific,
+            native_hi_other_pacific: source_client.NativeHIPacific,
             white: source_client.White,
             race_none: source_client.RaceNone,
             ethnicity: source_client.Ethnicity,

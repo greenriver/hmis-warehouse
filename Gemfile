@@ -14,7 +14,7 @@ gem 'paranoia', '~> 2.0'
 gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
 gem 'pg'
 # version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
-gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
+gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 
 # locking active record extended here temporarily since upgrading it to 2.0.0 gives
@@ -196,6 +196,7 @@ gem 'browser'
 gem 'ansi'
 
 gem 'parallel'
+gem 'todo_or_die'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

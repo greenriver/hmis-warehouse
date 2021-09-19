@@ -772,6 +772,7 @@ module PublicReports
     end
 
     private def race_breakdowns
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       setup = {
         'American Indian or Alaska Native' => GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative']),
         'Asian' => GrdaWarehouse::Hud::Client.with_races(['Asian']),
