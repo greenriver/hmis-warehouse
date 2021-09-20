@@ -50,7 +50,6 @@ module Reporting::MonthlyReports
         distinct.
         pluck_in_batches(:client_id, batch_size: 2_500) do |batch|
           batch = batch.flatten
-          clear_batch_cache
           set_enrollments_by_client(batch)
           set_prior_enrollments
           self.class.transaction do
@@ -110,6 +109,7 @@ module Reporting::MonthlyReports
     # Group clients by month and client_id
     # Loop over all of the open enrollments,
     def set_enrollments_by_client ids
+      clear_batch_cache
       # Cleanup RAM before starting the next batch
       GC.start
       @date_range.map{|d| [d.year, d.month]}.uniq.each do |year, month|
