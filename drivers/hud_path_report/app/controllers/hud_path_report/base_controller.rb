@@ -75,8 +75,8 @@ module HudPathReport
       HudPathReport::Filters::PathFilter
     end
 
-    private def path_for_question(question, report: nil)
-      hud_reports_path_question_path(path_id: report&.id || 0, id: question)
+    private def path_for_question(question, report: nil, args: {})
+      hud_reports_path_question_path({ path_id: report&.id || 0, id: question }.merge(args))
     end
 
     private def path_for_questions(question)
@@ -100,7 +100,7 @@ module HudPathReport
     end
 
     private def path_for_running_all_questions
-      running_all_questions_hud_reports_paths_path
+      running_all_questions_hud_reports_paths_path(link_params.except('action', 'controller'))
     end
 
     private def path_for_running_question

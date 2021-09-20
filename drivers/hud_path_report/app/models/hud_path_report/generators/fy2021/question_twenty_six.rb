@@ -121,18 +121,16 @@ module HudPathReport::Generators::Fy2021
     end
 
     private def races
-      # Hard coding here until we receive 2022 specs
-      # h = HUD.races.reject { |k, _| k == 'RaceNone' }.
       h = {
-        'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous', # 1
-        'Asian' => 'Asian or Asian American', # 2
-        'BlackAfAmerican' => 'Black, African American, or African', # 3
-        'NativeHIOtherPacific' => 'Native Hawaiian or Pacific Islander', # 4
-        'White' => 'White', # 5
+        am_ind_ak_native: 'American Indian, Alaska Native, or Indigenous', # 1
+        asian: 'Asian or Asian American', # 2
+        black_af_american: 'Black, African American, or African', # 3
+        native_hi_other_pacific: 'Native Hawaiian or Pacific Islander', # 4
+        white: 'White', # 5
       }.map do |k, v|
         [
           v,
-          a_t[k.underscore].eq(1),
+          a_t[k].eq(1),
         ]
       end.to_h
       [8, 9, 99].each do |v|

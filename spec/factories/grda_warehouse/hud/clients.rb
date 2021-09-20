@@ -14,7 +14,7 @@ FactoryBot.define do
     # AmIndAKNative
     # Asian
     # BlackAfAmerican
-    # NativeHIOtherPacific
+    # NativeHIPacific
     # White
     # RaceNone
     # Ethnicity

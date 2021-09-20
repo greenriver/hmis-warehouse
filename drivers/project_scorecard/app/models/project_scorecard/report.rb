@@ -220,7 +220,7 @@ module ProjectScorecard
         ]
         generator = HudApr::Generators::Apr::Fy2020::Generator
         apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
-        generator.new(apr).run!(email: false)
+        generator.new(apr).run!(email: false, manual: false)
 
         assessment_answers.merge!(
           {
@@ -330,7 +330,7 @@ module ProjectScorecard
       ]
       generator = HudSpmReport::Generators::Fy2020::Generator
       spm = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
-      generator.new(spm).run!(email: false)
+      generator.new(spm).run!(email: false, manual: false)
 
       number_of_exits = answer(spm, '2', 'B7')
       number_of_returns = answer(spm, '2', 'I7')
