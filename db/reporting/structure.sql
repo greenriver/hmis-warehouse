@@ -226,7 +226,8 @@ CREATE TABLE public.warehouse_data_quality_report_enrollments (
     encrypted_last_name character varying,
     encrypted_last_name_iv character varying,
     encrypted_ssn character varying,
-    encrypted_ssn_iv character varying
+    encrypted_ssn_iv character varying,
+    gender_multi jsonb
 );
 
 
@@ -2885,6 +2886,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200620192228'),
 ('20200724150305'),
 ('20210405180920'),
-('20210916150948');
+('20210916150948'),
+('20210920002734');
 
 

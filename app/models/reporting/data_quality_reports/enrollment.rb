@@ -362,32 +362,32 @@ module Reporting::DataQualityReports
       dob_quality == 99
     end
 
-    def set_gender_completeness  gender:
-      if calculate_gender_refused(gender: gender)
+    def set_gender_completeness(gender_none:, gender_multi:)
+      if calculate_gender_refused(gender_none: gender_none)
         self.gender_refused = true
         return
       end
-      if calculate_gender_not_collected(gender: gender)
+      if calculate_gender_not_collected(gender_none: gender_none)
         self.gender_not_collected = true
         return
       end
-      if calculate_gender_missing(gender: gender)
+      if calculate_gender_missing(gender_multi: gender_multi)
         self.gender_missing = true
         return
       end
       self.gender_complete = true
     end
 
-    def calculate_gender_refused gender:
-      gender.in?(REFUSED)
+    def calculate_gender_refused gender_none:
+      gender_none.in?(REFUSED)
     end
 
-    def calculate_gender_missing gender:
-      gender.blank?
+    def calculate_gender_missing gender_multi:
+      gender_multi.blank?
     end
 
-    def calculate_gender_not_collected gender:
-      gender == 99
+    def calculate_gender_not_collected gender_none:
+      gender_none == 99
     end
 
     def set_veteran_completeness  veteran:, entry_date:

@@ -328,6 +328,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'DOB' => :dob,
         'SSN' => :ssn,
         'Gender' => :gender,
+        'Gender 2022' => :gender_multi,
         'Entry Date' => :entry_date,
         'Project' => :project_name,
       }

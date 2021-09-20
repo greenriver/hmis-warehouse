@@ -37,14 +37,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         Rails.logger.info 'Exiting, project data quality reports already running'
         exit
       end
-      @notifier = new
-      @notifier.setup_notifier('Project Data Quality Report Runner')
+
+      # FIXME: figure out how to send notifications on failure in class methods
       with_advisory_lock(advisory_lock_key) do
         where(completed_at: nil).each do |r|
           r.run!
         rescue Exception => e
           Rails.logger.error e.message
-          @notifier.ping(e) if @notifier.instance_variable_get(:@send_notifications)
+          r.update(completed_at: nil)
+          raise e
         end
       end
     end
