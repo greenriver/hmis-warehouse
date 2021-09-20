@@ -163,7 +163,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/concerns/performance_dashboard/overview/entering/lot_homeless.rb'
     - 'app/models/concerns/performance_dashboard/overview/exiting/lot_homeless.rb'
     - 'app/models/glacier/tester.rb'
-    - 'app/models/grda_warehouse/cohort.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
     - 'app/models/grda_warehouse/dashboard_export_report.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
@@ -757,7 +756,6 @@ Layout/ExtraSpacing:
 # SupportedStyles: consistent, consistent_relative_to_receiver, special_for_inner_method_call, special_for_inner_method_call_in_parentheses
 Layout/FirstArgumentIndentation:
   Exclude:
-    - 'app/models/grda_warehouse/cohort.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -2412,7 +2410,6 @@ Style/IfUnlessModifier:
     - 'app/models/glacier/tester.rb'
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/client_file.rb'
-    - 'app/models/grda_warehouse/cohort.rb'
     - 'app/models/grda_warehouse/cohort_client_change.rb'
     - 'app/models/grda_warehouse/combined_cohort_client_change.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/base.rb'
@@ -2501,7 +2498,6 @@ Style/LineEndConcatenation:
 # Configuration parameters: IgnoredMethods.
 Style/MethodCallWithoutArgsParentheses:
   Exclude:
-    - 'app/models/grda_warehouse/cohort.rb'
     - 'app/models/grda_warehouse/hmis/assessment.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/project.rb'
@@ -2924,7 +2920,6 @@ Style/RescueModifier:
     - 'app/models/glacier/uploader.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
-    - 'app/models/grda_warehouse/cohort.rb'
     - 'app/models/grda_warehouse/hmis/base.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
