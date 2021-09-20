@@ -304,7 +304,7 @@ module HudDataQualityReport::Generators::Fy2021
         'AmIndAKNative' => 1,
         'Asian' => 2,
         'BlackAfAmerican' => 3,
-        'NativeHIOtherPacific' => 4,
+        'NativeHIPacific' => 4,
         'White' => 5,
       }.freeze
     end

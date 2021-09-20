@@ -9,7 +9,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::HealthAndDv
   class AddC1Columns
     def process(row)
       row['LifeValue'] = nil
-      row['SupportfromOthers'] = nil
+      row['SupportFromOthers'] = nil
       row['BounceBack'] = nil
       row['FeelingFrequency'] = nil
 

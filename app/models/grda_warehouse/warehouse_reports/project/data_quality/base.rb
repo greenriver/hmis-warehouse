@@ -334,6 +334,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def common_client_columns
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @common_client_columns ||= {
         id: c_t[:id].to_sql,
         first_name: c_t[:FirstName].to_sql,

@@ -10,7 +10,4 @@
 
 - if @reports.present?
   = render 'hud_reports/year_tabs'
-  %p= paginate @reports
-  .jReportListing
-    = render 'hud_reports/reports'
-  = render 'hud_reports/list_refresher'
+= render 'hud_reports/reports_wrapper'
