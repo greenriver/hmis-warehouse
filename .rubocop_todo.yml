@@ -83,7 +83,6 @@ Layout/ClosingParenthesisIndentation:
     - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/housed.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/user_role.rb'
 
 # Offense count: 34
@@ -580,7 +579,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
     - 'app/models/reporting/monthly_client_ids.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/reporting/rrh_report.rb'
     - 'app/models/reporting/schema_migration.rb'
     - 'app/models/reporting_base.rb'
@@ -728,7 +726,6 @@ Layout/ExtraSpacing:
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/report/enrollment.rb'
     - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
-    - 'app/models/grda_warehouse/tasks/service_history/enrollment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/exports/ad_hoc.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -967,7 +964,6 @@ Layout/MultilineMethodCallBraceLayout:
     - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
     - 'app/models/reporting/housed.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/talentlms/facade.rb'
 
 # Offense count: 258
@@ -1017,7 +1013,6 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/token.rb'
 
 # Offense count: 1
@@ -1124,7 +1119,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
     - 'app/models/grda_warehouse/shape/shared_behaviors.rb'
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
     - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
-    - 'app/models/grda_warehouse/tasks/service_history/enrollment.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
@@ -1144,7 +1138,6 @@ Layout/SpaceAroundKeyword:
     - 'app/models/glacier/restore.rb'
     - 'app/models/glacier/utils.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
 
 # Offense count: 279
 # Cop supports --auto-correct.
@@ -1164,7 +1157,6 @@ Layout/SpaceAroundOperators:
     - 'app/models/grda_warehouse/non_hmis_upload.rb'
     - 'app/models/grda_warehouse/recurring_hmis_export_link.rb'
     - 'app/models/grda_warehouse/report/base.rb'
-    - 'app/models/grda_warehouse/tasks/service_history/enrollment.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
@@ -1228,7 +1220,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/identify_duplicates.rb'
-    - 'app/models/grda_warehouse/tasks/service_history/enrollment.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
@@ -1277,7 +1268,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
     - 'app/models/reporting/data_quality_reports/project.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'app/models/reports/data_quality/fy2016/base.rb'
     - 'app/models/reports/data_quality/fy2017/base.rb'
@@ -1422,7 +1412,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/grda_warehouse/lftp_s3_sync.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/identify_duplicates.rb'
-    - 'app/models/grda_warehouse/tasks/service_history/enrollment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
@@ -1473,7 +1462,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'app/models/reports/data_quality/fy2016/base.rb'
     - 'app/models/reports/data_quality/fy2017/base.rb'
@@ -1912,7 +1900,6 @@ Lint/UnusedBlockArgument:
     - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/similarity_metric/experiment.rb'
 
 # Offense count: 116
@@ -2024,7 +2011,6 @@ Lint/UselessAssignment:
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/similarity_metric/experiment.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
     - 'app/models/talentlms/config.rb'
@@ -2064,7 +2050,6 @@ Naming/AccessorMethodName:
     - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
 
 # Offense count: 4
 # Cop supports --auto-correct.
@@ -2463,7 +2448,6 @@ Style/IfUnlessModifier:
     - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/report_result.rb'
     - 'app/models/reporting/housed.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/experiment.rb'
@@ -2509,7 +2493,6 @@ Style/MethodCallWithoutArgsParentheses:
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
-    - 'app/models/grda_warehouse/tasks/service_history/enrollment.rb'
     - 'app/models/grda_warehouse/tasks/update_clients_from_hmis_forms.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
@@ -2683,7 +2666,6 @@ Style/Next:
     - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
     - 'app/models/similarity_metric/initializer.rb'
@@ -2861,7 +2843,6 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/shape/coc.rb'
     - 'app/models/grda_warehouse/shape/shared_behaviors.rb'
-    - 'app/models/grda_warehouse/tasks/service_history/enrollment.rb'
     - 'app/models/grda_warehouse/us_census_api/census_group.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
@@ -2898,7 +2879,6 @@ Style/RedundantSort:
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
 
 # Offense count: 8
 # Cop supports --auto-correct.
@@ -2986,7 +2966,6 @@ Style/Semicolon:
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/phi.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
@@ -3117,7 +3096,6 @@ Style/StringLiterals:
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/reports/ahar/fy2016/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
@@ -3258,7 +3236,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
     - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
     - 'app/models/reporting/rrh_report.rb'
     - 'app/models/reports/system_performance/fy2019/base.rb'
     - 'app/models/similarity_metric/base.rb'
@@ -3299,7 +3276,6 @@ Style/TrailingCommaInArrayLiteral:
     - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/data_quality_reports/enrollment.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
 
 # Offense count: 296
 # Cop supports --auto-correct.
@@ -3369,7 +3345,6 @@ Style/WhileUntilDo:
   Exclude:
     - 'app/models/glacier/restore.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
-    - 'app/models/reporting/monthly_reports/base.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
