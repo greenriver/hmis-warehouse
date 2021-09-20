@@ -50,7 +50,8 @@ module Reporting::MonthlyReports
         distinct.
         pluck_in_batches(:client_id, batch_size: 2_500) do |batch|
           batch = batch.flatten
-          set_enrollments_by_client batch
+          clear_batch_cache
+          set_enrollments_by_client(batch)
           set_prior_enrollments
           self.class.transaction do
             _clear!(batch)
@@ -101,10 +102,14 @@ module Reporting::MonthlyReports
       end
     end
 
+    private def clear_batch_cache
+      @actives_in_month = nil # make sure we get the current batch (eventually this should get cleaned up)
+      @enrollments_by_client = {}
+    end
+
     # Group clients by month and client_id
     # Loop over all of the open enrollments,
     def set_enrollments_by_client ids
-      @enrollments_by_client = {}
       # Cleanup RAM before starting the next batch
       GC.start
       @date_range.map{|d| [d.year, d.month]}.uniq.each do |year, month|
@@ -136,7 +141,7 @@ module Reporting::MonthlyReports
             household_id: enrollment.household_id.presence || "c_#{client_id}",
             destination_id: enrollment.destination,
             enrolled: true, # everyone will be enrolled
-            active: active_in_month?(client_id: client_id, project_type: enrollment.computed_project_type, month: month, year: year),
+            active: active_in_month?(client_id: client_id, project_type: enrollment.computed_project_type, month: month, year: year, batch: ids),
             entered: entered_in_month,
             exited: exited_in_month,
             project_id: project_id(enrollment.project_id, enrollment.data_source_id),
@@ -256,10 +261,11 @@ module Reporting::MonthlyReports
       Date.new(year, month, 1) - 1.month
     end
 
-    def actives_in_month
+    def actives_in_month batch:
       @actives_in_month ||= begin
         acitives = {}
         GrdaWarehouse::ServiceHistoryService.homeless.
+        where(client_id: batch).
         service_within_date_range(start_date: @start_date, end_date: @end_date).
         where(service_history_enrollment_id: enrollment_scope(start_date: @start_date, end_date: @end_date).select(:id)).
         distinct.
@@ -276,8 +282,8 @@ module Reporting::MonthlyReports
       end
     end
 
-    def active_in_month? client_id:, project_type:, month:, year:
-      actives_in_month[client_id]&.include?([year, month, project_type]) || false
+    def active_in_month? client_id:, project_type:, month:, year:, batch:
+      actives_in_month(batch: batch)[client_id]&.include?([year, month, project_type]) || false
     end
 
     def first_record? enrollment
