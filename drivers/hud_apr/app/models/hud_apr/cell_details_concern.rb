@@ -8,10 +8,8 @@ module HudApr::CellDetailsConcern
   extend ActiveSupport::Concern
 
   included do
-    def self.column_headings(question)
-      question_fields(question).map do |key|
-        [key, HudApr::Fy2020::AprClient.detail_headers[key.to_s]]
-      end.to_h
+    def self.client_class
+      HudApr::Fy2020::AprClient
     end
 
     def self.extra_fields
@@ -248,10 +246,6 @@ module HudApr::CellDetailsConcern
         :insurance_from_any_source_at_annual_assessment,
         :insurance_from_any_source_at_exit,
       ].freeze
-    end
-
-    def self.all_extra_fields
-      HudApr::Fy2020::AprClient.detail_headers.keys.map(&:to_sym) - common_fields
     end
   end
 end
