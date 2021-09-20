@@ -20,7 +20,7 @@ module HudApr::CellDetailsConcern
         'Question 6' => pii_fields + universal_data_fields + financial_fields + housing_fields + project_fields + timeliness_fields + inactive_records_fields,
         'Question 7' => household_fields + parenting_fields + project_fields,
         'Question 8' => household_fields + parenting_fields + project_fields,
-        'Question 9' => contacts_and_engagement_fields,
+        'Question 9' => household_fields + parenting_fields + project_fields + contacts_and_engagement_fields,
         'Question 10' => gender_fields + household_fields + age_fields + project_fields,
         'Question 11' => age_fields + household_fields + project_fields,
         'Question 12' => race_and_ethnicity_fields + household_fields + project_fields,
@@ -141,7 +141,8 @@ module HudApr::CellDetailsConcern
 
     def self.timeliness_fields
       [
-        # TODO: for Question 6, not sure what goes here
+        :enrollment_created,
+        :exit_created,
       ].freeze
     end
 
@@ -165,7 +166,7 @@ module HudApr::CellDetailsConcern
 
     def self.contacts_and_engagement_fields
       [
-        # TODO: unclear to me what fields we need for question 9
+        # TODO: These should really come from drivers/hud_apr/app/models/hud_apr/fy2020/apr_living_situation.rb
       ].freeze
     end
 
@@ -234,7 +235,7 @@ module HudApr::CellDetailsConcern
     end
 
     def self.all_extra_fields
-      HudApr::Fy2020::AprClient::detail_headers.keys.map{ |i| i.to_sym } - common_fields
+      HudApr::Fy2020::AprClient.detail_headers.keys.map(&:to_sym) - common_fields
     end
   end
 end
