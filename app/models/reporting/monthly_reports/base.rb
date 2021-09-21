@@ -85,8 +85,7 @@ module Reporting::MonthlyReports
     def remove_unused_client_ids
       self.class.where.not(client_id:
         Reporting::MonthlyClientIds.where(report_type: self.class.name).
-          distinct.select(:client_id)
-      ).delete_all
+          distinct.select(:client_id)).delete_all
     end
 
     def populate_used_client_ids
@@ -94,7 +93,7 @@ module Reporting::MonthlyReports
         joins(:project, :organization).
         distinct.
         pluck(:client_id).
-        map{ |id| [self.class.name, id] }
+        map { |id| [self.class.name, id] }
       self.class.transaction do
         Reporting::MonthlyClientIds.where(report_type: self.class.name).delete_all
         Reporting::MonthlyClientIds.import([:report_type, :client_id], ids)
@@ -108,11 +107,11 @@ module Reporting::MonthlyReports
 
     # Group clients by month and client_id
     # Loop over all of the open enrollments,
-    def set_enrollments_by_client ids
+    def set_enrollments_by_client ids # rubocop:disable Naming/AccessorMethodName
       clear_batch_cache
       # Cleanup RAM before starting the next batch
       GC.start
-      @date_range.map{|d| [d.year, d.month]}.uniq.each do |year, month|
+      @date_range.map { |d| [d.year, d.month] }.uniq.each do |year, month|
         # fetch open enrollments for the given month
         enrollment_scope(start_date: Date.new(year, month, 1), end_date: Date.new(year, month, -1)).
           joins(:project, :organization).
@@ -184,7 +183,7 @@ module Reporting::MonthlyReports
     # figure out the most recent exit (where there wasn't an ongoing enrollment)
     # and populate the days_since_last_exit and prior_exit_project_type as appropriate
     def set_prior_enrollments
-      @enrollments_by_client.each do |client_id, enrollments|
+      @enrollments_by_client.each do |_client_id, enrollments|
         # find the next enrollment where entered == true
         # If all other enrollments in the current month are exits and the max exit date is
         # before the entry date, make note.
@@ -194,49 +193,49 @@ module Reporting::MonthlyReports
         # get the latest exit date
         first_month = enrollments.first.month
         first_year = enrollments.first.year
-        grouped_enrollments = enrollments.group_by{|m| [m.year, m.month]}
-        grouped_enrollments.each do |(year, month), ens|
+        grouped_enrollments = enrollments.group_by { |m| [m.year, m.month] }
+        grouped_enrollments.each do |(_year, _month), ens|
           ens.each do |en|
-            if en.entered
-              entry_date = en.entry_date
-              current_year = en.year
-              current_month = en.month
+            next unless en.entered
 
-              # check current month for exits
-              other_enrollments_in_current_month = ens - [en]
-              if other_enrollments_in_current_month.present? && other_enrollments_in_current_month.all?(&:exited)
-                max_exit_enrollment = other_enrollments_in_current_month.sort_by(&:exit_date).last
-                if max_exit_enrollment.exit_date < entry_date
-                  en.days_since_last_exit = (en.entry_date - max_exit_enrollment.exit_date).to_i
-                  en.prior_exit_project_type = max_exit_enrollment.project_type
-                  en.prior_exit_destination_id = max_exit_enrollment.destination_id
-                end
-              elsif other_enrollments_in_current_month.present? && other_enrollments_in_current_month.all?(&:entered)
-                min_entry_date = other_enrollments_in_current_month.sort_by(&:entry_date).first.entry_date
-                next if min_entry_date < entry_date
+            entry_date = en.entry_date
+            current_year = en.year
+            current_month = en.month
+
+            # check current month for exits
+            other_enrollments_in_current_month = ens - [en]
+            if other_enrollments_in_current_month.present? && other_enrollments_in_current_month.all?(&:exited)
+              max_exit_enrollment = other_enrollments_in_current_month.max_by(&:exit_date)
+              if max_exit_enrollment.exit_date < entry_date
+                en.days_since_last_exit = (en.entry_date - max_exit_enrollment.exit_date).to_i
+                en.prior_exit_project_type = max_exit_enrollment.project_type
+                en.prior_exit_destination_id = max_exit_enrollment.destination_id
               end
-              next if en.days_since_last_exit.present?
+            elsif other_enrollments_in_current_month.present? && other_enrollments_in_current_month.all?(&:entered)
+              min_entry_date = other_enrollments_in_current_month.min_by(&:entry_date).entry_date
+              next if min_entry_date < entry_date
+            end
+            next if en.days_since_last_exit.present?
 
-              # short circuit if prior month contains ongoing enrollments
+            # short circuit if prior month contains ongoing enrollments
+            prev = previous_month(current_year, current_month)
+            previous_enrollments = grouped_enrollments[[prev.year, prev.month]]
+            next if previous_enrollments.present? && ! previous_enrollments.all?(&:exited)
+
+            # Check back through time
+            while current_year >= first_year && current_month >= first_month
               prev = previous_month(current_year, current_month)
-              previous_enrollments = grouped_enrollments[[prev.year, prev.month]]
-              next if previous_enrollments.present? && ! previous_enrollments.all?(&:exited)
+              current_month = prev.month
+              current_year = prev.year
 
-              # Check back through time
-              while(current_year >= first_year && current_month >= first_month) do
-                prev = previous_month(current_year, current_month)
-                current_month = prev.month
-                current_year = prev.year
+              current_enrollments = grouped_enrollments[[current_year, current_month]]
+              next unless current_enrollments.present? && current_enrollments.all?(&:exited)
 
-                current_enrollments = grouped_enrollments[[current_year, current_month]]
-                if current_enrollments.present? && current_enrollments.all?(&:exited)
-                  previous_exit = current_enrollments.sort_by(&:exit_date).last
-                  en.days_since_last_exit = (en.entry_date - previous_exit.exit_date).to_i
-                  en.prior_exit_project_type = previous_exit.project_type
-                  en.prior_exit_destination_id = previous_exit.destination_id
-                  break
-                end
-              end
+              previous_exit = current_enrollments.max_by(&:exit_date)
+              en.days_since_last_exit = (en.entry_date - previous_exit.exit_date).to_i
+              en.prior_exit_project_type = previous_exit.project_type
+              en.prior_exit_destination_id = previous_exit.destination_id
+              break
             end
           end
         end
@@ -265,16 +264,16 @@ module Reporting::MonthlyReports
       @actives_in_month ||= begin
         acitives = {}
         GrdaWarehouse::ServiceHistoryService.homeless.
-        where(client_id: batch).
-        service_within_date_range(start_date: @start_date, end_date: @end_date).
-        where(service_history_enrollment_id: enrollment_scope(start_date: @start_date, end_date: @end_date).select(:id)).
-        distinct.
-        pluck(
-          :client_id,
-          :project_type,
-          Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'month', shs_t[:date]), 'INTEGER').to_sql),
-          Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'year', shs_t[:date]), 'INTEGER').to_sql),
-        ).each do |id, project_type, month, year|
+          where(client_id: batch).
+          service_within_date_range(start_date: @start_date, end_date: @end_date).
+          where(service_history_enrollment_id: enrollment_scope(start_date: @start_date, end_date: @end_date).select(:id)).
+          distinct.
+          pluck(
+            :client_id,
+            :project_type,
+            Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'month', shs_t[:date]), 'INTEGER').to_sql),
+            Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'year', shs_t[:date]), 'INTEGER').to_sql),
+          ).each do |id, project_type, month, year|
           acitives[id] ||= []
           acitives[id] << [year, month, project_type]
         end
@@ -340,7 +339,7 @@ module Reporting::MonthlyReports
           name, {
             table_name: "warehouse_partitioned_monthly_reports_#{name}",
             type: klass,
-          },
+          }
         ]
       end.to_h
     end
@@ -359,37 +358,35 @@ module Reporting::MonthlyReports
     end
 
     def self.ensure_tables
-      return if Reporting::MonthlyReports::Base.sub_tables.values.map{|m| Reporting::MonthlyReports::Base.connection.table_exists?(m[:table_name])}.all?
+      return if Reporting::MonthlyReports::Base.sub_tables.values.map { |m| Reporting::MonthlyReports::Base.connection.table_exists?(m[:table_name]) }.all?
 
-      if Reporting::MonthlyReports::Base.connection.table_exists? Reporting::MonthlyReports::Base.parent_table
-        connection.drop_table Reporting::MonthlyReports::Base.parent_table, force: :cascade
-      end
+      connection.drop_table Reporting::MonthlyReports::Base.parent_table, force: :cascade if Reporting::MonthlyReports::Base.connection.table_exists? Reporting::MonthlyReports::Base.parent_table
 
       connection.create_table Reporting::MonthlyReports::Base.parent_table do |t|
-        t.integer "month", null: false
-        t.integer "year", null: false
-        t.string "type"
-        t.integer "client_id", null: false
-        t.integer "age_at_entry"
-        t.integer "head_of_household", default: 0, null: false
-        t.string "household_id"
-        t.integer "project_id", null: false
-        t.integer "organization_id", null: false
-        t.integer "destination_id"
-        t.boolean "first_enrollment", default: false, null: false
-        t.boolean "enrolled", default: false, null: false
-        t.boolean "active", default: false, null: false
-        t.boolean "entered", default: false, null: false
-        t.boolean "exited", default: false, null: false
-        t.integer "project_type", null: false
-        t.date "entry_date"
-        t.date "exit_date"
-        t.integer "days_since_last_exit"
-        t.integer "prior_exit_project_type"
-        t.integer "prior_exit_destination_id"
-        t.datetime "calculated_at", null: false
-        t.integer "enrollment_id"
-        t.date "mid_month"
+        t.integer 'month', null: false
+        t.integer 'year', null: false
+        t.string 'type'
+        t.integer 'client_id', null: false
+        t.integer 'age_at_entry'
+        t.integer 'head_of_household', default: 0, null: false
+        t.string 'household_id'
+        t.integer 'project_id', null: false
+        t.integer 'organization_id', null: false
+        t.integer 'destination_id'
+        t.boolean 'first_enrollment', default: false, null: false
+        t.boolean 'enrolled', default: false, null: false
+        t.boolean 'active', default: false, null: false
+        t.boolean 'entered', default: false, null: false
+        t.boolean 'exited', default: false, null: false
+        t.integer 'project_type', null: false
+        t.date 'entry_date'
+        t.date 'exit_date'
+        t.integer 'days_since_last_exit'
+        t.integer 'prior_exit_project_type'
+        t.integer 'prior_exit_destination_id'
+        t.datetime 'calculated_at', null: false
+        t.integer 'enrollment_id'
+        t.date 'mid_month'
       end
 
       Reporting::MonthlyReports::Base.sub_tables.each do |name, details|
@@ -432,7 +429,7 @@ module Reporting::MonthlyReports
 
     def self.trigger_sql
       trigger_ifs = []
-      sub_tables.each do |name, details|
+      sub_tables.each do |_name, details|
         table_name = details[:table_name]
         type = details[:type]
 
@@ -447,8 +444,8 @@ module Reporting::MonthlyReports
         RETURNS TRIGGER AS $$
         BEGIN
         IF "
-      trigger += trigger_ifs.join(' ELSIF ');
-      trigger += "
+      trigger += trigger_ifs.join(' ELSIF ')
+      trigger + "
         ELSE
           INSERT INTO #{remainder_table} VALUES (NEW.*);
           END IF;
@@ -471,6 +468,5 @@ module Reporting::MonthlyReports
       result = connection.execute(query).first
       return result['count'].positive?
     end
-
   end
 end
