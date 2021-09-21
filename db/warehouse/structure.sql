@@ -36908,8 +36908,7 @@ ALTER TABLE ONLY public.import_logs
 
 SET search_path TO "$user", public;
 
-
-NSERT INTO "schema_migrations" (version) VALUES
+INSERT INTO "schema_migrations" (version) VALUES
 ('20160727190957'),
 ('20160729135359'),
 ('20160729183141'),
@@ -37685,4 +37684,4 @@ NSERT INTO "schema_migrations" (version) VALUES
 ('20210917140612'),
 ('20210920200621');
 
-i
+
