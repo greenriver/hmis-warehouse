@@ -57,9 +57,9 @@ RSpec.describe HmisCsvImporter, type: :model do
   end
 
   it 'load errors are generated for a invalid header' do
-    errors = @loader.loader_log.load_errors.select { |e| e.file_name == 'Exit.csv' }
+    errors = @loader.loader_log.load_errors.select { |e| e.file_name == 'Exit.csv' }.map(&:details)
     expect(errors.size).to eq(2)
-    assert(errors.first.details =~ /row order incorrect/i)
-    assert(errors.last.details =~ /found extra columns/i)
+    expect(errors.first.downcase).to include('order incorrect')
+    expect(errors.last.downcase).to include('found extra columns')
   end
 end
