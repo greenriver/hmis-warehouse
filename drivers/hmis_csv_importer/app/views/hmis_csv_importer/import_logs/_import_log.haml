@@ -27,7 +27,7 @@
         %td
           = status
           - if @import.importer_log&.paused?
-            = link_to hmis_csv_twenty_twenty_importer_restart_path(@import), class: 'ml-4 btn btn-primary btn-sm', method: :put do
+            = link_to hmis_csv_importer_importer_restart_path(@import), class: 'ml-4 btn btn-primary btn-sm', method: :put do
               %i.icon-enter
               Resume Import
 
@@ -51,8 +51,8 @@
           %tr
             %td= filename
             %td= number_with_delimiter(v['total_lines'])
-            %td= link_to_if v['lines_loaded']&.positive?, number_with_delimiter(v['lines_loaded']), hmis_csv_twenty_twenty_loaded_path(@import.loader_log, file: filename)
-            %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_twenty_twenty_loader_error_path(@import.loader_log, file: filename)
+            %td= link_to_if v['lines_loaded']&.positive?, number_with_delimiter(v['lines_loaded']), hmis_csv_importer_loaded_path(@import.loader_log, file: filename)
+            %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_importer_loader_error_path(@import.loader_log, file: filename)
 
 - if @import.importer_log.present?
   %h3 Importer Summary
@@ -72,14 +72,14 @@
         - @import.importer_log.summary.with_indifferent_access.sort_by{|f,_| f}.each do |filename,v|
           %tr
             %td= filename
-            %td= link_to_if v['pre_processed']&.positive?, number_with_delimiter(v['pre_processed']), hmis_csv_twenty_twenty_imported_path(@import.importer_log, file: filename)
+            %td= link_to_if v['pre_processed']&.positive?, number_with_delimiter(v['pre_processed']), hmis_csv_importer_imported_path(@import.importer_log, file: filename)
             %td= number_with_delimiter(v['added'])
             %td= number_with_delimiter(v['removed'])
             %td= number_with_delimiter(v['updated'])
             %td= number_with_delimiter(v['unchanged'])
-            %td= link_to_if v['total_flags']&.positive? || v['total_flags'].blank?, number_with_delimiter(v['total_flags'] || '0'), hmis_csv_twenty_twenty_importer_validation_path(@import.importer_log, file: File.basename(filename, '.csv'))
+            %td= link_to_if v['total_flags']&.positive? || v['total_flags'].blank?, number_with_delimiter(v['total_flags'] || '0'), hmis_csv_importer_importer_validation_path(@import.importer_log, file: File.basename(filename, '.csv'))
 
-            %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: File.basename(filename, '.csv'))
+            %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_importer_importer_error_path(@import.importer_log, file: File.basename(filename, '.csv'))
 
 - if @import.import_errors.present? && @import.import_errors.is_a?(Array)
   .row

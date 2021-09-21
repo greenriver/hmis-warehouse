@@ -48,6 +48,7 @@ module HmisCsvImporter
       'AssessmentQuestions.csv',
       'AssessmentResults.csv',
       'Event.csv',
+      'YouthEducationStatus.csv',
     ]
   end
 end

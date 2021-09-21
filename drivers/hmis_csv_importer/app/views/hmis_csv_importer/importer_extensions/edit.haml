@@ -7,7 +7,7 @@
 
 - editable = current_user.can_manage_config?
 
-= simple_form_for :extensions, url: hmis_csv_twenty_twenty_importer_extension_path(@data_source), method: :put do |f|
+= simple_form_for :extensions, url: hmis_csv_importer_importer_extension_path(@data_source), method: :put do |f|
   .card.mb-4
     %table.table.table-striped.mb-0
       %thead

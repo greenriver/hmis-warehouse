@@ -23,7 +23,11 @@ module Importers::HmisAutoMigrate
       @file_path = file_path
       @local_path = File.join(file_path, @data_source_id.to_s, Time.current.to_i.to_s)
       @file_password = file_password
-      @post_processor = ->(_) { replace_original_upload_file }
+      @post_processor = if @allowed_projects
+        ->(_) { replace_original_upload_file }
+      else
+        -> {}
+      end
     end
 
     def pre_process

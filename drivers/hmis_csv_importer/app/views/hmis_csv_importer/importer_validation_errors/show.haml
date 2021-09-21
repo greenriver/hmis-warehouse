@@ -6,10 +6,10 @@
 
 %ul.nav.nav-tabs{role: "presentation"}
   %li.nav-item{role: 'presentation'}
-    = link_to 'Validation Flags', hmis_csv_twenty_twenty_importer_validation_path(@import.importer_log, file: File.basename(@filename, '.csv')), class: 'nav-link'
+    = link_to 'Validation Flags', hmis_csv_importer_importer_validation_path(@import.importer_log, file: File.basename(@filename, '.csv')), class: 'nav-link'
   %li.nav-item.active{role: 'presentation'}
-    = link_to 'Import Error Flags', hmis_csv_twenty_twenty_importer_validation_error_path(@import.importer_log, file: File.basename(@filename, '.csv')), class: 'nav-link'
+    = link_to 'Import Error Flags', hmis_csv_importer_importer_validation_error_path(@import.importer_log, file: File.basename(@filename, '.csv')), class: 'nav-link'
   %li.nav-item{role: 'presentation'}
-    = link_to 'Importer Failures', hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: File.basename(@filename, '.csv')), class: 'nav-link'
+    = link_to 'Importer Failures', hmis_csv_importer_importer_error_path(@import.importer_log, file: File.basename(@filename, '.csv')), class: 'nav-link'
 
-= render 'hmis_csv_twenty_twenty/validation_shared/table', validations: @validations, validation_classes: @validation_classes
+= render 'hmis_csv_importer/validation_shared/table', validations: @validations, validation_classes: @validation_classes
