@@ -150,7 +150,7 @@ module HmisCsvImporter::Loader
     private def load_source_files!
       @loader_log.update(status: :loading)
 
-      Importers::HmisAutoMigrate.apply_migrations(@file_path)
+      Importers::HmisAutoMigrate.apply_migrations(@file_path, @notifier)
       ProjectFilter.filter(@file_path, @data_source.id, @post_processor) if @limit_projects
 
       loadable_files.each do |file_name, klass|
@@ -376,11 +376,11 @@ module HmisCsvImporter::Loader
         end
       end
       if missing_cols.present?
-        add_error(file_path: file_path, message: "Header row missing expected columns: #{missing_cols.join ','}", line: 1)
+        add_error(file_path: file_path, message: "Header row for #{klass.name} missing expected columns: #{missing_cols.join ','}", line: 1)
         return [:missing_col, mapping]
       end
       # puts "#{file_path} #{mapping.inspect}"
-      add_error(file_path: file_path, message: "Header row order incorrect all headers found. Used mapping: #{mapping.inspect}", line: 1)
+      add_error(file_path: file_path, message: "Header row for #{klass.name} order incorrect all headers found. Used mapping: #{mapping.inspect}", line: 1)
       return [:mapped, mapping]
     end
     HEADER_NORMALIZER = ->(s) { s.to_s.downcase }

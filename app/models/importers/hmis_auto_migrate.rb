@@ -15,16 +15,16 @@ module Importers::HmisAutoMigrate
     Rails.application.config.hmis_migrations = migrations
   end
 
-  def self.apply_migrations(csv_dir, recursed: false)
+  def self.apply_migrations(csv_dir, notifier, recursed: false)
     hud_export = AutoEncodingCsv.read("#{csv_dir}/Export.csv", headers: true)&.first&.to_hash || {}
     hud_export.transform_keys!(&:downcase)
     return unless hud_export['exportid'].present? # Make sure it is a HUD export file, otherwise do nothing
 
     version = hud_export['csvversion'] || '2020' # If there is no CSVVersion, assume it is a 2020
     return if version == '2020' && recursed # We applied a transform, but still have no CSVVersion
-
     return unless available_migrations.keys.include?(version)
 
+    notifier&.ping "Migrating format from #{version}"
     # Apply available migrations
     Dir.mktmpdir do |source_dir|
       # Copy CSV dir to temp
@@ -32,6 +32,6 @@ module Importers::HmisAutoMigrate
       # Transform temp over the to the CSV dir
       available_migrations[version]&.constantize&.up(source_dir, csv_dir)
     end
-    apply_migrations(csv_dir, recursed: true)
+    apply_migrations(csv_dir, notifier, recursed: true)
   end
 end
