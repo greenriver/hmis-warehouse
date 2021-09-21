@@ -50,8 +50,8 @@ class CreateHmis2022DataLake < ActiveRecord::Migration[5.2]
         add_index klass.table_name, [:ProjectID, :data_source_id], name: "#{klass.table_name}-#{Digest::MD5.hexdigest([:ProjectID, :data_source_id].join('_'))[0, 4]}"
       end
 
-      HmisCsvImporter::Aggregated::Enrollment.migrate_to_unversioned
-      HmisCsvImporter::Aggregated::Exit.migrate_to_unversioned
+      HmisCsvImporter::Aggregated::Enrollment.migrate_to_unversioned if HmisCsvImporter::Aggregated::Enrollment.count.zero?
+      HmisCsvImporter::Aggregated::Exit.migrate_to_unversioned if HmisCsvImporter::Aggregated::Exit.count.zero?
     end
   end
 

@@ -47,7 +47,7 @@ module HmisCsvImporter::Aggregated
     end
 
     def self.migrate_to_unversioned
-      names_in_both = HmisCsvTwentyTwenty::Aggregated::Enrollment.column_names & HmisCsvImporter::Aggregated::Enrollment.column_names
+      names_in_both = (HmisCsvTwentyTwenty::Aggregated::Enrollment.column_names & HmisCsvImporter::Aggregated::Enrollment.column_names) - ['id']
       names_to_copy = names_in_both.map { |name| "\"#{name}\"" }.join(', ')
       connection.execute "INSERT INTO hmis_aggregated_enrollments (#{names_to_copy}) SELECT #{names_to_copy} FROM hmis_2020_aggregated_enrollments"
     end

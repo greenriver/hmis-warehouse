@@ -177,6 +177,10 @@ module ArelHelper
     GrdaWarehouse::ServiceHistoryService.arel_table
   end
 
+  def shsm_t
+    GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
+  end
+
   def s_t
     GrdaWarehouse::Hud::Service.arel_table
   end
@@ -512,6 +516,10 @@ module ArelHelper
 
     def shs_t
       GrdaWarehouse::ServiceHistoryService.arel_table
+    end
+
+    def shsm_t
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
     end
 
     def s_t
