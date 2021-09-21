@@ -214,11 +214,11 @@ module HmisCsvImporter::Aggregated
     end
 
     def enrollment_destination
-      HmisCsvImporter::Importer::Enrollment
+      importable_file_class('Enrollment')
     end
 
     def exit_destination
-      HmisCsvImporter::Importer::Exit
+      importable_file_class('Exit')
     end
 
     def self.description

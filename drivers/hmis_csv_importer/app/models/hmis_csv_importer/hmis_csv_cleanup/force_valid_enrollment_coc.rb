@@ -42,7 +42,7 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def enrollment_coc_source
-      HmisCsvImporter::Importer::EnrollmentCoc
+      importable_file_class('EnrollmentCoC')
     end
 
     def self.description

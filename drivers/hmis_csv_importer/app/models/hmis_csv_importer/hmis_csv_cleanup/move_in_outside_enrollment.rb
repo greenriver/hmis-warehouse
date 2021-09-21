@@ -39,11 +39,11 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def enrollment_source
-      HmisCsvImporter::Importer::Enrollment
+      importable_file_class('Enrollment')
     end
 
     def exit_source
-      HmisCsvImporter::Importer::Exit
+      importable_file_class('Exit')
     end
 
     def self.description

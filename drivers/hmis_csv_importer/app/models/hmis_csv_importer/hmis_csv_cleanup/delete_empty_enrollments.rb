@@ -10,7 +10,7 @@ module HmisCsvImporter::HmisCsvCleanup
       enrollment_batch = []
 
       es_with_no_service = enrollment_scope.
-        merge(HmisCsvImporter::Importer::Project.es.night_by_night).
+        merge(importable_file_class('Project').es.night_by_night).
         where.not(id: enrollment_scope.joins(:services).select(:id))
 
       es_with_no_service.find_each do |enrollment|
@@ -20,7 +20,7 @@ module HmisCsvImporter::HmisCsvCleanup
       end
 
       so_with_no_cls = enrollment_scope.
-        merge(HmisCsvImporter::Importer::Project.so).
+        merge(importable_file_class('Project').so).
         where.not(id: enrollment_scope.joins(:current_living_situations).select(:id))
 
       so_with_no_cls.find_each do |enrollment|
@@ -45,7 +45,7 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def enrollment_source
-      HmisCsvImporter::Importer::Enrollment
+      importable_file_class('Enrollment')
     end
 
     def self.description

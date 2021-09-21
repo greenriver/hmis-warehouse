@@ -176,7 +176,7 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def households
-      ic_t = HmisCsvImporter::Importer::Client.arel_table
+      ic_t = importable_file_class('Client').arel_table
       @households ||= {}.tap do |hh|
         enrollment_scope.joins(:client).
           where.not(HouseholdID: nil).
@@ -217,7 +217,7 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def enrollment_source
-      HmisCsvImporter::Importer::Enrollment
+      importable_file_class('Enrollment')
     end
 
     private def ie_t

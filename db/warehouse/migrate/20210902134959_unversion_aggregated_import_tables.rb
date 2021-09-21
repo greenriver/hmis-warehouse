@@ -1,17 +1,5 @@
 class UnversionAggregatedImportTables < ActiveRecord::Migration[5.2]
   def up
-    change_table :hmis_2020_aggregated_enrollments do |t|
-      t.integer :MentalHealthDisorderFam
-      t.integer :AlcoholDrugUseDisorderFam
-      t.integer :ClientLeaseholder
-      t.integer :HOHLeasesholder
-      t.integer :IncarceratedAdult
-      t.integer :PrisonDischarge
-      t.integer :CurrentPregnant
-      t.integer :CoCPrioritized
-      t.integer :TargetScreenReqd
-    end
-
     klasses.each do |klass|
       klass.hmis_table_create!(version: '2022', constraints: false)
       klass.hmis_table_create_indices!(version: '2022')
@@ -45,18 +33,6 @@ class UnversionAggregatedImportTables < ActiveRecord::Migration[5.2]
   def down
     klasses.each do |klass|
       drop_table klass.table_name
-    end
-
-    change_table :hmis_2020_aggregated_enrollments do |t|
-      t.remove :MentalHealthDisorderFam
-      t.remove :AlcoholDrugUseDisorderFam
-      t.remove :ClientLeaseholder
-      t.remove :HOHLeasesholder
-      t.remove :IncarceratedAdult
-      t.remove :PrisonDischarge
-      t.remove :CurrentPregnant
-      t.remove :CoCPrioritized
-      t.remove :TargetScreenReqd
     end
   end
 

@@ -29,7 +29,7 @@ module HmisCsvImporter::Importer
   class Importer
     include TsqlImport
     include NotifierConfig
-    include HmisTwentyTwenty
+    include HmisCsvImporter::HmisCsv
     include ArelHelper
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :importer_log
@@ -58,10 +58,6 @@ module HmisCsvImporter::Importer
       end
       log('De-identifying clients') if @deidentified
       log('Limiting to pre-approved projects') if @project_whitelist
-    end
-
-    def self.module_scope
-      'HmisCsvImporter::Importer'
     end
 
     private def log_ids
@@ -445,7 +441,7 @@ module HmisCsvImporter::Importer
     end
 
     def involved_project_ids
-      @involved_project_ids ||= HmisCsvImporter::Importer::Project.
+      @involved_project_ids ||= importable_files['Project.csv'].
         where(importer_log_id: importer_log.id).
         pluck(:ProjectID)
     end
@@ -656,7 +652,7 @@ module HmisCsvImporter::Importer
     end
 
     private def source_data_scope_for(file_name)
-      scope = @loader_log.class.importable_files[file_name]
+      scope = HmisCsvImporter::Loader::Loader.loadable_files[file_name]
       scope.unscoped.where(loader_id: @loader_log.id)
     end
 
@@ -668,7 +664,7 @@ module HmisCsvImporter::Importer
     end
 
     private def export_record
-      @export_record ||= HmisCsvImporter::Importer::Export.find_by(importer_log_id: importer_log.id)
+      @export_record ||= importable_files['Export.csv'].find_by(importer_log_id: importer_log.id)
     end
 
     # If we exported this from HMIS more recently than previous data (compared at day granularity)
@@ -723,7 +719,7 @@ module HmisCsvImporter::Importer
     end
 
     def importable_file_class(name)
-      self.class.importable_file_class(name)
+      self.class.data_lake_file_class(name, 'Importer')
     end
 
     def self.soft_deletable_sources

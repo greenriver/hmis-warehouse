@@ -69,7 +69,7 @@ module Importers::HmisAutoMigrate
       log.assign_attributes(
         loader_log: loader.loader_log,
         importer_log: loader.importer_log,
-        files: loader.importable_files.transform_values(&:name).invert.to_a,
+        files: loader.loadable_files.transform_values(&:name).invert.to_a,
       )
       log
     end

@@ -749,7 +749,6 @@ Layout/ExtraSpacing:
     - 'app/models/similarity_metric/experiment.rb'
     - 'app/models/similarity_metric/initializer.rb'
     - 'app/models/similarity_metric/multinomial.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty.rb'
 
 # Offense count: 24
 # Cop supports --auto-correct.
@@ -1198,7 +1197,6 @@ Layout/SpaceAroundOperators:
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
     - 'app/models/similarity_metric/initializer.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty.rb'
 
 # Offense count: 698
 # Cop supports --auto-correct.

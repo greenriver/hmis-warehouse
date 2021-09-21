@@ -8,12 +8,14 @@
 # are no entry dates after exit dates. This needs
 # the full data set in-place to check and should happen only once after the import is complete
 class HmisCsvImporter::HmisCsvValidation::EntryAfterExit < HmisCsvImporter::HmisCsvValidation::Validation
+  include HmisCsvImporter::HmisCsv
+
   def self.check_validity!(klass, importer_log, _options)
     # FIXME: Very slow!!!
-    e_t = HmisCsvImporter::Importer::Enrollment.arel_table
-    ex_t = HmisCsvImporter::Importer::Exit.arel_table
+    e_t = importable_file_class('Enrollment').arel_table
+    ex_t = importable_file_class('Exit').arel_table
     incorrect_ids = klass.joins(:exit, :project).
-      merge(HmisCsvImporter::Importer::Project.residential).
+      merge(importable_file_class('Project').residential).
       where(importer_log_id: importer_log.id).
       where(e_t[:EntryDate].gteq(ex_t[:ExitDate])).
       pluck(:EnrollmentID)

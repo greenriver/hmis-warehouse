@@ -20,7 +20,7 @@ module HmisCsvImporter::Loader
   class Loader
     include TsqlImport
     include NotifierConfig
-    include HmisCsv
+    include HmisCsvImporter::HmisCsv
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :loader_log, :limit_projects
 
     # Prepare a loader for HmisCsvImporter CSVs
@@ -52,13 +52,9 @@ module HmisCsvImporter::Loader
       @loader_log = build_loader_log(data_source: data_source)
       @limit_projects = limit_projects
       @post_processor = post_processor
-      importable_files.each_key do |file_name|
+      loadable_files.each_key do |file_name|
         setup_summary(file_name)
       end
-    end
-
-    def self.module_scope
-      'HmisCsvImporter::Loader'
     end
 
     def load!
@@ -105,7 +101,7 @@ module HmisCsvImporter::Loader
 
     private def load_export_file
       begin
-        @export ||= importable_files['Export.csv'].load_from_csv(
+        @export ||= loadable_files['Export.csv'].load_from_csv(
           file_path: @file_path,
           data_source_id: data_source.id,
         )
@@ -157,7 +153,7 @@ module HmisCsvImporter::Loader
       Importers::HmisAutoMigrate.apply_migrations(@file_path)
       ProjectFilter.filter(@file_path, @data_source.id, @post_processor) if @limit_projects
 
-      importable_files.each do |file_name, klass|
+      loadable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)
         next unless File.file?(source_file_path)
 
@@ -389,8 +385,12 @@ module HmisCsvImporter::Loader
     end
     HEADER_NORMALIZER = ->(s) { s.to_s.downcase }
 
-    def importable_files
-      self.class.importable_files
+    def loadable_files
+      self.class.loadable_files
+    end
+
+    def self.loadable_file_class(name)
+      data_lake_file_class(name, 'Loader')
     end
 
     private def remove_import_files
@@ -426,7 +426,7 @@ module HmisCsvImporter::Loader
     end
 
     private def correct_file_names
-      @correct_file_names ||= importable_files.keys.map { |m| [m.downcase, m] }
+      @correct_file_names ||= loadable_files.keys.map { |m| [m.downcase, m] }
     end
 
     private def ensure_file_naming

@@ -30,7 +30,7 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def project_source
-      HmisCsvImporter::Importer::Project
+      importable_file_class('Project')
     end
 
     def self.description

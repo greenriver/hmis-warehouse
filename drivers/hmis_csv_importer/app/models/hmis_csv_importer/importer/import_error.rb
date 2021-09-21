@@ -6,7 +6,7 @@
 
 module HmisCsvImporter::Importer
   class ImportError < GrdaWarehouseBase
-    self.table_name = 'hmis_2022_csv_import_errors'
+    self.table_name = 'hmis_csv_import_errors'
 
     belongs_to :importer_log
     belongs_to :source, polymorphic: true

@@ -6,7 +6,7 @@ class CreateHmis2022DataLake < ActiveRecord::Migration[5.2]
       klass.hmis_table_create!(version: spec_version, constraints: false)
       klass.hmis_table_create_indices!(version: spec_version)
     end
-    HmisCsvImporter::Loader::Loader.importable_files.each do |_, klass|
+    HmisCsvImporter::Loader::Loader.loadable_files.each do |_, klass|
       klass.hmis_table_create!(version: spec_version, constraints: false, types: false)
       klass.hmis_table_create_indices!(version: spec_version)
     end
@@ -36,7 +36,7 @@ class CreateHmis2022DataLake < ActiveRecord::Migration[5.2]
       end
     end
 
-    HmisCsvImporter::Loader::Loader.importable_files.each_value do |klass|
+    HmisCsvImporter::Loader::Loader.loadable_files.each_value do |klass|
       column_names = klass.column_names
       add_column klass.table_name, :data_source_id, :integer, null: false, index: true
       add_column klass.table_name, :loaded_at, :datetime, null: false
@@ -60,7 +60,7 @@ class CreateHmis2022DataLake < ActiveRecord::Migration[5.2]
       drop_table klass.table_name
     end
 
-    HmisCsvImporter::Loader::Loader.importable_files.each do |_, klass|
+    HmisCsvImporter::Loader::Loader.loadable_files.each do |_, klass|
       drop_table klass.table_name
     end
   end

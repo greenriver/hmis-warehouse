@@ -7,6 +7,8 @@
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter, type: :model do
+  include HmisCsvImporter::HmisCsv
+
   describe 'When importing data with duplicate primary keys' do
     before(:all) do
       HmisCsvImporter::Utility.clear!
@@ -20,28 +22,28 @@ RSpec.describe HmisCsvImporter, type: :model do
 
     it 'the loader tables contain appropriate numbers of rows matching the CSVs' do
       aggregate_failures do
-        expect(HmisCsvImporter::Loader::Assessment.count).to eq(3)
-        expect(HmisCsvImporter::Loader::Client.count).to eq(5)
-        expect(HmisCsvImporter::Loader::Enrollment.count).to eq(5)
-        expect(HmisCsvImporter::Loader::Funder.count).to eq(3)
+        expect(loadable_file_class('Assessment').count).to eq(3)
+        expect(loadable_file_class('Client').count).to eq(5)
+        expect(loadable_file_class('Enrollment').count).to eq(5)
+        expect(loadable_file_class('Funder').count).to eq(3)
       end
     end
 
     it 'the importer tables contain appropriate numbers of rows matching the CSVs' do
       aggregate_failures do
-        expect(HmisCsvImporter::Importer::Assessment.count).to eq(3)
-        expect(HmisCsvImporter::Importer::Client.count).to eq(5)
-        expect(HmisCsvImporter::Importer::Enrollment.count).to eq(5)
-        expect(HmisCsvImporter::Importer::Funder.count).to eq(3)
+        expect(importable_file_class('Assessment').count).to eq(3)
+        expect(importable_file_class('Client').count).to eq(5)
+        expect(importable_file_class('Enrollment').count).to eq(5)
+        expect(importable_file_class('Funder').count).to eq(3)
       end
     end
 
     it 'the importer tables contain appropriate numbers of rows matching the CSVs which are ready to import' do
       aggregate_failures do
-        expect(HmisCsvImporter::Importer::Assessment.should_import.count).to eq(2)
-        expect(HmisCsvImporter::Importer::Client.should_import.count).to eq(3)
-        expect(HmisCsvImporter::Importer::Enrollment.should_import.count).to eq(4)
-        expect(HmisCsvImporter::Importer::Funder.should_import.count).to eq(1)
+        expect(importable_file_class('Assessment').should_import.count).to eq(2)
+        expect(importable_file_class('Client').should_import.count).to eq(3)
+        expect(importable_file_class('Enrollment').should_import.count).to eq(4)
+        expect(importable_file_class('Funder').should_import.count).to eq(1)
       end
     end
 
@@ -57,5 +59,13 @@ RSpec.describe HmisCsvImporter, type: :model do
     it 'Appropriate error rows are generated' do
       expect(HmisCsvImporter::HmisCsvValidation::UniqueHudKey.count).to eq(6)
     end
+  end
+
+  def loadable_file_class(name)
+    HmisCsvImporter::Loader::Loader.loadable_file_class(name)
+  end
+
+  def importable_file_class(name)
+    HmisCsvImporter::Importer::Importer.importable_file_class(name)
   end
 end

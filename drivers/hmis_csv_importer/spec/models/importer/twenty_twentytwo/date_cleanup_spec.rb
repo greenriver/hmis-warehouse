@@ -7,6 +7,8 @@
 require 'rails_helper'
 
 RSpec.describe 'Date and Time Cleanup', type: :model do
+  include HmisCsvImporter::HmisCsv
+
   describe 'dates convert as expected' do
     dates = {
       'HI THERE' => nil,
@@ -45,7 +47,7 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
       aggregate_failures do
         dates.each do |source, dest|
           # puts "#{source} #{dest}"
-          expect(HmisCsvImporter::Importer::Client.fix_date_format(source)).to eq(dest)
+          expect(importable_file_class('Client').fix_date_format(source)).to eq(dest)
         end
       end
     end
@@ -57,12 +59,12 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
     aggregate_failures do
       [Time.zone.local(2020, 1, 1), Time.zone.local(2020, 12, 31)].each do |current_time|
         travel_to current_time do
-          expect(HmisCsvImporter::Importer::Client.fix_date_format('1-JAN-20')).to eq('2020-01-01')
-          expect(HmisCsvImporter::Importer::Client.fix_date_format('31-DEC-20')).to eq('2020-12-31')
-          expect(HmisCsvImporter::Importer::Client.fix_date_format('1-JAN-21')).to eq('2021-01-01')
-          expect(HmisCsvImporter::Importer::Client.fix_date_format('31-DEC-21')).to eq('2021-12-31')
-          expect(HmisCsvImporter::Importer::Client.fix_date_format('1-JAN-22')).to eq('1922-01-01')
-          expect(HmisCsvImporter::Importer::Client.fix_date_format('31-DEC-22')).to eq('1922-12-31')
+          expect(importable_file_class('Client').fix_date_format('1-JAN-20')).to eq('2020-01-01')
+          expect(importable_file_class('Client').fix_date_format('31-DEC-20')).to eq('2020-12-31')
+          expect(importable_file_class('Client').fix_date_format('1-JAN-21')).to eq('2021-01-01')
+          expect(importable_file_class('Client').fix_date_format('31-DEC-21')).to eq('2021-12-31')
+          expect(importable_file_class('Client').fix_date_format('1-JAN-22')).to eq('1922-01-01')
+          expect(importable_file_class('Client').fix_date_format('31-DEC-22')).to eq('1922-12-31')
         end
       end
     end
@@ -77,7 +79,7 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
     if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
       month, day, year = string.split('-')
       return "#{year}-#{month}-#{day}"
-    # Sometimes times come in mm/dd/yyyy hh:mm
+      # Sometimes times come in mm/dd/yyyy hh:mm
     elsif /\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
       date, time = string.split(' ')
       month, day, year = date.split('/')
@@ -108,7 +110,7 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
   #         hard: '17-JUN-20 21:39'
   #       }.each do |label, string|
   #         x.report("new #{label} #{string}")  do
-  #           n.times { HmisCsvImporter::Importer::Client.fix_time_format(string) }
+  #           n.times { importable_file_class('Client').fix_time_format(string) }
   #         end
   #         x.report("old #{label} #{string}")  do
   #           n.times { old_fix_time_format(string) }
@@ -187,11 +189,15 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
           if source.blank? || source.acts_like?(:time)
             assert_equal dest, source
           else
-            fixed = HmisCsvImporter::Importer::Client.fix_time_format(source)
+            fixed = importable_file_class('Client').fix_time_format(source)
             assert_equal dest, fixed.strftime('%Y-%m-%d %H:%M:%S')
           end
         end
       end
     end
+  end
+
+  def importable_file_class(name)
+    HmisCsvImporter::Importer::Importer.importable_file_class(name)
   end
 end

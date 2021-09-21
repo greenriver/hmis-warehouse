@@ -12,7 +12,7 @@ class HmisCsvImporter::Utility
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
     end
 
-    HmisCsvImporter::Loader::Loader.importable_files.each do |_, klass|
+    HmisCsvImporter::Loader::Loader.loadable_files.each do |_, klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
     end
 
