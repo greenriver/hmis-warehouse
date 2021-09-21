@@ -25,14 +25,14 @@ class CreateHmis2022DataLake < ActiveRecord::Migration[5.2]
 
       add_column klass.table_name, :should_import, :boolean, default: true
 
-      add_index klass.table_name, [:source_type, :source_id], name: klass.table_name + '-' + SecureRandom.alphanumeric(4)
-      add_index klass.table_name, [klass.hud_key, :data_source_id], name: "#{klass.table_name}-#{SecureRandom.alphanumeric(4)}"
+      add_index klass.table_name, [:source_type, :source_id], name: klass.table_name + '-' + Digest::MD5.hexdigest([:source_type, :source_id].join('_'))[0, 4]
+      add_index klass.table_name, [klass.hud_key, :data_source_id], name: "#{klass.table_name}-#{Digest::MD5.hexdigest([klass.hud_key, :data_source_id].join('_'))[0, 4]}"
 
       if column_names.include?('EnrollmentID') && ! klass.hud_key == :EnrollmentID
-        add_index klass.table_name, [:EnrollmentID, :data_source_id], name: "#{klass.table_name}-#{SecureRandom.alphanumeric(4)}"
+        add_index klass.table_name, [:EnrollmentID, :data_source_id], name: "#{klass.table_name}-#{Digest::MD5.hexdigest([:EnrollmentID, :data_source_id].join('_'))[0, 4]}"
       end
       if column_names.include?('ProjectID') && ! klass.hud_key == :ProjectID
-        add_index klass.table_name, [:ProjectID, :data_source_id], name: "#{klass.table_name}-#{SecureRandom.alphanumeric(4)}"
+        add_index klass.table_name, [:ProjectID, :data_source_id], name: "#{klass.table_name}-#{Digest::MD5.hexdigest([:ProjectID, :data_source_id].join('_'))[0, 4]}"
       end
     end
 
@@ -42,12 +42,12 @@ class CreateHmis2022DataLake < ActiveRecord::Migration[5.2]
       add_column klass.table_name, :loaded_at, :datetime, null: false
       add_column klass.table_name, :loader_id, :integer, null: false, index: true
 
-      add_index klass.table_name, [klass.hud_key, :data_source_id], name: "#{klass.table_name}-#{SecureRandom.alphanumeric(4)}"
+      add_index klass.table_name, [klass.hud_key, :data_source_id], name: "#{klass.table_name}-#{Digest::MD5.hexdigest([klass.hud_key, :data_source_id].join('_'))[0, 4]}"
       if column_names.include?('EnrollmentID') && ! klass.hud_key == :EnrollmentID
-        add_index klass.table_name, [:EnrollmentID, :data_source_id], name: "#{klass.table_name}-#{SecureRandom.alphanumeric(4)}"
+        add_index klass.table_name, [:EnrollmentID, :data_source_id], name: "#{klass.table_name}-#{Digest::MD5.hexdigest([:EnrollmentID, :data_source_id].join('_'))[0, 4]}"
       end
       if column_names.include?('ProjectID') && ! klass.hud_key == :ProjectID
-        add_index klass.table_name, [:ProjectID, :data_source_id], name: "#{klass.table_name}-#{SecureRandom.alphanumeric(4)}"
+        add_index klass.table_name, [:ProjectID, :data_source_id], name: "#{klass.table_name}-#{Digest::MD5.hexdigest([:ProjectID, :data_source_id].join('_'))[0, 4]}"
       end
 
       HmisCsvImporter::Aggregated::Enrollment.migrate_to_unversioned
