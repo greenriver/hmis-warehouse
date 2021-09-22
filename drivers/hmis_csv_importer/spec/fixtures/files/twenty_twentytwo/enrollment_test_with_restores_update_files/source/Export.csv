@@ -1,0 +1,2 @@
+ExportID,SourceType,SourceID,SourceName,SourceContactFirst,SourceContactLast,SourceContactPhone,SourceContactExtension,SourceContactEmail,ExportDate,ExportStartDate,ExportEndDate,SoftwareName,SoftwareVersion,CSVVersion,ExportPeriodType,ExportDirective,HashStatus
+1-2,3,"",Boston DND Warehouse,Automated,Export,"","","",2017-10-03 00:00:00,2017-09-01,2017-10-03,Boston HMIS Warehouse,1,2022,3,3,1

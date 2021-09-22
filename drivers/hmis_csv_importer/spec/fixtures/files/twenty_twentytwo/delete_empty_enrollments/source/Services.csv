@@ -1,0 +1,2 @@
+ServicesID,EnrollmentID,PersonalID,DateProvided,RecordType,TypeProvided,OtherTypeProvided,MovingOnOtherType,SubTypeProvided,FAAmount,ReferralOutcome,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+S-1,E-2,C-1,2020-01-01,200,200,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,TEST

@@ -41,7 +41,7 @@ class AutoEncodingCsv < CSV
       options ||= {}
       options[:encoding] = detect_encoding(filename) if mode.start_with?('r') && options[:encoding].nil?
 
-      HmisCsvTwentyTwenty::Loader::Loader.fix_bad_line_endings(filename, options[:encoding]) if mode.start_with?('r')
+      HmisCsvImporter::Loader::Loader.fix_bad_line_endings(filename, options[:encoding]) if mode.start_with?('r')
 
       super filename, mode, **options
     end

@@ -1,0 +1,5 @@
+"DisabilitiesID","EnrollmentID","PersonalID","InformationDate","DisabilityType","DisabilityResponse","IndefiniteAndImpairs","TCellCountAvailable","TCellCount","TCellSource","ViralLoadAvailable","ViralLoad","ViralLoadSource","DataCollectionStage","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"VALID","VALID","VALID","2016-09-01","1","1","1","1","5","1","1","1","1","1","2016-09-02 15:42:06","2016-09-02 15:42:06","VALID","","b6585c2320f69a2b920adb507cc9d82f"
+"VALIDATION","VALIDATION","VALIDATION","","999","999","999","1","5","1","1","1","1","999","2016-09-02 15:42:06","2016-09-02 15:42:06","VALIDATION","","b6585c2320f69a2b920adb507cc9d82f"
+"ERROR","","","2016-09-01","","","1","1","5","1","1","1","1","1","2016-09-02 15:42:06","2016-09-02 15:42:06","ERROR","","b6585c2320f69a2b920adb507cc9d82f"
+"VALID","FAILURE","FAILURE","2016-09-01","1","1","1","1","5","1","1","1","1","1","2016-09-02 15:42:06","2016-09-02 15:42:06","FAILURE","","b6585c2320f69a2b920adb507cc9d82f"

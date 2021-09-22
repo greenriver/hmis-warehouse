@@ -6,6 +6,7 @@
 
 module GrdaWarehouse::Hud
   class YouthEducationStatus < Base
+    include HudSharedScopes
     include ::HMIS::Structure::YouthEducationStatus
     include RailsDrivers::Extensions
 

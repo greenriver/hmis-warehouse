@@ -615,6 +615,21 @@ module HUD
     }
   end
 
+  # 2.02.9
+  def h_o_p_w_a_med_assisted_living_fac(id, reverse = false)
+    map = h_o_p_w_a_med_assisted_living_facs
+
+    _translate map, id, reverse
+  end
+
+  def h_o_p_w_a_med_assisted_living_facs
+    {
+      0 => 'No',
+      1 => 'Yes',
+      2 => 'Non-HOPWA Funded Project',
+    }
+  end
+
   # 3.1.5
   def name_data_quality(id, reverse = false)
     _translate(name_data_quality_options, id, reverse)

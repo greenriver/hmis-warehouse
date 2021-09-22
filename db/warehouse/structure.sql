@@ -1818,7 +1818,9 @@ CREATE TABLE public."YouthEducationStatus" (
     "UserID" character varying(32) NOT NULL,
     "DateDeleted" timestamp without time zone,
     "ExportID" character varying(32) NOT NULL,
-    data_source_id integer
+    data_source_id integer,
+    pending_date_deleted date,
+    source_hash character varying
 );
 
 
@@ -7603,6 +7605,1560 @@ ALTER SEQUENCE public.hmis_2020_users_id_seq OWNED BY public.hmis_2020_users.id;
 
 
 --
+-- Name: hmis_2022_affiliations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_affiliations (
+    id bigint NOT NULL,
+    "AffiliationID" character varying,
+    "ProjectID" character varying,
+    "ResProjectID" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_affiliations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_affiliations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_affiliations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_affiliations_id_seq OWNED BY public.hmis_2022_affiliations.id;
+
+
+--
+-- Name: hmis_2022_assessment_questions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_assessment_questions (
+    id bigint NOT NULL,
+    "AssessmentQuestionID" character varying,
+    "AssessmentID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "AssessmentQuestionGroup" character varying,
+    "AssessmentQuestionOrder" integer,
+    "AssessmentQuestion" character varying,
+    "AssessmentAnswer" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_assessment_questions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_assessment_questions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_assessment_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_assessment_questions_id_seq OWNED BY public.hmis_2022_assessment_questions.id;
+
+
+--
+-- Name: hmis_2022_assessment_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_assessment_results (
+    id bigint NOT NULL,
+    "AssessmentResultID" character varying,
+    "AssessmentID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "AssessmentResultType" character varying,
+    "AssessmentResult" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_assessment_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_assessment_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_assessment_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_assessment_results_id_seq OWNED BY public.hmis_2022_assessment_results.id;
+
+
+--
+-- Name: hmis_2022_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_assessments (
+    id bigint NOT NULL,
+    "AssessmentID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "AssessmentDate" date,
+    "AssessmentLocation" character varying,
+    "AssessmentType" integer,
+    "AssessmentLevel" integer,
+    "PrioritizationStatus" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_assessments_id_seq OWNED BY public.hmis_2022_assessments.id;
+
+
+--
+-- Name: hmis_2022_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_clients (
+    id bigint NOT NULL,
+    "PersonalID" character varying,
+    "FirstName" character varying,
+    "MiddleName" character varying,
+    "LastName" character varying,
+    "NameSuffix" character varying,
+    "NameDataQuality" integer,
+    "SSN" character varying,
+    "SSNDataQuality" character varying,
+    "DOB" date,
+    "DOBDataQuality" character varying,
+    "AmIndAKNative" integer,
+    "Asian" integer,
+    "BlackAfAmerican" integer,
+    "NativeHIPacific" integer,
+    "White" integer,
+    "RaceNone" integer,
+    "Ethnicity" integer,
+    "Female" integer,
+    "Male" integer,
+    "NoSingleGender" integer,
+    "Transgender" integer,
+    "Questioning" integer,
+    "GenderNone" integer,
+    "VeteranStatus" integer,
+    "YearEnteredService" integer,
+    "YearSeparated" integer,
+    "WorldWarII" integer,
+    "KoreanWar" integer,
+    "VietnamWar" integer,
+    "DesertStorm" integer,
+    "AfghanistanOEF" integer,
+    "IraqOIF" integer,
+    "IraqOND" integer,
+    "OtherTheater" integer,
+    "MilitaryBranch" integer,
+    "DischargeStatus" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_clients_id_seq OWNED BY public.hmis_2022_clients.id;
+
+
+--
+-- Name: hmis_2022_current_living_situations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_current_living_situations (
+    id bigint NOT NULL,
+    "CurrentLivingSitID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" date,
+    "CurrentLivingSituation" integer,
+    "VerifiedBy" character varying,
+    "LeaveSituation14Days" integer,
+    "SubsequentResidence" integer,
+    "ResourcesToObtain" integer,
+    "LeaseOwn60Day" integer,
+    "MovedTwoOrMore" integer,
+    "LocationDetails" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_current_living_situations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_current_living_situations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_current_living_situations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_current_living_situations_id_seq OWNED BY public.hmis_2022_current_living_situations.id;
+
+
+--
+-- Name: hmis_2022_disabilities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_disabilities (
+    id bigint NOT NULL,
+    "DisabilitiesID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" date,
+    "DisabilityType" integer,
+    "DisabilityResponse" integer,
+    "IndefiniteAndImpairs" integer,
+    "TCellCountAvailable" integer,
+    "TCellCount" integer,
+    "TCellSource" integer,
+    "ViralLoadAvailable" integer,
+    "ViralLoad" integer,
+    "ViralLoadSource" integer,
+    "AntiRetroviral" integer,
+    "DataCollectionStage" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_disabilities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_disabilities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_disabilities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_disabilities_id_seq OWNED BY public.hmis_2022_disabilities.id;
+
+
+--
+-- Name: hmis_2022_employment_educations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_employment_educations (
+    id bigint NOT NULL,
+    "EmploymentEducationID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" date,
+    "LastGradeCompleted" integer,
+    "SchoolStatus" integer,
+    "Employed" integer,
+    "EmploymentType" integer,
+    "NotEmployedReason" integer,
+    "DataCollectionStage" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_employment_educations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_employment_educations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_employment_educations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_employment_educations_id_seq OWNED BY public.hmis_2022_employment_educations.id;
+
+
+--
+-- Name: hmis_2022_enrollment_cocs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_enrollment_cocs (
+    id bigint NOT NULL,
+    "EnrollmentCoCID" character varying,
+    "EnrollmentID" character varying,
+    "HouseholdID" character varying,
+    "ProjectID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" date,
+    "CoCCode" character varying,
+    "DataCollectionStage" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_enrollment_cocs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_enrollment_cocs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_enrollment_cocs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_enrollment_cocs_id_seq OWNED BY public.hmis_2022_enrollment_cocs.id;
+
+
+--
+-- Name: hmis_2022_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_enrollments (
+    id bigint NOT NULL,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "ProjectID" character varying,
+    "EntryDate" date,
+    "HouseholdID" character varying,
+    "RelationshipToHoH" integer,
+    "LivingSituation" integer,
+    "LengthOfStay" integer,
+    "LOSUnderThreshold" integer,
+    "PreviousStreetESSH" integer,
+    "DateToStreetESSH" date,
+    "TimesHomelessPastThreeYears" integer,
+    "MonthsHomelessPastThreeYears" integer,
+    "DisablingCondition" integer,
+    "DateOfEngagement" date,
+    "MoveInDate" date,
+    "DateOfPATHStatus" date,
+    "ClientEnrolledInPATH" integer,
+    "ReasonNotEnrolled" integer,
+    "WorstHousingSituation" integer,
+    "PercentAMI" integer,
+    "LastPermanentStreet" character varying,
+    "LastPermanentCity" character varying,
+    "LastPermanentState" character varying,
+    "LastPermanentZIP" character varying,
+    "AddressDataQuality" integer,
+    "ReferralSource" integer,
+    "CountOutreachReferralApproaches" integer,
+    "DateOfBCPStatus" date,
+    "EligibleForRHY" integer,
+    "ReasonNoServices" integer,
+    "RunawayYouth" integer,
+    "SexualOrientation" integer,
+    "SexualOrientationOther" character varying,
+    "FormerWardChildWelfare" integer,
+    "ChildWelfareYears" integer,
+    "ChildWelfareMonths" integer,
+    "FormerWardJuvenileJustice" integer,
+    "JuvenileJusticeYears" integer,
+    "JuvenileJusticeMonths" integer,
+    "UnemploymentFam" integer,
+    "MentalHealthDisorderFam" integer,
+    "PhysicalDisabilityFam" integer,
+    "AlcoholDrugUseDisorderFam" integer,
+    "InsufficientIncome" integer,
+    "IncarceratedParent" integer,
+    "VAMCStation" character varying,
+    "TargetScreenReqd" integer,
+    "TimeToHousingLoss" integer,
+    "AnnualPercentAMI" integer,
+    "LiteralHomelessHistory" integer,
+    "ClientLeaseholder" integer,
+    "HOHLeaseholder" integer,
+    "SubsidyAtRisk" integer,
+    "EvictionHistory" integer,
+    "CriminalRecord" integer,
+    "IncarceratedAdult" integer,
+    "PrisonDischarge" integer,
+    "SexOffender" integer,
+    "DisabledHoH" integer,
+    "CurrentPregnant" integer,
+    "SingleParent" integer,
+    "DependentUnder6" integer,
+    "HH5Plus" integer,
+    "CoCPrioritized" integer,
+    "HPScreeningScore" integer,
+    "ThresholdScore" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_enrollments_id_seq OWNED BY public.hmis_2022_enrollments.id;
+
+
+--
+-- Name: hmis_2022_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_events (
+    id bigint NOT NULL,
+    "EventID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "EventDate" date,
+    "Event" integer,
+    "ProbSolDivRRResult" integer,
+    "ReferralCaseManageAfter" integer,
+    "LocationCrisisOrPHHousing" character varying,
+    "ReferralResult" integer,
+    "ResultDate" date,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_events_id_seq OWNED BY public.hmis_2022_events.id;
+
+
+--
+-- Name: hmis_2022_exits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_exits (
+    id bigint NOT NULL,
+    "ExitID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "ExitDate" date,
+    "Destination" integer,
+    "OtherDestination" character varying,
+    "HousingAssessment" integer,
+    "SubsidyInformation" integer,
+    "ProjectCompletionStatus" integer,
+    "EarlyExitReason" integer,
+    "ExchangeForSex" integer,
+    "ExchangeForSexPastThreeMonths" integer,
+    "CountOfExchangeForSex" integer,
+    "AskedOrForcedToExchangeForSex" integer,
+    "AskedOrForcedToExchangeForSexPastThreeMonths" integer,
+    "WorkPlaceViolenceThreats" integer,
+    "WorkplacePromiseDifference" integer,
+    "CoercedToContinueWork" integer,
+    "LaborExploitPastThreeMonths" integer,
+    "CounselingReceived" integer,
+    "IndividualCounseling" integer,
+    "FamilyCounseling" integer,
+    "GroupCounseling" integer,
+    "SessionCountAtExit" integer,
+    "PostExitCounselingPlan" integer,
+    "SessionsInPlan" integer,
+    "DestinationSafeClient" integer,
+    "DestinationSafeWorker" integer,
+    "PosAdultConnections" integer,
+    "PosPeerConnections" integer,
+    "PosCommunityConnections" integer,
+    "AftercareDate" date,
+    "AftercareProvided" integer,
+    "EmailSocialMedia" integer,
+    "Telephone" integer,
+    "InPersonIndividual" integer,
+    "InPersonGroup" integer,
+    "CMExitReason" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_exits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_exits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_exits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_exits_id_seq OWNED BY public.hmis_2022_exits.id;
+
+
+--
+-- Name: hmis_2022_exports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_exports (
+    id bigint NOT NULL,
+    "ExportID" character varying,
+    "SourceType" integer,
+    "SourceID" character varying,
+    "SourceName" character varying,
+    "SourceContactFirst" character varying,
+    "SourceContactLast" character varying,
+    "SourceContactPhone" character varying,
+    "SourceContactExtension" character varying,
+    "SourceContactEmail" character varying,
+    "ExportDate" timestamp without time zone,
+    "ExportStartDate" date,
+    "ExportEndDate" date,
+    "SoftwareName" character varying,
+    "SoftwareVersion" character varying,
+    "CSVVersion" character varying,
+    "ExportPeriodType" integer,
+    "ExportDirective" integer,
+    "HashStatus" integer,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_exports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_exports_id_seq OWNED BY public.hmis_2022_exports.id;
+
+
+--
+-- Name: hmis_2022_funders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_funders (
+    id bigint NOT NULL,
+    "FunderID" character varying,
+    "ProjectID" character varying,
+    "Funder" integer,
+    "OtherFunder" character varying,
+    "GrantID" character varying,
+    "StartDate" date,
+    "EndDate" date,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_funders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_funders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_funders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_funders_id_seq OWNED BY public.hmis_2022_funders.id;
+
+
+--
+-- Name: hmis_2022_health_and_dvs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_health_and_dvs (
+    id bigint NOT NULL,
+    "HealthAndDVID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" date,
+    "DomesticViolenceVictim" integer,
+    "WhenOccurred" integer,
+    "CurrentlyFleeing" integer,
+    "GeneralHealthStatus" integer,
+    "DentalHealthStatus" integer,
+    "MentalHealthStatus" integer,
+    "PregnancyStatus" integer,
+    "DueDate" date,
+    "LifeValue" integer,
+    "SupportFromOthers" integer,
+    "BounceBack" integer,
+    "FeelingFrequency" integer,
+    "DataCollectionStage" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_health_and_dvs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_health_and_dvs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_health_and_dvs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_health_and_dvs_id_seq OWNED BY public.hmis_2022_health_and_dvs.id;
+
+
+--
+-- Name: hmis_2022_income_benefits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_income_benefits (
+    id bigint NOT NULL,
+    "IncomeBenefitsID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" date,
+    "IncomeFromAnySource" integer,
+    "TotalMonthlyIncome" character varying,
+    "Earned" integer,
+    "EarnedAmount" character varying,
+    "Unemployment" integer,
+    "UnemploymentAmount" character varying,
+    "SSI" integer,
+    "SSIAmount" character varying,
+    "SSDI" integer,
+    "SSDIAmount" character varying,
+    "VADisabilityService" integer,
+    "VADisabilityServiceAmount" character varying,
+    "VADisabilityNonService" integer,
+    "VADisabilityNonServiceAmount" character varying,
+    "PrivateDisability" integer,
+    "PrivateDisabilityAmount" character varying,
+    "WorkersComp" integer,
+    "WorkersCompAmount" character varying,
+    "TANF" integer,
+    "TANFAmount" character varying,
+    "GA" integer,
+    "GAAmount" character varying,
+    "SocSecRetirement" integer,
+    "SocSecRetirementAmount" character varying,
+    "Pension" integer,
+    "PensionAmount" character varying,
+    "ChildSupport" integer,
+    "ChildSupportAmount" character varying,
+    "Alimony" integer,
+    "AlimonyAmount" character varying,
+    "OtherIncomeSource" integer,
+    "OtherIncomeAmount" character varying,
+    "OtherIncomeSourceIdentify" character varying,
+    "BenefitsFromAnySource" integer,
+    "SNAP" integer,
+    "WIC" integer,
+    "TANFChildCare" integer,
+    "TANFTransportation" integer,
+    "OtherTANF" integer,
+    "OtherBenefitsSource" integer,
+    "OtherBenefitsSourceIdentify" character varying,
+    "InsuranceFromAnySource" integer,
+    "Medicaid" integer,
+    "NoMedicaidReason" integer,
+    "Medicare" integer,
+    "NoMedicareReason" integer,
+    "SCHIP" integer,
+    "NoSCHIPReason" integer,
+    "VAMedicalServices" integer,
+    "NoVAMedReason" integer,
+    "EmployerProvided" integer,
+    "NoEmployerProvidedReason" integer,
+    "COBRA" integer,
+    "NoCOBRAReason" integer,
+    "PrivatePay" integer,
+    "NoPrivatePayReason" integer,
+    "StateHealthIns" integer,
+    "NoStateHealthInsReason" integer,
+    "IndianHealthServices" integer,
+    "NoIndianHealthServicesReason" integer,
+    "OtherInsurance" integer,
+    "OtherInsuranceIdentify" character varying,
+    "HIVAIDSAssistance" integer,
+    "NoHIVAIDSAssistanceReason" integer,
+    "ADAP" integer,
+    "NoADAPReason" integer,
+    "RyanWhiteMedDent" integer,
+    "NoRyanWhiteReason" integer,
+    "ConnectionWithSOAR" integer,
+    "DataCollectionStage" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_income_benefits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_income_benefits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_income_benefits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_income_benefits_id_seq OWNED BY public.hmis_2022_income_benefits.id;
+
+
+--
+-- Name: hmis_2022_inventories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_inventories (
+    id bigint NOT NULL,
+    "InventoryID" character varying,
+    "ProjectID" character varying,
+    "CoCCode" character varying,
+    "HouseholdType" integer,
+    "Availability" integer,
+    "UnitInventory" integer,
+    "BedInventory" integer,
+    "CHVetBedInventory" integer,
+    "YouthVetBedInventory" integer,
+    "VetBedInventory" integer,
+    "CHYouthBedInventory" integer,
+    "YouthBedInventory" integer,
+    "CHBedInventory" integer,
+    "OtherBedInventory" integer,
+    "ESBedType" integer,
+    "InventoryStartDate" date,
+    "InventoryEndDate" date,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_inventories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_inventories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_inventories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_inventories_id_seq OWNED BY public.hmis_2022_inventories.id;
+
+
+--
+-- Name: hmis_2022_organizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_organizations (
+    id bigint NOT NULL,
+    "OrganizationID" character varying,
+    "OrganizationName" character varying,
+    "VictimServiceProvider" integer,
+    "OrganizationCommonName" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_organizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_organizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_organizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_organizations_id_seq OWNED BY public.hmis_2022_organizations.id;
+
+
+--
+-- Name: hmis_2022_project_cocs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_project_cocs (
+    id bigint NOT NULL,
+    "ProjectCoCID" character varying,
+    "ProjectID" character varying,
+    "CoCCode" character varying,
+    "Geocode" character varying,
+    "Address1" character varying,
+    "Address2" character varying,
+    "City" character varying,
+    "State" character varying,
+    "Zip" character varying,
+    "GeographyType" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_project_cocs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_project_cocs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_project_cocs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_project_cocs_id_seq OWNED BY public.hmis_2022_project_cocs.id;
+
+
+--
+-- Name: hmis_2022_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_projects (
+    id bigint NOT NULL,
+    "ProjectID" character varying,
+    "OrganizationID" character varying,
+    "ProjectName" character varying,
+    "ProjectCommonName" character varying,
+    "OperatingStartDate" date,
+    "OperatingEndDate" date,
+    "ContinuumProject" integer,
+    "ProjectType" integer,
+    "HousingType" integer,
+    "ResidentialAffiliation" integer,
+    "TrackingMethod" integer,
+    "HMISParticipatingProject" integer,
+    "TargetPopulation" integer,
+    "HOPWAMedAssistedLivingFac" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_projects_id_seq OWNED BY public.hmis_2022_projects.id;
+
+
+--
+-- Name: hmis_2022_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_services (
+    id bigint NOT NULL,
+    "ServicesID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "DateProvided" date,
+    "RecordType" integer,
+    "TypeProvided" integer,
+    "OtherTypeProvided" character varying,
+    "MovingOnOtherType" character varying,
+    "SubTypeProvided" integer,
+    "FAAmount" character varying,
+    "ReferralOutcome" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_services_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_services_id_seq OWNED BY public.hmis_2022_services.id;
+
+
+--
+-- Name: hmis_2022_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_users (
+    id bigint NOT NULL,
+    "UserID" character varying,
+    "UserFirstName" character varying,
+    "UserLastName" character varying,
+    "UserPhone" character varying,
+    "UserExtension" character varying,
+    "UserEmail" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_users_id_seq OWNED BY public.hmis_2022_users.id;
+
+
+--
+-- Name: hmis_2022_youth_education_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2022_youth_education_statuses (
+    id bigint NOT NULL,
+    "YouthEducationStatusID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" date,
+    "CurrentSchoolAttend" integer,
+    "MostRecentEdStatus" integer,
+    "CurrentEdStatus" integer,
+    "DataCollectionStage" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2022_youth_education_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2022_youth_education_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2022_youth_education_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2022_youth_education_statuses_id_seq OWNED BY public.hmis_2022_youth_education_statuses.id;
+
+
+--
+-- Name: hmis_aggregated_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_aggregated_enrollments (
+    id bigint NOT NULL,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "ProjectID" character varying,
+    "EntryDate" date,
+    "HouseholdID" character varying,
+    "RelationshipToHoH" integer,
+    "LivingSituation" integer,
+    "LengthOfStay" integer,
+    "LOSUnderThreshold" integer,
+    "PreviousStreetESSH" integer,
+    "DateToStreetESSH" date,
+    "TimesHomelessPastThreeYears" integer,
+    "MonthsHomelessPastThreeYears" integer,
+    "DisablingCondition" integer,
+    "DateOfEngagement" date,
+    "MoveInDate" date,
+    "DateOfPATHStatus" date,
+    "ClientEnrolledInPATH" integer,
+    "ReasonNotEnrolled" integer,
+    "WorstHousingSituation" integer,
+    "PercentAMI" integer,
+    "LastPermanentStreet" character varying,
+    "LastPermanentCity" character varying,
+    "LastPermanentState" character varying,
+    "LastPermanentZIP" character varying,
+    "AddressDataQuality" integer,
+    "ReferralSource" integer,
+    "CountOutreachReferralApproaches" integer,
+    "DateOfBCPStatus" date,
+    "EligibleForRHY" integer,
+    "ReasonNoServices" integer,
+    "RunawayYouth" integer,
+    "SexualOrientation" integer,
+    "SexualOrientationOther" character varying,
+    "FormerWardChildWelfare" integer,
+    "ChildWelfareYears" integer,
+    "ChildWelfareMonths" integer,
+    "FormerWardJuvenileJustice" integer,
+    "JuvenileJusticeYears" integer,
+    "JuvenileJusticeMonths" integer,
+    "UnemploymentFam" integer,
+    "MentalHealthDisorderFam" integer,
+    "PhysicalDisabilityFam" integer,
+    "AlcoholDrugUseDisorderFam" integer,
+    "InsufficientIncome" integer,
+    "IncarceratedParent" integer,
+    "VAMCStation" character varying,
+    "TargetScreenReqd" integer,
+    "TimeToHousingLoss" integer,
+    "AnnualPercentAMI" integer,
+    "LiteralHomelessHistory" integer,
+    "ClientLeaseholder" integer,
+    "HOHLeaseholder" integer,
+    "SubsidyAtRisk" integer,
+    "EvictionHistory" integer,
+    "CriminalRecord" integer,
+    "IncarceratedAdult" integer,
+    "PrisonDischarge" integer,
+    "SexOffender" integer,
+    "DisabledHoH" integer,
+    "CurrentPregnant" integer,
+    "SingleParent" integer,
+    "DependentUnder6" integer,
+    "HH5Plus" integer,
+    "CoCPrioritized" integer,
+    "HPScreeningScore" integer,
+    "ThresholdScore" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_aggregated_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_aggregated_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_aggregated_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_aggregated_enrollments_id_seq OWNED BY public.hmis_aggregated_enrollments.id;
+
+
+--
+-- Name: hmis_aggregated_exits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_aggregated_exits (
+    id bigint NOT NULL,
+    "ExitID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "ExitDate" date,
+    "Destination" integer,
+    "OtherDestination" character varying,
+    "HousingAssessment" integer,
+    "SubsidyInformation" integer,
+    "ProjectCompletionStatus" integer,
+    "EarlyExitReason" integer,
+    "ExchangeForSex" integer,
+    "ExchangeForSexPastThreeMonths" integer,
+    "CountOfExchangeForSex" integer,
+    "AskedOrForcedToExchangeForSex" integer,
+    "AskedOrForcedToExchangeForSexPastThreeMonths" integer,
+    "WorkPlaceViolenceThreats" integer,
+    "WorkplacePromiseDifference" integer,
+    "CoercedToContinueWork" integer,
+    "LaborExploitPastThreeMonths" integer,
+    "CounselingReceived" integer,
+    "IndividualCounseling" integer,
+    "FamilyCounseling" integer,
+    "GroupCounseling" integer,
+    "SessionCountAtExit" integer,
+    "PostExitCounselingPlan" integer,
+    "SessionsInPlan" integer,
+    "DestinationSafeClient" integer,
+    "DestinationSafeWorker" integer,
+    "PosAdultConnections" integer,
+    "PosPeerConnections" integer,
+    "PosCommunityConnections" integer,
+    "AftercareDate" date,
+    "AftercareProvided" integer,
+    "EmailSocialMedia" integer,
+    "Telephone" integer,
+    "InPersonIndividual" integer,
+    "InPersonGroup" integer,
+    "CMExitReason" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    importer_log_id integer NOT NULL,
+    pre_processed_at timestamp without time zone NOT NULL,
+    source_hash character varying,
+    source_id integer NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_aggregated_exits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_aggregated_exits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_aggregated_exits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_aggregated_exits_id_seq OWNED BY public.hmis_aggregated_exits.id;
+
+
+--
 -- Name: hmis_assessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -8900,6 +10456,1235 @@ CREATE SEQUENCE public.hmis_csv_2020_users_id_seq
 --
 
 ALTER SEQUENCE public.hmis_csv_2020_users_id_seq OWNED BY public.hmis_csv_2020_users.id;
+
+
+--
+-- Name: hmis_csv_2022_affiliations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_affiliations (
+    id bigint NOT NULL,
+    "AffiliationID" character varying,
+    "ProjectID" character varying,
+    "ResProjectID" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_affiliations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_affiliations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_affiliations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_affiliations_id_seq OWNED BY public.hmis_csv_2022_affiliations.id;
+
+
+--
+-- Name: hmis_csv_2022_assessment_questions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_assessment_questions (
+    id bigint NOT NULL,
+    "AssessmentQuestionID" character varying,
+    "AssessmentID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "AssessmentQuestionGroup" character varying,
+    "AssessmentQuestionOrder" character varying,
+    "AssessmentQuestion" character varying,
+    "AssessmentAnswer" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_assessment_questions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_assessment_questions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_assessment_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_assessment_questions_id_seq OWNED BY public.hmis_csv_2022_assessment_questions.id;
+
+
+--
+-- Name: hmis_csv_2022_assessment_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_assessment_results (
+    id bigint NOT NULL,
+    "AssessmentResultID" character varying,
+    "AssessmentID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "AssessmentResultType" character varying,
+    "AssessmentResult" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_assessment_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_assessment_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_assessment_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_assessment_results_id_seq OWNED BY public.hmis_csv_2022_assessment_results.id;
+
+
+--
+-- Name: hmis_csv_2022_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_assessments (
+    id bigint NOT NULL,
+    "AssessmentID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "AssessmentDate" character varying,
+    "AssessmentLocation" character varying,
+    "AssessmentType" character varying,
+    "AssessmentLevel" character varying,
+    "PrioritizationStatus" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_assessments_id_seq OWNED BY public.hmis_csv_2022_assessments.id;
+
+
+--
+-- Name: hmis_csv_2022_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_clients (
+    id bigint NOT NULL,
+    "PersonalID" character varying,
+    "FirstName" character varying,
+    "MiddleName" character varying,
+    "LastName" character varying,
+    "NameSuffix" character varying,
+    "NameDataQuality" character varying,
+    "SSN" character varying,
+    "SSNDataQuality" character varying,
+    "DOB" character varying,
+    "DOBDataQuality" character varying,
+    "AmIndAKNative" character varying,
+    "Asian" character varying,
+    "BlackAfAmerican" character varying,
+    "NativeHIPacific" character varying,
+    "White" character varying,
+    "RaceNone" character varying,
+    "Ethnicity" character varying,
+    "Female" character varying,
+    "Male" character varying,
+    "NoSingleGender" character varying,
+    "Transgender" character varying,
+    "Questioning" character varying,
+    "GenderNone" character varying,
+    "VeteranStatus" character varying,
+    "YearEnteredService" character varying,
+    "YearSeparated" character varying,
+    "WorldWarII" character varying,
+    "KoreanWar" character varying,
+    "VietnamWar" character varying,
+    "DesertStorm" character varying,
+    "AfghanistanOEF" character varying,
+    "IraqOIF" character varying,
+    "IraqOND" character varying,
+    "OtherTheater" character varying,
+    "MilitaryBranch" character varying,
+    "DischargeStatus" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_clients_id_seq OWNED BY public.hmis_csv_2022_clients.id;
+
+
+--
+-- Name: hmis_csv_2022_current_living_situations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_current_living_situations (
+    id bigint NOT NULL,
+    "CurrentLivingSitID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" character varying,
+    "CurrentLivingSituation" character varying,
+    "VerifiedBy" character varying,
+    "LeaveSituation14Days" character varying,
+    "SubsequentResidence" character varying,
+    "ResourcesToObtain" character varying,
+    "LeaseOwn60Day" character varying,
+    "MovedTwoOrMore" character varying,
+    "LocationDetails" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_current_living_situations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_current_living_situations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_current_living_situations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_current_living_situations_id_seq OWNED BY public.hmis_csv_2022_current_living_situations.id;
+
+
+--
+-- Name: hmis_csv_2022_disabilities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_disabilities (
+    id bigint NOT NULL,
+    "DisabilitiesID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" character varying,
+    "DisabilityType" character varying,
+    "DisabilityResponse" character varying,
+    "IndefiniteAndImpairs" character varying,
+    "TCellCountAvailable" character varying,
+    "TCellCount" character varying,
+    "TCellSource" character varying,
+    "ViralLoadAvailable" character varying,
+    "ViralLoad" character varying,
+    "ViralLoadSource" character varying,
+    "AntiRetroviral" character varying,
+    "DataCollectionStage" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_disabilities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_disabilities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_disabilities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_disabilities_id_seq OWNED BY public.hmis_csv_2022_disabilities.id;
+
+
+--
+-- Name: hmis_csv_2022_employment_educations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_employment_educations (
+    id bigint NOT NULL,
+    "EmploymentEducationID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" character varying,
+    "LastGradeCompleted" character varying,
+    "SchoolStatus" character varying,
+    "Employed" character varying,
+    "EmploymentType" character varying,
+    "NotEmployedReason" character varying,
+    "DataCollectionStage" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_employment_educations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_employment_educations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_employment_educations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_employment_educations_id_seq OWNED BY public.hmis_csv_2022_employment_educations.id;
+
+
+--
+-- Name: hmis_csv_2022_enrollment_cocs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_enrollment_cocs (
+    id bigint NOT NULL,
+    "EnrollmentCoCID" character varying,
+    "EnrollmentID" character varying,
+    "HouseholdID" character varying,
+    "ProjectID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" character varying,
+    "CoCCode" character varying,
+    "DataCollectionStage" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_enrollment_cocs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_enrollment_cocs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_enrollment_cocs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_enrollment_cocs_id_seq OWNED BY public.hmis_csv_2022_enrollment_cocs.id;
+
+
+--
+-- Name: hmis_csv_2022_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_enrollments (
+    id bigint NOT NULL,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "ProjectID" character varying,
+    "EntryDate" character varying,
+    "HouseholdID" character varying,
+    "RelationshipToHoH" character varying,
+    "LivingSituation" character varying,
+    "LengthOfStay" character varying,
+    "LOSUnderThreshold" character varying,
+    "PreviousStreetESSH" character varying,
+    "DateToStreetESSH" character varying,
+    "TimesHomelessPastThreeYears" character varying,
+    "MonthsHomelessPastThreeYears" character varying,
+    "DisablingCondition" character varying,
+    "DateOfEngagement" character varying,
+    "MoveInDate" character varying,
+    "DateOfPATHStatus" character varying,
+    "ClientEnrolledInPATH" character varying,
+    "ReasonNotEnrolled" character varying,
+    "WorstHousingSituation" character varying,
+    "PercentAMI" character varying,
+    "LastPermanentStreet" character varying,
+    "LastPermanentCity" character varying,
+    "LastPermanentState" character varying,
+    "LastPermanentZIP" character varying,
+    "AddressDataQuality" character varying,
+    "ReferralSource" character varying,
+    "CountOutreachReferralApproaches" character varying,
+    "DateOfBCPStatus" character varying,
+    "EligibleForRHY" character varying,
+    "ReasonNoServices" character varying,
+    "RunawayYouth" character varying,
+    "SexualOrientation" character varying,
+    "SexualOrientationOther" character varying,
+    "FormerWardChildWelfare" character varying,
+    "ChildWelfareYears" character varying,
+    "ChildWelfareMonths" character varying,
+    "FormerWardJuvenileJustice" character varying,
+    "JuvenileJusticeYears" character varying,
+    "JuvenileJusticeMonths" character varying,
+    "UnemploymentFam" character varying,
+    "MentalHealthDisorderFam" character varying,
+    "PhysicalDisabilityFam" character varying,
+    "AlcoholDrugUseDisorderFam" character varying,
+    "InsufficientIncome" character varying,
+    "IncarceratedParent" character varying,
+    "VAMCStation" character varying,
+    "TargetScreenReqd" character varying,
+    "TimeToHousingLoss" character varying,
+    "AnnualPercentAMI" character varying,
+    "LiteralHomelessHistory" character varying,
+    "ClientLeaseholder" character varying,
+    "HOHLeaseholder" character varying,
+    "SubsidyAtRisk" character varying,
+    "EvictionHistory" character varying,
+    "CriminalRecord" character varying,
+    "IncarceratedAdult" character varying,
+    "PrisonDischarge" character varying,
+    "SexOffender" character varying,
+    "DisabledHoH" character varying,
+    "CurrentPregnant" character varying,
+    "SingleParent" character varying,
+    "DependentUnder6" character varying,
+    "HH5Plus" character varying,
+    "CoCPrioritized" character varying,
+    "HPScreeningScore" character varying,
+    "ThresholdScore" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_enrollments_id_seq OWNED BY public.hmis_csv_2022_enrollments.id;
+
+
+--
+-- Name: hmis_csv_2022_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_events (
+    id bigint NOT NULL,
+    "EventID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "EventDate" character varying,
+    "Event" character varying,
+    "ProbSolDivRRResult" character varying,
+    "ReferralCaseManageAfter" character varying,
+    "LocationCrisisOrPHHousing" character varying,
+    "ReferralResult" character varying,
+    "ResultDate" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_events_id_seq OWNED BY public.hmis_csv_2022_events.id;
+
+
+--
+-- Name: hmis_csv_2022_exits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_exits (
+    id bigint NOT NULL,
+    "ExitID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "ExitDate" character varying,
+    "Destination" character varying,
+    "OtherDestination" character varying,
+    "HousingAssessment" character varying,
+    "SubsidyInformation" character varying,
+    "ProjectCompletionStatus" character varying,
+    "EarlyExitReason" character varying,
+    "ExchangeForSex" character varying,
+    "ExchangeForSexPastThreeMonths" character varying,
+    "CountOfExchangeForSex" character varying,
+    "AskedOrForcedToExchangeForSex" character varying,
+    "AskedOrForcedToExchangeForSexPastThreeMonths" character varying,
+    "WorkPlaceViolenceThreats" character varying,
+    "WorkplacePromiseDifference" character varying,
+    "CoercedToContinueWork" character varying,
+    "LaborExploitPastThreeMonths" character varying,
+    "CounselingReceived" character varying,
+    "IndividualCounseling" character varying,
+    "FamilyCounseling" character varying,
+    "GroupCounseling" character varying,
+    "SessionCountAtExit" character varying,
+    "PostExitCounselingPlan" character varying,
+    "SessionsInPlan" character varying,
+    "DestinationSafeClient" character varying,
+    "DestinationSafeWorker" character varying,
+    "PosAdultConnections" character varying,
+    "PosPeerConnections" character varying,
+    "PosCommunityConnections" character varying,
+    "AftercareDate" character varying,
+    "AftercareProvided" character varying,
+    "EmailSocialMedia" character varying,
+    "Telephone" character varying,
+    "InPersonIndividual" character varying,
+    "InPersonGroup" character varying,
+    "CMExitReason" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_exits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_exits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_exits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_exits_id_seq OWNED BY public.hmis_csv_2022_exits.id;
+
+
+--
+-- Name: hmis_csv_2022_exports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_exports (
+    id bigint NOT NULL,
+    "ExportID" character varying,
+    "SourceType" character varying,
+    "SourceID" character varying,
+    "SourceName" character varying,
+    "SourceContactFirst" character varying,
+    "SourceContactLast" character varying,
+    "SourceContactPhone" character varying,
+    "SourceContactExtension" character varying,
+    "SourceContactEmail" character varying,
+    "ExportDate" character varying,
+    "ExportStartDate" character varying,
+    "ExportEndDate" character varying,
+    "SoftwareName" character varying,
+    "SoftwareVersion" character varying,
+    "CSVVersion" character varying,
+    "ExportPeriodType" character varying,
+    "ExportDirective" character varying,
+    "HashStatus" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_exports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_exports_id_seq OWNED BY public.hmis_csv_2022_exports.id;
+
+
+--
+-- Name: hmis_csv_2022_funders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_funders (
+    id bigint NOT NULL,
+    "FunderID" character varying,
+    "ProjectID" character varying,
+    "Funder" character varying,
+    "OtherFunder" character varying,
+    "GrantID" character varying,
+    "StartDate" character varying,
+    "EndDate" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_funders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_funders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_funders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_funders_id_seq OWNED BY public.hmis_csv_2022_funders.id;
+
+
+--
+-- Name: hmis_csv_2022_health_and_dvs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_health_and_dvs (
+    id bigint NOT NULL,
+    "HealthAndDVID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" character varying,
+    "DomesticViolenceVictim" character varying,
+    "WhenOccurred" character varying,
+    "CurrentlyFleeing" character varying,
+    "GeneralHealthStatus" character varying,
+    "DentalHealthStatus" character varying,
+    "MentalHealthStatus" character varying,
+    "PregnancyStatus" character varying,
+    "DueDate" character varying,
+    "LifeValue" character varying,
+    "SupportFromOthers" character varying,
+    "BounceBack" character varying,
+    "FeelingFrequency" character varying,
+    "DataCollectionStage" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_health_and_dvs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_health_and_dvs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_health_and_dvs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_health_and_dvs_id_seq OWNED BY public.hmis_csv_2022_health_and_dvs.id;
+
+
+--
+-- Name: hmis_csv_2022_income_benefits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_income_benefits (
+    id bigint NOT NULL,
+    "IncomeBenefitsID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" character varying,
+    "IncomeFromAnySource" character varying,
+    "TotalMonthlyIncome" character varying,
+    "Earned" character varying,
+    "EarnedAmount" character varying,
+    "Unemployment" character varying,
+    "UnemploymentAmount" character varying,
+    "SSI" character varying,
+    "SSIAmount" character varying,
+    "SSDI" character varying,
+    "SSDIAmount" character varying,
+    "VADisabilityService" character varying,
+    "VADisabilityServiceAmount" character varying,
+    "VADisabilityNonService" character varying,
+    "VADisabilityNonServiceAmount" character varying,
+    "PrivateDisability" character varying,
+    "PrivateDisabilityAmount" character varying,
+    "WorkersComp" character varying,
+    "WorkersCompAmount" character varying,
+    "TANF" character varying,
+    "TANFAmount" character varying,
+    "GA" character varying,
+    "GAAmount" character varying,
+    "SocSecRetirement" character varying,
+    "SocSecRetirementAmount" character varying,
+    "Pension" character varying,
+    "PensionAmount" character varying,
+    "ChildSupport" character varying,
+    "ChildSupportAmount" character varying,
+    "Alimony" character varying,
+    "AlimonyAmount" character varying,
+    "OtherIncomeSource" character varying,
+    "OtherIncomeAmount" character varying,
+    "OtherIncomeSourceIdentify" character varying,
+    "BenefitsFromAnySource" character varying,
+    "SNAP" character varying,
+    "WIC" character varying,
+    "TANFChildCare" character varying,
+    "TANFTransportation" character varying,
+    "OtherTANF" character varying,
+    "OtherBenefitsSource" character varying,
+    "OtherBenefitsSourceIdentify" character varying,
+    "InsuranceFromAnySource" character varying,
+    "Medicaid" character varying,
+    "NoMedicaidReason" character varying,
+    "Medicare" character varying,
+    "NoMedicareReason" character varying,
+    "SCHIP" character varying,
+    "NoSCHIPReason" character varying,
+    "VAMedicalServices" character varying,
+    "NoVAMedReason" character varying,
+    "EmployerProvided" character varying,
+    "NoEmployerProvidedReason" character varying,
+    "COBRA" character varying,
+    "NoCOBRAReason" character varying,
+    "PrivatePay" character varying,
+    "NoPrivatePayReason" character varying,
+    "StateHealthIns" character varying,
+    "NoStateHealthInsReason" character varying,
+    "IndianHealthServices" character varying,
+    "NoIndianHealthServicesReason" character varying,
+    "OtherInsurance" character varying,
+    "OtherInsuranceIdentify" character varying,
+    "HIVAIDSAssistance" character varying,
+    "NoHIVAIDSAssistanceReason" character varying,
+    "ADAP" character varying,
+    "NoADAPReason" character varying,
+    "RyanWhiteMedDent" character varying,
+    "NoRyanWhiteReason" character varying,
+    "ConnectionWithSOAR" character varying,
+    "DataCollectionStage" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_income_benefits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_income_benefits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_income_benefits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_income_benefits_id_seq OWNED BY public.hmis_csv_2022_income_benefits.id;
+
+
+--
+-- Name: hmis_csv_2022_inventories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_inventories (
+    id bigint NOT NULL,
+    "InventoryID" character varying,
+    "ProjectID" character varying,
+    "CoCCode" character varying,
+    "HouseholdType" character varying,
+    "Availability" character varying,
+    "UnitInventory" character varying,
+    "BedInventory" character varying,
+    "CHVetBedInventory" character varying,
+    "YouthVetBedInventory" character varying,
+    "VetBedInventory" character varying,
+    "CHYouthBedInventory" character varying,
+    "YouthBedInventory" character varying,
+    "CHBedInventory" character varying,
+    "OtherBedInventory" character varying,
+    "ESBedType" character varying,
+    "InventoryStartDate" character varying,
+    "InventoryEndDate" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_inventories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_inventories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_inventories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_inventories_id_seq OWNED BY public.hmis_csv_2022_inventories.id;
+
+
+--
+-- Name: hmis_csv_2022_organizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_organizations (
+    id bigint NOT NULL,
+    "OrganizationID" character varying,
+    "OrganizationName" character varying,
+    "VictimServiceProvider" character varying,
+    "OrganizationCommonName" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_organizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_organizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_organizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_organizations_id_seq OWNED BY public.hmis_csv_2022_organizations.id;
+
+
+--
+-- Name: hmis_csv_2022_project_cocs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_project_cocs (
+    id bigint NOT NULL,
+    "ProjectCoCID" character varying,
+    "ProjectID" character varying,
+    "CoCCode" character varying,
+    "Geocode" character varying,
+    "Address1" character varying,
+    "Address2" character varying,
+    "City" character varying,
+    "State" character varying,
+    "Zip" character varying,
+    "GeographyType" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_project_cocs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_project_cocs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_project_cocs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_project_cocs_id_seq OWNED BY public.hmis_csv_2022_project_cocs.id;
+
+
+--
+-- Name: hmis_csv_2022_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_projects (
+    id bigint NOT NULL,
+    "ProjectID" character varying,
+    "OrganizationID" character varying,
+    "ProjectName" character varying,
+    "ProjectCommonName" character varying,
+    "OperatingStartDate" character varying,
+    "OperatingEndDate" character varying,
+    "ContinuumProject" character varying,
+    "ProjectType" character varying,
+    "HousingType" character varying,
+    "ResidentialAffiliation" character varying,
+    "TrackingMethod" character varying,
+    "HMISParticipatingProject" character varying,
+    "TargetPopulation" character varying,
+    "HOPWAMedAssistedLivingFac" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_projects_id_seq OWNED BY public.hmis_csv_2022_projects.id;
+
+
+--
+-- Name: hmis_csv_2022_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_services (
+    id bigint NOT NULL,
+    "ServicesID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "DateProvided" character varying,
+    "RecordType" character varying,
+    "TypeProvided" character varying,
+    "OtherTypeProvided" character varying,
+    "MovingOnOtherType" character varying,
+    "SubTypeProvided" character varying,
+    "FAAmount" character varying,
+    "ReferralOutcome" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_services_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_services_id_seq OWNED BY public.hmis_csv_2022_services.id;
+
+
+--
+-- Name: hmis_csv_2022_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_users (
+    id bigint NOT NULL,
+    "UserID" character varying,
+    "UserFirstName" character varying,
+    "UserLastName" character varying,
+    "UserPhone" character varying,
+    "UserExtension" character varying,
+    "UserEmail" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_users_id_seq OWNED BY public.hmis_csv_2022_users.id;
+
+
+--
+-- Name: hmis_csv_2022_youth_education_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2022_youth_education_statuses (
+    id bigint NOT NULL,
+    "YouthEducationStatusID" character varying,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "InformationDate" character varying,
+    "CurrentSchoolAttend" character varying,
+    "MostRecentEdStatus" character varying,
+    "CurrentEdStatus" character varying,
+    "DataCollectionStage" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id integer NOT NULL,
+    loaded_at timestamp without time zone NOT NULL,
+    loader_id integer NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2022_youth_education_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2022_youth_education_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2022_youth_education_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2022_youth_education_statuses_id_seq OWNED BY public.hmis_csv_2022_youth_education_statuses.id;
 
 
 --
@@ -15811,6 +18596,181 @@ ALTER TABLE ONLY public.hmis_2020_users ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: hmis_2022_affiliations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_affiliations ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_affiliations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_assessment_questions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_assessment_questions ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_assessment_questions_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_assessment_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_assessment_results ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_assessment_results_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_assessments ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_assessments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_current_living_situations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_current_living_situations ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_current_living_situations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_disabilities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_disabilities ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_disabilities_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_employment_educations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_employment_educations ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_employment_educations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_enrollment_cocs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_enrollment_cocs ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_enrollment_cocs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_events ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_events_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_exits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_exits ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_exits_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_exports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_exports ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_exports_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_funders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_funders ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_funders_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_health_and_dvs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_health_and_dvs ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_health_and_dvs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_income_benefits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_income_benefits ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_income_benefits_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_inventories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_inventories ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_inventories_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_organizations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_organizations ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_organizations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_project_cocs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_project_cocs ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_project_cocs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_projects id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_projects ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_projects_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_services id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_services ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_services_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_users ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_users_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2022_youth_education_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_youth_education_statuses ALTER COLUMN id SET DEFAULT nextval('public.hmis_2022_youth_education_statuses_id_seq'::regclass);
+
+
+--
+-- Name: hmis_aggregated_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_aggregated_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hmis_aggregated_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_aggregated_exits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_aggregated_exits ALTER COLUMN id SET DEFAULT nextval('public.hmis_aggregated_exits_id_seq'::regclass);
+
+
+--
 -- Name: hmis_assessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -15983,6 +18943,167 @@ ALTER TABLE ONLY public.hmis_csv_2020_services ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.hmis_csv_2020_users ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2020_users_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_affiliations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_affiliations ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_affiliations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_assessment_questions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_assessment_questions ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_assessment_questions_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_assessment_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_assessment_results ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_assessment_results_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_assessments ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_assessments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_current_living_situations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_current_living_situations ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_current_living_situations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_disabilities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_disabilities ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_disabilities_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_employment_educations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_employment_educations ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_employment_educations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_enrollment_cocs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_enrollment_cocs ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_enrollment_cocs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_events ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_events_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_exits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_exits ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_exits_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_exports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_exports ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_exports_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_funders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_funders ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_funders_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_health_and_dvs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_health_and_dvs ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_health_and_dvs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_income_benefits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_income_benefits ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_income_benefits_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_inventories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_inventories ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_inventories_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_organizations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_organizations ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_organizations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_project_cocs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_project_cocs ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_project_cocs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_projects id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_projects ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_projects_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_services id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_services ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_services_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_users ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_users_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2022_youth_education_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_youth_education_statuses ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2022_youth_education_statuses_id_seq'::regclass);
 
 
 --
@@ -18025,6 +21146,206 @@ ALTER TABLE ONLY public.hmis_2020_users
 
 
 --
+-- Name: hmis_2022_affiliations hmis_2022_affiliations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_affiliations
+    ADD CONSTRAINT hmis_2022_affiliations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_assessment_questions hmis_2022_assessment_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_assessment_questions
+    ADD CONSTRAINT hmis_2022_assessment_questions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_assessment_results hmis_2022_assessment_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_assessment_results
+    ADD CONSTRAINT hmis_2022_assessment_results_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_assessments hmis_2022_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_assessments
+    ADD CONSTRAINT hmis_2022_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_clients hmis_2022_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_clients
+    ADD CONSTRAINT hmis_2022_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_current_living_situations hmis_2022_current_living_situations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_current_living_situations
+    ADD CONSTRAINT hmis_2022_current_living_situations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_disabilities hmis_2022_disabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_disabilities
+    ADD CONSTRAINT hmis_2022_disabilities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_employment_educations hmis_2022_employment_educations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_employment_educations
+    ADD CONSTRAINT hmis_2022_employment_educations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_enrollment_cocs hmis_2022_enrollment_cocs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_enrollment_cocs
+    ADD CONSTRAINT hmis_2022_enrollment_cocs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_enrollments hmis_2022_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_enrollments
+    ADD CONSTRAINT hmis_2022_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_events hmis_2022_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_events
+    ADD CONSTRAINT hmis_2022_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_exits hmis_2022_exits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_exits
+    ADD CONSTRAINT hmis_2022_exits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_exports hmis_2022_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_exports
+    ADD CONSTRAINT hmis_2022_exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_funders hmis_2022_funders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_funders
+    ADD CONSTRAINT hmis_2022_funders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_health_and_dvs hmis_2022_health_and_dvs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_health_and_dvs
+    ADD CONSTRAINT hmis_2022_health_and_dvs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_income_benefits hmis_2022_income_benefits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_income_benefits
+    ADD CONSTRAINT hmis_2022_income_benefits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_inventories hmis_2022_inventories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_inventories
+    ADD CONSTRAINT hmis_2022_inventories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_organizations hmis_2022_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_organizations
+    ADD CONSTRAINT hmis_2022_organizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_project_cocs hmis_2022_project_cocs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_project_cocs
+    ADD CONSTRAINT hmis_2022_project_cocs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_projects hmis_2022_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_projects
+    ADD CONSTRAINT hmis_2022_projects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_services hmis_2022_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_services
+    ADD CONSTRAINT hmis_2022_services_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_users hmis_2022_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_users
+    ADD CONSTRAINT hmis_2022_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2022_youth_education_statuses hmis_2022_youth_education_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2022_youth_education_statuses
+    ADD CONSTRAINT hmis_2022_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_aggregated_enrollments hmis_aggregated_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_aggregated_enrollments
+    ADD CONSTRAINT hmis_aggregated_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_aggregated_exits hmis_aggregated_exits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_aggregated_exits
+    ADD CONSTRAINT hmis_aggregated_exits_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_assessments hmis_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18222,6 +21543,190 @@ ALTER TABLE ONLY public.hmis_csv_2020_services
 
 ALTER TABLE ONLY public.hmis_csv_2020_users
     ADD CONSTRAINT hmis_csv_2020_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_affiliations hmis_csv_2022_affiliations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_affiliations
+    ADD CONSTRAINT hmis_csv_2022_affiliations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_assessment_questions hmis_csv_2022_assessment_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_assessment_questions
+    ADD CONSTRAINT hmis_csv_2022_assessment_questions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_assessment_results hmis_csv_2022_assessment_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_assessment_results
+    ADD CONSTRAINT hmis_csv_2022_assessment_results_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_assessments hmis_csv_2022_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_assessments
+    ADD CONSTRAINT hmis_csv_2022_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_clients hmis_csv_2022_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_clients
+    ADD CONSTRAINT hmis_csv_2022_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_current_living_situations hmis_csv_2022_current_living_situations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_current_living_situations
+    ADD CONSTRAINT hmis_csv_2022_current_living_situations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_disabilities hmis_csv_2022_disabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_disabilities
+    ADD CONSTRAINT hmis_csv_2022_disabilities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_employment_educations hmis_csv_2022_employment_educations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_employment_educations
+    ADD CONSTRAINT hmis_csv_2022_employment_educations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_enrollment_cocs hmis_csv_2022_enrollment_cocs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_enrollment_cocs
+    ADD CONSTRAINT hmis_csv_2022_enrollment_cocs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_enrollments hmis_csv_2022_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_enrollments
+    ADD CONSTRAINT hmis_csv_2022_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_events hmis_csv_2022_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_events
+    ADD CONSTRAINT hmis_csv_2022_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_exits hmis_csv_2022_exits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_exits
+    ADD CONSTRAINT hmis_csv_2022_exits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_exports hmis_csv_2022_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_exports
+    ADD CONSTRAINT hmis_csv_2022_exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_funders hmis_csv_2022_funders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_funders
+    ADD CONSTRAINT hmis_csv_2022_funders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_health_and_dvs hmis_csv_2022_health_and_dvs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_health_and_dvs
+    ADD CONSTRAINT hmis_csv_2022_health_and_dvs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_income_benefits hmis_csv_2022_income_benefits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_income_benefits
+    ADD CONSTRAINT hmis_csv_2022_income_benefits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_inventories hmis_csv_2022_inventories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_inventories
+    ADD CONSTRAINT hmis_csv_2022_inventories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_organizations hmis_csv_2022_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_organizations
+    ADD CONSTRAINT hmis_csv_2022_organizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_project_cocs hmis_csv_2022_project_cocs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_project_cocs
+    ADD CONSTRAINT hmis_csv_2022_project_cocs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_projects hmis_csv_2022_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_projects
+    ADD CONSTRAINT hmis_csv_2022_projects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_services hmis_csv_2022_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_services
+    ADD CONSTRAINT hmis_csv_2022_services_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_users hmis_csv_2022_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_users
+    ADD CONSTRAINT hmis_csv_2022_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2022_youth_education_statuses hmis_csv_2022_youth_education_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2022_youth_education_statuses
+    ADD CONSTRAINT hmis_csv_2022_youth_education_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -19493,6 +22998,930 @@ CREATE INDEX health_and_dv_date_updated ON public."HealthAndDV" USING btree ("Da
 --
 
 CREATE INDEX health_and_dv_export_id ON public."HealthAndDV" USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022affiliations_w5g2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022affiliations_w5g2 ON public.hmis_2022_affiliations USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022assessmentquestions_VjZw; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022assessmentquestions_VjZw" ON public.hmis_2022_assessment_questions USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022assessmentquestions_pXez; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022assessmentquestions_pXez" ON public.hmis_2022_assessment_questions USING btree ("AssessmentID");
+
+
+--
+-- Name: hmis2022assessmentresults_1YQ7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022assessmentresults_1YQ7" ON public.hmis_2022_assessment_results USING btree ("AssessmentID");
+
+
+--
+-- Name: hmis2022assessmentresults_wjAC; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022assessmentresults_wjAC" ON public.hmis_2022_assessment_results USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022assessments_CND6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022assessments_CND6" ON public.hmis_2022_assessments USING btree ("AssessmentID");
+
+
+--
+-- Name: hmis2022assessments_l0St; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022assessments_l0St" ON public.hmis_2022_assessments USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022assessments_psyy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022assessments_psyy ON public.hmis_2022_assessments USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022assessments_v1x6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022assessments_v1x6 ON public.hmis_2022_assessments USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022assessments_xFQ3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022assessments_xFQ3" ON public.hmis_2022_assessments USING btree ("AssessmentDate");
+
+
+--
+-- Name: hmis2022clients_45VX; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022clients_45VX" ON public.hmis_2022_clients USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022clients_A9n6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022clients_A9n6" ON public.hmis_2022_clients USING btree ("LastName");
+
+
+--
+-- Name: hmis2022clients_Cz3Z; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022clients_Cz3Z" ON public.hmis_2022_clients USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022clients_Nn8F; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022clients_Nn8F" ON public.hmis_2022_clients USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022clients_Q0rv; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022clients_Q0rv" ON public.hmis_2022_clients USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022clients_u39E; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022clients_u39E" ON public.hmis_2022_clients USING btree ("FirstName");
+
+
+--
+-- Name: hmis2022clients_wUil; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022clients_wUil" ON public.hmis_2022_clients USING btree ("DOB");
+
+
+--
+-- Name: hmis2022clients_x2Ss; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022clients_x2Ss" ON public.hmis_2022_clients USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis2022currentlivingsituations_MgwW; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022currentlivingsituations_MgwW" ON public.hmis_2022_current_living_situations USING btree ("CurrentLivingSitID");
+
+
+--
+-- Name: hmis2022currentlivingsituations_OapZ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022currentlivingsituations_OapZ" ON public.hmis_2022_current_living_situations USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022currentlivingsituations_QcYY; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022currentlivingsituations_QcYY" ON public.hmis_2022_current_living_situations USING btree ("InformationDate");
+
+
+--
+-- Name: hmis2022currentlivingsituations_TPTd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022currentlivingsituations_TPTd" ON public.hmis_2022_current_living_situations USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022currentlivingsituations_bi6X; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022currentlivingsituations_bi6X" ON public.hmis_2022_current_living_situations USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022currentlivingsituations_kaBl; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022currentlivingsituations_kaBl" ON public.hmis_2022_current_living_situations USING btree ("CurrentLivingSituation");
+
+
+--
+-- Name: hmis2022disabilities_29GB; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022disabilities_29GB" ON public.hmis_2022_disabilities USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022disabilities_5Mwu; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022disabilities_5Mwu" ON public.hmis_2022_disabilities USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022disabilities_AT71; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022disabilities_AT71" ON public.hmis_2022_disabilities USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022disabilities_BN1M; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022disabilities_BN1M" ON public.hmis_2022_disabilities USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022disabilities_vt7H; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022disabilities_vt7H" ON public.hmis_2022_disabilities USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022disabilities_yrBW; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022disabilities_yrBW" ON public.hmis_2022_disabilities USING btree ("DisabilitiesID");
+
+
+--
+-- Name: hmis2022employmenteducations_1WZN; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022employmenteducations_1WZN" ON public.hmis_2022_employment_educations USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022employmenteducations_2GUM; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022employmenteducations_2GUM" ON public.hmis_2022_employment_educations USING btree ("EmploymentEducationID");
+
+
+--
+-- Name: hmis2022employmenteducations_UeXR; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022employmenteducations_UeXR" ON public.hmis_2022_employment_educations USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022employmenteducations_aYBx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022employmenteducations_aYBx" ON public.hmis_2022_employment_educations USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022employmenteducations_swRI; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022employmenteducations_swRI" ON public.hmis_2022_employment_educations USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022employmenteducations_xC7Y; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022employmenteducations_xC7Y" ON public.hmis_2022_employment_educations USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022enrollmentcocs_88AK; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollmentcocs_88AK" ON public.hmis_2022_enrollment_cocs USING btree ("CoCCode");
+
+
+--
+-- Name: hmis2022enrollmentcocs_Cx8C; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollmentcocs_Cx8C" ON public.hmis_2022_enrollment_cocs USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022enrollmentcocs_P6k2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollmentcocs_P6k2" ON public.hmis_2022_enrollment_cocs USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022enrollmentcocs_Yvby; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollmentcocs_Yvby" ON public.hmis_2022_enrollment_cocs USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022enrollmentcocs_adCL; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollmentcocs_adCL" ON public.hmis_2022_enrollment_cocs USING btree ("DateDeleted");
+
+
+--
+-- Name: hmis2022enrollmentcocs_d179; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022enrollmentcocs_d179 ON public.hmis_2022_enrollment_cocs USING btree ("EnrollmentCoCID");
+
+
+--
+-- Name: hmis2022enrollmentcocs_j66V; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollmentcocs_j66V" ON public.hmis_2022_enrollment_cocs USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022enrollmentcocs_oz9V; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollmentcocs_oz9V" ON public.hmis_2022_enrollment_cocs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022enrollments_09oD; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_09oD" ON public.hmis_2022_enrollments USING btree ("PreviousStreetESSH", "LengthOfStay");
+
+
+--
+-- Name: hmis2022enrollments_4u5o; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022enrollments_4u5o ON public.hmis_2022_enrollments USING btree ("ProjectID", "RelationshipToHoH");
+
+
+--
+-- Name: hmis2022enrollments_5zCh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_5zCh" ON public.hmis_2022_enrollments USING btree ("EntryDate");
+
+
+--
+-- Name: hmis2022enrollments_Hf3Y; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_Hf3Y" ON public.hmis_2022_enrollments USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022enrollments_LIAh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_LIAh" ON public.hmis_2022_enrollments USING btree ("HouseholdID");
+
+
+--
+-- Name: hmis2022enrollments_TlUG; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_TlUG" ON public.hmis_2022_enrollments USING btree ("DateDeleted");
+
+
+--
+-- Name: hmis2022enrollments_UAhy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_UAhy" ON public.hmis_2022_enrollments USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis2022enrollments_UoJq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_UoJq" ON public.hmis_2022_enrollments USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022enrollments_XrB6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_XrB6" ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "ProjectID", "EntryDate");
+
+
+--
+-- Name: hmis2022enrollments_Z0Va; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_Z0Va" ON public.hmis_2022_enrollments USING btree ("ProjectID", "HouseholdID");
+
+
+--
+-- Name: hmis2022enrollments_bedl; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022enrollments_bedl ON public.hmis_2022_enrollments USING btree ("LivingSituation");
+
+
+--
+-- Name: hmis2022enrollments_buiy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022enrollments_buiy ON public.hmis_2022_enrollments USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022enrollments_c37H; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_c37H" ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: hmis2022enrollments_hw3C; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_hw3C" ON public.hmis_2022_enrollments USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022enrollments_i6l4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022enrollments_i6l4 ON public.hmis_2022_enrollments USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022enrollments_kRte; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_kRte" ON public.hmis_2022_enrollments USING btree ("ProjectID");
+
+
+--
+-- Name: hmis2022enrollments_tmLg; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022enrollments_tmLg" ON public.hmis_2022_enrollments USING btree ("TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears");
+
+
+--
+-- Name: hmis2022events_8S5e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022events_8S5e" ON public.hmis_2022_events USING btree ("EventDate");
+
+
+--
+-- Name: hmis2022events_FoSR; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022events_FoSR" ON public.hmis_2022_events USING btree ("EventID");
+
+
+--
+-- Name: hmis2022events_G0Rj; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022events_G0Rj" ON public.hmis_2022_events USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022events_hKrZ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022events_hKrZ" ON public.hmis_2022_events USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022events_jqCR; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022events_jqCR" ON public.hmis_2022_events USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022exits_6iZU; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022exits_6iZU" ON public.hmis_2022_exits USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022exits_6wHU; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022exits_6wHU" ON public.hmis_2022_exits USING btree ("DateDeleted");
+
+
+--
+-- Name: hmis2022exits_NtgM; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022exits_NtgM" ON public.hmis_2022_exits USING btree ("ExitID");
+
+
+--
+-- Name: hmis2022exits_Ukyv; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022exits_Ukyv" ON public.hmis_2022_exits USING btree ("ExitDate");
+
+
+--
+-- Name: hmis2022exits_excj; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022exits_excj ON public.hmis_2022_exits USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022exits_i0BC; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022exits_i0BC" ON public.hmis_2022_exits USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022exits_l8Zh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022exits_l8Zh" ON public.hmis_2022_exits USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022exits_qZKn; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022exits_qZKn" ON public.hmis_2022_exits USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022exports_a8xj; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022exports_a8xj ON public.hmis_2022_exports USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022funders_3q3J; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022funders_3q3J" ON public.hmis_2022_funders USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022funders_Sqpv; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022funders_Sqpv" ON public.hmis_2022_funders USING btree ("FunderID");
+
+
+--
+-- Name: hmis2022funders_cEpp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022funders_cEpp" ON public.hmis_2022_funders USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022funders_uadT; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022funders_uadT" ON public.hmis_2022_funders USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022healthanddvs_9JFc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022healthanddvs_9JFc" ON public.hmis_2022_health_and_dvs USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022healthanddvs_HAPO; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022healthanddvs_HAPO" ON public.hmis_2022_health_and_dvs USING btree ("HealthAndDVID");
+
+
+--
+-- Name: hmis2022healthanddvs_LnAT; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022healthanddvs_LnAT" ON public.hmis_2022_health_and_dvs USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022healthanddvs_N6vI; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022healthanddvs_N6vI" ON public.hmis_2022_health_and_dvs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022healthanddvs_z6oG; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022healthanddvs_z6oG" ON public.hmis_2022_health_and_dvs USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022healthanddvs_zCTz; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022healthanddvs_zCTz" ON public.hmis_2022_health_and_dvs USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022incomebenefits_8BEg; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022incomebenefits_8BEg" ON public.hmis_2022_income_benefits USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022incomebenefits_E87M; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022incomebenefits_E87M" ON public.hmis_2022_income_benefits USING btree ("IncomeBenefitsID");
+
+
+--
+-- Name: hmis2022incomebenefits_HG7u; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022incomebenefits_HG7u" ON public.hmis_2022_income_benefits USING btree ("IncomeFromAnySource", "DataCollectionStage");
+
+
+--
+-- Name: hmis2022incomebenefits_IFzN; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022incomebenefits_IFzN" ON public.hmis_2022_income_benefits USING btree ("InformationDate");
+
+
+--
+-- Name: hmis2022incomebenefits_ISrj; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022incomebenefits_ISrj" ON public.hmis_2022_income_benefits USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022incomebenefits_L8S5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022incomebenefits_L8S5" ON public.hmis_2022_income_benefits USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022incomebenefits_YHKM; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022incomebenefits_YHKM" ON public.hmis_2022_income_benefits USING btree ("Earned", "DataCollectionStage");
+
+
+--
+-- Name: hmis2022incomebenefits_s7l9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022incomebenefits_s7l9 ON public.hmis_2022_income_benefits USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022incomebenefits_zhFQ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022incomebenefits_zhFQ" ON public.hmis_2022_income_benefits USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022inventories_0hZr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022inventories_0hZr" ON public.hmis_2022_inventories USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022inventories_3aRD; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022inventories_3aRD" ON public.hmis_2022_inventories USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022inventories_5Ef7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022inventories_5Ef7" ON public.hmis_2022_inventories USING btree ("ProjectID", "CoCCode");
+
+
+--
+-- Name: hmis2022inventories_74Oy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022inventories_74Oy" ON public.hmis_2022_inventories USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022inventories_Z1x8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022inventories_Z1x8" ON public.hmis_2022_inventories USING btree ("InventoryID");
+
+
+--
+-- Name: hmis2022organizations_5upF; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022organizations_5upF" ON public.hmis_2022_organizations USING btree ("OrganizationID");
+
+
+--
+-- Name: hmis2022organizations_hpZW; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022organizations_hpZW" ON public.hmis_2022_organizations USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022projectcocs_MPeI; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022projectcocs_MPeI" ON public.hmis_2022_project_cocs USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022projectcocs_VAP3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022projectcocs_VAP3" ON public.hmis_2022_project_cocs USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022projectcocs_jZYI; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022projectcocs_jZYI" ON public.hmis_2022_project_cocs USING btree ("ProjectCoCID");
+
+
+--
+-- Name: hmis2022projectcocs_kaic; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022projectcocs_kaic ON public.hmis_2022_project_cocs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022projectcocs_tmpF; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022projectcocs_tmpF" ON public.hmis_2022_project_cocs USING btree ("ProjectID", "CoCCode");
+
+
+--
+-- Name: hmis2022projects_M2t5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022projects_M2t5" ON public.hmis_2022_projects USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022projects_QkOi; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022projects_QkOi" ON public.hmis_2022_projects USING btree ("ProjectID");
+
+
+--
+-- Name: hmis2022projects_c08V; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022projects_c08V" ON public.hmis_2022_projects USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022projects_iqAW; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022projects_iqAW" ON public.hmis_2022_projects USING btree ("ProjectType");
+
+
+--
+-- Name: hmis2022projects_ntlz; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022projects_ntlz ON public.hmis_2022_projects USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022services_AxbR; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_AxbR" ON public.hmis_2022_services USING btree ("RecordType", "DateProvided");
+
+
+--
+-- Name: hmis2022services_BPn2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_BPn2" ON public.hmis_2022_services USING btree ("RecordType", "DateDeleted");
+
+
+--
+-- Name: hmis2022services_GOnk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_GOnk" ON public.hmis_2022_services USING btree ("DateUpdated");
+
+
+--
+-- Name: hmis2022services_QEJL; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_QEJL" ON public.hmis_2022_services USING btree ("ServicesID");
+
+
+--
+-- Name: hmis2022services_WZhh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_WZhh" ON public.hmis_2022_services USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022services_anxH; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_anxH" ON public.hmis_2022_services USING btree ("DateDeleted");
+
+
+--
+-- Name: hmis2022services_bo7R; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_bo7R" ON public.hmis_2022_services USING btree ("RecordType");
+
+
+--
+-- Name: hmis2022services_c13c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022services_c13c ON public.hmis_2022_services USING btree ("DateProvided");
+
+
+--
+-- Name: hmis2022services_dXIS; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_dXIS" ON public.hmis_2022_services USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: hmis2022services_e0WY; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_e0WY" ON public.hmis_2022_services USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022services_hBF2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_hBF2" ON public.hmis_2022_services USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmis2022services_iuSD; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_iuSD" ON public.hmis_2022_services USING btree ("PersonalID", "RecordType", "EnrollmentID", "DateProvided");
+
+
+--
+-- Name: hmis2022services_nmIg; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022services_nmIg" ON public.hmis_2022_services USING btree ("DateCreated");
+
+
+--
+-- Name: hmis2022services_t0d9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2022services_t0d9 ON public.hmis_2022_services USING btree ("EnrollmentID", "RecordType", "DateDeleted", "DateProvided");
+
+
+--
+-- Name: hmis2022users_2zMh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022users_2zMh" ON public.hmis_2022_users USING btree ("UserID");
+
+
+--
+-- Name: hmis2022users_ZTpg; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022users_ZTpg" ON public.hmis_2022_users USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022youtheducationstatuses_A3LQ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022youtheducationstatuses_A3LQ" ON public.hmis_2022_youth_education_statuses USING btree ("YouthEducationStatusID");
+
+
+--
+-- Name: hmis2022youtheducationstatuses_HBPA; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022youtheducationstatuses_HBPA" ON public.hmis_2022_youth_education_statuses USING btree ("InformationDate");
+
+
+--
+-- Name: hmis2022youtheducationstatuses_SGlq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022youtheducationstatuses_SGlq" ON public.hmis_2022_youth_education_statuses USING btree ("ExportID");
+
+
+--
+-- Name: hmis2022youtheducationstatuses_Vp5E; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022youtheducationstatuses_Vp5E" ON public.hmis_2022_youth_education_statuses USING btree ("PersonalID");
+
+
+--
+-- Name: hmis2022youtheducationstatuses_y22I; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis2022youtheducationstatuses_y22I" ON public.hmis_2022_youth_education_statuses USING btree ("EnrollmentID");
 
 
 --
@@ -20896,6 +25325,363 @@ CREATE INDEX "hmis_2020_users-ZfY6" ON public.hmis_2020_users USING btree (sourc
 
 
 --
+-- Name: hmis_2022_affiliations-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_affiliations-48bf" ON public.hmis_2022_affiliations USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_affiliations-6457; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_affiliations-6457" ON public.hmis_2022_affiliations USING btree ("AffiliationID", data_source_id);
+
+
+--
+-- Name: hmis_2022_assessment_questions-0cd3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_assessment_questions-0cd3" ON public.hmis_2022_assessment_questions USING btree ("AssessmentQuestionID", data_source_id);
+
+
+--
+-- Name: hmis_2022_assessment_questions-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_assessment_questions-48bf" ON public.hmis_2022_assessment_questions USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_assessment_results-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_assessment_results-48bf" ON public.hmis_2022_assessment_results USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_assessment_results-d6c9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_assessment_results-d6c9" ON public.hmis_2022_assessment_results USING btree ("AssessmentResultID", data_source_id);
+
+
+--
+-- Name: hmis_2022_assessments-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_assessments-48bf" ON public.hmis_2022_assessments USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_assessments-df76; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_assessments-df76" ON public.hmis_2022_assessments USING btree ("AssessmentID", data_source_id);
+
+
+--
+-- Name: hmis_2022_clients-230f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_clients-230f" ON public.hmis_2022_clients USING btree ("PersonalID", data_source_id);
+
+
+--
+-- Name: hmis_2022_clients-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_clients-48bf" ON public.hmis_2022_clients USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_current_living_situations-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_current_living_situations-48bf" ON public.hmis_2022_current_living_situations USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_current_living_situations-cf31; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_current_living_situations-cf31" ON public.hmis_2022_current_living_situations USING btree ("CurrentLivingSitID", data_source_id);
+
+
+--
+-- Name: hmis_2022_disabilities-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_disabilities-48bf" ON public.hmis_2022_disabilities USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_disabilities-7712; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_disabilities-7712" ON public.hmis_2022_disabilities USING btree ("DisabilitiesID", data_source_id);
+
+
+--
+-- Name: hmis_2022_employment_educations-3032; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_employment_educations-3032" ON public.hmis_2022_employment_educations USING btree ("EmploymentEducationID", data_source_id);
+
+
+--
+-- Name: hmis_2022_employment_educations-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_employment_educations-48bf" ON public.hmis_2022_employment_educations USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_enrollment_cocs-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_enrollment_cocs-48bf" ON public.hmis_2022_enrollment_cocs USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_enrollment_cocs-d4b8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_enrollment_cocs-d4b8" ON public.hmis_2022_enrollment_cocs USING btree ("EnrollmentCoCID", data_source_id);
+
+
+--
+-- Name: hmis_2022_enrollments-0a46; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_enrollments-0a46" ON public.hmis_2022_enrollments USING btree ("EnrollmentID", data_source_id);
+
+
+--
+-- Name: hmis_2022_enrollments-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_enrollments-48bf" ON public.hmis_2022_enrollments USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_events-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_events-48bf" ON public.hmis_2022_events USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_events-9f9c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_events-9f9c" ON public.hmis_2022_events USING btree ("EventID", data_source_id);
+
+
+--
+-- Name: hmis_2022_exits-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_exits-48bf" ON public.hmis_2022_exits USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_exits-cfdd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_exits-cfdd" ON public.hmis_2022_exits USING btree ("ExitID", data_source_id);
+
+
+--
+-- Name: hmis_2022_exports-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_exports-48bf" ON public.hmis_2022_exports USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_exports-86be; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_exports-86be" ON public.hmis_2022_exports USING btree ("ExportID", data_source_id);
+
+
+--
+-- Name: hmis_2022_funders-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_funders-48bf" ON public.hmis_2022_funders USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_funders-4ad5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_funders-4ad5" ON public.hmis_2022_funders USING btree ("FunderID", data_source_id);
+
+
+--
+-- Name: hmis_2022_health_and_dvs-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_health_and_dvs-48bf" ON public.hmis_2022_health_and_dvs USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_health_and_dvs-e384; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_health_and_dvs-e384" ON public.hmis_2022_health_and_dvs USING btree ("HealthAndDVID", data_source_id);
+
+
+--
+-- Name: hmis_2022_income_benefits-200d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_income_benefits-200d" ON public.hmis_2022_income_benefits USING btree ("IncomeBenefitsID", data_source_id);
+
+
+--
+-- Name: hmis_2022_income_benefits-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_income_benefits-48bf" ON public.hmis_2022_income_benefits USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_inventories-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_inventories-48bf" ON public.hmis_2022_inventories USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_inventories-86c0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_inventories-86c0" ON public.hmis_2022_inventories USING btree ("InventoryID", data_source_id);
+
+
+--
+-- Name: hmis_2022_organizations-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_organizations-48bf" ON public.hmis_2022_organizations USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_organizations-7580; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_organizations-7580" ON public.hmis_2022_organizations USING btree ("OrganizationID", data_source_id);
+
+
+--
+-- Name: hmis_2022_project_cocs-3966; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_project_cocs-3966" ON public.hmis_2022_project_cocs USING btree ("ProjectCoCID", data_source_id);
+
+
+--
+-- Name: hmis_2022_project_cocs-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_project_cocs-48bf" ON public.hmis_2022_project_cocs USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_projects-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_projects-48bf" ON public.hmis_2022_projects USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_projects-92c5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_projects-92c5" ON public.hmis_2022_projects USING btree ("ProjectID", data_source_id);
+
+
+--
+-- Name: hmis_2022_services-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_services-48bf" ON public.hmis_2022_services USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_services-7a57; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_services-7a57" ON public.hmis_2022_services USING btree ("ServicesID", data_source_id);
+
+
+--
+-- Name: hmis_2022_users-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_users-48bf" ON public.hmis_2022_users USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_users-b749; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_users-b749" ON public.hmis_2022_users USING btree ("UserID", data_source_id);
+
+
+--
+-- Name: hmis_2022_youth_education_statuses-48bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_youth_education_statuses-48bf" ON public.hmis_2022_youth_education_statuses USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_youth_education_statuses-a32f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_2022_youth_education_statuses-a32f" ON public.hmis_2022_youth_education_statuses USING btree ("YouthEducationStatusID", data_source_id);
+
+
+--
+-- Name: hmis_agg_enrollments_p_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_agg_enrollments_p_id_p_id_ds_id ON public.hmis_aggregated_enrollments USING btree ("PersonalID", "ProjectID", data_source_id);
+
+
+--
+-- Name: hmis_aggregated_enrollments-XDIe; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "hmis_aggregated_enrollments-XDIe" ON public.hmis_aggregated_enrollments USING btree ("EnrollmentID", "PersonalID", data_source_id);
+
+
+--
+-- Name: hmis_aggregated_enrollments-wJ0b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_aggregated_enrollments-wJ0b" ON public.hmis_aggregated_enrollments USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_aggregated_exits-V1aX; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_aggregated_exits-V1aX" ON public.hmis_aggregated_exits USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_aggregated_exits-tXsS; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "hmis_aggregated_exits-tXsS" ON public.hmis_aggregated_exits USING btree ("ExitID", data_source_id);
+
+
+--
 -- Name: hmis_csv_2020_affiliations-F2ar; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -21918,6 +26704,167 @@ CREATE INDEX "hmis_csv_2020_users-Y4OW" ON public.hmis_csv_2020_users USING btre
 
 
 --
+-- Name: hmis_csv_2022_affiliations-6457; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_affiliations-6457" ON public.hmis_csv_2022_affiliations USING btree ("AffiliationID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_assessment_questions-0cd3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_assessment_questions-0cd3" ON public.hmis_csv_2022_assessment_questions USING btree ("AssessmentQuestionID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_assessment_results-d6c9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_assessment_results-d6c9" ON public.hmis_csv_2022_assessment_results USING btree ("AssessmentResultID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_assessments-df76; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_assessments-df76" ON public.hmis_csv_2022_assessments USING btree ("AssessmentID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_clients-230f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_clients-230f" ON public.hmis_csv_2022_clients USING btree ("PersonalID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_current_living_situations-cf31; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_current_living_situations-cf31" ON public.hmis_csv_2022_current_living_situations USING btree ("CurrentLivingSitID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_disabilities-7712; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_disabilities-7712" ON public.hmis_csv_2022_disabilities USING btree ("DisabilitiesID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_employment_educations-3032; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_employment_educations-3032" ON public.hmis_csv_2022_employment_educations USING btree ("EmploymentEducationID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_enrollment_cocs-d4b8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_enrollment_cocs-d4b8" ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentCoCID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_enrollments-0a46; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_enrollments-0a46" ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_events-9f9c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_events-9f9c" ON public.hmis_csv_2022_events USING btree ("EventID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_exits-cfdd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_exits-cfdd" ON public.hmis_csv_2022_exits USING btree ("ExitID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_exports-86be; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_exports-86be" ON public.hmis_csv_2022_exports USING btree ("ExportID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_funders-4ad5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_funders-4ad5" ON public.hmis_csv_2022_funders USING btree ("FunderID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_health_and_dvs-e384; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_health_and_dvs-e384" ON public.hmis_csv_2022_health_and_dvs USING btree ("HealthAndDVID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_income_benefits-200d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_income_benefits-200d" ON public.hmis_csv_2022_income_benefits USING btree ("IncomeBenefitsID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_inventories-86c0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_inventories-86c0" ON public.hmis_csv_2022_inventories USING btree ("InventoryID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_organizations-7580; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_organizations-7580" ON public.hmis_csv_2022_organizations USING btree ("OrganizationID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_project_cocs-3966; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_project_cocs-3966" ON public.hmis_csv_2022_project_cocs USING btree ("ProjectCoCID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_projects-92c5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_projects-92c5" ON public.hmis_csv_2022_projects USING btree ("ProjectID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_services-7a57; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_services-7a57" ON public.hmis_csv_2022_services USING btree ("ServicesID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_users-b749; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_users-b749" ON public.hmis_csv_2022_users USING btree ("UserID", data_source_id);
+
+
+--
+-- Name: hmis_csv_2022_youth_education_statuses-a32f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmis_csv_2022_youth_education_statuses-a32f" ON public.hmis_csv_2022_youth_education_statuses USING btree ("YouthEducationStatusID", data_source_id);
+
+
+--
 -- Name: hmis_csv_import_errors-wgH3; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -21929,6 +26876,1105 @@ CREATE INDEX "hmis_csv_import_errors-wgH3" ON public.hmis_csv_import_errors USIN
 --
 
 CREATE INDEX "hmis_csv_validations-ONiu" ON public.hmis_csv_import_validations USING btree (source_type, source_id);
+
+
+--
+-- Name: hmisaggregatedenrollments_21bT; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_21bT" ON public.hmis_aggregated_enrollments USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmisaggregatedenrollments_27SN; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_27SN" ON public.hmis_aggregated_enrollments USING btree ("DateUpdated");
+
+
+--
+-- Name: hmisaggregatedenrollments_5C9p; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_5C9p" ON public.hmis_aggregated_enrollments USING btree ("ProjectID", "RelationshipToHoH");
+
+
+--
+-- Name: hmisaggregatedenrollments_Fp8D; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_Fp8D" ON public.hmis_aggregated_enrollments USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: hmisaggregatedenrollments_JYg3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_JYg3" ON public.hmis_aggregated_enrollments USING btree ("DateDeleted");
+
+
+--
+-- Name: hmisaggregatedenrollments_MqJa; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_MqJa" ON public.hmis_aggregated_enrollments USING btree ("ProjectID", "HouseholdID");
+
+
+--
+-- Name: hmisaggregatedenrollments_XDqd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_XDqd" ON public.hmis_aggregated_enrollments USING btree ("LivingSituation");
+
+
+--
+-- Name: hmisaggregatedenrollments_ZYis; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_ZYis" ON public.hmis_aggregated_enrollments USING btree ("PreviousStreetESSH", "LengthOfStay");
+
+
+--
+-- Name: hmisaggregatedenrollments_Zr3H; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_Zr3H" ON public.hmis_aggregated_enrollments USING btree ("DateCreated");
+
+
+--
+-- Name: hmisaggregatedenrollments_f6QA; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_f6QA" ON public.hmis_aggregated_enrollments USING btree ("ExportID");
+
+
+--
+-- Name: hmisaggregatedenrollments_gZJm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_gZJm" ON public.hmis_aggregated_enrollments USING btree ("EntryDate");
+
+
+--
+-- Name: hmisaggregatedenrollments_kEuu; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_kEuu" ON public.hmis_aggregated_enrollments USING btree ("EnrollmentID", "ProjectID", "EntryDate");
+
+
+--
+-- Name: hmisaggregatedenrollments_kcUz; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_kcUz" ON public.hmis_aggregated_enrollments USING btree ("HouseholdID");
+
+
+--
+-- Name: hmisaggregatedenrollments_oC3R; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_oC3R" ON public.hmis_aggregated_enrollments USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmisaggregatedenrollments_pqCF; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_pqCF" ON public.hmis_aggregated_enrollments USING btree ("PersonalID");
+
+
+--
+-- Name: hmisaggregatedenrollments_qaT7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_qaT7" ON public.hmis_aggregated_enrollments USING btree ("ProjectID");
+
+
+--
+-- Name: hmisaggregatedenrollments_zJN6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedenrollments_zJN6" ON public.hmis_aggregated_enrollments USING btree ("TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears");
+
+
+--
+-- Name: hmisaggregatedexits_OJ6u; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedexits_OJ6u" ON public.hmis_aggregated_exits USING btree ("DateDeleted");
+
+
+--
+-- Name: hmisaggregatedexits_SnbT; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedexits_SnbT" ON public.hmis_aggregated_exits USING btree ("ExitID");
+
+
+--
+-- Name: hmisaggregatedexits_X6OE; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedexits_X6OE" ON public.hmis_aggregated_exits USING btree ("ExportID");
+
+
+--
+-- Name: hmisaggregatedexits_XB7i; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedexits_XB7i" ON public.hmis_aggregated_exits USING btree ("PersonalID");
+
+
+--
+-- Name: hmisaggregatedexits_j4E1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedexits_j4E1" ON public.hmis_aggregated_exits USING btree ("DateUpdated");
+
+
+--
+-- Name: hmisaggregatedexits_lDRx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmisaggregatedexits_lDRx" ON public.hmis_aggregated_exits USING btree ("ExitDate");
+
+
+--
+-- Name: hmisaggregatedexits_pbep; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmisaggregatedexits_pbep ON public.hmis_aggregated_exits USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmisaggregatedexits_tbf4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmisaggregatedexits_tbf4 ON public.hmis_aggregated_exits USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022affiliations_XhVY; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022affiliations_XhVY" ON public.hmis_csv_2022_affiliations USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022assessmentquestions_0sM8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022assessmentquestions_0sM8" ON public.hmis_csv_2022_assessment_questions USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022assessmentquestions_i64f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessmentquestions_i64f ON public.hmis_csv_2022_assessment_questions USING btree ("AssessmentID");
+
+
+--
+-- Name: hmiscsv2022assessmentresults_PJKC; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022assessmentresults_PJKC" ON public.hmis_csv_2022_assessment_results USING btree ("AssessmentID");
+
+
+--
+-- Name: hmiscsv2022assessmentresults_ZOSE; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022assessmentresults_ZOSE" ON public.hmis_csv_2022_assessment_results USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022assessments_3wle; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessments_3wle ON public.hmis_csv_2022_assessments USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022assessments_BgFo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022assessments_BgFo" ON public.hmis_csv_2022_assessments USING btree ("AssessmentID");
+
+
+--
+-- Name: hmiscsv2022assessments_Hll2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022assessments_Hll2" ON public.hmis_csv_2022_assessments USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022assessments_JGwZ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022assessments_JGwZ" ON public.hmis_csv_2022_assessments USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022assessments_mkEC; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022assessments_mkEC" ON public.hmis_csv_2022_assessments USING btree ("AssessmentDate");
+
+
+--
+-- Name: hmiscsv2022clients_2JGV; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022clients_2JGV" ON public.hmis_csv_2022_clients USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022clients_3WmT; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022clients_3WmT" ON public.hmis_csv_2022_clients USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022clients_Bu1P; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022clients_Bu1P" ON public.hmis_csv_2022_clients USING btree ("FirstName");
+
+
+--
+-- Name: hmiscsv2022clients_Ig8M; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022clients_Ig8M" ON public.hmis_csv_2022_clients USING btree ("LastName");
+
+
+--
+-- Name: hmiscsv2022clients_Xrjp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022clients_Xrjp" ON public.hmis_csv_2022_clients USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmiscsv2022clients_eQta; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022clients_eQta" ON public.hmis_csv_2022_clients USING btree ("DOB");
+
+
+--
+-- Name: hmiscsv2022clients_sB3T; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022clients_sB3T" ON public.hmis_csv_2022_clients USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022clients_zw9Z; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022clients_zw9Z" ON public.hmis_csv_2022_clients USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022currentlivingsituations_EVBJ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022currentlivingsituations_EVBJ" ON public.hmis_csv_2022_current_living_situations USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022currentlivingsituations_S9Zb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022currentlivingsituations_S9Zb" ON public.hmis_csv_2022_current_living_situations USING btree ("InformationDate");
+
+
+--
+-- Name: hmiscsv2022currentlivingsituations_Vy7t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022currentlivingsituations_Vy7t" ON public.hmis_csv_2022_current_living_situations USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022currentlivingsituations_k0Bk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022currentlivingsituations_k0Bk" ON public.hmis_csv_2022_current_living_situations USING btree ("CurrentLivingSitID");
+
+
+--
+-- Name: hmiscsv2022currentlivingsituations_ucde; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022currentlivingsituations_ucde ON public.hmis_csv_2022_current_living_situations USING btree ("CurrentLivingSituation");
+
+
+--
+-- Name: hmiscsv2022currentlivingsituations_ykQu; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022currentlivingsituations_ykQu" ON public.hmis_csv_2022_current_living_situations USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022disabilities_HRhp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022disabilities_HRhp" ON public.hmis_csv_2022_disabilities USING btree ("DisabilitiesID");
+
+
+--
+-- Name: hmiscsv2022disabilities_IZMU; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022disabilities_IZMU" ON public.hmis_csv_2022_disabilities USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022disabilities_Q8ji; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022disabilities_Q8ji" ON public.hmis_csv_2022_disabilities USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022disabilities_R7CI; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022disabilities_R7CI" ON public.hmis_csv_2022_disabilities USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022disabilities_dgbX; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022disabilities_dgbX" ON public.hmis_csv_2022_disabilities USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022disabilities_uvgd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022disabilities_uvgd ON public.hmis_csv_2022_disabilities USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_3ooS; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022employmenteducations_3ooS" ON public.hmis_csv_2022_employment_educations USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_4kte; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022employmenteducations_4kte ON public.hmis_csv_2022_employment_educations USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_70gB; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022employmenteducations_70gB" ON public.hmis_csv_2022_employment_educations USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_X77I; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022employmenteducations_X77I" ON public.hmis_csv_2022_employment_educations USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_hnoz; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022employmenteducations_hnoz ON public.hmis_csv_2022_employment_educations USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_jjbo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022employmenteducations_jjbo ON public.hmis_csv_2022_employment_educations USING btree ("EmploymentEducationID");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_Nwm4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollmentcocs_Nwm4" ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentCoCID");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_TocJ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollmentcocs_TocJ" ON public.hmis_csv_2022_enrollment_cocs USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_XX3p; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollmentcocs_XX3p" ON public.hmis_csv_2022_enrollment_cocs USING btree ("DateDeleted");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_lIbj; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollmentcocs_lIbj" ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_lkGr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollmentcocs_lkGr" ON public.hmis_csv_2022_enrollment_cocs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_mztu; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_mztu ON public.hmis_csv_2022_enrollment_cocs USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_nojT; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollmentcocs_nojT" ON public.hmis_csv_2022_enrollment_cocs USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_vflN; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollmentcocs_vflN" ON public.hmis_csv_2022_enrollment_cocs USING btree ("CoCCode");
+
+
+--
+-- Name: hmiscsv2022enrollments_1bUC; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_1bUC" ON public.hmis_csv_2022_enrollments USING btree ("ProjectID", "HouseholdID");
+
+
+--
+-- Name: hmiscsv2022enrollments_9i1F; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_9i1F" ON public.hmis_csv_2022_enrollments USING btree ("DateDeleted");
+
+
+--
+-- Name: hmiscsv2022enrollments_Ja1D; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_Ja1D" ON public.hmis_csv_2022_enrollments USING btree ("PreviousStreetESSH", "LengthOfStay");
+
+
+--
+-- Name: hmiscsv2022enrollments_NIGA; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_NIGA" ON public.hmis_csv_2022_enrollments USING btree ("LivingSituation");
+
+
+--
+-- Name: hmiscsv2022enrollments_OsCH; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_OsCH" ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022enrollments_RiXU; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_RiXU" ON public.hmis_csv_2022_enrollments USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022enrollments_XjRH; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_XjRH" ON public.hmis_csv_2022_enrollments USING btree ("TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears");
+
+
+--
+-- Name: hmiscsv2022enrollments_Z4hQ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_Z4hQ" ON public.hmis_csv_2022_enrollments USING btree ("ProjectID", "RelationshipToHoH");
+
+
+--
+-- Name: hmiscsv2022enrollments_ZoIi; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_ZoIi" ON public.hmis_csv_2022_enrollments USING btree ("HouseholdID");
+
+
+--
+-- Name: hmiscsv2022enrollments_ZtDs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_ZtDs" ON public.hmis_csv_2022_enrollments USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022enrollments_jsGV; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_jsGV" ON public.hmis_csv_2022_enrollments USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmiscsv2022enrollments_ngRn; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_ngRn" ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: hmiscsv2022enrollments_oxlG; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_oxlG" ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID", "ProjectID", "EntryDate");
+
+
+--
+-- Name: hmiscsv2022enrollments_qD6u; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_qD6u" ON public.hmis_csv_2022_enrollments USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022enrollments_qSI4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_qSI4" ON public.hmis_csv_2022_enrollments USING btree ("EntryDate");
+
+
+--
+-- Name: hmiscsv2022enrollments_v0UG; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_v0UG" ON public.hmis_csv_2022_enrollments USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022enrollments_xMB5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022enrollments_xMB5" ON public.hmis_csv_2022_enrollments USING btree ("ProjectID");
+
+
+--
+-- Name: hmiscsv2022events_9sAV; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022events_9sAV" ON public.hmis_csv_2022_events USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022events_TGYb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022events_TGYb" ON public.hmis_csv_2022_events USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022events_VWga; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022events_VWga" ON public.hmis_csv_2022_events USING btree ("EventID");
+
+
+--
+-- Name: hmiscsv2022events_fRrG; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022events_fRrG" ON public.hmis_csv_2022_events USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022events_pHsf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022events_pHsf" ON public.hmis_csv_2022_events USING btree ("EventDate");
+
+
+--
+-- Name: hmiscsv2022exits_AUoE; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022exits_AUoE" ON public.hmis_csv_2022_exits USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022exits_DY1W; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022exits_DY1W" ON public.hmis_csv_2022_exits USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022exits_KXTQ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022exits_KXTQ" ON public.hmis_csv_2022_exits USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022exits_U7oV; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022exits_U7oV" ON public.hmis_csv_2022_exits USING btree ("ExitID");
+
+
+--
+-- Name: hmiscsv2022exits_Yp1z; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022exits_Yp1z" ON public.hmis_csv_2022_exits USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022exits_qyt6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_qyt6 ON public.hmis_csv_2022_exits USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022exits_sYJt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022exits_sYJt" ON public.hmis_csv_2022_exits USING btree ("DateDeleted");
+
+
+--
+-- Name: hmiscsv2022exits_yumG; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022exits_yumG" ON public.hmis_csv_2022_exits USING btree ("ExitDate");
+
+
+--
+-- Name: hmiscsv2022exports_xFj4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022exports_xFj4" ON public.hmis_csv_2022_exports USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022funders_2wtf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022funders_2wtf ON public.hmis_csv_2022_funders USING btree ("FunderID");
+
+
+--
+-- Name: hmiscsv2022funders_KiOe; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022funders_KiOe" ON public.hmis_csv_2022_funders USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022funders_KlxW; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022funders_KlxW" ON public.hmis_csv_2022_funders USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022funders_p5vi; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022funders_p5vi ON public.hmis_csv_2022_funders USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_0bMs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022healthanddvs_0bMs" ON public.hmis_csv_2022_health_and_dvs USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_Oykq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022healthanddvs_Oykq" ON public.hmis_csv_2022_health_and_dvs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_QUwP; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022healthanddvs_QUwP" ON public.hmis_csv_2022_health_and_dvs USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_kFJo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022healthanddvs_kFJo" ON public.hmis_csv_2022_health_and_dvs USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_oqzF; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022healthanddvs_oqzF" ON public.hmis_csv_2022_health_and_dvs USING btree ("HealthAndDVID");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_sGig; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022healthanddvs_sGig" ON public.hmis_csv_2022_health_and_dvs USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_3bod; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_3bod ON public.hmis_csv_2022_income_benefits USING btree ("InformationDate");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_3kcW; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022incomebenefits_3kcW" ON public.hmis_csv_2022_income_benefits USING btree ("IncomeBenefitsID");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_8rrb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_8rrb ON public.hmis_csv_2022_income_benefits USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_TsUZ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022incomebenefits_TsUZ" ON public.hmis_csv_2022_income_benefits USING btree ("IncomeFromAnySource", "DataCollectionStage");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_WcZL; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022incomebenefits_WcZL" ON public.hmis_csv_2022_income_benefits USING btree ("Earned", "DataCollectionStage");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_XuDu; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022incomebenefits_XuDu" ON public.hmis_csv_2022_income_benefits USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_efCQ; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022incomebenefits_efCQ" ON public.hmis_csv_2022_income_benefits USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_pmKd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022incomebenefits_pmKd" ON public.hmis_csv_2022_income_benefits USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_yQgR; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022incomebenefits_yQgR" ON public.hmis_csv_2022_income_benefits USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022inventories_FZOy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022inventories_FZOy" ON public.hmis_csv_2022_inventories USING btree ("InventoryID");
+
+
+--
+-- Name: hmiscsv2022inventories_JHbv; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022inventories_JHbv" ON public.hmis_csv_2022_inventories USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022inventories_MyVs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022inventories_MyVs" ON public.hmis_csv_2022_inventories USING btree ("ProjectID", "CoCCode");
+
+
+--
+-- Name: hmiscsv2022inventories_cR8S; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022inventories_cR8S" ON public.hmis_csv_2022_inventories USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022inventories_t2Lv; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022inventories_t2Lv" ON public.hmis_csv_2022_inventories USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022organizations_0i5W; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022organizations_0i5W" ON public.hmis_csv_2022_organizations USING btree ("OrganizationID");
+
+
+--
+-- Name: hmiscsv2022organizations_6uPk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022organizations_6uPk" ON public.hmis_csv_2022_organizations USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022projectcocs_8uy4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projectcocs_8uy4 ON public.hmis_csv_2022_project_cocs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022projectcocs_YWv2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022projectcocs_YWv2" ON public.hmis_csv_2022_project_cocs USING btree ("ProjectCoCID");
+
+
+--
+-- Name: hmiscsv2022projectcocs_dlwF; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022projectcocs_dlwF" ON public.hmis_csv_2022_project_cocs USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022projectcocs_pLNe; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022projectcocs_pLNe" ON public.hmis_csv_2022_project_cocs USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022projectcocs_tB64; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022projectcocs_tB64" ON public.hmis_csv_2022_project_cocs USING btree ("ProjectID", "CoCCode");
+
+
+--
+-- Name: hmiscsv2022projects_lpMo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022projects_lpMo" ON public.hmis_csv_2022_projects USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022projects_wtxH; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022projects_wtxH" ON public.hmis_csv_2022_projects USING btree ("ProjectType");
+
+
+--
+-- Name: hmiscsv2022projects_xSWa; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022projects_xSWa" ON public.hmis_csv_2022_projects USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022projects_xZKI; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022projects_xZKI" ON public.hmis_csv_2022_projects USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022projects_ygSu; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022projects_ygSu" ON public.hmis_csv_2022_projects USING btree ("ProjectID");
+
+
+--
+-- Name: hmiscsv2022services_0nKl; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_0nKl" ON public.hmis_csv_2022_services USING btree ("RecordType", "DateProvided");
+
+
+--
+-- Name: hmiscsv2022services_5aRi; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_5aRi" ON public.hmis_csv_2022_services USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022services_E12d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_E12d" ON public.hmis_csv_2022_services USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022services_HIZy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_HIZy" ON public.hmis_csv_2022_services USING btree ("DateProvided");
+
+
+--
+-- Name: hmiscsv2022services_YAMR; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_YAMR" ON public.hmis_csv_2022_services USING btree ("DateDeleted");
+
+
+--
+-- Name: hmiscsv2022services_a8bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_a8bf ON public.hmis_csv_2022_services USING btree ("PersonalID", "RecordType", "EnrollmentID", "DateProvided");
+
+
+--
+-- Name: hmiscsv2022services_dVkk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_dVkk" ON public.hmis_csv_2022_services USING btree ("RecordType", "DateDeleted");
+
+
+--
+-- Name: hmiscsv2022services_dhuy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_dhuy ON public.hmis_csv_2022_services USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022services_eQGe; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_eQGe" ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "RecordType", "DateDeleted", "DateProvided");
+
+
+--
+-- Name: hmiscsv2022services_f5PV; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_f5PV" ON public.hmis_csv_2022_services USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022services_it1P; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_it1P" ON public.hmis_csv_2022_services USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022services_muc7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_muc7 ON public.hmis_csv_2022_services USING btree ("RecordType");
+
+
+--
+-- Name: hmiscsv2022services_rFA9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_rFA9" ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: hmiscsv2022services_wK7M; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022services_wK7M" ON public.hmis_csv_2022_services USING btree ("ServicesID");
+
+
+--
+-- Name: hmiscsv2022users_SHYB; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022users_SHYB" ON public.hmis_csv_2022_users USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022users_g3qL; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022users_g3qL" ON public.hmis_csv_2022_users USING btree ("UserID");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_GPlo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022youtheducationstatuses_GPlo" ON public.hmis_csv_2022_youth_education_statuses USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_VDTy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022youtheducationstatuses_VDTy" ON public.hmis_csv_2022_youth_education_statuses USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_h8Yi; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022youtheducationstatuses_h8Yi" ON public.hmis_csv_2022_youth_education_statuses USING btree ("InformationDate");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_oKbP; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022youtheducationstatuses_oKbP" ON public.hmis_csv_2022_youth_education_statuses USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_zaKW; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "hmiscsv2022youtheducationstatuses_zaKW" ON public.hmis_csv_2022_youth_education_statuses USING btree ("YouthEducationStatusID");
 
 
 --
@@ -31627,11 +37673,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210830150500'),
 ('20210901200255'),
 ('20210902113909'),
+('20210902134959'),
 ('20210903113401'),
 ('20210904021301'),
 ('20210906163956'),
+('20210909160929'),
 ('20210910113307'),
 ('20210910133606'),
-('20210917140612');
+('20210916194101'),
+('20210917140612'),
+('20210920200621');
 
 

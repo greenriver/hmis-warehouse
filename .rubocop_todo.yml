@@ -744,7 +744,6 @@ Layout/ExtraSpacing:
     - 'app/models/similarity_metric/experiment.rb'
     - 'app/models/similarity_metric/initializer.rb'
     - 'app/models/similarity_metric/multinomial.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty.rb'
 
 # Offense count: 24
 # Cop supports --auto-correct.
@@ -887,7 +886,6 @@ Layout/IndentationConsistency:
 # Configuration parameters: Width, IgnoredPatterns.
 Layout/IndentationWidth:
   Exclude:
-    - 'app/models/auto_encoding_csv.rb'
     - 'app/models/consent_limit.rb'
     - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/generate_service_history_batch_log.rb'
@@ -1106,7 +1104,6 @@ Layout/SpaceAroundBlockParameters:
 # SupportedStyles: space, no_space
 Layout/SpaceAroundEqualsInParameterDefault:
   Exclude:
-    - 'app/models/auto_encoding_csv.rb'
     - 'app/models/aws_s3.rb'
     - 'app/models/grda_warehouse/available_file_tag.rb'
     - 'app/models/grda_warehouse/health_emergency/ama_restriction.rb'
@@ -1192,7 +1189,6 @@ Layout/SpaceAroundOperators:
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
     - 'app/models/similarity_metric/initializer.rb'
-    - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty.rb'
 
 # Offense count: 698
 # Cop supports --auto-correct.
@@ -2987,7 +2983,6 @@ Style/StringLiterals:
     - 'app/channels/application_cable/connection.rb'
     - 'app/channels/test_channel.rb'
     - 'app/models/agency.rb'
-    - 'app/models/auto_encoding_csv.rb'
     - 'app/models/cas/user.rb'
     - 'app/models/consent_limit.rb'
     - 'app/models/glacier/archive_runner.rb'

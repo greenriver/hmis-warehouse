@@ -1,0 +1,89 @@
+= render partial: 'breadcrumbs'
+- status = @import.import_time(details: true)
+- ds_name = @import.data_source.name
+
+%h1
+  = _("Import Log from #{ds_name}")
+- if @import.importer_log&.paused?
+  .alert.alert-warning
+    %i.icon-warning.mr-2
+    %p #{ds_name} is currently set to prevent imports from loading if they contain any errors.  This import contained at least one error, which you can review below.  If the errors are unacceptable, fix them in the HMIS CSV files and re-upload.
+.table-responsive
+  %table.table
+    %tbody
+      %tr
+        %th Imported On
+        %td= @import.created_at
+      %tr
+        %th Loaded
+        %td= @import&.loader_log&.load_time
+      - import_time = @import&.importer_log&.import_time
+      - if import_time
+        %tr
+          %th Imported
+          %td= import_time
+      %tr
+        %th Completed In
+        %td
+          = status
+          - if @import.importer_log&.paused?
+            = link_to hmis_csv_importer_importer_restart_path(@import), class: 'ml-4 btn btn-primary btn-sm', method: :put do
+              %i.icon-enter
+              Resume Import
+
+      %tr
+        %th Files Found
+        %td
+          = link_to_if @import&.upload&.content.present?, "#{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}", download_import_path(@import)
+
+- if @import.loader_log.present?
+  %h3 Loader Summary
+  .card.mb-4
+    %table.table.table-striped.import__summary.mb-0
+      %thead
+        %tr
+          %th File
+          %th Total Rows
+          %th Rows Loaded
+          %th Errors
+      %tbody
+        - @import.loader_log.summary.with_indifferent_access.sort_by{|f,_| f}.each do |filename,v|
+          %tr
+            %td= filename
+            %td= number_with_delimiter(v['total_lines'])
+            %td= link_to_if v['lines_loaded']&.positive?, number_with_delimiter(v['lines_loaded']), hmis_csv_importer_loaded_path(@import.loader_log, file: filename)
+            %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_importer_loader_error_path(@import.loader_log, file: filename)
+
+- if @import.importer_log.present?
+  %h3 Importer Summary
+  .card
+    %table.table.table-striped.import__summary.mb-0
+      %thead
+        %tr
+          %th File
+          %th Rows Processed
+          %th Rows Added
+          %th Rows Removed
+          %th Rows Updated
+          %th Rows Unchanged
+          %th Validation Flags
+          %th Errors
+      %tbody
+        - @import.importer_log.summary.with_indifferent_access.sort_by{|f,_| f}.each do |filename,v|
+          %tr
+            %td= filename
+            %td= link_to_if v['pre_processed']&.positive?, number_with_delimiter(v['pre_processed']), hmis_csv_importer_imported_path(@import.importer_log, file: filename)
+            %td= number_with_delimiter(v['added'])
+            %td= number_with_delimiter(v['removed'])
+            %td= number_with_delimiter(v['updated'])
+            %td= number_with_delimiter(v['unchanged'])
+            %td= link_to_if v['total_flags']&.positive? || v['total_flags'].blank?, number_with_delimiter(v['total_flags'] || '0'), hmis_csv_importer_importer_validation_path(@import.importer_log, file: File.basename(filename, '.csv'))
+
+            %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_importer_importer_error_path(@import.importer_log, file: File.basename(filename, '.csv'))
+
+- if @import.import_errors.present? && @import.import_errors.is_a?(Array)
+  .row
+    .col-sm-12
+      %h3 Import Errors
+      - @import.import_errors.each do |e|
+        = render 'error_list', error: e

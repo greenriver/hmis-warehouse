@@ -23,6 +23,10 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba
     end
 
     private def update_batch
+      valid_keys = @destination_class.hmis_configuration(version: '2022').keys.map(&:to_s) + ['id']
+      @batch.map! do |row|
+        row.select { |key, _| key.in?(valid_keys) }
+      end
       @destination_class.import(
         @batch,
         on_duplicate_key_update: {

@@ -94,7 +94,7 @@ module HMIS::Structure::Inventory
             null: false,
           },
         }
-      when '2020', '2022', nil
+      when '2020', '2022'
         {
           InventoryID: {
             type: :string,
