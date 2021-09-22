@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'apr_context'
 
 RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionTwelve, type: :model do
-  include_context 'apr context'
+  include_context 'apr context FY2021'
 
   before(:all) do
     default_setup

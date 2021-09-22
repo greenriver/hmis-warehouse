@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'ce_apr_context'
 
 RSpec.describe HudApr::Generators::CeApr::Fy2021::QuestionSix, type: :model do
-  include_context 'ce apr context'
+  include_context 'ce apr context FY2021'
 
   describe 'with no assessments' do
     before(:all) do

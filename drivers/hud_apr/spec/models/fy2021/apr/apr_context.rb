@@ -8,7 +8,7 @@ RSpec.configure do
   RSpec.configuration.fixpoints_path = 'drivers/hud_apr/spec/fixpoints'
 end
 
-RSpec.shared_context 'apr context', shared_context: :metadata do
+RSpec.shared_context 'apr context FY2021', shared_context: :metadata do
   def shared_filter
     {
       start: Date.parse('2019-01-01'),
@@ -82,7 +82,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
   def setup(file_path)
     HmisCsvTwentyTwenty::Utility.clear!
     GrdaWarehouse::Utility.clear!
-    import_hmis_csv_fixture(file_path)
+    import_hmis_csv_fixture(file_path, version: 'AutoMigrate')
   end
 
   def cleanup
@@ -91,5 +91,5 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'apr context', include_shared: true
+  rspec.include_context 'apr context FY2021', include_shared: true
 end

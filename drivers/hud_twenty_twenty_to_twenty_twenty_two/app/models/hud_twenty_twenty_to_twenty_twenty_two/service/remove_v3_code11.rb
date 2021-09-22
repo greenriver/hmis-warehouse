@@ -8,7 +8,7 @@
 module HudTwentyTwentyToTwentyTwentyTwo::Service
   class RemoveV3Code11
     def process(row)
-      row['TypeProvided'] = 12 if row['TypeProvided'] == 11
+      row['TypeProvided'] = 12 if row['TypeProvided']&.to_s == '11'
 
       row
     end

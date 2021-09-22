@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'apr_context'
 
 RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionTen, type: :model do
-  include_context 'apr context'
+  include_context 'apr context FY2021'
 
   before(:all) do
     default_setup
@@ -34,12 +34,8 @@ RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionTen, type: :model do
   end
 
   describe 'Q10b: Gender of Children' do
-    it 'Counts MTF' do
-      expect(report_result.answer(question: 'Q10b', cell: 'B4').summary).to eq(1)
-    end
-
-    it 'Counts FTM' do
-      expect(report_result.answer(question: 'Q10b', cell: 'B5').summary).to eq(1)
+    it 'Counts Transgender' do
+      expect(report_result.answer(question: 'Q10b', cell: 'B6').summary).to eq(2)
     end
 
     it 'Counts Total' do

@@ -161,7 +161,7 @@ module HudApr::Generators::Shared::Fy2021
             exit_created: exit_record&.exit&.DateCreated,
             first_date_in_program: last_service_history_enrollment.first_date_in_program,
             first_name: source_client.FirstName,
-            gender: source_client.gender_multi.sort.join(','),
+            gender_multi: source_client.gender_multi.sort.join(','),
             head_of_household_id: last_service_history_enrollment.head_of_household_id,
             head_of_household: last_service_history_enrollment[:head_of_household],
             hiv_aids_entry: disabilities_at_entry.detect(&:hiv?)&.DisabilityResponse,

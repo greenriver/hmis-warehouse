@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'caper_context'
 
 RSpec.describe HudApr::Generators::Caper::Fy2021::QuestionTen, type: :model do
-  include_context 'caper context'
+  include_context 'caper context FY2021'
 
   before(:all) do
     default_setup
@@ -33,7 +33,7 @@ RSpec.describe HudApr::Generators::Caper::Fy2021::QuestionTen, type: :model do
 
   describe 'Q10d: Gender by Age Ranges' do
     it 'counts < 18' do
-      expect(report_result.answer(question: 'Q10d', cell: 'C4').summary).to eq(1)
+      expect(report_result.answer(question: 'Q10d', cell: 'C6').summary).to eq(2)
       expect(report_result.answer(question: 'Q10d', cell: 'C9').summary).to eq(2)
     end
 
@@ -42,7 +42,7 @@ RSpec.describe HudApr::Generators::Caper::Fy2021::QuestionTen, type: :model do
     end
 
     it 'counts not collected' do
-      expect(report_result.answer(question: 'Q10d', cell: 'H5').summary).to eq(1)
+      expect(report_result.answer(question: 'Q10d', cell: 'H6').summary).to eq(1)
       expect(report_result.answer(question: 'Q10d', cell: 'H9').summary).to eq(1)
     end
   end

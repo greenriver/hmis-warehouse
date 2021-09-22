@@ -18,20 +18,20 @@ module HudTwentyTwentyToTwentyTwentyTwo::Client
 
       # Override default values based on 2020 Gender
       # This is pending HUD guidance
-      case row['Gender']
-      when 0
-        female = 1
-      when 1
-        male = 1
-      when 2
-        female = 1
-        transgender = 1
-      when 3
-        male = 1
-        transgender = 1
-      when 4
-        no_single_gender = 1
-      when 8, 9, 99, nil
+      case row['Gender']&.to_s
+      when '0'
+        female = '1'
+      when '1'
+        male = '1'
+      when '2'
+        female = '1'
+        transgender = '1'
+      when '3'
+        male = '1'
+        transgender = '1'
+      when '4'
+        no_single_gender = '1'
+      when '8', '9', '99', nil
         gender_none = row['Gender']
       end
 

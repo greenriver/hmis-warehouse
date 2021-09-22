@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'ce_apr_context'
 
 RSpec.describe HudApr::Generators::CeApr::Fy2021::QuestionEight, type: :model do
-  include_context 'ce apr context'
+  include_context 'ce apr context FY2021'
 
   def question_8_setup_apr_path
     'drivers/hud_apr/spec/fixtures/files/fy2021/question_8'
