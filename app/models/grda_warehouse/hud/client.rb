@@ -452,6 +452,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :race_native_hi_other_pacific, -> do
+      race_native_hi_pacific
+    end
+
+    scope :race_native_hi_pacific, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
           where(c_t[:NativeHIPacific].eq(1)).
@@ -543,11 +547,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_mtf, -> do
-      where(Gender: 2)
+      gender_transgender.gender_female
     end
 
-    scope :gender_tfm, -> do
-      where(Gender: 3)
+    scope :gender_ftm, -> do
+      gender_transgender.gender_male
     end
 
     scope :gender_non_conforming, -> do

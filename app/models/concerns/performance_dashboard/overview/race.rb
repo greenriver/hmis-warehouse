@@ -40,21 +40,4 @@ module PerformanceDashboard::Overview::Race
 
     'Multiple'
   end
-
-  def race_query(key)
-    # Just fall back on the client filter by bucket since these are just fields on the client record
-
-    # return c_t[key].eq(1) if key.present? && ! key.in?([:Unknown, :Multiple])
-
-    # if key == :Unknown
-    #   c_t[:AmIndAKNative].not_eq(1).
-    #     and(c_t[:Asian].not_eq(1)).
-    #     and(c_t[:BlackAfAmerican].not_eq(1)).
-    #     and(c_t[:NativeHIPacific].not_eq(1)).
-    #     and(c_t[:White].not_eq(1)).
-    #     and(c_t[:RaceNone].not_eq(1)).
-    #     and(c_t[:RaceNone].not_eq(1))
-    # else
-    # end
-  end
 end

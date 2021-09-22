@@ -358,7 +358,7 @@ module ClaimsReporting
           gender_female: 'Female',
           gender_male: 'Male',
           gender_mtf: 'Trans Female (MTF or Male to Female)',
-          gender_tfm: 'Trans Male (FTM or Female to Male)',
+          gender_ftm: 'Trans Male (FTM or Female to Male)',
           gender_non_conforming: 'Gender non-conforming (i.e. not exclusively male or female)',
         },
         'Housing Status' => {

@@ -50,7 +50,6 @@ module PerformanceDashboard::Overview::Enrolled::Race
     details = enrolled.joins(:client).
       where(client_id: ids).
       order(she_t[:first_date_in_program].desc)
-    details = details.where(race_query(sub_key)) if sub_key
     details.pluck(*detail_columns(options).values).
       index_by(&:first)
   end

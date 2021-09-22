@@ -998,9 +998,4 @@ module Reporting::DataQualityReports
     def calculate_incorrect_household_type household_type:, project:
       return false if project.serves_families? && project.serves_individuals?
       return false if household_type == 'individual' && project.serves_individuals?
-      return false if household_type == 'family' && project.serves_families?
-
-      return true
-    end
-  end
-end
+      return false if household_type == 'family' && project.serves_fami

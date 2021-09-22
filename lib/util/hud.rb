@@ -2844,9 +2844,4 @@ module HUD
       'TN-512' => 'Morristown/Blount, Sevier, Campbell, Cocke Counties CoC',
       'TX-600' => 'Dallas City & County, Irving CoC',
       'TX-603' => 'El Paso City & County CoC',
-      'TX-624' => 'Wichita Falls/Wise, Palo Pinto, Wichita, Archer Counties CoC',
-      'UT-503' => 'Utah Balance of State CoC',
-      'VA-500' => 'Richmond/Henrico, Chesterfield, Hanover Counties CoC',
-    }.freeze
-  end
-end
+      'TX-624' => 'Wichita Falls/Wise, Palo 

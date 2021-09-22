@@ -15,7 +15,7 @@ module PerformanceDashboard::Overview::Exiting::Race
       exiting.
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:client_id, :AmIndAKNative, :Asian, :BlackAfAmerican, :NativeHIPacific, :White, :RaceNone, :first_date_in_program).each do |id, am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none, _| # rubocop:disable Metrics/ParameterLists
+        pluck(:client_id, :AmIndAKNative, :Asian, :BlackAfAmerican, :NativeHIPacific, :White, :RaceNone, :first_date_in_program).each do |id, am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none, _|
           counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none)] ||= Set.new
           buckets[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none)] << id unless counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none)].include?(id)
           counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, race_none)] << id
@@ -50,7 +50,6 @@ module PerformanceDashboard::Overview::Exiting::Race
     details = exiting.joins(:client).
       where(client_id: ids).
       order(she_t[:first_date_in_program].desc)
-    details = details.where(race_query(sub_key)) if sub_key
     details.pluck(*detail_columns(options).values).
       index_by(&:first)
   end
