@@ -704,8 +704,6 @@ module HUD
     {
       0 => 'Female',
       1 => 'Male',
-      # 2 => 'Trans Female (MTF or Male to Female)', # retained for backwards compatibility
-      # 3 => 'Trans Male (FTM or Female to Male)', # retained for backwards compatibility
       4 => 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
       5 => 'Transgender',
       6 => 'Questioning',
@@ -2844,4 +2842,9 @@ module HUD
       'TN-512' => 'Morristown/Blount, Sevier, Campbell, Cocke Counties CoC',
       'TX-600' => 'Dallas City & County, Irving CoC',
       'TX-603' => 'El Paso City & County CoC',
-      'TX-624' => 'Wichita Falls/Wise, Palo 
+      'TX-624' => 'Wichita Falls/Wise, Palo Pinto, Wichita, Archer Counties CoC',
+      'UT-503' => 'Utah Balance of State CoC',
+      'VA-500' => 'Richmond/Henrico, Chesterfield, Hanover Counties CoC',
+    }.freeze
+  end
+end
