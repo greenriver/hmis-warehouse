@@ -525,26 +525,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "41e2fd3c97f61e92d0c22dd1002e33edddcf8e34e0fe6390215317b641fcb7d7",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/hmis_csv_importer/app/models/hmis_csv_importer/aggregated/enrollment.rb",
-      "line": 52,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "connection.execute(\"INSERT INTO hmis_aggregated_enrollments (#{((HmisCsvTwentyTwenty::Aggregated::Enrollment.column_names & HmisCsvImporter::Aggregated::Enrollment.column_names) - [\"id\"]).map do\n \"\\\"#{name}\\\"\"\n end.join(\", \")}) SELECT #{((HmisCsvTwentyTwenty::Aggregated::Enrollment.column_names & HmisCsvImporter::Aggregated::Enrollment.column_names) - [\"id\"]).map do\n \"\\\"#{name}\\\"\"\n end.join(\", \")} FROM hmis_2020_aggregated_enrollments\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "HmisCsvImporter::Aggregated::Enrollment",
-        "method": "HmisCsvImporter::Aggregated::Enrollment.migrate_to_unversioned"
-      },
-      "user_input": "(HmisCsvTwentyTwenty::Aggregated::Enrollment.column_names & HmisCsvImporter::Aggregated::Enrollment.column_names)",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "473ca8588df62336dd0e01e2d9695c7643b543e986c48cadceb7641d2acd2e25",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -2079,6 +2059,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "e2e1114f02366f89e3a47f9a2368ef4d01d7b1f19ca5e5d715648aab9c8f0fb7",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis_csv_importer/app/models/hmis_csv_importer/aggregated/enrollment.rb",
+      "line": 52,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"INSERT INTO hmis_aggregated_enrollments (#{((HmisCsvTwentyTwenty::Aggregated::Enrollment.column_names & HmisCsvImporter::Aggregated::Enrollment.column_names) - [\"id\"]).map do\n connection.quote_column_name(name)\n end.join(\", \")}) SELECT #{((HmisCsvTwentyTwenty::Aggregated::Enrollment.column_names & HmisCsvImporter::Aggregated::Enrollment.column_names) - [\"id\"]).map do\n connection.quote_column_name(name)\n end.join(\", \")} FROM hmis_2020_aggregated_enrollments\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisCsvImporter::Aggregated::Enrollment",
+        "method": "HmisCsvImporter::Aggregated::Enrollment.migrate_to_unversioned"
+      },
+      "user_input": "(HmisCsvTwentyTwenty::Aggregated::Enrollment.column_names & HmisCsvImporter::Aggregated::Enrollment.column_names)",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "e4f8ccf26e1fd69bcd4fa892bf2291f93f3312d115e805626e4e9984335f08a4",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -2316,6 +2316,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-09-21 20:45:17 +0000",
+  "updated": "2021-09-22 13:07:05 +0000",
   "brakeman_version": "5.0.4"
 }
