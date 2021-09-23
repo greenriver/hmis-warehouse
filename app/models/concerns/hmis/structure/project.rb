@@ -221,6 +221,9 @@ module HMIS::Structure::Project
           HOPWAMedAssistedLivingFac: {
             type: :integer,
           },
+          PITCount: {
+            type: :integer,
+          },
           DateCreated: {
             type: :datetime,
             null: false,

@@ -57,8 +57,9 @@ module HmisCsvImporter::Loader
       end
     end
 
-    def load!
+    def load!(import_log = nil)
       start_load
+      @import_log = import_log
       begin
         ensure_file_naming
         @export = load_export_file
@@ -73,9 +74,9 @@ module HmisCsvImporter::Loader
       end
     end
 
-    def import!
+    def import!(import_log = nil)
       # run the load step if we haven't yet
-      load! unless @loader_log.status.to_s.in? ['failed', 'loaded']
+      load!(import_log) unless @loader_log.status.to_s.in? ['failed', 'loaded']
 
       return unless @loader_log.successfully_loaded?
 
@@ -89,10 +90,8 @@ module HmisCsvImporter::Loader
         deidentified: @deidentified,
       )
 
-      res = @importer.import!
+      @importer.import!(import_log)
       # puts summary_as_log_str(importer_log.summary)
-
-      res
     end
 
     def importer_log
@@ -460,6 +459,10 @@ module HmisCsvImporter::Loader
       status = "#{status} error:#{err}" if err
       # log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}", summary_as_log_str(loader_log.summary))
       log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
+      @import_log&.update(
+        loader_log: loader_log,
+        files: loadable_files.transform_values(&:name).invert.to_a,
+      )
     end
 
     private def setup_summary(file)

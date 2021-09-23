@@ -8,33 +8,51 @@
   .alert.alert-warning
     %i.icon-warning.mr-2
     %p #{ds_name} is currently set to prevent imports from loading if they contain any errors.  This import contained at least one error, which you can review below.  If the errors are unacceptable, fix them in the HMIS CSV files and re-upload.
-.table-responsive
-  %table.table
-    %tbody
-      %tr
-        %th Imported On
-        %td= @import.created_at
-      %tr
-        %th Loaded
-        %td= @import&.loader_log&.load_time
-      - import_time = @import&.importer_log&.import_time
-      - if import_time
+.row
+  .col
+    %table.table
+      %tbody
         %tr
-          %th Imported
-          %td= import_time
-      %tr
-        %th Completed In
-        %td
-          = status
-          - if @import.importer_log&.paused?
-            = link_to hmis_csv_importer_importer_restart_path(@import), class: 'ml-4 btn btn-primary btn-sm', method: :put do
-              %i.icon-enter
-              Resume Import
+          %th Imported On
+          %td= @import.created_at
+        %tr
+          %th Loaded
+          %td= @import&.loader_log&.load_time
+        - import_time = @import&.importer_log&.import_time
+        - if import_time
+          %tr
+            %th Imported
+            %td= import_time
+        %tr
+          %th Completed In
+          %td
+            = status
+            - if @import.importer_log&.paused?
+              = link_to hmis_csv_importer_importer_restart_path(@import), class: 'ml-4 btn btn-primary btn-sm', method: :put do
+                %i.icon-enter
+                Resume Import
+        %tr
+          %th Files Found
+          %td
+            = link_to_if @import&.upload&.content.present?, "#{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}", download_import_path(@import)
+  .col
+    %table.table
+      %tbody
+        %tr
+          %th Loader Log ID
+          %td= @import&.loader_log_id
+        %tr
+          %th Upload ID
+          %td= @import&.upload_id
+        %tr
+          %th Import Log ID
+          %td= @import.id
+        %tr
+          %th Importer Log ID
+          %td= @import&.importer_log_id
 
-      %tr
-        %th Files Found
-        %td
-          = link_to_if @import&.upload&.content.present?, "#{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}", download_import_path(@import)
+
+
 
 - if @import.loader_log.present?
   %h3 Loader Summary

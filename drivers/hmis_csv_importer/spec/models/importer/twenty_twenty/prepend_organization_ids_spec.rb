@@ -70,7 +70,6 @@ RSpec.describe 'Prepend Organization IDs', type: :model do
       data_source_id: @data_source.id,
       remove_files: false,
     )
-    @loader.load!
     @loader.import!
     Delayed::Worker.new.work_off(2)
   end

@@ -6,7 +6,7 @@
 
 module HmisCsvImporter
   def self.import!(file_path, data_source_id, upload, deidentified:)
-    log = ::HmisCsvImporter::ImportLog.new(
+    log = ::HmisCsvImporter::ImportLog.create(
       created_at: Time.current,
       upload_id: upload.id,
       data_source_id: data_source_id,
@@ -17,14 +17,8 @@ module HmisCsvImporter
       deidentified: deidentified,
     )
 
-    loader.load!
-    loader.import!
+    loader.import!(log)
 
-    log.assign_attributes(
-      loader_log: loader.loader_log,
-      importer_log: loader.importer_log,
-      files: loader.loadable_files.transform_values(&:name).invert.to_a,
-    )
     log
   end
 

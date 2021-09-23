@@ -1205,7 +1205,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/grda_warehouse/tasks/identify_duplicates.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
@@ -1396,7 +1395,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/grda_warehouse/hud/with_deleted/user.rb'
     - 'app/models/grda_warehouse/lftp_s3_sync.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/identify_duplicates.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
@@ -2721,7 +2719,6 @@ Style/ParallelAssignment:
 Style/ParenthesesAroundCondition:
   Exclude:
     - 'app/models/glacier/restore.rb'
-    - 'app/models/grda_warehouse/tasks/identify_duplicates.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
 
