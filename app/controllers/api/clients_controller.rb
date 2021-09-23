@@ -12,8 +12,7 @@ module Api
 
     def show
       @source_client_details = @client.source_clients.
-        source_visible_to(current_user).
-        pluck(:id, :data_source_id, :PersonalID)
+        source_visible_to(current_user)
       render layout: false
     end
 

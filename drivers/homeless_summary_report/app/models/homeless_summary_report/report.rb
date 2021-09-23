@@ -220,7 +220,7 @@ module HomelessSummaryReport
           generator.title,
           build_for_questions: questions,
         )
-        generator.new(report).run!(email: false)
+        generator.new(report).run!(email: false, manual: false)
         [variant, spec.merge(report: report)]
       end.to_h
     end
@@ -377,7 +377,6 @@ module HomelessSummaryReport
     end
 
     def self.report_variants
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       {
         all_persons: {
           name: 'All Persons',
@@ -456,9 +455,9 @@ module HomelessSummaryReport
           },
         },
         native_hawaiian_other_pacific_islander: {
-          name: 'Native Hawaiian/Other Pacific Islander',
+          name: 'Native Hawaiian or Pacific Islander',
           extra_filters: {
-            races: ['NativeHIOtherPacific'],
+            races: ['NativeHIPacific'],
           },
         },
         multi_racial: {

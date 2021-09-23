@@ -137,13 +137,13 @@ namespace :grda_warehouse do
         path: conf.s3_path,
         file_password: conf.zip_file_password,
       }
-      Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisAutoDetect::S3', options: options)
+      Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisAutoMigrate::S3', options: options)
     end
   end
 
   desc 'Sync from FTPS -> S3'
   task ftps_s3_sync: [:environment, 'log:info_to_stdout'] do
-     GrdaWarehouse::LftpS3Sync.find_each(&:fetch_and_push)
+    GrdaWarehouse::LftpS3Sync.find_each(&:fetch_and_push)
   end
 
   desc 'Identify duplicates'

@@ -8,7 +8,7 @@
 module HudTwentyTwentyToTwentyTwentyTwo::Export
   class AddCsvVersion
     def process(row)
-      row['CSVVersion'] = '2022'
+      row['CSVVersion'] = 'FY2022'
       row
     end
   end

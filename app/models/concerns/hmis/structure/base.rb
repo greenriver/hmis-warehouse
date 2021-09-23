@@ -20,13 +20,17 @@ module HMIS::Structure::Base
       :DateDeleted
     end
 
+    def hud_csv_version
+      @hud_csv_version ||= '2022'
+    end
+
     # default name for a CSV file
-    def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+    def hud_csv_file_name(version: hud_csv_version) # rubocop:disable Lint/UnusedMethodArgument
       "#{name.demodulize}.csv"
     end
 
     # an array (in order) of the expected columns for hud CSV data
-    def hud_csv_headers(version: nil)
+    def hud_csv_headers(version: hud_csv_version)
       hmis_structure(version: version).keys.freeze
     end
 
@@ -96,7 +100,7 @@ module HMIS::Structure::Base
       @additional_upsert_columns || []
     end
 
-    def upsert_column_names(version: nil)
+    def upsert_column_names(version: hud_csv_version)
       @upsert_column_names ||= (hud_csv_headers(version: version) +
         [:source_hash, :pending_date_deleted] +
         additional_upsert_columns -
@@ -107,7 +111,7 @@ module HMIS::Structure::Base
       []
     end
 
-    def hmis_table_create!(version: nil, constraints: true, types: true)
+    def hmis_table_create!(version: hud_csv_version, constraints: true, types: true)
       return if connection.table_exists?(table_name)
 
       connection.create_table table_name do |t|
@@ -126,7 +130,7 @@ module HMIS::Structure::Base
       end
     end
 
-    def hmis_table_create_indices!(version: nil)
+    def hmis_table_create_indices!(version: hud_csv_version)
       existing_indices = connection.indexes(table_name).map { |i| [i.name, i.columns] }
       hmis_indices(version: version).each do |columns, _|
         # enforce a short index name
@@ -139,7 +143,7 @@ module HMIS::Structure::Base
       end
     end
 
-    def hmis_structure(version: nil)
+    def hmis_structure(version: hud_csv_version)
       hmis_configuration(version: version).transform_values { |v| v.select { |k| k.in?(HMIS_STRUCTURE_KEYS) } }
     end
 

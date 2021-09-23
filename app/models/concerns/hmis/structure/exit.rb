@@ -171,7 +171,7 @@ module HMIS::Structure::Exit
             null: false,
           },
         }
-      when '2020', '2022', nil
+      when '2020', '2022'
         {
           ExitID: {
             type: :string,

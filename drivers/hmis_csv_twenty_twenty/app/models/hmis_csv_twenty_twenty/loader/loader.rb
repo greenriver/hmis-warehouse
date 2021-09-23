@@ -57,8 +57,9 @@ module HmisCsvTwentyTwenty::Loader
       'HmisCsvTwentyTwenty::Loader'
     end
 
-    def load!
+    def load!(import_log = nil)
       start_load
+      @import_log = import_log
       begin
         ensure_file_naming
         @export = load_export_file
@@ -73,9 +74,9 @@ module HmisCsvTwentyTwenty::Loader
       end
     end
 
-    def import!
+    def import!(import_log = nil)
       # run the load step if we haven't yet
-      load! unless @loader_log.status.to_s.in? ['failed', 'loaded']
+      load!(import_log) unless @loader_log.status.to_s.in? ['failed', 'loaded']
 
       return unless @loader_log.successfully_loaded?
 
@@ -89,10 +90,8 @@ module HmisCsvTwentyTwenty::Loader
         deidentified: @deidentified,
       )
 
-      res = @importer.import!
+      @importer.import!(import_log)
       # puts summary_as_log_str(importer_log.summary)
-
-      res
     end
 
     def importer_log
@@ -370,13 +369,14 @@ module HmisCsvTwentyTwenty::Loader
         return [:missing]
       end
 
-      valid_headers = source_headers.map(&HEADER_NORMALIZER) == klass.hud_csv_headers.map(&HEADER_NORMALIZER)
+      csv_header_names = klass.hud_csv_headers(version: '2020')
+      valid_headers = source_headers.map(&HEADER_NORMALIZER) == csv_header_names.map(&HEADER_NORMALIZER)
 
-      return [:ok, klass.hud_csv_headers.map(&:to_s)] if valid_headers
+      return [:ok, csv_header_names.map(&:to_s)] if valid_headers
 
       mapping = {}
       missing_cols = []
-      klass.hud_csv_headers(version: '2020').each do |expected_col|
+      csv_header_names.each do |expected_col|
         if (col_idx = source_headers.find_index { |csv_col| expected_col.to_s.downcase.strip == csv_col.to_s.downcase.strip })
           mapping[expected_col.to_s] = col_idx
         else
@@ -486,6 +486,10 @@ module HmisCsvTwentyTwenty::Loader
       status = "#{status} error:#{err}" if err
       # log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}", summary_as_log_str(loader_log.summary))
       log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
+      @import_log&.update(
+        loader_log: loader_log,
+        files: importable_files.transform_values(&:name).invert.to_a,
+      )
     end
 
     private def setup_summary(file)

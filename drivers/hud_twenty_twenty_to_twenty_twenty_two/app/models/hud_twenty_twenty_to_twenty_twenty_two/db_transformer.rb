@@ -7,7 +7,7 @@
 module HudTwentyTwentyToTwentyTwentyTwo
   class DbTransformer
     def self.up
-      [
+      classes = [
         HudTwentyTwentyToTwentyTwentyTwo::Client::Db,
         # HudTwentyTwentyToTwentyTwentyTwo::Disability::Db, # Only adds nils, so processing not required
         HudTwentyTwentyToTwentyTwentyTwo::Enrollment::Db,
@@ -17,7 +17,10 @@ module HudTwentyTwentyToTwentyTwentyTwo
         HudTwentyTwentyToTwentyTwentyTwo::Organization::Db,
         # HudTwentyTwentyToTwentyTwentyTwo::Project::Db,  # Only adds nils, so processing not required
         # HudTwentyTwentyToTwentyTwentyTwo::Service::Db,  # Only adds nils, so processing not required
-      ].each do |klass|
+      ]
+      classes << HudTwentyTwentyToTwentyTwentyTwo::AggregatedEnrollment::Db if RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty_two)
+
+      classes.each do |klass|
         puts klass
         ::Kiba.run(klass.up)
       end

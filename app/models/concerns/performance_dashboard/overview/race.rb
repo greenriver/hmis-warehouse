@@ -27,35 +27,17 @@ module PerformanceDashboard::Overview::Race
     end.to_h
   end
 
-  def race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none) # rubocop:disable Metrics/ParameterLists
+  def race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)
     races = []
     races << 'AmIndAKNative' if am_ind_ak_native == 1
     races << 'Asian' if asian == 1
     races << 'BlackAfAmerican' if black_af_american == 1
-    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
-    races << 'NativeHIOtherPacific' if native_hi_other_pacific == 1
+    races << 'NativeHIPacific' if native_hi_other_pacific == 1
     races << 'White' if white == 1
     races << 'RaceNone' if race_none == 1
     return 'Unknown' if races.empty?
     return races.first if races.count == 1
 
     'Multiple'
-  end
-
-  def race_query(key)
-    # Just fall back on the client filter by bucket since these are just fields on the client record
-
-    # return c_t[key].eq(1) if key.present? && ! key.in?([:Unknown, :Multiple])
-
-    # if key == :Unknown
-    #   c_t[:AmIndAKNative].not_eq(1).
-    #     and(c_t[:Asian].not_eq(1)).
-    #     and(c_t[:BlackAfAmerican].not_eq(1)).
-    #     and(c_t[:NativeHIOtherPacific].not_eq(1)).
-    #     and(c_t[:White].not_eq(1)).
-    #     and(c_t[:RaceNone].not_eq(1)).
-    #     and(c_t[:RaceNone].not_eq(1))
-    # else
-    # end
   end
 end

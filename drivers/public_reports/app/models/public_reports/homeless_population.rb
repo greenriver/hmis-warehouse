@@ -520,13 +520,12 @@ module PublicReports
     end
 
     private def get_us_census_population(race_code: 'All', year:)
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       race_var = \
         case race_code
         when 'AmIndAKNative' then NATIVE_AMERICAN
         when 'Asian' then ASIAN
         when 'BlackAfAmerican' then BLACK
-        when 'NativeHIOtherPacific' then PACIFIC_ISLANDER
+        when 'NativeHIPacific' then PACIFIC_ISLANDER
         when 'White' then WHITE
         when 'RaceNone' then OTHER_RACE
         when 'MultiRacial' then TWO_OR_MORE_RACES

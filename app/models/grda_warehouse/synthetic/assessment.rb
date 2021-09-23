@@ -47,7 +47,7 @@ module GrdaWarehouse::Synthetic
           to_import.compact,
           on_duplicate_key_update: {
             conflict_target: ['"AssessmentID"', :data_source_id],
-            columns: assessment_source.hmis_configuration.keys,
+            columns: assessment_source.hmis_configuration(version: '2022').keys,
           },
         )
         batch.each.with_index do |synthetic, i|
@@ -67,7 +67,7 @@ module GrdaWarehouse::Synthetic
         assessment_level.present? &&
         prioritization_status.present?
 
-      unique_key = [enrollment.EnrollmentID, enrollment.PersonalID, assessment_date, enrollment.data_source_id, source.created_at]
+      unique_key = [enrollment.EnrollmentID, enrollment.PersonalID, assessment_date, enrollment.data_source_id, source.id]
       assessment_id = hud_assessment&.AssessmentID || Digest::MD5.hexdigest(unique_key.join('_'))
       {
         AssessmentID: assessment_id,

@@ -52,10 +52,19 @@ class UploadsController < ApplicationController
     end
     return unless run_import
 
-    case params[:grda_warehouse_upload][:import_type]
-    when 'hmis_auto'
-      job = Delayed::Job.enqueue Importing::HudZip::HmisAutoDetectJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+    options = {
+      upload_id: @upload.id,
+      data_source_id: @upload.data_source_id,
+      deidentified: @upload.deidentified,
+      project_whitelist: @upload.project_whitelist,
+    }
+    job_class = case params[:grda_warehouse_upload][:import_type]
+    when 'hmis_detect'
+      Importing::HudZip::HmisAutoDetectJob
+    when 'hmis_migrate'
+      Importing::HudZip::HmisAutoMigrateJob
     end
+    job = Delayed::Job.enqueue job_class.new(options), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     @upload.update(delayed_job_id: job.id)
   end
 

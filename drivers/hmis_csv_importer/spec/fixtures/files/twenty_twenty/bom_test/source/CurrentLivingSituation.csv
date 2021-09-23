@@ -1,0 +1,4 @@
+﻿"CurrentLivingSitID","EnrollmentID","PersonalID","InformationDate","CurrentLivingSituation","VerifiedBy","LeaveSituation14Days","SubsequentResidence","ResourcesToObtain","LeaseOwn60Day","MovedTwoOrMore","LocationDetails","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"1","2141","6805","2016-09-01","2","freddie","1","2","3","8","9","A long location detail","2016-09-02 15:42:06","2016-09-02 15:42:06","3","","b6585c2320f69a2b920adb507cc9d82f"
+"2","2148","6791","2015-09-01","2","freddie","1","2","3","8","9","A second long location detail","2015-09-02 15:42:06","2015-09-02 15:42:06","3","","b6585c2320f69a2b920adb507cc9d82f"
+"3","2148","6791","","2","freddie","1","2","3","8","9","A third long location detail, this row will be ignored","2015-09-02 15:42:06","3","","b6585c2320f69a2b920adb507cc9d82f"

@@ -772,12 +772,11 @@ module PublicReports
     end
 
     private def race_breakdowns
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       setup = {
         'American Indian or Alaska Native' => GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative']),
         'Asian' => GrdaWarehouse::Hud::Client.with_races(['Asian']),
         'Black or African American' => GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican']),
-        'Native Hawaiian or Other Pacific Islander' => GrdaWarehouse::Hud::Client.with_races(['NativeHIOtherPacific']),
+        'Native Hawaiian or Pacific Islander' => GrdaWarehouse::Hud::Client.with_races(['NativeHIPacific']),
         'White' => GrdaWarehouse::Hud::Client.with_races(['White']),
         'Multi-Racial' => GrdaWarehouse::Hud::Client.multi_racial,
       }
@@ -894,7 +893,7 @@ module PublicReports
         when 'AmIndAKNative' then NATIVE_AMERICAN
         when 'Asian' then ASIAN
         when 'BlackAfAmerican' then BLACK
-        when 'NativeHIOtherPacific' then PACIFIC_ISLANDER
+        when 'NativeHIPacific' then PACIFIC_ISLANDER
         when 'White' then WHITE
         when 'RaceNone' then OTHER_RACE
         when 'MultiRacial' then TWO_OR_MORE_RACES

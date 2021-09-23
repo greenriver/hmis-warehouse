@@ -1,0 +1,5 @@
+"CurrentLivingSitID","EnrollmentID","PersonalID","InformationDate","CurrentLivingSituation","VerifiedBy","LeaveSituation14Days","SubsequentResidence","ResourcesToObtain","LeaseOwn60Day","MovedTwoOrMore","LocationDetails","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"VALID","VALID","VALID","2016-09-01","2","freddie","1","2","3","8","9","A long location detail","2016-09-02 15:42:06","2016-09-02 15:42:06","VALID","","b6585c2320f69a2b920adb507cc9d82f"
+"VALIDATION","VALIDATION","VALIDATION","2016-09-02","2","freddie","1","2","3","8","9","A long location detail","2016-09-02 15:42:06","2016-09-02 15:42:06","VALIDATION","","b6585c2320f69a2b920adb507cc9d82f"
+"ERROR","","","","","freddie","1","2","3","8","9","A third long location detail, this row will be ignored","","","ERROR","","b6585c2320f69a2b920adb507cc9d82f"
+"VALID","FAILURE","FAILURE","2016-09-01","2","freddie","1","2","3","8","9","A third long location detail, this row will not be ignored","2015-09-02 15:42:06","2015-09-02 15:42:06","FAILURE","","b6585c2320f69a2b920adb507cc9d82f"

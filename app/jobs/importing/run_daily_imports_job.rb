@@ -148,7 +148,7 @@ module Importing
         Rails.cache.clear
         warm_cache
 
-        update_reporting_db
+        ReportingSetupJob.perform_later
 
         @notifier.ping('Rebuilding reporting tables...') if @send_notifications
         GrdaWarehouse::Report::Base.update_fake_materialized_views
@@ -164,7 +164,7 @@ module Importing
 
         YouthFollowUpsJob.perform_later
         SystemCohortsJob.perform_later
-        SyncSyntheticDataJob.perform_later
+        SyncSyntheticDataJob.perform_later if CasBase.db_exists?
 
         create_statistical_matches
         generate_logging_info
@@ -182,12 +182,6 @@ module Importing
     def last_saturday_of_month(month, year)
       end_of_month = Date.new(year, month, 1).end_of_month
       end_of_month.downto(0).find(&:saturday?)
-    end
-
-    def update_reporting_db
-      @notifier.ping('Updating reporting database') if @send_notifications
-      Reporting::Housed.new.populate!
-      Reporting::Return.new.populate!
     end
 
     def warm_cache

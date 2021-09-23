@@ -3551,6 +3551,9 @@ msgstr ""
 msgid "Health Priority"
 msgstr ""
 
+msgid "Health SFTP incoming claims data folder"
+msgstr ""
+
 msgid "Homeless Service Provider Organization Name"
 msgstr ""
 
@@ -3669,9 +3672,6 @@ msgid "Open Path ROI"
 msgstr ""
 
 msgid "Open Path ROI content"
-msgstr ""
-
-msgid "OpenPath HMIS Warehouse"
 msgstr ""
 
 msgid "Organizations"

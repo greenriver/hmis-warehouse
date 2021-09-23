@@ -1,0 +1,13 @@
+" ","Total","Leavers","Stayers"
+"a. 30 days or less",0,0,0
+"b. 31 to 60 days",0,0,0
+"c. 61 to 90 days",0,0,0
+"d. 91 to 180 days",0,0,0
+"e. 181 to 365 days",0,0,0
+"f. 366 to 730 days (1 - 2 yrs.)",6,6,0
+"g. 731 to 1095 days (2 - 3 yrs.)",0,0,0
+"h. 1096 to 1460 days (3 - 4 yrs.)",0,0,0
+"i. 1461 to 1825 days (4 - 5 yrs.)",0,0,0
+"j. More than 1825 days (>5 yrs.)",0,0,0
+"k. Data Not Collected",0,0,0
+"l. Total",6,6,0

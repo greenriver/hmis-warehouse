@@ -538,11 +538,7 @@ module Reporting
               residential_enrollment[:housing_exit] = nil
             end
             # if the move-in-date is after the housing exit, set the move-in-date to the housing exit
-            if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present?
-              if residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
-                residential_enrollment[:housed_date] = residential_enrollment[:housing_exit]
-              end
-            end
+            residential_enrollment[:housed_date] = residential_enrollment[:housing_exit] if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present? && residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
             residential_enrollment[:source] = 'move-in-date'
           else
             # ES, TH, and SH don't have two phases, we are using housed to represent time in program
@@ -579,7 +575,8 @@ module Reporting
       @client_ids ||= GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: lookback_date, end_date: Date.current).
         joins(:project).
-        merge(GrdaWarehouse::Hud::Project.ph.
+        merge(
+          GrdaWarehouse::Hud::Project.ph.
           or(GrdaWarehouse::Hud::Project.th).
           or(GrdaWarehouse::Hud::Project.es).
           or(GrdaWarehouse::Hud::Project.sh),
@@ -594,7 +591,12 @@ module Reporting
         # SSN: :ssn,
         DOB: :dob,
         Ethnicity: :ethnicity,
-        Gender: :gender,
+        Female: :female,
+        Male: :male,
+        NoSingleGender: :nosinglegender,
+        Transgender: :transgender,
+        Questioning: :questioning,
+        GenderNone: :gendernone,
         VeteranStatus: :veteran_status,
       }.freeze
     end
