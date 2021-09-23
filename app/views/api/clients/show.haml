@@ -2,9 +2,13 @@
   %thead
     %tr
       %th Personal ID
+      %th First Name
+      %th Last Name
       %th Data source
   %tbody
-    - @source_client_details.each do |client_id, data_source_id, personal_id|
+    - @source_client_details.each do |client|
       %tr
-        %td= personal_id
-        %td.ds{class: "ds-color-#{data_source_id}"}= ds_short_name_for(client_id)
+        %td= client.PersonalID
+        %td= client.FirstName
+        %td= client.LastName
+        %td.ds{class: "ds-color-#{client.data_source_id}"}= ds_short_name_for(client.id)

@@ -5,6 +5,6 @@
 ###
 
 class HmisCsvTwentyTwenty::ImportLog < GrdaWarehouse::ImportLog
-  belongs_to :loader_log, class_name: 'HmisCsvTwentyTwenty::Loader::LoaderLog'
-  belongs_to :importer_log, class_name: 'HmisCsvTwentyTwenty::Importer::ImporterLog'
+  belongs_to :loader_log, class_name: 'HmisCsvTwentyTwenty::Loader::LoaderLog', optional: true
+  belongs_to :importer_log, class_name: 'HmisCsvTwentyTwenty::Importer::ImporterLog', optional: true
 end

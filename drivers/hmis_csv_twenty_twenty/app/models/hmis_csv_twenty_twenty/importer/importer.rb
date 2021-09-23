@@ -73,12 +73,13 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     # Needs to return an import_log instance
-    def import!
+    def import!(import_log = nil)
       # log that we're waiting, but then continue on.
       already_running_for_data_source?
 
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
         start_import
+        @import_log = import_log
         log_timing :pre_process!
         log_timing :validate_data_set!
         log_timing :aggregate!
@@ -92,8 +93,6 @@ module HmisCsvTwentyTwenty::Importer
           complete_import
         end
       end
-    ensure
-      HmisCsvTwentyTwenty::ImportLog.find_by(importer_log_id: importer_log.id)
     end
 
     def resume!
@@ -757,6 +756,7 @@ module HmisCsvTwentyTwenty::Importer
         data_source.update(last_imported_at: Time.current)
         elapsed = importer_log.completed_at - @started_at
         log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.  #{summary_as_log_str(importer_log.summary)}")
+        @import_log&.update(importer_log: importer_log)
       end
       post_process
     end

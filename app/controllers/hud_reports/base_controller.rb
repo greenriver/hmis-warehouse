@@ -163,7 +163,7 @@ module HudReports
       defaults = {
         run_type: 'manual',
         creator: 'all',
-        start: (Date.current - 1.months).to_s,
+        start: (Date.current - 6.months).to_s,
         end: Date.current.to_s,
       }
       @view_filter = {}
