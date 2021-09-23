@@ -8818,7 +8818,8 @@ CREATE TABLE public.hmis_2022_projects (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    "PITCount" integer
 );
 
 
