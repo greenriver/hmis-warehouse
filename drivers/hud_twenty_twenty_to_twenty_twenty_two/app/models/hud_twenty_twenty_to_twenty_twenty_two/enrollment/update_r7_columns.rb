@@ -38,7 +38,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Enrollment
       end
       row['AnnualPercentAMI'] = annual_percent_ami(row)
       row['EvictionHistory'] = eviction_history(row)
-      row['DependentUnder6']&.to_s = 2 if row['DependentUnder6']&.to_s == '1'
+      row['DependentUnder6'] = 2 if row['DependentUnder6']&.to_s == '1'
       row['TargetScreenReqd'] = screening_required?(row)
 
       row
