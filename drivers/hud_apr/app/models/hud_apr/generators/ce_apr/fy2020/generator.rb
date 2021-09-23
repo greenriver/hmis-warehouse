@@ -6,6 +6,9 @@
 
 module HudApr::Generators::CeApr::Fy2020
   class Generator < ::HudReports::GeneratorBase
+    include HudApr::CellDetailsConcern
+    include HudApr::CeAprCellDetailsConcern
+
     def self.fiscal_year
       'FY 2020'
     end

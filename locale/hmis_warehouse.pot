@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-06-24 13:19+0000\n"
-"PO-Revision-Date: 2021-06-24 13:19+0000\n"
+"POT-Creation-Date: 2021-09-20 13:43+0000\n"
+"PO-Revision-Date: 2021-09-20 13:43+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3552,6 +3552,9 @@ msgstr ""
 msgid "Health Priority"
 msgstr ""
 
+msgid "Health SFTP incoming claims data folder"
+msgstr ""
+
 msgid "Homeless Service Provider Organization Name"
 msgstr ""
 
@@ -3670,9 +3673,6 @@ msgid "Open Path ROI"
 msgstr ""
 
 msgid "Open Path ROI content"
-msgstr ""
-
-msgid "OpenPath HMIS Warehouse"
 msgstr ""
 
 msgid "Organizations"
