@@ -25,10 +25,9 @@
               %td= upload.file.to_s.split('/').last
               %td= upload.user&.name
               %td= upload.created_at
+              %td= upload&.import_log&.loader_log&.started_at
               %td
-                = upload.import_log.loader_log.started_at rescue nil
-              %td
-                - if upload.import_log.present?
+                - if upload.import_log.present? && upload.import_log.loader_log_id.present?
                   = link_to upload.import_time, import_path(id: upload.import_log.id)
                 - else
                   = upload.import_time
