@@ -132,17 +132,21 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
       return false unless days.any?
 
-      service_history_service_source.import(
-        days.first.keys,
-        days.map(&:values),
-        validate: false,
-        batch_size: 1_000,
-        # Because this is a partitioned table, this doesnt work currently
-        # on_duplicate_key_update: {
-        #   conflict_target: shs_conflict_target,
-        #   columns: shs_update_columns,
-        # },
-      )
+      begin
+        service_history_service_source.import(
+          days.first.keys,
+          days.map(&:values),
+          validate: false,
+          batch_size: 1_000,
+          # Because this is a partitioned table, this doesn't work currently
+          # on_duplicate_key_update: {
+          #   conflict_target: shs_conflict_target,
+          #   columns: shs_update_columns,
+          # },
+        )
+      rescue ActiveRecord::RecordNotUnique
+        # Don't do anything, we can't on_duplicate_key_update
+      end
       update(processed_as: calculate_hash)
 
       :patch
@@ -203,17 +207,22 @@ module GrdaWarehouse::Tasks::ServiceHistory
         return false unless project.present?
 
         if days.any?
-          service_history_service_source.import(
-            days.first.keys,
-            days.map(&:values),
-            validate: false,
-            batch_size: 1_000,
-            # Because this is a partitioned table, this doesnt work currently
-            # on_duplicate_key_update: {
-            #   conflict_target: shs_conflict_target,
-            #   columns: shs_update_columns,
-            # },
-          )
+          begin
+            service_history_service_source.import(
+              days.first.keys,
+              days.map(&:values),
+              validate: false,
+              batch_size: 1_000,
+              # Because this is a partitioned table, this doesn't work currently
+              # on_duplicate_key_update: {
+              #   conflict_target: shs_conflict_target,
+              #   columns: shs_update_columns,
+              # },
+            )
+          rescue ActiveRecord::InvalidForeignKey
+            # sometimes we end up processing an enrollment when it's being rebuilt by a different task
+            # ignore the error if the enrollment record has been removed
+          end
         end
       end
       update(processed_as: calculate_hash)
