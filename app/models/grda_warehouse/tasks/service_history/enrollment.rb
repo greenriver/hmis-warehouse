@@ -171,7 +171,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       ]
     end
 
-    def create_service_history! force=false
+    def create_service_history! force = false
       # Rails.logger.debug '===RebuildEnrollmentsJob=== Initiating create_service_history'
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       return false unless force || source_data_changed?
@@ -182,7 +182,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       if project.present?
         date = self.EntryDate
         self.class.transaction do
-          remove_existing_service_history_for_enrollment()
+          remove_existing_service_history_for_enrollment
           entry_day = entry_record(date)
           insert = build_service_history_enrollment_insert(entry_day)
           @entry_record_id = service_history_enrollment_source.connection.insert(insert.to_sql)
@@ -237,7 +237,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def build_service_history_enrollment_insert day
       insert = Arel::Nodes::InsertStatement.new
       insert.relation = she_t
-      insert.columns = day.keys.map{|k| she_t[k]}
+      insert.columns = day.keys.map { |k| she_t[k] }
       insert.values = Arel::Nodes::Values.new(day.values, insert.columns)
       insert
     end
@@ -308,7 +308,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def calculate_hash
       # Use ProjectType to ignore overrides
-      @calculate_hash ||= self.class.calculate_hash_for(id, self.project.ProjectType)
+      @calculate_hash ||= self.class.calculate_hash_for(id, project.ProjectType)
     end
 
     # limit the date range so we can speed up partitioning searches
@@ -335,7 +335,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def extrapolated_dates_from_service_history_for_enrollment
-      return [] unless destination_client.present?  && service_history_enrollment.present?
+      return [] unless destination_client.present? && service_history_enrollment.present?
 
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
@@ -494,7 +494,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           where(
             HouseholdID: self.HouseholdID,
             ProjectID: self.ProjectID,
-            data_source_id: self.data_source_id,
+            data_source_id: data_source_id,
           ).where.not(
             PersonalID: self.PersonalID,
           ).pluck(Arel.sql(c_t[:DOB].as('dob').to_sql))
@@ -621,7 +621,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def part_of_a_family?
       @families ||= self.class.family_households
-      @families.key? [self.HouseholdID, self.ProjectID, self.data_source_id]
+      @families.key? [self.HouseholdID, self.ProjectID, data_source_id]
     end
 
     # Client is over 65 and everyone else is an adult
