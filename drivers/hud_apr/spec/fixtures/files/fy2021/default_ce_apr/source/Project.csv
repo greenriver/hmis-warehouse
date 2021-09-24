@@ -1,3 +1,3 @@
-ProjectID,OrganizationID,ProjectName,ProjectCommonName,OperatingStartDate,OperatingEndDate,ContinuumProject,ProjectType,HousingType,ResidentialAffiliation,TrackingMethod,HMISParticipatingProject,TargetPopulation,HOPWAMedAssistedLivingFac,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-DEFAULT-ES,O-1,Default ES,,2018-10-01,,1,1,1,,0,1,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
-NBN,O-1,Night-by-Night,,2018-10-01,,1,1,1,,3,1,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+ProjectID,OrganizationID,ProjectName,ProjectCommonName,OperatingStartDate,OperatingEndDate,ContinuumProject,ProjectType,HousingType,ResidentialAffiliation,TrackingMethod,HMISParticipatingProject,TargetPopulation,HOPWAMedAssistedLivingFac,PITCount,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+DEFAULT-ES,O-1,Default ES,,2018-10-01,,1,1,1,,0,1,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
+NBN,O-1,Night-by-Night,,2018-10-01,,1,1,1,,3,1,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
