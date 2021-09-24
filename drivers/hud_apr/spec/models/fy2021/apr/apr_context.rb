@@ -80,7 +80,7 @@ RSpec.shared_context 'apr context FY2021', shared_context: :metadata do
   end
 
   def setup(file_path)
-    HmisCsvTwentyTwenty::Utility.clear!
+    HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
     import_hmis_csv_fixture(file_path, version: 'AutoMigrate')
   end
