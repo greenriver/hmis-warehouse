@@ -72,7 +72,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   def shared_clients
     GrdaWarehouse::Hud::Client.where(
       id: overlapping_client_ids.map(&:to_i),
-    ).select(*['id', 'DOB', 'Gender', 'Ethnicity'] + GrdaWarehouse::Hud::Client.race_fields)
+    ).select(*['id', 'DOB', 'Ethnicity'] + HUD.gender_fields + GrdaWarehouse::Hud::Client.race_fields)
   end
   memoize :shared_clients
 

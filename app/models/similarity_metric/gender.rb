@@ -14,8 +14,8 @@ For the purposes of measuring gender similarity we use the following supercatego
 
 * female
 * male
-* transgender male to female
-* transgender female to male
+* transgender
+* questioning
 * none: HUD's "Doesn’t identify as male, female, or transgender" and "Client doesn’t know"
 * not collected: null, "Client refused", and "Data not collected"
 
@@ -25,6 +25,10 @@ of the total population size to the size of the subpopulation expressing the giv
 To prevent odd categories from having an outsize effect, this factor is capped at
 {{{max_multiplier}}}.
 END
+
+    def bogus?
+      true # pulled out of calculations with changes from 2022 HMIS spec
+    end
 
     def field
       :Gender

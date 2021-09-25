@@ -157,7 +157,31 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     def self.filter_for_gender(genders)
       return current_scope unless genders&.present?
 
-      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Gender: genders).pluck(:id))
+      gender_scope = nil
+      genders.each do |value|
+        column = HUD.gender_id_to_field_name[value]
+        next unless column
+
+        gender_query = GrdaWarehouse::Hud::Client.destination.where(column.to_sym => HUD.gender_comparison_value(value))
+        gender_scope = add_alternative(gender_scope, gender_query)
+      end
+
+      current_scope.where(client_id: gender_scope.pluck(:id))
+    end
+
+    private def filter_for_gender(scope)
+      return scope unless @filter.genders.present?
+
+      scope = scope.joins(:client)
+      gender_scope = nil
+      @filter.genders.each do |value|
+        column = HUD.gender_id_to_field_name[value]
+        next unless column
+
+        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HUD.gender_comparison_value(value)))
+        gender_scope = add_alternative(gender_scope, gender_query)
+      end
+      scope.merge(gender_scope)
     end
 
     # This needs to check project_id in the warehouse since we don't store this in the reporting DB
