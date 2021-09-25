@@ -2062,6 +2062,19 @@ module GrdaWarehouse::Hud
       gender_multi.map { |k| ::HUD.gender(k) }.join(', ')
     end
 
+    # while the entire warehouse is updated to accept and use the new gender setup, this will provide
+    # a single value that roughly represents the client's gender
+    def gender_binary
+      return 4 if self.NoSingleGender == 1
+      return 5 if self.Transgender == 1
+      return 6 if self.Questioning == 1
+      return 4 if self.Female == 1 && self.Male == 1
+      return 0 if self.Female == 1
+      return 1 if self.Male == 1
+
+      self.GenderNone
+    end
+
     # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
     def gender_multi
       @gender_multi ||= [].tap do |gm|
