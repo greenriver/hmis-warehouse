@@ -82,7 +82,6 @@ Layout/ClosingParenthesisIndentation:
     - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
-    - 'app/models/reporting/housed.rb'
     - 'app/models/user_role.rb'
 
 # Offense count: 34
@@ -960,7 +959,6 @@ Layout/MultilineMethodCallBraceLayout:
     - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/reporting/housed.rb'
     - 'app/models/talentlms/facade.rb'
 
 # Offense count: 258
@@ -2442,7 +2440,6 @@ Style/IfUnlessModifier:
     - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/report_result.rb'
-    - 'app/models/reporting/housed.rb'
     - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/experiment.rb'
