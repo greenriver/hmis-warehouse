@@ -2075,6 +2075,19 @@ module GrdaWarehouse::Hud
       self.GenderNone
     end
 
+    # Accepts a hash containing the gender columns and values
+    # Returns a single value that roughly represents the client's gender
+    def self.gender_binary(genders)
+      return 4 if genders[:NoSingleGender] == 1
+      return 5 if genders[:Transgender] == 1
+      return 6 if genders[:Questioning] == 1
+      return 4 if genders[:Female] == 1 && genders[:Male] == 1
+      return 0 if genders[:Female] == 1
+      return 1 if genders[:Male] == 1
+
+      genders[:GenderNone]
+    end
+
     # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
     def gender_multi
       @gender_multi ||= [].tap do |gm|

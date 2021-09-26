@@ -35693,6 +35693,27 @@ CREATE INDEX "index_Client_on_DateDeleted_and_data_source_id" ON public."Client"
 
 
 --
+-- Name: index_Client_on_Female; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_Female" ON public."Client" USING btree ("Female");
+
+
+--
+-- Name: index_Client_on_GenderNone; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_GenderNone" ON public."Client" USING btree ("GenderNone");
+
+
+--
+-- Name: index_Client_on_Male; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_Male" ON public."Client" USING btree ("Male");
+
+
+--
 -- Name: index_Client_on_NativeHIOtherPacific; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -35707,10 +35728,31 @@ CREATE INDEX "index_Client_on_NativeHIPacific" ON public."Client" USING btree ("
 
 
 --
+-- Name: index_Client_on_NoSingleGender; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_NoSingleGender" ON public."Client" USING btree ("NoSingleGender");
+
+
+--
+-- Name: index_Client_on_Questioning; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_Questioning" ON public."Client" USING btree ("Questioning");
+
+
+--
 -- Name: index_Client_on_RaceNone; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "index_Client_on_RaceNone" ON public."Client" USING btree ("RaceNone");
+
+
+--
+-- Name: index_Client_on_Transgender; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_Transgender" ON public."Client" USING btree ("Transgender");
 
 
 --
@@ -45098,6 +45140,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210917140612'),
 ('20210920132236'),
 ('20210920200621'),
-('20210923202947');
+('20210923202947'),
+('20210926190212');
 
 
