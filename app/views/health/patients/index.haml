@@ -21,7 +21,7 @@
   .filter.ml-4
     = render 'filter'
 
-- if @patients.exists?
+- if @patients.any?
   %p.mr-5= page_entries_info @patients, entry_name: _('patient')
   = paginate @patients
 
