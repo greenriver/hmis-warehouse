@@ -475,7 +475,7 @@ module PublicReports
             data[::HUD.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year)
-            census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop.positive?
+            census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop&.positive?
           end
           all_destination_ids = with_service_in_quarter(report_scope, date, population).distinct.pluck(:client_id)
           with_service_in_quarter(report_scope, date, population).
