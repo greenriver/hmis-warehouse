@@ -117,7 +117,7 @@ module HudSpmReport::Generators::Fy2020
       # whose destination is “permanent” as indicated with a  (values 26, 11,
       # 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34) in Appendix A + the
       # distinct number of stayers in cell C3.
-      c3 = c2.where(t[:m7b2_destination].in(PERMANENT_DESTINATIONS))
+      c3 = c2.where(t[:m7b2_destination].in(PERMANENT_DESTINATIONS_OR_STAYER))
 
       # 8. Because each client is reported only once in cell C2 and no more
       # than once in cell C3, cell C4 is a simple formula indicated in the
