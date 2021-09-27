@@ -11,11 +11,9 @@ module Reporting
 
     def populate!
       return unless source_data_scope(client_ids).exists?
+      return if Reporting::Return.advisory_lock_exists?(Reporting::Housed::ADVISORY_LOCK_KEY)
 
-      advisory_lock_key = 'reporting_return_calculation'
-      return if Reporting::Return.advisory_lock_exists?(advisory_lock_key)
-
-      Reporting::Return.with_advisory_lock(advisory_lock_key) do
+      Reporting::Return.with_advisory_lock(Reporting::Housed::ADVISORY_LOCK_KEY) do
         stays
       end
     end

@@ -744,7 +744,7 @@ module PublicReports
         'Female' => GrdaWarehouse::Hud::Client.gender_female,
         'Male' => GrdaWarehouse::Hud::Client.gender_male,
         'Transgender' => GrdaWarehouse::Hud::Client.gender_transgender,
-        'Gender non-conforming' => GrdaWarehouse::Hud::Client.gender_non_conforming,
+        'Gender non-conforming' => GrdaWarehouse::Hud::Client.no_single_gender,
         'Unknown' => GrdaWarehouse::Hud::Client.gender_unknown,
       }
       {}.tap do |charts|

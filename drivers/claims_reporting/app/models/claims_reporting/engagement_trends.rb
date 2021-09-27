@@ -359,7 +359,7 @@ module ClaimsReporting
           gender_male: 'Male',
           gender_mtf: 'Trans Female (MTF or Male to Female)',
           gender_ftm: 'Trans Male (FTM or Female to Male)',
-          gender_non_conforming: 'Gender non-conforming (i.e. not exclusively male or female)',
+          no_single_gender: 'No Single Gender',
         },
         'Housing Status' => {
           'Housed at start' => 'Housed at start',

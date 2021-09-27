@@ -14203,7 +14203,8 @@ CREATE TABLE public.project_pass_fails_clients (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    income_at_entry integer
+    income_at_entry integer,
+    gender_multi character varying
 );
 
 
@@ -45142,6 +45143,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210920200621'),
 ('20210923202947'),
 ('20210926190212'),
-('20210927130613');
+('20210927130613'),
+('20210927133554');
 
 
