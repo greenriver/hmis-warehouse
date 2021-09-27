@@ -11554,7 +11554,7 @@ CREATE TABLE public.hmis_csv_2022_projects (
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
     loader_id integer NOT NULL,
-    "PITCount" integer
+    "PITCount" character varying
 );
 
 
@@ -45141,6 +45141,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210920132236'),
 ('20210920200621'),
 ('20210923202947'),
-('20210926190212');
+('20210926190212'),
+('20210927130613');
 
 
