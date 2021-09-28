@@ -11,14 +11,15 @@
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto disab'}) do
         %i.icon-download2
         Tracking Sheet
-%p.mr-5= page_entries_info @patients, entry_name: _('patient')
-= paginate @patients
 
 - if @patients.any?
+  %p.mr-5= page_entries_info @patients, entry_name: _('patient')
+  = paginate @patients
+
   - @patients.each do |patient|
     = render 'health/patients/patient_card', patient: patient
 
-= paginate @patients
+  = paginate @patients
 
 = content_for :page_js do
   :javascript

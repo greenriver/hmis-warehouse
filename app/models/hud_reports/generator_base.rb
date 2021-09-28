@@ -95,5 +95,26 @@ module HudReports
     def self.describe_table(table_name)
       table_descriptions[table_name]
     end
+
+    def self.column_headings(question)
+      question_fields(question).map do |key|
+        [key, client_class.detail_headers[key.to_s]]
+      end.to_h
+    end
+
+    def self.all_extra_fields
+      client_class.detail_headers.keys.map(&:to_sym) - common_fields
+    end
+
+    # Override in concern per HUD report driver
+    # defaults to all questions
+    def self.question_fields(_question)
+      all_extra_fields
+    end
+
+    # Override in concern per HUD report driver
+    def self.common_fields
+      []
+    end
   end
 end

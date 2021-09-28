@@ -108,6 +108,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # should patch or rebuild, or do nothing.  If you need more fine grained control
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
+      return false if self.EntryDate < '1970-01-01'.to_date
       return false if destination_client.blank? || project.blank?
       return false if already_processed?
 

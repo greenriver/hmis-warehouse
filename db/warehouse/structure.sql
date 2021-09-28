@@ -4561,7 +4561,27 @@ CREATE TABLE public.cohort_clients (
     user_boolean_29 boolean,
     user_boolean_30 boolean,
     date_added_to_cohort date,
-    individual_in_most_recent_homeless_enrollment boolean
+    individual_in_most_recent_homeless_enrollment boolean,
+    user_date_11 character varying,
+    user_date_12 character varying,
+    user_date_13 character varying,
+    user_date_14 character varying,
+    user_date_15 character varying,
+    user_date_16 character varying,
+    user_date_17 character varying,
+    user_date_18 character varying,
+    user_date_19 character varying,
+    user_date_20 character varying,
+    user_date_21 character varying,
+    user_date_22 character varying,
+    user_date_23 character varying,
+    user_date_24 character varying,
+    user_date_25 character varying,
+    user_date_26 character varying,
+    user_date_27 character varying,
+    user_date_28 character varying,
+    user_date_29 character varying,
+    user_date_30 character varying
 );
 
 
@@ -31632,6 +31652,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210906163956'),
 ('20210910113307'),
 ('20210910133606'),
-('20210917140612');
+('20210917140612'),
+('20210920132236');
 
 

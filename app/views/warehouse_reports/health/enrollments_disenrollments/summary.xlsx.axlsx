@@ -11,7 +11,7 @@ header =     [
 ].freeze
 
 wb.add_worksheet(name: 'ENROLLMENT') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  title = sheet.styles.add_style(sz: 12, b: true, format_code: '@', alignment: { horizontal: :center })
   text = sheet.styles.add_style(format_code: '@')
 
   sheet.add_row(header, style: title)
@@ -19,7 +19,7 @@ wb.add_worksheet(name: 'ENROLLMENT') do |sheet|
 end
 
 wb.add_worksheet(name: 'DISENROLLMENT') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  title = sheet.styles.add_style(sz: 12, b: true, format_code: '@', alignment: { horizontal: :center })
   text = sheet.styles.add_style(format_code: '@')
 
   sheet.add_row(header, style: title)
