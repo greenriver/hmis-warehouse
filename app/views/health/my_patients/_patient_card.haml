@@ -1,0 +1,32 @@
+- url = client_health_patient_index_path(patient.client) rescue ''
+.c-card.clients__client-card
+  .c-card__content.d-flex.justify-content-between
+    .patient__demographics
+      %h4.patient__name.mt-0
+        = link_to_if patient.client.present?, patient.name, url
+      .patient__dob
+        DOB:
+        = patient.birthdate
+      .patient__care_coordinator.mt-4
+        %hr
+        - if patient.client.present?
+          = simple_form_for patient, as: :patient, url: client_health_patient_url(patient.client, patient), remote: true do |f|
+            = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:jCareCoordinator], id: "patient_care_coordinator_id_#{patient.id}"}, as: :select_two
+            = f.input :nurse_care_manager_id, collection: patient.available_nurse_care_managers, input_html: {class: [:jNurseCareManager], id: "nurse_care_manager_id_#{patient.id}"}, as: :select_two
+        - else
+          Patient record is not correctly assigned
+    .patient__upcoming-appointments.mb-4{style: 'max-width 450px;'}
+      - if patient.client
+        = render 'clients/recent_es_so', client: patient.client
+        %section#appointments-list.jAppointments{data: {path: upcoming_client_health_appointments_path(client_id: patient.client.id)}}
+    .patient__scores
+      = render 'scores', medicaid_id: patient.medicaid_id
+    .patient__action-needed
+      .mb-4
+        = render 'health/patient/engagement', patient: patient
+      .ml-3.mb-4
+        - if ! patient.engaged?
+          = render 'health/patient/remaining_to_engage', patient: patient
+      .patient__link.text-right
+        - if patient.client.present?
+          = link_to 'View', url, class: 'btn btn-sm btn-secondary'

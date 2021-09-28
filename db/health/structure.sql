@@ -6797,6 +6797,13 @@ CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING bt
 
 
 --
+-- Name: med_claim_member_procedure_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX med_claim_member_procedure_index ON public.claims_reporting_medical_claims USING btree (member_id, procedure_code);
+
+
+--
 -- Name: patients_client_id_constraint; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7171,6 +7178,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210511143037'),
 ('20210607182656'),
 ('20210726193142'),
-('20210806150431');
+('20210806150431'),
+('20210928134057');
 
 

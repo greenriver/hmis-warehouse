@@ -35,10 +35,19 @@ module Health
           @patients = @patients.where(nurse_care_manager_id: params[:filter][:nurse_care_manager_id].to_i)
         end
       end
+      @column = params[:sort] || 'name'
+      @direction = params[:direction]&.to_sym || :asc
       respond_to do |format|
         format.html do
-          @patients = @patients.order(last_name: :asc, first_name: :asc).
-            page(params[:page].to_i).per(25)
+          medicaid_ids = @patients.map(&:medicaid_id)
+          if @column == 'name'
+            @patients = @patients.order(last_name: @direction, first_name: @direction)
+          else
+            sort_order = determine_sort_order(medicaid_ids, @column, @direction)
+            @patients = @patients.order_as_specified(sort_order)
+          end
+          @patients = @patients.page(params[:page].to_i).per(25)
+          @scores = calculate_dashboards(medicaid_ids)
         end
         format.xlsx do
           date = Date.current.strftime('%Y-%m-%d')
@@ -69,6 +78,46 @@ module Health
             joins(:patient_referral).
             merge(Health::PatientReferral.pending_disenrollment.not_confirmed_rejected),
         )
+    end
+
+    def sort_options
+      sort_options = [
+        {
+          column: 'name',
+          direction: :asc,
+          title: 'Name (last, first) A-Z',
+        },
+        {
+          column: 'name',
+          direction: :desc,
+          title: 'Name (last, first) Z-A',
+        },
+      ]
+
+      Rails.application.config.patient_dashboards.map do |dashboard|
+        dashboard_sort_options = dashboard[:calculator].constantize.dashboard_sort_options
+        sort_options << dashboard_sort_options if dashboard_sort_options.present?
+      end
+
+      sort_options
+    end
+    helper_method :sort_options
+
+    def calculate_dashboards(medicaid_ids)
+      Rails.application.config.patient_dashboards.map do |dashboard|
+        [
+          dashboard[:title],
+          dashboard[:calculator].constantize.new(medicaid_ids).to_map,
+        ]
+      end.to_h
+    end
+
+    def determine_sort_order(medicaid_ids, column, direction)
+      Rails.application.config.patient_dashboards.map do |dashboard|
+        sort_order = dashboard[:calculator].constantize.new(medicaid_ids).sort_order(column, direction)
+        return sort_order if sort_order.present?
+      end
+      raise 'Unknown sort column'
     end
 
     def set_patients

@@ -11,3 +11,5 @@
 #
 # use with caution!
 RailsDrivers.loaded << :claims_reporting
+
+Rails.application.config.patient_dashboards << { title: 'COVID Vaccination Status', calculator: 'ClaimsReporting::Calculators::CovidVaccinationStatus' }

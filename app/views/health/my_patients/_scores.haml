@@ -1,0 +1,10 @@
+.rollup-container.c-card.c-card--flush
+  %table.table.text-center
+    %thead
+      %tr
+        - @scores.keys.each do |title|
+          %th= title
+    %tbody
+      %tr
+        - @scores.keys.each do |title|
+          %td= @scores[title][medicaid_id]

@@ -4,6 +4,8 @@
 .o-page__controls
   .o-page__search
     = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+  .o-page__sort
+    = render 'sort'
   .o-page__filter
     = render 'filter'
   - if @patients.present?
@@ -16,7 +18,7 @@
 
 - if @patients.any?
   - @patients.each do |patient|
-    = render 'health/patients/patient_card', patient: patient
+    = render 'patient_card', patient: patient
 
 = paginate @patients
 
