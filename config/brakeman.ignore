@@ -1,6 +1,26 @@
 {
   "ignored_warnings": [
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "0c076fd1676094a84d9b397a3d82e3fd0e934c358a743c3fee3b3935abfa2e4e",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "lib/rds_sql_server/lsa/fy2021/lsa_queries.rb",
+      "line": 82,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBase.connection.execute((\"        -- 4.1 Get Project Records for Export\\n        delete from lsa_Project\\n\\n        insert into lsa_Project\\n          (ProjectID, OrganizationID, ProjectName\\n          , OperatingStartDate, OperatingEndDate\\n          , ContinuumProject, ProjectType, HousingType\\n          , TrackingMethod, HMISParticipatingProject\\n          , TargetPopulation\\n          , HOPWAMedAssistedLivingFac\\n          , DateCreated, DateUpdated, ExportID)\\n        select distinct\\n          hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 100)\\n          , format(hp.OperatingStartDate, 'yyyy-MM-dd')\\n          , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end\\n          , hp.ContinuumProject, hp.ProjectType, hp.HousingType\\n          , hp.TrackingMethod, hp.HMISParticipatingProject\\n          , hp.TargetPopulation\\n          , hp.HOPWAMedAssistedLivingFac\\n          , format(hp.DateCreated, 'yyyy-MM-dd hh:mm:ss')\\n          , format(hp.DateUpdated, 'yyyy-MM-dd hh:mm:ss')\\n          , rpt.ReportID\\n        from hmis_Project hp\\n        inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd\\n        inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC\\n          and coc.ProjectID = hp.ProjectID\\n          and coc.DateDeleted is null\\n        where hp.DateDeleted is null\\n          and hp.ContinuumProject = 1\\n          and hp.ProjectType in (1,2,3,8,9,10,13)\\n          and hp.OperatingStartDate <= rpt.ReportEnd\\n          and (hp.OperatingEndDate is null\\n            or\\t(hp.OperatingEndDate >= '10/1/2012'\\n              and hp.OperatingEndDate > hp.OperatingStartDate)\\n            )\\n\" + \"and hp.ProjectID in(#{project_ids.join(\",\")})\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "LsaSqlServer::LSAQueries",
+        "method": "insert_projects"
+      },
+      "user_input": "project_ids.join(\",\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Redirect",
       "warning_code": 18,
       "fingerprint": "0d56b723a341f97ce38e8bd32d706526cad0a202177cc4c9ab6e22a23f7a3676",
@@ -312,6 +332,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "272577b25ace5d12aad5795f8022c11e5257a7e060bf3005e821efebdcc4acfd",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "lib/rds_sql_server/lsa/fy2021/lsa_queries.rb",
+      "line": 24,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBase.connection.execute(\"#{File.read(step)}\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "LsaSqlServer::LSAQueries",
+        "method": "run_query"
+      },
+      "user_input": "File.read(step)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "272bd9135442f395012a87ac47a02fe2dcaa8bf8f7db7b78b079036a4279e439",
@@ -545,26 +585,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "475555bc06d04eb8ac4900ec1761cf15066a8e28ab69ddb55cf9569d9413c2a4",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa/fy2019/lsa_queries.rb",
-      "line": 22,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute(\"#{File.read(step)}\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "LsaSqlServer::LSAQueries",
-        "method": "run_query"
-      },
-      "user_input": "File.read(step)",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "488929247f57a052483960e34ae2e99819be0cc9ed762545be1803490a90c853",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -714,6 +734,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "68fd80799149a697286de5a354b66c0875731d4db0137099d29dd53d6a4533ee",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/report_generators/lsa/fy2021/all.rb",
+      "line": 656,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} ADD id BIGINT identity (1,1) NOT NULL; \"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ReportGenerators::Lsa::Fy2021::All",
+        "method": "add_missing_identity_columns"
+      },
+      "user_input": "table_name",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "6939d235d9f32e7a2694b926a5cf73222ec7b924323cb268a68c11d2a20ea082",
@@ -845,26 +885,6 @@
       "note": "Injection from internal sources"
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "715caf7c369b0362888de763f9a7319144834a7915602582eb32ea620b3dcca9",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa/fy2019/lsa_queries.rb",
-      "line": 76,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute((\"        -- 4.1 Get Project Records for Export\\n        delete from lsa_Project\\n\\n        insert into lsa_Project\\n          (ProjectID, OrganizationID, ProjectName\\n          , OperatingStartDate, OperatingEndDate\\n          , ContinuumProject, ProjectType, HousingType\\n          , TrackingMethod, HMISParticipatingProject\\n          , TargetPopulation\\n          , DateCreated, DateUpdated, ExportID)\\n        select distinct\\n          hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 50)\\n          , format(hp.OperatingStartDate, 'yyyy-MM-dd')\\n          , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end\\n          , hp.ContinuumProject, hp.ProjectType, hp.HousingType\\n          , hp.TrackingMethod, hp.HMISParticipatingProject\\n          , hp.TargetPopulation\\n          , format(hp.DateCreated, 'yyyy-MM-dd hh:mm:ss')\\n          , format(hp.DateUpdated, 'yyyy-MM-dd hh:mm:ss')\\n          , rpt.ReportID\\n        from hmis_Project hp\\n        inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd\\n        inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC\\n        where hp.DateDeleted is null\\n          and hp.ContinuumProject = 1\\n          and hp.ProjectType in (1,2,3,8,9,10,13)\\n          and hp.OperatingStartDate <= rpt.ReportEnd\\n          and (hp.OperatingEndDate is null\\n            or\\t(hp.OperatingEndDate >= rpt.ReportStart\\n              and hp.OperatingEndDate > hp.OperatingStartDate)\\n            )\\n\" + \"and hp.ProjectID in(#{project_ids.join(\",\")})\"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "LsaSqlServer::LSAQueries",
-        "method": "insert_projects"
-      },
-      "user_input": "project_ids.join(\",\")",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "7309180c3aafe13ae6fdc0948ec954da8c7c62359d1d0bbf94f91251bbcd7be9",
@@ -953,6 +973,26 @@
       },
       "user_input": "params[:population].to_sym",
       "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "7c23c32e38cb863eb92c15f8db6f7c142ce3245181ee3c751a89326541deb11c",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/report_generators/lsa/fy2021/all.rb",
+      "line": 386,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBase.connection.execute(\"drop database #{@rds.database}\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ReportGenerators::Lsa::Fy2021::All",
+        "method": "remove_temporary_rds"
+      },
+      "user_input": "@rds.database",
+      "confidence": "Medium",
       "note": ""
     },
     {
@@ -2154,6 +2194,26 @@
       },
       "user_input": "options[:column].to_sym",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "ed2ba832272d6ccfc20e3be08bb78afb6461a2b28e1d61e5517ef6863d0e8994",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/report_generators/lsa/fy2021/all.rb",
+      "line": 665,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} DROP COLUMN id; \"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ReportGenerators::Lsa::Fy2021::All",
+        "method": "remove_missing_identity_columns"
+      },
+      "user_input": "table_name",
+      "confidence": "Medium",
       "note": ""
     },
     {

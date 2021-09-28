@@ -131,12 +131,13 @@ module HMIS::Structure::Base
     end
 
     def hmis_table_create_indices!(version: hud_csv_version)
+      existing_indices = connection.indexes(table_name).map { |i| [i.name, i.columns] }
       hmis_indices(version: version).each do |columns, _|
         # enforce a short index name
         # cols = columns.map { |c| "#{c[0..5]&.downcase}#{c[-4..]&.downcase}" }
         # name = ([table_name[0..4]+table_name[-4..]] + cols).join('_')
-        name = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + SecureRandom.alphanumeric(4)
-        next if connection.index_exists?(table_name, columns, name: name)
+        name = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + Digest::MD5.hexdigest(columns.join('_'))[0, 4]
+        next if existing_indices.include?([name, columns.map(&:to_s)])
 
         connection.add_index table_name, columns, name: name
       end
