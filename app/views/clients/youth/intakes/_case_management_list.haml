@@ -2,7 +2,7 @@
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header Case Management
     - if has_some_edit_access_to_youth_intakes? # && @intakes.ongoing.exists?
-      = link_to polymorphic_path([:new] + youth_case_management_path_generator), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm ml-auto' do
+      = link_to polymorphic_path([:new] + youth_case_management_path_generator), class: 'btn btn-secondary btn-sm ml-auto' do
         %i.icon-plus
         Add Case Management
   .c-card__content.c-card__content--flush
@@ -18,7 +18,7 @@
           - @case_managements.each do |cm|
             %tr
               %td.nobr
-                = link_to polymorphic_path([:edit] + youth_case_management_path_generator, id: cm.id), data: {loads_in_pjax_modal: true} do
+                = link_to polymorphic_path([:edit] + youth_case_management_path_generator, id: cm.id) do
                   = cm.engaged_on
               %td= simple_format cm.activity
               %td= cm.housing_status
