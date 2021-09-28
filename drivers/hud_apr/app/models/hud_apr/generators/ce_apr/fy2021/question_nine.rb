@@ -150,19 +150,28 @@ module HudApr::Generators::CeApr::Fy2021
 
       generate_table(table_name, q9d_table_rows, { last_row: 23 })
 
-      # Populate rows 13 and 19 with calculated values
-      columns.each do |col, _|
-        numerator = @report.answer(question: table_name, cell: "#{col}1").summary || 0
-        denominator = @report.answer(question: table_name, cell: "#{col}12").summary || 0
+      # Populate rows 17 and 23 with calculated values (note spec is off by one)
+      columns.each do |col, columns_clause|
+        # denominator = Q9b row 1 (prioritized clients)
+        members = universe.members.
+          where(hoh_clause).
+          where(columns_clause).
+          where(a_t[:ce_assessment_prioritization_status].eq(1))
+        denominator = members.count
+        members = members.where(a_t[:ce_event_event].in((5..18).to_a))
+        numerator = members.count
         value = percentage(numerator / denominator.to_f)
-        @report.answer(question: table_name, cell: "#{col}13").update(summary: value)
+        answer = @report.answer(question: table_name, cell: "#{col}17")
+        answer.update(summary: value)
+        answer.add_members(members)
 
-        numerator = @report.answer(question: table_name, cell: "#{col}14").summary || 0
-        denominator = (6..11).map do |row_num|
+        # Row 23
+        numerator = @report.answer(question: table_name, cell: "#{col}18").summary || 0
+        denominator = [7, 8, 9, 10, 11, 12, 14, 15].map do |row_num|
           @report.answer(question: table_name, cell: "#{col}#{row_num}").summary || 0
         end.sum
         value = percentage(numerator / denominator.to_f)
-        @report.answer(question: table_name, cell: "#{col}19").update(summary: value)
+        @report.answer(question: table_name, cell: "#{col}23").update(summary: value)
       end
     end
 

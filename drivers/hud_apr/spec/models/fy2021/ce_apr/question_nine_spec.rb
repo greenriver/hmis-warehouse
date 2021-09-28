@@ -48,7 +48,7 @@ RSpec.describe HudApr::Generators::CeApr::Fy2021::QuestionNine, type: :model do
 
     it 'Result: Unsuccessful referral: provider rejected' do
       # Note even though we have one of these, it's not on an HoH
-      expect(report_result.answer(question: 'Q9d', cell: 'B17').summary).to eq(0)
+      expect(report_result.answer(question: 'Q9d', cell: 'B20').summary).to eq(0)
     end
   end
 end
