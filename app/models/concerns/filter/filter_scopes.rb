@@ -85,8 +85,11 @@ module Filter::FilterScopes
 
       scope = scope.joins(:client)
       gender_scope = nil
-      HUD.gender_id_to_field_name.values_at(*@filter.genders).each do |column|
-        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(1))
+      @filter.genders.each do |value|
+        column = HUD.gender_id_to_field_name[value]
+        next unless column
+
+        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HUD.gender_comparison_value(value)))
         gender_scope = add_alternative(gender_scope, gender_query)
       end
       scope.merge(gender_scope)

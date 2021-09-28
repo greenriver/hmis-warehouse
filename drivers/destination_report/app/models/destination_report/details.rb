@@ -102,8 +102,8 @@ module
         HUD.project_type(column)
       when 'CoC'
         HUD.coc_name(column)
-      when 'Gender'
-        "#{HUD.gender(column)} (#{column})"
+      when 'Female', 'Male', 'No Single Gender', 'Transgender', 'Questioning', 'Unknown Gender'
+        HUD.no_yes_reasons_for_missing_data(column)
       when *HUD.races.values
         HUD.no_yes_missing(column)
       else
@@ -117,7 +117,12 @@ module
         'First Name',
         'Last Name',
         'DOB',
-        'Gender',
+        'Female',
+        'Male',
+        'No Single Gender',
+        'Transgender',
+        'Questioning',
+        'Unknown Gender',
         'Ethnicity',
       ] + HUD.races.values
     end
@@ -128,7 +133,12 @@ module
         c_t[:FirstName],
         c_t[:LastName],
         c_t[:DOB],
-        c_t[:Gender],
+        c_t[:Female],
+        c_t[:Male],
+        c_t[:NoSingleGender],
+        c_t[:Transgender],
+        c_t[:Questioning],
+        c_t[:GenderNone],
         c_t[:Ethnicity],
       ] + HUD.races.keys.map { |k| c_t[k.to_sym] }
     end

@@ -218,7 +218,7 @@ module ProjectScorecard
           'Question 23',
           'Question 26',
         ]
-        generator = HudApr::Generators::Apr::Fy2020::Generator
+        generator = HudApr::Generators::Apr::Fy2021::Generator
         apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
         generator.new(apr).run!(email: false, manual: false)
 

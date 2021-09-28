@@ -39,6 +39,7 @@ module HudSpmReport::Generators::Fy2021
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1).freeze
 
     PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34].freeze
+    PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze
 
     ES_SH = ES + SH
     ES_SH_TH = ES + SH + TH
@@ -1302,8 +1303,11 @@ module HudSpmReport::Generators::Fy2021
     end
 
     private def services_scope
-      GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: :enrollment).
-        merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH))
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        hud_project_type(ES_SH_TH_PH).
+        joins(:service_history_services, :enrollment)
+
+      add_filters(scope)
     end
 
     private def active_enrollments_scope
@@ -1333,7 +1337,7 @@ module HudSpmReport::Generators::Fy2021
 
     private def exits_scope
       exits = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        joins(:project).hud_project_type(SO + ES + TH + SH + PH).
+        joins(:project).hud_project_type(ES_SH_TH_PH_SO).
         where(last_date_in_program: lookback_range)
       filter # force @filter to be set
       exits = filter_for_user_access(exits)
@@ -1349,10 +1353,10 @@ module HudSpmReport::Generators::Fy2021
 
     # Calculate the number of unique days homeless given:
     #
-    # sh_enrollements: an Array(GrdaWarehouse::ServiceHistoryEnrollments) for a client with suitable preloads
+    # sh_enrollments: an Array(GrdaWarehouse::ServiceHistoryEnrollments) for a client with suitable preloads
     #   covering all dates that could contribute to this report
-    # project_types: Array(HUD.oroject_types.keys)
-    # stop_project_types: Array(HUD.oroject_types.keys)
+    # project_types: Array(HUD.project_types.keys)
+    # stop_project_types: Array(HUD.project_types.keys)
     # include_pre_entry: boolean true to include days before entry
     # consider_move_in_date: boolean handle time between [project start] and [housing move-in].
     #

@@ -18,14 +18,15 @@ RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionEight, type: :model do
     warehouse = GrdaWarehouseBase.connection
 
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    if Fixpoint.exists? :hud_hmis_q8_export_app
+    if Fixpoint.exists? :hud_hmis_2021_q8_export_app
       GrdaWarehouse::Utility.clear!
-      restore_fixpoint :hud_hmis_q8_export_app
-      restore_fixpoint :hud_hmis_q8_export_warehouse, connection: warehouse
+      HmisCsvImporter::Utility.clear!
+      restore_fixpoint :hud_hmis_2021_q8_export_app
+      restore_fixpoint :hud_hmis_2021_q8_export_warehouse, connection: warehouse
     else
       setup(question_8_setup_path)
-      store_fixpoint :hud_hmis_q8_export_app
-      store_fixpoint :hud_hmis_q8_export_warehouse, connection: warehouse
+      store_fixpoint :hud_hmis_2021_q8_export_app
+      store_fixpoint :hud_hmis_2021_q8_export_warehouse, connection: warehouse
     end
   end
 

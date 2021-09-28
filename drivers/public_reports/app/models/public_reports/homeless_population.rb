@@ -372,11 +372,11 @@ module PublicReports
           charts[date.iso8601] = {
             data: with_service_in_quarter(report_scope, date, population).
               joins(:client).
-              group(c_t[:Gender]).
+              group(GrdaWarehouse::Hud::Client.gender_binary_sql_case).
               count.
               map do |gender_id, count|
                 # Force any unknown genders to Unknown
-                gender_id = nil unless gender_id.in?([0, 1, 2, 3, 4])
+                gender_id = nil unless gender_id.in?([0, 1, 2, 5, 6])
                 [
                   ::HUD.gender(gender_id) || 'Unknown',
                   count,
@@ -475,7 +475,7 @@ module PublicReports
             data[::HUD.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year)
-            census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop.positive?
+            census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop&.positive?
           end
           all_destination_ids = with_service_in_quarter(report_scope, date, population).distinct.pluck(:client_id)
           with_service_in_quarter(report_scope, date, population).

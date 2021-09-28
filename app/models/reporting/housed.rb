@@ -9,6 +9,7 @@
 module Reporting
   class Housed < ReportingBase
     include RailsDrivers::Extensions
+    ADVISORY_LOCK_KEY = 'reporting_housed_calculation'.freeze
 
     self.table_name = :warehouse_houseds
     include ArelHelper
@@ -240,39 +241,44 @@ module Reporting
     end
 
     def populate!
-      remove_no_longer_used
-      client_ids.each_slice(1_000) do |client_id_batch|
-        cache_client = GrdaWarehouse::Hud::Client.new
-        client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_id_batch)
+      return if Reporting::Housed.advisory_lock_exists?(ADVISORY_LOCK_KEY)
 
-        current_client_details = client_details(client_id_batch)
-        data = enrollment_data(client_id_batch).map do |en|
-          client = current_client_details[en[:client_id]]
-          next unless client.present?
+      Reporting::Housed.with_advisory_lock(ADVISORY_LOCK_KEY) do
+        remove_no_longer_used
+        client_ids.each_slice(1_000) do |client_id_batch|
+          cache_client = GrdaWarehouse::Hud::Client.new
+          client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_id_batch)
 
-          client.delete(:id)
-          en.merge!(client)
-          en[:month_year] = en[:housed_date]&.strftime('%Y-%m-01')
-          if HUD.permanent_destinations.include?(en[:destination])
-            en[:ph_destination] = :ph
-          else
-            en[:ph_destination] = :not_ph
+          current_client_details = client_details(client_id_batch)
+          data = enrollment_data(client_id_batch).map do |en|
+            client = current_client_details[en[:client_id]]
+            next unless client.present?
+
+            client.delete(:id)
+            en.merge!(client)
+            en[:month_year] = en[:housed_date]&.strftime('%Y-%m-01')
+            if HUD.permanent_destinations.include?(en[:destination])
+              en[:ph_destination] = :ph
+            else
+              en[:ph_destination] = :not_ph
+            end
+            en[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: en[:client_id])
+
+            en[:age_at_search_start] = GrdaWarehouse::Hud::Client.age(date: en[:search_start], dob: en[:dob])
+            en[:age_at_search_end] = GrdaWarehouse::Hud::Client.age(date: en[:search_end], dob: en[:dob])
+            en[:age_at_housed_date] = GrdaWarehouse::Hud::Client.age(date: en[:housed_date], dob: en[:dob])
+            en[:age_at_housing_exit] = GrdaWarehouse::Hud::Client.age(date: en[:housing_exit], dob: en[:dob])
+            en
           end
-          en[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: en[:client_id])
+          next unless data.present?
 
-          en[:age_at_search_start] = GrdaWarehouse::Hud::Client.age(date: en[:search_start], dob: en[:dob])
-          en[:age_at_search_end] = GrdaWarehouse::Hud::Client.age(date: en[:search_end], dob: en[:dob])
-          en[:age_at_housed_date] = GrdaWarehouse::Hud::Client.age(date: en[:housed_date], dob: en[:dob])
-          en[:age_at_housing_exit] = GrdaWarehouse::Hud::Client.age(date: en[:housing_exit], dob: en[:dob])
-          en
-        end
-        next unless data.present?
+          headers = data.first.keys
 
-        headers = data.first.keys
-
-        transaction do
-          self.class.where(client_id: client_id_batch).delete_all
-          self.class.import(headers, data.map(&:values))
+          # Ensure delete and re-import is atomic
+          transaction do
+            self.class.where(client_id: client_id_batch).delete_all
+            self.class.import(headers, data.map(&:values))
+          end
         end
       end
     end
@@ -577,9 +583,9 @@ module Reporting
         joins(:project).
         merge(
           GrdaWarehouse::Hud::Project.ph.
-          or(GrdaWarehouse::Hud::Project.th).
-          or(GrdaWarehouse::Hud::Project.es).
-          or(GrdaWarehouse::Hud::Project.sh),
+            or(GrdaWarehouse::Hud::Project.th).
+            or(GrdaWarehouse::Hud::Project.es).
+            or(GrdaWarehouse::Hud::Project.sh),
         ).distinct.pluck(:client_id)
     end
 

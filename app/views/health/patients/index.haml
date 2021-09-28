@@ -21,12 +21,13 @@
   .filter.ml-4
     = render 'filter'
 
-%p.mr-5= page_entries_info @patients, entry_name: _('patient')
-
 - if @patients.any?
+  %p.mr-5= page_entries_info @patients, entry_name: _('patient')
   = paginate @patients
+
   - @patients.each do |patient|
     = render 'patient_card', patient: patient
+
   = paginate @patients
 
 = content_for :page_js do

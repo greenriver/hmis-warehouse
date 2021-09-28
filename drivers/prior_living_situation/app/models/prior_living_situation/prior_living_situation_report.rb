@@ -247,11 +247,11 @@ module PriorLivingSituation
     end
 
     private def male_clause
-      c_t[:Gender].eq(1)
+      c_t[:Male].eq(1)
     end
 
     private def female_clause
-      c_t[:Gender].eq(0)
+      c_t[:Female].eq(1)
     end
 
     private def average_age(clause:)

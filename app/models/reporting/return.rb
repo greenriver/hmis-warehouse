@@ -11,8 +11,11 @@ module Reporting
 
     def populate!
       return unless source_data_scope(client_ids).exists?
+      return if Reporting::Return.advisory_lock_exists?(Reporting::Housed::ADVISORY_LOCK_KEY)
 
-      stays
+      Reporting::Return.with_advisory_lock(Reporting::Housed::ADVISORY_LOCK_KEY) do
+        stays
+      end
     end
 
     def source_data(ids)
@@ -47,7 +50,7 @@ module Reporting
         end_date = nil
         length_of_stay = 0
         # create an array with a record for each enrollment that includes the first and last date seen
-        data.pluck_in_batches(source_columns.values, batch_size: 500_000) do |batch|
+        data.pluck_in_batches(source_columns.values, batch_size: 400_000) do |batch|
           batch.each do |row|
             day = row_to_hash(row)
 

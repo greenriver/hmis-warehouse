@@ -714,27 +714,26 @@ module HUD
   end
 
   def gender_fields
-    [
-      :Female,
-      :Male,
-      :NoSingleGender,
-      :Transgender,
-      :Questioning,
-      :GenderNone,
-    ]
+    gender_id_to_field_name.values.uniq.freeze
   end
 
   def gender_id_to_field_name
     {
-      0 => 'Female',
-      1 => 'Male',
-      4 => 'NoSingleGender',
-      5 => 'Transgender',
-      6 => 'Questioning',
-      8 => 'Client doesn\'t know',
-      9 => 'Client refused',
-      99 => 'Data not collected',
+      0 => :Female,
+      1 => :Male,
+      4 => :NoSingleGender,
+      5 => :Transgender,
+      6 => :Questioning,
+      8 => :GenderNone,
+      9 => :GenderNone,
+      99 => :GenderNone,
     }.freeze
+  end
+
+  def gender_comparison_value(key)
+    return key if key.in?([8, 9, 99])
+
+    1
   end
 
   def no_single_gender_queries

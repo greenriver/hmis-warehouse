@@ -539,11 +539,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_female, -> do
-      where(Female: 1)
+      where(Female: 1).where.not(NoSingleGender: 1)
     end
 
     scope :gender_male, -> do
-      where(Male: 1)
+      where(Male: 1).where.not(NoSingleGender: 1)
     end
 
     scope :gender_mtf, -> do
@@ -554,7 +554,7 @@ module GrdaWarehouse::Hud
       gender_transgender.gender_male
     end
 
-    scope :gender_non_conforming, -> do
+    scope :no_single_gender, -> do
       where(NoSingleGender: 1)
     end
 
@@ -2060,6 +2060,39 @@ module GrdaWarehouse::Hud
 
     def gender
       gender_multi.map { |k| ::HUD.gender(k) }.join(', ')
+    end
+
+    # while the entire warehouse is updated to accept and use the new gender setup, this will provide
+    # a single value that roughly represents the client's gender
+    def gender_binary
+      self.class.gender_binary(self)
+    end
+
+    # Accepts a hash containing the gender columns and values
+    # Returns a single value that roughly represents the client's gender
+    def self.gender_binary(genders)
+      return 4 if genders[:NoSingleGender] == 1
+      return 5 if genders[:Transgender] == 1
+      return 6 if genders[:Questioning] == 1
+      return 4 if genders[:Female] == 1 && genders[:Male] == 1
+      return 0 if genders[:Female] == 1
+      return 1 if genders[:Male] == 1
+
+      genders[:GenderNone]
+    end
+
+    def self.gender_binary_sql_case
+      acase(
+        [
+          [arel_table[:NoSingleGender].eq(1), 4],
+          [arel_table[:Transgender].eq(1), 5],
+          [arel_table[:Questioning].eq(1), 6],
+          [arel_table[:Male].eq(1).and(arel_table[:Female].eq(1)), 4],
+          [arel_table[:Female].eq(1), 0],
+          [arel_table[:Male].eq(1), 1],
+        ],
+        elsewise: arel_table[:GenderNone],
+      )
     end
 
     # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting

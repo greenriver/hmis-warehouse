@@ -637,7 +637,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
     - 'app/models/similarity_metric/field.rb'
-    - 'app/models/similarity_metric/gender.rb'
     - 'app/models/similarity_metric/initializer.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
@@ -846,7 +845,6 @@ Layout/HeredocIndentation:
     - 'app/models/similarity_metric/boolean.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
-    - 'app/models/similarity_metric/gender.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
 
@@ -2049,7 +2047,6 @@ Naming/HeredocDelimiterNaming:
     - 'app/models/glacier/runner.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
-    - 'app/models/similarity_metric/gender.rb'
 
 # Offense count: 35
 # Configuration parameters: EnforcedStyleForLeadingUnderscores.
@@ -2102,7 +2099,6 @@ Naming/MethodParameterName:
     - 'app/models/similarity_metric/experiment/float_formatter.rb'
     - 'app/models/similarity_metric/experiment/integer_formatter.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
-    - 'app/models/similarity_metric/gender.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/similarity_metric/social_security_number.rb'
@@ -2574,7 +2570,6 @@ Style/MutableConstant:
     - 'app/models/similarity_metric/boolean.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
-    - 'app/models/similarity_metric/gender.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/similarity_metric/social_security_number.rb'
