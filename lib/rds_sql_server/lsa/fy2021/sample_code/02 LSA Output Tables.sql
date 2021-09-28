@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  02 LSA Output Tables.sql 
-Date:  26 AUG 2021
+Date:  16 SEP 2021
  
 
 There are some deliberate differences from data typing and nullability as defined by 
@@ -66,7 +66,7 @@ if object_id ('lsa_Organization') is not NULL drop table lsa_Organization
 create table lsa_Organization(
 	OrganizationID nvarchar(32) not NULL,
 	OrganizationName nvarchar(100) not NULL,
-	VictimServicesProvider int not NULL,
+	VictimServiceProvider int not NULL,
 	OrganizationCommonName nvarchar(100),
 	DateCreated nvarchar(19) not NULL,			--HMIS: datetime
 	DateUpdated nvarchar(19) not NULL,			--HMIS: datetime

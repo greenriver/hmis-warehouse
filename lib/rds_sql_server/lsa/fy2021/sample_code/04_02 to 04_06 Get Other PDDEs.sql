@@ -1,6 +1,6 @@
 /*
 Name:  04_02 to 04_06 Get Other PDDEs.sql
-Date:	26 AUG 2021 
+Date:	16 SEP 2021 
 
 
 	4.2 Get Organization Records for Export
@@ -13,7 +13,7 @@ Date:	26 AUG 2021
 
 	insert into lsa_Organization
 		(OrganizationID, OrganizationName
-		, VictimServicesProvider
+		, VictimServiceProvider
 		, DateCreated, DateUpdated, ExportID)
 	select distinct ho.OrganizationID
 		, left(ho.OrganizationName, 100)
@@ -126,3 +126,4 @@ Date:	26 AUG 2021
 			or (hi.InventoryEndDate >= rpt.ReportStart
 				and hi.InventoryEndDate > hi.InventoryStartDate)
 			)
+
