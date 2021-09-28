@@ -10,11 +10,6 @@ module ClaimsReporting::Calculators
 
     def initialize(member_ids)
       @member_ids = member_ids
-      @vaccination_claims = ClaimsReporting::MedicalClaim.
-        where(member_id: @member_ids, procedure_code: vaccination_types.keys + vaccination_doses.keys).
-        pluck(*DATA_FIELDS).
-        group_by(&:first).
-        transform_values! { |claims| claims.map { |claim| DATA_FIELDS.zip(claim).to_h } }
     end
 
     def to_map
@@ -44,6 +39,11 @@ module ClaimsReporting::Calculators
     end
 
     def vaccinations_for_member(member_id)
+      @vaccination_claims ||= ClaimsReporting::MedicalClaim.
+        where(member_id: @member_ids, procedure_code: vaccination_types.keys + vaccination_doses.keys).
+        pluck(*DATA_FIELDS).
+        group_by(&:first).
+        transform_values! { |claims| claims.map { |claim| DATA_FIELDS.zip(claim).to_h } }
       claims = @vaccination_claims[member_id]
       return 'Unknown' unless claims.present?
 
