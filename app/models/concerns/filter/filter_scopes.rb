@@ -44,18 +44,25 @@ module Filter::FilterScopes
     end
 
     private def age_calculation
-      nf(
-        'AGE',
-        [
+      cast(
+        datepart(
+          GrdaWarehouse::ServiceHistoryEnrollment,
+          'YEAR',
           nf(
-            'GREATEST',
+            'AGE',
             [
-              she_t[:first_date_in_program],
-              @filter.start_date,
+              nf(
+                'GREATEST',
+                [
+                  she_t[:first_date_in_program],
+                  @filter.start_date,
+                ],
+              ),
+              c_t[:DOB],
             ],
           ),
-          c_t[:DOB],
-        ],
+        ),
+        'integer',
       )
     end
 
@@ -75,9 +82,7 @@ module Filter::FilterScopes
       ages += (60..61).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
       ages += (62..110).to_a if @filter.age_ranges.include?(:over_sixty_one)
 
-      scope.joins(:client).where(
-        Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in(ages),
-      )
+      scope.joins(:client).where(age_calculation.in(ages))
     end
 
     private def filter_for_gender(scope)
