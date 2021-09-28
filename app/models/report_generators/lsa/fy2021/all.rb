@@ -242,8 +242,12 @@ module ReportGenerators::Lsa::Fy2021
     def populate_hmis_tables
       load 'lib/rds_sql_server/lsa/fy2021/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
       extract_path = if test?
-        source = Rails.root.join('spec/fixtures/files/lsa/fy2021/sample_hmis_export/.')
-        FileUtils.cp_r(source, unzip_path)
+        source = Rails.root.join('spec/fixtures/files/lsa/fy2021/sample_hmis_export/')
+        existing = Dir.glob(File.join(unzip_path, '*.csv'))
+        FileUtils.rm(existing) if existing
+        Dir.glob(File.join(source, '*.csv')).each do |f|
+          FileUtils.cp_r(f, unzip_path)
+        end
         unzip_path
       else
         @hmis_export.unzip_to(unzip_path)
