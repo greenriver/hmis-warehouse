@@ -27,7 +27,7 @@ every 1.day, at: daily_schedule do
   # Long-running
   rake "grda_warehouse:daily"
 end
-shifted_time = ENV['DAILY_EXPORT_SCHEDULE'].presence || Time.parse(daily_schedule) - 2.hours
+shifted_time = ENV['DAILY_EXPORT_SCHEDULE'] || Time.parse(daily_schedule) - 2.hours
 every 1.day, at: shifted_time.strftime('%I:%M %P') do
   # Defers to delayed jobs
   rake "grda_warehouse:process_recurring_hmis_exports"
