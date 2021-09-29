@@ -216,7 +216,7 @@ module GrdaWarehouse::WarehouseReports
       sub_population = @filter.sub_population
       sub_population = :youth if sub_population.to_s.starts_with?('youth')
 
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.
+      scope = report_scope_source.
         send(sub_population).
         joins(:organization)
 
@@ -237,7 +237,7 @@ module GrdaWarehouse::WarehouseReports
       scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids) if @filter.limit_to_vispdats
 
       if @filter.require_homeless_enrollment
-        homeless_clients = GrdaWarehouse::ServiceHistoryEnrollment.
+        homeless_clients = report_scope_source.
           entry.
           with_service_between(start_date: start_date, end_date: end_date).
           homeless.
@@ -246,6 +246,10 @@ module GrdaWarehouse::WarehouseReports
       end
 
       scope
+    end
+
+    private def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
     private def warehouse_vispdat_client_ids
