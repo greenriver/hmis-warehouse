@@ -243,7 +243,6 @@ module HMIS::Structure::Client
           },
           GenderNone: {
             type: :integer,
-            null: false,
           },
           VeteranStatus: {
             type: :integer,
