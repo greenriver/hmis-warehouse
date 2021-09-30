@@ -248,7 +248,7 @@ module Hl7
   # efficiently loads, caches, returns
   # a 2-level lookup table: value_set_name -> code_system_name -> Set<codes> | RegExp
   def self.value_set_lookups
-    @value_set_lookups ||= begin
+    @@value_set_lookups ||= begin # rubocop:disable Style/ClassVars
       sets = VALUE_SETS.keys.map do |vs_name|
         [vs_name, {}]
       end.to_h
@@ -290,7 +290,7 @@ module Hl7
   end
 
   def self.value_set_codes(name, code_systems)
-    @value_set_codes ||= value_set_lookups.fetch(name.to_s).values_at(*Array(code_systems)).flatten.compact
+    value_set_lookups.fetch(name.to_s).values_at(*Array(code_systems)).flatten.compact
   end
 
   # Map the names used in the various CMS Quality Rating System specs

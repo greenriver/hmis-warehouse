@@ -1174,6 +1174,7 @@ module ClaimsReporting
 
     # BH CP #13: Hospital Readmissions (Adult)
     private def calculate_bh_cp_13(member, claims, enrollments) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+      @patient_risk_score_calculator ||= ::ClaimsReporting::Calculators::PatientRiskScore.new(date_range: date_range)
       rows = []
 
       # puts "BH_CP_13: Checking MemberRoster#id=#{member.id}"
@@ -1295,7 +1296,7 @@ module ClaimsReporting
 
         row_id = "#{admit.id}-#{discharge.id}"
 
-        ra = bh_cp_13_ihs_risk_adjustment(member, stay_claims, claims)
+        ra = @patient_risk_score_calculator.ihs_risk_adjustment(member, stay_claims, claims)
 
         # > Numerator: At least one acute readmission for any diagnosis within 30 days of the Index Discharge Date.
         # FIXME? O(n^2) but n is tiny
@@ -1442,93 +1443,6 @@ module ClaimsReporting
       table
     end
     memoize :bh_cp_13_table
-
-    private def pcr_risk_adjustment_calculator
-      ::ClaimsReporting::Calculators::PcrRiskAdjustment.new
-    rescue StandardError => e
-      logger.warn { "PcrRiskAdjustment calculator is unavailable: #{e.message}" }
-      nil
-    end
-    memoize :pcr_risk_adjustment_calculator
-
-    private def bh_cp_13_ihs_risk_adjustment(member, stay_claims, claims)
-      return unless pcr_risk_adjustment_calculator
-
-      # Since we are now user 2021 QRS Plan All-Cause Readmissions (PCR)
-      # as the spec for risk adjustment date We are using
-      # the methods for that.
-      # See https://www.cms.gov/files/document/2021-qrs-measure-technical-specifications.pdf
-      # ClaimsReporting::Calculators::PcrRiskAdjustment
-
-      discharge_date = stay_claims.last.discharge_date
-      discharge_dx_code = stay_claims.first.dx_1
-
-      # > Step 1
-      # > Identify all diagnoses for encounters during the classification period. Include the following when identifying encounters:
-      comorb_dx_codes = Set.new
-      claims.each do |c|
-        # > • Outpatient visits (Outpatient Value Set).
-        # > • Telephone visits (Telephone Visits Value Set)
-        # > • Observation visits (Observation Value Set).
-        # > • ED visits (ED Value Set).
-        # > • Inpatient events:
-        # > – Nonacute inpatient encounters (Nonacute Inpatient Value Set).
-        # > – Acute inpatient encounters (Acute Inpatient Value Set).
-        # > – Acute and nonacute inpatient discharges (Inpatient Stay Value Set).
-
-        # > Use the date of service for outpatient, observation and ED visits. Use the discharge date for inpatient events.
-        date = if Hl7.in_set?('Outpatient', c) ||
-          Hl7.in_set?('Telephone Visits', c) ||
-          Hl7.in_set?('Observation', c)
-
-          c.service_start_date
-        elsif Hl7.in_set?('ED', c) ||
-          Hl7.in_set?('Nonacute Inpatient', c) ||
-          Hl7.in_set?('Acute Inpatient', c)
-
-          c.discharge_date
-        end
-
-        next unless date.present? && measurement_year.cover?(date)
-
-        comorb_dx_codes += c.dx_codes
-      end
-      # > Exclude the primary discharge diagnosis on the IHS.
-      comorb_dx_codes -= [discharge_dx_code]
-
-      # > Step 3 Assign each diagnosis to a comorbid Clinical Condition (CC)
-      # > category using Table CC— Comorbid. If the code appears more than once
-      # > in Table CC—Comorbid, it is assigned to multiple CCs.
-      # >All digits must match
-      # > exactly when mapping diagnosis codes to the comorbid CCs.
-      comorb_cc_codes = comorb_dx_codes.map do |dx_code|
-        pcr_risk_adjustment_calculator.cc_mapping[dx_code]
-      end.compact
-
-      # > Exclude all diagnoses that cannot be assigned to a comorbid CC category. For
-      # > members with no qualifying diagnoses from face-to-face encounters,
-      # > skip to the Risk Adjustment Weighting section.
-      return unless comorb_cc_codes.any?
-
-      had_surgery = stay_claims.any? do |c|
-        Hl7.in_set?('Surgery Procedure', c)
-      end
-      observation_stay = stay_claims.any? do |c|
-        Hl7.in_set?('Observation Stay', c)
-      end
-
-      pcr_risk_adjustment_calculator.process_ihs(
-        age: GrdaWarehouse::Hud::Client.age(dob: member.date_of_birth, date: discharge_date),
-        gender: member.sex, # they mean biological sex
-        observation_stay: observation_stay,
-        had_surgery: had_surgery,
-        discharge_dx_code: discharge_dx_code,
-        comorb_dx_codes: comorb_dx_codes,
-      ).tap do |result|
-        # debug_prefix = " BH_CP_13: MemberRoster#id=#{member.id} stay=#{stay_claims.first.id}"
-        # puts "#{debug_prefix} Risk adjustment data #{result.inspect}" unless result[:sum_of_weights].zero?
-      end
-    end
 
     private def trace_set_match!(vs_name, claim, code_type) # rubocop:disable Lint/UnusedMethodArgument
       # puts "Hl7.in_set? #{vs_name} matched #{code_type} for Claim#id=#{claim.id}"
