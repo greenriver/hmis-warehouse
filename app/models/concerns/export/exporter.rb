@@ -61,7 +61,7 @@ module Export::Exporter
         files.each do |filename|
           zipfile.add(
             # File.join(@export.export_id, filename),
-            File.join(filename), # add without path
+            filename, # add without path
             File.join(@file_path, filename),
           )
         end
