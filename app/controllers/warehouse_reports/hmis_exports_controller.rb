@@ -45,7 +45,6 @@ module WarehouseReports
         if frequency.positive?
           recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id))
           @filter.recurring_hmis_export_id = recurring_export.id
-          @filter.zip_password = recurring_export.zip_password
         end
         @filter.adjust_reporting_period
         if recurring_export&.s3_present? && ! recurring_export.s3_valid?
