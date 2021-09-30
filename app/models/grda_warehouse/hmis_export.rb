@@ -29,7 +29,7 @@ module GrdaWarehouse
 
     scope :for_list, -> do
       has_content.
-      select(column_names - ['content', 'file'])
+        select(column_names - ['content', 'file'])
     end
 
     def save_zip_to(path)
@@ -53,6 +53,7 @@ module GrdaWarehouse
           zip_file.each do |entry|
             file_name = entry.name.split('/').last
             next unless file_name.include?('.csv')
+
             Rails.logger.info "Extracting #{file_name}"
             unzip_path = "#{extract_path}/#{file_name}"
             Rails.logger.info "To: #{extract_path}"
@@ -62,15 +63,13 @@ module GrdaWarehouse
             unzipped_files << [GrdaWarehouse::Hud.hud_filename_to_model(file_name).name, unzip_path] if file_name.include?('.csv')
           end
         end
-      rescue StandardError => ex
-        Rails.logger.error ex.message
-        raise "Unable to extract file: #{zip_path}: #{ex.message}"
+      rescue StandardError => e
+        Rails.logger.error e.message
+        raise "Unable to extract file: #{zip_path}: #{e.message}"
       end
       # If the file was extracted successfully, delete the source file,
       ::File.delete(zip_path) if ::File.exist?(zip_path)
       return extract_path
     end
-
-
   end
 end

@@ -26,10 +26,9 @@ module GrdaWarehouse
       if hmis_exports.exists?
         last_export_finished_on = recurring_hmis_export_links.maximum(:exported_at)
         return Date.current - last_export_finished_on >= every_n_days
-      else
-        # Don't re-run the export on the day it was requested
-        return ! updated_at.today?
       end
+      # Don't re-run the export on the day it was requested
+      ! updated_at.today?
     end
 
     def run
@@ -109,16 +108,15 @@ module GrdaWarehouse
 
       File.open(destination_file, 'wb') do |file|
         SevenZipRuby::SevenZipWriter.open(file, password: zip_password) do |szw|
-          # szw.method = 'LZMA'
-          # szw.level = 9
-          # szw.solid = false
-          # szw.header_compression = false
+          szw.method = 'LZMA'
+          szw.level = 9
+          szw.solid = false
+          szw.header_compression = false
           szw.header_encryption = true
           # szw.multi_threading = false
           Dir.glob("#{destination_path}/*.csv").each do |f|
             szw.add_data(File.open(File.join(local_destination_path, File.basename(f))).read, File.basename(f))
           end
-            # szw.add_directory('./')
         end
       end
 
@@ -133,9 +131,7 @@ module GrdaWarehouse
 
     def object_name(report)
       prefix = ''
-      if s3_prefix.present?
-        prefix = "#{s3_prefix.strip}-"
-      end
+      prefix = "#{s3_prefix.strip}-" if s3_prefix.present?
       date = Date.current.strftime('%Y%m%d')
       ext = encryption_type || 'zip'
       "#{prefix}#{date}-#{report.export_id}.#{ext}"
@@ -162,17 +158,18 @@ module GrdaWarehouse
 
     def aws_s3
       return nil unless s3_present?
-      @aws_s3 ||= if self.s3_secret_access_key.present?
+
+      @aws_s3 ||= if s3_secret_access_key.present?
         AwsS3.new(
           region: s3_region.strip,
           bucket_name: s3_bucket.strip,
-          access_key_id: self.s3_access_key_id.strip,
-          secret_access_key: self.s3_secret_access_key
+          access_key_id: s3_access_key_id.strip,
+          secret_access_key: s3_secret_access_key,
         )
       else
         AwsS3.new(
           region: s3_region.strip,
-          bucket_name: s3_bucket.strip
+          bucket_name: s3_bucket.strip,
         )
       end
     end
@@ -197,9 +194,8 @@ module GrdaWarehouse
       ]
     end
 
-
     def filter_hash
-      hash = self.slice(
+      hash = slice(
         :start_date,
         :end_date,
         :hash_status,
@@ -217,9 +213,8 @@ module GrdaWarehouse
         :reporting_range_days,
         :zip_password,
       )
-      hash[:recurring_hmis_export_id] = self.id
+      hash[:recurring_hmis_export_id] = id
       return hash
     end
-
   end
 end
