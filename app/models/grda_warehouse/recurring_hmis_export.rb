@@ -65,7 +65,7 @@ module GrdaWarehouse
 
     private def encrypt_zipcloak(content)
       tmp = Tempfile.new(['hmis_export', '.zip'], 'tmp', binmode: true)
-      source_path = File.join(Rails.root, tmp.path).to_s
+      source_path = Rails.root.join(tmp.path).to_s
       destination_path = "#{File.join(File.dirname(source_path), File.basename(source_path, '.zip'))}_enc.zip"
       tmp.write(content)
       tmp.close
@@ -92,7 +92,7 @@ module GrdaWarehouse
     private def encrypt_seven_zip(content)
       tmp = Tempfile.new(['hmis_export', '.zip'], 'tmp', binmode: true)
       local_source_path = tmp.path
-      source_path = File.join(Rails.root, tmp.path).to_s
+      source_path = Rails.root.join(tmp.path).to_s
       destination_path = File.join(File.dirname(source_path), File.basename(source_path, '.zip')).to_s
       local_destination_path = File.join(File.dirname(local_source_path), File.basename(source_path, '.zip')).to_s
       destination_file = "#{File.join(File.dirname(source_path), File.basename(source_path, '.zip'))}_enc.7z"
@@ -119,7 +119,7 @@ module GrdaWarehouse
           end
         end
       end
-
+      # for some reason we need a bit of sand after talking to zipcloak over PTY
       sleep(5) unless File.exist?(destination_file)
       # return the encrypted content
       encrypted_content = File.open(destination_file, binmode: true).read
