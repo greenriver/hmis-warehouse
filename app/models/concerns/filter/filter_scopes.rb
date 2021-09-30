@@ -119,10 +119,10 @@ module Filter::FilterScopes
     end
 
     private def add_alternative(scope, alternative)
-      if scope.present?
-        scope.or(alternative)
-      else
+      if scope.nil?
         alternative
+      else
+        scope.or(alternative)
       end
     end
 
