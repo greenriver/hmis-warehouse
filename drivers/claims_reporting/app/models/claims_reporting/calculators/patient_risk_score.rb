@@ -6,13 +6,13 @@
 
 module ClaimsReporting::Calculators
   class PatientRiskScore
-    def initialize(medicaid_ids = [], date_range: Date.beginning_of_year..Date.end_of_year)
+    def initialize(medicaid_ids = [], date_range: Date.current.beginning_of_year..Date.current.end_of_year)
       @medicaid_ids = medicaid_ids
       @date_range = date_range
     end
 
     def to_map
-      {}.tap do |result|
+      @to_map ||= {}.tap do |result|
         @medicaid_ids.each do |medicaid_id|
           member = member_by_member_id(medicaid_id)
           result[medicaid_id] = 'Not Calculated'
@@ -22,20 +22,29 @@ module ClaimsReporting::Calculators
           stay_claims = claims.select do |claim|
             claim.discharge_date.present? && measurement_year.cover?(claim.discharge_date) && (
               (Hl7.in_set?('Inpatient Stay', claim) && !Hl7.in_set?('Nonacute Inpatient Stay', claim)) ||
-                Hl7.in_set?('Observation Stay', c)
+                Hl7.in_set?('Observation Stay', claim)
             )
           end.sort_by(&:service_start_date)
-          result[medicaid_id] = ihs_risk_adjustment(member, stay_claims, claims)[:expected_readmit_rate]
+          result[medicaid_id] = ihs_risk_adjustment(member, stay_claims, claims)&.dig(:expected_readmit_rate)&.round(4) || 'Not Calculated'
         end
       end
     end
 
     def self.dashboard_sort_options
-      nil
+      {
+        column: 'risk_score',
+        direction: :desc,
+        title: 'Estimated Readmission Risk',
+      }
     end
 
-    def sort_order(_column, _direction)
-      nil
+    def sort_order(column, direction)
+      return unless column == 'risk_score'
+
+      order = to_map.sort_by { |_, v| v.to_f }
+      order.reverse! if direction == :desc
+
+      { medicaid_id: order.to_h.keys }
     end
 
     def member_by_member_id(member_id)
@@ -53,9 +62,9 @@ module ClaimsReporting::Calculators
     end
 
     def medical_claims_by_member_id(member_id)
-      @medical_claims_by_member_id ||= ClaimsReporting::MedicalClaim.
+      @medical_claims_by_member_id ||= ::ClaimsReporting::MedicalClaim.
         joins(:member_roster).
-        where(member_id: @member_ids).
+        where(member_id: @medicaid_ids).
         service_in(@date_range).
         group_by(&:member_id)
 
@@ -73,8 +82,8 @@ module ClaimsReporting::Calculators
       # See https://www.cms.gov/files/document/2021-qrs-measure-technical-specifications.pdf
       # ClaimsReporting::Calculators::PcrRiskAdjustment
 
-      discharge_date = stay_claims.last.discharge_date
-      discharge_dx_code = stay_claims.first.dx_1
+      discharge_date = stay_claims.last&.discharge_date
+      discharge_dx_code = stay_claims.first&.dx_1
 
       # > Step 1
       # > Identify all diagnoses for encounters during the classification period. Include the following when identifying encounters:
