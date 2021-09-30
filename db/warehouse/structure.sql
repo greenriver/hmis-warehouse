@@ -14885,7 +14885,10 @@ CREATE TABLE public.recurring_hmis_exports (
     encrypted_s3_secret character varying,
     encrypted_s3_secret_iv character varying,
     deleted_at timestamp without time zone,
-    version character varying
+    version character varying,
+    encrypted_zip_password character varying,
+    encrypted_zip_password_iv character varying,
+    encryption_type character varying
 );
 
 
@@ -45144,6 +45147,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210923202947'),
 ('20210926190212'),
 ('20210927130613'),
-('20210927133554');
+('20210927133554'),
+('20210929182410'),
+('20210930135501');
 
 

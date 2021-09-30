@@ -10,6 +10,7 @@ module GrdaWarehouse
     attr_accessor :fake_data
     attr_accessor :recurring_hmis_export_id
     attr_accessor :user_ids
+    # attr_accessor :zip_password
 
     mount_uploader :file, HmisExportUploader
 
