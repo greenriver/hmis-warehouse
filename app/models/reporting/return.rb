@@ -12,10 +12,11 @@ module Reporting
     def populate!
       return unless source_data_scope(client_ids).exists?
 
-      headers = stays.first.keys
-      transaction do
-        self.class.delete_all
-        self.class.import(headers, stays.map(&:values))
+      advisory_lock_key = 'reporting_return_calculation'
+      return if Reporting::Return.advisory_lock_exists?(advisory_lock_key)
+
+      Reporting::Return.with_advisory_lock(advisory_lock_key) do
+        stays
       end
     end
 
@@ -35,52 +36,57 @@ module Reporting
 
     # Collapse all days into consecutive stays
     def stays
-      @stays ||= begin
-        stays = []
-        # The end result isn't huge, but we need to process this
-        # in batches because the number of service records is.
-        # It is safe to batch by client because this only cares about the client level detail
-        client_ids.each_slice(5_000) do |ids|
-          cache_client = GrdaWarehouse::Hud::Client.new
-          client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
-          data = source_data(ids)
-          first_record = data.limit(1).pluck(*source_columns.values)
-          last_day = row_to_hash(first_record)
+      # The end result isn't huge, but we need to process this
+      # in batches because the number of service records is.
+      # It is safe to batch by client because this only cares about the client level detail
+      self.class.where.not(client_id: client_ids).delete_all
+      client_ids.each_slice(1_000) do |ids|
+        batch_of_stays = []
+        cache_client = GrdaWarehouse::Hud::Client.new
+        client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
+        data = source_data(ids)
+        first_record = data.limit(1).pluck(*source_columns.values)
+        last_day = row_to_hash(first_record)
 
-          start_date = nil
-          end_date = nil
-          length_of_stay = 0
-          # create an array with a record for each enrollment that includes the first and last date seen
-          data.pluck_in_batches(source_columns.values, batch_size: 50_000) do |batch|
-            batch.each do |row|
-              day = row_to_hash(row)
+        start_date = nil
+        end_date = nil
+        length_of_stay = 0
+        # create an array with a record for each enrollment that includes the first and last date seen
+        data.pluck_in_batches(source_columns.values, batch_size: 400_000) do |batch|
+          batch.each do |row|
+            day = row_to_hash(row)
 
-              # add a new row
-              if day[:service_history_enrollment_id] != last_day[:service_history_enrollment_id] || last_day[:date] < (day[:date] - 1.day)
-                # save off the previous stay
-                day[:length_of_stay] = length_of_stay
-                day[:start_date] = start_date
-                day[:end_date] = end_date
-                day[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: day[:client_id])
+            # add a new row
+            if day[:service_history_enrollment_id] != last_day[:service_history_enrollment_id] || last_day[:date] < (day[:date] - 1.day)
+              # save off the previous stay
+              day[:length_of_stay] = length_of_stay
+              day[:start_date] = start_date
+              day[:end_date] = end_date
+              day[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: day[:client_id])
 
-                stays << day
+              batch_of_stays << day
 
-                # reset
-                length_of_stay = 0
-                start_date = nil
-                end_date = nil
-              end
-
-              start_date ||= day[:date]
-              end_date = day[:date]
-              length_of_stay += 1
-              last_day = day
+              # reset
+              length_of_stay = 0
+              start_date = nil
+              end_date = nil
             end
+
+            start_date ||= day[:date]
+            end_date = day[:date]
+            length_of_stay += 1
+            last_day = day
           end
         end
-        stays.map do |stay|
+        batch_of_stays.map! do |stay|
           stay.delete(:date)
           stay
+        end
+
+        headers = batch_of_stays.first.keys
+        transaction do
+          self.class.where(client_id: ids).delete_all
+          self.class.import(headers, batch_of_stays.map(&:values))
         end
       end
     end

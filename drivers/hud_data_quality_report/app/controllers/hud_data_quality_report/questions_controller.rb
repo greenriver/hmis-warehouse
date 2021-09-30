@@ -24,7 +24,7 @@ module HudDataQualityReport
       question = params[:question]
       @report = report_source.from_filter(@filter, report_name, build_for_questions: [question])
       generator.new(@report).queue
-      redirect_to path_for_report(0)
+      redirect_to path_for_history
     end
 
     private def set_question

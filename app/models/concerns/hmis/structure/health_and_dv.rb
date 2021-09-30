@@ -139,7 +139,7 @@ module HMIS::Structure::HealthAndDv
           LifeValue: {
             type: :integer,
           },
-          SupportfromOthers: {
+          SupportFromOthers: {
             type: :integer,
           },
           BounceBack: {

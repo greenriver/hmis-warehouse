@@ -45,6 +45,7 @@ module Health
         referrals = Health::PatientReferral.where(
           disenrollment_date: (@start_date..@end_date),
           accountable_care_organization_id: @acos.map(&:id),
+          current: true,
           removal_acknowledged: false,
         )
         referrals.map do |referral|

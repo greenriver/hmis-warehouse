@@ -54,7 +54,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           CohortCalcs.new(processed.client).as_hash,
         )
       end
-      processed.save if processed.changed?
+      begin
+        processed.save if processed.changed?
+      rescue PG::ForeignKeyViolation, ActiveRecord::InvalidForeignKey
+        Rails.logger.info "Failed to find client in processed clients #{client_id}"
+      end
       GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
     end
     nil

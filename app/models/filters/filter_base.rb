@@ -388,14 +388,14 @@ module Filters
     end
 
     def effective_project_ids_from_projects
-      project_ids.reject(&:blank?).map(&:to_i)
+      @effective_project_ids_from_projects ||= project_ids.reject(&:blank?).map(&:to_i)
     end
 
     def effective_project_ids_from_project_groups
       projects = project_group_ids.reject(&:blank?).map(&:to_i)
       return [] if projects.empty?
 
-      GrdaWarehouse::ProjectGroup.joins(:projects).
+      @effective_project_ids_from_project_groups ||= GrdaWarehouse::ProjectGroup.joins(:projects).
         merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
         where(id: projects).
         pluck(p_t[:id].as('project_id'))
@@ -405,7 +405,7 @@ module Filters
       orgs = organization_ids.reject(&:blank?).map(&:to_i)
       return [] if orgs.empty?
 
-      all_organizations_scope.
+      @effective_project_ids_from_organizations ||= all_organizations_scope.
         where(id: orgs).
         pluck(p_t[:id].as('project_id'))
     end
@@ -414,7 +414,7 @@ module Filters
       sources = data_source_ids.reject(&:blank?).map(&:to_i)
       return [] if sources.empty?
 
-      all_data_sources_scope.
+      @effective_project_ids_from_data_sources ||= all_data_sources_scope.
         where(id: sources).
         pluck(p_t[:id].as('project_id'))
     end
@@ -422,7 +422,7 @@ module Filters
     def effective_project_ids_from_project_types
       return [] if project_type_ids.empty?
 
-      all_project_scope.
+      @effective_project_ids_from_project_types ||= all_project_scope.
         with_project_type(project_type_ids).
         pluck(p_t[:id].as('project_id'))
     end
@@ -432,12 +432,12 @@ module Filters
       codes = coc_codes.reject(&:blank?)
       return [] if codes.empty?
 
-      all_coc_code_scope.in_coc(coc_code: codes).
+      @effective_project_ids_from_coc_codes ||= all_coc_code_scope.in_coc(coc_code: codes).
         pluck(p_t[:id].as('project_id'))
     end
 
     def all_project_ids
-      all_project_scope.pluck(:id)
+      @all_project_ids ||= all_project_scope.pluck(:id)
     end
 
     def all_project_scope

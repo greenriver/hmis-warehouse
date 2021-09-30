@@ -93,6 +93,7 @@ module Filter::FilterScopes
       race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if @filter.races.include?('AmIndAKNative')
       race_scope = add_alternative(race_scope, race_alternative(:Asian)) if @filter.races.include?('Asian')
       race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if @filter.races.include?('BlackAfAmerican')
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if @filter.races.include?('NativeHIOtherPacific')
       race_scope = add_alternative(race_scope, race_alternative(:White)) if @filter.races.include?('White')
       race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if @filter.races.include?('RaceNone')
@@ -105,6 +106,7 @@ module Filter::FilterScopes
 
     private def multi_racial_clients
       # Looking at all races with responses of 1, where we have a sum > 1
+      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       columns = [
         c_t[:AmIndAKNative],
         c_t[:Asian],
@@ -117,10 +119,10 @@ module Filter::FilterScopes
     end
 
     private def add_alternative(scope, alternative)
-      if scope.present?
-        scope.or(alternative)
-      else
+      if scope.nil?
         alternative
+      else
+        scope.or(alternative)
       end
     end
 

@@ -36,7 +36,7 @@ RSpec.describe VeteransSubPop::Reporting::MonthlyReports::Veterans, type: :model
   describe 'setting enrollments' do
     before :each do
       ids = [veteran.id, non_vet.id]
-      @enrollments_by_client = report.set_enrollments_by_client ids
+      @enrollments_by_client = report.enrollments_by_client ids
       @months_for_vet = @enrollments_by_client[veteran.id]
     end
     it 'returns 1 client' do
@@ -50,7 +50,7 @@ RSpec.describe VeteransSubPop::Reporting::MonthlyReports::Veterans, type: :model
     end
     describe 'setting prior enrollment values' do
       before :each do
-        report.set_prior_enrollments
+        report.apply_prior_enrollments(@enrollments_by_client)
       end
       it 'days_since_last_exit is set on 3 monthly records' do
         expect(@months_for_vet.select { |m| m.days_since_last_exit.present? }.count).to eq 3
