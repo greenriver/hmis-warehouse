@@ -91,22 +91,29 @@ RSpec.describe HmisCsvImporter, type: :model do
       expect(GrdaWarehouse::Hud::User.count).to eq(4)
     end
 
+    it 'the dataase will have one youth education status' do
+      expect(GrdaWarehouse::Hud::YouthEducationStatus.count).to eq(3)
+    end
+
     describe 'each client\'s counts will match expected counts' do
       clients = {
         '2f4b963171644a8b9902bdfe79a4b403' => {
           enrollments: 2,
           exits: 1,
           services: 16,
+          youth_education_statuses: 1,
         },
         '4c9da990d51b4ed1a2e45b972aeaecee' => {
           enrollments: 1,
           exits: 0,
           services: 2,
+          youth_education_statuses: 2,
         },
         '7b8c1279001142afac2fd0bde7a8f6bf' => {
           enrollments: 1,
           exits: 0,
           services: 0,
+          youth_education_statuses: 0,
         },
       }
 
