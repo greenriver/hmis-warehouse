@@ -23,7 +23,7 @@
     %i.icon.icon-pencil
     Configure ETO API
 
-- if can_edit_data_sources? && RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty)
-  = link_to edit_hmis_csv_twenty_twenty_importer_extension_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
+- if can_edit_data_sources? && RailsDrivers.loaded.include?(:hmis_csv_importer)
+  = link_to edit_hmis_csv_importer_importer_extension_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
     %span.icon-eye
     Show Importer Extensions
