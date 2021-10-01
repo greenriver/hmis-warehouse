@@ -27,6 +27,7 @@ class HmisController < ApplicationController
   def show
     @type = params[:type] if valid_class(params[:type]).present?
     @data_source = @item.data_source
+    # FIXME
     return unless RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty)
 
     @importer = HmisCsvTwentyTwenty::Importer::ImporterLog.where(data_source_id: @item.data_source_id).order(created_at: :desc)&.first
