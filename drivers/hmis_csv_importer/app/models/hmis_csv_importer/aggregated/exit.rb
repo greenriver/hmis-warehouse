@@ -35,5 +35,16 @@ module HmisCsvImporter::Aggregated
     def self.migrate_to_unversioned
       connection.execute 'INSERT INTO hmis_aggregated_exits SELECT * FROM hmis_2020_aggregated_exits'
     end
+
+    def self.keys_for_migrations(version: hud_csv_version)
+      hmis_configuration(version: version).keys.map(&:to_s) + [
+        'id',
+        'data_source_id',
+        'importer_log_id',
+        'pre_processed_at',
+        'source_id',
+        'source_type',
+      ]
+    end
   end
 end

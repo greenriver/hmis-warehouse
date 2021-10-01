@@ -14,7 +14,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::AggregatedEnrollment
     end
 
     def self.target_class
-      HmisCsvTwentyTwenty::Aggregated::Enrollment
+      HmisCsvImporter::Aggregated::Enrollment
     end
   end
 end
