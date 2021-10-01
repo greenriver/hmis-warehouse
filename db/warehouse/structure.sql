@@ -42658,7 +42658,7 @@ CREATE UNIQUE INDEX "unk_Site" ON public."Geography" USING btree (data_source_id
 -- Name: youth_ed_ev_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX youth_ed_ev_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", data_source_id);
+CREATE UNIQUE INDEX youth_ed_ev_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", data_source_id);
 
 
 --
@@ -45149,6 +45149,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210927130613'),
 ('20210927133554'),
 ('20210929182410'),
-('20210930135501');
+('20210930135501'),
+('20211001135131'),
+('20211001160706');
 
 

@@ -8,13 +8,10 @@ module PerformanceDashboard::ProjectType::LengthOfTime
   extend ActiveSupport::Concern
 
   def services
-    open_enrollments.joins(:service_history_services).
-      merge(
-        GrdaWarehouse::ServiceHistoryService.service_between(
-          start_date: @end_date - 3.years,
-          end_date: @end_date,
-        ),
-      )
+    open_enrollments.service_within_date_range(
+      start_date: @end_date - 3.years,
+      end_date: @end_date,
+    )
   end
 
   # Note Handle PH differently
@@ -47,7 +44,11 @@ module PerformanceDashboard::ProjectType::LengthOfTime
 
   def enrolled_total_count
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      lengths_of_time.values.flatten.count
+      open_enrollments.with_service_between(
+        start_date: @end_date - 3.years,
+        end_date: @end_date,
+        service_scope: GrdaWarehouse::ServiceHistoryService.where(service_history_enrollment_id: open_enrollments.select(:id)),
+      ).select(:client_id).distinct.count
     end
   end
 

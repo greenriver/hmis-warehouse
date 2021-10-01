@@ -51,5 +51,16 @@ module HmisCsvImporter::Aggregated
       names_to_copy = names_in_both.map { |name| connection.quote_column_name(name) }.join(', ')
       connection.execute "INSERT INTO hmis_aggregated_enrollments (#{names_to_copy}) SELECT #{names_to_copy} FROM hmis_2020_aggregated_enrollments"
     end
+
+    def self.keys_for_migrations(version: hud_csv_version)
+      hmis_configuration(version: version).keys.map(&:to_s) + [
+        'id',
+        'data_source_id',
+        'importer_log_id',
+        'pre_processed_at',
+        'source_id',
+        'source_type',
+      ]
+    end
   end
 end

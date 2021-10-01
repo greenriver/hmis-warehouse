@@ -113,17 +113,21 @@ class ApplicationNotifier < Slack::Notifier
     messages << message if message.present?
 
     # flush out in 4k blocks -- Slack limit
-    messages.each do |chunk|
-      post(text: chunk)
-      # keep slack happy even when bursting out remaining messages
-      # if this is called when it has been more than a second since the last send, it might
-      # delay things a bit (max 3 messages for a single_message flush).
-      # if this is called from flush_messages with single_message: false
-      # this will slow things down, but it should be happening in a background task
-      # specifically for sending these that can tolerate the delay.
-      sleep(0.7)
+    begin
+      messages.each do |chunk|
+        post(text: chunk)
+
+        # keep slack happy even when bursting out remaining messages
+        # if this is called when it has been more than a second since the last send, it might
+        # delay things a bit (max 3 messages for a single_message flush).
+        # if this is called from flush_messages with single_message: false
+        # this will slow things down, but it should be happening in a background task
+        # specifically for sending these that can tolerate the delay.
+        sleep(0.7)
+      end
+      @redis.set "#{@namespace}/last_post", Time.now.to_f
+    rescue Exception # rubocop:disable Lint/SuppressedException
     end
-    @redis.set "#{@namespace}/last_post", Time.now.to_f
   end
 
   private def rate_limit(message)
@@ -134,7 +138,10 @@ class ApplicationNotifier < Slack::Notifier
   rescue Redis::BaseError => e
     # If Redis has gone down, just try to get this message out
     Rails.logger.error('ApplicationNotifier#rate_limit: ' + e.message)
-    post text: message
+    begin
+      post text: message
+    rescue Exception # rubocop:disable Lint/SuppressedException
+    end
   end
 
   def self.encode_key(url, channel, username)

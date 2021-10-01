@@ -1,10 +1,10 @@
 - reports = [@report]
 - column_class = 'col-sm-12'
-- if @report.include_comparison?
-  - reports << @comparison
+- if @report&.include_comparison?
+  - reports << @comparison rescue ActionView::Template::Error
   - column_class = 'col-sm-6'
 .row
-  - reports.each_with_index do |report, index|
+  - reports&.each_with_index do |report, index|
     - comparison_class = ''
     - if reports.count > 1
       - comparison_class = "c-swatch__border-left--td-#{index}"

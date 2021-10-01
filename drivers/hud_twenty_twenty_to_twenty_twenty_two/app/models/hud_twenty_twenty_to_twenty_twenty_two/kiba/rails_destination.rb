@@ -23,7 +23,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba
     end
 
     private def update_batch
-      valid_keys = @destination_class.hmis_configuration(version: '2022').keys.map(&:to_s) + ['id']
+      valid_keys = @destination_class.keys_for_migrations(version: '2022')
       @batch.map! do |row|
         row.select { |key, _| key.in?(valid_keys) }
       end

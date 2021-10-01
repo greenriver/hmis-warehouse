@@ -8,7 +8,7 @@ module WarehouseReports
   class HmisExportsController < ApplicationController
     include WarehouseReportAuthorization
     before_action :require_can_export_hmis_data!
-    before_action :set_export, only: [:show, :destroy, :cancel]
+    before_action :set_export, only: [:show, :destroy, :cancel, :edit, :update]
     before_action :set_jobs, only: [:index, :running, :create]
     before_action :set_exports, only: [:index, :running, :create]
 
@@ -68,6 +68,16 @@ module WarehouseReports
     def show
       # send_data GrdaWarehouse::Hud::Geography.to_csv(scope: @sites), filename: "site-#{Time.current.to_s(:number)}.csv"
       send_data @export.content, filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip", type: @export.content_type, disposition: 'attachment'
+    end
+
+    def edit
+      @recurrence = @export.recurring_hmis_export
+    end
+
+    def update
+      @export.recurring_hmis_export.update(recurrence_params.merge(user_id: current_user.id))
+      flash[:info] = 'Recurrence options updated'
+      redirect_to warehouse_reports_hmis_exports_path
     end
 
     def cancel

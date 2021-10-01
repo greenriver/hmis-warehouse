@@ -147,6 +147,10 @@ module HMIS::Structure::Base
       hmis_configuration(version: version).transform_values { |v| v.select { |k| k.in?(HMIS_STRUCTURE_KEYS) } }
     end
 
+    def keys_for_migrations(version: hud_csv_version)
+      hmis_configuration(version: version).keys.map(&:to_s) + ['id']
+    end
+
     HMIS_STRUCTURE_KEYS = [:type, :limit, :null].freeze
   end
 end
