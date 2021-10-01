@@ -105,6 +105,8 @@ module Filter::FilterScopes
 
       race_scope = nil
       @filter.races.each do |column|
+        next if column == 'MultiRacial'
+
         race_scope = add_alternative(race_scope, race_alternative(column.to_sym))
       end
 
