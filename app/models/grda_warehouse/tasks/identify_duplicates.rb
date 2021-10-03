@@ -18,7 +18,7 @@ module GrdaWarehouse::Tasks
     def run!
       if GrdaWarehouseBase.advisory_lock_exists?('identify_duplicates')
         msg = 'Skipping identify duplicates, all ready running.'
-        logger.warn msg
+        Rails.logger.warn msg
         @notifier.ping(msg) if @send_notifications
         return
       end
