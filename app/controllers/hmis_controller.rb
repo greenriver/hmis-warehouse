@@ -32,13 +32,9 @@ class HmisController < ApplicationController
     @importer = HmisCsvImporter::Importer::ImporterLog.where(data_source_id: @item.data_source_id).order(created_at: :desc)&.first
     return unless @importer
 
-    if @importer.completed_at < '2021-10-01'.to_date
-      @imported = @item.imported_items_2020.order(importer_log_id: :desc).first
-      @csv = @item.loaded_items_2020.with_deleted.order(loader_id: :desc).first
-    else
-      @imported = @item.imported_items_2022.order(importer_log_id: :desc).first
-      @csv = @item.loaded_items_2022.with_deleted.order(loader_id: :desc).first
-    end
+    year = @item.imported_item_type(@importer.id)
+    @imported = @item.send("imported_items_#{year}").order(importer_log_id: :desc).first
+    @csv = @item.send("loaded_items_#{year}").with_deleted.order(loader_id: :desc).first
   end
 
   private def searched?
