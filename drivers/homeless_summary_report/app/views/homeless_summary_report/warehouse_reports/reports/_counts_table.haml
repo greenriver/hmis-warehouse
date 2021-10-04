@@ -1,0 +1,17 @@
+.card.mb-4
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th
+        - data[:headers].each do |header|
+          %th= header
+    - data[:fields].each do |field, row_data|
+      %tr
+        %th
+          = "#{row_data[:title]}:"
+        - row_data[:calculations].each do |calculation|
+          - if calculation == :count_destinations
+            - @report.destinations.each do |id|
+              %td= @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: id))
+          - else
+            %td= link_to_if calculation == :count, @report.calculate(detail_variant_name, field, calculation, row_data), details_homeless_summary_report_warehouse_reports_report_path(@report, variant: detail_variant_name, cell: field)

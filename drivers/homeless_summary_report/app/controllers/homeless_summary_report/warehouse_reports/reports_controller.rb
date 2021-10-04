@@ -18,7 +18,12 @@ module HomelessSummaryReport::WarehouseReports
       @reports = report_scope.ordered.
         page(params[:page]).per(25)
       @report = report_class.new(user_id: current_user.id)
-      @filter['project_type_codes'] = @report.default_project_types
+      previous_report = report_scope.last
+      if previous_report
+        @filter.update(previous_report.options)
+      else
+        @filter['project_type_codes'] = @report.default_project_types
+      end
       # Make sure the form will work
       filters
     end
