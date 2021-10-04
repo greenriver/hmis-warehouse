@@ -6,15 +6,11 @@
 
 module HmisCsvImporter::Loader
   class LoaderLog < GrdaWarehouseBase
-    include HmisTwentyTwenty
+    include HmisCsvImporter::HmisCsv
     include ActionView::Helpers::DateHelper
 
     self.table_name = 'hmis_csv_loader_logs'
     has_many :load_errors
-
-    def self.module_scope
-      'HmisCsvImporter::Loader'
-    end
 
     def successfully_loaded?
       status.to_s == 'loaded'
