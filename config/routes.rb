@@ -237,7 +237,7 @@ Rails.application.routes.draw do
     resources :anomalies, only: [:index]
     resources :touch_point_exports, only: [:index, :create, :show, :destroy]
     resources :confidential_touch_point_exports, only: [:index, :create, :show, :destroy]
-    resources :hmis_exports, except: [:edit, :update, :new] do
+    resources :hmis_exports, except: [:new] do
       collection do
         get :running
       end

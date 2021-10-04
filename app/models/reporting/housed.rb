@@ -9,6 +9,7 @@
 module Reporting
   class Housed < ReportingBase
     include RailsDrivers::Extensions
+    ADVISORY_LOCK_KEY = 'reporting_housed_calculation'.freeze
 
     self.table_name = :warehouse_houseds
     include ArelHelper
@@ -240,10 +241,9 @@ module Reporting
     end
 
     def populate!
-      advisory_lock_key = 'reporting_housed_calculation'
-      return if Reporting::Return.advisory_lock_exists?(advisory_lock_key)
+      return if Reporting::Housed.advisory_lock_exists?(ADVISORY_LOCK_KEY)
 
-      Reporting::Return.with_advisory_lock(advisory_lock_key) do
+      Reporting::Housed.with_advisory_lock(ADVISORY_LOCK_KEY) do
         remove_no_longer_used
         client_ids.each_slice(1_000) do |client_id_batch|
           cache_client = GrdaWarehouse::Hud::Client.new
@@ -274,6 +274,7 @@ module Reporting
 
           headers = data.first.keys
 
+          # Ensure delete and re-import is atomic
           transaction do
             self.class.where(client_id: client_id_batch).delete_all
             self.class.import(headers, data.map(&:values))
@@ -543,11 +544,7 @@ module Reporting
               residential_enrollment[:housing_exit] = nil
             end
             # if the move-in-date is after the housing exit, set the move-in-date to the housing exit
-            if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present?
-              if residential_enrollment[:housed_date] > residential_enrollment[:housing_exit] # rubocop:disable Style/IfUnlessModifier
-                residential_enrollment[:housed_date] = residential_enrollment[:housing_exit]
-              end
-            end
+            residential_enrollment[:housed_date] = residential_enrollment[:housing_exit] if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present? && residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
             residential_enrollment[:source] = 'move-in-date'
           else
             # ES, TH, and SH don't have two phases, we are using housed to represent time in program
@@ -600,7 +597,12 @@ module Reporting
         # SSN: :ssn,
         DOB: :dob,
         Ethnicity: :ethnicity,
-        Gender: :gender,
+        Female: :female,
+        Male: :male,
+        NoSingleGender: :nosinglegender,
+        Transgender: :transgender,
+        Questioning: :questioning,
+        GenderNone: :gendernone,
         VeteranStatus: :veteran_status,
       }.freeze
     end

@@ -57,7 +57,7 @@
         = f.input :SSN,  input_html: {maxlength: 11, class: 'jSSN'}, label: 'SSN'
     .row
       .col-sm-6
-        = f.input :Gender, collection: HUD::genders.invert, as: :select_two
+        = f.input :Gender, collection: HUD::genders.invert, as: :select_two, input_html: { multiple: true }
       .col-sm-3
         = f.input :VeteranStatus, collection: HUD::no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status', as: :select_two
       - if GrdaWarehouse::DataSource.authoritative.count > 1

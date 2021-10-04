@@ -57,91 +57,91 @@ module CensusTracking
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == HUD.gender('Male', true) },
+            ->(client) { client.gender_multi == [1] },
           ],
         'Individual Trans Males Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == HUD.gender('Trans Male (FTM or Female to Male)', true) },
+            ->(client) { client.gender_multi == [1, 5] },
           ],
         'Individual Females Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == HUD.gender('Female', true) },
+            ->(client) { client.gender_multi == [0] },
           ],
         'Individual Trans Females Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == HUD.gender('Trans Female (MTF or Male to Female)', true) },
+            ->(client) { client.gender_multi == [0, 5] },
           ],
         'Gender Non-conforming Individuals Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == HUD.gender('Gender non-conforming (i.e. not exclusively male or female)', true) },
+            ->(client) { client.gender_multi.include?(4) },
           ],
         'Individual Adult Males Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == HUD.gender('Male', true) },
+            ->(client) { client.gender_multi == [1] },
           ],
         'Individual Adult Trans Males Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == HUD.gender('Trans Male (FTM or Female to Male)', true) },
+            ->(client) { client.gender_multi == [1, 5] },
           ],
         'Individual Adult Females Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == HUD.gender('Female', true) },
+            ->(client) { client.gender_multi == [0] },
           ],
         'Individual Adult Trans Females Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == HUD.gender('Trans Female (MTF or Male to Female)', true) },
+            ->(client) { client.gender_multi == [0, 5] },
           ],
         'Gender Non-conforming Individual Adults Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == HUD.gender('Gender non-conforming (i.e. not exclusively male or female)', true) },
+            ->(client) { client.gender_multi.include?(4) },
           ],
         'Individual Adult Males Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == HUD.gender('Male', true) },
+            ->(client) { client.gender_multi == [1] },
           ],
         'Individual Adult Trans Males Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == HUD.gender('Trans Male (FTM or Female to Male)', true) },
+            ->(client) { client.gender_multi == [1, 5] },
           ],
         'Individual Adult Females Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == HUD.gender('Female', true) },
+            ->(client) { client.gender_multi == [0] },
           ],
         'Individual Adult Trans Females Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == HUD.gender('Trans Female (MTF or Male to Female)', true) },
+            ->(client) { client.gender_multi == [0, 5] },
           ],
         'Gender Non-conforming Individual Adults Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == HUD.gender('Gender non-conforming (i.e. not exclusively male or female)', true) },
+            ->(client) { client.gender_multi.include?(4) },
           ],
         'Number of households with at least one adult age 18+ and at least one child under age 18' =>
           [
@@ -195,7 +195,10 @@ module CensusTracking
         project_type: she_t[:project_type],
         presented_as_individual: she_t[:presented_as_individual],
         age: shs_t[:age],
-        gender: c_t[:Gender],
+        female: c_t[:Female],
+        male: c_t[:Male],
+        transgender: c_t[:Transgender],
+        no_single_gender: c_t[:NoSingleGender],
         head_of_household: she_t[:head_of_household],
         household_id: she_t[:household_id],
         # For details view
@@ -218,8 +221,15 @@ module CensusTracking
       rows = scope.
         pluck(*service_columns.values).
         map do |row|
-        ::OpenStruct.new(service_columns.keys.zip(row).to_h)
-      end
+          client = ::OpenStruct.new(service_columns.keys.zip(row).to_h)
+          client.gender_multi = []
+          client.gender_multi << 0 if client.female == 1
+          client.gender_multi << 1 if client.male == 1
+          client.gender_multi << 5 if client.transgender == 1
+          client.gender_multi << 4 if client.no_single_gender == 1
+          client.gender_multi&.sort!
+          client
+        end
 
       rows = rows.map do |row|
         row.other_clients_under_18 = rows.select do |candidate|

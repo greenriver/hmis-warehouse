@@ -1,0 +1,8 @@
+- summary = @result.results.dig('summary')
+- if summary
+  %h3.mt-4 Client Summary
+  %table.table.table-striped
+    - summary.each do |header, value|
+      %tr
+        %th= header
+        %td= value

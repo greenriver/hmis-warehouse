@@ -2,8 +2,8 @@
 # NOTE: these are now usually injected by drivers, if you aren't seeing the report
 # in your development environment, make sure you restart your webserver.
 namespace :reports do
-  desc "Load Available Report Types"
-  task :seed => [:environment, "log:info_to_stdout"] do
+  desc 'Load Available Report Types'
+  task seed: [:environment, 'log:info_to_stdout'] do
     # Removed
     removed = [
       'Reports::SystemPerformance::Fy2015::MeasureOne',
@@ -65,9 +65,7 @@ namespace :reports do
       'Reports::SystemPerformance::Fy2018::MeasureSix',
       'Reports::SystemPerformance::Fy2018::MeasureSeven',
     ]
-    if Date.current > '2020-10-01'.to_date || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
-      removed += spm_2018
-    end
+    removed += spm_2018 if Date.current > '2020-10-01'.to_date || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
     # # SPM 2019 should be removed after 10/1/2021 to allow for comparisons
     # # If we've never run it, go ahead and remove it.
     # Backdated this to 7/1/2021 as having two versions of the SPM is confusing folks
@@ -80,9 +78,7 @@ namespace :reports do
       'Reports::SystemPerformance::Fy2019::MeasureSix',
       'Reports::SystemPerformance::Fy2019::MeasureSeven',
     ]
-    if Date.current > '2021-07-01'.to_date || Rails.env.development? || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
-      removed += spm_2019
-    end
+    removed += spm_2019 if Date.current > '2021-07-01'.to_date || Rails.env.development? || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
     Report.where(type: removed).update_all(enabled: false)
 
     rs = ReportResultsSummaries::Pit::Fy2018.where(name: 'Point in Time Counts - FY 2018').first_or_create
@@ -108,9 +104,14 @@ namespace :reports do
     r = Reports::Lsa::Fy2019::All.where(name: 'Longitudinal System Analysis FY 2019').first_or_create
     r.update(weight: 1, report_results_summary: rs, enabled: true)
 
+    rs = ReportResultsSummaries::Lsa::Fy2021.where(name: 'LSA 2021').first_or_create
+    rs.update(weight: 0)
+    r = Reports::Lsa::Fy2021::All.where(name: 'Longitudinal System Analysis FY 2021').first_or_create
+    r.update(weight: 1, report_results_summary: rs, enabled: true)
   end
-  desc "Remove all report types"
-  task :clear => [:environment, "log:info_to_stdout"] do
+
+  desc 'Remove all report types'
+  task clear: [:environment, 'log:info_to_stdout'] do
     Report.all.map(&:destroy)
   end
 end

@@ -1,0 +1,19 @@
+= content_for :crumbs do
+  = link_to import_path(@import) do
+    &laquo; Import Log
+
+%h1 Loader Errors
+%p= paginate @errors
+.card
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th Filename
+        %th Error
+        %th Line
+    %tbody
+      - @errors.each do |error|
+        %tr
+          %td= error.file_name
+          %td= error.details
+          %td= error.source

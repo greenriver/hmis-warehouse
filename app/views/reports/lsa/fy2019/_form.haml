@@ -42,29 +42,31 @@
   %p When investigating LSA QC flags, HUD will reference the internal warehouse IDs for various inventory-related items.  The following export can help track down the HMIS source IDs.
   %ul
     %li= link_to 'HMIS Cross-Walk', warehouse_reports_hmis_cross_walks_path
-%h3 Queue Report
-= simple_form_for :report_result do |f|
-  - year = if Date.current.month >= 10 then Date.current.year else Date.current.year - 1 end
-  - content_for :filters_col_full do
-    .row
-      .col-sm-12
-        %p The LSA must be run system-wide for submission to HUD.  To run a system-wide LSA, choose a CoC Code and date range and leave project, project group, and data source limits empty.
-        %p To run the LSA for a sub-set of projects, usually for local data validation, you can limit the projects included by choosing any combination of project, project group, or data source.
-    .row
-      .col-sm-6
-        = f.input :project_id, collection: Reports::Lsa::Fy2019::Base.available_projects(user: current_user), required: false, as: :grouped_select_two, group_method: :last, input_html: {name: 'report_result[options][project_id][]', multiple: true }
-        = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), required: false, label: 'Project Groups', input_html: { name: 'report_result[options][project_group_ids][]', multiple: true }, as: :select_two
-        = f.input :data_source_ids, collection: Reports::Lsa::Fy2019::Base.available_data_sources.viewable_by(current_user), required: false, input_html: {name: 'report_result[options][data_source_ids][]', multiple: true}, label: 'Data Sources', as: :select_two
-      .col-sm-3
-        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user).distinct.pluck(:CoCCode).compact, selected: GrdaWarehouse::Config.get(:site_coc_codes), input_html: {name: 'report_result[options][coc_code]'}, hint: GrdaWarehouse::Config.get(:site_coc_codes), required: true, as: :select_two
-        = f.input :lsa_scope, collection: Reports::Lsa::Fy2019::Base.available_lsa_scopes, input_html: { name: 'report_result[options][lsa_scope]' }, label: 'LSA Scope', include_blank: 'Auto Select', as: :select_two
-      .col-sm-3
-        = f.input :report_start, as: :date_picker, input_html: {name: 'report_result[options][report_start]', value: Date.new(year-1,10,1)}, label: 'Start Date'
-        = f.input :report_end, as: :date_picker, input_html: {name: 'report_result[options][report_end]', value: Date.new(year,9,30).to_date, class: 'form-control jStart'}, label: 'End Date'
+- # The 2019 LSA will no longer run after 2022 HMIS spec changes.  Remove the form
+- if false
+  %h3 Queue Report
+  = simple_form_for :report_result do |f|
+    - year = if Date.current.month >= 10 then Date.current.year else Date.current.year - 1 end
+    - content_for :filters_col_full do
+      .row
+        .col-sm-12
+          %p The LSA must be run system-wide for submission to HUD.  To run a system-wide LSA, choose a CoC Code and date range and leave project, project group, and data source limits empty.
+          %p To run the LSA for a sub-set of projects, usually for local data validation, you can limit the projects included by choosing any combination of project, project group, or data source.
+      .row
+        .col-sm-6
+          = f.input :project_id, collection: Reports::Lsa::Fy2019::Base.available_projects(user: current_user), required: false, as: :grouped_select_two, group_method: :last, input_html: {name: 'report_result[options][project_id][]', multiple: true }
+          = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), required: false, label: 'Project Groups', input_html: { name: 'report_result[options][project_group_ids][]', multiple: true }, as: :select_two
+          = f.input :data_source_ids, collection: Reports::Lsa::Fy2019::Base.available_data_sources.viewable_by(current_user), required: false, input_html: {name: 'report_result[options][data_source_ids][]', multiple: true}, label: 'Data Sources', as: :select_two
+        .col-sm-3
+          = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user).distinct.pluck(:CoCCode).compact, selected: GrdaWarehouse::Config.get(:site_coc_codes), input_html: {name: 'report_result[options][coc_code]'}, hint: GrdaWarehouse::Config.get(:site_coc_codes), required: true, as: :select_two
+          = f.input :lsa_scope, collection: Reports::Lsa::Fy2019::Base.available_lsa_scopes, input_html: { name: 'report_result[options][lsa_scope]' }, label: 'LSA Scope', include_blank: 'Auto Select', as: :select_two
+        .col-sm-3
+          = f.input :report_start, as: :date_picker, input_html: {name: 'report_result[options][report_start]', value: Date.new(year-1,10,1)}, label: 'Start Date'
+          = f.input :report_end, as: :date_picker, input_html: {name: 'report_result[options][report_end]', value: Date.new(year,9,30).to_date, class: 'form-control jStart'}, label: 'End Date'
 
-  - content_for :filter_actions do
-    = f.button :button, class: 'btn btn-primary pull-right' do
-      %span.icon-plus
-      Queue Report Run
+    - content_for :filter_actions do
+      = f.button :button, class: 'btn btn-primary pull-right' do
+        %span.icon-plus
+        Queue Report Run
 
-  = render 'warehouse_reports/filters', f:f, submit_button: nil
+    = render 'warehouse_reports/filters', f:f, submit_button: nil

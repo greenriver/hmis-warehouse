@@ -1,0 +1,5 @@
+"ServicesID","EnrollmentID","PersonalID","DateProvided","RecordType","TypeProvided","OtherTypeProvided","SubTypeProvided","FAAmount","ReferralOutcome","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"VALID","VALID","VALID","2015-11-06","200","200","","","","","2015-11-10 23:13:31","2015-11-10 23:13:31","VALID","","31a77b417911747e41ef9936f9a4b657"
+"VALIDATION","VALIDATION","VALIDATION","","999","","","","","","2015-11-13 20:47:12","2015-11-13 20:47:12","VALIDATION","","31a77b417911747e41ef9936f9a4b657"
+"ERROR","","","2015-11-13","","200","","","","","2015-11-14 00:08:37","2015-11-14 00:08:37","ERROR","","31a77b417911747e41ef9936f9a4b657"
+"VALID","FAILURE","FAILURE","2015-11-17","200","200","","","","","2015-11-18 00:06:50","2015-11-18 00:06:50","FAILURE","","31a77b417911747e41ef9936f9a4b657"

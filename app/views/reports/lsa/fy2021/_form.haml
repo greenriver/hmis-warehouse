@@ -1,0 +1,70 @@
+- if @missing_data[:show_missing_data]
+  .alert.alert-warning
+    The LSA report requires some project descriptors.  The following projects are missing either Project HousingType, Geography Geocode, or Geography GeographyType, or have an invalid Funder.  This list is limited to continuum projects with open enrollments in the past 3 years and to project types required for LSA.
+  .well.p-0
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-fixed.table-striped
+        %thead
+          %tr
+            %th Project
+            %th Project Type
+            %th Operating Start Date
+            %th HousingType
+            %th Project-CoC CoC Code
+            %th Geocode
+            %th GeographyType
+            %th Funder
+            %th Zipcode
+            %th Inventory Start Date
+            %th Inventory CoC Code
+        %tbody
+          - @missing_data[:missing_projects].each do |project|
+            %tr
+              %td= link_to project[:project], project_path(project[:id])
+              %th= ::HUD.project_type_brief project[:project_type]
+              %td= yes_no(! @missing_data[:missing_operating_start_date].include?(project))
+              %td= yes_no(! @missing_data[:missing_housing_type].include?(project))
+              %td= yes_no(! @missing_data[:missing_coc_codes].include?(project))
+              %td= yes_no(! @missing_data[:missing_geocode].include?(project))
+              %td= yes_no(! @missing_data[:missing_geography_type].include?(project))
+              %td= yes_no(! @missing_data[:invalid_funders].include?(project))
+              %td= yes_no(! @missing_data[:missing_zip].include?(project))
+              %td= yes_no(! @missing_data[:missing_inventory_start_dates].include?(project))
+              %td= yes_no(! @missing_data[:missing_inventory_coc_codes].include?(project))
+%h3 LSA-Specific Data Quality Reports
+.well
+  %p The LSA reports on data quality issues, the following reports should assist in tracking down the details.
+  %ul
+    %li= link_to 'Missing CoC Codes', warehouse_reports_hud_missing_coc_codes_path
+    %li= link_to 'Incorrect Head of Household Counts', warehouse_reports_hud_not_one_hohs_path
+    %li= link_to 'Incorrect Move-in Dates', warehouse_reports_hud_incorrect_move_in_dates_path
+    %li= link_to 'Clients Enrolled in Multiple Projects of the Same Type', warehouse_reports_double_enrollments_path
+  %p When investigating LSA QC flags, HUD will reference the internal warehouse IDs for various inventory-related items.  The following export can help track down the HMIS source IDs.
+  %ul
+    %li= link_to 'HMIS Cross-Walk', warehouse_reports_hmis_cross_walks_path
+%h3 Queue Report
+= simple_form_for :report_result do |f|
+  - year = if Date.current.month >= 10 then Date.current.year else Date.current.year - 1 end
+  - content_for :filters_col_full do
+    .row
+      .col-sm-12
+        %p The LSA must be run system-wide for submission to HUD.  To run a system-wide LSA, choose a CoC Code and date range and leave project, project group, and data source limits empty.
+        %p To run the LSA for a sub-set of projects, usually for local data validation, you can limit the projects included by choosing any combination of project, project group, or data source.
+    .row
+      .col-sm-6
+        = f.input :project_id, collection: Reports::Lsa::Fy2021::Base.available_projects(user: current_user), required: false, as: :grouped_select_two, group_method: :last, input_html: {name: 'report_result[options][project_id][]', multiple: true }
+        = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), required: false, label: 'Project Groups', input_html: { name: 'report_result[options][project_group_ids][]', multiple: true }, as: :select_two
+        = f.input :data_source_ids, collection: Reports::Lsa::Fy2021::Base.available_data_sources.viewable_by(current_user), required: false, input_html: {name: 'report_result[options][data_source_ids][]', multiple: true}, label: 'Data Sources', as: :select_two
+      .col-sm-3
+        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user).distinct.pluck(:CoCCode).compact, selected: GrdaWarehouse::Config.get(:site_coc_codes), input_html: {name: 'report_result[options][coc_code]'}, hint: GrdaWarehouse::Config.get(:site_coc_codes), required: true, as: :select_two
+        = f.input :lsa_scope, collection: Reports::Lsa::Fy2021::Base.available_lsa_scopes, input_html: { name: 'report_result[options][lsa_scope]' }, label: 'LSA Scope', include_blank: 'Auto Select', as: :select_two
+      .col-sm-3
+        = f.input :report_start, as: :date_picker, input_html: {name: 'report_result[options][report_start]', value: Date.new(year-1,10,1)}, label: 'Start Date'
+        = f.input :report_end, as: :date_picker, input_html: {name: 'report_result[options][report_end]', value: Date.new(year,9,30).to_date, class: 'form-control jStart'}, label: 'End Date'
+
+  - content_for :filter_actions do
+    = f.button :button, class: 'btn btn-primary pull-right' do
+      %span.icon-plus
+      Queue Report Run
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil

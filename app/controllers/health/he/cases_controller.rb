@@ -21,7 +21,7 @@ module Health::He
           first_name: client.first_name,
           last_name: client.last_name,
           dob: client.DOB,
-          gender: client.Gender,
+          gender: client.gender_binary,
           race: races(client),
           ethnicity: client.Ethnicity,
         }

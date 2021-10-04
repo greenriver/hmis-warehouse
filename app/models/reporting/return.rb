@@ -11,11 +11,9 @@ module Reporting
 
     def populate!
       return unless source_data_scope(client_ids).exists?
+      return if Reporting::Return.advisory_lock_exists?(Reporting::Housed::ADVISORY_LOCK_KEY)
 
-      advisory_lock_key = 'reporting_return_calculation'
-      return if Reporting::Return.advisory_lock_exists?(advisory_lock_key)
-
-      Reporting::Return.with_advisory_lock(advisory_lock_key) do
+      Reporting::Return.with_advisory_lock(Reporting::Housed::ADVISORY_LOCK_KEY) do
         stays
       end
     end
@@ -110,7 +108,12 @@ module Reporting
         unaccompanied_youth: she_t[:unaccompanied_youth],
         parenting_youth: she_t[:parenting_youth],
         ethnicity: c_t[:Ethnicity],
-        gender: c_t[:Gender],
+        female: c_t[:Female],
+        male: c_t[:Male],
+        nosinglegender: c_t[:NoSingleGender],
+        transgender: c_t[:Transgender],
+        questioning: c_t[:Questioning],
+        gendernone: c_t[:GenderNone],
       }.freeze
     end
 

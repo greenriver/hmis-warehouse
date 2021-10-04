@@ -101,10 +101,6 @@ module
           title: 'Age',
           transformation: ->(v) { v },
         },
-        gender: {
-          title: 'Gender',
-          transformation: ->(v) { "#{HUD.gender(v)} (#{v})" },
-        },
         race: {
           title: 'Race',
           transformation: ->(v) { v },

@@ -3,9 +3,9 @@ wb.add_worksheet(name: "Youth #{@filter.start}-#{@filter.end}"[0,30]) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row([
     'Warehouse Client ID',
-    'First Name', 
-    'Last Name', 
-    'Age', 
+    'First Name',
+    'Last Name',
+    'Age',
     'Gender',
     'Race',
     'Ethnicity',
@@ -39,11 +39,11 @@ wb.add_worksheet(name: "Youth #{@filter.start}-#{@filter.end}"[0,30]) do |sheet|
 
     sheet.add_row(
       [
-        client.id, 
-        client.FirstName, 
-        client.LastName, 
+        client.id,
+        client.FirstName,
+        client.LastName,
         client.age_on(c_en.entry_date.to_date),
-        ::HUD.gender(client.Gender),
+        client.gender,
         client.source_clients.map(&:race_fields)&.flatten&.uniq&.sort&.join(' '),
         client.source_clients.map(&:Ethnicity)&.select{|v| v.in?([0,1])}&.map{ |v| ::HUD.ethnicity(v) }.uniq&.sort&.join(' '),
         cohort_client.lgbtq,

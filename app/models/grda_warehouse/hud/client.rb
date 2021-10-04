@@ -452,10 +452,13 @@ module GrdaWarehouse::Hud
     end
 
     scope :race_native_hi_other_pacific, -> do
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
+      race_native_hi_pacific
+    end
+
+    scope :race_native_hi_pacific, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:NativeHIOtherPacific].eq(1)).
+          where(c_t[:NativeHIPacific].eq(1)).
           select(:destination_id),
       )
     end
@@ -477,12 +480,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :multi_racial, -> do
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       columns = [
         c_t[:AmIndAKNative],
         c_t[:Asian],
         c_t[:BlackAfAmerican],
-        c_t[:NativeHIOtherPacific],
+        c_t[:NativeHIPacific],
         c_t[:White],
       ]
       # anyone with no unknowns and at least two yeses
@@ -537,31 +539,31 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_female, -> do
-      where(Gender: 0)
+      where(Female: 1).where.not(NoSingleGender: 1)
     end
 
     scope :gender_male, -> do
-      where(Gender: 1)
+      where(Male: 1).where.not(NoSingleGender: 1)
     end
 
     scope :gender_mtf, -> do
-      where(Gender: 2)
+      gender_transgender.gender_female
     end
 
-    scope :gender_tfm, -> do
-      where(Gender: 3)
+    scope :gender_ftm, -> do
+      gender_transgender.gender_male
     end
 
-    scope :gender_non_conforming, -> do
-      where(Gender: 4)
+    scope :no_single_gender, -> do
+      where(NoSingleGender: 1)
     end
 
     scope :gender_transgender, -> do
-      where(Gender: [2, 3])
+      where(Transgender: 1)
     end
 
     scope :gender_unknown, -> do
-      where(Gender: [8, 9, 99, nil])
+      where(GenderNone: [8, 9, 99])
     end
 
     ####################
@@ -673,7 +675,7 @@ module GrdaWarehouse::Hud
         if destination_code == 17
           destination_string = last_exit.OtherDestination
         else
-          destination_string = HUD.destination(destination_code)
+          destination_string = ::HUD.destination(destination_code)
         end
         return "#{destination_string} (#{last_exit.ExitDate})"
       else
@@ -2057,7 +2059,40 @@ module GrdaWarehouse::Hud
     end
 
     def gender
-      ::HUD.gender(self.Gender)
+      gender_multi.map { |k| ::HUD.gender(k) }.join(', ')
+    end
+
+    # while the entire warehouse is updated to accept and use the new gender setup, this will provide
+    # a single value that roughly represents the client's gender
+    def gender_binary
+      self.class.gender_binary(self)
+    end
+
+    # Accepts a hash containing the gender columns and values
+    # Returns a single value that roughly represents the client's gender
+    def self.gender_binary(genders)
+      return 4 if genders[:NoSingleGender] == 1
+      return 5 if genders[:Transgender] == 1
+      return 6 if genders[:Questioning] == 1
+      return 4 if genders[:Female] == 1 && genders[:Male] == 1
+      return 0 if genders[:Female] == 1
+      return 1 if genders[:Male] == 1
+
+      genders[:GenderNone]
+    end
+
+    def self.gender_binary_sql_case
+      acase(
+        [
+          [arel_table[:NoSingleGender].eq(1), 4],
+          [arel_table[:Transgender].eq(1), 5],
+          [arel_table[:Questioning].eq(1), 6],
+          [arel_table[:Male].eq(1).and(arel_table[:Female].eq(1)), 4],
+          [arel_table[:Female].eq(1), 0],
+          [arel_table[:Male].eq(1), 1],
+        ],
+        elsewise: arel_table[:GenderNone],
+      )
     end
 
     # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
@@ -2132,7 +2167,7 @@ module GrdaWarehouse::Hud
 
     # those columns that relate to race
     def self.race_fields
-      HUD.races.keys
+      ::HUD.races.keys
     end
 
     # those race fields which are marked as pertinent to the client
@@ -2177,8 +2212,7 @@ module GrdaWarehouse::Hud
       return 'Asian' if @race_asian.include?(destination_id)
       return 'BlackAfAmerican' if @race_black_af_american.include?(destination_id)
 
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
-      return 'NativeHIOtherPacific' if @race_native_hi_other_pacific.include?(destination_id)
+      return 'NativeHIPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
 
       'RaceNone'

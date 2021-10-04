@@ -44,18 +44,25 @@ module Filter::FilterScopes
     end
 
     private def age_calculation
-      nf(
-        'AGE',
-        [
+      cast(
+        datepart(
+          GrdaWarehouse::ServiceHistoryEnrollment,
+          'YEAR',
           nf(
-            'GREATEST',
+            'AGE',
             [
-              she_t[:first_date_in_program],
-              @filter.start_date,
+              nf(
+                'GREATEST',
+                [
+                  she_t[:first_date_in_program],
+                  @filter.start_date,
+                ],
+              ),
+              c_t[:DOB],
             ],
           ),
-          c_t[:DOB],
-        ],
+        ),
+        'integer',
       )
     end
 
@@ -75,28 +82,33 @@ module Filter::FilterScopes
       ages += (60..61).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
       ages += (62..110).to_a if @filter.age_ranges.include?(:over_sixty_one)
 
-      scope.joins(:client).where(
-        Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in(ages),
-      )
+      scope.joins(:client).where(age_calculation.in(ages))
     end
 
     private def filter_for_gender(scope)
       return scope unless @filter.genders.present?
 
-      scope.joins(:client).where(c_t[:Gender].in(@filter.genders))
+      scope = scope.joins(:client)
+      gender_scope = nil
+      @filter.genders.each do |value|
+        column = HUD.gender_id_to_field_name[value]
+        next unless column
+
+        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HUD.gender_comparison_value(value)))
+        gender_scope = add_alternative(gender_scope, gender_query)
+      end
+      scope.merge(gender_scope)
     end
 
     private def filter_for_race(scope)
       return scope unless @filter.races.present?
 
       race_scope = nil
-      race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if @filter.races.include?('AmIndAKNative')
-      race_scope = add_alternative(race_scope, race_alternative(:Asian)) if @filter.races.include?('Asian')
-      race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if @filter.races.include?('BlackAfAmerican')
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
-      race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if @filter.races.include?('NativeHIOtherPacific')
-      race_scope = add_alternative(race_scope, race_alternative(:White)) if @filter.races.include?('White')
-      race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if @filter.races.include?('RaceNone')
+      @filter.races.each do |column|
+        next if column == 'MultiRacial'
+
+        race_scope = add_alternative(race_scope, race_alternative(column.to_sym))
+      end
 
       # Include anyone who has more than one race listed, anded with any previous alternatives
       race_scope ||= scope
@@ -106,12 +118,11 @@ module Filter::FilterScopes
 
     private def multi_racial_clients
       # Looking at all races with responses of 1, where we have a sum > 1
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       columns = [
         c_t[:AmIndAKNative],
         c_t[:Asian],
         c_t[:BlackAfAmerican],
-        c_t[:NativeHIOtherPacific],
+        c_t[:NativeHIPacific],
         c_t[:White],
       ]
       report_scope_source.joins(:client).

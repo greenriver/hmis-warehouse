@@ -111,8 +111,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if keys.include?('AmIndAKNative')
       race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
       race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
-      race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
+      race_scope = add_alternative(race_scope, race_alternative(:NativeHIPacific)) if keys.include?('NativeHIPacific')
       race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
       race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
 
@@ -125,12 +124,11 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def self.multi_racial_clients
       # Looking at all races with responses of 1, where we have a sum > 1
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       columns = [
         c_t[:AmIndAKNative],
         c_t[:Asian],
         c_t[:BlackAfAmerican],
-        c_t[:NativeHIOtherPacific],
+        c_t[:NativeHIPacific],
         c_t[:White],
       ]
       GrdaWarehouse::Hud::Client.
@@ -159,7 +157,31 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     def self.filter_for_gender(genders)
       return current_scope unless genders&.present?
 
-      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Gender: genders).pluck(:id))
+      gender_scope = nil
+      genders.each do |value|
+        column = HUD.gender_id_to_field_name[value]
+        next unless column
+
+        gender_query = GrdaWarehouse::Hud::Client.destination.where(column.to_sym => HUD.gender_comparison_value(value))
+        gender_scope = add_alternative(gender_scope, gender_query)
+      end
+
+      current_scope.where(client_id: gender_scope.pluck(:id))
+    end
+
+    private def filter_for_gender(scope)
+      return scope unless @filter.genders.present?
+
+      scope = scope.joins(:client)
+      gender_scope = nil
+      @filter.genders.each do |value|
+        column = HUD.gender_id_to_field_name[value]
+        next unless column
+
+        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HUD.gender_comparison_value(value)))
+        gender_scope = add_alternative(gender_scope, gender_query)
+      end
+      scope.merge(gender_scope)
     end
 
     # This needs to check project_id in the warehouse since we don't store this in the reporting DB
