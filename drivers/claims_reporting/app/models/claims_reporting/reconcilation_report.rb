@@ -77,6 +77,10 @@ module ClaimsReporting
       patient.careplans.select(&:provider_signed_on).map { |d| d.provider_signed_on.to_date }.to_sentence
     end
 
+    def denied_claims(patient)
+      patient_qas(patient.id).select { |qa| best_medical_claim_for_qualifying_activity(qa, denied: true).present? }.size
+    end
+
     def patients_without_payments
       active_patients.where.not(
         medicaid_id: payment_details.select(:medicaid_id),
@@ -114,6 +118,7 @@ module ClaimsReporting
         'Submitted QAs',
         'QAs Outside Enrollment',
         'QAs Without Required Careplan',
+        'Denied Claims',
         'Careplan PCP signatures',
       ]
     end
@@ -127,6 +132,7 @@ module ClaimsReporting
           qa_count_for_patient(patient),
           qa_missing_enrollment_count_for_patient(patient),
           qa_missing_careplan_count_for_patient(patient),
+          denied_claims(patient),
           careplan_dates_for_patient(patient),
         ]
       end
