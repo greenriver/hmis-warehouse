@@ -392,6 +392,18 @@ module HomelessSummaryReport
       @variants ||= self.class.report_variants
     end
 
+    def variant_name(variant)
+      @variant_names ||= {}.tap do |names|
+        variants.each do |variant_slug, details|
+          names["#{variant_slug}__all"] = details[:base_variant][:name]
+          details[:variants].each do |sub_variant_slug, sub_details|
+            names["#{variant_slug}__#{sub_variant_slug}"] = sub_details[:name]
+          end
+        end
+      end
+      @variant_names[variant]
+    end
+
     def self.report_variants
       household_types = {
         all_persons: {
@@ -455,6 +467,17 @@ module HomelessSummaryReport
         end
       end
       household_types.freeze
+    end
+
+    def self.available_variants
+      [].tap do |av|
+        report_variants.keys.each do |variant|
+          av << "#{variant}__all"
+          report_variants.values.flat_map { |m| m[:variants].keys }.each do |sub_v|
+            av << "#{variant}__#{sub_v}"
+          end
+        end
+      end
     end
 
     def self.demographic_variants
