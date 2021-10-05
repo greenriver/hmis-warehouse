@@ -265,6 +265,8 @@ module HmisCsvImporter::HmisCsvCleanup
 
         # Ignore any households where there is already only one HoH
         hh.delete_if { |_, rows| rows.one? { |m| m[:hoh] } }
+        # can't deal with any multi-person households where the household id was re-used in the same project
+        hh.delete_if { |_, rows| rows.map { |m| m[:personal_id] }.uniq.count != rows.count }
       end
     end
 
