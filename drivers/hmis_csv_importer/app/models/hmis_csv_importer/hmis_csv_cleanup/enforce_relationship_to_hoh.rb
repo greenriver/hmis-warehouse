@@ -169,14 +169,14 @@ module HmisCsvImporter::HmisCsvCleanup
         each do |_, rows|
           # all rows are the same, just use the first
           personal_id, hh_id = rows.first
-          # This is going to issue one query per household, project pair, but generally will only be a few dozen
+          # This is going to issue one query per client household pair, but generally will only be a few dozen
           # per import
           enrollments = enrollment_scope.where(
             HouseholdID: hh_id,
             PersonalID: personal_id,
           )
           enrollments.find_each do |en|
-            en.HouseholdID = Digest::MD5.hexdigest("#{@importer_log.data_source.id}_#{project_id}_#{hh_id}")
+            en.HouseholdID = Digest::MD5.hexdigest("#{@importer_log.data_source.id}_#{en.EnrollmentID}_#{hh_id}")
             en.RelationshipToHoH = 1
             en.set_source_hash
             batch << en
