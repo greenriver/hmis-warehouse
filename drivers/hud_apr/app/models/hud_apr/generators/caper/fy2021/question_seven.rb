@@ -12,6 +12,7 @@ module HudApr::Generators::Caper::Fy2021
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
       q7a_persons_served
+      q7b_pit_count
 
       @report.complete(QUESTION_NUMBER)
     end
