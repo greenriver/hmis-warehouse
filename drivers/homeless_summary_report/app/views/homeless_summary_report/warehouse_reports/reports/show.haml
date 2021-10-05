@@ -14,7 +14,7 @@
     - base_variant = details[:base_variant]
     - detail_variant_name = "spm_#{variant_slug}__all"
     = render 'counts_table', data: data, detail_variant_name: detail_variant_name, title: base_variant[:name], measure: measure
-
+    = render 'chart', data: data, detail_variant_name: detail_variant_name, title: base_variant[:name], measure: measure
     .mb-2
       - sub_variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}_sub_variants"
       %a{href: '#', data: {toggle: :collapse, target: "\##{sub_variant_slug}"}, aria: {expanded: 'false', controls: sub_variant_slug}}
@@ -26,3 +26,4 @@
 
         - detail_variant_name = "spm_#{variant_slug}__#{sub_variant_slug.presence || 'all'}"
         = render 'counts_table', data: data, detail_variant_name: detail_variant_name, title: variant[:name], measure: measure
+        = render 'chart', data: data, detail_variant_name: detail_variant_name, title: variant[:name], measure: measure
