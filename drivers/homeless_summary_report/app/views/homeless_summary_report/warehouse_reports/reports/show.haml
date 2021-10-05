@@ -12,32 +12,17 @@
   %h2= measure
   - @report.variants.each do |variant_slug, details|
     - base_variant = details[:base_variant]
-    %h3= base_variant[:name]
     - detail_variant_name = "spm_#{variant_slug}__all"
-    - client = @report.clients.send(detail_variant_name)&.first
-    - if client
-      - spm_id = client.send(detail_variant_name)
-      %p= link_to 'view related SPM report', hud_reports_spm_path(spm_id)
-      = render 'counts_table', data: data, detail_variant_name: detail_variant_name
-    - else
-      %p.none-found
-        No Clients found.
+    = render 'counts_table', data: data, detail_variant_name: detail_variant_name, title: base_variant[:name], measure: measure
 
-    - details[:variants].each do |sub_variant_slug, variant|
-      - next if @report.exclude_variants(measure, sub_variant_slug)
+    .mb-2
+      - sub_variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}_sub_variants"
+      %a{href: '#', data: {toggle: :collapse, target: "\##{sub_variant_slug}"}, aria: {expanded: 'false', controls: sub_variant_slug}}
+        Demographic breakdowns
+        %i.icon-arrow-circled-down
+    .well.mb-4.collapse{id: sub_variant_slug}
+      - details[:variants].each do |sub_variant_slug, variant|
+        - next if @report.exclude_variants(measure, sub_variant_slug)
 
-      - detail_variant_name = "spm_#{variant_slug}__#{sub_variant_slug.presence || 'all'}"
-      - client = @report.clients.send(detail_variant_name)&.first
-      %h3= variant[:name]
-      - # TODO
-      - # Measure 1 is table with Client Count, Average Days, Median Days
-      - # Measure 2 is table with Client Count, % in each category
-      - # Measure 7 is table with Client Count, Permanent Destination Count, Temporary Destination Count, Permanent Unknown Count,
-      - # Measure 7 is table with Client Count, column for count of every destination
-      - if client
-        - spm_id = client.send(detail_variant_name)
-        %p= link_to 'view related SPM report', hud_reports_spm_path(spm_id)
-        = render 'counts_table', data: data, detail_variant_name: detail_variant_name
-      - else
-        %p.none-found
-          No Clients found.
+        - detail_variant_name = "spm_#{variant_slug}__#{sub_variant_slug.presence || 'all'}"
+        = render 'counts_table', data: data, detail_variant_name: detail_variant_name, title: variant[:name], measure: measure
