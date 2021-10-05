@@ -369,13 +369,14 @@ module HmisCsvTwentyTwenty::Loader
         return [:missing]
       end
 
-      valid_headers = source_headers.map(&HEADER_NORMALIZER) == klass.hud_csv_headers.map(&HEADER_NORMALIZER)
+      csv_header_names = klass.hud_csv_headers(version: '2020')
+      valid_headers = source_headers.map(&HEADER_NORMALIZER) == csv_header_names.map(&HEADER_NORMALIZER)
 
-      return [:ok, klass.hud_csv_headers.map(&:to_s)] if valid_headers
+      return [:ok, csv_header_names.map(&:to_s)] if valid_headers
 
       mapping = {}
       missing_cols = []
-      klass.hud_csv_headers(version: '2020').each do |expected_col|
+      csv_header_names.each do |expected_col|
         if (col_idx = source_headers.find_index { |csv_col| expected_col.to_s.downcase.strip == csv_col.to_s.downcase.strip })
           mapping[expected_col.to_s] = col_idx
         else

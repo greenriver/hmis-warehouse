@@ -20,7 +20,7 @@ module HMIS::Structure::EnrollmentCoc
 
     def hmis_configuration(version: nil)
       case version
-      when '6.11', '6.12', '2020', '2022', nil
+      when '6.11', '6.12', '2020', '2022'
         {
           EnrollmentCoCID: {
             type: :string,

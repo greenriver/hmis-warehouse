@@ -80,7 +80,10 @@ class BaseJob < ApplicationJob
       "```\n #{exception.inspect} \n```",
     ].join("\n")
     attachment = "```\n #{Rails.backtrace_cleaner.clean(exception.backtrace).join("\n")} \n```"
-    @notifier.post(text: msg, attachments: { text: attachment })
+    begin
+      @notifier.post(text: msg, attachments: { text: attachment })
+    rescue Exception # rubocop:disable Lint/SuppressedException
+    end
     ExceptionNotifier.notify_exception(exception)
   end
 

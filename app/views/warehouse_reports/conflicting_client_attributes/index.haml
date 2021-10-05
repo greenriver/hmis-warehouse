@@ -21,11 +21,9 @@
     %th Client Name
     %th DOB
     %th SSN
-    %th Gender
   %tbody
     - @clients.each do |client|
       %tr
         %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
         %td= dob_or_age client.DOB
         %td= ssn client.SSN
-        %td= HUD.gender(client.Gender)

@@ -132,7 +132,7 @@ module GrdaWarehouse::Tasks
         email: :email,
         substance_abuse_problem: :cas_substance_response,
         primary_race: :cas_primary_race_code,
-        gender: :Gender,
+        gender: :gender_binary,
         ethnicity: :Ethnicity,
         disabling_condition: :disabling_condition?,
         hivaids_status: :hiv_response?,

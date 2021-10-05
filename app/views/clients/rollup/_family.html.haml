@@ -18,8 +18,7 @@
             - else
               = masked_ssn(client.SSN)
           %td= client.age
-          %td
-            = HUD::gender client.Gender
+          %td= client.gender
           %td
             = HUD::ethnicity client.Ethnicity
             \/

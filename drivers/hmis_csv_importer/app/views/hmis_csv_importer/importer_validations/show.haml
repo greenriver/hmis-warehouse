@@ -1,0 +1,21 @@
+= content_for :crumbs do
+  = link_to import_path(@import) do
+    &laquo; Import Log
+
+%h1= "Validation Flags for #{@filename}"
+
+%ul.nav.nav-tabs{role: "presentation"}
+  %li.nav-item.active{role: 'presentation'}
+    = link_to 'Validation Flags', hmis_csv_importer_importer_validation_path(@import.importer_log, file: File.basename(@filename, '.csv')), class: 'nav-link'
+  %li.nav-item{role: 'presentation'}
+    = link_to 'Import Error Flags', hmis_csv_importer_importer_validation_error_path(@import.importer_log, file: File.basename(@filename, '.csv')), class: 'nav-link'
+  %li.nav-item{role: 'presentation'}
+    = link_to 'Importer Failures', hmis_csv_importer_importer_error_path(@import.importer_log, file: File.basename(@filename, '.csv')), class: 'nav-link'
+
+- if @validations.present?
+  .d-flex
+    .ml-auto.mb-2
+      = link_to(hmis_csv_importer_importer_validation_download_path(params[:id], params[:file]), class: 'btn btn-secondary') do
+        %i.icon-download2
+        Download
+= render 'hmis_csv_importer/validation_shared/table', validations: @validations, validation_classes: @validation_classes

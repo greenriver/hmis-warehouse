@@ -1,0 +1,36 @@
+- if validation_classes.count > 1
+  = simple_form_for @filters, as: :filters, method: :get, url: link_params do |f|
+    .row
+      .col
+        = f.input :validation, collection: validation_classes, as: :select_two, include_blank: false, label: false
+      .col
+        = f.submit value: 'Update View', class: 'btn btn-primary'
+
+- if validations.present?
+  - entry_name = File.basename(@filename, '.csv')
+  = paginate validations
+  .card
+    .overflow-x-scroll
+      %table.table.table-sm.table-bordered.table-fixed.mb-0
+        %thead.thead-dark
+          %tr
+            %th Message
+            - validations.first.source.class.hmis_structure.each_key do |header|
+              %th= header
+        %tbody
+          - validations.each do |error|
+            %tr
+              %td= error.status
+              - source = error.source
+              - source.hmis_data.each do |key, value|
+                - validation_class = if key.to_s == error.validated_column then 'bg-warning' else '' end
+                %td{class: validation_class}
+                  - if key == 'PersonalID' && can_search_window?
+                    - search_string = value
+                    - search_string = GrdaWarehouse::Hud::Client.uuid(value) if @data_source.munged_personal_id? || value.length == 32
+                    = link_to value, clients_path(q: search_string)
+                  - else
+                    = link_to_if key.to_sym == @klass.hud_key, value, hmis_path(search: {type: entry_name, id: value, data_source_id: @data_source.id })
+
+- else
+  %p.well.none-found No validation flags.

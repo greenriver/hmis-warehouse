@@ -8,14 +8,6 @@ module PerformanceDashboard::Overview::Gender
   extend ActiveSupport::Concern
 
   private def gender_buckets
-    # 0 => 'Female',
-    # 1 => 'Male',
-    # 2 => 'Trans Female (MTF or Male to Female)',
-    # 3 => 'Trans Male (FTM or Female to Male)',
-    # 4 => 'Gender non-conforming (i.e. not exclusively male or female)',
-    # 8 => 'Client doesn’t know',
-    # 9 => 'Client refused',
-    # 99 => 'Data not collected',
     HUD.genders.keys
   end
 
@@ -37,6 +29,6 @@ module PerformanceDashboard::Overview::Gender
   def gender_query(key)
     return '0=1' unless key
 
-    c_t[:Gender].eq(key.to_i)
+    c_t[HUD.gender_id_to_field_name[key.to_i].to_sym].eq(HUD.gender_comparison_value(key))
   end
 end

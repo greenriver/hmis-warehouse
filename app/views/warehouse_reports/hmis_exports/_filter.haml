@@ -55,6 +55,6 @@
       .ml-2
         = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }
     #recurrence_options.collapse
-      = render 'recurrence_options', f: f
+      = render 'recurrence_options', save_language: 'Queue Export', f: f
 
   = render 'warehouse_reports/filters', f:f

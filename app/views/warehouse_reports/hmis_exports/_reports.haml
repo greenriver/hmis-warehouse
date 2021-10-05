@@ -6,6 +6,8 @@
     %td= render 'spinner'
     %td= render 'parameters', report: report
     %td
+    %td
+    %td
 - @exports.each do |report|
   %tr
     %td
@@ -21,6 +23,10 @@
     %td
       = link_to warehouse_reports_hmis_export_path(report), method: :delete, data: { confirm: 'Are you sure you want to delete this export?', toggle: :tooltip, title: 'Delete export'}, class: 'btn btn-sm btn-danger btn-icon-only' do
         %i.icon-cross
+    %td
+      - if report.recurring_hmis_export.present? && can_cancel?(report)
+        = link_to edit_warehouse_reports_hmis_export_path(report), class: 'btn btn-sm btn-secondary btn-icon-only' do
+          %i.icon-pencil
     %td
       - if report.recurring_hmis_export.present? && can_cancel?(report)
         = link_to cancel_warehouse_reports_hmis_export_path(report), method: :delete, data: { confirm: 'Are you sure you want to cancel this recurring export?', toggle: :tooltip, title: 'Cancel recurring export'}, class: 'btn btn-sm btn-danger btn-icon-only' do

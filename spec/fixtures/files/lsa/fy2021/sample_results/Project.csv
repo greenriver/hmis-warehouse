@@ -1,0 +1,9 @@
+"ProjectID","OrganizationID","ProjectName","ProjectCommonName","OperatingStartDate","OperatingEndDate","ContinuumProject","ProjectType","HousingType","ResidentialAffiliation","TrackingMethod","HMISParticipatingProject","TargetPopulation","PITCount","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"240","7007","APR - Emergency Shelter / SSO","","2010-01-01","",1,1,1,,0,1,4,,"2020-04-13 12:00:00","2020-04-13 12:00:00","",,12345
+"242","7007","APR - Transitional Housing","","2010-01-01","",1,2,1,,,1,4,,"2020-04-13 12:00:00","2020-04-13 12:00:00","",,12345
+"441","7007","APR - Permanent Housing","","2010-01-01","",1,3,3,,,1,4,,"2020-05-11 12:00:00","2020-05-11 12:00:00","",,12345
+"808","7007","APR - RRH","","2017-01-01","",1,13,3,,,1,4,,"2020-04-13 12:00:00","2020-04-13 12:00:00","",,12345
+"882","7007","APR - Emergency Shelter NBN","","2012-10-01","",1,1,2,,3,1,4,,"2020-04-13 12:00:00","2020-04-13 12:00:00","",,12345
+"957","7007","APR - RRH 2","","2010-01-01","",1,13,1,,,1,4,,"2020-04-13 12:00:00","2020-04-13 12:00:00","",,12345
+"958","7007","APR - Emergency Shelter 2","","2010-01-01","",1,1,1,,0,1,3,,"2020-04-13 12:00:00","2020-04-13 12:00:00","",,12345
+"960","7007","APR - Emergency Shelter 3","","2010-01-01","",1,1,1,,0,1,4,,"2020-04-13 12:00:00","2020-04-13 12:00:00","",,12345

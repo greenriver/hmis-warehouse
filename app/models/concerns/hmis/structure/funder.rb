@@ -67,7 +67,7 @@ module HMIS::Structure::Funder
             null: false,
           },
         }
-      when '2020', '2022', nil
+      when '2020', '2022'
         {
           FunderID: {
             type: :string,

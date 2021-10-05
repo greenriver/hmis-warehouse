@@ -1,0 +1,2 @@
+ExportID,SourceType,SourceID,SourceName,SourceContactFirst,SourceContactLast,SourceContactPhone,SourceContactExtension,SourceContactEmail,ExportDate,ExportStartDate,ExportEndDate,SoftwareName,SoftwareVersion,ExportPeriodType,ExportDirective,HashStatus
+TEST,3,,Test Export,Automated,Export,,,,2020-07-05 00:00:00,2020-01-01	,2020-06-30,Boston HMIS Warehouse,1,3,3,1

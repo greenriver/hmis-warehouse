@@ -1,0 +1,14 @@
+sheet_title = "#{@filename} Validation Flags"
+validations = @validations
+
+wb = xlsx_package.workbook
+wb.add_worksheet(name: sheet_title[0..30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  row = ['Message'] + validations.first.source.class.hmis_structure.keys
+  sheet.add_row(row, style: title)
+  validations.each do |error|
+    source = error.source
+    row = [error.status] + source.hmis_data.values
+    sheet.add_row(row)
+  end
+end

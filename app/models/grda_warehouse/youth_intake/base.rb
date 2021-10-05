@@ -351,19 +351,20 @@ module GrdaWarehouse::YouthIntake
       authoritative_clients = client.source_clients.joins(:data_source).merge(GrdaWarehouse::DataSource.authoritative.youth)
       return unless authoritative_clients.exists?
 
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       data = {
         DOBDataQuality: 1,
-        Gender: client_gender,
+
         Ethnicity: client_ethnicity,
         AmIndAKNative: client_race.include?('AmIndAKNative') ? 1 : 0,
         Asian: client_race.include?('Asian') ? 1 : 0,
         BlackAfAmerican: client_race.include?('BlackAfAmerican') ? 1 : 0,
-        NativeHIOtherPacific: client_race.include?('NativeHIOtherPacific') ? 1 : 0,
+        NativeHIPacific: client_race.include?('NativeHIPacific') ? 1 : 0,
         White: client_race.include?('White') ? 1 : 0,
         RaceNone: compute_race_none,
         DateUpdated: Time.now,
       }
+      gender_column = HUD.gender_id_to_field_name[client_gender]
+      data[gender_column] = 1 unless gender_column.nil?
       data[:FirstName] = first_name if first_name.present?
       data[:LastName] = last_name if last_name.present?
       data[:SSN] = ssn.gsub('-', '') if ssn.present?

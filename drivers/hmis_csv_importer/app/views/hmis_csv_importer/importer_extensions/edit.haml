@@ -1,0 +1,36 @@
+= content_for :crumbs do
+  = link_to data_source_path(@data_source) do
+    &laquo; #{@data_source.name}
+
+%h2
+  Importer Extensions for #{@data_source.name}
+
+- editable = current_user.can_manage_config?
+
+= simple_form_for :extensions, url: hmis_csv_importer_importer_extension_path(@data_source), method: :put do |f|
+  .card.mb-4
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Model
+          %th Extension
+          %th Enabled?
+      %tbody
+        %tr
+          %td All
+          %td Require review of imports with any errors.
+          - if editable
+            %td.text-center= f.input :refuse_imports_with_errors, as: :boolean, required: false, label: false, input_html: {checked: @data_source.refuse_imports_with_errors}
+          - else
+            %td.text-center= checkmark(@data_source.refuse_imports_with_errors)
+        - allowed_extensions.each do |extension|
+          %tr
+            %td= extension.associated_model
+            %td= extension.description
+            - if editable
+              %td.text-center= f.input extension.to_s, as: :boolean, required: false, label: false, input_html: {checked: extension.checked?(@data_source)}
+            - else
+              %td.text-center= checkmark(extension.checked?(@data_source))
+  - if editable
+    %div.text-right
+      = f.submit 'Update Extensions'

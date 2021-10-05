@@ -86,5 +86,7 @@ module BostonHmis
     config.hmis_exporters = []
     config.synthetic_event_types = []
     config.synthetic_assessment_types = []
+    config.hmis_migrations = {}
+    config.hmis_data_lake = nil
   end
 end

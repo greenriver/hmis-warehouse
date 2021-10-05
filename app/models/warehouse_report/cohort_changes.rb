@@ -150,13 +150,11 @@ class WarehouseReport::CohortChanges < OpenStruct
   end
 
   def gender_bucket(client_id)
-    gender_id = client_from_id(client_id).Gender
-    case gender_id
-    when 2, 3, 4
-      :gender_diverse
-    else
-      :cisgender
-    end
+    gender_ids = client_from_id(client_id).gender_multi - [8, 9, 99]
+    return :gender_diverse if gender_ids.count > 1
+    return :gender_diverse if (gender_ids & [2, 3, 4, 5, 6]).any?
+
+    :cisgender
   end
 
   def race_bucket(client_id)
