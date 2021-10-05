@@ -1,0 +1,8 @@
+- client = @report.clients.send(detail_variant_name)&.first
+- variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}"
+- if client
+  .jChart{class: "#{variant_slug}-chart", data: { chart: { options: [], categories: []}}}
+    CHART
+  = content_for :page_js do
+    :javascript
+      new App.WarehouseReports.HomelessSummaryReport.HorizontalBar('.jChart.#{variant_slug}-chart', {remote: false});
