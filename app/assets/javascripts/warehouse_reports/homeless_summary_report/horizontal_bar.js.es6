@@ -47,6 +47,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
 
       this.padding = this.options.padding || {};
       this.height = this.options.height || 400;
+      this.max_value = this.options.max || 100;
       // Deep clone array to prevent future issues with additional mutations
       const columns = $(this.chart_selector).data('chart').columns;
       const _columns = JSON.parse(JSON.stringify(columns));
@@ -87,6 +88,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         axis: {
           rotated: true,
           y: {
+            max: this.max_value,
             outer: false,
             tick: {
               rotate: -35,
@@ -213,7 +215,8 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         const bg_color = color(row.x);
         const box = `<td class='name'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
         const value = `<td>${row.value}</td>`;
-        let details = `<td class='text-left'>${support.counts[tooltip_title[0]][row.name]}</td>`;
+        console.log(support.counts, tooltip_title, row.name)
+        let details = `<td class='text-left'>${support.counts[tooltip_title][row.name]}</td>`;
 
         html += box;
         html += value;
