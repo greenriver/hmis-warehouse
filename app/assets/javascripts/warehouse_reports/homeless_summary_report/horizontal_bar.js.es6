@@ -77,6 +77,9 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
       };
       const config = {
         data,
+        legend: {
+          show: false,
+        },
         bindto: this.chart_selector,
         size: {
           height: this.height,
@@ -109,12 +112,17 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
           },
         },
         bar: {
-          width: 30,
+          width: 15,
         },
         padding: {
           left: this.padding.left || 150,
           top: 0,
-          bottom: 20,
+          bottom: 5,
+        },
+        tooltip: {
+          contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+            return this._toolip(d, defaultTitleFormat, defaultValueFormat, color);
+          }
         },
       };
       if (legendBindTo) {
@@ -137,8 +145,8 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
   _colors(c, d) {
     let color;
     let key = d;
-    if (key.id != null) {
-      key = key.id;
+    if (key.x != null) {
+      key = key.x;
     }
     const colors = window.Chart.defaults.colors
     if (['All'].includes(key)) {
@@ -185,6 +193,38 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
     const url = '/' + this.options.link_base + '?' + $.param(this.link_params);
     // console.log(url)
     return window.open(url);
+  }
+
+  _toolip(d, defaultTitleFormat, defaultValueFormat, color) {
+    // Somewhat reverse engineered from here:
+    // https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
+    // console.log(d, defaultValueFormat(d[0].value), @data)
+    const tooltip_title = defaultTitleFormat(d[0].x);
+    let support = $(this.chart_selector).data('chart').support
+    let html = "<table class='bb-tooltip'>";
+    html += "<thead>";
+    html += `<tr><th></th><th>${support.unit[d[0].index]}</th><th>Clients</th></tr>`;
+    html += "</thead>";
+    html += "<tbody>";
+    $(d).each(i => {
+      const row = d[i];
+
+      if (row != null) {
+        const bg_color = color(row.x);
+        const box = `<td class='name'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
+        const value = `<td>${row.value}</td>`;
+        let details = `<td class='text-left'>${support.counts[tooltip_title[0]][row.name]}</td>`;
+
+        html += box;
+        html += value;
+        html += details;
+        return html += "</tr>";
+      }
+    });
+
+    html += "</tbody>";
+    html += '</table>';
+    return html;
   }
 
   _observe() {

@@ -1,8 +1,33 @@
 - client = @report.clients.send(detail_variant_name)&.first
 - variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}"
 - if client
-  .jChart{class: "#{variant_slug}-chart", data: { chart: { options: [], categories: []}}}
-    CHART
+  - field, row_data = data
+  = debug data
+  = debug detail_variant_name
+  - calculations = (row_data[:calculations] - [:count])
+  - categories = calculations.map { |m| [m.to_s.titleize] }
+  - columns = [title]
+  - values = calculations.map { |calculation| @report.calculate(detail_variant_name, field, calculation, row_data) }
+  - columns += values
+  - counts = calculations.map { |calculation| [calculation.to_s.titleize, {title => @report.calculate(detail_variant_name, field, :count, row_data)}] }.to_h
+  - headers.delete_at(row_data[:calculations].find_index(:count))
+  - support = { unit: headers, counts: counts}
+
+  .row
+    .col-sm-4
+      %h4 #{title}: #{row_data[:title]}
+    .col-sm-8
+      .jChart{class: "#{variant_slug}-chart", data: { chart: { options: { height: 100 }, categories: categories, params: [], columns: [columns], support: support}.to_json}}
+
+  -# - row_data[:calculations].each do |calculation|
+  -#             - if calculation == :count_destinations
+  -#               - @report.destinations.each do |id|
+  -#                 %td= @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: id))
+  -#             - else
+  -#               %td= link_to_if calculation == :count, @report.calculate(detail_variant_name, field, calculation, row_data), details_homeless_summary_report_warehouse_reports_report_path(@report, variant: detail_variant_name, cell: field)
+
+
+
   = content_for :page_js do
     :javascript
       new App.WarehouseReports.HomelessSummaryReport.HorizontalBar('.jChart.#{variant_slug}-chart', {remote: false});

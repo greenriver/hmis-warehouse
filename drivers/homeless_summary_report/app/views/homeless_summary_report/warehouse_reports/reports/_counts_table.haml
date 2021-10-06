@@ -1,16 +1,12 @@
 - client = @report.clients.send(detail_variant_name)&.first
-- variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}"
 .d-flex
   %h3= title
   - if client
     - spm_id = client.send(detail_variant_name)
     .ml-auto= link_to 'View related SPM report', hud_reports_spm_path(spm_id), target: :_blank
-    .ml-4
-      %a{href: '#', data: {toggle: :collapse, target: "\##{variant_slug}"}, aria: {expanded: 'false', controls: variant_slug}}
-        View details
-        %i.icon-arrow-circled-down
+
 - if client
-  .card.mb-4.collapse{id: variant_slug}
+  .card.mb-4
     %table.table.table-striped.mb-0
       %thead
         %tr
