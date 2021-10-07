@@ -57,6 +57,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       ].each do |required_column|
         row[required_column] = 99 if row[required_column].blank?
       end
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
       row
     end

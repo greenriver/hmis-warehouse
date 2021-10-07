@@ -223,7 +223,7 @@ module LsaSqlServer
         :HHTypeEST,
         :HoHEST,
         :AdultEST,
-        :HHChronicEST,
+        :AHARAdultEST,
         :HHVetEST,
         :HHDisabilityEST,
         :HHFleeingDVEST,

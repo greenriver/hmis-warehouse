@@ -132,8 +132,9 @@ module HmisSqlServer
         'HousingType',
       ].each do |k|
         field_index = headers.index(k)
-        row[field_index] = row[field_index].presence || 99
+        row[field_index] = row[field_index].presence || 1 # this is incorrect, but HDX will reject a 99
       end
+      row[:HMISParticipatingProject] = 0 if row[:HMISParticipatingProject] == 99 # this is incorrect, but HDX will reject a 99
 
       super(row: row, headers: headers)
     end
@@ -142,6 +143,14 @@ module HmisSqlServer
   class ProjectCoc < LsaBase
     self.table_name = :hmis_ProjectCoC
     include ::HMIS::Structure::ProjectCoc
+
+    def clean_row_for_import(row:, headers:)
+      row[:ZIP] = '0' * 5 if row[:ZIP].blank?
+      row[:Geocode] = '0' * 6 if row[:Geocode].blank?
+      row[:GeographyType] = 99 if row[:GeographyType].blank?
+
+      super(row: row, headers: headers)
+    end
   end
 
   class Service < LsaBase
