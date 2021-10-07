@@ -15,7 +15,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
       row[:UserID] = 'op-system' if row[:UserID].blank?
-      row[:AssessmentLocation] = 'unknown' if row[:AssessmentLocation].blank
+      row[:AssessmentLocation] = 'unknown' if row[:AssessmentLocation].blank?
 
       row
     end
