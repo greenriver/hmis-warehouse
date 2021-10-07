@@ -415,51 +415,51 @@ module HomelessSummaryReport
           },
           variants: {},
         },
-        # with_children: {
-        #   base_variant: {
-        #     name: 'Persons in Adult/Child Households',
-        #     extra_filters: {
-        #       household_type: :with_children,
-        #     },
-        #   },
-        #   variants: {},
-        # },
-        # only_children: {
-        #   base_variant: {
-        #     name: 'Persons in Child Only Households',
-        #     extra_filters: {
-        #       household_type: :only_children,
-        #     },
-        #   },
-        #   variants: {},
-        # },
-        # without_children_and_fifty_five_plus: {
-        #   base_variant: {
-        #     name: 'Persons in Adult Only Households who are Age 55+',
-        #     extra_filters: {
-        #       household_type: :without_children,
-        #       age_ranges: [
-        #         :fifty_five_to_fifty_nine,
-        #         :sixty_to_sixty_one,
-        #         :over_sixty_one,
-        #       ],
-        #     },
-        #   },
-        #   variants: {},
-        # },
-        # adults_with_children_where_parenting_adult_18_to_24: {
-        #   base_variant: {
-        #     name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
-        #     extra_filters: {
-        #       household_type: :with_children,
-        #       hoh_only: true,
-        #       age_ranges: [
-        #         :eighteen_to_twenty_four,
-        #       ],
-        #     },
-        #   },
-        #   variants: {},
-        # },
+        with_children: {
+          base_variant: {
+            name: 'Persons in Adult/Child Households',
+            extra_filters: {
+              household_type: :with_children,
+            },
+          },
+          variants: {},
+        },
+        only_children: {
+          base_variant: {
+            name: 'Persons in Child Only Households',
+            extra_filters: {
+              household_type: :only_children,
+            },
+          },
+          variants: {},
+        },
+        without_children_and_fifty_five_plus: {
+          base_variant: {
+            name: 'Persons in Adult Only Households who are Age 55+',
+            extra_filters: {
+              household_type: :without_children,
+              age_ranges: [
+                :fifty_five_to_fifty_nine,
+                :sixty_to_sixty_one,
+                :over_sixty_one,
+              ],
+            },
+          },
+          variants: {},
+        },
+        adults_with_children_where_parenting_adult_18_to_24: {
+          base_variant: {
+            name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
+            extra_filters: {
+              household_type: :with_children,
+              hoh_only: true,
+              age_ranges: [
+                :eighteen_to_twenty_four,
+              ],
+            },
+          },
+          variants: {},
+        },
       }
       household_types.each do |_, reports|
         demographic_variants.each do |key, variant|
@@ -489,85 +489,85 @@ module HomelessSummaryReport
             races: ['White'],
           },
         },
-        # hispanic_latino: {
-        #   name: 'Hispanic/Latin(a)(o)(x)',
-        #   extra_filters: {
-        #     ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
-        #   },
-        # },
-        # black_african_american: {
-        #   name: 'Black/African American Persons',
-        #   extra_filters: {
-        #     races: ['BlackAfAmerican'],
-        #   },
-        # },
-        # asian: {
-        #   name: 'Asian Persons',
-        #   extra_filters: {
-        #     races: ['Asian'],
-        #   },
-        # },
-        # american_indian_alaskan_native: {
-        #   name: 'American Indian/Alaskan Native Persons',
-        #   extra_filters: {
-        #     races: ['AmIndAKNative'],
-        #   },
-        # },
-        # native_hawaiian_other_pacific_islander: {
-        #   name: 'Native Hawaiian or Pacific Islander',
-        #   extra_filters: {
-        #     races: ['NativeHIPacific'],
-        #   },
-        # },
-        # multi_racial: {
-        #   name: 'Multiracial',
-        #   extra_filters: {
-        #     races: ['MultiRacial'],
-        #   },
-        # },
-        # fleeing_dv: {
-        #   name: 'Currently Fleeing DV',
-        #   extra_filters: {
-        #     currently_fleeing: [1],
-        #   },
-        # },
-        # veteran: {
-        #   name: 'Veterans',
-        #   extra_filters: {
-        #     veteran_statuses: [1],
-        #   },
-        # },
-        # has_disability: {
-        #   name: 'With Indefinite and Impairing Disability',
-        #   extra_filters: {
-        #     indefinite_disabilities: [1],
-        #   },
-        # },
-        # has_rrh_move_in_date: {
-        #   name: 'Moved in to RRH',
-        #   extra_filters: {
-        #     rrh_move_in: true,
-        #   },
-        # },
-        # has_psh_move_in_date: {
-        #   name: 'Moved in to PSH',
-        #   extra_filters: {
-        #     psh_move_in: true,
-        #   },
-        # },
-        # first_time_homeless: {
-        #   name: 'First Time Homeless in Past Two Years',
-        #   extra_filters: {
-        #     first_time_homeless: true,
-        #   },
-        # },
-        # # NOTE: only display this on Measure 1 (it will never work on Measure 2)
-        # returned_to_homelessness_from_permanent_destination: {
-        #   name: 'Returned to Homelessness from Permanent Destination',
-        #   extra_filters: {
-        #     returned_to_homelessness_from_permanent_destination: true,
-        #   },
-        # },
+        hispanic_latino: {
+          name: 'Hispanic/Latin(a)(o)(x)',
+          extra_filters: {
+            ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
+          },
+        },
+        black_african_american: {
+          name: 'Black/African American Persons',
+          extra_filters: {
+            races: ['BlackAfAmerican'],
+          },
+        },
+        asian: {
+          name: 'Asian Persons',
+          extra_filters: {
+            races: ['Asian'],
+          },
+        },
+        american_indian_alaskan_native: {
+          name: 'American Indian/Alaskan Native Persons',
+          extra_filters: {
+            races: ['AmIndAKNative'],
+          },
+        },
+        native_hawaiian_other_pacific_islander: {
+          name: 'Native Hawaiian or Pacific Islander',
+          extra_filters: {
+            races: ['NativeHIPacific'],
+          },
+        },
+        multi_racial: {
+          name: 'Multiracial',
+          extra_filters: {
+            races: ['MultiRacial'],
+          },
+        },
+        fleeing_dv: {
+          name: 'Currently Fleeing DV',
+          extra_filters: {
+            currently_fleeing: [1],
+          },
+        },
+        veteran: {
+          name: 'Veterans',
+          extra_filters: {
+            veteran_statuses: [1],
+          },
+        },
+        has_disability: {
+          name: 'With Indefinite and Impairing Disability',
+          extra_filters: {
+            indefinite_disabilities: [1],
+          },
+        },
+        has_rrh_move_in_date: {
+          name: 'Moved in to RRH',
+          extra_filters: {
+            rrh_move_in: true,
+          },
+        },
+        has_psh_move_in_date: {
+          name: 'Moved in to PSH',
+          extra_filters: {
+            psh_move_in: true,
+          },
+        },
+        first_time_homeless: {
+          name: 'First Time Homeless in Past Two Years',
+          extra_filters: {
+            first_time_homeless: true,
+          },
+        },
+        # NOTE: only display this on Measure 1 (it will never work on Measure 2)
+        returned_to_homelessness_from_permanent_destination: {
+          name: 'Returned to Homelessness from Permanent Destination',
+          extra_filters: {
+            returned_to_homelessness_from_permanent_destination: true,
+          },
+        },
       }.freeze
     end
 
