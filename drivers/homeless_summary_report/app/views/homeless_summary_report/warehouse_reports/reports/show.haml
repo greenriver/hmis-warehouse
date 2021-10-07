@@ -4,42 +4,62 @@
 - title = "Homeless Summary Report"
 - content_for :title, title
 %h1= content_for :title
-%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}" 
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
   = @report.filter.describe_filter_as_html
 
 - @report.measures.each do |measure, data|
-  %h2= measure
-  - @report.variants.each do |variant, details|
-    - next if @report.exclude_variants(measure, variant)
+  -# Calculate the max for chart display
+  - values = []
+  - headers = data[:headers]
+  - @report.variants.each do |base_variant_slug, details|
+    - detail_variant_name = "spm_#{base_variant_slug}__all"
+    - data[:fields].each do |row|
+      - field, row_data = row
+      - sub_variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}_sub_variants_#{field}"
+      - calculations = (row_data[:calculations] - [:count])
+      - values += calculations.map { |calculation| @report.calculate(detail_variant_name, field, calculation, row_data) }
+      - details[:variants].each do |sub_variant_slug, variant|
+        - next if @report.exclude_variants(measure, sub_variant_slug)
 
-    - client = @report.clients.send(variant)&.first
-    %h3= details[:name]
-    - # TODO
-    - # Measure 1 is table with Client Count, Average Days, Median Days
-    - # Measure 2 is table with Client Count, % in each category
-    - # Measure 7 is table with Client Count, Permanent Destination Count, Temporary Destination Count, Permanent Unknown Count,
-    - # Measure 7 is table with Client Count, column for count of every destination
-    - if client
-      - spm_id = client.send("spm_#{variant}")
-      %p= link_to 'view related SPM report', hud_reports_spm_path(spm_id)
-      .card.mb-4
-        %table.table.table-striped.mb-0
-          %thead
-            %tr
-              %th
-              - data[:headers].each do |header|
-                %th= header
-          - data[:fields].each do |field, row_data|
-            %tr
-              %th
-                = "#{row_data[:title]}:"
-              - row_data[:calculations].each do |calculation|
-                - if calculation == :count_destinations
-                  - @report.destinations.each do |id|
-                    %td= @report.calculate(variant, field, calculation, row_data.merge(destination: id))
-                - else
-                  %td= link_to_if calculation == :count, @report.calculate(variant, field, calculation, row_data), details_homeless_summary_report_warehouse_reports_report_path(@report, variant: variant, cell: field)
-    - else
-      %p.none-found
-        No Clients found.
+        - data[:fields].each do |sub_row|
+          - next unless sub_row.first == field
+
+          - row_data = sub_row.last
+          - sub_detail_variant_name = "spm_#{base_variant_slug}__#{sub_variant_slug}"
+          - values += calculations.map { |calculation| @report.calculate(sub_detail_variant_name, field, calculation, row_data) }
+  - max_value = (values.compact.max || 100).to_i
+  .well
+    - measure_slug = measure.underscore.tr(' ', '_')
+    .d-flex
+      %h2= measure
+      .ml-auto
+        %a{href: '#', data: {toggle: :collapse, target: "\##{measure_slug}"}, aria: {expanded: 'false', controls: measure_slug}}
+          View details
+          %i.icon-arrow-circled-down
+    - @report.variants.each do |base_variant_slug, details|
+      - detail_variant_name = "spm_#{base_variant_slug}__all"
+      .collapse{id: measure_slug}
+        - base_variant = details[:base_variant]
+        = render 'counts_table', data: data, detail_variant_name: detail_variant_name, title: base_variant[:name], measure: measure
+        - details[:variants].each do |sub_variant_slug, variant|
+          = render 'counts_table', data: data, detail_variant_name: "spm_#{base_variant_slug}__#{sub_variant_slug}", title: variant[:name], measure: measure
+      - data[:fields].each do |row|
+        - field, row_data = row
+        - sub_variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}_sub_variants_#{field}"
+        - if measure == 'Measure 7'
+          = render 'chart_stacked', data: row, detail_variant_name: detail_variant_name, title: base_variant[:name], measure: measure, headers: headers, variant_link: sub_variant_slug, max_value: max_value
+        - else
+          = render 'chart', data: row, detail_variant_name: detail_variant_name, title: base_variant[:name], measure: measure, headers: headers, variant_link: sub_variant_slug, max_value: max_value
+        .mb-6.collapse{id: sub_variant_slug}
+          - details[:variants].each do |sub_variant_slug, variant|
+            - next if @report.exclude_variants(measure, sub_variant_slug)
+
+            - sub_detail_variant_name = "spm_#{base_variant_slug}__#{sub_variant_slug}"
+            - data[:fields].each do |row|
+              - next unless row.first == field
+              - if measure == 'Measure 7'
+                = render 'chart_stacked', data: row, detail_variant_name: sub_detail_variant_name, title: variant[:name], measure: measure, headers: headers, variant_link: nil, max_value: max_value
+              - else
+                = render 'chart', data: row, detail_variant_name: sub_detail_variant_name, title: variant[:name], measure: measure, headers: headers, variant_link: nil, max_value: max_value
+          %hr

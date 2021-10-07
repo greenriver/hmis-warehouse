@@ -12,13 +12,16 @@ module HomelessSummaryReport
     belongs_to :report
 
     # Create a scope for each report variant
-    [
+    household_variants = [
       :all_persons,
       :without_children,
       :with_children,
       :only_children,
       :without_children_and_fifty_five_plus,
       :adults_with_children_where_parenting_adult_18_to_24,
+    ]
+    demographic_variants = [
+      :all,
       :white_non_hispanic_latino,
       :hispanic_latino,
       :black_african_american,
@@ -33,8 +36,13 @@ module HomelessSummaryReport
       :has_psh_move_in_date,
       :first_time_homeless,
       :returned_to_homelessness_from_permanent_destination,
-    ].each do |variant|
-      scope variant, -> { where(arel_table["spm_#{variant}".to_sym].gt(0)) }
+    ]
+
+    household_variants.each do |variant_slug|
+      demographic_variants.each do |sub_variant_slug|
+        variant = "spm_#{variant_slug}__#{sub_variant_slug}".to_sym
+        scope variant, -> { where(arel_table[variant].gt(0)) }
+      end
     end
 
     scope :spm_m1a_es_sh_days, -> { where(arel_table[:spm_m1a_es_sh_days].gt(0)) }

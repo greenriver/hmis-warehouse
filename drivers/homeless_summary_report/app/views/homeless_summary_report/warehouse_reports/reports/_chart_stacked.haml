@@ -1,0 +1,57 @@
+:ruby
+  client = @report.clients.send(detail_variant_name)&.first
+  if client
+    field, row_data = data
+    calculations = (row_data[:calculations] - [:count])
+    headers = headers.dup.tap {|i| i.delete_at(row_data[:calculations].find_index(:count)) } # delete_at acts on original object
+    detail_headers = headers[3..]
+    headers = headers[0..2]
+    columns = []
+    values = []
+    detail_counts = {}
+    calculations.each do |calculation|
+      @report.destinations.first(3).each.with_index do |ids, i|
+        values << [headers[i], @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: ids))]
+      end
+
+      @report.destinations.drop(3).each.with_index do |id, i|
+        detail_counts["#{::HUD.destination_type(id)} Destinations"] ||= []
+        count = @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: id))
+        detail_counts["#{::HUD.destination_type(id)} Destinations"] << "#{detail_headers[i]}: #{count}" if count&.positive?
+      end
+    end
+    columns = values
+    counts = []
+    calculations.each.with_index do |calculation, c_idx|
+      @report.destinations.first(3).each.with_index do |ids, i|
+        counts << [headers[i], @report.calculate(detail_variant_name, field, :count, row_data.merge(destination: ids))]
+      end
+    end
+    counts = counts.to_h
+
+    support = { unit: headers, counts: counts, detail_counts: detail_counts}
+    slug_extra = if variant_link then 'all' else 'sub_variants' end
+    variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}_#{field}__#{slug_extra}"
+    chart = { categories: headers, params: [], columns: columns, support: support, options: { height: 100, max: max_value }, groups: [headers]}
+  end
+- if client
+  .row
+    .col-sm-4
+      %h4 #{title}: #{row_data[:title]}
+      - if variant_link
+        %a{href: '#', data: {toggle: :collapse, target: "\##{variant_link}"}, aria: {expanded: 'false', controls: variant_link}}
+          Demographic breakdowns
+          %i.icon-arrow-circled-down
+    .col-sm-8
+      .jChart{class: "#{variant_slug}-chart", data: {chart: chart.to_json }}
+
+  = content_for :page_js do
+    :javascript
+      $(document).ready(function(){
+        let chart = new App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar('.jChart.#{variant_slug}-chart', {remote: false});
+        // Because these are hidden by default, they need to be re-drawn on show
+        $('body').on('shown.bs.collapse', function(e) {
+          chart.chart.flush();
+        });
+
+      });
