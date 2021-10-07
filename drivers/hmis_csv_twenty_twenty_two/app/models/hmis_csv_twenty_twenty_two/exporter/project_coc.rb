@@ -17,6 +17,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
       override = geography_type_override_for(project_coc_id: row[:ProjectCoCID].to_i, data_source_id: data_source_id)
       row[:GeographyType] = override if override
+      row[:GeographyType] = 99 if row[:GeographyType].blank?
 
       override = geocode_override_for(project_coc_id: row[:ProjectCoCID].to_i, data_source_id: data_source_id)
       row[:Geocode] = override if override
@@ -29,6 +30,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row[:Address2] = row[:Address2][0...100] if row[:Address2]
       row[:City] = row[:City][0...50] if row[:City]
       row[:ZIP] = row[:ZIP].to_s.rjust(5, '0')[0...5] if row[:ZIP]
+      row[:ZIP] = '0' * 5 if row[:ZIP].blank?
       row[:Geocode] = '0' * 6 if row[:Geocode].blank?
       row[:UserID] = 'op-system' if row[:UserID].blank?
 

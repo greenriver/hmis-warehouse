@@ -230,7 +230,7 @@ where hoh.DateDeleted is null
 	from hmis_Services svc
 	inner join hmis_Enrollment nbn on nbn.EnrollmentID = svc.EnrollmentID and svc.DateProvided >= nbn.EntryDate
 		and nbn.DateDeleted is null
-	inner join tlsa_HHID hhid on hhid.HouseholdID = nbn.EnrollmentID and svc.DateProvided >= hhid.EntryDate 
+	inner join tlsa_HHID hhid on hhid.EnrollmentID = nbn.EnrollmentID and svc.DateProvided >= hhid.EntryDate 
 		and (hhid.ExitDate is null or svc.DateProvided < hhid.ExitDate)
 	left outer join hmis_Exit nbnx on nbnx.EnrollmentID = nbn.EnrollmentID and nbnx.DateDeleted is null
 	inner join lsa_Report rpt on svc.DateProvided between '10/1/2012' and rpt.ReportEnd

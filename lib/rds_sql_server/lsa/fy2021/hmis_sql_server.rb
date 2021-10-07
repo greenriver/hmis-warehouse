@@ -20,7 +20,7 @@ module HmisSqlServer
       'EnrollmentCoC.csv' => HmisSqlServer::EnrollmentCoc,
       # 'Event.csv' => HmisSqlServer::Event,
       'Exit.csv' => HmisSqlServer::Exit,
-      # 'HealthAndDV.csv' => HmisSqlServer::HealthAndDv,
+      'HealthAndDV.csv' => HmisSqlServer::HealthAndDv,
       # 'IncomeBenefits.csv' => HmisSqlServer::IncomeBenefit,
       'Services.csv' => HmisSqlServer::Service,
       # 'Assessment.csv' => HmisSqlServer::Assessment,
