@@ -9,7 +9,7 @@
  */
 //= require ./namespace
 
-window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class HorizontalBar {
+window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class HorizontalBar {
   constructor(chart_selector, options) {
     this._build_chart = this._build_chart.bind(this);
     this._colors = this._colors.bind(this);
@@ -51,6 +51,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
       // Deep clone array to prevent future issues with additional mutations
       const columns = $(this.chart_selector).data('chart').columns;
       const _columns = JSON.parse(JSON.stringify(columns));
+      this.groups = $(this.chart_selector).data('chart').groups;
       const setNames = [];
       const columnTotals = _columns.map((col) => {
         setNames.push(col[0]);
@@ -59,6 +60,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
       });
       let data = {
         columns: columns,
+        groups: this.groups,
         type: 'bar',
         color: this._colors,
         labels: {
@@ -205,7 +207,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
     let support = $(this.chart_selector).data('chart').support
     let html = "<table class='bb-tooltip'>";
     html += "<thead>";
-    html += `<tr><th></th><th>${support.unit[d[0].index]}</th><th>Clients</th></tr>`;
+    html += `<tr><th></th><th>${support.unit[d[0].index]}</th></tr>`;
     html += "</thead>";
     html += "<tbody>";
     $(d).each(i => {
@@ -216,10 +218,8 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         const bg_color = color(row.x);
         const box = `<td class='name'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
         const value = `<td>${row.value}</td>`;
-        let details = `<td class='text-left'>${support.counts[tooltip_title]}</td>`;
         html += box;
         html += value;
-        html += details;
         return html += "</tr>";
       }
     });
