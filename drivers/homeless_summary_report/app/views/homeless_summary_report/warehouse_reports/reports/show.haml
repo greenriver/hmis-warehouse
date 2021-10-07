@@ -55,11 +55,11 @@
           - details[:variants].each do |sub_variant_slug, variant|
             - next if @report.exclude_variants(measure, sub_variant_slug)
 
-            - detail_variant_name = "spm_#{base_variant_slug}__#{sub_variant_slug}"
+            - sub_detail_variant_name = "spm_#{base_variant_slug}__#{sub_variant_slug}"
             - data[:fields].each do |row|
               - next unless row.first == field
               - if measure == 'Measure 7'
-                = render 'chart_stacked', data: row, detail_variant_name: detail_variant_name, title: variant[:name], measure: measure, headers: headers, variant_link: nil, max_value: max_value
+                = render 'chart_stacked', data: row, detail_variant_name: sub_detail_variant_name, title: variant[:name], measure: measure, headers: headers, variant_link: nil, max_value: max_value
               - else
-                = render 'chart', data: row, detail_variant_name: detail_variant_name, title: variant[:name], measure: measure, headers: headers, variant_link: nil, max_value: max_value
+                = render 'chart', data: row, detail_variant_name: sub_detail_variant_name, title: variant[:name], measure: measure, headers: headers, variant_link: nil, max_value: max_value
           %hr
