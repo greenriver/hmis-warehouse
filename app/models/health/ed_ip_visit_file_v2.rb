@@ -37,5 +37,21 @@ module Health
         :admit_date,
       ]
     end
+
+    def ingest!(loaded_visits)
+      matched_visits = loaded_visits.map do |visit|
+        medicaid_id = find_medicaid_id(visit)
+        visit.medicaid_id = medicaid_id if medicaid_id.present?
+        visit
+      end
+      super(matched_visits)
+    end
+
+    private def find_medicaid_id(visit)
+      @patients ||= Health::Patient.pluck(:first_name, :last_name, :birthdate, :medicaid_id).
+        map { |first_name, last_name, dob, id| [[first_name.downcase.strip, last_name.downcase.strip, dob], id] }.to_h
+
+      @patients[[visit.first_name.downcase.strip, visit.last_name.downcase.strip, visit.dob]]
+    end
   end
 end
