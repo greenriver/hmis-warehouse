@@ -21,5 +21,12 @@ module Health
     scope :valid, -> do
       where.not(admit_date: nil)
     end
+
+    # Populate table with pre-existing data
+    def self.populate!
+      Health::EdIpVisitFile.find_each do |file|
+        file.ingest!(Health::LoadedEdIpVisit.from_file(file))
+      end
+    end
   end
 end
