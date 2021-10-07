@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  03_02 to 03_06 HMIS Households and Enrollments.sql 
-Date:  08 SEP 2021
+Date:  6 OCT 2021
 
 
 	3.2 Cohort Dates 
@@ -111,7 +111,7 @@ inner join (select hp.ProjectID,  case when hp.ProjectType = 1 and hp.TrackingMe
 		where hp.DateDeleted is null
 			and hp.ContinuumProject = 1 
 	and (hp.OperatingEndDate is null 
-		or (hp.OperatingEndDate > hp.OperatingStartDate )))  p on p.ProjectID = hoh.ProjectID
+		or (hp.OperatingEndDate > hp.OperatingStartDate and hp.OperatingEndDate > '10/1/2012' )))  p on p.ProjectID = hoh.ProjectID
 left outer join hmis_Exit hx on hx.EnrollmentID = hoh.EnrollmentID
 	and hx.ExitDate <= rpt.ReportEnd 
 	and (hx.ExitDate <= p.OperatingEndDate or p.OperatingEndDate is null)
