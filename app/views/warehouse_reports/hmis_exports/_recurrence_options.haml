@@ -27,10 +27,14 @@
     .col-sm-4
       = f.input :s3_region, collection: GrdaWarehouse::RecurringHmisExport.available_s3_regions, label: 'Region', input_html: { style: 'width: 200px;' }, as: :select_two
   .row
-    .col-sm-4
+    .col-sm-3
       = f.input :s3_bucket, label: 'Bucket'
-    .col-sm-4
+    .col-sm-3
       = f.input :s3_prefix, label: "Optional prefix"
+    .col-sm-3
+      = f.input :zip_password, label: 'Optional Zip Password', input_html: { autocomplete: :off, }
+    .col-sm-3
+      = f.input :encryption_type, label: 'Encryption Wrapper', hint: 'Only relevant if a password is provided', collection: GrdaWarehouse::RecurringHmisExport.available_encryption_types, as: :select_two, include_blank: false
   .row
     .col-sm-4
       = f.button :submit, value: save_language, data: { disable_with: 'running...' }
