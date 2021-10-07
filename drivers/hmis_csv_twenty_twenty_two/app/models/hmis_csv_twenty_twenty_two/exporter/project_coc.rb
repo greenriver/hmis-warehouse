@@ -11,7 +11,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :project_cocs
 
-    def apply_overrides row, data_source_id:
+    def apply_overrides(row, data_source_id:)
       override = coc_code_override_for(project_coc_id: row[:ProjectCoCID].to_i, data_source_id: data_source_id)
       row[:CoCCode] = override if override
 
@@ -30,8 +30,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row[:City] = row[:City][0...50] if row[:City]
       row[:ZIP] = row[:ZIP].to_s.rjust(5, '0')[0...5] if row[:ZIP]
       row[:Geocode] = '0' * 6 if row[:Geocode].blank?
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
-      return row
+      row
     end
 
     def coc_code_override_for(project_coc_id:, data_source_id:)

@@ -47,7 +47,13 @@ module HmisCsvTwentyTwentyTwo::Exporter
         :Transgender,
         :Questioning,
         :VeteranStatus,
+        :AmIndAKNative,
+        :Asian,
+        :BlackAfAmerican,
         :NativeHIPacific,
+        :White,
+        :Ethnicity,
+        :VeteranStatus,
       ].each do |required_column|
         row[required_column] = 99 if row[required_column].blank?
       end

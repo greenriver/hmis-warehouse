@@ -15,7 +15,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     # HouseholdID is required, but often not provided, send some sane defaults
     # Also unique the HouseholdID to a data source
-    def apply_overrides row, data_source_id:
+    def apply_overrides(row, data_source_id:)
       row[:ProjectID] = project_id_from_enrollment_id(row[:EnrollmentID], data_source_id) if row[:ProjectID].blank?
       id_of_enrollment = enrollment_export_id(row[:EnrollmentID], row[:PersonalID], data_source_id)
 
@@ -30,7 +30,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
       # Required by HUD spec, not always provided 99 is not valid, but we can't really guess
       row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?
 
-      return row
+      row[:UserID] = 'op-system' if row[:UserID].blank?
+
+      row
     end
 
     def project_id_from_enrollment_id(enrollment_id, data_source_id)
