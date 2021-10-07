@@ -186,7 +186,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/health/careplan.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'
     - 'app/models/health/cp_members/file_base.rb'
-    - 'app/models/health/ed_ip_visit_file.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/enrollment_reasons.rb'
@@ -1216,7 +1215,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/health/claim.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/cp_members/file_base.rb'
-    - 'app/models/health/ed_ip_visit_file.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/enrollment_reasons.rb'
@@ -1406,7 +1404,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'
     - 'app/models/health/cp_members/file_base.rb'
-    - 'app/models/health/ed_ip_visit_file.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/epic_patient.rb'
@@ -1735,7 +1732,6 @@ Lint/DuplicateMethods:
   Exclude:
     - 'app/models/grda_warehouse/tasks/hud_chronically_homeless.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
-    - 'app/models/health/ed_ip_visit_file.rb'
 
 # Offense count: 1
 Lint/IneffectiveAccessModifier:
@@ -2310,7 +2306,6 @@ Style/GuardClause:
     - 'app/models/health/cha_saver.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'
     - 'app/models/health/cp_members/file_base.rb'
-    - 'app/models/health/ed_ip_visit_file.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
@@ -2822,7 +2817,6 @@ Style/RedundantSelf:
     - 'app/models/health/careplan.rb'
     - 'app/models/health/comprehensive_health_assessment.rb'
     - 'app/models/health/cp_members/file_base.rb'
-    - 'app/models/health/ed_ip_visit_file.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/encounter_report.rb'
     - 'app/models/health/epic_qualifying_activity.rb'
@@ -3010,8 +3004,6 @@ Style/StringLiterals:
     - 'app/models/health/comprehensive_health_assessment.rb'
     - 'app/models/health/cp_members/file_base.rb'
     - 'app/models/health/cp_members/roster.rb'
-    - 'app/models/health/ed_ip_visit.rb'
-    - 'app/models/health/ed_ip_visit_file.rb'
     - 'app/models/health/eligibility_inquiry.rb'
     - 'app/models/health/eligibility_response.rb'
     - 'app/models/health/encounter_record.rb'
