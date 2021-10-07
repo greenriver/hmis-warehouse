@@ -135,7 +135,7 @@ module HmisSqlServer
         row[field_index] = row[field_index].presence || 1 # this is incorrect, but HDX will reject a 99
       end
       field_index = headers.index('HMISParticipatingProject')
-      row[field_index] = 0 if row[field_index] == 99 # this is incorrect, but HDX will reject a 99
+      row[field_index] = 0 if row[field_index].to_s == '99' || row[field_index].blank? # this is incorrect, but HDX will reject a 99
 
       super(row: row, headers: headers)
     end
