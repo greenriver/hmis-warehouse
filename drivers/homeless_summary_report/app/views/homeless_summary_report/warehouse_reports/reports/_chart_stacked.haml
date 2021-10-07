@@ -32,8 +32,7 @@
     support = { unit: headers, counts: counts, detail_counts: detail_counts}
     slug_extra = if variant_link then 'all' else 'sub_variants' end
     variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}_#{field}__#{slug_extra}"
-    chart = { categories: headers, params: [], columns: columns, support: support, options: { height: 100, max: max_value }}
-    chart[:groups] = [headers] if measure == 'Measure 7'
+    chart = { categories: headers, params: [], columns: columns, support: support, options: { height: 100, max: max_value }, groups: [headers]}
   end
 - if client
   .row

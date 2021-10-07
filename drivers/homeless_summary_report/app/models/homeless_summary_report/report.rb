@@ -592,7 +592,8 @@ module HomelessSummaryReport
       when :median
         scope.median(cell)
       when :percent
-        denominator = clients.send(variant).send(options[:total]).count
+        # denominator should always be the "all" variant
+        denominator = clients.send('spm_all_persons__all').send(options[:total]).count
         (scope.count / denominator.to_f) * 100 unless denominator.zero?
       when :count_destinations
         # spm_m7a1_destination
