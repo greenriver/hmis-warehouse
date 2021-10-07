@@ -148,10 +148,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
 
   _colors(c, d) {
     let color;
-    let key = d;
-    if (key.x != null) {
-      key = key.x;
-    }
+    let key = this.categories.indexOf(d.id);
     const colors = window.Chart.defaults.colors
     if (['All'].includes(key)) {
       color = '#288BEE';
@@ -207,19 +204,22 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
     let support = $(this.chart_selector).data('chart').support
     let html = "<table class='bb-tooltip'>";
     html += "<thead>";
-    html += `<tr><th></th><th>${support.unit[d[0].index]}</th></tr>`;
+    html += `<tr><th></th><th>Count</th><th>Destination Details</th></tr>`;
     html += "</thead>";
     html += "<tbody>";
     $(d).each(i => {
       const row = d[i];
 
       if (row != null) {
-        console.log(row);
-        const bg_color = color(row.x);
+        const bg_color = this._colors(window.Chart.defaults.colors[0], row);
         const box = `<td class='name'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
         const value = `<td>${row.value}</td>`;
+        let details = '<td>';
+        details += support.detail_counts[row.name].join('<br/>');
+        details += '</td>';
         html += box;
         html += value;
+        html += details;
         return html += "</tr>";
       }
     });

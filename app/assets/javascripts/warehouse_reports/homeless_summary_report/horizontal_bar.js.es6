@@ -212,7 +212,6 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
       const row = d[i];
 
       if (row != null) {
-        console.log(row);
         const bg_color = color(row.x);
         const box = `<td class='name'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
         const value = `<td>${row.value}</td>`;

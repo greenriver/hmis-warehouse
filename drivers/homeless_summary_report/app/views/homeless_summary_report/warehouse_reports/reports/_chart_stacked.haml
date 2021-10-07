@@ -8,14 +8,16 @@
     headers = headers[0..2]
     columns = []
     values = []
-    detail_counts = []
+    detail_counts = {}
     calculations.each do |calculation|
       @report.destinations.first(3).each.with_index do |ids, i|
         values << [headers[i], @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: ids))]
       end
 
-      @report.destinations.drop(3).each.with_index do |ids, i|
-        detail_counts << [detail_headers[i], @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: ids))]
+      @report.destinations.drop(3).each.with_index do |id, i|
+        detail_counts["#{::HUD.destination_type(id)} Destinations"] ||= []
+        count = @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: id))
+        detail_counts["#{::HUD.destination_type(id)} Destinations"] << "#{detail_headers[i]}: #{count}" if count&.positive?
       end
     end
     columns = values
@@ -34,7 +36,6 @@
     chart[:groups] = [headers] if measure == 'Measure 7'
   end
 - if client
-  = debug detail_counts
   .row
     .col-sm-4
       %h4 #{title}: #{row_data[:title]}
