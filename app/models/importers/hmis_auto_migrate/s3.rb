@@ -47,7 +47,7 @@ module Importers::HmisAutoMigrate
 
     def self.available_connections
       GrdaWarehouse::HmisImportConfig.active.select do |conn|
-        conn.s3_access_key_id.present? && conn.data_source&.import_paused == false
+        conn.bucket_name.present? && conn.data_source&.import_paused == false
       end
     end
 
