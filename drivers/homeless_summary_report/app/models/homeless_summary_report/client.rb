@@ -41,7 +41,8 @@ module HomelessSummaryReport
     household_variants.each do |variant_slug|
       demographic_variants.each do |sub_variant_slug|
         variant = "spm_#{variant_slug}__#{sub_variant_slug}".to_sym
-        scope variant, -> { where(arel_table[variant].gt(0)) }
+        scope variant, -> { where(arel_table[variant[0..62]].gt(0)) }
+        alias_attribute(variant, variant[0..62]) # Some fields are too long for postgres
       end
     end
 
