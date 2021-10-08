@@ -164,6 +164,10 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   font-family: sans-serif;
 }
 
+.hide-blank-page {
+  height: 0;
+}
+
 .l-print,
 .l-print table {
   font-size: $pdf-default-font-size;

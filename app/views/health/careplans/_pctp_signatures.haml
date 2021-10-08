@@ -1,0 +1,31 @@
+%article.health-care-plan__responsible-parties.l-print__section--page
+  %h1 Responsible Parties Signatures
+
+  %dl.l-print__item
+    %dt.inline Patient:
+    %dd.inline= @patient.name
+    %dd.l-print__signature &nbsp;
+    %dt.inline Signed On:
+    %dd.inline= @careplan.patient_signed_on&.to_date
+
+  %dl.l-print__item
+    %dt.inline Representative:
+    %dd.inline= @careplan.representative&.full_name
+    %dd.l-print__signature &nbsp;
+    %dt.inline Signed On:
+    %dd.inline= @careplan.representative_signed_on
+
+  %dl.l-print__item
+    %dt.inline Provider:
+    %dd.inline
+      - if @careplan.provider_signed_on.present?
+        = @careplan.provider&.full_name
+    %dd.l-print__signature &nbsp;
+    %dt.inline Signed On:
+    %dd.inline= @careplan.provider_signed_on&.to_date
+  %strong
+    -if  @careplan.member_verbalizes_understanding
+      _X_
+    - else
+      ___
+  Member verbalizes understanding and accepts care plan. (Note: signature needed within 3 mos. of verbal approval.)
