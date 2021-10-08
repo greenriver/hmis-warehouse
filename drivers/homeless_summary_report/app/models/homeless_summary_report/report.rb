@@ -4,8 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'memoist'
+
 module HomelessSummaryReport
   class Report < SimpleReports::ReportInstance
+    extend Memoist
     include Filter::ControlSections
     include Filter::FilterScopes
     include Reporting::Status
@@ -605,5 +608,6 @@ module HomelessSummaryReport
       end
       value&.round(1) || 0
     end
+    memoize :calculate
   end
 end
