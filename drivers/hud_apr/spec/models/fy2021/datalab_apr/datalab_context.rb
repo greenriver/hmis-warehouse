@@ -39,9 +39,20 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
   def setup
     HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
-    Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
-      puts "*** #{file_path} ***"
-      import_hmis_csv_fixture(file_path, version: 'AutoMigrate')
+
+    warehouse = GrdaWarehouseBase.connection
+
+    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
+    if Fixpoint.exists? :datalab_2021_app
+      restore_fixpoint :datalab_2021_app
+      restore_fixpoint :datalab_2021_warehouse, connection: warehouse
+    else
+      Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
+        puts "*** #{file_path} ***"
+        import_hmis_csv_fixture(file_path, version: 'AutoMigrate')
+      end
+      store_fixpoint :datalab_2021_app
+      store_fixpoint :datalab_2021_warehouse, connection: warehouse
     end
   end
 
@@ -71,7 +82,7 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
           next if cell_name.in?(skip)
 
           column_index = column_labels.find_index(column_name)
-          expected = goal[row_number - 1][column_index].to_s.strip
+          expected = goal[row_number - 1].try(:[], column_index)&.to_s&.strip
           actual = report_result.answer(question: question, cell: cell_name).summary.to_s.strip
 
           actual = '0' if normalize_zero?(actual) # Treat all zeros as '0'
