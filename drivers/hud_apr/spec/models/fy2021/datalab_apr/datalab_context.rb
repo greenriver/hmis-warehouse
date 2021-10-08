@@ -98,7 +98,7 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
   end
 
   def normalize_zero?(value)
-    /[0-9\.]+$/.match?(value)
+    /^[0\.]+$/.match?(value)
   end
 end
 
