@@ -14,7 +14,9 @@
       = link_to new_data_source_path, class: 'btn btn-primary' do
         %span.icon-plus
         Add Data Source
-
+.d-flex
+  %p= page_entries_info(@data_sources, entry_name: _('data sources'))
+  %p.ml-auto= paginate @data_sources
 .card
   .table-responsive
     %table.table
