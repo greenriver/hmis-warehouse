@@ -2,7 +2,7 @@
 .d-flex
   %h3= title
   - if client
-    - spm_id = client.send(detail_variant_name)
+    - spm_id = client[detail_variant_name]
     .ml-auto= link_to 'View related SPM report', hud_reports_spm_path(spm_id), target: :_blank
 
 - if client
