@@ -66,7 +66,7 @@ module GrdaWarehouse
     private def encrypt_zipcloak(content)
       tmp = Tempfile.new(['hmis_export', '.zip'], 'tmp', binmode: true)
       source_path = Rails.root.join(tmp.path).to_s
-      destination_path = "#{File.join(File.dirname(source_path), File.basename(source_path, '.zip'))}_enc.zip"
+      destination_path = "#{::File.join(::File.dirname(source_path), ::File.basename(source_path, '.zip'))}_enc.zip"
       tmp.write(content)
       tmp.close
       cmd = "zipcloak --output-file #{destination_path} #{source_path}"
@@ -78,9 +78,9 @@ module GrdaWarehouse
         writer.puts(zip_password)
       end
 
-      sleep(5) unless File.exist?(destination_path)
+      sleep(5) unless ::File.exist?(destination_path)
       # return the encrypted content
-      encrypted_content = File.open(destination_path, binmode: true).read
+      encrypted_content = ::File.open(destination_path, binmode: true).read
       FileUtils.rm(destination_path)
       tmp.unlink
       encrypted_content
@@ -93,20 +93,20 @@ module GrdaWarehouse
       tmp = Tempfile.new(['hmis_export', '.zip'], 'tmp', binmode: true)
       local_source_path = tmp.path
       source_path = Rails.root.join(tmp.path).to_s
-      destination_path = File.join(File.dirname(source_path), File.basename(source_path, '.zip')).to_s
-      local_destination_path = File.join(File.dirname(local_source_path), File.basename(source_path, '.zip')).to_s
-      destination_file = "#{File.join(File.dirname(source_path), File.basename(source_path, '.zip'))}_enc.7z"
+      destination_path = ::File.join(::File.dirname(source_path), ::File.basename(source_path, '.zip')).to_s
+      local_destination_path = ::File.join(::File.dirname(local_source_path), ::File.basename(source_path, '.zip')).to_s
+      destination_file = "#{::File.join(::File.dirname(source_path), ::File.basename(source_path, '.zip'))}_enc.7z"
       tmp.write(content)
       tmp.close
 
-      FileUtils.mkdir(destination_path) unless File.exist?(destination_path)
+      FileUtils.mkdir(destination_path) unless ::File.exist?(destination_path)
       Zip::File.open(source_path) do |zipped_file|
         zipped_file.each do |entry|
-          entry.extract(File.join(destination_path, File.basename(entry.name)))
+          entry.extract(::File.join(destination_path, ::File.basename(entry.name)))
         end
       end
 
-      File.open(destination_file, 'wb') do |file|
+      ::File.open(destination_file, 'wb') do |file|
         SevenZipRuby::SevenZipWriter.open(file, password: zip_password) do |szw|
           szw.method = 'LZMA'
           szw.level = 9
@@ -115,14 +115,14 @@ module GrdaWarehouse
           szw.header_encryption = true
           # szw.multi_threading = false
           Dir.glob("#{destination_path}/*.csv").each do |f|
-            szw.add_data(File.open(File.join(local_destination_path, File.basename(f))).read, File.basename(f))
+            szw.add_data(::File.open(::File.join(local_destination_path, ::File.basename(f))).read, ::File.basename(f))
           end
         end
       end
       # for some reason we need a bit of sand after talking to zipcloak over PTY
-      sleep(5) unless File.exist?(destination_file)
+      sleep(5) unless ::File.exist?(destination_file)
       # return the encrypted content
-      encrypted_content = File.open(destination_file, binmode: true).read
+      encrypted_content = ::File.open(destination_file, binmode: true).read
       FileUtils.rm_rf(destination_path)
       FileUtils.rm(destination_file)
       tmp.unlink
@@ -133,7 +133,7 @@ module GrdaWarehouse
       prefix = ''
       prefix = "#{s3_prefix.strip}-" if s3_prefix.present?
       date = Date.current.strftime('%Y%m%d')
-      ext = encryption_type || 'zip'
+      ext = encryption_type.presence || 'zip'
       "#{prefix}#{date}-#{report.export_id}.#{ext}"
     end
 
