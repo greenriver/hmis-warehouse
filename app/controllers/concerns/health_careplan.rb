@@ -37,11 +37,27 @@ module HealthCareplan
       CombinePDF.parse(coversheet, allow_optional_content: true)
     end
 
+    def careplan_pdf_full
+      file_name = 'care_plan'
+      pctp = render_to_string(
+        pdf: file_name,
+        template: 'health/careplans/show',
+        layout: false,
+        encoding: 'UTF-8',
+        page_size: 'Letter',
+        header: { html: { template: 'health/careplans/_pdf_header' }, spacing: 1 },
+        footer: { html: { template: 'health/careplans/_pdf_footer' }, spacing: 5 },
+        # Show table of contents by providing the 'toc' property
+        # toc: {}
+      )
+      CombinePDF.parse(pctp, allow_optional_content: true)
+    end
+
     def careplan_pdf_pctp
       file_name = 'care_plan_pctp'
       pctp = render_to_string(
         pdf: file_name,
-        template: 'health/careplans/show',
+        template: 'health/careplans/pctp_only',
         layout: false,
         encoding: 'UTF-8',
         page_size: 'Letter',
@@ -102,7 +118,7 @@ module HealthCareplan
       #   # toc: {}
       # )
 
-      pdf << careplan_pdf_pctp
+      pdf << careplan_pdf_full
 
       pdf << CombinePDF.parse(@careplan.health_file.content, allow_optional_content: true) if @careplan.health_file.present?
       pdf << CombinePDF.parse(@cha.health_file.content, allow_optional_content: true) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'

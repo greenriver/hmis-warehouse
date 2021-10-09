@@ -14,11 +14,11 @@ module WarehouseReports::Health
 
     def show
       @file = file_scope.find(params[:id].to_i)
-      @rows = @file.ed_ip_visits.page(params[:page]).per(25)
+      @rows = @file.loaded_ed_ip_visits.page(params[:page]).per(25)
     end
 
     def create
-      @file = Health::EdIpVisitFile.create(
+      @file = Health::EdIpVisitFileV2.create(
         content: visit_params[:content].read,
         user: current_user,
         file: visit_params[:content].original_filename,
@@ -33,7 +33,7 @@ module WarehouseReports::Health
     def destroy
       file = file_scope.find(params[:id].to_i)
       # These files are sometimes huge, so batch delete visits
-      file.ed_ip_visits.update_all(deleted_at: Time.current)
+      file.loaded_ed_ip_visits.update_all(deleted_at: Time.current)
       file.destroy
       redirect_to action: :index
     end
