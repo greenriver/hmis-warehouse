@@ -121,7 +121,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         padding: {
           left: this.padding.left || 150,
           top: 0,
-          bottom: 5,
+          bottom: 15,
         },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
