@@ -84,11 +84,13 @@ module GrdaWarehouse
           #!/usr/bin/expect
           spawn zipcloak --output-file #{destination_path} #{source_path}
           expect {
-            -nocase -re ".*password:.*" {
-              send "#{@file_password}\r"
+            -nocase -re "Enter password:.*" {
+              send "#{zip_password}\r"
             }
-            -nocase -re ".*password:.*" {
-              send "#{@file_password}\r"
+          }
+          expect {
+            -nocase -re "Verify password:.*" {
+              send "#{zip_password}\r"
             }
           }
           send_user "\n>> Password sent\n"
