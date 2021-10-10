@@ -66,16 +66,38 @@ module GrdaWarehouse
     private def encrypt_zipcloak(content)
       tmp = Tempfile.new(['hmis_export', '.zip'], 'tmp', binmode: true)
       source_path = Rails.root.join(tmp.path).to_s
-      destination_path = "#{::File.join(::File.dirname(source_path), ::File.basename(source_path, '.zip'))}_enc.zip"
+      export_dir = ::File.dirname(source_path)
+      destination_path = "#{::File.join(export_dir, ::File.basename(source_path, '.zip'))}_enc.zip"
       tmp.write(content)
       tmp.close
-      cmd = "zipcloak --output-file #{destination_path} #{source_path}"
+      # cmd = "zipcloak --output-file #{destination_path} #{source_path}"
 
-      PTY.spawn(cmd) do |reader, writer, _|
-        reader.expect(/Enter password:/, 100)
-        writer.puts(zip_password)
-        reader.expect(/Verify password:/, 100)
-        writer.puts(zip_password)
+      # PTY.spawn(cmd) do |reader, writer, _|
+      #   reader.expect(/Enter password:/, 100)
+      #   writer.puts(zip_password)
+      #   reader.expect(/Verify password:/, 100)
+      #   writer.puts(zip_password)
+      # end
+
+      Tempfile.create('expect', export_dir.to_s) do |expect_script|
+        expect_content = <<~EXPECT
+          #!/usr/bin/expect
+          spawn zipcloak --output-file #{destination_path} #{source_path}
+          expect {
+            -nocase -re ".*password:.*" {
+              send "#{@file_password}\r"
+            }
+            -nocase -re ".*password:.*" {
+              send "#{@file_password}\r"
+            }
+          }
+          send_user "\n>> Password sent\n"
+          interact
+        EXPECT
+        expect_script.write(expect_content)
+        expect_script.close
+        FileUtils.chmod(0o770, expect_script.path)
+        system(expect_script.path)
       end
 
       sleep(5) unless ::File.exist?(destination_path)
