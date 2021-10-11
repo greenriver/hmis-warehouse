@@ -9,7 +9,7 @@ module HomelessSummaryReport
     acts_as_paranoid
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
-    belongs_to :report
+    belongs_to :report, optional: true
 
     # Create a scope for each report variant
     [

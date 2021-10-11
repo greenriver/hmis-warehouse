@@ -7,7 +7,7 @@
 class ActivityLog < ApplicationRecord
   include ArelHelper
 
-  belongs_to :user
+  belongs_to :user, optional: true
 
   scope :created_in_range, ->(range:) do
     where(created_at: range)

@@ -21,9 +21,9 @@ module Health
     phi_attr :reviewed_at, Phi::Date
     phi_attr :reviewer, Phi::SmallPopulation
 
-    belongs_to :patient
-    belongs_to :user
-    belongs_to :reviewed_by, class_name: 'User'
+    belongs_to :patient, optional: true
+    belongs_to :user, optional: true
+    belongs_to :reviewed_by, class_name: 'User', optional: true
 
     has_one :health_file, class_name: 'Health::ReleaseFormFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles

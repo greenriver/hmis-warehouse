@@ -6,7 +6,7 @@
 
 module ServiceScanning
   class ScannerId < GrdaWarehouseBase
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     acts_as_paranoid
   end
 end

@@ -11,8 +11,8 @@ module GrdaWarehouse::Youth
     has_paper_trail
     acts_as_paranoid
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :direct_financial_assistances
-    belongs_to :user
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :direct_financial_assistances, optional: true
+    belongs_to :user, optional: true
     has_many :youth_intakes, through: :client
     validates_presence_of :provided_on, :type_provided
 

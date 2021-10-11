@@ -10,10 +10,10 @@ module GrdaWarehouse::HealthEmergency
     include ArelHelper
     acts_as_paranoid
 
-    belongs_to :batch, class_name: 'GrdaWarehouse::HealthEmergency::TestBatch', inverse_of: :uploaded_tests
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
-    belongs_to :test, optional: true
-    belongs_to :ama_restriction, optional: true
+    belongs_to :batch, class_name: 'GrdaWarehouse::HealthEmergency::TestBatch', inverse_of: :uploaded_tests, optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true, optional: true
+    belongs_to :test, optional: true, optional: true
+    belongs_to :ama_restriction, optional: true, optional: true
 
     scope :test_addition_pending, -> do
       where.not(client_id: nil).

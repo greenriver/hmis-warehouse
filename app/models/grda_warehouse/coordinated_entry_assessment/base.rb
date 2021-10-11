@@ -11,9 +11,9 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     ####################
     # Associations
     ####################
-    belongs_to :user
-    belongs_to :assessor, class_name: 'User'
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :ce_assessments
+    belongs_to :user, optional: true
+    belongs_to :assessor, class_name: 'User', optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :ce_assessments, optional: true
 
     ####################
     # Behaviors

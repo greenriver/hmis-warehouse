@@ -14,12 +14,12 @@ module GrdaWarehouse::Hud
     self.table_name = 'EnrollmentCoC'
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :enrollment_cocs
-    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_enrollment_cocs
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :enrollment_cocs, optional: true
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_enrollment_cocs, optional: true
     has_one :client, through: :enrollment, inverse_of: :enrollment_cocs
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollment_cocs, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollment_cocs, optional: true, optional: true
     has_one :project, through: :enrollment
-    belongs_to :data_source
+    belongs_to :data_source, optional: true
     has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :enrollment_coc
 
     scope :viewable_by, -> (user) do

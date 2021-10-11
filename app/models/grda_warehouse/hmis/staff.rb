@@ -8,7 +8,7 @@ module GrdaWarehouse::HMIS
   class Staff <  Base
     dub 'staff'
 
-    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
     has_many :staff_x_clients, inverse_of: :staff, dependent: :delete_all
     has_many :clients, through: :staff_x_clients
 

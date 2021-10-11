@@ -15,13 +15,13 @@ module GrdaWarehouse::Hud
 
     attr_accessor :source_id
 
-    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
-    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities, optional: true
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities, optional: true
     has_one :client, through: :enrollment, inverse_of: :disabilities
     has_one :project, through: :enrollment
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :disabilities, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :disabilities, optional: true, optional: true
     has_one :destination_client, through: :client
-    belongs_to :data_source
+    belongs_to :data_source, optional: true
 
     scope :disabled, -> do
       where(DisabilityResponse: positive_responses)

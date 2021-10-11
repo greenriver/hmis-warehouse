@@ -14,8 +14,8 @@ module GrdaWarehouse
     )
     acts_as_paranoid
 
-    belongs_to :entity, polymorphic: true
-    belongs_to :user
+    belongs_to :entity, polymorphic: true, optional: true
+    belongs_to :user, optional: true
 
     scope :data_source, -> do
       where(entity_type: 'GrdaWarehouse::DataSource' )

@@ -6,10 +6,10 @@
 
 module GrdaWarehouse
   class CohortClientChange < GrdaWarehouseBase
-    belongs_to :cohort
-    belongs_to :cohort_client, -> { with_deleted }
+    belongs_to :cohort, optional: true
+    belongs_to :cohort_client, -> { with_deleted }, optional: true
     has_one :client, through: :cohort_client
-    belongs_to :user
+    belongs_to :user, optional: true
 
     validates_presence_of :cohort_client, :cohort, :user, :change
 

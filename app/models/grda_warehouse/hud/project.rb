@@ -95,11 +95,11 @@ module GrdaWarehouse::Hud
     }.freeze
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override, :zip_override
-    belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects
-    belongs_to :data_source, inverse_of: :projects
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
+    belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects, optional: true
+    belongs_to :data_source, inverse_of: :projects, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true, optional: true
 
-    has_and_belongs_to_many :project_groups,
+    has_and_belongs_to_many :project_groups,, optional: true
                             class_name: 'GrdaWarehouse::ProjectGroup',
                             join_table: :project_project_groups
 

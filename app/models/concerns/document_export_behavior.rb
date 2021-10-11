@@ -23,7 +23,7 @@ module DocumentExportBehavior
   CURRENT_VERSION = '1'.freeze # bump to invalidate exports
 
   included do
-    belongs_to :user
+    belongs_to :user, optional: true
     validates :status, inclusion: { in: STATUS_OPTIONS }
     validates :mime_type, inclusion: { in: MIME_TYPES }, allow_blank: true
 

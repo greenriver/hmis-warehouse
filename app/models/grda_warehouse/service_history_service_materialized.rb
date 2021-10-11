@@ -10,7 +10,7 @@ class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
   include ServiceHistoryServiceConcern
   include NotifierConfig
 
-  belongs_to :service_history_enrollment, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
+  belongs_to :service_history_enrollment, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', optional: true
 
   scope :hud_project_type, ->(project_types) do
     where(project_type: project_types)

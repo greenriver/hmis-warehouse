@@ -9,8 +9,8 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   serialize :files
   serialize :import_errors
   serialize :summary
-  belongs_to :data_source
-  belongs_to :upload, optional: true
+  belongs_to :data_source, optional: true
+  belongs_to :upload, optional: true, optional: true
 
   scope :viewable_by, ->(user) do
     where(data_source_id: GrdaWarehouse::DataSource.directly_viewable_by(user).select(:id))

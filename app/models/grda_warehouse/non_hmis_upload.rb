@@ -10,10 +10,10 @@ module GrdaWarehouse
     include ActionView::Helpers::DateHelper
     acts_as_paranoid
 
-    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-    belongs_to :user
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
+    belongs_to :user, optional: true
 
-    belongs_to :delayed_job, optional: true, class_name: 'Delayed::Job'
+    belongs_to :delayed_job, optional: true, class_name: 'Delayed::Job', optional: true
 
     mount_uploader :file, ImportUploader
     validates :data_source, presence: true

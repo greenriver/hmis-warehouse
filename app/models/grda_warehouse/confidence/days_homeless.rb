@@ -6,7 +6,7 @@
 
 module GrdaWarehouse::Confidence
   class DaysHomeless < Base
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :resource_id
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :resource_id, optional: true
 
     attr_accessor :notifier
     after_initialize :add_notifier

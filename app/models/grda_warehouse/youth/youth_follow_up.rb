@@ -11,10 +11,10 @@ module GrdaWarehouse::Youth
     has_paper_trail
     acts_as_paranoid
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_follow_ups
-    belongs_to :user
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_follow_ups, optional: true
+    belongs_to :user, optional: true
     has_many :youth_intakes, through: :client
-    belongs_to :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', optional: true
+    belongs_to :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', optional: true, optional: true
     scope :ordered, -> do
       order(required_on: :desc)
     end

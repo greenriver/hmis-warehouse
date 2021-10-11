@@ -9,9 +9,9 @@ module ClaimsReporting
     extend Memoist
 
     phi_patient :member_id
-    belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
+    belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true, optional: true
 
-    belongs_to :member_roster, primary_key: :member_id, foreign_key: :member_id
+    belongs_to :member_roster, primary_key: :member_id, foreign_key: :member_id, optional: true
 
     scope :service_in, ->(date_range) do
       where(

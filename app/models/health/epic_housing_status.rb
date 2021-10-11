@@ -14,7 +14,7 @@ module Health
     phi_attr :collected_on, Phi::Date, "Date of collection"
     phi_attr :status, Phi::FreeText, "Description of housing status"
 
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_housing_statuses
+    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_housing_statuses, optional: true
     has_many :patient, through: :epic_patient
 
     scope :within_range, -> (range) do

@@ -9,10 +9,10 @@
 module IncomeBenefitsReport
   class Client < GrdaWarehouseBase
     self.table_name = 'income_benefits_report_clients'
-    belongs_to :report
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment'
-    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
+    belongs_to :report, optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     has_many :incomes
     has_one :earlier_income_record, -> { earlier }, class_name: 'IncomeBenefitsReport::Income'
     has_one :later_income_record, -> { later }, class_name: 'IncomeBenefitsReport::Income'

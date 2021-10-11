@@ -46,7 +46,7 @@ module Health
     phi_attr :export_date, Phi::Date # Phi::NeedsReview?
 
 
-    belongs_to :member_status_report
+    belongs_to :member_status_report, optional: true
     has_one :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_one :patient_referral, through: :patient
 

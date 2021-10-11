@@ -9,9 +9,9 @@
 module IncomeBenefitsReport
   class Income < GrdaWarehouseBase
     self.table_name = 'income_benefits_report_incomes'
-    belongs_to :report, class_name: 'IncomeBenefitsReport::Report'
-    belongs_to :client, class_name: 'IncomeBenefitsReport::Client'
-    belongs_to :income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit'
+    belongs_to :report, class_name: 'IncomeBenefitsReport::Report', optional: true
+    belongs_to :client, class_name: 'IncomeBenefitsReport::Client', optional: true
+    belongs_to :income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit', optional: true
 
     # Provides a means of differentiating report from comparison period
     scope :date_range, ->(range_string) do

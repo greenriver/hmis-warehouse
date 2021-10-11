@@ -17,8 +17,8 @@ module GrdaWarehouse::YouthIntake
     # serialize :client_race, Array
     # serialize :disabilities, Array
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_intakes
-    belongs_to :user
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_intakes, optional: true
+    belongs_to :user, optional: true
     has_many :youth_follow_ups, through: :client
     has_many :case_managements, through: :client
 

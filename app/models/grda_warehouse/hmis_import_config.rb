@@ -9,7 +9,7 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   attr_encrypted :s3_secret_access_key, key: ENV['ENCRYPTION_KEY'][0..31]
   attr_encrypted :zip_file_password, key: ENV['ENCRYPTION_KEY'][0..31]
 
-  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
 
   scope :active, -> do
     where(active: true)

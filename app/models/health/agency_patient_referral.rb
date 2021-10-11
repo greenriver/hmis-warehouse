@@ -16,8 +16,8 @@ module Health
     scope :claimed, -> {where(claimed: true)}
     scope :unclaimed, -> {where(claimed: false)}
 
-    belongs_to :agency
-    belongs_to :patient_referral
+    belongs_to :agency, optional: true
+    belongs_to :patient_referral, optional: true
 
   end
 end

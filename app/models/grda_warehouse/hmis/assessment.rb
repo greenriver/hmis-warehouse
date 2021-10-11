@@ -9,7 +9,7 @@ module GrdaWarehouse::HMIS
     dub 'assessments'
     include RailsDrivers::Extensions
 
-    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key, optional: true
 
     has_many :hmis_forms, class_name: 'GrdaWarehouse::HmisForm', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
 

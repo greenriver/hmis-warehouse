@@ -9,6 +9,6 @@ module Talentlms
     self.table_name = :talentlms_logins
 
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
-    belongs_to :user
+    belongs_to :user, optional: true
   end
 end

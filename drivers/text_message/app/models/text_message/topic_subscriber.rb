@@ -7,7 +7,7 @@
 module TextMessage
   class TopicSubscriber < GrdaWarehouseBase
     acts_as_paranoid
-    belongs_to :topic
+    belongs_to :topic, optional: true
     has_many :messages, foreign_key: :subscriber_id
 
     scope :active, -> do

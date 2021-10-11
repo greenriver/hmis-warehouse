@@ -9,7 +9,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2022'))
 
-    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :inventories
+    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :inventories, optional: true
 
     def apply_overrides(row, data_source_id:)
       # Apply direct overrides

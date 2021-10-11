@@ -55,10 +55,10 @@ module Health
     phi_attr :responsible_team_member_id, Phi::SmallPopulation, "ID of responsible team member"
 
 
-    # belongs_to :careplan, class_name: 'Health::Careplan'
+    # belongs_to :careplan, class_name: 'Health::Careplan', optional: true
     # delegate :patient, to: :careplan
-    belongs_to :patient
-    belongs_to :editor, class_name: 'User', foreign_key: :user_id
+    belongs_to :patient, optional: true
+    belongs_to :editor, class_name: 'User', foreign_key: :user_id, optional: true
 
     validates_presence_of :name, :number, :type
 

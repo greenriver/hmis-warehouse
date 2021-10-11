@@ -13,7 +13,7 @@ module GrdaWarehouse
 
     mount_uploader :file, HmisExportUploader
 
-    belongs_to :user, class_name: 'User'
+    belongs_to :user, class_name: 'User', optional: true
 
     has_one :recurring_hmis_export_link
     has_one :recurring_hmis_export, through: :recurring_hmis_export_link

@@ -5,7 +5,7 @@
 ###
 
 class GrdaWarehouse::HudCreateLog < GrdaWarehouseBase
-  belongs_to :data_source
+  belongs_to :data_source, optional: true
 
   def self.to_csv(export_scope=self.all)
     CSV.generate(headers: true) do |csv|

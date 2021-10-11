@@ -1,5 +1,5 @@
 class TwoFactorsMemorizedDevice < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, optional: true
 
   scope :active, -> do
     where(arel_table[:expires_at].gt(Time.current))

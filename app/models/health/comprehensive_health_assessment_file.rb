@@ -10,7 +10,7 @@
 module Health
   class ComprehensiveHealthAssessmentFile < Health::HealthFile
 
-    belongs_to :comprehensive_health_assessment, class_name: 'Health::ComprehensiveHealthAssessment', foreign_key: :parent_id
+    belongs_to :comprehensive_health_assessment, class_name: 'Health::ComprehensiveHealthAssessment', foreign_key: :parent_id, optional: true
 
     def title
       'Comprehensive Health Assessment'

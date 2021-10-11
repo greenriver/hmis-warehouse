@@ -11,7 +11,7 @@ module Health
     include Rails.application.routes.url_helpers
     acts_as_paranoid
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     def filter
       @filter ||= ::Filters::DateRange.new(options)

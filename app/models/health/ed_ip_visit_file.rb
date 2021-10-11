@@ -15,7 +15,7 @@ module Health
     phi_attr :file, Phi::FreeText, "Name of file"
     phi_attr :content, Phi::FreeText, "Content of file"
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     mount_uploader :file, EdIpVisitFileUploader
 
@@ -33,7 +33,7 @@ module Health
     phi_attr :chief_complaint_diagnosis, Phi::FreeText
     phi_attr :attending_physician, Phi::SmallPopulation
 
-    belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
+    belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id, optional: true
     has_many :ed_ip_visits, dependent: :destroy
 
     def status

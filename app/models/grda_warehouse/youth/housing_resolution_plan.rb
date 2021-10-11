@@ -6,8 +6,8 @@
 
 module GrdaWarehouse::Youth
   class HousingResolutionPlan < GrdaWarehouse::Youth::Base
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :housing_resolution_plans
-    belongs_to :user
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :housing_resolution_plans, optional: true
+    belongs_to :user, optional: true
     has_many :youth_intakes, through: :client
 
     def yes_no

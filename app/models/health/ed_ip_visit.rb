@@ -25,8 +25,8 @@ module Health
     phi_attr :chief_complaint_diagnosis, Phi::FreeText, "Description of diagnosis of chief complaint"
     phi_attr :attending_physician, Phi::SmallPopulation, "Name of attending physician"
 
-    belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
-    belongs_to :ed_ip_visit_file
+    belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id, optional: true
+    belongs_to :ed_ip_visit_file, optional: true
 
     scope :valid, -> do
       where.not(admit_date: nil, visit_type: nil)
