@@ -42,7 +42,7 @@ class MemoryAnalyzer
   MIN_SAMPLES = 288 # ~24 hours
 
   MIN_RAM_MB = 600
-  MAX_RAM_MB = 16_000
+  MAX_RAM_MB = 30_000
 
   def run!
     if current_values.locked == 'true'
