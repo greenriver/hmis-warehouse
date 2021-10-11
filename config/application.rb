@@ -14,8 +14,7 @@ module BostonHmis
     config.action_cable.mount_path = "/cable"
     config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
 
-    # FIXME Suppress the Rails 5 belongs_to requirement
-    Rails.application.config.active_record.belongs_to_required_by_default = false
+    Rails.application.config.active_record.belongs_to_required_by_default = true
 
     # Use the responders controller from the responders gem
     config.app_generators.scaffold_controller :responders_controller
