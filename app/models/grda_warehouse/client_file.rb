@@ -19,7 +19,7 @@ module GrdaWarehouse
     include ArelHelper
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
-    belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true, optional: true
+    belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
     validates_presence_of :name
     validates_inclusion_of :visible_in_window, in: [true, false]
     validate :file_exists_and_not_too_large

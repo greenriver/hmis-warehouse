@@ -22,7 +22,7 @@ module Health
     phi_attr :completed_at, Phi::Date
     phi_attr :signable_document_id, Phi::OtherIdentifier
 
-    belongs_to :signable_document, optional: true, optional: true
+    belongs_to :signable_document, optional: true
     belongs_to :careplan, optional: true
     has_one :team_member, required: false, class_name: 'Health::Team::Member', primary_key: [:patient_id, :to_email], foreign_key: [:patient_id, :email]
 

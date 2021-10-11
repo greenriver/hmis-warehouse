@@ -15,7 +15,7 @@ module GrdaWarehouse::Hud
     self.table_name = :Assessment
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessments, optional: true, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessments, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs, optional: true
     has_one :client, through: :enrollment, inverse_of: :assessments
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), optional: true

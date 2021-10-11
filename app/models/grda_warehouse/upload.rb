@@ -13,7 +13,7 @@ module GrdaWarehouse
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
     belongs_to :user, optional: true
 
-    belongs_to :delayed_job, optional: true, class_name: '::Delayed::Job', optional: true
+    belongs_to :delayed_job, optional: true, class_name: '::Delayed::Job'
     has_one :import_log, class_name: 'GrdaWarehouse::ImportLog', required: false
 
     mount_uploader :file, ImportUploader

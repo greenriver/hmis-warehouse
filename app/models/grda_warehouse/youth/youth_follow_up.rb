@@ -14,7 +14,7 @@ module GrdaWarehouse::Youth
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_follow_ups, optional: true
     belongs_to :user, optional: true
     has_many :youth_intakes, through: :client
-    belongs_to :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', optional: true, optional: true
+    belongs_to :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', optional: true
     scope :ordered, -> do
       order(required_on: :desc)
     end
