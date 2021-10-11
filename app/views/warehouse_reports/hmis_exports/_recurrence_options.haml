@@ -32,7 +32,7 @@
     .col-sm-3
       = f.input :s3_prefix, label: "Optional prefix"
     .col-sm-3
-      = f.input :zip_password, label: 'Optional Zip Password', input_html: { autocomplete: :off, }
+      = f.input :zip_password, label: 'Optional Zip Password', input_html: { autocomplete: :off,  value: @recurrence&.zip_password}
     .col-sm-3
       = f.input :encryption_type, label: 'Encryption Wrapper', hint: 'Only relevant if a password is provided', collection: GrdaWarehouse::RecurringHmisExport.available_encryption_types, as: :select_two, include_blank: false
   .row
