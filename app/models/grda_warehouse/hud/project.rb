@@ -99,7 +99,7 @@ module GrdaWarehouse::Hud
     belongs_to :data_source, inverse_of: :projects, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true, optional: true
 
-    has_and_belongs_to_many :project_groups,, optional: true
+    has_and_belongs_to_many :project_groups,
                             class_name: 'GrdaWarehouse::ProjectGroup',
                             join_table: :project_project_groups
 

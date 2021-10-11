@@ -7,7 +7,8 @@ module ClaimsReporting
     belongs_to :member_roster,
                primary_key: 'member_id',
                foreign_key: 'member_id',
-               class_name: 'ClaimsReporting::MemberRoster'
+               class_name: 'ClaimsReporting::MemberRoster',
+               optional: true
     has_many :medical_claims, primary_key: 'member_id', foreign_key: 'member_id', class_name: 'ClaimsReporting::MedicalClaim'
 
     has_many :engaged_claims, -> do
