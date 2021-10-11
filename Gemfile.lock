@@ -252,8 +252,8 @@ GEM
     coffee-script-source (1.12.2)
     combine_pdf (1.0.21)
       ruby-rc4 (>= 0.1.5)
-    composite_primary_keys (11.2.0)
-      activerecord (~> 5.2.1)
+    composite_primary_keys (11.3.1)
+      activerecord (~> 5.2.4)
     concurrent-ruby (1.1.9)
     crack (0.4.5)
       rexml
@@ -884,7 +884,7 @@ DEPENDENCIES
   charlock_holmes
   coffee-rails
   combine_pdf
-  composite_primary_keys (= 11.2.0)
+  composite_primary_keys (= 11.3.1)
   curb
   daemons
   delayed_job
