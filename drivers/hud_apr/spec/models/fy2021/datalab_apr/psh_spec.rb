@@ -410,6 +410,7 @@ RSpec.describe 'Datalab 2021 APR - PSH', type: :model do
         'D10', # FIXME
         'B11', # FIXME
         'D11', # FIXME
+        'B12', # FIXME
         'B13', # FIXME
         'D12', # FIXME
         'C14', # FIXME
@@ -704,6 +705,7 @@ RSpec.describe 'Datalab 2021 APR - PSH', type: :model do
         'G10', # FIXME
         'H10', # FIXME
         'K10', # FIXME
+        'L10', # FIXME
         'B13', # FIXME
         'D13', # FIXME
         'E13', # FIXME
