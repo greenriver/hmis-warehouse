@@ -40,8 +40,8 @@ RSpec.describe GrdaWarehouse::ClientNotes::Base, type: :model do
   end
 
   describe 'associations' do
-    it { should belong_to(:user) }
-    it { should belong_to(:client) }
+    it { should belong_to(:user).optional }
+    it { should belong_to(:client).optional }
   end
 
   describe 'scopes' do
