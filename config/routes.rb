@@ -610,6 +610,7 @@ Rails.application.routes.draw do
   resources :data_sources do
     resources :uploads, except: [:update, :destroy, :edit]
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
+    resources :custom_imports, controller: 'data_sources/custom_imports'
     resource :api_config
     resource :hmis_import_config
   end

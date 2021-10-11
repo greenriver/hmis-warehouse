@@ -7,13 +7,13 @@ class ScaffoldCustomImports < ActiveRecord::Migration[5.2]
       t.string :description
       t.integer :import_hour
       t.string :import_type
-      t.string :recurring_hmis_exports, :s3_region
-      t.string :recurring_hmis_exports, :s3_bucket
-      t.string :recurring_hmis_exports, :s3_prefix
-      t.string :recurring_hmis_exports, :encrypted_s3_access_key_id
-      t.string :recurring_hmis_exports, :encrypted_s3_access_key_id_iv
-      t.string :recurring_hmis_exports, :encrypted_s3_secret
-      t.string :recurring_hmis_exports, :encrypted_s3_secret_iv
+      t.string :s3_region
+      t.string :s3_bucket
+      t.string :s3_prefix
+      t.string :encrypted_s3_access_key_id
+      t.string :encrypted_s3_access_key_id_iv
+      t.string :encrypted_s3_secret
+      t.string :encrypted_s3_secret_iv
       t.datetime :last_import_attempted_at
       t.timestamps null: false, index: true
       t.datetime :deleted_at
@@ -22,11 +22,9 @@ class ScaffoldCustomImports < ActiveRecord::Migration[5.2]
     create_table :custom_imports_files do |t|
       t.string :type
       t.references :config
-      t.references :user
       t.references :data_source
-      t.references :delayed_job
       t.string :file
-      t.float :percent_complete
+      t.string :status
       t.jsonb :summary
       t.jsonb :import_errors
       t.string :content_type
@@ -40,15 +38,19 @@ class ScaffoldCustomImports < ActiveRecord::Migration[5.2]
 
     create_table :custom_imports_boston_rows do |t|
       t.references :file
+      t.references :data_source
       t.integer :row_number, null: false
       t.string :personal_id, null: false
+      t.string :unique_id
       t.string :agency_id, null: false
       t.string :enrollment_id
       t.string :service_id
       t.date :date
       t.string :service_name
       t.string :service_category
-      t.string :service_program_name
+      t.string :service_item
+      t.string :service_program_usage
+
       t.timestamps null: false, index: true
     end
   end
