@@ -18,7 +18,12 @@ module HomelessSummaryReport::WarehouseReports
       @reports = report_scope.ordered.
         page(params[:page]).per(25)
       @report = report_class.new(user_id: current_user.id)
-      @filter['project_type_codes'] = @report.default_project_types
+      previous_report = report_scope.last
+      if previous_report
+        @filter.update(previous_report.options)
+      else
+        @filter['project_type_codes'] = @report.default_project_types
+      end
       # Make sure the form will work
       filters
     end
@@ -63,7 +68,7 @@ module HomelessSummaryReport::WarehouseReports
         @data_cells = @report.m7_fields
       end
       @detail_clients = @report.clients.send(@variant).send(@cell)
-      @spm_id = @detail_clients&.first&.send("spm_#{@variant}")
+      @spm_id = @detail_clients&.first&.send(@variant)
     end
 
     def details_params(report)
@@ -71,7 +76,7 @@ module HomelessSummaryReport::WarehouseReports
         :variant,
         :cell,
       ).delete_if do |key, value|
-        key == 'variant' && report.variants.keys.exclude?(value.to_sym)
+        key == 'variant' && report.class.available_variants.exclude?(value.gsub('spm_', ''))
       end.delete_if do |key, value|
         key == 'cell' && (report.spm_fields.keys + [
           :m2_reentry_0_to_180_days,

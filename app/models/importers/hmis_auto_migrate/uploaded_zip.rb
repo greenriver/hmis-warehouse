@@ -5,6 +5,8 @@
 ###
 
 require 'zip'
+require 'pty'
+require 'expect'
 module Importers::HmisAutoMigrate
   class UploadedZip < Base
     def initialize(
@@ -36,35 +38,61 @@ module Importers::HmisAutoMigrate
 
     private def force_standard_zip
       zip_file = reconstitute_upload
-      return unless File.extname(zip_file) == '.7z'
+      return unless @file_password.present? || File.extname(zip_file) == '.7z'
 
-      tmp_folder = zip_file.gsub('.7z', '')
-      dest_file = zip_file.gsub('.7z', '.zip')
-      FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
-      FileUtils.mkdir_p(tmp_folder)
+      dest_file = ''
+      tmp_folder = ''
+      if File.extname(zip_file) == '.7z'
+        tmp_folder = zip_file.gsub('.7z', '')
+        dest_file = zip_file.gsub('.7z', '.zip')
+        FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
+        FileUtils.mkdir_p(tmp_folder)
 
-      options = {}
-      options = { password: @file_password } if @file_password.present?
+        options = {}
+        options = { password: @file_password } if @file_password.present?
 
-      File.open(zip_file, 'rb') do |seven_zip|
-        SevenZipRuby::Reader.open(seven_zip, options) do |szr|
-          szr.extract_all(tmp_folder)
+        File.open(zip_file, 'rb') do |seven_zip|
+          SevenZipRuby::Reader.open(seven_zip, options) do |szr|
+            szr.extract_all(tmp_folder)
+          end
         end
-      end
-      # Cleanup original file
-      FileUtils.rm(zip_file)
-      # Make sure we don't have any old zip files around
-      FileUtils.rm(dest_file) if File.exist? dest_file
-      files = Dir.glob(File.join(tmp_folder, '*')).map { |f| File.basename(f) }
-      Zip::File.open(dest_file, Zip::File::CREATE) do |zipfile|
-        files.each do |filename|
-          zipfile.add(
-            File.join(File.basename(tmp_folder), filename),
-            File.join(tmp_folder, filename),
-          )
+        # Cleanup original file
+        FileUtils.rm(zip_file)
+        # Make sure we don't have any old zip files around
+        FileUtils.rm(dest_file) if File.exist? dest_file
+        files = Dir.glob(File.join(tmp_folder, '*')).map { |f| File.basename(f) }
+        Zip::File.open(dest_file, Zip::File::CREATE) do |zipfile|
+          files.each do |filename|
+            zipfile.add(
+              File.join(File.basename(tmp_folder), filename),
+              File.join(tmp_folder, filename),
+            )
+          end
         end
+        FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
+      else # for now, assume standard zip is the only other option
+        dest_file = zip_file.gsub('.zip', 'decrypted.zip')
+
+        Tempfile.create('expect', Rails.root.join(::File.dirname(zip_file)).to_s) do |expect_script|
+          expect_content = <<~EXPECT
+            #!/usr/bin/expect
+            spawn zipcloak -d --output-file #{Rails.root.join(dest_file)} #{Rails.root.join(zip_file)}
+            expect {
+              -nocase -re ".*Password:.*" {
+                send "#{@file_password}\r"
+              }
+            }
+            send_user "\n>> Password sent\n"
+            interact
+          EXPECT
+          expect_script.write(expect_content)
+          expect_script.close
+          FileUtils.chmod(0o770, expect_script.path)
+          system(expect_script.path)
+        end
+        # for some reason we need a bit of sand after talking to zipcloak over PTY
+        sleep(5)
       end
-      FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
 
       add_content_to_upload_and_save(file_path: dest_file)
     end

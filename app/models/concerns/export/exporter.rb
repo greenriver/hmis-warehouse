@@ -60,7 +60,8 @@ module Export::Exporter
       Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
         files.each do |filename|
           zipfile.add(
-            File.join(@export.export_id, filename),
+            # File.join(@export.export_id, filename),
+            filename, # add without path
             File.join(@file_path, filename),
           )
         end

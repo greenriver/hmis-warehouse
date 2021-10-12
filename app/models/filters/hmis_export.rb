@@ -32,6 +32,8 @@ module Filters
     attribute :s3_region, String
     attribute :s3_bucket, String
     attribute :s3_prefix, String
+    attribute :zip_password, String
+    attribute :encryption_type, String
 
     validates_presence_of :start_date, :end_date
 

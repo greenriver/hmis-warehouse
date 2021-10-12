@@ -416,6 +416,7 @@ GEM
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
     iniparse (1.5.0)
+    io-console (0.5.9)
     jmespath (1.4.0)
     jquery-minicolors-rails (2.2.6.2)
       jquery-rails
@@ -627,6 +628,8 @@ GEM
     redis-store (1.9.0)
       redis (>= 4, < 5)
     regexp_parser (1.8.2)
+    reline (0.2.7)
+      io-console (~> 0.5)
     request_store (1.5.0)
       rack (>= 1.4)
     responders (3.0.1)
@@ -958,6 +961,7 @@ DEPENDENCIES
   ransack
   redcarpet
   redis-rails
+  reline (~> 0.2)
   responders
   rest-client (~> 2.0)
   rgeo

@@ -9,8 +9,8 @@ module HmisCsvImporter::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items, class_name: 'HmisCsvImporter::Importer::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
-      has_many :loaded_items, class_name: 'HmisCsvImporter::Loader::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
+      has_many :imported_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Importer::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
+      has_many :loaded_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Loader::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
 
       def convert_to_aggregated!
         existing = HmisCsvImporter::Aggregated::Enrollment.where(data_source_id: data_source_id, ProjectID: self.ProjectID).exists?

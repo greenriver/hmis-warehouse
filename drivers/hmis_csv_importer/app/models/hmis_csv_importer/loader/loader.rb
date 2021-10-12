@@ -378,8 +378,8 @@ module HmisCsvImporter::Loader
         add_error(file_path: file_path, message: "Header row for #{klass.name} missing expected columns: #{missing_cols.join ','}", line: 1)
         return [:missing_col, mapping]
       end
-      # puts "#{file_path} #{mapping.inspect}"
-      add_error(file_path: file_path, message: "Header row for #{klass.name} order incorrect all headers found. Used mapping: #{mapping.inspect}", line: 1)
+      # 10/4/2021 Don't treat header order as an error
+      # add_error(file_path: file_path, message: "Header row for #{klass.name} order incorrect all headers found. Used mapping: #{mapping.inspect}", line: 1)
       return [:mapped, mapping]
     end
     HEADER_NORMALIZER = ->(s) { s.to_s.downcase }

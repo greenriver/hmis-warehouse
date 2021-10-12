@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  06 LSAHousehold.sql  
-Date:  08 SEP 2021 
+Date:  6 OCT 2021
 
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
 */
@@ -416,7 +416,7 @@ Date:  08 SEP 2021
 			(select min(hhid.HHChronic)
 			 from tlsa_HHID hhid 
 			 where hhid.Active = 1 and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
-				and hhid.HHChronic > 0 and hhid.LSAProjectType in (0,1,2,8)), 0)
+				and hhid.HHChronic = 1 and hhid.LSAProjectType in (0,1,2,8)), 0)
 		, ESTDisability = coalesce (
 			(select max(hhid.HHDisability)
 			 from tlsa_HHID hhid 
@@ -468,7 +468,7 @@ Date:  08 SEP 2021
 			(select min(hhid.HHChronic)
 			 from tlsa_HHID hhid 
 			 where hhid.Active = 1 and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
-				and hhid.HHChronic > 0 and hhid.LSAProjectType = 13), 0)
+				and hhid.HHChronic = 1 and hhid.LSAProjectType = 13), 0)
 		, RRHDisability = coalesce (
 			(select max(hhid.HHDisability)
 			 from tlsa_HHID hhid 
@@ -519,7 +519,7 @@ Date:  08 SEP 2021
 			(select min(hhid.HHChronic)
 			 from tlsa_HHID hhid 
 			 where hhid.Active = 1 and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
-				and hhid.HHChronic > 0 and hhid.LSAProjectType = 3), 0)
+				and hhid.HHChronic = 1 and hhid.LSAProjectType = 3), 0)
 		, PSHDisability = coalesce (
 			(select max(hhid.HHDisability)
 			 from tlsa_HHID hhid 

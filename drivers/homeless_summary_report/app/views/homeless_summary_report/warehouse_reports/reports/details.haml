@@ -11,7 +11,7 @@
   %div
     SPM Report Variant:
     %em
-      = "#{@report.variants[@variant.to_sym][:name]}:"
+      = "#{@report.variant_name(@variant.gsub('spm_', ''))}:"
       = link_to 'view related SPM report', result_hud_reports_spm_measure_path(@spm_id, @measure)
   %div
     SPM Report Cell:
