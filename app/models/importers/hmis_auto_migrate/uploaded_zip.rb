@@ -75,19 +75,26 @@ module Importers::HmisAutoMigrate
 
         Tempfile.create('expect', Rails.root.join(::File.dirname(zip_file)).to_s) do |expect_script|
           expect_content = <<~EXPECT
-            #!/usr/bin/expect
-            spawn zipcloak -d --output-file #{Rails.root.join(dest_file)} #{Rails.root.join(zip_file)}
+            #!/usr/bin/expect -f
 
-            set timeout 15
-
-            expect {
-              -nocase -re ".*Password:.*" {
-                send "#{@file_password}\r"
+            set force_conservative 0  ;# set to 1 to force conservative mode even if
+                                      ;# script wasn't run conservatively originally
+            if {$force_conservative} {
+              set send_slow {1 .1}
+              proc send {ignore arg} {
+                sleep .1
+                exp_send -s -- $arg
               }
-              timeout { send_user "\n>> zipcloak timed out\n"; exit }
-              eof     { send_user "\n>> zipcloak failed: $expect_out(buffer)\n"; exit }
             }
-            send_user "\n>> Password sent\n"
+
+            set timeout -1
+            spawn zipcloak -d --output-file #{Rails.root.join(dest_file)} #{Rails.root.join(zip_file)}
+            match_max 100000
+            expect -exact "Enter password: "
+            send -- "#{zip_password}\r"
+            expect eof
+
+            send_user "\n $expect_out(buffer) \n"
           EXPECT
           expect_script.write(expect_content)
           expect_script.close

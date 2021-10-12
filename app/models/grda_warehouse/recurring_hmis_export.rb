@@ -24,7 +24,7 @@ module GrdaWarehouse
 
     def should_run?
       TodoOrDie('Remove after testing', by: '2021-10-20')
-      return true if Rails.env.staging?
+      return true if Rails.env.staging? || Rails.env.development?
 
       if hmis_exports.exists?
         last_export_finished_on = recurring_hmis_export_links.maximum(:exported_at)
@@ -67,8 +67,8 @@ module GrdaWarehouse
     end
 
     private def encrypt_zipcloak(content)
+      tmp = Tempfile.new(['hmis_export', '.zip'], Rails.root.join('tmp').to_s, binmode: true)
       source_path = Rails.root.join(tmp.path).to_s
-      tmp = Tempfile.new(['hmis_export', '.zip'], source_path, binmode: true)
       export_dir = ::File.dirname(source_path)
       destination_path = "#{::File.join(export_dir, ::File.basename(source_path, '.zip'))}_enc.zip"
       tmp.write(content)
@@ -76,28 +76,29 @@ module GrdaWarehouse
 
       Tempfile.create('expect', export_dir.to_s) do |expect_script|
         expect_content = <<~EXPECT
-          #!/usr/bin/expect
+          #!/usr/bin/expect -f
+
+          set force_conservative 0  ;# set to 1 to force conservative mode even if
+                                    ;# script wasn't run conservatively originally
+          if {$force_conservative} {
+            set send_slow {1 .1}
+            proc send {ignore arg} {
+              sleep .1
+              exp_send -s -- $arg
+            }
+          }
+
+          set timeout -1
           spawn zipcloak --output-file #{destination_path} #{source_path}
+          match_max 100000
+          expect -exact "Enter password: "
+          send -- "#{zip_password}\r"
+          expect -exact "\r
+          Verify password: "
+          send -- "#{zip_password}\r"
+          expect eof
 
-          set timeout 15
-
-          expect {
-            -nocase -re "Enter password:.*" {
-              send "#{zip_password}\r"
-            }
-            timeout { send_user "\n>> zipcloak timed out\n"; exit }
-            eof     { send_user "\n>> zipcloak failed: $expect_out(buffer)\n"; exit }
-          }
-
-          expect {
-            -nocase -re "Verify password:.*" {
-              send "#{zip_password}\r"
-            }
-            timeout { send_user "\n>> zipcloak timed out\n"; exit }
-            eof     { send_user "\n>> zipcloak failed: $expect_out(buffer)\n"; exit }
-          }
-
-          send_user "\n>> Password sent\n"
+          send_user "\n $expect_out(buffer) \n"
         EXPECT
         expect_script.write(expect_content)
         expect_script.close
@@ -160,7 +161,7 @@ module GrdaWarehouse
       prefix = "#{s3_prefix.strip}-" if s3_prefix.present?
       date = Date.current.strftime('%Y%m%d')
       TodoOrDie('Remove after testing', by: '2021-10-20')
-      date = Time.current.strftime('%Y%m%d%H%M') if Rails.env.staging?
+      date = Time.current.strftime('%Y%m%d%H%M') if Rails.env.staging? || Rails.env.development?
       ext = encryption_type.presence || 'zip'
       "#{prefix}#{date}-#{report.export_id}.#{ext}"
     end
