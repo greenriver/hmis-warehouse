@@ -138,7 +138,7 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
   end
 
   def money?(value)
-    /^\$[0-9\.]+$/.match?(value)
+    /^\$-?[0-9\.]+$/.match?(value)
   end
 end
 
