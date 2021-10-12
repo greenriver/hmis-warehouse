@@ -91,7 +91,7 @@ module Importers::HmisAutoMigrate
             spawn zipcloak -d --output-file #{Rails.root.join(dest_file)} #{Rails.root.join(zip_file)}
             match_max 100000
             expect -exact "Enter password: "
-            send -- "#{zip_password}\r"
+            send -- "#{@file_password}\r"
             expect eof
 
             send_user "\n $expect_out(buffer) \n"
