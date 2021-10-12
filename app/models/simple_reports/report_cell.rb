@@ -10,7 +10,7 @@ module SimpleReports
 
     self.table_name = 'simple_report_cells'
 
-    belongs_to :report_instance, class_name: 'SimpleReports::ReportInstance', optional: true
+    belongs_to :report_instance, class_name: 'SimpleReports::ReportInstance'
     has_many :universe_members
 
     scope :universe, -> do

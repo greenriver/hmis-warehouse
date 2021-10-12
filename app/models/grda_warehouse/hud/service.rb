@@ -15,11 +15,11 @@ module GrdaWarehouse::Hud
     self.table_name = 'Services'
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    belongs_to :data_source, inverse_of: :services, optional: true
+    belongs_to :data_source, inverse_of: :services
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_services, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :services, optional: true
     has_one :client, through: :enrollment, inverse_of: :services
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :services, optional: true, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :services, optional: true
     has_one :project, through: :enrollment
     has_one :organization, through: :project
 

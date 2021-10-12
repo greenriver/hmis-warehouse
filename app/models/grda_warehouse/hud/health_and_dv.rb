@@ -20,9 +20,9 @@ module GrdaWarehouse::Hud
     has_one :client, through: :enrollment, inverse_of: :health_and_dvs
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_health_and_dvs, optional: true
     has_one :project, through: :enrollment
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :health_and_dvs, optional: true, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :health_and_dvs, optional: true
     has_one :destination_client, through: :client
-    belongs_to :data_source, optional: true
+    belongs_to :data_source
 
     def self.related_item_keys
       [

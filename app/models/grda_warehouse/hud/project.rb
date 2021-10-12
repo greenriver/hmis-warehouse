@@ -96,8 +96,8 @@ module GrdaWarehouse::Hud
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override, :zip_override
     belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects, optional: true
-    belongs_to :data_source, inverse_of: :projects, optional: true
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true, optional: true
+    belongs_to :data_source, inverse_of: :projects
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
 
     has_and_belongs_to_many :project_groups,
                             class_name: 'GrdaWarehouse::ProjectGroup',

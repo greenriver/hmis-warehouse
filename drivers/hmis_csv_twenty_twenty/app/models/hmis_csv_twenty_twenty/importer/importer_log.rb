@@ -11,7 +11,7 @@ module HmisCsvTwentyTwenty::Importer
 
     has_many :import_errors
     has_many :import_validations, class_name: 'HmisCsvValidation::Base'
-    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     def paused?
       status.to_s == 'paused'

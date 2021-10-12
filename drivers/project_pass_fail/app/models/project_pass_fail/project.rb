@@ -7,7 +7,7 @@
 module ProjectPassFail
   class Project < GrdaWarehouseBase
     self.table_name = :project_pass_fails_projects
-    belongs_to :project_pass_fail, inverse_of: :projects, optional: true
+    belongs_to :project_pass_fail, inverse_of: :projects
     belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     has_many :clients, inverse_of: :project, dependent: :destroy

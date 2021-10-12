@@ -16,7 +16,7 @@ module Health
 
     has_many :members, class_name: 'Health::Team::Member'
     # has_one :pcp_designee, class_name: 'Health::Team::PcpDesignee'
-    belongs_to :patient, optional: true
+    belongs_to :patient
     belongs_to :editor, class_name: 'User', foreign_key: :user_id, optional: true
 
     accepts_nested_attributes_for :members, allow_destroy: true

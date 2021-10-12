@@ -12,7 +12,7 @@ module Health::Tracing
     acts_as_paranoid
     has_paper_trail
 
-    belongs_to :case, optional: true
+    belongs_to :case
 
     def symptomatic_options
       yes_no_unknown_options

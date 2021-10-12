@@ -8,7 +8,7 @@ module ServiceScanning
   class Service < GrdaWarehouseBase
     include ArelHelper
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     belongs_to :user, optional: true
 

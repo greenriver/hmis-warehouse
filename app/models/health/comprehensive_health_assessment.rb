@@ -877,7 +877,7 @@ module Health
 
     }
 
-    belongs_to :patient, optional: true
+    belongs_to :patient
     belongs_to :user, optional: true
     belongs_to :reviewed_by, class_name: 'User', optional: true
 

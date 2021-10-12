@@ -9,7 +9,7 @@ module GrdaWarehouse
     has_paper_trail
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
 
-    belongs_to :data_source, optional: true
+    belongs_to :data_source
 
     scope :active, -> do
       where(active: true)

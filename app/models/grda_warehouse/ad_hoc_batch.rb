@@ -11,9 +11,9 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   include ArelHelper
   include ::Import::ClientMatching
 
-  belongs_to :ad_hoc_data_source, optional: true
+  belongs_to :ad_hoc_data_source
   has_many :ad_hoc_clients, foreign_key: :batch_id, dependent: :destroy
-  belongs_to :user, optional: true, optional: true
+  belongs_to :user, optional: true
 
   validates_presence_of :file
   validates_presence_of :description

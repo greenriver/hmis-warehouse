@@ -5,7 +5,7 @@
 ###
 
 class LoginActivity < ApplicationRecord
-  belongs_to :user, polymorphic: true, optional: true
+  belongs_to :user, polymorphic: true
 
   def location_description
     description = ''

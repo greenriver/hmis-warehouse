@@ -19,7 +19,7 @@ module GrdaWarehouse::Hud
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :events, optional: true
     has_one :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_events
     has_one :client, through: :enrollment, inverse_of: :events
-    belongs_to :data_source, optional: true
+    belongs_to :data_source
 
     scope :importable, -> do
       where(synthetic: false)

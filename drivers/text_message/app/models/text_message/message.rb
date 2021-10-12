@@ -8,9 +8,9 @@ require 'aws-sdk-sns'
 module TextMessage
   class Message < GrdaWarehouseBase
     acts_as_paranoid
-    belongs_to :topic, optional: true
+    belongs_to :topic
     belongs_to :topic_subscriber, foreign_key: :subscriber_id, optional: true
-    belongs_to :source, polymorphic: true, optional: true, optional: true
+    belongs_to :source, polymorphic: true, optional: true
 
     scope :unsent, -> do
       where(sent_at: nil)

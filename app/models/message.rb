@@ -12,7 +12,7 @@ class Message < ApplicationRecord
     daily
   )
 
-  belongs_to :user, optional: true
+  belongs_to :user
   scope :sent, -> (time=DateTime.current) { where arel_table[:sent_at].lteq time }
   scope :unsent, -> { where sent_at: nil }
   scope :seen, -> (time=DateTime.current) { where arel_table[:seen_at].lteq time }

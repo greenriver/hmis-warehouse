@@ -11,7 +11,7 @@ module GrdaWarehouse
     acts_as_paranoid
     attr_encrypted :ftp_pass, key: ENV['ENCRYPTION_KEY'][0..31]
 
-    belongs_to :data_source, optional: true
+    belongs_to :data_source
     has_one :hmis_import_config, primary_key: :data_source_id, foreign_key: :data_source_id
 
     def fetch_and_push

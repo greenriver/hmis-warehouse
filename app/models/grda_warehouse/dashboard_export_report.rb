@@ -6,7 +6,7 @@
 
 class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
-  belongs_to :file, class_name: 'GrdaWarehouse::DashboardExportFile', optional: true
+  belongs_to :file, class_name: 'GrdaWarehouse::DashboardExportFile'
 
   def complete?
     completed_at.present?

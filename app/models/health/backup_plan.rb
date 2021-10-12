@@ -19,7 +19,7 @@ module Health
     phi_attr :address, Phi::Location, "Address of patient"
     phi_attr :person, Phi::Name, "Name of patient"
 
-    belongs_to :patient, optional: true
+    belongs_to :patient
     has_many :careplans, through: :patient
 
     validates_presence_of :description, :backup_plan, :plan_created_on

@@ -18,9 +18,9 @@ module GrdaWarehouse::Hud
     self.hud_key = 'GeographyID'
 
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies, optional: true
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies, optional: true, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies, optional: true
     has_one :project, through: :project_coc, source: :project
-    belongs_to :data_source, optional: true
+    belongs_to :data_source
 
     scope :viewable_by, -> (user) do
       if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)

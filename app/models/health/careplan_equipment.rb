@@ -11,7 +11,7 @@ module Health
 
     acts_as_paranoid
 
-    belongs_to :careplans, class_name: 'Health::Careplan', optional: true
+    belongs_to :careplans, class_name: 'Health::Careplan'
     belongs_to :equipments, class_name: 'Health::Equipment', optional: true
 
   end

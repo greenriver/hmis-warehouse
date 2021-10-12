@@ -12,7 +12,7 @@ module Health::Tracing
     acts_as_paranoid
     has_paper_trail
 
-    belongs_to :contact, optional: true
+    belongs_to :contact
 
     def test_result_options
       {

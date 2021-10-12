@@ -10,8 +10,8 @@ module GrdaWarehouse
     acts_as_paranoid
     has_paper_trail
 
-    belongs_to :cohort, optional: true
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :cohort
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     has_many :cohort_client_notes
     has_many :cohort_client_changes, class_name: 'GrdaWarehouse::CohortClientChange'
     has_many :service_history_enrollments, through: :client

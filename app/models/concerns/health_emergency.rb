@@ -10,7 +10,7 @@ module HealthEmergency
     acts_as_paranoid
     has_paper_trail
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :user, optional: true
     belongs_to :agency, optional: true
 

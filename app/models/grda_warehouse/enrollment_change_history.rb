@@ -6,7 +6,7 @@
 
 module GrdaWarehouse
   class EnrollmentChangeHistory < GrdaWarehouseBase
-    belongs_to :client, optional: true
+    belongs_to :client
     validates_presence_of :on, :client_id
 
     def self.generate_for_date!(date: Date.current)

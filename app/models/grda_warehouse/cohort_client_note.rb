@@ -7,7 +7,7 @@
 module GrdaWarehouse
   class CohortClientNote < GrdaWarehouseBase
     acts_as_paranoid
-    belongs_to :cohort_client, optional: true
+    belongs_to :cohort_client
     has_one :client, through: :cohort_client
     belongs_to :user, optional: true
 

@@ -39,6 +39,6 @@ module GrdaWarehouse::Hud
     has_many :events, **hud_assoc(:EventID, 'Event'), inverse_of: :export
     has_many :youth_education_statuses, **hud_assoc(:YouthEducationStatusID, 'YouthEducationStatus'), inverse_of: :export
 
-    belongs_to :data_source, inverse_of: :exports, optional: true
+    belongs_to :data_source, inverse_of: :exports
   end
 end

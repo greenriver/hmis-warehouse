@@ -8,7 +8,7 @@ module GrdaWarehouse::WarehouseReports
   class ProjectContact < GrdaWarehouseBase
     acts_as_paranoid
 
-    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_many :report_tokens, foreign_key: :contact_id, class_name: 'GrdaWarehouse::ReportToken'
 
