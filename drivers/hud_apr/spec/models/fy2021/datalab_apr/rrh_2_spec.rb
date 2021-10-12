@@ -20,16 +20,12 @@ RSpec.describe 'Datalab 2021 APR - rrh 2 projects', type: :model do
   end
 
   it 'Q4a' do
-    compare_results(
+    question = 'Q4a'
+    goals = goals(
       file_path: result_file_prefix + 'rrh_2',
-      question: 'Q4a',
-      skip: [
-        'B2', # Column B: expected is a name not and ID?
-        'B3',
-        'L2', # Column L: Is the generator name, so not expected to match
-        'L3',
-      ],
+      question: question,
     )
+    compare_columns(goal: goals, question: question, column_names: ['C', 'D'])
   end
 
   it 'Q5a' do

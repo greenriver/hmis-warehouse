@@ -69,10 +69,43 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
     ::HudReports::ReportInstance.last
   end
 
-  def compare_results(file_path:, question:, skip: [])
-    column_labels = ('A'..'Z').to_a
+  def goals(file_path:, question:)
     csv_file = File.join(file_path, question + '.csv')
-    goal = CSV.read(csv_file)
+    CSV.read(csv_file)
+  end
+
+  # Compare the contents of columns ignoring row order but preserving the column relationships.
+  def compare_columns(goal:, question:, column_names:)
+    results_metadata = report_result.answer(question: question).metadata
+    column_names = Array.wrap(column_names)
+
+    results_row = (results_metadata['first_row'] .. results_metadata['last_row']).map do |row_number|
+      row = []
+      column_names.each do |column_name|
+        cell_name = column_name + row_number.to_s
+        row << normalize(report_result.answer(question: question, cell: cell_name).summary)
+      end
+      row
+    end
+
+    column_labels = ('A'..'Z').to_a.freeze
+    goal_row = (results_metadata['first_row'] .. results_metadata['last_row']).map do |row_number|
+      row = []
+      column_names.each do |column_name|
+        row << normalize(goal[row_number - 1][column_labels.find_index(column_name)])
+      end
+      row
+    end
+
+    aggregate_failures 'comparing column values' do
+      expect(results_row.size).to eq(goal_row.size)
+      expect(results_row).to match_array(goal_row)
+    end
+  end
+
+  def compare_results(goal: nil, file_path:, question:, skip: [])
+    column_labels = ('A'..'Z').to_a
+    goal ||= goals(file_path: file_path, question: question)
 
     aggregate_failures 'comparing cells' do
       results_metadata = report_result.answer(question: question).metadata
@@ -82,14 +115,8 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
           next if cell_name.in?(skip)
 
           column_index = column_labels.find_index(column_name)
-          expected = goal[row_number - 1].try(:[], column_index)&.to_s&.strip
-          actual = report_result.answer(question: question, cell: cell_name).summary.to_s.strip
-
-          actual = '0' if normalize_zero?(actual) # Treat all zeros as '0'
-          expected = '0' if normalize_zero?(expected)
-          actual = '0' if actual.blank? # Treat 0 and blank as the same for comparison
-          expected = '0' if expected.blank?
-          expected = expected[1..] if expected[0] == '$'
+          expected = normalize(goal[row_number - 1].try(:[], column_index))
+          actual = normalize(report_result.answer(question: question, cell: cell_name).summary)
 
           expect(actual).to eq(expected), "#{cell_name}: expected '#{expected}', got '#{actual}'"
         end
@@ -97,8 +124,21 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
     end
   end
 
+  def normalize(value)
+    value = value&.to_s&.strip
+    value = '0' if normalize_zero?(value) # Treat all zeros as '0'
+    value = '0' if value.blank? # Treat 0 and blank as the same for comparison
+    value = value[1..] if money?(value) # Remove dollar signs
+
+    value
+  end
+
   def normalize_zero?(value)
     /^[0\.]+$/.match?(value)
+  end
+
+  def money?(value)
+    /^\$[0-9\.]+$/.match?(value)
   end
 end
 
