@@ -78,7 +78,7 @@ module ClaimsReporting
     end
 
     def denied_claims(patient)
-      patient_qas(patient.id).select { |qa| best_medical_claim_for_qualifying_activity(qa, denied: true).present? }.size
+      patient_qas(patient.id).select { |qa| patient.best_medical_claim_for_qualifying_activity(qa, denied: true).present? }.size
     end
 
     def patients_without_payments

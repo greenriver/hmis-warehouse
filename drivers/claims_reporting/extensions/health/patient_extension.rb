@@ -28,7 +28,7 @@ module ClaimsReporting::Health
       end
 
       def best_medical_claim_for_qualifying_activity(qa, denied: false) # rubocop:disable Naming/MethodParameterName
-        matching_claims = medical_claims_for_qualifying_activity(qa, denied)
+        matching_claims = medical_claims_for_qualifying_activity(qa, denied: denied)
 
         return matching_claims.first if matching_claims.size <= 1
 
