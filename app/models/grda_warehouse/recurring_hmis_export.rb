@@ -73,14 +73,6 @@ module GrdaWarehouse
       destination_path = "#{::File.join(export_dir, ::File.basename(source_path, '.zip'))}_enc.zip"
       tmp.write(content)
       tmp.close
-      # cmd = "zipcloak --output-file #{destination_path} #{source_path}"
-
-      # PTY.spawn(cmd) do |reader, writer, _|
-      #   reader.expect(/Enter password:/, 100)
-      #   writer.puts(zip_password)
-      #   reader.expect(/Verify password:/, 100)
-      #   writer.puts(zip_password)
-      # end
 
       Tempfile.create('expect', export_dir.to_s) do |expect_script|
         expect_content = <<~EXPECT
@@ -146,7 +138,7 @@ module GrdaWarehouse
           end
         end
       end
-      # for some reason we need a bit of sand after talking to zipcloak over PTY
+      # for some reason we need a bit of sand after talking to zipcloak
       sleep(5) unless ::File.exist?(destination_file)
       # return the encrypted content
       encrypted_content = ::File.open(destination_file, binmode: true).read
