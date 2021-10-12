@@ -197,6 +197,7 @@ gem 'ansi'
 
 gem 'parallel'
 gem 'todo_or_die'
+gem 'reline', '~> 0.2'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
