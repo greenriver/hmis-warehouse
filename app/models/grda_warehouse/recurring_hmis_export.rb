@@ -67,8 +67,8 @@ module GrdaWarehouse
     end
 
     private def encrypt_zipcloak(content)
-      tmp = Tempfile.new(['hmis_export', '.zip'], 'tmp', binmode: true)
       source_path = Rails.root.join(tmp.path).to_s
+      tmp = Tempfile.new(['hmis_export', '.zip'], source_path, binmode: true)
       export_dir = ::File.dirname(source_path)
       destination_path = "#{::File.join(export_dir, ::File.basename(source_path, '.zip'))}_enc.zip"
       tmp.write(content)
@@ -78,18 +78,26 @@ module GrdaWarehouse
         expect_content = <<~EXPECT
           #!/usr/bin/expect
           spawn zipcloak --output-file #{destination_path} #{source_path}
+
+          set timeout 15
+
           expect {
             -nocase -re "Enter password:.*" {
               send "#{zip_password}\r"
             }
+            timeout { send_user "\n>> zipcloak timed out\n"; exit }
+            eof     { send_user "\n>> zipcloak failed: $expect_out(buffer)\n"; exit }
           }
+
           expect {
             -nocase -re "Verify password:.*" {
               send "#{zip_password}\r"
             }
+            timeout { send_user "\n>> zipcloak timed out\n"; exit }
+            eof     { send_user "\n>> zipcloak failed: $expect_out(buffer)\n"; exit }
           }
+
           send_user "\n>> Password sent\n"
-          interact
         EXPECT
         expect_script.write(expect_content)
         expect_script.close
@@ -97,7 +105,6 @@ module GrdaWarehouse
         system(expect_script.path)
       end
 
-      sleep(5) unless ::File.exist?(destination_path)
       # return the encrypted content
       encrypted_content = ::File.open(destination_path, binmode: true).read
       FileUtils.rm(destination_path)

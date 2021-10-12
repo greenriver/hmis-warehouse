@@ -77,13 +77,17 @@ module Importers::HmisAutoMigrate
           expect_content = <<~EXPECT
             #!/usr/bin/expect
             spawn zipcloak -d --output-file #{Rails.root.join(dest_file)} #{Rails.root.join(zip_file)}
+
+            set timeout 15
+
             expect {
               -nocase -re ".*Password:.*" {
                 send "#{@file_password}\r"
               }
+              timeout { send_user "\n>> zipcloak timed out\n"; exit }
+              eof     { send_user "\n>> zipcloak failed: $expect_out(buffer)\n"; exit }
             }
             send_user "\n>> Password sent\n"
-            interact
           EXPECT
           expect_script.write(expect_content)
           expect_script.close
