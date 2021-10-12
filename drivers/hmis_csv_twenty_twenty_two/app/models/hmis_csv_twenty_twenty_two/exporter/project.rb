@@ -27,7 +27,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       )
     end
 
-    def apply_overrides row, data_source_id:
+    def apply_overrides(row, data_source_id:)
       override = housing_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
       row[:HousingType] = override if override.present?
 
@@ -42,6 +42,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row[:OperatingEndDate] = override if override.present?
 
       row[:ProjectCommonName] = row[:ProjectName] if row[:ProjectCommonName].blank?
+      row[:ProjectCommonName] = row[:ProjectCommonName][0...50] if row[:ProjectCommonName]
 
       override = hmis_participating_project_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
       row[:HMISParticipatingProject] = override if override.present?
@@ -60,8 +61,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
       override = project_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
       row[:ProjectType] = override if override.present?
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
-      return row
+      row
     end
 
     # If we are not ES and overriding to ES, we need a tracking method of 0

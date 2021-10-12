@@ -23,6 +23,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
       override = inventory_end_date_override_for(inventory_id: row[:InventoryID].to_i, data_source_id: data_source_id)
       row[:InventoryEndDate] = override if override
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
       row
     end

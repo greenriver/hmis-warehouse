@@ -34,7 +34,7 @@ RUN apk add --no-cache \
   wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl \
   ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
   chromium nss freetype freetype-dev harfbuzz ca-certificates \
-  lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util \
+  lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip \
   shared-mime-info \
   vim less \
   && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20

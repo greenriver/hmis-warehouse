@@ -31,7 +31,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     # HouseholdID and RelationshipToHoH are required, but often not provided, send some sane defaults
     # Also unique the HouseholdID to a data source
-    def apply_overrides row, data_source_id:
+    def apply_overrides(row, data_source_id:)
       id_of_enrollment = enrollment_export_id(row[:EnrollmentID], row[:PersonalID], data_source_id)
 
       # NOTE: RelationshipToHoH changes must come before HouseholdID
@@ -52,7 +52,10 @@ module HmisCsvTwentyTwentyTwo::Exporter
       # Usually we won't have a MoveInDate because it isn't required
       # if the project type isn't PH
       row[:MoveInDate] = row[:MoveInDate].presence || row[:EntryDate] if project_type_overridden_to_psh?(row[:ProjectID], data_source_id)
-      return row
+
+      row[:UserID] = 'op-system' if row[:UserID].blank?
+
+      row
     end
   end
 end

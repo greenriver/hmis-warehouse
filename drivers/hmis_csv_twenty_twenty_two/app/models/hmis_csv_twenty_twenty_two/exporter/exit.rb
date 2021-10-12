@@ -48,11 +48,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
       )
     end
 
-    def apply_overrides row, data_source_id: # rubocop:disable Lint/UnusedMethodArgument
+    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
       row[:Destination] = 99 if row[:Destination].blank?
       row[:OtherDestination] = row[:OtherDestination][0..49] if row[:OtherDestination].present?
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
-      return row
+      row
     end
 
     # Limit exits to one per enrollment (sometimes we get data with more) and only export

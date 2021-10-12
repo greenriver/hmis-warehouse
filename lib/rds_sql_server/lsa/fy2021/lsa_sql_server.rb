@@ -323,7 +323,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2020')
+      GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2022')
     end
   end
 
@@ -332,7 +332,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2020')
+      GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2022')
     end
   end
 
@@ -341,7 +341,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2020')
+      GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2022')
     end
   end
 
@@ -350,7 +350,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2020')
+      GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2022')
     end
   end
 
@@ -359,7 +359,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2020')
+      GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2022')
     end
   end
 

@@ -20,6 +20,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row[:OtherBenefitsSourceIdentify] = row[:OtherBenefitsSourceIdentify][0...50] if row[:OtherBenefitsSourceIdentify]
       # Required by HUD spec, not always provided 99 is not valid, but we can't really guess
       row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
       row
     end

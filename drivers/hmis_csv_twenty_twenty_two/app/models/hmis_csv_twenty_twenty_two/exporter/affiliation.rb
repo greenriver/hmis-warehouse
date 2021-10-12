@@ -10,5 +10,11 @@ module HmisCsvTwentyTwentyTwo::Exporter
     setup_hud_column_access(GrdaWarehouse::Hud::Affiliation.hud_csv_headers(version: '2022'))
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :affiliations, optional: true
+
+    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
+      row[:UserID] = 'op-system' if row[:UserID].blank?
+
+      row
+    end
   end
 end

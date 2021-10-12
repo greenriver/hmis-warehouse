@@ -61,9 +61,9 @@ module Health
           or(patient_source.where(nurse_care_manager_id: current_user.id))
       end
 
-      patient_ids_with_qas_in_month = population.
+      patient_ids_with_payable_qas_in_month = population.
         joins(:qualifying_activities).
-        merge(Health::QualifyingActivity.in_range(Date.current.beginning_of_month..Date.tomorrow)).
+        merge(Health::QualifyingActivity.payable.in_range(Date.current.beginning_of_month..Date.tomorrow)).
         pluck(:id)
 
       population.
@@ -73,7 +73,7 @@ module Health
           population.
             joins(:patient_referral).
             merge(Health::PatientReferral.pending_disenrollment.not_confirmed_rejected).
-            where.not(id: patient_ids_with_qas_in_month),
+            where.not(id: patient_ids_with_payable_qas_in_month),
         )
     end
 
