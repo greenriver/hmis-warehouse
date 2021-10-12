@@ -90,7 +90,7 @@ module Importers::HmisAutoMigrate
           FileUtils.chmod(0o770, expect_script.path)
           system(expect_script.path)
         end
-        # for some reason we need a bit of sand after talking to zipcloak over PTY
+        # for some reason we need a bit of sand after talking to zipcloak
         sleep(5)
       end
 
