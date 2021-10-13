@@ -865,7 +865,18 @@ module GrdaWarehouse::Hud
         [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
-        service_history_enrollments.with_service_between(start_date: range.first, end_date: range.last).exists?
+        if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
+          service_history_enrollments.with_service_between(
+            start_date: range.first,
+            end_date: range.last,
+          ).exists?
+        else
+          service_history_enrollments.with_service_between(
+            start_date: range.first,
+            end_date: range.last,
+            service_scope: GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated,
+          ).exists?
+        end
       else
         raise NotImplementedError
       end
