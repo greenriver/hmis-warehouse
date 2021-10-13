@@ -9,8 +9,8 @@ module GrdaWarehouse
     has_paper_trail
     acts_as_paranoid
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :user
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :user, optional: true
 
     validate :date_range
 
