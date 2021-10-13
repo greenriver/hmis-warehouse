@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'datalab_context'
 
 RSpec.describe 'Datalab 2021 APR - rrh', type: :model do
-  include_context 'datalab context'
+  include_context 'datalab apr context'
 
   before(:all) do
     setup

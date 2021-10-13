@@ -8,7 +8,7 @@ RSpec.configure do
   RSpec.configuration.fixpoints_path = 'drivers/hud_apr/spec/fixpoints'
 end
 
-RSpec.shared_context 'datalab context', shared_context: :metadata do
+RSpec.shared_context 'datalab caper context', shared_context: :metadata do
   def shared_filter
     {
       start: Date.parse('2020-10-01'),
@@ -23,17 +23,7 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
   end
 
   def result_file_prefix
-    'drivers/hud_apr/spec/fixtures/files/fy2021/datalab_apr/'
-  end
-
-  def project_type_filter(project_type)
-    project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: project_type).pluck(:id)
-    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: project_ids))
-  end
-
-  def rrh_1_filter
-    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: '808').id
-    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
+    'drivers/hud_apr/spec/fixtures/files/fy2021/datalab_caper/'
   end
 
   def setup
@@ -57,7 +47,7 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
   end
 
   def run(filter)
-    generator = HudApr::Generators::Apr::Fy2021::Generator
+    generator = HudApr::Generators::Caper::Fy2021::Generator
     generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: generator.questions.keys)).run!(email: false)
   end
 
@@ -143,5 +133,5 @@ RSpec.shared_context 'datalab context', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'datalab context', include_shared: true
+  rspec.include_context 'datalab caper context', include_shared: true
 end
