@@ -108,9 +108,6 @@ module Importers::HmisAutoMigrate
     end
 
     def unchanged_file?(file)
-      TodoOrDie('Remove after testing', by: '2021-10-20')
-      return false if Rails.env.staging? || Rails.env.development?
-
       incoming_filename = File.basename(file, File.extname(file))
       previous_import_filename = previous_import&.file&.file&.filename || 'none.zip'
       previous_import_filename = File.basename(previous_import_filename, File.extname(previous_import_filename))

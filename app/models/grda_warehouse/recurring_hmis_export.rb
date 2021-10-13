@@ -23,9 +23,6 @@ module GrdaWarehouse
     has_many :hmis_exports, through: :recurring_hmis_export_links
 
     def should_run?
-      TodoOrDie('Remove after testing', by: '2021-10-20')
-      return true if Rails.env.staging? || Rails.env.development?
-
       if hmis_exports.exists?
         last_export_finished_on = recurring_hmis_export_links.maximum(:exported_at)
         return Date.current - last_export_finished_on >= every_n_days
@@ -160,8 +157,6 @@ module GrdaWarehouse
       prefix = ''
       prefix = "#{s3_prefix.strip}-" if s3_prefix.present?
       date = Date.current.strftime('%Y%m%d')
-      TodoOrDie('Remove after testing', by: '2021-10-20')
-      date = Time.current.strftime('%Y%m%d%H%M') if Rails.env.staging? || Rails.env.development?
       ext = encryption_type.presence || 'zip'
       "#{prefix}#{date}-#{report.export_id}.#{ext}"
     end
