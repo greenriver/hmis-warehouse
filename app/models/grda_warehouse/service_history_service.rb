@@ -8,7 +8,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ArelHelper
   include ServiceHistoryServiceConcern
 
-  belongs_to :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id], inverse_of: :service_history_services
+  belongs_to :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id], inverse_of: :service_history_services, optional: true
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :enrollment, through: :service_history_enrollment
 
