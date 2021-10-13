@@ -64,37 +64,38 @@ module GrdaWarehouse
     end
 
     private def encrypt_zipcloak(content)
-      tmp = Tempfile.new(['hmis_export', '.zip'], 'tmp', binmode: true)
+      tmp = Tempfile.new(['hmis_export', '.zip'], Rails.root.join('tmp').to_s, binmode: true)
       source_path = Rails.root.join(tmp.path).to_s
       export_dir = ::File.dirname(source_path)
       destination_path = "#{::File.join(export_dir, ::File.basename(source_path, '.zip'))}_enc.zip"
       tmp.write(content)
       tmp.close
-      # cmd = "zipcloak --output-file #{destination_path} #{source_path}"
-
-      # PTY.spawn(cmd) do |reader, writer, _|
-      #   reader.expect(/Enter password:/, 100)
-      #   writer.puts(zip_password)
-      #   reader.expect(/Verify password:/, 100)
-      #   writer.puts(zip_password)
-      # end
 
       Tempfile.create('expect', export_dir.to_s) do |expect_script|
         expect_content = <<~EXPECT
-          #!/usr/bin/expect
+          #!/usr/bin/expect -f
+
+          set force_conservative 0  ;# set to 1 to force conservative mode even if
+                                    ;# script wasn't run conservatively originally
+          if {$force_conservative} {
+            set send_slow {1 .1}
+            proc send {ignore arg} {
+              sleep .1
+              exp_send -s -- $arg
+            }
+          }
+
+          set timeout -1
           spawn zipcloak --output-file #{destination_path} #{source_path}
-          expect {
-            -nocase -re "Enter password:.*" {
-              send "#{zip_password}\r"
-            }
-          }
-          expect {
-            -nocase -re "Verify password:.*" {
-              send "#{zip_password}\r"
-            }
-          }
-          send_user "\n>> Password sent\n"
-          interact
+          match_max 100000
+          expect -exact "Enter password: "
+          send -- "#{zip_password}\r"
+          expect -exact "\r
+          Verify password: "
+          send -- "#{zip_password}\r"
+          expect eof
+
+          send_user "\n $expect_out(buffer) \n"
         EXPECT
         expect_script.write(expect_content)
         expect_script.close
@@ -102,7 +103,6 @@ module GrdaWarehouse
         system(expect_script.path)
       end
 
-      sleep(5) unless ::File.exist?(destination_path)
       # return the encrypted content
       encrypted_content = ::File.open(destination_path, binmode: true).read
       FileUtils.rm(destination_path)
@@ -143,7 +143,7 @@ module GrdaWarehouse
           end
         end
       end
-      # for some reason we need a bit of sand after talking to zipcloak over PTY
+      # for some reason we need a bit of sand after talking to zipcloak
       sleep(5) unless ::File.exist?(destination_file)
       # return the encrypted content
       encrypted_content = ::File.open(destination_file, binmode: true).read
