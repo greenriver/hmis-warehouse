@@ -14,7 +14,7 @@ module Health
 
     mount_uploader :file, TransactionAcknowledgementFileUploader
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     def transaction_result
       begin

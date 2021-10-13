@@ -13,7 +13,7 @@ module ClaimsReporting
     #  include ::Filter::FilterScopes
     acts_as_paranoid
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do

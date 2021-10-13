@@ -4,8 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'memoist'
+
 module HomelessSummaryReport
   class Report < SimpleReports::ReportInstance
+    extend Memoist
     include Filter::ControlSections
     include Filter::FilterScopes
     include Reporting::Status
@@ -15,7 +18,7 @@ module HomelessSummaryReport
 
     acts_as_paranoid
 
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :clients
 
     after_initialize :filter
@@ -144,27 +147,28 @@ module HomelessSummaryReport
     end
 
     private def add_clients(report_clients)
-      spm_reports = run_spm
-
       # Work through all the SPM report variants, building up the `report_clients` as we go.
-      spm_reports.each do |variant_name, report|
-        spm_fields.each do |spm_field, parts|
-          cells = parts[:cells]
-          cells.each do |cell|
-            spm_clients = answer_clients(report[:report], *cell)
-            spm_clients.each do |spm_client|
-              report_client = report_clients[spm_client[:client_id]] || Client.new
-              report_client[:client_id] = spm_client[:client_id]
-              report_client[:first_name] = spm_client[:first_name]
-              report_client[:last_name] = spm_client[:last_name]
-              report_client[:report_id] = id
-              report_client["spm_#{spm_field}"] = spm_client[spm_field]
-              if field_measure(spm_field) == 7
-                field_name = "spm_m#{cell.join('_')}".delete('.').downcase.to_sym
-                report_client[field_name] = true
+      run_spm.each do |variant_name, spec|
+        { '' => spec[:base_variant] }.merge(spec[:variants]).each do |sub_variant, report|
+          detail_variant_name = "spm_#{variant_name}__#{sub_variant.presence || 'all'}"
+          spm_fields.each do |spm_field, parts|
+            cells = parts[:cells]
+            cells.each do |cell|
+              spm_clients = answer_clients(report[:report], *cell)
+              spm_clients.each do |spm_client|
+                report_client = report_clients[spm_client[:client_id]] || Client.new
+                report_client[:client_id] = spm_client[:client_id]
+                report_client[:first_name] = spm_client[:first_name]
+                report_client[:last_name] = spm_client[:last_name]
+                report_client[:report_id] = id
+                report_client["spm_#{spm_field}"] = spm_client[spm_field]
+                if field_measure(spm_field) == 7
+                  field_name = "spm_m#{cell.join('_')}".delete('.').downcase.to_sym
+                  report_client[field_name] = true
+                end
+                report_client[detail_variant_name] = report[:report].id
+                report_clients[spm_client[:client_id]] = report_client
               end
-              report_client["spm_#{variant_name}"] = report[:report].id
-              report_clients[spm_client[:client_id]] = report_client
             end
           end
         end
@@ -211,8 +215,9 @@ module HomelessSummaryReport
       options[:project_type_codes] ||= []
       options[:project_type_codes] += [:es, :so, :sh, :th]
       generator = HudSpmReport::Generators::Fy2020::Generator
-      variants.map do |variant, spec|
-        extra_filters = spec[:extra_filters] || {}
+      variants.each do |_, spec|
+        base_variant = spec[:base_variant]
+        extra_filters = base_variant[:extra_filters] || {}
         processed_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id)
         processed_filter.update(options.deep_merge(extra_filters))
         report = HudReports::ReportInstance.from_filter(
@@ -221,8 +226,22 @@ module HomelessSummaryReport
           build_for_questions: questions,
         )
         generator.new(report).run!(email: false, manual: false)
-        [variant, spec.merge(report: report)]
-      end.to_h
+        spec[:base_variant][:report] = report
+
+        spec[:variants].each do |_, sub_spec|
+          processed_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id)
+          processed_filter.update(options.deep_merge(extra_filters.merge(sub_spec[:extra_filters] || {})))
+          report = HudReports::ReportInstance.from_filter(
+            processed_filter,
+            generator.title,
+            build_for_questions: questions,
+          )
+          generator.new(report).run!(email: false, manual: false)
+          sub_spec[:report] = report
+        end
+      end
+      # return @variants with reports for each question
+      variants
     end
 
     def measures
@@ -376,64 +395,107 @@ module HomelessSummaryReport
       @variants ||= self.class.report_variants
     end
 
+    def variant_name(variant)
+      @variant_names ||= {}.tap do |names|
+        variants.each do |variant_slug, details|
+          names["#{variant_slug}__all"] = details[:base_variant][:name]
+          details[:variants].each do |sub_variant_slug, sub_details|
+            names["#{variant_slug}__#{sub_variant_slug}"] = sub_details[:name]
+          end
+        end
+      end
+      @variant_names[variant]
+    end
+
     def self.report_variants
-      {
+      household_types = {
         all_persons: {
-          name: 'All Persons',
-          extra_filters: {
-            household_type: :all,
+          base_variant: {
+            name: 'All Persons',
+            extra_filters: {
+              household_type: :all,
+            },
           },
-        },
-        without_children: {
-          name: 'Persons in Adult Only Households',
-          extra_filters: {
-            household_type: :without_children,
-          },
+          variants: {},
         },
         with_children: {
-          name: 'Persons in Adult/Child Households',
-          extra_filters: {
-            household_type: :with_children,
+          base_variant: {
+            name: 'Persons in Adult/Child Households',
+            extra_filters: {
+              household_type: :with_children,
+            },
           },
+          variants: {},
         },
         only_children: {
-          name: 'Persons in Child Only Households',
-          extra_filters: {
-            household_type: :only_children,
+          base_variant: {
+            name: 'Persons in Child Only Households',
+            extra_filters: {
+              household_type: :only_children,
+            },
           },
+          variants: {},
         },
         without_children_and_fifty_five_plus: {
-          name: 'Persons in Adult Only Households who are Age 55+',
-          extra_filters: {
-            household_type: :without_children,
-            age_ranges: [
-              :fifty_five_to_fifty_nine,
-              :sixty_to_sixty_one,
-              :over_sixty_one,
-            ],
+          base_variant: {
+            name: 'Persons in Adult Only Households who are Age 55+',
+            extra_filters: {
+              household_type: :without_children,
+              age_ranges: [
+                :fifty_five_to_fifty_nine,
+                :sixty_to_sixty_one,
+                :over_sixty_one,
+              ],
+            },
           },
+          variants: {},
         },
         adults_with_children_where_parenting_adult_18_to_24: {
-          name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
-          extra_filters: {
-            household_type: :with_children,
-            hoh_only: true,
-            age_ranges: [
-              :eighteen_to_twenty_four,
-            ],
+          base_variant: {
+            name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
+            extra_filters: {
+              household_type: :with_children,
+              hoh_only: true,
+              age_ranges: [
+                :eighteen_to_twenty_four,
+              ],
+            },
           },
+          variants: {},
         },
+      }
+      household_types.each do |_, reports|
+        demographic_variants.each do |key, variant|
+          reports[:variants][key] = variant
+        end
+      end
+      household_types.freeze
+    end
+
+    def self.available_variants
+      [].tap do |av|
+        report_variants.keys.each do |variant|
+          av << "#{variant}__all"
+          report_variants.values.flat_map { |m| m[:variants].keys }.each do |sub_v|
+            av << "#{variant}__#{sub_v}"
+          end
+        end
+      end
+    end
+
+    def self.demographic_variants
+      {
         white_non_hispanic_latino: {
-          name: 'White Non Hispanic/Latino Persons',
+          name: 'White Non-Hispanic/Non-Latin(a)(o)(x) Persons',
           extra_filters: {
-            ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latino', true)],
+            ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latin(a)(o)(x)', true)],
             races: ['White'],
           },
         },
         hispanic_latino: {
-          name: 'Hispanic/Latino Persons (Regardless of Race)',
+          name: 'Hispanic/Latin(a)(o)(x)',
           extra_filters: {
-            ethnicities: [HUD.ethnicity('Hispanic/Latino', true)],
+            ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
           },
         },
         black_african_american: {
@@ -533,7 +595,8 @@ module HomelessSummaryReport
       when :median
         scope.median(cell)
       when :percent
-        denominator = clients.send(variant).send(options[:total]).count
+        # denominator should always be the "all" variant
+        denominator = clients.send('spm_all_persons__all').send(options[:total]).count
         (scope.count / denominator.to_f) * 100 unless denominator.zero?
       when :count_destinations
         # spm_m7a1_destination
@@ -545,5 +608,6 @@ module HomelessSummaryReport
       end
       value&.round(1) || 0
     end
+    memoize :calculate
   end
 end

@@ -11,8 +11,8 @@ module HealthEmergency
     has_paper_trail
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :user
-    belongs_to :agency
+    belongs_to :user, optional: true
+    belongs_to :agency, optional: true
 
     scope :newest_first, -> do
       order(created_at: :desc)

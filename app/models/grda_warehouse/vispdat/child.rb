@@ -6,6 +6,6 @@
 
 module GrdaWarehouse::Vispdat
   class Child < GrdaWarehouseBase
-    belongs_to :family
+    belongs_to :family, optional: true
   end
 end

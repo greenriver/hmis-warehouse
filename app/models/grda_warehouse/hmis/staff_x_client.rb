@@ -8,8 +8,8 @@ module GrdaWarehouse::HMIS
   class StaffXClient < Base
     dub 'staff_x_clients'
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :staff_x_clients
-    belongs_to :staff, inverse_of: :staff_x_clients
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :staff_x_clients, optional: true
+    belongs_to :staff, inverse_of: :staff_x_clients, optional: true
 
     scope :primary_caseworker, -> { where relationship_id: 1 }
     scope :support_caseworker, -> { where relationship_id: 2 }

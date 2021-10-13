@@ -12,7 +12,7 @@ class HmisCsvImporter::LoadedController < ApplicationController
     @filename = log.summary.keys.detect { |v| v == params[:file] }
     @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
       find_by(loader_log_id: log.id)
-    @klass = HmisCsvImporter::Loader::LoaderLog.importable_files[@filename]
+    @klass = HmisCsvImporter::Loader::LoaderLog.loadable_files[@filename]
     @data = @klass.where(loader_id: log.id).
       order(@klass.hud_key => :asc)
     @data = @data.with_deleted if @klass.paranoid?

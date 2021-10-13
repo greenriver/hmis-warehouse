@@ -125,7 +125,7 @@ namespace :grda_warehouse do
 
   desc 'S3 Import HUD Zips from all Data Sources'
   task import_data_sources_s3: [:environment, 'log:info_to_stdout'] do
-    Importers::HmisAutoDetect::S3.available_connections.each do |conf|
+    Importers::HmisAutoMigrate::S3.available_connections.each do |conf|
       next unless conf.active?
 
       options = {

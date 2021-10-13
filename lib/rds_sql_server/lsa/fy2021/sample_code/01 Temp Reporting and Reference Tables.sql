@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  01 Temp Reporting and Reference Tables.sql
-Date:  08 SEP 2021
+Date:  6 OCT 2021
 
 This script drops (if tables exist) and creates the following temp reporting tables:
 
@@ -22,7 +22,9 @@ This script drops (if tables exist) and creates the following temp reporting tab
 		sys_Time - used to count dates in ES/SH, TH, RRH/PSH but not housed, housed in RRH/PSH, and ES/SH/StreetDates
 	tlsa_Exit - household-level precursor to LSAExit / households with system exits in exit cohort periods
 	tlsa_ExitHoHAdult - used as the basis for determining chronic homelessness for LSAExit
-	tlsa_Pops - used to identify people/households in various populations
+	tlsa_AveragePops - used to identify households in various populations for average # of days in section 8 
+		based on LSAHousehold and LSAExit.
+	tlsa_CountPops - used to identify people/households in various populations for AHAR counts in section 9.
 
 	dq_Enrollment - Enrollments included in LSAReport data quality reporting 
 
@@ -957,6 +959,7 @@ insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, 
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,34,0,34);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,35,0,35);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,36,0,36);
+insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1015,10,15);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1018,10,18);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1019,10,19);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1020,10,20);
@@ -973,6 +976,7 @@ insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, 
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1031,10,31);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1032,10,32);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1033,10,33);
+insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1115,11,15);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1118,11,18);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1119,11,19);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1120,11,20);
@@ -989,6 +993,7 @@ insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, 
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1131,11,31);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1132,11,32);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1133,11,33);
+insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1215,12,15);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1218,12,18);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1219,12,19);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1220,12,20);
@@ -1005,6 +1010,7 @@ insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, 
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1231,12,31);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1232,12,32);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1233,12,33);
+insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1315,13,15);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1318,13,18);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1319,13,19);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1320,13,20);
@@ -1022,6 +1028,7 @@ insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, 
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1332,13,32);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1333,13,33);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1334,13,34);
+insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1415,14,15);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1418,14,18);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1419,14,19);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (1,9,NULL,NULL,1420,14,20);

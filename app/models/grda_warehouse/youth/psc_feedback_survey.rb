@@ -7,7 +7,7 @@
 module GrdaWarehouse::Youth
   class PscFeedbackSurvey < GrdaWarehouse::Youth::Base
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :psc_feedback_surveys
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :youth_intakes, through: :client
 
     def ratings

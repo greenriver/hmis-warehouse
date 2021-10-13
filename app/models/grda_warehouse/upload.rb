@@ -11,7 +11,7 @@ module GrdaWarehouse
     acts_as_paranoid
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-    belongs_to :user
+    belongs_to :user, optional: true
 
     belongs_to :delayed_job, optional: true, class_name: '::Delayed::Job'
     has_one :import_log, class_name: 'GrdaWarehouse::ImportLog', required: false

@@ -8,7 +8,6 @@ require 'csv'
 require 'memoist'
 module GrdaWarehouse::Tasks
   class HmisCsvValidator
-    include HmisTwentyTwenty
     extend Memoist
     attr_accessor :errors, :project_ids, :enrollment_ids, :export_id, :path
     def initialize(path)
@@ -19,7 +18,7 @@ module GrdaWarehouse::Tasks
       return unless path.present? && File.directory?(path)
 
       Rails.logger.debug "Processing HMIS data from #{path}"
-      self.class.importable_files_map.each do |filename, klass_name|
+      HmisCsvTwentyTwentyTwo.importable_files_map.each do |filename, klass_name|
         Rails.logger.debug "Checking #{filename}"
         file_path = File.join(path, filename)
         downcase_converter = ->(header) { header.downcase }
@@ -63,13 +62,13 @@ module GrdaWarehouse::Tasks
       self.errors ||= {}
       self.errors[filename] ||= {}
       self.errors[filename][column] ||= {}
-      self.errors[filename][column][message] ||= { count: 0, example: example}
+      self.errors[filename][column][message] ||= { count: 0, example: example }
       self.errors[filename][column][message][:count] += 1
       self.errors[filename][column][message][:example] ||= example
     end
 
     private def validations(klass)
-      klass.hmis_configuration(version: '2020').map do |column, structure|
+      klass.hmis_configuration(version: '2022').map do |column, structure|
         validation_methods = []
         validation_methods << case structure[:type]
         when :integer

@@ -14,7 +14,7 @@ module HmisCsvTwentyTwenty::Importer
     self.table_name = 'hmis_2020_exits'
 
     has_one :destination_record, **hud_assoc(:ExitID, 'Exit')
-    belongs_to :enrollment, primary_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwenty::Importer::Enrollment', autosave: false
+    belongs_to :enrollment, primary_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwenty::Importer::Enrollment', autosave: false, optional: true
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
       return none unless project_ids.present?

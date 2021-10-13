@@ -50,7 +50,7 @@
   - content_for :filter_actions do
     .d-flex
       .ml-auto
-        %a.btn.btn-secondary.collapsed{data: {toggle: 'collapse'}, href: '#recurrence_options'}
+        %a.btn.btn-secondary.collapsed{data: {toggle: 'collapse', target: '#recurrence_options', aria: {expanded: false, controls: '#recurrence_options'}}, href: '#'}
           Recurring Export Options...
       .ml-2
         = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }

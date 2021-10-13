@@ -14,7 +14,7 @@ module HmisCsvImporter::Aggregated
 
     has_one :destination_record, **hud_assoc(:EnrollmentID, 'Enrollment')
     has_one :exit, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], class_name: 'HmisCsvImporter::Aggregated::Exit', autosave: false
-    belongs_to :project, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], class_name: 'HmisCsvImporter::Importer::Project', autosave: false
+    belongs_to :project, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], class_name: 'HmisCsvImporter::Importer::Project', autosave: false, optional: true
 
     scope :open_during_range, ->(range) do
       e_t = arel_table

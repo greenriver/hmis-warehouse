@@ -78,8 +78,8 @@ module Health
     ]
     CLIENT_ACTION_OTHER = 'Supporting medication reconciliation'
 
-    belongs_to :patient
-    belongs_to :user
+    belongs_to :patient, optional: true
+    belongs_to :user, optional: true
 
     has_one :health_file, class_name: 'Health::SdhCaseManagementNoteFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles

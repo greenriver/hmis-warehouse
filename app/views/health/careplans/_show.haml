@@ -3,96 +3,18 @@
 - title = "Care Plan for #{@patient.name} as of #{Date.current}"
 - content_for :title, title
 
-.l-print
-  %article.l-print__section
-    %ul.l-print__summary-items
-      %li
-        %dl
-          %dt Patient DOB
-          %dd= @patient.birthdate&.to_date
-      %li
-        %dl
-          %dt Initial Date
-          %dd= @careplan.initial_date&.to_date
-      %li
-        %dl
-          %dt Review Date
-          %dd= @careplan.review_date&.to_date
-
-
-  = render 'health/careplans/team_members_table'
-
-  %article.health-care-plan__about-me.l-print__section--page
-    %h1 Strengths and Barriers
-    .l-print__item
-      %h4 My Health Problems
-      = simple_format @careplan.patient_health_problems
-    .l-print__item
-      %h4 My Strengths (including interests, preferences, and cultural considerations and available informal, caregiver, or social supports, peer supports)
-      = simple_format @careplan.patient_strengths
-    .l-print__item
-      %h4 My Barriers
-      = simple_format @careplan.patient_barriers
-  = render 'health/careplans/goals_table'
-
-  %article.health-care-plan__issues.l-print__section--page
-    = render 'health/careplans/future_issues'
-
-  %article.health-care-plan__services.l-print__section--page
-    = render 'health/careplans/service_list'
-
-  %article.health-care-plan__equipments.l-print__section--page
-    = render 'health/careplans/equipment_list'
-
-  %section.health-care-plan__backup_plans.l-print__section--page.no-break
-    %strong
-      -if  @careplan.member_understands_contingency
-        _X_
-      - else
-        ___
-    Member understands contingency plan described below if care coordinator is needed but not available
-    = render 'health/careplans/backup_plan_list'
+.l-print.hide-blank-page
+  =render 'pctp'
 
   %article.health-care-plan__cha.l-print__section--page
     %h1 Comprehensive Health Assessment
     = render 'health/comprehensive_health_assessments/show'
 
-  %article.health-care-plan__responsible-parties.l-print__section--page
-    %h1 Responsible Parties Signatures
+  = render 'pctp_signatures'
 
-    %dl.l-print__item
-      %dt.inline Patient:
-      %dd.inline= @patient.name
-      %dd.l-print__signature &nbsp;
-      %dt.inline Signed On:
-      %dd.inline= @careplan.patient_signed_on&.to_date
-
-    %dl.l-print__item
-      %dt.inline Representative:
-      %dd.inline= @careplan.representative&.full_name
-      %dd.l-print__signature &nbsp;
-      %dt.inline Signed On:
-      %dd.inline= @careplan.representative_signed_on
-
-    %dl.l-print__item
-      %dt.inline Provider:
-      %dd.inline
-        - if @careplan.provider_signed_on.present?
-          = @careplan.provider&.full_name
-      %dd.l-print__signature &nbsp;
-      %dt.inline Signed On:
-      %dd.inline= @careplan.provider_signed_on&.to_date
-    %strong
-      -if  @careplan.member_verbalizes_understanding
-        _X_
-      - else
-        ___
-    Member verbalizes understanding and accepts care plan. (Note: signature needed within 3 mos. of verbal approval.)
-
-  - unless @document == 'pctp'
-    %article.health-care-plan__ssm
-      %h1 Self-Sufficiency Matrix
-      - if @form.is_a? GrdaWarehouse::HmisForm
-        .ssm-print= render @ssm_partial
-      - elsif @ssm_partial
-        = render @ssm_partial
+  %article.health-care-plan__ssm
+    %h1 Self-Sufficiency Matrix
+    - if @form.is_a? GrdaWarehouse::HmisForm
+      .ssm-print= render @ssm_partial
+    - elsif @ssm_partial
+      = render @ssm_partial
