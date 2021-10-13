@@ -7,6 +7,6 @@
 class AccessGroupMember < ApplicationRecord
   acts_as_paranoid
 
-  belongs_to :access_group
-  belongs_to :user
+  belongs_to :access_group, optional: true
+  belongs_to :user, optional: true
 end

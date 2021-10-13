@@ -21,9 +21,9 @@ module Health
     phi_attr :part_3, Phi::FreeText
 
 
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_case_note_qualifying_activities
+    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_case_note_qualifying_activities, optional: true
     has_many :patient, through: :epic_patient
-    belongs_to :epic_case_note, primary_key: :id_in_source, foreign_key: :epic_case_note_source_id, inverse_of: :epic_case_note_qualifying_activities
+    belongs_to :epic_case_note, primary_key: :id_in_source, foreign_key: :epic_case_note_source_id, inverse_of: :epic_case_note_qualifying_activities, optional: true
 
     self.source_key = :NOTE_ID
 

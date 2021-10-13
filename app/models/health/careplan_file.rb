@@ -10,7 +10,7 @@
 module Health
   class CareplanFile < Health::HealthFile
 
-    belongs_to :careplan, class_name: 'Health::Careplan', foreign_key: :parent_id
+    belongs_to :careplan, class_name: 'Health::Careplan', foreign_key: :parent_id, optional: true
 
     def title
       "Careplan"

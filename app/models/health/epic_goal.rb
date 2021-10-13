@@ -19,7 +19,7 @@ module Health
     phi_attr :contents, Phi::FreeText, "Content of goal"
     phi_attr :received_valid_complaint, Phi::NeedsReview
 
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_goals
+    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_goals, optional: true
     has_many :patient, through: :epic_patient
 
     scope :visible, -> do

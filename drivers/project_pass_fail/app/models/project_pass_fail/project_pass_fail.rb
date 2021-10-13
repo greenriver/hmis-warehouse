@@ -12,7 +12,7 @@ module ProjectPassFail
     include Reporting::Status
     include Rails.application.routes.url_helpers
 
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :projects, inverse_of: :project_pass_fail
     has_many :clients, inverse_of: :project_pass_fail
 

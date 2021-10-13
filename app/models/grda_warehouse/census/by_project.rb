@@ -9,7 +9,7 @@ module GrdaWarehouse::Census
     include TsqlImport
     self.table_name = "nightly_census_by_projects"
 
-    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
 
     scope :by_project_id, -> (project_id) do
       where(project_id: project_id)
