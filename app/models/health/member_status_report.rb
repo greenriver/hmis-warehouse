@@ -17,7 +17,7 @@ module Health
     phi_attr :id, Phi::SmallPopulation
 
     has_many :member_status_report_patients
-    belongs_to :user
+    belongs_to :user, optional: true
 
     scope :visible_by?, ->(user) do
       if user.can_view_member_health_reports? || user.can_view_aggregate_health? || user.can_administer_health?

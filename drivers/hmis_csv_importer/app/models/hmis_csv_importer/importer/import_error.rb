@@ -9,6 +9,6 @@ module HmisCsvImporter::Importer
     self.table_name = 'hmis_csv_import_errors'
 
     belongs_to :importer_log
-    belongs_to :source, polymorphic: true
+    belongs_to :source, polymorphic: true, optional: true
   end
 end

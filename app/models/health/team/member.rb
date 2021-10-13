@@ -20,8 +20,8 @@ module Health
     phi_attr :last_contact, Phi::Date, "Date of last contact"
 
 
-    # belongs_to :team, class_name: 'Health::Team'
-    belongs_to :patient
+    # belongs_to :team, class_name: 'Health::Team', optional: true
+    belongs_to :patient, optional: true
 
     validates :email, email_format: { check_mx: true }, length: {maximum: 250}, allow_blank: true
     validate :email_domain_if_present

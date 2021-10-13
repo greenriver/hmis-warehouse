@@ -16,7 +16,7 @@ module Health
 
     mount_uploader :file, EnrollmentFileUploader
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     ENROLLMENT = '021'
     DISENROLLMENT = '024'

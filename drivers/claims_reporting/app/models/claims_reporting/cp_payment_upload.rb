@@ -15,7 +15,7 @@ module ClaimsReporting
     phi_attr :id, Phi::SmallPopulation
     phi_attr :content, Phi::Bulk # contains serialized medicaid_ids, name, service dates
 
-    belongs_to :user, class_name: 'User', required: true
+    belongs_to :user, class_name: 'User', required: true, optional: true
     validate :validate_contents
 
     has_many :details, class_name: '::ClaimsReporting::CpPaymentDetail'

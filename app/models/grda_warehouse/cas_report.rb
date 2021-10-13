@@ -10,7 +10,7 @@ module GrdaWarehouse
     def readonly?
       true
     end
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :cas_reports
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :cas_reports, optional: true
 
     scope :started_between, -> (start_date:, end_date:) do
       where(match_started_at: (start_date..end_date))

@@ -14,7 +14,7 @@ module GrdaWarehouse::HealthEmergency
     acts_as_paranoid
     mount_uploader :file, TestResultsUploader
 
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :uploaded_tests, foreign_key: :batch_id, inverse_of: :batch
 
     scope :visible_to, ->(user) do

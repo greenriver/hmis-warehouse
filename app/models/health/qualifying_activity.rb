@@ -25,7 +25,7 @@ module Health
     phi_attr :user_id, Phi::OtherIdentifier
     phi_attr :user_full_name, Phi::NeedsReview
     phi_attr :follow_up, Phi::FreeText
-    phi_attr :claim_id, Phi::SmallPopulation # belongs_to Health::Claim
+    phi_attr :claim_id, Phi::SmallPopulation # belongs_to Health::Claim, optional: true
     # phi_attr :force_payable
     # phi_attr :naturally_payable
     phi_attr :sent_at, Phi::Date
@@ -109,10 +109,10 @@ module Health
         merge(Health::PatientReferral.contributing)
     end
 
-    belongs_to :source, polymorphic: true
-    belongs_to :epic_source, polymorphic: true
-    belongs_to :user
-    belongs_to :patient
+    belongs_to :source, polymorphic: true, optional: true
+    belongs_to :epic_source, polymorphic: true, optional: true
+    belongs_to :user, optional: true
+    belongs_to :patient, optional: true
 
     def self.modes_of_contact
       @modes_of_contact ||= {
