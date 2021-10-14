@@ -4809,7 +4809,8 @@ CREATE TABLE public.configs (
     enable_youth_hrp boolean DEFAULT true NOT NULL,
     enable_system_cohorts boolean DEFAULT false,
     currently_homeless_cohort boolean DEFAULT false,
-    show_client_last_seen_info_in_client_details boolean DEFAULT true
+    show_client_last_seen_info_in_client_details boolean DEFAULT true,
+    ineligible_uses_extrapolated_days boolean DEFAULT true NOT NULL
 );
 
 
@@ -45242,6 +45243,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210930135501'),
 ('20211001135131'),
 ('20211001160706'),
-('20211004174014');
+('20211004174014'),
+('20211013135958');
 
 
