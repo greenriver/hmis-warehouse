@@ -5,7 +5,7 @@
 ###
 
 require 'rails_helper'
-require_relative 'datalab_context'
+require_relative 'datalab_apr_context'
 
 RSpec.describe 'Datalab 2021 APR - so', type: :model do
   include_context 'datalab apr context'
