@@ -9,21 +9,23 @@
       %option{value: 'adults_with_children_homeless_map'} Adults with Children
       %option{value: 'veterans_homeless_map'} Veterans
 .state-map#comparison-map
-.state-map-comparison-legend.d-flex
-  - colors = @report.chart_color_shades(:youth_primary_color)
-  - colors.each_with_index do |color, i|
-    - division_size = max_rate / colors.count
-    - division_start = i * division_size
-    - division_end = (i + 1) * division_size
-    - division_end = division_end.round
-    - # range = if division_end == 1.0 then "#{division_start.round(1)}+" else "#{division_start.round(1)} - #{division_end}" end
-    - range = if division_end == 1 then "#{division_start.round}+" else "#{division_start.round}% - #{division_end}%" end
-    .ml-4
-      .color-box.mr-auto.ml-auto.p-2{style: "background-color: #{color}; width: 20px; height: 20px;"}
-      .color-range
-        = range
-.w-100
-  Percentage of homeless population
+.d-flex
+  .state-map-comparison-legend.ml-auto.mr-auto.d-flex
+    - colors = @report.chart_color_shades(:map_primary_color)
+    - colors.each_with_index do |color, i|
+      - division_size = max_rate / colors.count
+      - division_start = i * division_size
+      - division_end = (i + 1) * division_size
+      - division_end = division_end.round
+      - # range = if division_end == 1.0 then "#{division_start.round(1)}+" else "#{division_start.round(1)} - #{division_end}" end
+      - range = if division_end == 1 then "#{division_start.round}+" else "#{division_start.round}% - #{division_end}%" end
+      .ml-4
+        .color-box.mr-auto.ml-auto.p-2{style: "background-color: #{color}; width: 20px; height: 20px; border: 1px solid \#CCCCCC;"}
+        .color-range
+          = range
+.d-flex
+  .ml-auto.mr-auto.d-flex
+    Percentage of homeless population
 
 - # include the map class directly
 - map_type = @report.map_type

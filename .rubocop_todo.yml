@@ -1015,7 +1015,6 @@ Layout/SpaceAfterComma:
     - 'app/models/similarity_metric/initializer.rb'
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/talentlms/config.rb'
-    - 'drivers/public_reports/app/models/public_reports/setting.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
