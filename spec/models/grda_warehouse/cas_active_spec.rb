@@ -53,7 +53,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
       Delayed::Job.delete_all
     end
 
-    it 'finds two clients who are active for CAS' do
+    it 'finds one client who is active for CAS' do
       travel_to Time.local(2016, 2, 15) do
         expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(1)
       end
