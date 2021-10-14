@@ -26,6 +26,16 @@ RSpec.shared_context 'datalab ce apr context', shared_context: :metadata do
     'drivers/hud_apr/spec/fixtures/files/fy2021/datalab_ce_apr/'
   end
 
+  def ce_and_es_filter
+    project_ids = GrdaWarehouse::Hud::Project.where(ProjectID: ['942', '240']).pluck(:id)
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: project_ids))
+  end
+
+  def ce_only_filter
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: '942').id
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
+  end
+
   def setup
     HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
