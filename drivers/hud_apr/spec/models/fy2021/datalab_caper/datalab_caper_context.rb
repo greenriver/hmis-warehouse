@@ -18,6 +18,26 @@ RSpec.shared_context 'datalab caper context', shared_context: :metadata do
     }.freeze
   end
 
+  def project_type_filter(project_type)
+    project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: project_type).pluck(:id)
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: project_ids))
+  end
+
+  def rrh_1_filter # The RRH CAPER is not run for all the RRH projects in the datasource
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: '808').id
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
+  end
+
+  def es_ee_filter
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: '240').id
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
+  end
+
+  def es_nbm_filter
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: '882').id
+    ::Filters::HudFilterBase.new(shared_filter.merge(project_ids: [project_id]))
+  end
+
   def hmis_file_prefix
     'drivers/hud_apr/spec/fixtures/files/fy2021/datalab_hmis/*'
   end
