@@ -20,7 +20,7 @@ module Health
     phi_attr :comments, Phi::FreeText
 
     has_many :careplans
-    belongs_to :patient
+    belongs_to :patient, optional: true
 
     validates_presence_of :service_type
 

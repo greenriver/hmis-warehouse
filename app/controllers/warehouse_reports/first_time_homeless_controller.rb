@@ -16,14 +16,24 @@ module WarehouseReports
     before_action :set_filter
 
     def index
+      race_columns = GrdaWarehouse::Hud::Client.race_fields.map { |f| c_t[f] }
+      columns = [
+        :id,
+        :FirstName,
+        :LastName,
+        she_t[:date],
+        :VeteranStatus,
+        :DOB,
+        :Ethnicity,
+      ] + race_columns
       @clients = client_source.joins(:first_service_history).
         where(id: first_time_homeless_client_ids).
         preload(
           :first_service_history,
           first_service_history: [:organization, :project],
           source_clients: :data_source,
-        ).distinct.
-        select(:id, :FirstName, :LastName, she_t[:date], :VeteranStatus, :DOB, :Ethnicity, *GrdaWarehouse::Hud::Client.race_fields).
+        ).
+        select(*columns).
         order(she_t[:date], :LastName, :FirstName)
 
       respond_to do |format|

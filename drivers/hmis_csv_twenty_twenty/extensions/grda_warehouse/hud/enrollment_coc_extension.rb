@@ -9,8 +9,8 @@ module HmisCsvTwentyTwenty::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items, class_name: 'HmisCsvTwentyTwenty::Importer::EnrollmentCoc', primary_key: [:EnrollmentCoCID, :data_source_id], foreign_key: [:EnrollmentCoCID, :data_source_id]
-      has_many :loaded_items, class_name: 'HmisCsvTwentyTwenty::Loader::EnrollmentCoc', primary_key: [:EnrollmentCoCID, :data_source_id], foreign_key: [:EnrollmentCoCID, :data_source_id]
+      has_many :imported_items_2020, class_name: 'HmisCsvTwentyTwenty::Importer::EnrollmentCoc', primary_key: [:EnrollmentCoCID, :data_source_id], foreign_key: [:EnrollmentCoCID, :data_source_id]
+      has_many :loaded_items_2020, class_name: 'HmisCsvTwentyTwenty::Loader::EnrollmentCoc', primary_key: [:EnrollmentCoCID, :data_source_id], foreign_key: [:EnrollmentCoCID, :data_source_id]
     end
   end
 end

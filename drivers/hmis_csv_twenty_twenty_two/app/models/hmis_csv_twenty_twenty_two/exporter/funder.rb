@@ -9,13 +9,14 @@ module HmisCsvTwentyTwentyTwo::Exporter
     include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2022'))
 
-    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :funders
+    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :funders, optional: true
 
-    def apply_overrides row, data_source_id: # rubocop:disable Lint/UnusedMethodArgument
+    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
       row[:GrantID] = 'Unknown' if row[:GrantID].blank?
       row[:OtherFunder] = row[:OtherFunder][0...50] if row[:OtherFunder]
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
-      return row
+      row
     end
   end
 end

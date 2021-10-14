@@ -7,7 +7,7 @@
 module ClientLocationHistory
   class Location < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
-    belongs_to :source, polymorphic: true
+    belongs_to :source, polymorphic: true, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     def as_point

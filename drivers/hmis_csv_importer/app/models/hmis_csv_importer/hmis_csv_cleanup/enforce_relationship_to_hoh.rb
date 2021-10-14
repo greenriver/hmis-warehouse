@@ -16,7 +16,10 @@
 module HmisCsvImporter::HmisCsvCleanup
   class EnforceRelationshipToHoh < Base
     def cleanup!
-      rewrite_reused_household_ids
+      rewrite_reused_household_ids_across_projects
+      rewrite_reused_household_ids_within_project
+      # If we reuse the household id in the same project and there's only one personalID in the project, that person needs new HouseholdIDs and is HoH
+
       # Set anyone with a blank HouseholdID to RelationshipToHoH = 1
       # These clients are not in households
       enrollment_scope.where(HouseholdID: nil).
@@ -152,7 +155,47 @@ module HmisCsvImporter::HmisCsvCleanup
         end
     end
 
-    def rewrite_reused_household_ids
+    def rewrite_reused_household_ids_within_project
+      # In the situation where a client is in an individual enrollment and the HouseholdID is reused
+      # 1. Give each enrollment a new HouseholdID
+      # 2. Ensure that all RelationshipToHoH == 1
+      batch = []
+      enrollment_scope.
+        where.not(HouseholdID: nil).
+        pluck(:PersonalID, :HouseholdID).
+        group_by(&:last).
+        # We have more than one enrollment with the same HouseholdID, but we only have one person
+        select { |_, rows| rows.count > 1 && rows.uniq.count == 1 }.
+        each do |_, rows|
+          # all rows are the same, just use the first
+          personal_id, hh_id = rows.first
+          # This is going to issue one query per client household pair, but generally will only be a few dozen
+          # per import
+          enrollments = enrollment_scope.where(
+            HouseholdID: hh_id,
+            PersonalID: personal_id,
+          )
+          enrollments.find_each do |en|
+            en.HouseholdID = Digest::MD5.hexdigest("#{@importer_log.data_source.id}_#{en.EnrollmentID}_#{hh_id}")
+            en.RelationshipToHoH = 1
+            en.set_source_hash
+            batch << en
+          end
+        end
+      enrollment_source.import(
+        batch,
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: [
+            :HouseholdID,
+            :RelationshipToHoH,
+            :source_hash,
+          ],
+        },
+      )
+    end
+
+    def rewrite_reused_household_ids_across_projects
       # In the situation where you have a HouseholdID re-used across projects
       # 1. Find any where the household ID occurs in more than one project
       # 2. Update by project with a unique HouseholdID
@@ -222,6 +265,8 @@ module HmisCsvImporter::HmisCsvCleanup
 
         # Ignore any households where there is already only one HoH
         hh.delete_if { |_, rows| rows.one? { |m| m[:hoh] } }
+        # can't deal with any multi-person households where the household id was re-used in the same project
+        hh.delete_if { |_, rows| rows.map { |m| m[:personal_id] }.uniq.count != rows.count }
       end
     end
 

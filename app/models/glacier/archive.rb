@@ -6,6 +6,6 @@
 
 module Glacier
   class Archive < ApplicationRecord
-    belongs_to :vault, foreign_key: 'glacier_vault_id'
+    belongs_to :vault, foreign_key: 'glacier_vault_id', optional: true
   end
 end

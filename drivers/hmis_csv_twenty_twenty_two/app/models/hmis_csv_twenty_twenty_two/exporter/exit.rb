@@ -12,7 +12,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
 
     def export! enrollment_scope:, project_scope:, path:, export: # rubocop:disable Lint/UnusedMethodArgument
       case export.period_type
@@ -48,11 +48,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
       )
     end
 
-    def apply_overrides row, data_source_id: # rubocop:disable Lint/UnusedMethodArgument
+    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
       row[:Destination] = 99 if row[:Destination].blank?
       row[:OtherDestination] = row[:OtherDestination][0..49] if row[:OtherDestination].present?
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
-      return row
+      row
     end
 
     # Limit exits to one per enrollment (sometimes we get data with more) and only export

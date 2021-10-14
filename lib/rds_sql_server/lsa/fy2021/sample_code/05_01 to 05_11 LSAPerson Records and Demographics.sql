@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  05_01 to 05_11 LSAPerson.sql  
-Date:  09 SEP 2021   
+Date:  13 OCT 2021   
 
 	5.1 Identify Active and AHAR HouseholdIDs
 */
@@ -245,8 +245,7 @@ Date:  09 SEP 2021
 	select distinct lp.PersonalID, cal.theDate, '5.8.2'
 	from tlsa_Person lp
 		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
-		inner join tlsa_HHID hhid on hhid.HouseholdID = chn.HouseholdID
-		inner join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
+		inner join hmis_Services bn on bn.EnrollmentID = chn.EnrollmentID
 			and bn.RecordType = 200 
 			and bn.DateProvided >= chn.EntryDate 
 			and (bn.DateProvided < chn.ExitDate or chn.ExitDate is null)
@@ -279,8 +278,8 @@ Date:  09 SEP 2021
 	where chx.excludeDate is null
 		and chi.ESSHStreetDate is null
 		and (hn.LivingSituation in (1,18,16)
-			or (chn.LSAProjectType not in (1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11))
-			or (chn.LSAProjectType not in (1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
+			or (chn.LSAProjectType not in (0,1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11))
+			or (chn.LSAProjectType not in (0,1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
 					and hn.LivingSituation in (4,5,6,7,15,25)) 
 			)
 		and ( 

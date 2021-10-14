@@ -106,6 +106,9 @@ module HmisCsvImporter::Importer
 
     def should_pause?
       return false unless @data_source.refuse_imports_with_errors
+      return true unless @loader_log.status == 'loaded'
+
+      loader_errors = @loader_log.summary.values.sum { |h| h['total_errors'].to_i }
 
       db_errors = HmisCsvImporter::Importer::ImportError.where(
         importer_log_id: importer_log.id,
@@ -115,7 +118,8 @@ module HmisCsvImporter::Importer
         type: HmisCsvImporter::HmisCsvValidation::Error.subclasses.map(&:name),
         importer_log_id: importer_log.id,
       )
-      db_errors.count.positive? || validation_errors.count.positive?
+
+      loader_errors.positive? || db_errors.count.positive? || validation_errors.count.positive?
     end
 
     # Move all data from the data lake to either the structured, or aggregated tables
@@ -687,6 +691,8 @@ module HmisCsvImporter::Importer
 
     def pause_import
       logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log.id)}"
+
+      @import_log&.update(importer_log: importer_log)
       importer_log.update(status: :paused)
     end
 

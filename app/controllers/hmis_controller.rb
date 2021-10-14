@@ -27,13 +27,14 @@ class HmisController < ApplicationController
   def show
     @type = params[:type] if valid_class(params[:type]).present?
     @data_source = @item.data_source
-    return unless RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty)
+    return unless RailsDrivers.loaded.include?(:hmis_csv_importer)
 
-    @importer = HmisCsvTwentyTwenty::Importer::ImporterLog.where(data_source_id: @item.data_source_id).order(created_at: :desc)&.first
+    @importer = HmisCsvImporter::Importer::ImporterLog.where(data_source_id: @item.data_source_id).order(created_at: :desc)&.first
     return unless @importer
 
-    @imported = @item.imported_items.order(importer_log_id: :desc).first
-    @csv = @item.loaded_items.with_deleted.order(loader_id: :desc).first
+    year = @item.imported_item_type(@importer.id)
+    @imported = @item.send("imported_items_#{year}").order(importer_log_id: :desc).first
+    @csv = @item.send("loaded_items_#{year}").with_deleted.order(loader_id: :desc).first
   end
 
   private def searched?

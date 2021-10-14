@@ -988,7 +988,7 @@ module HUD
 
   def institutional_situations(as:, version: nil)
     case version
-    when '2020', nil
+    when '2020', '2022', nil
       case as
       when :prior, :current, :destination
         [
@@ -1005,7 +1005,7 @@ module HUD
 
   def temporary_and_permanent_housing_situations(as:, version: nil)
     case version
-    when '2020', nil
+    when '2020', '2022', nil
       case as
       when :prior, :current
         [
@@ -1055,7 +1055,7 @@ module HUD
 
   def other_situations(as:, version: nil)
     case version
-    when '2020', nil
+    when '2020', '2022', nil
       case as
       when :prior
         [

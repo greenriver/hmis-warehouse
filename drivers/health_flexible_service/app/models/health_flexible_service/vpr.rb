@@ -15,8 +15,8 @@ module HealthFlexibleService
     phi_attr :last_name, Phi::Name
     phi_attr :dob, Phi::Date
 
-    belongs_to :patient, class_name: 'Health::Patient'
-    belongs_to :user, class_name: 'User'
+    belongs_to :patient, class_name: 'Health::Patient', optional: true
+    belongs_to :user, class_name: 'User', optional: true
 
     def set_defaults
       cha = patient.recent_cha_form

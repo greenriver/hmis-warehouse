@@ -13,6 +13,13 @@ module HMIS::Structure::Base
     scope :delete_pending, -> do
       where.not(pending_date_deleted: nil)
     end
+
+    def imported_item_type(importer_log_id)
+      # NOTE: add additional years here as the spec changes, always the newest first for performance
+      return '2022' if RailsDrivers.loaded.include?(:hmis_csv_importer) && imported_items_2022.where(importer_log_id: importer_log_id).exists?
+
+      '2020'
+    end
   end
 
   module ClassMethods

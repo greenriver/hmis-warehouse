@@ -58,8 +58,8 @@ module Health
     phi_attr :health_file_id, Phi::OtherIdentifier
 
 
-    belongs_to :patient
-    belongs_to :user
+    belongs_to :patient, optional: true
+    belongs_to :user, optional: true
 
     has_one :health_file, class_name: 'Health::SsmFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles

@@ -6,7 +6,7 @@
 
 module GrdaWarehouse
   class ClientSplitHistory < GrdaWarehouseBase
-    belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :id, foreign_key: :split_into
-    belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :id, foreign_key: :split_from
+    belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :id, foreign_key: :split_into, optional: true
+    belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :id, foreign_key: :split_from, optional: true
   end
 end

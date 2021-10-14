@@ -16,7 +16,7 @@ module Health::CpMembers
     phi_attr :file, Phi::FreeText, "Name of file"
     phi_attr :content, Phi::FreeText, "Content of file"
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     mount_uploader :file, MemberRosterFileUploader
 

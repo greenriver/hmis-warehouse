@@ -7,7 +7,7 @@
 module GrdaWarehouse
   class VerificationSource < GrdaWarehouseBase
     self.table_name = :verification_sources
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
 
     def title
       raise NotImplementedError

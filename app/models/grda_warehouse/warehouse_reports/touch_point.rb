@@ -9,7 +9,7 @@ module GrdaWarehouse::WarehouseReports
     include Rails.application.routes.url_helpers
     require 'csv'
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     def title
       'Touch Point Export'

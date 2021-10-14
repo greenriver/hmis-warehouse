@@ -10,7 +10,7 @@ class Report < ApplicationRecord
 
   self.table_name = :reports
 
-  belongs_to :report_results_summary
+  belongs_to :report_results_summary, optional: true
   has_many :report_results
 
   scope :active, -> do

@@ -32,10 +32,11 @@ module HmisCsvTwentyTwentyTwo::Exporter
       ).arel.exists
     end
 
-    def apply_overrides row, data_source_id: # rubocop:disable Lint/UnusedMethodArgument
+    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
       row[:VictimServiceProvider] = 99 if row[:VictimServiceProvider].blank?
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
-      return row
+      row
     end
   end
 end
