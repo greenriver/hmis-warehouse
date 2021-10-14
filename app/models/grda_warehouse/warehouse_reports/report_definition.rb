@@ -957,6 +957,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:performance_measurement)
+        r_list['Performance'] << {
+          url: 'performance_measurement/warehouse_reports/reports',
+          name: 'Performance Measurement Report',
+          description: 'Identify and track performance toward rare, brief, and non-recurring homelessness system-wide',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:homeless_summary_report)
         r_list['Operational'] << {
           url: 'homeless_summary_report/warehouse_reports/reports',
@@ -1155,6 +1164,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'user_directory_report/warehouse_reports/users/warehouse' unless RailsDrivers.loaded.include?(:user_directory_report)
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'performance_metrics/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:performance_metrics)
+      cleanup << 'performance_measurement/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:performance_measurement)
       cleanup << 'homeless_summary_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:homeless_summary_report)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       unless RailsDrivers.loaded.include?(:public_reports)

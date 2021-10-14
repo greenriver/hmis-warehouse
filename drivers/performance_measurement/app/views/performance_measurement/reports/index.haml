@@ -1,0 +1,8 @@
+- title = _('Performance Metrics Report')
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-5= title
+= render 'beta_warning'
+= render 'form'
+= render 'history_table'
