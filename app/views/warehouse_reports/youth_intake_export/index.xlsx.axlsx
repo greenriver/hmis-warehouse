@@ -2,7 +2,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Youth Intakes') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   row = ["Youth Intakes and associated data between #{@filter.start} and #{@filter.end}"]
-  sheet.add_row(row, style: title)
+  sheet.add_row(row, style: title, widths: [:ignore])
   sheet.merge_cells 'A1:H1'
   row = GrdaWarehouse::YouthIntake::Base.export_headers.map(&:titleize)
   sheet.add_row(row, style: title)
