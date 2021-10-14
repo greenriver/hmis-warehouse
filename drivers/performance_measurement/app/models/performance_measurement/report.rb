@@ -94,16 +94,6 @@ module PerformanceMeasurement
       [:ph, :es, :th, :sh, :so]
     end
 
-    private def build_control_sections
-      # ensure filter has been set
-      filter
-      [
-        build_general_control_section(include_comparison_period: false),
-        build_hoh_control_section,
-        build_coc_control_section(true),
-      ]
-    end
-
     def report_path_array
       [
         :performance_measurement,
@@ -119,13 +109,6 @@ module PerformanceMeasurement
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_project_type(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_ca_homeless(scope)
       scope
     end
 
@@ -137,19 +120,14 @@ module PerformanceMeasurement
       user.can_access_some_version_of_clients?
     end
 
-    def yn(boolean)
-      boolean ? 'Yes' : 'No'
-    end
-
     private def create_universe
       report_clients = {}
       add_clients(report_clients)
     end
 
     private def add_clients(report_clients)
-      # TODO: figure out what exactly we need to run.
-      # It looks like maybe a CoC-wide SPM and then one per project in the CoC...
-      # Work through all the SPM report variants, building up the `report_clients` as we go.
+      # Run CoC-wide SPMs for year prior to selected date and period 2 years prior
+      # add records for each client to indicate which projects they were enrolled in within the report window
       run_spm.each do |variant_name, spec|
         { '' => spec[:base_variant] }.merge(spec[:variants]).each do |sub_variant, report|
           detail_variant_name = "spm_#{variant_name}__#{sub_variant.presence || 'all'}"
