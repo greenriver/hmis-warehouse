@@ -154,7 +154,7 @@ gem 'progress_bar', require: false
 gem 'slack-notifier'
 gem 'exception_notification'
 
-gem 'puma', '~> 4.3.8'
+gem 'puma', '~> 4.3.9'
 
 gem 'dotenv-rails'
 
@@ -197,6 +197,7 @@ gem 'ansi'
 
 gem 'parallel'
 gem 'todo_or_die'
+gem 'reline', '~> 0.2'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

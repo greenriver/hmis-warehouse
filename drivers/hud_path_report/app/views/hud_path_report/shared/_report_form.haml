@@ -20,7 +20,7 @@
           = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources'}, label: 'Data Sources'
       .row
         .col-6
-          = f.input :project_type_codes, collection: @filter.available_residential_project_types, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two
+          = f.input :project_type_codes, collection: @filter.path_project_types_for_select, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two
         .col-6
           = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Project Groups'}, label: 'Project Groups'
 

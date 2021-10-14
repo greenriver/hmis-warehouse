@@ -22,8 +22,12 @@ RSpec.describe HudApr::Generators::Caper::Fy2021::QuestionSeven, type: :model do
   # This is just a smoke test, the underlying logic was tested in the APR
   it 'runs' do
     expect(report_result.answer(question: 'Q7a', cell: 'B2').summary).not_to eq(nil)
+    expect(report_result.answer(question: 'Q7b', cell: 'B2').summary).not_to eq(nil)
   end
 
   describe 'Q7a: Number of Persons Served' do
+  end
+
+  describe 'Q7b: Point-in-Time Count of Persons on the Last Wednesday' do
   end
 end
