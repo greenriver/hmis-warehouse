@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name: 11 LSAReport DQ and ReportDate 
-Date: 16 SEP 2021
+Date: 13 OCT 2021
 
 	11.1 Get Relevant Enrollments for Data Quality Checks
 */
@@ -286,7 +286,7 @@ update rpt
 				-- ...and may not be null if...
 				or (hn.DateToStreetESSH is null 
 				-- ...ProjectType is ES/SH...
-				and (n.LSAProjectType in (1,8)
+				and (n.LSAProjectType in (0,1,8)
 						-- ... or when LivingSituation is ES/SH/street/interim housing
 						or hn.LivingSituation in (1,16,18,27) 
 						-- ... or when LOS is < 7 days and PreviousStreetESSH = 1
@@ -305,7 +305,7 @@ update rpt
 				-- ...and may not be null if...
 				or (hn.DateToStreetESSH is null 
 				-- ...ProjectType is ES/SH...
-				and (n.LSAProjectType in (1,8)
+				and (n.LSAProjectType in (0,1,8)
 						-- ... or when LivingSituation is ES/SH/street/interim housing
 						or hn.LivingSituation in (1,16,18,27) 
 						-- ... or when LOS is < 7 days and PreviousStreetESSH = 1
@@ -323,7 +323,7 @@ update rpt
 				and (hn.TimesHomelessPastThreeYears not between 1 and 4  
 					or hn.TimesHomelessPastThreeYears is null)
 				-- ...ProjectType is ES/SH...
-				and (n.LSAProjectType in (1,8)
+				and (n.LSAProjectType in (0,1,8)
 						-- ... or when LivingSituation is ES/SH/street/interim housing
 						or hn.LivingSituation in (1,16,18,27) 
 						-- ... or when LOS is < 7 days and PreviousStreetESSH = 1
@@ -341,7 +341,7 @@ update rpt
 				and (hn.TimesHomelessPastThreeYears not between 1 and 4  
 					or hn.TimesHomelessPastThreeYears is null)
 				-- ...ProjectType is ES/SH...
-				and (n.LSAProjectType in (1,8)
+				and (n.LSAProjectType in (0,1,8)
 						-- ... or when LivingSituation is ES/SH/street/interim housing
 						or hn.LivingSituation in (1,16,18,27) 
 						-- ... or when LOS is < 7 days and PreviousStreetESSH = 1
@@ -359,7 +359,7 @@ update rpt
 				and (hn.MonthsHomelessPastThreeYears not between 101 and 113 
 				or hn.MonthsHomelessPastThreeYears is null)
 				-- ...ProjectType is ES/SH...
-				and (n.LSAProjectType in (1,8)
+				and (n.LSAProjectType in (0,1,8)
 						-- ... or when LivingSituation is ES/SH/street/interim housing
 						or hn.LivingSituation in (1,16,18,27) 
 						-- ... or when LOS is < 7 days and PreviousStreetESSH = 1
@@ -377,7 +377,7 @@ update rpt
 				and (hn.MonthsHomelessPastThreeYears not between 101 and 113 
 				or hn.MonthsHomelessPastThreeYears is null)
 				-- ...ProjectType is ES/SH...
-				and (n.LSAProjectType in (1,8)
+				and (n.LSAProjectType in (0,1,8)
 						-- ... or when LivingSituation is ES/SH/street/interim housing
 						or hn.LivingSituation in (1,16,18,27) 
 						-- ... or when LOS is < 7 days and PreviousStreetESSH = 1
