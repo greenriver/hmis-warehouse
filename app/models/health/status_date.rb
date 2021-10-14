@@ -10,7 +10,7 @@
 
 module Health
   class StatusDate < HealthBase
-    belongs_to :patient
+    belongs_to :patient, optional: true
 
     scope :engaged, -> do
       where(engaged: true)

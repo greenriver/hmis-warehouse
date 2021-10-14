@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  01 Temp Reporting and Reference Tables.sql
-Date:  6 OCT 2021
+Date:  13 OCT 2021
 
 This script drops (if tables exist) and creates the following temp reporting tables:
 
@@ -137,6 +137,7 @@ create table tlsa_Person (
 	HHTypeEST int default -1,
 	HoHEST int default -1,
 	AdultEST int default -1,
+	AHARAdultEST int default -1,
 	HHChronicEST int default -1,
 	HHVetEST int default -1,
 	HHDisabilityEST int default -1,
@@ -147,12 +148,12 @@ create table tlsa_Person (
 	AC3PlusEST int default -1,
 	AHAREST int default -1,
 	AHARHoHEST int default -1,
-	AHARAdultEST int default -1,
 	RRHAgeMin int default -1,
 	RRHAgeMax int default -1,
 	HHTypeRRH int default -1,
 	HoHRRH int default -1,
 	AdultRRH int default -1,
+	AHARAdultRRH int default -1,
 	HHChronicRRH int default -1,
 	HHVetRRH int default -1,
 	HHDisabilityRRH int default -1,
@@ -163,12 +164,12 @@ create table tlsa_Person (
 	AC3PlusRRH int default -1,
 	AHARRRH int default -1,
 	AHARHoHRRH int default -1,
-	AHARAdultRRH int default -1,
 	PSHAgeMin int default -1,
 	PSHAgeMax int default -1,
 	HHTypePSH int default -1,
 	HoHPSH int default -1,
 	AdultPSH int default -1,
+	AHARAdultPSH int default -1,
 	HHChronicPSH int default -1,
 	HHVetPSH int default -1,
 	HHDisabilityPSH int default -1,
@@ -179,7 +180,6 @@ create table tlsa_Person (
 	AC3PlusPSH int default -1,
 	AHARPSH int default -1,
 	AHARHoHPSH int default -1,
-	AHARAdultPSH int default -1,
 	ReportID int,
 	Step varchar(10) not NULL,
 	constraint pk_tlsa_Person primary key clustered (PersonalID) 
@@ -467,7 +467,7 @@ create table tlsa_Household(
 		, constraint pk_ref_PopHHTypes primary key clustered (PopID, HHType)
 )
 ;
-insert into ref_PopHHTypes (PopID, HHType) values (1279,2);
+
 insert into ref_RowValues (RowID, Cohort, Universe, SystemPath) values (1,1,-1,-1);
 insert into ref_RowValues (RowID, Cohort, Universe, SystemPath) values (1,1,-1,1);
 insert into ref_RowValues (RowID, Cohort, Universe, SystemPath) values (1,1,-1,3);
@@ -1190,10 +1190,10 @@ insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, 
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (53,54,NULL,NULL,35,0,35);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,50,0,50);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,53,0,53);
-insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,1178,0,1178);
-insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,1179,0,1179);
-insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,1278,0,1278);
-insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,1279,0,1279);
+insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,1176,0,1176);
+insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,1177,0,1177);
+insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,1276,0,1276);
+insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,1,1277,0,1277);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,NULL,50,0,50);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,NULL,51,0,51);
 insert into ref_RowPopulations (RowMin, RowMax, ByPath, ByProject, PopID, Pop1, Pop2) values (55,55,NULL,NULL,52,0,52);
@@ -1556,9 +1556,9 @@ insert into ref_PopHHTypes (PopID, HHType) values (82,0);
 insert into ref_PopHHTypes (PopID, HHType) values (82,1);
 insert into ref_PopHHTypes (PopID, HHType) values (82,2);
 insert into ref_PopHHTypes (PopID, HHType) values (82,99);
-insert into ref_PopHHTypes (PopID, HHType) values (1178,1);
-insert into ref_PopHHTypes (PopID, HHType) values (1179,1);
-insert into ref_PopHHTypes (PopID, HHType) values (1278,2);
-
+insert into ref_PopHHTypes (PopID, HHType) values (1176,1);
+insert into ref_PopHHTypes (PopID, HHType) values (1177,1);
+insert into ref_PopHHTypes (PopID, HHType) values (1276,2);
+insert into ref_PopHHTypes (PopID, HHType) values (1277,2);
 
 

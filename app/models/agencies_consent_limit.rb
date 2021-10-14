@@ -5,6 +5,6 @@
 ###
 
 class AgenciesConsentLimit < ApplicationRecord
-  belongs_to :agency
-  belongs_to :consent_limit
+  belongs_to :agency, optional: true
+  belongs_to :consent_limit, optional: true
 end

@@ -18,7 +18,7 @@ module HomelessSummaryReport
 
     acts_as_paranoid
 
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :clients
 
     after_initialize :filter

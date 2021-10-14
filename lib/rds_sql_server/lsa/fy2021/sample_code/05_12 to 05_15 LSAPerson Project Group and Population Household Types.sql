@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  05_12 to 05_15 LSAPerson Project Group and Population Household Types.sql  
-Date:  6 OCT 2021
+Date:  13 OCT 2021
 
 	
 	5.12 Set Population Identifiers for Active HouseholdIDs
@@ -10,14 +10,15 @@ Date:  6 OCT 2021
 
 	update hhid
 	set hhid.HHChronic = coalesce((select min(
-					case when (lp.CHTime = 365 and lp.CHTimeStatus in (1,2))
-							or (lp.CHTime = 400 and lp.CHTimeStatus = 2) then 1
+					case when ((lp.CHTime = 365 and lp.CHTimeStatus in (1,2))
+							or (lp.CHTime = 400 and lp.CHTimeStatus = 2))
+							and lp.DisabilityStatus = 1 then 1
 						when lp.CHTime in (365, 400) then 2
 						when lp.CHTime = 270 and lp.DisabilityStatus = 1 then 3
 					else null end)
 			from tlsa_Person lp
 			inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID and n.Active = 1 
-				and n.RelationshipToHoH = 1 or n.ActiveAge between 18 and 65
+				and (n.RelationshipToHoH = 1 or n.ActiveAge between 18 and 65)
 			inner join tlsa_HHID hh on hh.HouseholdID = n.HouseholdID
 			where n.HouseholdID = hhid.HouseholdID), 0)
 		, hhid.HHVet = (select max(

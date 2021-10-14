@@ -15,9 +15,9 @@ module GrdaWarehouse::Hud
     self.table_name = 'IncomeBenefits'
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :income_benefits
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :income_benefits, optional: true
     has_one :client, through: :enrollment, inverse_of: :income_benefits
-    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_income_benefits
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_income_benefits, optional: true
     has_one :project, through: :enrollment
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :income_benefits, optional: true
     belongs_to :data_source

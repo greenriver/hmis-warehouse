@@ -8,7 +8,7 @@ module GrdaWarehouse
   class ClientMatch < GrdaWarehouseBase
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :updated_by, class_name: 'User'
+    belongs_to :updated_by, class_name: 'User', optional: true
     serialize :score_details, Hash
     validates :status, inclusion: {in: ['candidate', 'accepted', 'rejected', 'processed_sources']}
 

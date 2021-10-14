@@ -15,8 +15,8 @@ module Health
     phi_attr :admit_date, Phi::Date, 'Date of admission'
     phi_attr :encounter_major_class, Phi::SmallPopulation, 'Emergency or Inpatient'
 
-    belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
-    belongs_to :loaded_ed_ip_visit
+    belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id, optional: true
+    belongs_to :loaded_ed_ip_visit, optional: true
 
     scope :valid, -> do
       where.not(admit_date: nil)

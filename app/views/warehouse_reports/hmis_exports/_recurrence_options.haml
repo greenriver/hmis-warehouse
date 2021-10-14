@@ -8,7 +8,7 @@
 .d-flex
   = f.input :every_n_days, collection: (0..31), label: 'Run every (n) days', input_html: { class: 'jRecurringDays ' }, as: :select_two
   .jDependentRecurringFields.ml-4
-    = f.input :reporting_range, collection: GrdaWarehouse::RecurringHmisExport.available_reporting_ranges, label: 'For period', selected: 'fixed', input_html: { class: 'jReportingRange ', style: 'width: 250px;'}, as: :select_two
+    = f.input :reporting_range, collection: GrdaWarehouse::RecurringHmisExport.available_reporting_ranges, label: 'For period', selected: @recurrence&.reporting_range || 'fixed', input_html: { class: 'jReportingRange ', style: 'width: 250px;'}, as: :select_two
   .jDependentRecurringFields.ml-4
     .jReportingRangeDays
       = f.input :reporting_range_days, as: :numeric, disabled: true, label: 'days report should cover'.html_safe

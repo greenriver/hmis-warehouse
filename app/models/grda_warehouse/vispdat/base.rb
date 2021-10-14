@@ -85,7 +85,7 @@ module GrdaWarehouse::Vispdat
     ####################
     # Associations
     ####################
-    belongs_to :user
+    belongs_to :user, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     has_many :files, class_name: 'GrdaWarehouse::ClientFile', foreign_key: 'vispdat_id'
 

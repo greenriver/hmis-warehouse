@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~>5.2.4'
+gem 'rails', '~>5.2.6'
 gem 'rails_drivers'
 
 # bundle exec rake doc:rails generates the API under doc/api.
@@ -11,7 +11,7 @@ gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
 # gem 'composite_primary_keys', '~> 11'
-gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
+gem 'composite_primary_keys', '=11.3.1' #branch: 'active-record-5.2.4-compatability'
 gem 'pg'
 # version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
 gem 'activerecord-sqlserver-adapter'

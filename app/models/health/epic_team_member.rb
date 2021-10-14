@@ -19,7 +19,7 @@ module Health
     phi_attr :phone, Phi::SmallPopulation, "Phone number of team member"
     # phi_attr :processed
 
-    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_team_members
+    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_team_members, optional: true
 
     scope :unprocessed, -> do
       where(processed: nil)

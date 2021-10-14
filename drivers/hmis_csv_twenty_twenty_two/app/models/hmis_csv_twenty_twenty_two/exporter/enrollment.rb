@@ -10,8 +10,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
     setup_hud_column_access(GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '2022'))
 
     # Setup some joins so we can include deleted relationships when appropriate
-    belongs_to :client_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Client', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :enrollments
-    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments
+    belongs_to :client_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Client', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :enrollments, optional: true
+    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments, optional: true
 
     def export! enrollment_scope:, project_scope:, path:, export: # rubocop:disable Lint/UnusedMethodArgument
       case export.period_type

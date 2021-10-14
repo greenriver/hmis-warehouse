@@ -17,7 +17,7 @@ module Health
     phi_attr :instructions, Phi::FreeText, "Medication's instructions"
     phi_attr :id_in_source, Phi::OtherIdentifier
 
-    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :medications
+    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :medications, optional: true
 
     self.source_key = :OM_ID
 
