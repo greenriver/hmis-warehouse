@@ -3,7 +3,7 @@
 LSA FY2021 Sample Code
 
 Name:  08 LSACalculated Averages.sql  
-Date:  08 SEP 2021   
+Date:  13 OCT 2021   
 	
 Uses static reference tables:
 	ref_RowValues - Required Cohort, Universe, SystemPath values for each RowID
@@ -89,7 +89,7 @@ Populates and references:
 			when hh.HoHRace = 4 then 30
 			else 31 end
 		, 1, hh.HoHID, hh.HHType, '8.3.15'
-	from tlsa_Household hh where hh.HoHRace not in (8,9,99)
+	from tlsa_Household hh where hh.HoHRace not in (98,99)
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 32, 1, hh.HoHID, hh.HHType, '8.3.16'
@@ -183,7 +183,7 @@ Populates and references:
 			else 31 end
 		, ex.Cohort, ex.HoHID, ex.HHType, '8.3.33'
 	from tlsa_Exit ex
-	where ex.HoHRace not in (8,9,99)
+	where ex.HoHRace not in (98,99)
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct case when ex.HoHEthnicity = 0 then 32
@@ -287,7 +287,7 @@ Populates and references:
 	from tlsa_Exit ex 
 	inner join tlsa_AveragePops pop on (pop.PopID = 0 or (pop.HHType = ex.HHType and pop.HoHID = ex.HoHID and pop.Cohort = ex.Cohort)) 
 	inner join ref_RowPopulations rp on rp.PopID = pop.PopID 
-	inner join ref_PopHHTypes ph on ph.PopID = rp.PopID and ph.HHType = 0 or ph.HHType = ex.HHType
+	inner join ref_PopHHTypes ph on ph.PopID = rp.PopID and (ph.HHType = 0 or ph.HHType = ex.HHType)
 	inner join ref_RowValues rv on rv.RowID between rp.RowMin and rp.RowMax 
 			and (rv.SystemPath = -1 or rv.SystemPath = ex.SystemPath)
 			and rv.Cohort = ex.Cohort 
