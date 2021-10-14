@@ -7,7 +7,7 @@
 require 'rails_helper'
 require_relative 'datalab_ce_apr_context'
 
-RSpec.describe 'Datalab 2021 APR - PSH', type: :model do
+RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
   include_context 'datalab ce apr context'
 
   before(:all) do
