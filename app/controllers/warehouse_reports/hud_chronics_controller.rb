@@ -86,9 +86,9 @@ module WarehouseReports
       chronic_sort = @column.split('.')
       @clients = @clients.sort_by do |client|
         if chronic_sort.size == 2
-          client['hud_chronic'][chronic_sort.last]
+          client['hud_chronic'][chronic_sort.last] || ''
         else
-          client[@column]
+          client[@column] || ''
         end
       end
       @clients.reverse! if @direction == 'desc'
