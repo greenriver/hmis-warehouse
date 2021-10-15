@@ -2083,6 +2083,39 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: assessment_answer_lookups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.assessment_answer_lookups (
+    id bigint NOT NULL,
+    assessment_question character varying,
+    response_code character varying,
+    response_text character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: assessment_answer_lookups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.assessment_answer_lookups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: assessment_answer_lookups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.assessment_answer_lookups_id_seq OWNED BY public.assessment_answer_lookups.id;
+
+
+--
 -- Name: available_file_tags; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4870,10 +4903,45 @@ ALTER SEQUENCE public.contacts_id_seq OWNED BY public.contacts.id;
 
 
 --
--- Name: custom_imports_boston_rows; Type: TABLE; Schema: public; Owner: -
+-- Name: custom_imports_b_al_rows; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.custom_imports_boston_rows (
+CREATE TABLE public.custom_imports_b_al_rows (
+    id bigint NOT NULL,
+    import_file_id bigint,
+    data_source_id bigint,
+    assessment_question character varying,
+    response_code character varying,
+    response_text character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: custom_imports_b_al_rows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.custom_imports_b_al_rows_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: custom_imports_b_al_rows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.custom_imports_b_al_rows_id_seq OWNED BY public.custom_imports_b_al_rows.id;
+
+
+--
+-- Name: custom_imports_b_services_rows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.custom_imports_b_services_rows (
     id bigint NOT NULL,
     import_file_id bigint,
     data_source_id bigint,
@@ -4894,10 +4962,10 @@ CREATE TABLE public.custom_imports_boston_rows (
 
 
 --
--- Name: custom_imports_boston_rows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: custom_imports_b_services_rows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.custom_imports_boston_rows_id_seq
+CREATE SEQUENCE public.custom_imports_b_services_rows_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4906,10 +4974,10 @@ CREATE SEQUENCE public.custom_imports_boston_rows_id_seq
 
 
 --
--- Name: custom_imports_boston_rows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: custom_imports_b_services_rows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.custom_imports_boston_rows_id_seq OWNED BY public.custom_imports_boston_rows.id;
+ALTER SEQUENCE public.custom_imports_b_services_rows_id_seq OWNED BY public.custom_imports_b_services_rows.id;
 
 
 --
@@ -18253,6 +18321,13 @@ ALTER TABLE ONLY public.api_client_data_source_ids ALTER COLUMN id SET DEFAULT n
 
 
 --
+-- Name: assessment_answer_lookups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.assessment_answer_lookups ALTER COLUMN id SET DEFAULT nextval('public.assessment_answer_lookups_id_seq'::regclass);
+
+
+--
 -- Name: available_file_tags id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -18484,10 +18559,17 @@ ALTER TABLE ONLY public.contacts ALTER COLUMN id SET DEFAULT nextval('public.con
 
 
 --
--- Name: custom_imports_boston_rows id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: custom_imports_b_al_rows id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.custom_imports_boston_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_boston_rows_id_seq'::regclass);
+ALTER TABLE ONLY public.custom_imports_b_al_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_al_rows_id_seq'::regclass);
+
+
+--
+-- Name: custom_imports_b_services_rows id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_services_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_services_rows_id_seq'::regclass);
 
 
 --
@@ -20742,6 +20824,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
+-- Name: assessment_answer_lookups assessment_answer_lookups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.assessment_answer_lookups
+    ADD CONSTRAINT assessment_answer_lookups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: available_file_tags available_file_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21006,11 +21096,19 @@ ALTER TABLE ONLY public.contacts
 
 
 --
--- Name: custom_imports_boston_rows custom_imports_boston_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: custom_imports_b_al_rows custom_imports_b_al_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.custom_imports_boston_rows
-    ADD CONSTRAINT custom_imports_boston_rows_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.custom_imports_b_al_rows
+    ADD CONSTRAINT custom_imports_b_al_rows_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_imports_b_services_rows custom_imports_b_services_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_services_rows
+    ADD CONSTRAINT custom_imports_b_services_rows_pkey PRIMARY KEY (id);
 
 
 --
@@ -36872,6 +36970,13 @@ CREATE INDEX index_api_client_data_source_ids_on_warehouse_id ON public.api_clie
 
 
 --
+-- Name: index_assessment_answer_lookups_on_response_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_assessment_answer_lookups_on_response_code ON public.assessment_answer_lookups USING btree (response_code);
+
+
+--
 -- Name: index_cas_availabilities_on_available_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -37334,31 +37439,59 @@ CREATE INDEX index_contacts_on_type ON public.contacts USING btree (type);
 
 
 --
--- Name: index_custom_imports_boston_rows_on_created_at; Type: INDEX; Schema: public; Owner: -
+-- Name: index_custom_imports_b_al_rows_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_custom_imports_boston_rows_on_created_at ON public.custom_imports_boston_rows USING btree (created_at);
-
-
---
--- Name: index_custom_imports_boston_rows_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_custom_imports_boston_rows_on_data_source_id ON public.custom_imports_boston_rows USING btree (data_source_id);
+CREATE INDEX index_custom_imports_b_al_rows_on_created_at ON public.custom_imports_b_al_rows USING btree (created_at);
 
 
 --
--- Name: index_custom_imports_boston_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_custom_imports_b_al_rows_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_custom_imports_boston_rows_on_import_file_id ON public.custom_imports_boston_rows USING btree (import_file_id);
+CREATE INDEX index_custom_imports_b_al_rows_on_data_source_id ON public.custom_imports_b_al_rows USING btree (data_source_id);
 
 
 --
--- Name: index_custom_imports_boston_rows_on_updated_at; Type: INDEX; Schema: public; Owner: -
+-- Name: index_custom_imports_b_al_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_custom_imports_boston_rows_on_updated_at ON public.custom_imports_boston_rows USING btree (updated_at);
+CREATE INDEX index_custom_imports_b_al_rows_on_import_file_id ON public.custom_imports_b_al_rows USING btree (import_file_id);
+
+
+--
+-- Name: index_custom_imports_b_al_rows_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_al_rows_on_updated_at ON public.custom_imports_b_al_rows USING btree (updated_at);
+
+
+--
+-- Name: index_custom_imports_b_services_rows_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_services_rows_on_created_at ON public.custom_imports_b_services_rows USING btree (created_at);
+
+
+--
+-- Name: index_custom_imports_b_services_rows_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_services_rows_on_data_source_id ON public.custom_imports_b_services_rows USING btree (data_source_id);
+
+
+--
+-- Name: index_custom_imports_b_services_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_services_rows_on_import_file_id ON public.custom_imports_b_services_rows USING btree (import_file_id);
+
+
+--
+-- Name: index_custom_imports_b_services_rows_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_services_rows_on_updated_at ON public.custom_imports_b_services_rows USING btree (updated_at);
 
 
 --
@@ -45567,6 +45700,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211004174014'),
 ('20211009183833'),
 ('20211011191547'),
-('20211013135958');
+('20211013135958'),
+('20211015172536');
 
 

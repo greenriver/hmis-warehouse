@@ -36,7 +36,7 @@ class ScaffoldCustomImports < ActiveRecord::Migration[5.2]
       t.datetime :deleted_at
     end
 
-    create_table :custom_imports_boston_rows do |t|
+    create_table :custom_imports_b_services_rows do |t|
       t.references :import_file
       t.references :data_source
       t.integer :row_number, null: false
@@ -50,6 +50,16 @@ class ScaffoldCustomImports < ActiveRecord::Migration[5.2]
       t.string :service_category
       t.string :service_item
       t.string :service_program_usage
+
+      t.timestamps null: false, index: true
+    end
+
+    create_table :custom_imports_b_al_rows do |t|
+      t.references :import_file
+      t.references :data_source
+      t.string :assessment_question
+      t.string :response_code
+      t.string :response_text
 
       t.timestamps null: false, index: true
     end

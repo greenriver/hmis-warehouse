@@ -6,7 +6,7 @@
 
 module CustomImportsBostonServices
   class Row < GrdaWarehouseBase
-    self.table_name = :custom_imports_boston_rows
+    self.table_name = :custom_imports_b_services_rows
     belongs_to :import_file
 
     has_one :project, through: :enrollment
