@@ -11,7 +11,7 @@ module HudReports
     include ActionView::Helpers::DateHelper
     self.table_name = 'hud_report_instances'
 
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :report_cells # , dependent: :destroy # for the moment, this is too slow
     has_many :universe_cells, -> do
       universe

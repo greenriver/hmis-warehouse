@@ -9,7 +9,7 @@ module GrdaWarehouse
     belongs_to :cohort
     belongs_to :cohort_client, -> { with_deleted }
     has_one :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :client_id, foreign_key: :id
-    belongs_to :user
+    belongs_to :user, optional: true
 
     scope :on_cohort_between, -> (start_date:, end_date:) do
       at = arel_table

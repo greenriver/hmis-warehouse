@@ -20,7 +20,7 @@ module Health
     phi_attr :part_2, Phi::FreeText
     phi_attr :part_3, Phi::FreeText
 
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_ssms
+    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_ssms, optional: true
     has_one :patient, through: :epic_patient
 
     scope :updated_within_range, -> (range) do

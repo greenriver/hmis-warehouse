@@ -17,8 +17,8 @@ module Health
 
     mount_uploader :file, EligibilityResponseFileUploader
 
-    belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry'
-    belongs_to :user
+    belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry', optional: true
+    belongs_to :user, optional: true
 
     def summary_headers
       [

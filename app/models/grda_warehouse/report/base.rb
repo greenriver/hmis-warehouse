@@ -14,7 +14,7 @@ module GrdaWarehouse::Report
     def self.inherited(subclass)
       subclass.primary_key = :id
       cn = subclass.name.index('Demographic') ? 'GrdaWarehouse::Hud::Client' : subclass.original_class_name
-      belongs_to :original, primary_key: :id, foreign_key: :id, class_name: cn
+      belongs_to :original, primary_key: :id, foreign_key: :id, class_name: cn, optional: true
       super
     end
 
@@ -22,7 +22,7 @@ module GrdaWarehouse::Report
 
     def self.belongs(model)
       n = basename.to_s.pluralize.to_sym
-      belongs_to model, primary_key: :id, foreign_key: "#{model}_id".to_sym, inverse_of: n
+      belongs_to model, primary_key: :id, foreign_key: "#{model}_id".to_sym, inverse_of: n, optional: true
     end
 
     def self.many(model)

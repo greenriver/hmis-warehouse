@@ -8,7 +8,7 @@ module HealthFlexibleService
   class FollowUp < HealthBase
     acts_as_paranoid
 
-    belongs_to :patient, class_name: 'Health::Patient'
-    belongs_to :user, class_name: 'User'
+    belongs_to :patient, class_name: 'Health::Patient', optional: true
+    belongs_to :user, class_name: 'User', optional: true
   end
 end

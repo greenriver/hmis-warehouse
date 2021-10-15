@@ -10,7 +10,7 @@ module Reporting::DataQualityReports
 
     self.table_name = :warehouse_data_quality_report_project_groups
 
-    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', foreign_key: :report_id
+    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', foreign_key: :report_id, optional: true
 
     def calculate_unit_inventory project_ids:, report_range:
       GrdaWarehouse::Hud::Inventory.within_range(report_range).joins(:project).

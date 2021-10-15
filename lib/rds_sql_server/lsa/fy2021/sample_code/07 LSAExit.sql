@@ -3,7 +3,7 @@
 LSA FY2021 Sample Code
 
 Name:  07 LSAExit.sql  
-Date:  09 SEP 2021   
+Date:  13 OCT 2021   
 					
 
 	7.1 Identify Qualifying Exits in Exit Cohort Periods
@@ -77,7 +77,7 @@ from tlsa_Exit ex
 
 update ex
 set ex.ExitFrom = case 
-              when qx.LSAProjectType = 1 then 2
+              when qx.LSAProjectType in (0, 1) then 2
               when qx.LSAProjectType = 2 then 3 
               when qx.LSAProjectType = 8 then 4
               when qx.LSAProjectType = 13 and qx.MoveInDate is not null then 5
@@ -170,7 +170,6 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 			case when chn.LSAProjectType in (3,13) then chn.MoveInDate  
 				else chn.EntryDate end
 		and ((cal.theDate < chn.ExitDate 
-			or (chn.LSAProjectType = 13 and chn.MoveInDate = chn.ExitDate and cal.theDate = chn.MoveInDate)
 			or chn.ExitDate is null))
 			and cal.theDate between ha.CHStart and ha.LastActive
 	where chn.LSAProjectType in (2,3,13) and ha.CHTime is null
@@ -238,14 +237,14 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 		and chi.ESSHStreetDate is null
 		and ha.CHTime is null
 		and (hn.LivingSituation in (1,18,16)
-			or (chn.LSAProjectType not in (1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11))
-			or (chn.LSAProjectType not in (1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
+			or (chn.LSAProjectType not in (0,1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11))
+			or (chn.LSAProjectType not in (0,1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
 					and hn.LivingSituation in (4,5,6,7,15,25)) 
 			)
 		and ( 
 			
 			(-- for ES/SH/TH, count dates prior to EntryDate
-				chn.LSAProjectType in (1,2,8) and cal.theDate < chn.EntryDate)
+				chn.LSAProjectType in (0,1,2,8) and cal.theDate < chn.EntryDate)
 			or (-- for PSH/RRH, dates prior to and after EntryDate are counted for 
 				-- as long as the client remains homeless in the project  
 				chn.LSAProjectType in (3,13)
@@ -617,7 +616,7 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 					as summary
 		from tlsa_Exit ex 
 		inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
-		left outer join tlsa_HHID es on es.LSAProjectType in (1,8)
+		left outer join tlsa_HHID es on es.LSAProjectType in (0,1,8)
 			and es.HoHID = ex.HoHID and es.EntryDate <= qx.ExitDate 
 			and (es.EntryDate > ex.LastInactive
 					or (ex.LastInactive = '9/30/2012' and (es.ExitDate > '9/30/2012' or es.ExitDate is NULL))
@@ -669,7 +668,7 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 					as summary
 		from tlsa_Exit ex 
 		inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
-		left outer join tlsa_HHID es on es.LSAProjectType in (1,8)
+		left outer join tlsa_HHID es on es.LSAProjectType in (0,1,8)
 			and es.HoHID = ex.HoHID and es.EntryDate <= qx.ExitDate 
 			and (es.EntryDate > ex.LastInactive
 					or (ex.LastInactive = '9/30/2012' and (es.ExitDate > '9/30/2012' or es.ExitDate is NULL))
@@ -721,7 +720,7 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 					as summary
 		from tlsa_Exit ex 
 		inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
-		left outer join tlsa_HHID es on es.LSAProjectType in (1,8)
+		left outer join tlsa_HHID es on es.LSAProjectType in (0,1,8)
 			and es.HoHID = ex.HoHID and es.EntryDate <= qx.ExitDate 
 			and (es.EntryDate > ex.LastInactive
 					or (ex.LastInactive = '9/30/2012' and (es.ExitDate > '9/30/2012' or es.ExitDate is NULL))

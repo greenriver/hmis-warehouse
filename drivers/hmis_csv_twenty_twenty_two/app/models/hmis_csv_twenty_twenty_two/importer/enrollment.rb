@@ -14,8 +14,8 @@ module HmisCsvTwentyTwentyTwo::Importer
 
     has_one :destination_record, **hud_assoc(:EnrollmentID, 'Enrollment')
     has_one :exit, primary_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::Exit', autosave: false
-    belongs_to :project, primary_key: [:ProjectID, :data_source_id, :importer_log_id], foreign_key: [:ProjectID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::Project', autosave: false
-    belongs_to :client, primary_key: [:PersonalID, :data_source_id, :importer_log_id], foreign_key: [:PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::Client', autosave: false
+    belongs_to :project, primary_key: [:ProjectID, :data_source_id, :importer_log_id], foreign_key: [:ProjectID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::Project', autosave: false, optional: true
+    belongs_to :client, primary_key: [:PersonalID, :data_source_id, :importer_log_id], foreign_key: [:PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::Client', autosave: false, optional: true
     has_many :services, primary_key: [:EnrollmentID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::Service', autosave: false
     has_many :current_living_situations, primary_key: [:EnrollmentID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::CurrentLivingSituation', autosave: false
 

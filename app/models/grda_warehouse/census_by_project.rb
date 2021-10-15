@@ -10,8 +10,8 @@ class GrdaWarehouse::CensusByProject < GrdaWarehouseBase
 
   self.table_name = :censuses
 
-  belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: [:data_source_id, :ProjectID], primary_key: [:data_source_id, :ProjectID]
-  belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', foreign_key: [:data_source_id, :OrganizationID], primary_key: [:data_source_id, :OrganizationID]
+  belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: [:data_source_id, :ProjectID], primary_key: [:data_source_id, :ProjectID], optional: true
+  belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', foreign_key: [:data_source_id, :OrganizationID], primary_key: [:data_source_id, :OrganizationID], optional: true
   scope :residential, -> { where(ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values.flatten.uniq) }
   scope :for_year, -> (year) {
     fun = if postgres?

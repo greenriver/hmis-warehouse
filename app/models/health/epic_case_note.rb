@@ -27,7 +27,7 @@ module Health
     phi_attr :dx_2_name, Phi::FreeText
     #phi_attr :homeless_status
 
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_case_notes
+    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_case_notes, optional: true
     has_many :patient, through: :epic_patient
     has_many :epic_case_note_qualifying_activities, primary_key: :id_in_source, foreign_key: :epic_case_note_source_id, inverse_of: :epic_case_note
 

@@ -9,7 +9,7 @@ module GrdaWarehouse
     self.table_name = :administrative_events
     acts_as_paranoid
 
-    belongs_to :user
+    belongs_to :user, optional: true
     validates_presence_of :date, :title
   end
 end

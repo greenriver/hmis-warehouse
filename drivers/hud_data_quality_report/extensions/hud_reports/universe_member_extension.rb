@@ -17,6 +17,7 @@ module HudDataQualityReport::HudReports
         class_name: 'HudDataQualityReport::Fy2020::DqClient',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
+        optional: true,
       )
 
       # duplicate belongs_to
@@ -28,6 +29,7 @@ module HudDataQualityReport::HudReports
         class_name: 'HudDataQualityReport::Fy2020::DqClient',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
+        optional: true,
       )
     end
   end

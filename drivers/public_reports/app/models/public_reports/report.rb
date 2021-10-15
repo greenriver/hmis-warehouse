@@ -12,7 +12,7 @@ module PublicReports
     include Filter::FilterScopes
     include ArelHelper
     include Reporting::Status
-    belongs_to :user
+    belongs_to :user, optional: true
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?
 
