@@ -30,273 +30,273 @@ RSpec.describe 'Datalab 2021 CAPER - SO', type: :model do
     )
   end
 
-  xxit 'Q5a' do
+  xit 'Q5a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q5a',
     )
   end
 
-  xxit 'Q6a' do
+  xit 'Q6a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6a',
     )
   end
 
-  xxit 'Q6b' do
+  xit 'Q6b' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6b',
     )
   end
 
-  xxit 'Q6c' do
+  xit 'Q6c' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6c',
     )
   end
 
-  xxit 'Q6d' do
+  xit 'Q6d' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6d',
     )
   end
 
-  xxit 'Q6e' do
+  xit 'Q6e' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6e',
     )
   end
 
-  xxit 'Q6f' do
+  xit 'Q6f' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6f',
     )
   end
 
-  xxit 'Q7a' do
+  xit 'Q7a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q7a',
     )
   end
 
-  xxit 'Q7b' do
+  xit 'Q7b' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q7b',
     )
   end
 
-  xxit 'Q8a' do
+  xit 'Q8a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q8a',
     )
   end
 
-  xxit 'Q8b' do
+  xit 'Q8b' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q8b',
     )
   end
 
-  xxit 'Q9a' do
+  xit 'Q9a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q9a',
     )
   end
 
-  xxit 'Q9b' do
+  xit 'Q9b' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q9b',
     )
   end
 
-  xxit 'Q10a' do
+  xit 'Q10a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q10a',
     )
   end
 
-  xxit 'Q10b' do
+  xit 'Q10b' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q10b',
     )
   end
 
-  xxit 'Q10c' do
+  xit 'Q10c' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q10c',
     )
   end
 
-  xxit 'Q10d' do
+  xit 'Q10d' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q10d',
     )
   end
 
-  xxit 'Q11' do
+  xit 'Q11' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q11',
     )
   end
 
-  xxit 'Q12a' do
+  xit 'Q12a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q12a',
     )
   end
 
-  xxit 'Q12b' do
+  xit 'Q12b' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q12b',
     )
   end
 
-  xxit 'Q13a1' do
+  xit 'Q13a1' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q13a1',
     )
   end
 
-  xxit 'Q13b1' do
+  xit 'Q13b1' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q13b1',
     )
   end
 
-  xxit 'Q13c1' do
+  xit 'Q13c1' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q13c1',
     )
   end
 
-  xxit 'Q14a' do
+  xit 'Q14a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q14a',
     )
   end
 
-  xxit 'Q14b' do
+  xit 'Q14b' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q14b',
     )
   end
 
-  xxit 'Q15' do
+  xit 'Q15' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q15',
     )
   end
 
-  xxit 'Q16' do
+  xit 'Q16' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q16',
     )
   end
 
-  xxit 'Q17' do
+  xit 'Q17' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q17',
     )
   end
 
-  xxit 'Q19b' do
+  xit 'Q19b' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q19b',
     )
   end
 
-  xxit 'Q20a' do
+  xit 'Q20a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q20a',
     )
   end
 
-  xxit 'Q21' do
+  xit 'Q21' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q21',
     )
   end
 
-  xxit 'Q22a2' do
+  xit 'Q22a2' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q22a2',
     )
   end
 
-  xxit 'Q22c' do
+  xit 'Q22c' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q22c',
     )
   end
 
-  xxit 'Q22d' do
+  xit 'Q22d' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q22d',
     )
   end
 
-  xxit 'Q22e' do
+  xit 'Q22e' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q22e',
     )
   end
 
-  xxit 'Q23c' do
+  xit 'Q23c' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q23c',
     )
   end
 
-  xxit 'Q24' do
+  xit 'Q24' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q24',
     )
   end
 
-  xxit 'Q25a' do
+  xit 'Q25a' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q25a',
     )
   end
 
-  xxit 'Q26b' do
+  xit 'Q26b' do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q26b',
