@@ -5,7 +5,7 @@
 ###
 
 module GrdaWarehouse::CustomImports
-  class File < GrdaWarehouseBase
+  class ImportFile < GrdaWarehouseBase
     include NotifierConfig
 
     acts_as_paranoid

@@ -6,4 +6,4 @@
 # use with caution!
 RailsDrivers.loaded << :custom_imports_boston_services
 
-Rails.application.config.custom_imports << 'CustomImportsBostonServices::File'
+Rails.application.config.custom_imports << 'CustomImportsBostonServices::ImportFile'

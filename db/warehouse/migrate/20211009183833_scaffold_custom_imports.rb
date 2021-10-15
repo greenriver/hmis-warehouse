@@ -37,7 +37,7 @@ class ScaffoldCustomImports < ActiveRecord::Migration[5.2]
     end
 
     create_table :custom_imports_boston_rows do |t|
-      t.references :file
+      t.references :import_file
       t.references :data_source
       t.integer :row_number, null: false
       t.string :personal_id, null: false

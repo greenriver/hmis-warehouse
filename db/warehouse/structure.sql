@@ -4875,7 +4875,7 @@ ALTER SEQUENCE public.contacts_id_seq OWNED BY public.contacts.id;
 
 CREATE TABLE public.custom_imports_boston_rows (
     id bigint NOT NULL,
-    file_id bigint,
+    import_file_id bigint,
     data_source_id bigint,
     row_number integer NOT NULL,
     personal_id character varying NOT NULL,
@@ -37348,10 +37348,10 @@ CREATE INDEX index_custom_imports_boston_rows_on_data_source_id ON public.custom
 
 
 --
--- Name: index_custom_imports_boston_rows_on_file_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_custom_imports_boston_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_custom_imports_boston_rows_on_file_id ON public.custom_imports_boston_rows USING btree (file_id);
+CREATE INDEX index_custom_imports_boston_rows_on_import_file_id ON public.custom_imports_boston_rows USING btree (import_file_id);
 
 
 --

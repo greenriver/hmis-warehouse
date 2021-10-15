@@ -4,16 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CustomImportsBostonServices
-  class File < GrdaWarehouse::CustomImports::File
+module CustomImportsBostonAssessmentLookups
+  class ImportFile < GrdaWarehouse::CustomImports::ImportFile
     has_many :rows
 
     def self.description
-      'Boston Custom Services'
+      'Boston Custom Assessment Lookups'
     end
 
     def detail_path
-      [:custom_imports, :boston_services, :file]
+      [:custom_imports, :boston_assessment_lookups, :file]
     end
 
     def filename
@@ -62,16 +62,16 @@ module CustomImportsBostonServices
         file.lazy.each_slice(batch_size) do |lines|
           loaded_rows += 1
           csv_rows = CSV.parse(lines.join, headers: headers)
-          CustomImportsBostonServices::Row.import(clean_headers(csv_rows.headers), clean_rows(csv_rows))
+          CustomImportsBostonAssessmentLookups::Row.import(clean_headers(csv_rows.headers), clean_rows(csv_rows))
         end
       end
       summary << "Loaded #{loaded_rows} rows"
     end
 
-    # CSV is missing a header for row_number, needs file_id, and the others need to be translated
+    # CSV is missing a header for row_number, needs import_file_id, and the others need to be translated
     private def clean_headers(headers)
       headers[0] = 'row_number'
-      headers << 'file_id'
+      headers << 'import_file_id'
       headers << 'data_source_id'
       headers.map do |h|
         header_lookup[h] || h
@@ -81,15 +81,6 @@ module CustomImportsBostonServices
     private def header_lookup
       {
         'Personal ID' => 'personal_id',
-        'Unique Identifier' => 'unique_id',
-        'Agency ID' => 'agency_id',
-        'Enrollment ID' => 'enrollment_id',
-        'Service ID' => 'service_id',
-        'Start Date Date' => 'date',
-        'Name' => 'service_name',
-        'Service Category' => 'service_category',
-        'Service Item Name' => 'service_item',
-        'Service Program Usage' => 'service_program_usage',
       }
     end
 
@@ -119,12 +110,12 @@ module CustomImportsBostonServices
           #   # synthetic referral Event on enrollment
           # end
         end
-        GrdaWarehouse::Generic::Service.import(
+        GrdaWarehouse::Generic::AssessmentLookup.import(
           service_batch,
           conflict_target: [:source_id, :source_type],
           columns: [:date, :client_id],
         )
-        summary << "Matched #{matched} services"
+        summary << "Matched #{matched} assessment_lookups"
         update(status: 'complete', completed_at: Time.current)
       end
     end
