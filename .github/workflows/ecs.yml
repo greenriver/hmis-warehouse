@@ -57,6 +57,17 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
+    - name: Delete pre-cache image?
+      env:
+        ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      run: |
+        if git log -1 | fgrep '[gh:rebuild]' ;
+        then
+          echo 'Deleting pre-cache image...'
+          export RUBY_VERSION=`cat .ruby-version`
+          aws ecr batch-delete-image --repository-name ${ECR_REPOSITORY} --image-ids imageTag="${RUBY_VERSION}--pre-cache"
+        fi
+
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
       env:
