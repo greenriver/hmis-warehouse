@@ -1,32 +1,33 @@
 %section.row.o-dashboard__block--primary
   .col-sm-12
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'current_living_situations'}}
-      %header
-        %h1.h3 Current Living Situations
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'special-populations'}}
-      %header
-        %h1.h3 Health and DV
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'disabilities'}}
-      %header
-        %h1.h3 Disabilities
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'enrollment_cocs'}}
-      %header
-        %h1.h3 Enrollment CoCs
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'employment_education'}}
-      %header
-        %h1.h3 Employment and Education
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'services-full'}}
-      %header
-        %h1#full_services.h3 Services &mdash; Full Bed Register
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'income-benefits'}}
+    -# %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'current_living_situations'}}
+    -#   %header
+    -#     %h1.h3 Current Living Situations
+    -# %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'special-populations'}}
+    -#   %header
+    -#     %h1.h3 Health and DV
+    -# %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'disabilities'}}
+    -#   %header
+    -#     %h1.h3 Disabilities
+    -# %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'enrollment_cocs'}}
+    -#   %header
+    -#     %h1.h3 Enrollment CoCs
+    -# %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'employment_education'}}
+    -#   %header
+    -#     %h1.h3 Employment and Education
+    -# %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'services-full'}}
+    -#   %header
+    -#     %h1#full_services.h3 Services &mdash; Full Bed Register
+    -# %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'income-benefits'}}
       %header
         %h1.h3 Income and Benefits
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'ce_assessments'}}
       %header
         %h1.h3 Coordinated Entry Assessments
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'ce_events'}}
-      %header
-        %h1.h3 Coordinated Entry Events
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'hmis_clients'}}
-      %header
-        %h1.h3 HMIS Clients (from ETO)
+    -# %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'ce_events'}}
+    -#   %header
+    -#     %h1.h3 Coordinated Entry Events
+    -# - if GrdaWarehouse::Config.get(:eto_api_available)
+    -#   %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'hmis_clients'}}
+    -#     %header
+    -#       %h1.h3 HMIS Clients (from ETO)
