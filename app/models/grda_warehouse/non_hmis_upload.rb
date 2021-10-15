@@ -6,7 +6,6 @@
 
 module GrdaWarehouse
   class NonHmisUpload < GrdaWarehouseBase
-
     include ActionView::Helpers::DateHelper
     acts_as_paranoid
 
@@ -20,7 +19,7 @@ module GrdaWarehouse
     validates :file, presence: true, on: :create
 
     def status
-      if percent_complete == 0
+      if percent_complete&.zero?
         'Queued'
       elsif percent_complete == 0.01
         'Started'
@@ -33,23 +32,19 @@ module GrdaWarehouse
 
     def import_time(details: false)
       if delayed_job.present?
-        if delayed_job.last_error.present? && details
-          return "Failed with: #{delayed_job.last_error.split("\n").first}"
-        elsif delayed_job.failed_at.present? || delayed_job.last_error.present?
-          return  'failed'
-        end
+        return "Failed with: #{delayed_job.last_error.split("\n").first}" if delayed_job.last_error.present? && details
+        return 'failed' if delayed_job.failed_at.present? || delayed_job.last_error.present?
       end
       if percent_complete == 100
         begin
-          seconds = ((completed_at - created_at)/1.minute).round * 60
+          seconds = ((completed_at - created_at) / 1.minute).round * 60
           distance_of_time_in_words(seconds)
-        rescue
+        rescue StandardError
           'unknown'
         end
       else
         'incomplete'
       end
     end
-
   end
 end

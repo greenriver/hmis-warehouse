@@ -23,17 +23,17 @@ module GrdaWarehouse
     end
 
     scope :active, -> do
-      at = self.arel_table
+      at = arel_table
       where(at[:end_date].gteq(Date.current).or(at[:end_date].eq(nil)))
     end
 
     scope :expired, -> do
-      at= self.arel_table
+      at = arel_table
       where(at[:end_date].lt(Date.current))
     end
 
     def expired?
-      end_date && end_date.past?
+      end_date&.past?
     end
 
     def active_period
@@ -64,8 +64,7 @@ module GrdaWarehouse
     private
 
     def date_range
-      errors.add(:end_date, "should be after start date") if end_date && start_date && end_date <= start_date
+      errors.add(:end_date, 'should be after start date') if end_date && start_date && end_date <= start_date
     end
-
   end
 end
