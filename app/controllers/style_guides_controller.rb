@@ -7,6 +7,7 @@
 class StyleGuidesController < ApplicationController
   include AjaxModalRails::Controller
   include ClientPathGenerator
+  skip_before_action :authenticate_user!
 
   def index
   end
@@ -45,6 +46,41 @@ class StyleGuidesController < ApplicationController
     @client = @patient.client
     @team = @patient.teams.build
     @careplan = @patient.careplans.first_or_create
+  end
+
+  def health_dashboard
+    @name = Faker::Name.name
+    timeline_date_range = ((Date.today - 3.months)..Date.today)
+    entries = []
+    grid_lines = []
+    timeline_date_range.each do |d|
+      entries << (rand(1..50) > 45 ? 0.5 : nil)
+      class_name = ""
+      class_name =
+        if d == d.at_beginning_of_month
+          "--start-of-month"
+        elsif d == d.at_beginning_of_week
+          "--start-of-week"
+        end
+      grid_lines << { value: d, class: "date-tick #{class_name}" }
+    end
+    @timeline_config = {
+      data: {
+        x: "x",
+        columns: [
+          [ "x" ] + timeline_date_range.map{ |d| d },
+          [ "Entries" ] + entries,
+        ],
+        type: "scatter",
+      },
+      grid: {
+        x: {
+          front: false,
+          show: true,
+          lines: grid_lines,
+        }
+      }
+    }.to_json
   end
 
   private def guide_routes

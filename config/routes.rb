@@ -840,18 +840,19 @@ Rails.application.routes.draw do
   unless Rails.env.production?
     resource :style_guide, only: :none do
       get :index
-      get :form
-      get :careplan
-      get :health_team
-      get :icon_font
       get :add_goal
       get :add_team_member
       get :alerts
-      get :tags
-      get :client_dashboard
       get :buttons
+      get :careplan
+      get :client_dashboard
+      get :form
+      get :health_dashboard
+      get :health_team
+      get :icon_font
       get :pagination
       get :stimulus_select
+      get :tags
     end
   end
 
