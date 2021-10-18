@@ -103,17 +103,17 @@ class StyleGuidesController < ApplicationController
     @indicator_groups = [
       {
         title: "Rare",
-        indicators: [['X'], ['X', 'X'], ['X']],
+        indicators: [[indicator], [indicator, indicator], [indicator]],
         description: lorem,
       },
       {
         title: "Brief",
-        indicators: [['X', 'X'], ['X', 'X'], ['X', 'X']],
+        indicators: [[indicator, indicator], [indicator, indicator], [indicator, indicator]],
         description: lorem,
       },
       {
         title: "Non-Recuring",
-        indicators: [['X'], ['X'], ['X']],
+        indicators: [[indicator], [indicator], [indicator]],
         description: lorem,
       },
     ]
@@ -143,4 +143,22 @@ class StyleGuidesController < ApplicationController
     Faker::Lorem.paragraph(sentence_count: sentence_count)
   end
   helper_method :lorem
+
+  private def indicator
+    directions = [:up, :down, :none]
+    {
+      title: lorem(sentence_count: 1),
+      direction: directions[rand(0..2)],
+      value_label: "Change <br> over year",
+      primary_value: {
+        value: rand(1..100),
+        unit: "days",
+      },
+      secondary_value: {
+        value: rand(1..100),
+        unit: "%",
+      },
+      passed: Faker::Boolean.boolean
+    }
+  end
 end

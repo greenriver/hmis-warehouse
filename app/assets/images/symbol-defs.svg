@@ -343,5 +343,14 @@
 <title>wheelchair</title>
 <path d="M15.984 18.547l1.594 3.187q-0.906 2.797-3.281 4.531t-5.297 1.734q-2.438 0-4.508-1.211t-3.281-3.281-1.211-4.508q0-2.828 1.633-5.156t4.289-3.297l0.266 2.047q-1.906 0.844-3.047 2.586t-1.141 3.82q0 2.891 2.055 4.945t4.945 2.055q1.969 0 3.633-1.016t2.578-2.742 0.773-3.695zM24.547 20.109l0.906 1.781-4 2q-0.203 0.109-0.453 0.109-0.625 0-0.891-0.547l-3.734-7.453h-7.375q-0.375 0-0.664-0.258t-0.336-0.633l-1.5-12.172q-0.031-0.25 0.094-0.656 0.219-0.797 0.891-1.289t1.516-0.492q1.031 0 1.766 0.734t0.734 1.766q0 1.078-0.812 1.836t-1.875 0.648l0.578 4.516h6.609v2h-6.359l0.25 2h7.109q0.625 0 0.891 0.547l3.563 7.109z"></path>
 </symbol>
+<symbol id="icon-change-up" viewBox="0 0 40 33.283">
+  <path d="M29.762,43.274l1.314,1.314a1.414,1.414,0,0,1,0,2.006l-11.5,11.5a1.414,1.414,0,0,1-2.006,0l-11.5-11.5a1.414,1.414,0,0,1,0-2.006l1.314-1.314a1.422,1.422,0,0,1,2.03.024L16.2,50.428V33.42A1.417,1.417,0,0,1,17.625,32h1.894a1.417,1.417,0,0,1,1.42,1.42V50.428L27.733,43.3a1.412,1.412,0,0,1,2.03-.024Z" transform="translate(38.493 65.283) rotate(180)"/><circle cx="2" cy="2" r="2"/><circle cx="2" cy="2" r="2" transform="translate(6)"/><circle cx="2" cy="2" r="2" transform="translate(12)"/><circle cx="2" cy="2" r="2" transform="translate(18)"/><circle cx="2" cy="2" r="2" transform="translate(24)"/><circle cx="2" cy="2" r="2" transform="translate(30)"/><circle cx="2" cy="2" r="2" transform="translate(36)"/>
+</symbol>
+<symbol id="icon-change-down" viewBox="0 0 40 33.283">
+  <path d="M29.762,43.274l1.314,1.314a1.414,1.414,0,0,1,0,2.006l-11.5,11.5a1.414,1.414,0,0,1-2.006,0l-11.5-11.5a1.414,1.414,0,0,1,0-2.006l1.314-1.314a1.422,1.422,0,0,1,2.03.024L16.2,50.428V33.42A1.417,1.417,0,0,1,17.625,32h1.894a1.417,1.417,0,0,1,1.42,1.42V50.428L27.733,43.3a1.412,1.412,0,0,1,2.03-.024Z" transform="translate(1.35 -25.233)"/><circle cx="2" cy="2" r="2"/><circle cx="2" cy="2" r="2" transform="translate(6)"/><circle cx="2" cy="2" r="2" transform="translate(12)"/><circle cx="2" cy="2" r="2" transform="translate(18)"/><circle cx="2" cy="2" r="2" transform="translate(24)"/><circle cx="2" cy="2" r="2" transform="translate(30)"/><circle cx="2" cy="2" r="2" transform="translate(36)"/>
+</symbol>
+<symbol id="icon-change-none" viewBox="0 0 40 4">
+  <circle cx="2" cy="2" r="2"/><circle cx="2" cy="2" r="2" transform="translate(6)"/><circle cx="2" cy="2" r="2" transform="translate(12)"/><circle cx="2" cy="2" r="2" transform="translate(18)"/><circle cx="2" cy="2" r="2" transform="translate(24)"/><circle cx="2" cy="2" r="2" transform="translate(30)"/><circle cx="2" cy="2" r="2" transform="translate(36)"/>
+</symbol>
 </defs>
 </svg>
