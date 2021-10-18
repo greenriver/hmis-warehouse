@@ -1,0 +1,30 @@
+
+:scss
+  .c-indicator {
+    min-height: 75px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+%h1.mb-4 CoC indicator comparison table
+
+%table.table.c-table--indicator
+  %thead
+    %th.blank{style: "width: 15%"}
+    %th{style: "width: 42.5%"} System-Level Indicators
+    %th{style: "width: 42.5%"} Project-Level Indicators
+  %tbody
+    - @indicator_groups.each_with_index do |group, i|
+      %tr.c-table__row{class: "c-table__row--highlight-#{i+1}"}
+        %th.level{style: "width: 15%"}
+          .h2=group[:title]
+          %p.font-weight-normal=group[:description]
+        %td.p-0{colspan: 2, style: "width: 85%"}
+          %table.table
+            - indicators = group[:indicators]
+            - indicators.each do |indicator|
+              %tr
+                - indicator.each do
+                  %td{colspan: indicators.one? ? indicators.length : 1 }
+                    .c-indicator.text-center X

@@ -99,21 +99,48 @@ class StyleGuidesController < ApplicationController
     @form = OpenStruct.new
   end
 
+  def reports
+    @indicator_groups = [
+      {
+        title: "Rare",
+        indicators: [['X'], ['X', 'X'], ['X']],
+        description: lorem,
+      },
+      {
+        title: "Brief",
+        indicators: [['X', 'X'], ['X', 'X'], ['X', 'X']],
+        description: lorem,
+      },
+      {
+        title: "Non-Recuring",
+        indicators: [['X'], ['X'], ['X']],
+        description: lorem,
+      },
+    ]
+  end
+
   private def guide_routes
     @guide_routes ||= {
-      form: 'Form Elements',
-      careplan: 'Careplan',
-      health_team: 'Health Team',
-      icon_font: 'Icon Font',
       add_goal: 'Add Goal',
       add_team_member: 'Add Team Member',
       alerts: 'Alerts',
-      tags: 'Tags',
-      client_dashboard: 'Client Dashboard',
       buttons: 'Buttons',
+      careplan: 'Careplan',
+      client_dashboard: 'Client Dashboard',
+      form: 'Form Elements',
+      health_team: 'Health Team',
+      health_dashboard: 'Health Dashboard',
+      icon_font: 'Icon Font',
       pagination: 'Pagination',
       stimulus_select: 'Stimulus Select',
+      reports: 'Reports',
+      tags: 'Tags',
     }
   end
   helper_method :guide_routes
+
+  private def lorem sentence_count: 3
+    Faker::Lorem.paragraph(sentence_count: sentence_count)
+  end
+  helper_method :lorem
 end

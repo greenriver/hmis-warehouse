@@ -851,6 +851,7 @@ Rails.application.routes.draw do
       get :health_team
       get :icon_font
       get :pagination
+      get :reports
       get :stimulus_select
       get :tags
     end
