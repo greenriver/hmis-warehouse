@@ -21,7 +21,8 @@ module CustomImportsBostonAssessmentLookups
     end
 
     def import!
-      check_hour
+      return unless check_hour
+
       start_import
       fetch_and_load
       post_process
