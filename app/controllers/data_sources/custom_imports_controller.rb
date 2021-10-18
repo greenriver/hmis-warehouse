@@ -29,8 +29,8 @@ module DataSources
       @bucket_objects_list = []
       @error = false
       begin
-        @bucket_objects_list = @config.s3.list_objects(25, prefix: @config.s3_prefix)
-      rescue Aws::S3::Errors::InvalidAccessKeyId, Aws::S3::Errors::AccessDenied, Aws::S3::Errors::SignatureDoesNotMatch
+        @bucket_objects_list = @config.list_objects
+      rescue GrdaWarehouse::CustomImports::FetchError
         @error = true
       end
     end

@@ -30,6 +30,12 @@ module GrdaWarehouse::CustomImports
       (0..23).map { |h| [Time.strptime(h.to_s, '%H').strftime('%l %P'), h] }
     end
 
+    def list_objects(per_page = 25)
+      s3.list_objects(per_page, prefix: s3_prefix)
+      rescue Aws::S3::Errors::InvalidAccessKeyId, Aws::S3::Errors::AccessDenied, Aws::S3::Errors::SignatureDoesNotMatch => e
+        raise FetchError, e.message
+    end
+
     def s3
       @s3 ||= if s3_access_key_id.present? && s3_access_key_id != 'unknown'
         AwsS3.new(
@@ -62,4 +68,6 @@ module GrdaWarehouse::CustomImports
       import_type.constantize.new(config_id: id, data_source_id: data_source_id, status: 'queued').import!
     end
   end
+
+  class FetchError < StandardError; end
 end
