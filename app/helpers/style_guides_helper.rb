@@ -11,4 +11,9 @@ module StyleGuidesHelper
     value_el = tag.div(value, class: "#{base_class}__value")
     tag.div title_el + value_el, class: [ base_class ] + wrapper_classes.map{ |c| "#{base_class}--#{c}" }
   end
+
+  def calendar_details_title_attr(metadata)
+    return "" unless metadata
+    sanitize(metadata.to_a.join(': ').to_s)
+  end
 end

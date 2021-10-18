@@ -10,7 +10,6 @@ App.Health.EntryTimeline = class EntryTimeline {
   constructor(element, config, options={}) {
     this.element = element;
     this.options = options;
-    console.log({config});
     this.render(config);
   }
 

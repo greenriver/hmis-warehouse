@@ -1,3 +1,54 @@
+:ruby
+  timeline_id = "entry-timeline"
+  appointment_cal_id = "appointments"
+
+:sass
+  .c-card--internal
+    .card-content
+      min-height: 100px
+      background: #f9f9f9
+  .c-card--form
+    .form-group
+      margin-bottom: 10px
+    .form-group:last-child
+      margin-bottom: 0
+  .c-cal
+    display: flex
+    flex-direction: column
+    align-items: center
+
+  .c-cal__week
+    margin-bottom: 2px
+    display: flex
+    justify-content: space-between
+    width: 100%
+
+  .c-cal__day
+    min-height: 30px
+    background: #FFF
+    border-radius: 3px
+    font-size: 13px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: 1px solid #f9f9f9
+    margin-left: 2px
+    margin-right: 2px
+    flex: 1 1 .14285714%
+    overflow: hidden
+    &.fill,
+    &.past
+      background: none
+      color: #CCC
+    &.active
+      background: #333
+      color: white
+      font-weight: bold
+  .c-cal__day--label
+    test-align: center
+    height: auto
+    background: none
+
 .card.d-block
   .card-content.p-4
     %header.d-flex.flex-wrap.mb-4.row
@@ -19,30 +70,54 @@
                   .mr-4= detail_block(title: "Doses", value: rand(0..3))
                   = detail_block(title: "Last Dose Date", value: l(Date.today))
     .row.mb-4
-      .col-md-3
-        .card
-          .card-content.p-4{style: 'min-height: 100px; background: #f9f9f9' }
-      .col-md-6
-        .card
-          .card-content.p-4{style: 'min-height: 100px; background: #f9f9f9' }
-      .col-md-3
-        -# Calendar
-        .card
-          .card-content.p-4{style: 'min-height: 100px; background: #f9f9f9' }
+      .col-md-3.flex-fill
+        .card.c-card--internal.c-card--form
+          .card-content.p-4
+            = simple_form_for @form, as: :care_managers, url: '#' do |f|
+              = f.input :care_coordinator
+              = f.input :nurse_care_manager
+      .col-md-6.flex-fill
+        .card.c-card--internal
+          .card-content.p-4
+            .row
+              .col-6
+                .c-detail
+                  .c-detail__title Section 1
+              .col-6
+                .c-detail
+                  .c-detail__title Section 2
+      .col-md-3.flex-fill
+        .card.c-card--internal
+          .card-content.p-4
+            .c-detail
+              .c-detail__title Upcoming appointments
+            .c-cal
+              .c-cal__week
+                - Date::DAYNAMES.each do |d|
+                  .c-cal__day.c-cal__day--label=d[0]
+              - @appointments.in_groups_of(7).each do |week|
+                .c-cal__week
+                  - week.each do |appt|
+                    - if appt.nil? || Date.today > appt[:date]
+                      .c-cal__day.fill
+                      - next
+                    :ruby
+                      class_name = appt[:scheduled] ? "active" : ""
+                      title = calendar_details_title_attr(appt[:metadata])
+                    .c-cal__day{class: class_name, title:title, data: ({toggle: 'tooltip', html: "true"} if title.present?) }=appt[:date].day
 
-    .card
-      .card-content.p-4{style: 'min-height: 100px; background: #f9f9f9' }
+    .card.c-card--internal
+      .card-content.p-4
         .row
           .col-3.d-flex.justify-content-between
             = detail_block(title: "Last Entry", value: l(Date.today))
             = detail_block(title: "Project", value: Faker::Company.name)
-          - timeline_id = "entry-timeline"
           .col-9
             %div{id: timeline_id}
-            :javascript
-              document.addEventListener('DOMContentLoaded', function (event) {
-                new App.Health.EntryTimeline(
-                  document.getElementById("#{timeline_id}"),
-                  #{@timeline_config.html_safe}
-                )
-              })
+    :javascript
+      document.addEventListener('DOMContentLoaded', function (event) {
+        new App.Health.EntryTimeline(
+          document.getElementById("#{timeline_id}"),
+          #{@timeline_config.html_safe}
+        )
+      })

@@ -81,6 +81,22 @@ class StyleGuidesController < ApplicationController
         }
       }
     }.to_json
+    @appointments = ((Date.today.beginning_of_week(start_day = :sunday))..Date.today+2.weeks).map do |d|
+      details = nil
+      if rand(1..50) > 45
+        details = {
+          metadata: {
+            doctor: Faker::Name.name,
+          },
+        }
+      end
+      {
+        date: d,
+        scheduled: details.present?,
+        **(details || {})
+      }
+    end
+    @form = OpenStruct.new
   end
 
   private def guide_routes
