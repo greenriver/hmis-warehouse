@@ -5,11 +5,18 @@
 ###
 
 module PerformanceMeasurement
-  class Client < GrdaWarehouseBase
-    self.table_name = :pm_clients
+  class Project < GrdaWarehouseBase
+    self.table_name = :pm_projects
     acts_as_paranoid
 
-    has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
+
+    scope :reporting_period, -> do
+      where(reporting_period: true)
+    end
+
+    scope :comparison_period, -> do
+      where(comparison_period: true)
+    end
   end
 end
