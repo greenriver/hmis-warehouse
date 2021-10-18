@@ -1,3 +1,3 @@
 ## CustomImportsBostonServices README
 
-This README file should be used to explain the functionality of the driver.
+This file format is specific to data used to augment HMIS Clients with service records which are collected outside of the enrollment context.

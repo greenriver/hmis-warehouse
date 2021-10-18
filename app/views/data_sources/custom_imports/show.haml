@@ -1,8 +1,5 @@
 - content_for :title, "#{@config.description} Imports for #{@data_source.short_name}"
 %h1= content_for :title
-= debug @config.import_type
-= debug @config.import_type.constantize.new.to_partial_path
-
 - if @files.exists?
   .d-flex
     %p= page_entries_info @files, entry_name: _('imports')
@@ -12,19 +9,26 @@
       %thead
         %tr
           %th File Name
+          %th Processed On
           %th Status
           %th Errors
       %tbody
         - @files.each do |file|
           %tr
-            %td= file.filename
+            %td= File.basename(file.filename.to_s)
+            %td= file.started_at
             %td
               - status = file.status
               - unless status == 'failed'
-                = link_to status, polymorphic_path(file.detail_path, file)
+                = status
+                - # NOTE: future development could add direct links to either download the original file or see some
+                - # representation of the processed data
+                - # link_to status, polymorphic_path(file.detail_path, id: file)
               - else
                 = status
-            %td= file.error_description
+            %td
+              - if file.import_errors
+                = file.import_errors.inspect
 - else
   %p.none-found
     No files imported.

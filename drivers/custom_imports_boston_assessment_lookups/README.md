@@ -1,3 +1,3 @@
 ## CustomImportsBostonAssessmentLookups README
 
-This README file should be used to explain the functionality of the driver.
+This file format contains lookups used to turn AssessmentQuestion.AssessmentAnswer values into human-readable answers for display and matching in CAS.
