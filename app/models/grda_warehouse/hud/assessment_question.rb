@@ -15,6 +15,11 @@ module GrdaWarehouse::Hud
     self.table_name = :AssessmentQuestions
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+    DEFAULT_ANSWERS = {
+      '0'	=> 'No',
+      '1' => 'Yes',
+    }.freeze
+
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_questions, optional: true
     belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment'), optional: true
     belongs_to :direct_enrollment, **hud_enrollment_belongs, optional: true
@@ -23,6 +28,15 @@ module GrdaWarehouse::Hud
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), optional: true
 
     belongs_to :data_source
+    has_one :lookup, class_name: 'GrdaWarehouse::AssessmentAnswerLookup', primary_key: [:AssessmentQuestion, :AssessmentAnswer], foreign_key: [:assessment_question, :response_code]
 
+    # NOTE: you probably want to join/preload :lookup
+    def human_readable
+      lookup&.response_text || default_response_text(self.AssessmentAnswer) || self.AssessmentAnswer
+    end
+
+    def default_response_text(answer)
+      DEFAULT_ANSWERS[answer.to_s]
+    end
   end
 end

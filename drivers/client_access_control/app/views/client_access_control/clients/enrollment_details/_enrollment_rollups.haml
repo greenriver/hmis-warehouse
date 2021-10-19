@@ -27,6 +27,7 @@
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'ce_events'}}
       %header
         %h1.h3 Coordinated Entry Events
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'hmis_clients'}}
-      %header
-        %h1.h3 HMIS Clients (from ETO)
+    - if GrdaWarehouse::Config.get(:eto_api_available)
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'hmis_clients'}}
+        %header
+          %h1.h3 HMIS Clients (from ETO)

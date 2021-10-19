@@ -643,6 +643,26 @@
       "note": ""
     },
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "5f663e1330e1986e8d398745960c0bc7d3b81ecec41fbb3da180f7eed7495c70",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with parameter value",
+      "file": "app/controllers/data_sources/custom_imports_controller.rb",
+      "line": 19,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "config_scope.find(params[:id].to_i).import_type.constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DataSources::CustomImportsController",
+        "method": "show"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "5fb07f23d96197864df77d4b7aa712e9cf74547e169e91a8f107307827019e80",
@@ -740,7 +760,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 656,
+      "line": 660,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} ADD id BIGINT identity (1,1) NOT NULL; \"))",
       "render_path": null,
@@ -982,7 +1002,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 386,
+      "line": 390,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute(\"drop database #{@rds.database}\\n\")",
       "render_path": null,
@@ -1436,6 +1456,37 @@
       "note": ""
     },
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "9cdbaf0f28cc1c8f4a9e148ea3fb9638bf5dc5a1858a903f2d9731c8743eb010",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with parameter value",
+      "file": "app/views/data_sources/custom_imports/show.haml",
+      "line": 4,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "config_scope.find(params[:id].to_i).import_type.constantize",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "DataSources::CustomImportsController",
+          "method": "show",
+          "line": 20,
+          "file": "app/controllers/data_sources/custom_imports_controller.rb",
+          "rendered": {
+            "name": "data_sources/custom_imports/show",
+            "file": "app/views/data_sources/custom_imports/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "data_sources/custom_imports/show"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "a005f0450a283e9aa0cfbb7447941c9b23a6b49277b9e02d914765b5ccf577cc",
@@ -1633,7 +1684,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 533,
+      "line": 594,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -1812,7 +1863,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 409,
+      "line": 413,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE TABLE #{Reporting::MonthlyReports::Base.remainder_table} (CHECK ( #{\" type NOT IN ('#{Reporting::MonthlyReports::Base.sub_tables.keys.join(\"', '\")}') \"} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});\")",
       "render_path": null,
@@ -1942,7 +1993,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 465,
+      "line": 469,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -2002,7 +2053,7 @@
       "check_name": "Render",
       "message": "Render path contains parameter value",
       "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/_need_map.haml",
-      "line": 30,
+      "line": 32,
       "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
       "code": "render(action => report_scope.find(params[:id].to_i).map_type, {})",
       "render_path": [
@@ -2203,7 +2254,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 665,
+      "line": 669,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} DROP COLUMN id; \"))",
       "render_path": null,
@@ -2362,7 +2413,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 393,
+      "line": 397,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE TABLE #{details[:table_name]} ( CHECK ( #{\"type = '#{details[:type]}'\"} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});\")",
       "render_path": null,
@@ -2376,6 +2427,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-09-22 13:07:05 +0000",
+  "updated": "2021-10-15 16:29:50 +0000",
   "brakeman_version": "5.0.4"
 }

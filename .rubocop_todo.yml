@@ -403,7 +403,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/hmis/client_attribute_defined_text.rb'
     - 'app/models/grda_warehouse/hmis/staff.rb'
-    - 'app/models/grda_warehouse/hud/assessment_question.rb'
     - 'app/models/grda_warehouse/hud/assessment_result.rb'
     - 'app/models/grda_warehouse/hud/current_living_situation.rb'
     - 'app/models/grda_warehouse/hud/employment_education.rb'
