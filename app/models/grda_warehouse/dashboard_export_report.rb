@@ -6,7 +6,7 @@
 
 class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
-  belongs_to :file, class_name: 'GrdaWarehouse::DashboardExportFile'
+  belongs_to :file, class_name: 'GrdaWarehouse::DashboardExportFile', optional: true
 
   def complete?
     completed_at.present?
@@ -14,7 +14,8 @@ class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
 
   def completed_in
     return '' unless complete?
-    seconds = ((completed_at - created_at)/1.minute).round * 60
+
+    seconds = ((completed_at - created_at) / 1.minute).round * 60
     distance_of_time_in_words(seconds)
   end
 
@@ -30,7 +31,7 @@ class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
     if coc_code.present?
       coc_code
     else
-      "All"
+      'All'
     end
   end
 
@@ -38,9 +39,9 @@ class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
     if complete?
       "Completed in #{completed_in}"
     elsif started_at.present?
-      "Started"
+      'Started'
     else
-      "Queued"
+      'Queued'
     end
   end
 end
