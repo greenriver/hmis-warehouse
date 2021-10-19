@@ -1541,7 +1541,8 @@ CREATE TABLE public."Organization" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "VictimServicesProvider" integer,
-    "VictimServiceProvider" integer
+    "VictimServiceProvider" integer,
+    confidential boolean DEFAULT false NOT NULL
 );
 
 
@@ -5504,7 +5505,8 @@ CREATE TABLE public.exports (
     content bytea,
     file character varying,
     delayed_job_id integer,
-    version character varying
+    version character varying,
+    confidential boolean DEFAULT false NOT NULL
 );
 
 
@@ -15380,7 +15382,8 @@ CREATE TABLE public.recurring_hmis_exports (
     version character varying,
     encrypted_zip_password character varying,
     encrypted_zip_password_iv character varying,
-    encryption_type character varying
+    encryption_type character varying,
+    confidential boolean DEFAULT false NOT NULL
 );
 
 
@@ -46009,6 +46012,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211013135958'),
 ('20211015172536'),
 ('20211018183403'),
-('20211019154744');
+('20211019154744'),
+('20211019164536');
 
 

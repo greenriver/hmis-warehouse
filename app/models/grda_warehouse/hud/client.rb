@@ -2323,38 +2323,36 @@ module GrdaWarehouse::Hud
     # Build a set of potential client matches grouped by criteria
     # FIXME: consolidate this logic with merge_candidates below
     def potential_matches
-      @potential_matches ||= begin
-        {}.tap do |m|
-          c_arel = self.class.arel_table
-          # Find anyone with a nickname match
-          nicks = Nickname.for(self.FirstName).map(&:name)
+      @potential_matches ||= {}.tap do |m|
+        c_arel = self.class.arel_table
+        # Find anyone with a nickname match
+        nicks = Nickname.for(self.FirstName).map(&:name)
 
-          if nicks.any?
-            nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
-            similar_destinations = self.class.destination.where(
-              nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search),
-            ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
-              where.not(id: self.id) # rubocop:disable Style/RedundantSelf
-            m[:by_nickname] = similar_destinations if similar_destinations.any?
-          end
-          # Find anyone with similar sounding names
-          alt_first_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.FirstName).to_s).map(&:name)
-          alt_last_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.LastName).to_s).map(&:name)
-          alt_names = alt_first_names + alt_last_names
-          if alt_names.any?
-            alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
-            similar_destinations = self.class.destination.where(
-              nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
-                and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).
-              or(nf('LOWER', [c_arel[:LastName]]).in(alt_names_for_search).
-                and(nf('LOWER', [c_arel[:FirstName]]).matches("#{self.FirstName.downcase}%"))),
-            ).where.not(id: self.id) # rubocop:disable Style/RedundantSelf
-            m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
-          end
-          # Find anyone with similar sounding names
-          # similar_destinations = self.class.where(id: GrdaWarehouse::WarehouseClient.where(source_id:  self.class.source.where("difference(?, FirstName) > 1", self.FirstName).where('LastName': self.class.source.where('soundex(LastName) = soundex(?)', self.LastName).select('LastName')).where.not(id: source_clients.pluck(:id)).pluck(:id)).pluck(:destination_id))
-          # m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
+        if nicks.any?
+          nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
+          similar_destinations = self.class.destination.where(
+            nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search),
+          ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
+            where.not(id: self.id) # rubocop:disable Style/RedundantSelf
+          m[:by_nickname] = similar_destinations if similar_destinations.any?
         end
+        # Find anyone with similar sounding names
+        alt_first_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.FirstName).to_s).map(&:name)
+        alt_last_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.LastName).to_s).map(&:name)
+        alt_names = alt_first_names + alt_last_names
+        if alt_names.any?
+          alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
+          similar_destinations = self.class.destination.where(
+            nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
+              and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).
+            or(nf('LOWER', [c_arel[:LastName]]).in(alt_names_for_search).
+              and(nf('LOWER', [c_arel[:FirstName]]).matches("#{self.FirstName.downcase}%"))),
+          ).where.not(id: self.id) # rubocop:disable Style/RedundantSelf
+          m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
+        end
+        # Find anyone with similar sounding names
+        # similar_destinations = self.class.where(id: GrdaWarehouse::WarehouseClient.where(source_id:  self.class.source.where("difference(?, FirstName) > 1", self.FirstName).where('LastName': self.class.source.where('soundex(LastName) = soundex(?)', self.LastName).select('LastName')).where.not(id: source_clients.pluck(:id)).pluck(:id)).pluck(:destination_id))
+        # m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
       end
 
       # TODO

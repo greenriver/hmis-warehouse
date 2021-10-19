@@ -6,11 +6,7 @@
 
 # email message stowed in database
 class Message < ApplicationRecord
-
-  SCHEDULES = %w(
-    immediate
-    daily
-  )
+  SCHEDULES = ['immediate', 'daily'].freeze
 
   belongs_to :user
   scope :sent, ->(time = DateTime.current) { where arel_table[:sent_at].lteq time }

@@ -1,0 +1,12 @@
+- content_for :title, "Edit Custom Import for #{@data_source.short_name}"
+= content_for :crumbs do
+  = link_to data_source_custom_imports_path(@data_source) do
+    = '« Custom Imports'
+%h1= content_for :title
+.row
+  .col-sm-8
+    = simple_form_for @config, as: :config, url: data_source_custom_import_path(@data_source, @config) do |f|
+      = render 'form', f: f
+      = f.button :submit, value: 'Update Import Config'
+  .col-sm-4
+    = render 'common/s3/objects_list'
