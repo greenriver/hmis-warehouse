@@ -2939,7 +2939,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/grades/utilization.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
-    - 'app/models/grda_warehouse/hud/organization.rb'
     - 'app/models/grda_warehouse/hud/service.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'

@@ -18,6 +18,7 @@ module Export::Exporter
         directive: @directive,
         hash_status: @hash_status,
         faked_pii: @faked_pii,
+        confidential: @confidential,
         project_ids: @projects,
         include_deleted: @include_deleted,
         version: @version,

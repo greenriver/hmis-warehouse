@@ -105,6 +105,19 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
       note_user_id(export: export, user_id: row[:UserID])
     end
 
+    if export.confidential
+      # NOTE: at this point the ProjectID and OrganizationID have been replaced with warehouse ids
+      if row[:ProjectName].present? && confidential_project_ids.include?(row[:ProjectID])
+        row[:ProjectName] = "#{GrdaWarehouse::Hud::Project.confidential_project_name} - #{row[:ProjectID]}"[0..99]
+        row[:ProjectCommonName] = "#{GrdaWarehouse::Hud::Project.confidential_project_name} - #{row[:ProjectID]}"[0..49]
+      end
+
+      if row[:OrganizationName].present? && confidential_organization_ids.include?(row[:ProjectID])
+        row[:OrganizationName] = "#{GrdaWarehouse::Hud::Organization.confidential_organization_name} - #{row[:OrganizationID]}"[0..99]
+        row[:OrganizationCommonName] = "#{GrdaWarehouse::Hud::Organization.confidential_organization_name} - #{row[:OrganizationID]}"[0..49]
+      end
+    end
+
     if export.faked_pii
       export.fake_data.fake_patterns.each_key do |k|
         row[k] = export.fake_data.fetch(field_name: k, real_value: row[k]) if row[k].present?
@@ -313,5 +326,13 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
       and(e_t[:EnrollmentID].eq(self.class.arel_table[:EnrollmentID])).
       and(e_t[:data_source_id].eq(self.class.arel_table[:data_source_id])),
     ).arel.exists
+  end
+
+  private def confidential_project_ids
+    @confidential_project_ids ||= GrdaWarehouse::Hud::Project.confidential.pluck(:id)
+  end
+
+  private def confidential_organization_ids
+    @confidential_organization_ids ||= GrdaWarehouse::Hud::Organization.confidential.pluck(:id)
   end
 end

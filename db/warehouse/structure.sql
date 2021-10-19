@@ -1541,7 +1541,8 @@ CREATE TABLE public."Organization" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "VictimServicesProvider" integer,
-    "VictimServiceProvider" integer
+    "VictimServiceProvider" integer,
+    confidential boolean DEFAULT false NOT NULL
 );
 
 
@@ -5306,7 +5307,8 @@ CREATE TABLE public.exports (
     content bytea,
     file character varying,
     delayed_job_id integer,
-    version character varying
+    version character varying,
+    confidential boolean DEFAULT false NOT NULL
 );
 
 
@@ -45244,6 +45246,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211001135131'),
 ('20211001160706'),
 ('20211004174014'),
-('20211013135958');
+('20211013135958'),
+('20211019164536');
 
 
