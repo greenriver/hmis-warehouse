@@ -119,6 +119,9 @@ class StyleGuidesController < ApplicationController
     ]
   end
 
+  def modal
+  end
+
   private def guide_routes
     @guide_routes ||= {
       add_goal: 'Add Goal',
@@ -132,6 +135,7 @@ class StyleGuidesController < ApplicationController
       health_dashboard: 'Health Dashboard',
       icon_font: 'Icon Font',
       pagination: 'Pagination',
+      modals: 'Modals',
       stimulus_select: 'Stimulus Select',
       reports: 'Reports',
       tags: 'Tags',

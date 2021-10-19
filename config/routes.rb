@@ -850,6 +850,7 @@ Rails.application.routes.draw do
       get :health_dashboard
       get :health_team
       get :icon_font
+      get :modals
       get :pagination
       get :reports
       get :stimulus_select
