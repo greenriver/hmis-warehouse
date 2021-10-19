@@ -1983,7 +1983,6 @@ Naming/MethodParameterName:
     - 'app/models/similarity_metric/multinomial.rb'
     - 'app/models/similarity_metric/social_security_number.rb'
     - 'app/models/similarity_metric/veteran_status.rb'
-    - 'drivers/claims_reporting/extensions/health/patient_extension.rb'
 
 # Offense count: 88
 # Configuration parameters: NamePrefix, ForbiddenPrefixes, AllowedMethods, MethodDefinitionMacros.
