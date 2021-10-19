@@ -18,6 +18,10 @@ module HudPathReport::Generators::Fy2021
       'PATH'
     end
 
+    def self.file_prefix
+      "v3.5 #{short_name} #{fiscal_year}"
+    end
+
     def url
       hud_reports_path_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end

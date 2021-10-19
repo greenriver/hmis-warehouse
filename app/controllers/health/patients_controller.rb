@@ -43,7 +43,8 @@ module Health
 
       @agencies = @report.agency_counts
 
-      @patients = @patients.
+      @patients = patient_source.
+        where(id: @patients.select(:id)).
         order(last_name: :asc, first_name: :asc).
         page(params[:page].to_i).per(25)
     end

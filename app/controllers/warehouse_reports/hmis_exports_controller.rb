@@ -153,6 +153,8 @@ module WarehouseReports
         :s3_region,
         :s3_bucket,
         :s3_prefix,
+        :zip_password,
+        :encryption_type,
         project_ids: [],
         project_group_ids: [],
         organization_ids: [],

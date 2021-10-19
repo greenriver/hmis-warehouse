@@ -6,27 +6,27 @@ module HmisSqlServer
     {
       'Export.csv' => HmisSqlServer::Export,
       'Funder.csv' => HmisSqlServer::Funder,
-      'Affiliation.csv' => HmisSqlServer::Affiliation,
+      # 'Affiliation.csv' => HmisSqlServer::Affiliation,
       'Inventory.csv' => HmisSqlServer::Inventory,
       'Organization.csv' => HmisSqlServer::Organization,
       'Project.csv' => HmisSqlServer::Project,
       'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
-      'User.csv' => HmisSqlServer::User,
+      # 'User.csv' => HmisSqlServer::User,
       'Client.csv' => HmisSqlServer::Client,
-      'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
-      'Disabilities.csv' => HmisSqlServer::Disability,
-      'EmploymentEducation.csv' => HmisSqlServer::EmploymentEducation,
+      # 'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
+      # 'Disabilities.csv' => HmisSqlServer::Disability,
+      # 'EmploymentEducation.csv' => HmisSqlServer::EmploymentEducation,
       'Enrollment.csv' => HmisSqlServer::Enrollment,
       'EnrollmentCoC.csv' => HmisSqlServer::EnrollmentCoc,
-      'Event.csv' => HmisSqlServer::Event,
+      # 'Event.csv' => HmisSqlServer::Event,
       'Exit.csv' => HmisSqlServer::Exit,
       'HealthAndDV.csv' => HmisSqlServer::HealthAndDv,
-      'IncomeBenefits.csv' => HmisSqlServer::IncomeBenefit,
+      # 'IncomeBenefits.csv' => HmisSqlServer::IncomeBenefit,
       'Services.csv' => HmisSqlServer::Service,
-      'Assessment.csv' => HmisSqlServer::Assessment,
-      'AssessmentQuestions.csv' => HmisSqlServer::AssessmentQuestion,
-      'AssessmentResults.csv' => HmisSqlServer::AssessmentResult,
-      'YouthEducationStatus.csv' => HmisSqlServer::YouthEducationStatus,
+      # 'Assessment.csv' => HmisSqlServer::Assessment,
+      # 'AssessmentQuestions.csv' => HmisSqlServer::AssessmentQuestion,
+      # 'AssessmentResults.csv' => HmisSqlServer::AssessmentResult,
+      # 'YouthEducationStatus.csv' => HmisSqlServer::YouthEducationStatus,
     }.freeze
   end
 
@@ -132,8 +132,10 @@ module HmisSqlServer
         'HousingType',
       ].each do |k|
         field_index = headers.index(k)
-        row[field_index] = row[field_index].presence || 99
+        row[field_index] = row[field_index].presence || 1 # this is incorrect, but HDX will reject a 99
       end
+      field_index = headers.index('HMISParticipatingProject')
+      row[field_index] = 0 if row[field_index].to_s == '99' || row[field_index].blank? # this is incorrect, but HDX will reject a 99
 
       super(row: row, headers: headers)
     end
@@ -142,6 +144,16 @@ module HmisSqlServer
   class ProjectCoc < LsaBase
     self.table_name = :hmis_ProjectCoC
     include ::HMIS::Structure::ProjectCoc
+
+    def clean_row_for_import(row:, headers:)
+      field_index = headers.index('Zip')
+      row[field_index] = row[field_index].presence || '0' * 5
+      field_index = headers.index('Geocode')
+      row[field_index] = row[field_index].presence || '0' * 6
+      field_index = headers.index('GeographyType')
+      row[field_index] = row[field_index].presence || 99
+      super(row: row, headers: headers)
+    end
   end
 
   class Service < LsaBase

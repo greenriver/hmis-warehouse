@@ -21,6 +21,4 @@ Rails.application.config.assets.precompile += %w( chart.js )
 Rails.application.config.assets.precompile += %w( pdf.js )
 Rails.application.config.assets.precompile += ['theme/styles/*.css']
 Rails.application.config.assets.precompile += %w( moment.min.js )
-Rails.application.config.assets.precompile += %w( handsontable.full.min.css )
-Rails.application.config.assets.precompile += %w( handsontable.full.js )
 Rails.application.config.assets.precompile += %w( ag-grid/ag-grid.min.js )

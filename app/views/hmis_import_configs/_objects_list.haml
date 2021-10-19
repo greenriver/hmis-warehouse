@@ -10,11 +10,13 @@
         %tr
           %th File Name
           %th Last Modified
+          %th Size
       %tbody
         - @bucket_objects_list.each do |obj|
           %tr
             %td= obj.key.gsub(@config.s3_path, '')
-            %td= obj.last_modified
+            %td.nobr= obj.last_modified
+            %td.nobr= number_to_human_size obj.size
 - else
   .card
     %p.none-found
