@@ -239,7 +239,7 @@ module HudReports
     end
     helper_method :report_version_urls
 
-    def active_report_version
+    def active_report_versions
       available_report_versions.map do |year, opts|
         next unless opts[:active]
 
@@ -249,7 +249,7 @@ module HudReports
         ]
       end.compact
     end
-    helper_method :active_report_version
+    helper_method :active_report_versions
 
     private def default_report_version
       :fy2021
