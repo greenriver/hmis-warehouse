@@ -43,7 +43,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     # scope :low_vulnerability, -> {
     #   where(priority_score: 0..364)
     # }
-    scope :visible_by?, -> (user) do
+    scope :visible_by?, ->(user) do
       if user.can_view_ce_assessment? || user.can_edit_ce_assessment?
         all
       elsif user.can_submit_ce_assessment?
@@ -87,29 +87,26 @@ module GrdaWarehouse::CoordinatedEntryAssessment
 
     def notify_users
       return if changes.empty?
+
       notify_ce_assessment_completed
     end
 
     def notify_ce_assessment_completed
-      if ce_assessment_completed?
-        NotifyUser.ce_assessment_completed( id ).deliver_later
-      end
+      NotifyUser.ce_assessment_completed(id).deliver_later if ce_assessment_completed?
     end
 
     def ce_assessment_completed?
-      if saved_change_to_attribute?(:submitted_at)
-        before, after = saved_change_to_attribute(:submitted_at)
-        return before.nil? && after.present?
-      else
-        return false
-      end
+      return false unless saved_change_to_attribute?(:submitted_at)
+
+      before, after = saved_change_to_attribute(:submitted_at)
+      before.nil? && after.present?
     end
 
     def add_to_cohorts
-      if ce_assessment_completed?
-        GrdaWarehouse::Cohort.active.where(assessment_trigger: self.class.name).each do |cohort|
-          AddCohortClientsJob.perform_later(cohort.id, "#{client_id}", user_id)
-        end
+      return unless ce_assessment_completed?
+
+      GrdaWarehouse::Cohort.active.where(assessment_trigger: self.class.name).each do |cohort|
+        AddCohortClientsJob.perform_later(cohort.id, client_id.to_s, user_id)
       end
     end
 
@@ -210,10 +207,10 @@ module GrdaWarehouse::CoordinatedEntryAssessment
 
     def self.ensure_active(client)
       most_recent_completed = client.ce_assessments.completed.order(submitted_at: :desc).first
-      if most_recent_completed.present?
-        most_recent_completed.update(active: true)
-        client.ce_assessments.where(active: true).where.not(id: most_recent_completed.id).update_all(active: false)
-      end
+      return unless most_recent_completed.present?
+
+      most_recent_completed.update(active: true)
+      client.ce_assessments.where(active: true).where.not(id: most_recent_completed.id).update_all(active: false)
     end
 
     def self.allowed_parameters
@@ -284,7 +281,6 @@ module GrdaWarehouse::CoordinatedEntryAssessment
         :acute_substance_abuse,
       ]
     end
-
 
     def self.detail_columns
       @detail_columns ||= {
@@ -397,7 +393,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '1 -- At immediate risk of homelessness (Housing loss will occur within 48 hours; no other support/housing options.)' => 1,
             '0 -- Unstably housed and/or somewhat at risk of homelessness.' => 0,
             'Client refused to answer.' => 99,
-          }
+          },
         },
         substance_use: {
           label: 'Substance Use',
@@ -407,7 +403,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '1 -- Building Capacity (Regular use of supports. Positive results due to increased safety. Abstinent < 12 months, no relapse.)' => 1,
             '0 -- Empowered (No history of substance abuse/use. Abstinent 12+ months, without relapse.)' => 0,
             'Client refused to answer.' => 99,
-          }
+          },
         },
         mental_health: {
           label: 'Mental Health',
@@ -417,7 +413,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '1 -- Building Capacity (Mild/minimal symptoms are transient. Only slight impairment in functioning. Ongoing use of supports.)' => 1,
             '0 -- Empowered (No history of mental illness. Symptoms are absent or rare.)' => 0,
             'Client refused to answer.' => 99,
-          }
+          },
         },
         health_care: {
           label: 'Health Care',
@@ -427,7 +423,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '1 -- Building Capacity (Ability to participate in healthcare and manage health issues as they arise.)' => 1,
             '0 -- Empowered (Manages and directs own healthcare network.)' => 0,
             'Client refused to answer.' => 99,
-          }
+          },
         },
         legal_issues: {
           label: 'Legal Issues',
@@ -437,7 +433,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '1 -- Building Capacity (No recent criminal activity. No probation/parole.)' => 1,
             '0 -- Empowered (No criminal history. No criminal activity in 5+ years.)' => 0,
             'Client refused to answer.' => 99,
-          }
+          },
         },
         income: {
           label: 'Income',
@@ -447,7 +443,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '1 -- Building Capacity (Meeting basic needs and managing budget without assistance.)' => 1,
             '0 -- Empowered (Financially stable, has discretionary income, income is well managed and client is saving money.)' => 0,
             'Client refused to answer.' => 99,
-          }
+          },
         },
         work: {
           label: 'Work',
@@ -455,9 +451,9 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '3 -- Vulnerable (Unemployed or underemployed; temporary, seasonal, or part-time work; inadequate pay; no benefits.)' => 3,
             '2 -- Safe (Employed full-time; inadequate pay; few or no benefits.)' => 2,
             '1 -- Building Capacity (Employed full-time with adequate pay and benefits.)' => 1,
-            '0 -- Empowered (Maintains full-time employment with adequate pay and benefits.) '=> 0,
+            '0 -- Empowered (Maintains full-time employment with adequate pay and benefits.) ' => 0,
             'Client refused to answer.' => 99,
-          }
+          },
         },
         independent_living: {
           label: 'Independent Living Skills',
@@ -467,7 +463,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '1 -- Building Capacity (Can meet most, but not all daily living needs without assistance.)' => 1,
             '0 -- Empowered (Able to meet all basic needs of daily living without assistance.)' => 0,
             'Client refused to answer.' => 99,
-          }
+          },
         },
         community_involvement: {
           label: 'Community Involvement',
@@ -477,7 +473,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '1 -- Building Capacity (Regular use of support systems. Some participation in recreation; work; education; vocation programs.)' => 1,
             '0 -- Empowered (Fully participating and engaged in community activities.)' => 0,
             'Client refused to answer.' => 99,
-          }
+          },
         },
         survival_skills: {
           label: 'Survival Skills',

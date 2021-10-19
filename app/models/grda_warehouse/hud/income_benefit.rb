@@ -109,7 +109,7 @@ module GrdaWarehouse::Hud
       :TANFTransportation,
       :OtherTANF,
       :OtherBenefitsSource,
-    ]
+    ].freeze
 
     INSURANCE_TYPES = [
       :Medicaid,
@@ -122,7 +122,7 @@ module GrdaWarehouse::Hud
       :StateHealthIns,
       :IndianHealthServices,
       :OtherInsurance,
-    ]
+    ].freeze
 
     def sources
       @sources ||= SOURCES.keys.select { |c| send(c) == 1 }
