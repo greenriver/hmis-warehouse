@@ -108,11 +108,12 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
     if export.confidential
       # NOTE: at this point the ProjectID and OrganizationID have been replaced with warehouse ids
       if row[:ProjectName].present? && confidential_project_ids.include?(row[:ProjectID])
+
         row[:ProjectName] = "#{GrdaWarehouse::Hud::Project.confidential_project_name} - #{row[:ProjectID]}"[0..99]
         row[:ProjectCommonName] = "#{GrdaWarehouse::Hud::Project.confidential_project_name} - #{row[:ProjectID]}"[0..49]
       end
 
-      if row[:OrganizationName].present? && confidential_organization_ids.include?(row[:ProjectID])
+      if row[:OrganizationName].present? && confidential_organization_ids.include?(row[:OrganizationID])
         row[:OrganizationName] = "#{GrdaWarehouse::Hud::Organization.confidential_organization_name} - #{row[:OrganizationID]}"[0..99]
         row[:OrganizationCommonName] = "#{GrdaWarehouse::Hud::Organization.confidential_organization_name} - #{row[:OrganizationID]}"[0..49]
       end
@@ -329,10 +330,10 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
   end
 
   private def confidential_project_ids
-    @confidential_project_ids ||= GrdaWarehouse::Hud::Project.confidential.pluck(:id)
+    @confidential_project_ids ||= GrdaWarehouse::Hud::Project.confidential.pluck(:id).map(&:to_s)
   end
 
   private def confidential_organization_ids
-    @confidential_organization_ids ||= GrdaWarehouse::Hud::Organization.confidential.pluck(:id)
+    @confidential_organization_ids ||= GrdaWarehouse::Hud::Organization.confidential.pluck(:id).map(&:to_s)
   end
 end

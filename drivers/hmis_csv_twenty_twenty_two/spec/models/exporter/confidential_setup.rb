@@ -35,8 +35,8 @@ RSpec.shared_context '2022 confidential setup', shared_context: :metadata do
         organization << create(
           :hud_organization,
           OrganizationID: (i + 1).to_s,
-          OrganizationName: (i + 1).to_s,
-          OrganizationCommonName: (i + 1).to_s,
+          OrganizationName: "Organization Name #{i + 1}",
+          OrganizationCommonName: "Organization Common Name #{i + 1}",
           data_source_id: data_source.id,
         )
       end
@@ -49,8 +49,8 @@ RSpec.shared_context '2022 confidential setup', shared_context: :metadata do
         project << create(
           :hud_project,
           ProjectID: (i + 1).to_s,
-          ProjectName: (i + 1).to_s,
-          ProjectCommonName: (i + 1).to_s,
+          ProjectName: "Project Name #{i + 1}",
+          ProjectCommonName: "Project Common Name #{i + 1}",
           OrganizationID: (i + 1).to_s,
           data_source_id: data_source.id,
           ProjectType: 1,

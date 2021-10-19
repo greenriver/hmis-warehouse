@@ -9,7 +9,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
     HmisCsvTwentyTwentyTwo::Exporter::Base.new(
       start_date: 1.week.ago.to_date,
       end_date: Date.current,
-      projects: [projects.first.id],
+      projects: projects.map(&:id),
       period_type: 3,
       directive: 3,
       user_id: user.id,
