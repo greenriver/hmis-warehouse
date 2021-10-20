@@ -20,6 +20,7 @@ module HomelessSummaryReport
 
     belongs_to :user, optional: true
     has_many :clients
+    has_many :results
 
     after_initialize :filter
 
@@ -39,6 +40,7 @@ module HomelessSummaryReport
       start
       begin
         create_universe
+        save_results
       rescue Exception => e
         update(failed_at: Time.current)
         raise e
@@ -146,29 +148,29 @@ module HomelessSummaryReport
       add_clients(report_clients)
     end
 
+    private def save_results
+      # TODO: add summary counts
+    end
+
     private def add_clients(report_clients)
       # Work through all the SPM report variants, building up the `report_clients` as we go.
-      run_spm.each do |variant_name, spec|
-        { '' => spec[:base_variant] }.merge(spec[:variants]).each do |sub_variant, report|
-          detail_variant_name = "spm_#{variant_name}__#{sub_variant.presence || 'all'}"
-          spm_fields.each do |spm_field, parts|
-            cells = parts[:cells]
-            cells.each do |cell|
-              spm_clients = answer_clients(report[:report], *cell)
-              spm_clients.each do |spm_client|
-                report_client = report_clients[spm_client[:client_id]] || Client.new
-                report_client[:client_id] = spm_client[:client_id]
-                report_client[:first_name] = spm_client[:first_name]
-                report_client[:last_name] = spm_client[:last_name]
-                report_client[:report_id] = id
-                report_client["spm_#{spm_field}"] = spm_client[spm_field]
-                if field_measure(spm_field) == 7
-                  field_name = "spm_m#{cell.join('_')}".delete('.').downcase.to_sym
-                  report_client[field_name] = true
-                end
-                report_client[detail_variant_name] = report[:report].id
-                report_clients[spm_client[:client_id]] = report_client
-              end
+      run_spm.each do |household_category, spec|
+        report = spec[:base_variant]
+        detail_variant_name = "spm_#{household_category}__all"
+        spm_fields.each do |spm_field, parts|
+          cells = parts[:cells]
+          cells.each do |cell|
+            spm_clients = answer_clients(report[:report], *cell)
+            spm_clients.each do |spm_client|
+              report_client = report_clients[spm_client[:client_id]] || Client.new
+              report_client[:client_id] = spm_client[:client_id]
+              report_client[:first_name] = spm_client[:first_name]
+              report_client[:last_name] = spm_client[:last_name]
+              report_client[:report_id] = id
+              report_client["spm_#{spm_field}"] = spm_client[spm_field]
+              report_client[field_name(cell)] = true if field_measure(spm_field) == 7
+              report_client[detail_variant_name] = report[:report].id
+              report_clients[spm_client[:client_id]] = report_client
             end
           end
         end
@@ -184,6 +186,20 @@ module HomelessSummaryReport
         client
       end
 
+      # Set demographic flags
+      variants.each do |household_category, spec|
+        spec[:variants].each do |demographic_category, sub_spec|
+          detail_variant_name = "spm_#{household_category}__#{demographic_category}"
+          client_ids_in_demographic_category = client_ids_for_demographic_category(spec, sub_spec)
+          report_clients.each do |client_id, report_client|
+            next unless client_id.in?(client_ids_in_demographic_category)
+
+            # This previously inserted the report id, now we just need to make it > 0
+            report_client[detail_variant_name] = 1
+          end
+        end
+      end
+
       Client.import(
         report_clients.values,
         on_duplicate_key_update: {
@@ -192,6 +208,24 @@ module HomelessSummaryReport
         },
       )
       universe.add_universe_members(report_clients)
+    end
+
+    # This needs to temporarily set @filter to somethign useful for further limiting the default
+    # filter set.  When it's done, it can just clear it as calling `filter` will reset it from
+    # the chosen options
+    private def client_ids_for_demographic_category(spec, sub_spec)
+      @filter = filter
+      base_variant = spec[:base_variant]
+      extra_filters = base_variant[:extra_filters] || {}
+      @filter.update(extra_filters.merge(sub_spec[:extra_filters] || {}))
+      # demographic_filter is a method known to filter_scopes
+      ids = send(sub_spec[:demographic_filter], report_scope).pluck(:client_id).uniq.to_set
+      @filter = nil
+      ids
+    end
+
+    private def field_name(cell)
+      "spm_m#{cell.join('_')}".delete('.').downcase.to_sym
     end
 
     private def answer(report, table, cell)
@@ -228,17 +262,17 @@ module HomelessSummaryReport
         generator.new(report).run!(email: false, manual: false)
         spec[:base_variant][:report] = report
 
-        spec[:variants].each do |_, sub_spec|
-          processed_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id)
-          processed_filter.update(options.deep_merge(extra_filters.merge(sub_spec[:extra_filters] || {})))
-          report = HudReports::ReportInstance.from_filter(
-            processed_filter,
-            generator.title,
-            build_for_questions: questions,
-          )
-          generator.new(report).run!(email: false, manual: false)
-          sub_spec[:report] = report
-        end
+        # demographic_variants.each do |demographic_category, sub_spec|
+        #   processed_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id)
+        #   processed_filter.update(options.deep_merge(extra_filters.merge(sub_spec[:extra_filters] || {})))
+        #   report = HudReports::ReportInstance.from_filter(
+        #     processed_filter,
+        #     generator.title,
+        #     build_for_questions: questions,
+        #   )
+        #   generator.new(report).run!(email: false, manual: false)
+        #   sub_spec[:report] = report
+        # end
       end
       # return @variants with reports for each question
       variants
@@ -491,78 +525,91 @@ module HomelessSummaryReport
             ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latin(a)(o)(x)', true)],
             races: ['White'],
           },
+          demographic_filter: :filter_for_race,
         },
         hispanic_latino: {
           name: 'Hispanic/Latin(a)(o)(x)',
           extra_filters: {
             ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
           },
+          demographic_filter: :filter_for_race,
         },
         black_african_american: {
           name: 'Black/African American Persons',
           extra_filters: {
             races: ['BlackAfAmerican'],
           },
+          demographic_filter: :filter_for_race,
         },
         asian: {
           name: 'Asian Persons',
           extra_filters: {
             races: ['Asian'],
           },
+          demographic_filter: :filter_for_race,
         },
         american_indian_alaskan_native: {
           name: 'American Indian/Alaskan Native Persons',
           extra_filters: {
             races: ['AmIndAKNative'],
           },
+          demographic_filter: :filter_for_race,
         },
         native_hawaiian_other_pacific_islander: {
           name: 'Native Hawaiian or Pacific Islander',
           extra_filters: {
             races: ['NativeHIPacific'],
           },
+          demographic_filter: :filter_for_race,
         },
         multi_racial: {
           name: 'Multiracial',
           extra_filters: {
             races: ['MultiRacial'],
           },
+          demographic_filter: :filter_for_race,
         },
         fleeing_dv: {
           name: 'Currently Fleeing DV',
           extra_filters: {
             currently_fleeing: [1],
           },
+          demographic_filter: :filter_for_dv_currently_fleeing,
         },
         veteran: {
           name: 'Veterans',
           extra_filters: {
             veteran_statuses: [1],
           },
+          demographic_filter: :filter_for_veteran_status,
         },
         has_disability: {
           name: 'With Indefinite and Impairing Disability',
           extra_filters: {
             indefinite_disabilities: [1],
           },
+          demographic_filter: :filter_for_indefinite_disabilities,
         },
         has_rrh_move_in_date: {
           name: 'Moved in to RRH',
           extra_filters: {
             rrh_move_in: true,
           },
+          demographic_filter: :filter_for_rrh_move_in,
         },
         has_psh_move_in_date: {
           name: 'Moved in to PSH',
           extra_filters: {
             psh_move_in: true,
           },
+          demographic_filter: :filter_for_psh_move_in,
         },
         first_time_homeless: {
           name: 'First Time Homeless in Past Two Years',
           extra_filters: {
             first_time_homeless: true,
           },
+          demographic_filter: :filter_for_first_time_homeless_in_past_two_years,
         },
         # NOTE: only display this on Measure 1 (it will never work on Measure 2)
         returned_to_homelessness_from_permanent_destination: {
@@ -570,6 +617,7 @@ module HomelessSummaryReport
           extra_filters: {
             returned_to_homelessness_from_permanent_destination: true,
           },
+          demographic_filter: :filter_for_returned_to_homelessness_from_permanent_destination,
         },
       }.freeze
     end
