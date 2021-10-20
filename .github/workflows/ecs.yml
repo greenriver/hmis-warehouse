@@ -120,6 +120,7 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
         if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
         then
+          HAS_DJ=true
           echo pushing dj
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
         else
