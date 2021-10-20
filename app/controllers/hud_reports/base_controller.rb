@@ -76,6 +76,8 @@ module HudReports
     end
 
     def set_reports
+      return [] if generator.blank?
+
       title = generator.title
       @reports = report_scope.where(report_name: title).
         preload(:user, :universe_cells)
