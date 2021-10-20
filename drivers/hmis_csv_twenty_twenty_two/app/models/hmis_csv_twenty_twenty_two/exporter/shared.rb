@@ -114,7 +114,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
       end
 
       if row[:OrganizationName].present? && confidential_organization_ids.include?(row[:OrganizationID])
-        row[:OrganizationName] = "#{GrdaWarehouse::Hud::Organization.confidential_organization_name} - #{row[:OrganizationID]}"[0..99]
+        row[:OrganizationName] = "#{GrdaWarehouse::Hud::Organization.confidential_organization_name} - #{row[:OrganizationID]}"[0..49]
         row[:OrganizationCommonName] = "#{GrdaWarehouse::Hud::Organization.confidential_organization_name} - #{row[:OrganizationID]}"[0..49]
       end
     end
