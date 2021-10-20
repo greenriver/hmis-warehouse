@@ -68,7 +68,6 @@ module HomelessSummaryReport::WarehouseReports
         @data_cells = @report.m7_fields
       end
       @detail_clients = @report.clients.send(@variant).send(@cell)
-      @spm_id = @detail_clients&.first&.send(@variant)
     end
 
     def details_params(report)
