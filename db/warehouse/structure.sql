@@ -12497,11 +12497,13 @@ CREATE TABLE public.homeless_summary_report_results (
     section character varying,
     household_category character varying,
     demographic_category character varying,
+    field character varying,
     characteristic character varying,
     calculation character varying,
     value double precision,
     format character varying,
     details jsonb,
+    detail_link_slug character varying,
     deleted_at timestamp without time zone
 );
 

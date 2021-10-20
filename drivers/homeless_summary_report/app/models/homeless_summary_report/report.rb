@@ -41,8 +41,8 @@ module HomelessSummaryReport
     def run_and_save!
       start
       begin
-        create_universe
-        save_results
+        populate_universe
+        populate_results
       rescue Exception => e
         update(failed_at: Time.current)
         raise e
@@ -145,13 +145,110 @@ module HomelessSummaryReport
       boolean ? 'Yes' : 'No'
     end
 
-    private def create_universe
+    private def populate_universe
       report_clients = {}
       add_clients(report_clients)
     end
 
-    private def save_results
-      # TODO: add summary counts
+    private def populate_results
+      results = []
+      measures.each do |measure, data|
+        headers = data[:headers]
+        variants.each do |household_category, spec|
+          data[:fields].each do |row|
+            field, row_data = row
+            results += generate_results_for(
+              section: measure,
+              household_category: household_category,
+              demographic_category: 'all',
+              field: field,
+              headers: headers,
+              data: row_data,
+              calculations: row_data[:calculations],
+            )
+            spec[:variants].each do |demographic_category, _variant|
+              next if exclude_variants(measure, demographic_category)
+
+              data[:fields].each do |sub_row|
+                next unless sub_row.first == field
+
+                row_data = sub_row.last
+                results += generate_results_for(
+                  section: measure,
+                  household_category: household_category,
+                  demographic_category: demographic_category,
+                  field: field,
+                  headers: headers,
+                  data: row_data,
+                  calculations: row_data[:calculations],
+                )
+              end
+            end
+          end
+        end
+      end
+      HomelessSummaryReport::Result.transaction do
+        HomelessSummaryReport::Result.where(report_id: id).update_all(deleted_at: Time.current)
+        HomelessSummaryReport::Result.import(results)
+      end
+    end
+
+    private def generate_results_for(section:, household_category:, demographic_category:, field:, headers:, calculations:, data:)
+      [].tap do |results|
+        detail_variant_name = "spm_#{household_category}__#{demographic_category}"
+        if section == 'Measure 7'
+          calculations.each do |calculation|
+            # For measure 7 we only want the large buckets, we'll add the detail buckets as a json blob
+            destinations.first(3).each.with_index do |ids, i|
+              value = calculate(detail_variant_name, field, calculation, data.merge(destination: ids))
+              details = []
+              destinations.drop(3).each do |d_id|
+                next unless ::HUD.destination_type(d_id) == ::HUD.destination_type(ids.first)
+
+                count = calculate(detail_variant_name, field, calculation, data.merge(destination: d_id))
+                details << "#{HUD.destination(d_id)}: #{count}" if count&.positive?
+              end
+
+              results << HomelessSummaryReport::Result.new(
+                report_id: id,
+                section: section,
+                household_category: household_category,
+                demographic_category: demographic_category,
+                field: field,
+                characteristic: headers[i],
+                calculation: calculation,
+                format: format_string(calculation),
+                value: value,
+                detail_link_slug: detail_variant_name,
+                details: details,
+              )
+            end
+          end
+        else
+          calculations.each.with_index do |calculation, i|
+            value = calculate(detail_variant_name, field, calculation, data)
+
+            results << HomelessSummaryReport::Result.new(
+              report_id: id,
+              section: section,
+              household_category: household_category,
+              demographic_category: demographic_category,
+              field: field,
+              characteristic: headers[i],
+              calculation: calculation,
+              format: format_string(calculation),
+              value: value,
+              detail_link_slug: detail_variant_name,
+            )
+          end
+        end
+      end
+    end
+
+    private def format_string(calculation)
+      return '%0.1f' if calculation == :percent
+
+      '%0d'
     end
 
     private def add_clients(report_clients)
@@ -281,14 +378,14 @@ module HomelessSummaryReport
 
     def measures
       {
-        # 'Measure 1' => {
-        #   fields: m1_fields,
-        #   headers: [
-        #     'Client Count',
-        #     'Average Days',
-        #     'Median Days',
-        #   ],
-        # },
+        'Measure 1' => {
+          fields: m1_fields,
+          headers: [
+            'Client Count',
+            'Average Days',
+            'Median Days',
+          ],
+        },
         'Measure 2' => {
           fields: m2_fields,
           headers: [
@@ -296,20 +393,20 @@ module HomelessSummaryReport
             '% in Category',
           ],
         },
-        # 'Measure 7' => {
-        #   fields: {
-        #     exited_from_homeless_system: {
-        #       title: 'Clients',
-        #       calculations: [:count, :count_destinations],
-        #     },
-        #   },
-        #   headers: [
-        #     'Client Count',
-        #     'Permanent Destinations',
-        #     'Temporary Destinations',
-        #     'Institutional Destinations',
-        #   ] + ::HUD.valid_destinations.map { |id, d| "#{d} (#{id})" },
-        # },
+        'Measure 7' => {
+          fields: {
+            exited_from_homeless_system: {
+              title: 'Clients',
+              calculations: [:count, :count_destinations],
+            },
+          },
+          headers: [
+            'Client Count',
+            'Permanent Destinations',
+            'Temporary Destinations',
+            'Institutional Destinations',
+          ] + ::HUD.valid_destinations.map { |id, d| "#{d} (#{id})" },
+        },
       }
       # Measure 1 is table with Client Count, Average Days, Median Days
       # Measure 2 is table with Client Count, % in each category
@@ -453,51 +550,51 @@ module HomelessSummaryReport
           },
           variants: {},
         },
-        # with_children: {
-        #   base_variant: {
-        #     name: 'Persons in Adult/Child Households',
-        #     extra_filters: {
-        #       household_type: :with_children,
-        #     },
-        #   },
-        #   variants: {},
-        # },
-        # only_children: {
-        #   base_variant: {
-        #     name: 'Persons in Child Only Households',
-        #     extra_filters: {
-        #       household_type: :only_children,
-        #     },
-        #   },
-        #   variants: {},
-        # },
-        # without_children_and_fifty_five_plus: {
-        #   base_variant: {
-        #     name: 'Persons in Adult Only Households who are Age 55+',
-        #     extra_filters: {
-        #       household_type: :without_children,
-        #       age_ranges: [
-        #         :fifty_five_to_fifty_nine,
-        #         :sixty_to_sixty_one,
-        #         :over_sixty_one,
-        #       ],
-        #     },
-        #   },
-        #   variants: {},
-        # },
-        # adults_with_children_where_parenting_adult_18_to_24: {
-        #   base_variant: {
-        #     name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
-        #     extra_filters: {
-        #       household_type: :with_children,
-        #       hoh_only: true,
-        #       age_ranges: [
-        #         :eighteen_to_twenty_four,
-        #       ],
-        #     },
-        #   },
-        #   variants: {},
-        # },
+        with_children: {
+          base_variant: {
+            name: 'Persons in Adult/Child Households',
+            extra_filters: {
+              household_type: :with_children,
+            },
+          },
+          variants: {},
+        },
+        only_children: {
+          base_variant: {
+            name: 'Persons in Child Only Households',
+            extra_filters: {
+              household_type: :only_children,
+            },
+          },
+          variants: {},
+        },
+        without_children_and_fifty_five_plus: {
+          base_variant: {
+            name: 'Persons in Adult Only Households who are Age 55+',
+            extra_filters: {
+              household_type: :without_children,
+              age_ranges: [
+                :fifty_five_to_fifty_nine,
+                :sixty_to_sixty_one,
+                :over_sixty_one,
+              ],
+            },
+          },
+          variants: {},
+        },
+        adults_with_children_where_parenting_adult_18_to_24: {
+          base_variant: {
+            name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
+            extra_filters: {
+              household_type: :with_children,
+              hoh_only: true,
+              age_ranges: [
+                :eighteen_to_twenty_four,
+              ],
+            },
+          },
+          variants: {},
+        },
       }
       household_types.each do |_, reports|
         demographic_variants.each do |key, variant|
@@ -520,21 +617,21 @@ module HomelessSummaryReport
 
     def self.demographic_variants
       {
-        # white_non_hispanic_latino: {
-        #   name: 'White Non-Hispanic/Non-Latin(a)(o)(x) Persons',
-        #   extra_filters: {
-        #     ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latin(a)(o)(x)', true)],
-        #     races: ['White'],
-        #   },
-        #   demographic_filter: :filter_for_race,
-        # },
-        # hispanic_latino: {
-        #   name: 'Hispanic/Latin(a)(o)(x)',
-        #   extra_filters: {
-        #     ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
-        #   },
-        #   demographic_filter: :filter_for_race,
-        # },
+        white_non_hispanic_latino: {
+          name: 'White Non-Hispanic/Non-Latin(a)(o)(x) Persons',
+          extra_filters: {
+            ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latin(a)(o)(x)', true)],
+            races: ['White'],
+          },
+          demographic_filter: :filter_for_race,
+        },
+        hispanic_latino: {
+          name: 'Hispanic/Latin(a)(o)(x)',
+          extra_filters: {
+            ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
+          },
+          demographic_filter: :filter_for_race,
+        },
         black_african_american: {
           name: 'Black/African American Persons',
           extra_filters: {
@@ -542,13 +639,13 @@ module HomelessSummaryReport
           },
           demographic_filter: :filter_for_race,
         },
-        # asian: {
-        #   name: 'Asian Persons',
-        #   extra_filters: {
-        #     races: ['Asian'],
-        #   },
-        #   demographic_filter: :filter_for_race,
-        # },
+        asian: {
+          name: 'Asian Persons',
+          extra_filters: {
+            races: ['Asian'],
+          },
+          demographic_filter: :filter_for_race,
+        },
         american_indian_alaskan_native: {
           name: 'American Indian/Alaskan Native Persons',
           extra_filters: {
@@ -570,56 +667,56 @@ module HomelessSummaryReport
           },
           demographic_filter: :filter_for_race,
         },
-        # fleeing_dv: {
-        #   name: 'Currently Fleeing DV',
-        #   extra_filters: {
-        #     currently_fleeing: [1],
-        #   },
-        #   demographic_filter: :filter_for_dv_currently_fleeing,
-        # },
-        # veteran: {
-        #   name: 'Veterans',
-        #   extra_filters: {
-        #     veteran_statuses: [1],
-        #   },
-        #   demographic_filter: :filter_for_veteran_status,
-        # },
-        # has_disability: {
-        #   name: 'With Indefinite and Impairing Disability',
-        #   extra_filters: {
-        #     indefinite_disabilities: [1],
-        #   },
-        #   demographic_filter: :filter_for_indefinite_disabilities,
-        # },
-        # has_rrh_move_in_date: {
-        #   name: 'Moved in to RRH',
-        #   extra_filters: {
-        #     rrh_move_in: true,
-        #   },
-        #   demographic_filter: :filter_for_rrh_move_in,
-        # },
-        # has_psh_move_in_date: {
-        #   name: 'Moved in to PSH',
-        #   extra_filters: {
-        #     psh_move_in: true,
-        #   },
-        #   demographic_filter: :filter_for_psh_move_in,
-        # },
-        # first_time_homeless: {
-        #   name: 'First Time Homeless in Past Two Years',
-        #   extra_filters: {
-        #     first_time_homeless: true,
-        #   },
-        #   demographic_filter: :filter_for_first_time_homeless_in_past_two_years,
-        # },
-        # # NOTE: only display this on Measure 1 (it will never work on Measure 2)
-        # returned_to_homelessness_from_permanent_destination: {
-        #   name: 'Returned to Homelessness from Permanent Destination',
-        #   extra_filters: {
-        #     returned_to_homelessness_from_permanent_destination: true,
-        #   },
-        #   demographic_filter: :filter_for_returned_to_homelessness_from_permanent_destination,
-        # },
+        fleeing_dv: {
+          name: 'Currently Fleeing DV',
+          extra_filters: {
+            currently_fleeing: [1],
+          },
+          demographic_filter: :filter_for_dv_currently_fleeing,
+        },
+        veteran: {
+          name: 'Veterans',
+          extra_filters: {
+            veteran_statuses: [1],
+          },
+          demographic_filter: :filter_for_veteran_status,
+        },
+        has_disability: {
+          name: 'With Indefinite and Impairing Disability',
+          extra_filters: {
+            indefinite_disabilities: [1],
+          },
+          demographic_filter: :filter_for_indefinite_disabilities,
+        },
+        has_rrh_move_in_date: {
+          name: 'Moved in to RRH',
+          extra_filters: {
+            rrh_move_in: true,
+          },
+          demographic_filter: :filter_for_rrh_move_in,
+        },
+        has_psh_move_in_date: {
+          name: 'Moved in to PSH',
+          extra_filters: {
+            psh_move_in: true,
+          },
+          demographic_filter: :filter_for_psh_move_in,
+        },
+        first_time_homeless: {
+          name: 'First Time Homeless in Past Two Years',
+          extra_filters: {
+            first_time_homeless: true,
+          },
+          demographic_filter: :filter_for_first_time_homeless_in_past_two_years,
+        },
+        # NOTE: only display this on Measure 1 (it will never work on Measure 2)
+        returned_to_homelessness_from_permanent_destination: {
+          name: 'Returned to Homelessness from Permanent Destination',
+          extra_filters: {
+            returned_to_homelessness_from_permanent_destination: true,
+          },
+          demographic_filter: :filter_for_returned_to_homelessness_from_permanent_destination,
+        },
       }.freeze
     end
 
