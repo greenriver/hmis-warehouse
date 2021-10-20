@@ -129,7 +129,10 @@ jobs:
 
         echo Pushing 'latest' tags
         BRANCH=${GITHUB_REF#refs/heads/}
-        if [[ "$BRANCH" =~ ^(production|staging|sandbox|demo|main|release-*|deploy-.*)$ ]]; then
+        if [[ "$BRANCH" =~ ^(production|staging|sandbox|demo|main|release-.*|deploy-.*)$ ]]; then
+          if [[ "$BRANCH" =~ ^(release-.*)$ ]]; then
+            IDENTIFIER='release' # All release-* branches share a single latest pool.
+          fi
           IDENTIFIER=${BRANCH#deploy-} # Strip deploy prefix if present
           LATEST_TAG="latest-$IDENTIFIER"
           LATEST_BASE="$ECR_REGISTRY/$ECR_REPOSITORY:${LATEST_TAG}--base"
