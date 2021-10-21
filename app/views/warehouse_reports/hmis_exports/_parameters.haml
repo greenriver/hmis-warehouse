@@ -32,6 +32,13 @@
     %label.label.label-primary.parameter-value
       %strong
         = HUD.export_directive report.directive
+  - if report.confidential
+    .report-parameters__parameter
+      %label.label.label-default.parameter-label
+        Confidential
+      %label.label.label-success.parameter-value
+        %strong
+          %i.icon-checkmark
   - if can_export_anonymous_hmis_data?
     .report-parameters__parameter
       %label.label.label-default.parameter-label
@@ -53,7 +60,7 @@
         - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: report.project_ids).pluck(:ProjectName)
         - if project_names.empty? || project_names == @all_project_names
           All
-        - else 
+        - else
           = project_names.join(', ').truncate(50, separator: ' ')
 
   .report-parameters__parameter
