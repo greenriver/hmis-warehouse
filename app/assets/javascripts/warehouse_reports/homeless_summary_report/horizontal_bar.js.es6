@@ -1,12 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS103: Rewrite code to no longer use __guard__, or convert again using --optional-chaining
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 //= require ./namespace
 
 window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class HorizontalBar {
@@ -49,7 +40,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
       this.height = this.options.height || 400;
       this.max_value = this.options.max || 100;
       // Deep clone array to prevent future issues with additional mutations
-      const columns = $(this.chart_selector).data('chart').columns;
+      const columns = $(this.chart_selector).data('chart').one_columns;
       const _columns = JSON.parse(JSON.stringify(columns));
       const setNames = [];
       const columnTotals = _columns.map((col) => {
@@ -58,6 +49,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         return col.reduce((a, b) => a + b, 0);
       });
       let data = {
+        x: 'x',
         columns: columns,
         type: 'bar',
         color: this._colors,
@@ -79,7 +71,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
       const config = {
         data,
         legend: {
-          show: false,
+          show: true,
         },
         bindto: this.chart_selector,
         size: {
@@ -98,7 +90,6 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
           x: {
             height: 100,
             type: 'category',
-            categories: this.categories,
             outer: false,
             tick: {
               rotate: -35,

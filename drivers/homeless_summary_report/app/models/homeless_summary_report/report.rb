@@ -287,6 +287,62 @@ module HomelessSummaryReport
       format(result.format, result.value)
     end
 
+    def max_value_for(section)
+      results.where(section: section).where.not(calculation: :count).maximum(:value)
+    end
+    memoize :max_value_for
+
+    def chart_data_for(section:, household_category:, field:)
+      data = measures[section]
+      row_data = data[:fields][field]
+
+      calculations = (row_data[:calculations] - [:count])
+      headers = data[:headers].dup.tap { |i| i.delete_at(row_data[:calculations].find_index(:count)) } # delete_at acts on original object
+      columns = {}
+      counts = {}
+      ([:all] + self.class.demographic_variants.keys).each do |demographic_category|
+        demographic_category = demographic_category.to_s
+        section_columns = [['x', title_for(household_category, demographic_category)]]
+        values = {}
+        calculations.each.with_index do |calculation, c_idx|
+          values[headers[c_idx]] ||= []
+          values[headers[c_idx]] << formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: calculation)
+        end
+        values.each do |k, v|
+          section_columns << [k] + v
+        end
+
+        columns[demographic_category] = section_columns
+
+        section_counts = []
+        calculations.each.with_index do |_, c_idx|
+          section_counts << [headers[c_idx], formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: :count)]
+        end
+        counts[demographic_category] = section_counts.to_h
+      end
+      all_columns = columns.values.map(&:first).map(&:first)
+      {
+        params: [],
+        one_columns: columns['all'],
+        all_columns: all_columns,
+        options: {
+          height: 80,
+          max: max_value_for(section),
+        },
+        support: {
+          unit: headers,
+          counts: counts['all'],
+          all_counts: counts.values.map { |r| r.flatten(1) },
+        },
+      }
+    end
+
+    def title_for(household_category, demographic_category)
+      titles = [variants[household_category][:base_variant][:name]]
+      titles << self.class.demographic_variants[demographic_category.to_sym][:name] unless demographic_category.to_s == 'all'
+      titles.join(' ')
+    end
+
     private def add_clients(report_clients)
       # Work through all the SPM report variants, building up the `report_clients` as we go.
       run_spm.each do |household_category, spec|

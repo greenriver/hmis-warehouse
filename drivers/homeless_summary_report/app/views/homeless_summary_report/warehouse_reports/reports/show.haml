@@ -23,3 +23,9 @@
         = render 'counts_table', measure: measure, data: data, household_category: household_category, demographic_category: 'all', title: base_variant[:name]
         - details[:variants].each do |demographic_category, variant|
           = render 'counts_table', data: data, household_category: household_category, demographic_category: demographic_category, title: variant[:name], measure: measure
+    - @report.variants.each do |household_category, details|
+      - base_variant = details[:base_variant]
+      - data[:fields].each do |field, row|
+        - if measure == 'Measure 7'
+        - else
+          = render 'chart', measure: measure, household_category: household_category, field: field
