@@ -169,24 +169,25 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
     end
     # 11. after grace period, before pending dis-enrollment, an expired signed careplan after engagement period
     # this is not payable and should be considered as a missed care plan
-    create(:patient).tap do |patient|
-      referral = create(:prior_referral,
-                        patient: patient,
-                        enrollment_start_date: month.beginning_of_month - 2.years,
-                        pending_disenrollment_date: month.end_of_month,
-                        disenrollment_date: nil)
-      cp = create(:careplan,
-                  patient: patient,
-                  provider_signed_on: referral.enrollment_start_date,
-                  provider_signature_mode: :in_person,
-                  patient_signed_on: referral.enrollment_start_date,
-                  patient_signature_mode: :in_person)
-      create(:qualifying_activity,
-             patient: patient,
-             date_of_activity: month.beginning_of_month + 11.days,
-             claim_submitted_on: claim_submitted_on)
-      active_patients << [patient, 0, 1, [cp.provider_signed_on.to_date]]
-    end
+    # 8/3/2021 -- JS asked that careplan expiration dates be ignored when deciding if it was missing., so this test case doesn't apply
+    # create(:patient).tap do |patient|
+    #   referral = create(:prior_referral,
+    #                     patient: patient,
+    #                     enrollment_start_date: month.beginning_of_month - 2.years,
+    #                     pending_disenrollment_date: month.end_of_month,
+    #                     disenrollment_date: nil)
+    #   cp = create(:careplan,
+    #               patient: patient,
+    #               provider_signed_on: referral.enrollment_start_date,
+    #               provider_signature_mode: :in_person,
+    #               patient_signed_on: referral.enrollment_start_date,
+    #               patient_signature_mode: :in_person)
+    #   create(:qualifying_activity,
+    #          patient: patient,
+    #          date_of_activity: month.beginning_of_month + 11.days,
+    #          claim_submitted_on: claim_submitted_on)
+    #   active_patients << [patient, 0, 1, [cp.provider_signed_on.to_date]]
+    # end
 
     ClaimsReporting::CpPaymentUpload.new.save(
       validate: false,
@@ -221,6 +222,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
       'Submitted QAs',
       'QAs Outside Enrollment',
       'QAs Without Required Careplan',
+      'Denied Claims',
       'Careplan PCP signatures',
     ], report.patients_without_payments_columns, 'patients_without_payments_columns'
     assert_instance_of Array, report.patients_without_payments_rows, 'patients_without_payments_rows'

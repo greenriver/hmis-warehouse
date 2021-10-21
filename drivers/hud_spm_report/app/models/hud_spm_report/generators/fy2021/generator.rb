@@ -7,7 +7,7 @@
 module HudSpmReport::Generators::Fy2021
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
-      'FY 2021'
+      'FY 2022'
     end
 
     def self.generic_title

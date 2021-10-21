@@ -18,7 +18,7 @@ module Health
 
     self.source_key = :ENC_ID
 
-    def self.csv_map(version: nil)
+    def self.csv_map(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       {
         PAT_ID: :patient_id,
         ENC_ID: :id_in_source,

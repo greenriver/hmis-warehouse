@@ -63,9 +63,6 @@ module BostonHmis
     # additional library paths
     config.eager_load_paths << Rails.root.join('lib', 'util')
 
-    # force all requests over ssl by default
-    config.force_ssl = true
-
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
     config.exceptions_app = self.routes
@@ -87,5 +84,6 @@ module BostonHmis
     config.synthetic_assessment_types = []
     config.hmis_migrations = {}
     config.hmis_data_lake = nil
+    config.custom_imports = []
   end
 end

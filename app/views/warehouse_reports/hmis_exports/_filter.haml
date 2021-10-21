@@ -28,13 +28,16 @@
         %p Full Refresh
         = f.input :directive, as: :hidden, input_html: { value: 2 }
       .col-sm-3
+        = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
+      .col-sm-3
         = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, as: :select_two
       .col-sm-3
-        = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
-      - if can_export_anonymous_hmis_data?
-        .col-sm-3
-          %p
-          = f.input :faked_pii, as: :boolean, label: 'Should the PII in this export be faked?', hint: 'This can be used to export data useful for developers.'
+        %p= f.input :confidential, as: :boolean, label: 'Replace confidential project and organization names with the confidential version?'
+
+    - if can_export_anonymous_hmis_data?
+      .row
+        .col-sm-4
+          %p= f.input :faked_pii, as: :boolean, label: 'Should the PII in this export be faked?', hint: 'This can be used to export data useful for developers.'
     .row
       .col-sm-12
         %h4 Notes About Choices

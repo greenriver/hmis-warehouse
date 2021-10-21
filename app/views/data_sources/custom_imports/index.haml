@@ -1,0 +1,34 @@
+- content_for :title,  'Custom Import Configurations'
+= render 'breadcrumbs'
+.d-flex.mb-4
+  %h1= content_for :title
+  .ml-auto
+    = link_to new_data_source_custom_import_path(@data_source), class: ['btn', 'btn-secondary'] do
+      %i.icon-plus
+      Add Import
+- if @configs.exists?
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Description
+          %th Schedule
+          %th Last attempted
+          %th Edit
+          %th Delete
+      %tbody
+        - @configs.each do |config|
+          %tr
+            %td= config.description
+            %td= config.import_hour_description
+            %td= link_to config.last_attempted, data_source_custom_import_path(@data_source, config)
+            %td
+              = link_to edit_data_source_custom_import_path(@data_source, config), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
+                %i.icon-pencil
+            %td
+              = link_to data_source_custom_import_path(@data_source, config), method: :delete, class: ['btn', 'btn-sm', 'btn-danger', 'btn-icon-only'] do
+                %i.icon-cross
+
+- else
+  %p.none-found
+    No configurations added.

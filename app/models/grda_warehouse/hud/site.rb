@@ -22,17 +22,17 @@ module GrdaWarehouse::Hud
     has_one :project, through: :project_coc, source: :project
     belongs_to :data_source
 
-    scope :viewable_by, -> (user) do
+    scope :viewable_by, ->(user) do
       if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope
       elsif user.coc_codes.none?
         none
       else
-        joins(:project_coc).merge( GrdaWarehouse::Hud::ProjectCoc.viewable_by user )
+        joins(:project_coc).merge(GrdaWarehouse::Hud::ProjectCoc.viewable_by(user))
       end
     end
 
-    def self.hud_csv_headers(version: nil)
+    def self.hud_csv_headers(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       [
         :GeographyID,
         :ProjectID,
@@ -58,7 +58,7 @@ module GrdaWarehouse::Hud
     # when we export, we always need to replace GeographyID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)
-      attributes = self.hud_csv_headers
+      attributes = hud_csv_headers
       headers = attributes.clone
       attributes[attributes.index('GeographyID')] = 'id'
       attributes[attributes.index('ProjectID')] = 'project.id'
