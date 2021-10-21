@@ -14,11 +14,11 @@ module Health
     phi_attr :date_of_service, Phi::Date
     phi_attr :id_in_source, Phi::OtherIdentifier
 
-    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :visits
+    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :visits, optional: true
 
     self.source_key = :ENC_ID
 
-    def self.csv_map(version: nil)
+    def self.csv_map(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       {
         PAT_ID: :patient_id,
         ENC_ID: :id_in_source,

@@ -18,7 +18,7 @@ module Health
     phi_attr :icd10_list, Phi::SmallPopulation
     phi_attr :id_in_source, Phi::OtherIdentifier
 
-    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :problems
+    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :problems, optional: true
 
     self.source_key = :PL_ID
 

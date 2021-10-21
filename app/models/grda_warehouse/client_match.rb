@@ -8,9 +8,9 @@ module GrdaWarehouse
   class ClientMatch < GrdaWarehouseBase
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :updated_by, class_name: 'User'
+    belongs_to :updated_by, class_name: 'User', optional: true
     serialize :score_details, Hash
-    validates :status, inclusion: {in: ['candidate', 'accepted', 'rejected', 'processed_sources']}
+    validates :status, inclusion: { in: ['candidate', 'accepted', 'rejected', 'processed_sources'] }
 
     # To keep track so we don't re-run create_candidates for a given destination client
     scope :processed, -> do
@@ -81,9 +81,9 @@ module GrdaWarehouse
     end
 
     def self.create_candidates!(client, threshold:, metrics:)
-      relavent_fields = ([:id, :DateUpdated]+metrics.map(&:field)).uniq.map(&:to_s)
+      relevant_fields = ([:id, :DateUpdated] + metrics.map(&:field)).uniq.map(&:to_s)
       data = SimilarityMetric.pairwise_candidates(client, threshold: threshold, metrics: metrics)
-      candidates = data.flat_map do |dest, srcs|
+      data.flat_map do |dest, srcs|
         srcs.map do |src, scoring|
           ovarall_score = scoring[:score]
           metrics = scoring[:metrics_with_scores].map do |m, score_on_metric|
@@ -104,8 +104,8 @@ module GrdaWarehouse
             m.score = ovarall_score
             m.score_details = {
               threshold: threshold,
-              destination_client: dest.attributes.slice(*relavent_fields),
-              source_client: src.attributes.slice(*relavent_fields),
+              destination_client: dest.attributes.slice(*relevant_fields),
+              source_client: src.attributes.slice(*relevant_fields),
               metrics_with_scores: metrics,
             }
           end
@@ -145,15 +145,15 @@ module GrdaWarehouse
     end
 
     def accepted?
-      self.status == 'accepted'
+      status == 'accepted'
     end
 
     def rejected?
-      self.status == 'rejected'
+      status == 'rejected'
     end
 
     def candidate?
-      self.status == 'candidate'
+      status == 'candidate'
     end
 
     # return an indication of the field(s) (could be an array)
@@ -161,8 +161,8 @@ module GrdaWarehouse
     # expressed as a weighted average of the z-scores for those fields only
     def score_contribution(fields)
       fields = Array(fields).map(&:to_sym)
-      weight_sum = 0.0;
-      score_sum = 0.0;
+      weight_sum = 0.0
+      score_sum = 0.0
       if score_details.with_indifferent_access[:metrics_with_scores].present?
         score_details.with_indifferent_access[:metrics_with_scores].each do |detail|
           if detail.with_indifferent_access[:field].to_sym.in?(fields)
@@ -173,7 +173,7 @@ module GrdaWarehouse
       end
       return nil if weight_sum.zero?
 
-      score_sum/weight_sum
+      score_sum / weight_sum
     end
 
     def accept!(user: nil)

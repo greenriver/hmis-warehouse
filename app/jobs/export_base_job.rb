@@ -22,6 +22,7 @@ class ExportBaseJob < BaseJob
       faked_pii: options[:faked_pii],
       user_id: options[:user_id],
       version: options[:version],
+      confidential: options[:confidential],
     ).export!
 
     if (recurring_hmis_export = recurring_hmis_export(options))

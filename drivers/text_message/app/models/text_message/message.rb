@@ -9,7 +9,7 @@ module TextMessage
   class Message < GrdaWarehouseBase
     acts_as_paranoid
     belongs_to :topic
-    belongs_to :topic_subscriber, foreign_key: :subscriber_id
+    belongs_to :topic_subscriber, foreign_key: :subscriber_id, optional: true
     belongs_to :source, polymorphic: true, optional: true
 
     scope :unsent, -> do

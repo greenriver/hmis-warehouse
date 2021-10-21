@@ -18,7 +18,7 @@ module Health
 
     mount_uploader :file, PremiumPaymentFileUploader
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     scope :unprocessed, -> do
       where(started_at: nil)

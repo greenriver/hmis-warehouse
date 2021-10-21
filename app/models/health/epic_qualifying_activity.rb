@@ -10,18 +10,18 @@
 module Health
   class EpicQualifyingActivity < EpicBase
     phi_patient :patient_id
-    phi_attr :epic_patient_id, Phi::OtherIdentifier, "ID of patient"
-    phi_attr :id, Phi::OtherIdentifier, "ID of qualifying activity"
+    phi_attr :epic_patient_id, Phi::OtherIdentifier, 'ID of patient'
+    phi_attr :id, Phi::OtherIdentifier, 'ID of qualifying activity'
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :entered_by, Phi::SmallPopulation, "Name of person who entered the information"
+    phi_attr :entered_by, Phi::SmallPopulation, 'Name of person who entered the information'
     # phi_attr :role
-    phi_attr :date_of_activity, Phi::Date, "Date of activity"
+    phi_attr :date_of_activity, Phi::Date, 'Date of activity'
     # phi_attr :activity
     # phi_attr :mode
     # phi_attr :reached
 
     include NotifierConfig
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_qualifying_activities
+    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_qualifying_activities, optional: true
     has_one :patient, through: :epic_patient
     has_one :qualifying_activity, -> { where source_type: Health::EpicQualifyingActivity.name }, primary_key: :id_in_source, foreign_key: :epic_source_id
 
@@ -35,7 +35,7 @@ module Health
 
     self.source_key = :QA_ID
 
-    def self.csv_map(version: nil)
+    def self.csv_map(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       {
         PAT_ID: :patient_id,
         QA_ID: :id_in_source,
@@ -57,7 +57,7 @@ module Health
       # Don't add qualifying activities if we can't determine the patient
       return true unless patient.present?
 
-      user = User.setup_system_user()
+      user = User.setup_system_user
       qa = Health::QualifyingActivity.new(
         patient_id: patient.id,
         date_of_activity: date_of_activity,
@@ -67,12 +67,11 @@ module Health
         activity: care_hub_activity_key,
         follow_up: 'See Epic',
         source_type: self.class.name,
-        source_id: self.id,
+        source_id: id,
         epic_source_id: id_in_source,
-        user_id: user.id
+        user_id: user.id,
       )
       qa.save(validate: false)
-
     end
 
     def self.update_qualifying_activities!
@@ -81,9 +80,9 @@ module Health
         @claim_report_ids = {}
         Health::QualifyingActivity.unsubmitted.
           where(
-            source_type: Health::EpicQualifyingActivity.name
+            source_type: Health::EpicQualifyingActivity.name,
           ).where.not(
-            claim_id: nil
+            claim_id: nil,
           ).pluck(:epic_source_id, :claim_id).each do |epic_source_id, claim_id|
             @claim_report_ids[claim_id] ||= []
             @claim_report_ids[claim_id] << epic_source_id
@@ -91,12 +90,12 @@ module Health
         @force_pay_ids = Health::QualifyingActivity.unsubmitted.
           where(
             source_type: Health::EpicQualifyingActivity.name,
-            force_payable: true
+            force_payable: true,
           ).pluck(:epic_source_id)
         @naturally_payable_ids = Health::QualifyingActivity.unsubmitted.
           where(
             source_type: Health::EpicQualifyingActivity.name,
-            naturally_payable: true
+            naturally_payable: true,
           ).pluck(:epic_source_id)
 
         # remove and re-create all un-submitted qualifying activities that are backed by Epic
@@ -107,23 +106,22 @@ module Health
         Health::QualifyingActivity.unsubmitted.
           where(
             source_type: Health::EpicQualifyingActivity.name,
-            epic_source_id: @force_pay_ids
+            epic_source_id: @force_pay_ids,
           ).update_all(force_payable: true)
         Health::QualifyingActivity.unsubmitted.
           where(
             source_type: Health::EpicQualifyingActivity.name,
-            epic_source_id: @naturally_payable_ids
+            epic_source_id: @naturally_payable_ids,
           ).update_all(naturally_payable: true)
         @claim_report_ids.each do |claim_id, epic_source_ids|
           Health::QualifyingActivity.unsubmitted.
             where(
               source_type: Health::EpicQualifyingActivity.name,
-              epic_source_id: epic_source_ids
+              epic_source_id: epic_source_ids,
             ).update_all(claim_id: claim_id)
         end
       end
     end
-
 
     def care_hub_reached_key
       @care_hub_client_reached ||= Health::QualifyingActivity.client_reached.map do |k, reached|

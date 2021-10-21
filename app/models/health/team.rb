@@ -12,12 +12,12 @@ module Health
     acts_as_paranoid
 
     phi_patient :patient_id
-    phi_attr :id, ::Phi::OtherIdentifier, "ID of team"
+    phi_attr :id, ::Phi::OtherIdentifier, 'ID of team'
 
     has_many :members, class_name: 'Health::Team::Member'
     # has_one :pcp_designee, class_name: 'Health::Team::PcpDesignee'
     belongs_to :patient
-    belongs_to :editor, class_name: 'User', foreign_key: :user_id
+    belongs_to :editor, class_name: 'User', foreign_key: :user_id, optional: true
 
     accepts_nested_attributes_for :members, allow_destroy: true
 
@@ -32,6 +32,5 @@ module Health
       # adding this here in case I missed any spots
       patient.available_team_members
     end
-
   end
 end

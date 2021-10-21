@@ -76,6 +76,8 @@ module HudReports
     end
 
     def set_reports
+      return [] if generator.blank?
+
       title = generator.title
       @reports = report_scope.where(report_name: title).
         preload(:user, :universe_cells)
@@ -230,17 +232,29 @@ module HudReports
     end
 
     def report_version_urls
-      available_report_versions.map do |year, slug|
+      available_report_versions.map do |year, opts|
         [
           "#{generator.short_name} #{year}",
-          slug,
+          opts[:slug],
         ]
       end
     end
     helper_method :report_version_urls
 
+    def active_report_versions
+      available_report_versions.map do |year, opts|
+        next unless opts[:active]
+
+        [
+          "#{generator.short_name} #{year}",
+          opts[:slug],
+        ]
+      end.compact
+    end
+    helper_method :active_report_versions
+
     private def default_report_version
-      :fy2020
+      :fy2021
     end
     helper_method :default_report_version
 

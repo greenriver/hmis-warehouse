@@ -8,9 +8,9 @@ module GrdaWarehouse::Synthetic
   class Event < GrdaWarehouseBase
     self.table_name = 'synthetic_events'
 
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment'
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :source, polymorphic: true
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :source, polymorphic: true, optional: true
     belongs_to :hud_event, class_name: 'GrdaWarehouse::Hud::Event', optional: true, primary_key: :hud_event_event_id, foreign_key: :EventID
 
     validates_presence_of :enrollment

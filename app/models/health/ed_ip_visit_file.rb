@@ -15,7 +15,7 @@ module Health
     phi_attr :file, Phi::FreeText, 'Name of file'
     phi_attr :content, Phi::FreeText, 'Content of file'
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     mount_uploader :file, EdIpVisitFileUploader
 
@@ -63,7 +63,7 @@ module Health
           end
           visits << model_row
         end
-        Health::LoadedEdIpVisit.import(visits)
+        Health::LoadedEdIpVisit.import!(visits)
         update(completed_at: Time.current)
         return true
       else
@@ -72,6 +72,7 @@ module Health
       end
     rescue Exception => e
       update(failed_at: Time.current, message: e.message)
+      return false
     end
 
     def ingest!(loaded_visits)

@@ -12,8 +12,8 @@ module GrdaWarehouse::ClientNotes
 
     attr_accessor :send_notification
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :user
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :user, optional: true
 
     scope :window_notes, -> do
       where(type: 'GrdaWarehouse::ClientNotes::WindowNote')

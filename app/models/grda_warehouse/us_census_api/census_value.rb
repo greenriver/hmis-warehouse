@@ -9,7 +9,7 @@
 module GrdaWarehouse
   module UsCensusApi
     class CensusValue < GrdaWarehouseBase
-      belongs_to :census_variable, inverse_of: :census_values
+      belongs_to :census_variable, inverse_of: :census_values, optional: true
       belongs_to :location, optional: true, foreign_key: :full_geoid, primary_key: :full_geoid
 
       validates :full_geoid, uniqueness: { scope: [:census_variable_id] }

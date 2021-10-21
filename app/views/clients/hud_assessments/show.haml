@@ -1,0 +1,43 @@
+- title = 'HUD Assessment'
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+%h1= content_for(:title)
+.well
+  .d-flex
+    .assessment
+      %h3 Assessment Details
+      %dl
+        %dt Project
+        %dd= GrdaWarehouse::Hud::Project.confidentialize(name: @assessment.enrollment.project&.name)
+        %dt Assessment Date
+        %dd= @assessment.AssessmentDate
+        %dt Assessment Level
+        %dd= HUD.assessment_level @assessment.AssessmentLevel
+        %dt Assessment Type
+        %dd= HUD.assessment_type @assessment.AssessmentType
+        %dt Prioritization Status
+        %dd= HUD.prioritization_status @assessment.PrioritizationStatus
+        %dt Created
+        %dd= HUD.prioritization_status @assessment.DateCreated
+        %dt Updated
+        %dd= HUD.prioritization_status @assessment.DateUpdated
+    - if @assessment.assessment_results.any?
+      .assessment-results.ml-8
+        %h3 Assessment Results
+        - @assessment.assessment_results.each do |result|
+          %dl
+            %dt Assessment Result Type
+            %dd= result.AssessmentResultType
+            %dt Assessment Result
+            %dd= result.AssessmentResult
+- if @assessment.assessment_questions.any?
+  %h2 Questions
+  .well
+    - @assessment.assessment_questions.sort_by { |q| [q.AssessmentQuestionGroup, q.AssessmentQuestionOrder] }.each do |q|
+      %dl
+        %dt= q.AssessmentQuestion
+        %dd= q.human_readable
+- else
+  %p.none-found
+    No questions provided.
