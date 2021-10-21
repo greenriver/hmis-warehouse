@@ -73,8 +73,9 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 
+gem 'omniauth', '~> 1.9.1'
 gem 'omniauth-oauth2'
-gem 'omniauth-rails_csrf_protection'
+gem 'omniauth-rails_csrf_protection', '~> 0.1'
 
 gem 'pretender'
 gem 'rqrcode-rails3'
@@ -82,6 +83,7 @@ gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
 
 gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
+gem 'geocoder'
 
 gem 'paper_trail'
 gem 'validate_url'
@@ -160,7 +162,7 @@ gem 'puma', '~> 4.3.9'
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
-gem 'redis-rails'
+gem 'redis-actionpack'
 
 # AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'
@@ -209,7 +211,7 @@ group :development, :test do
   gem 'byebug'
   gem 'pry-rails'
   gem 'bundler-audit', require: false
-  gem 'brakeman', require: false
+  gem 'brakeman', '~> 5.0.4', require: false
   gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
   gem 'guard-rspec', require: false

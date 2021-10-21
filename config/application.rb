@@ -1,4 +1,5 @@
 require_relative 'boot'
+
 require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
@@ -9,7 +10,10 @@ require_relative '../lib/util/id_protector'
 
 module BostonHmis
   class Application < Rails::Application
+    # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 5.2
+    config.autoloader = :classic
+
     # ActionCable
     config.action_cable.mount_path = "/cable"
     config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }

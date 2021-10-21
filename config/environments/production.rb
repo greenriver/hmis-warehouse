@@ -24,7 +24,7 @@ Rails.application.configure do
   # Apache or NGINX already handles this.
   config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
 
-  # Compress JavaScripts and CSS.
+  # Compress CSS using a preprocessor.
   # harmony: true to enable ES6
   config.assets.js_compressor = Uglifier.new(harmony: true)
   # config.assets.css_compressor = :sass
@@ -62,7 +62,7 @@ Rails.application.configure do
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
 
-  # Use a real queuing backend for Active Job (and separate queues per environment)
+  # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_adapter     = :resque
   # config.active_job.queue_name_prefix = "boston_hmis_#{Rails.env}"
 
@@ -111,7 +111,8 @@ Rails.application.configure do
 
   cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
   cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
+  redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace})
+  config.cache_store = :redis_cache_store, redis_config
 
   config.action_controller.perform_caching = true
   if slack_config.present?
