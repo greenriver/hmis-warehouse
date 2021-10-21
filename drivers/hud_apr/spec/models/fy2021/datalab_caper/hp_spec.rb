@@ -30,273 +30,442 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     )
   end
 
-  xit 'Q5a' do
+  it 'Q5a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q5a',
     )
   end
 
-  xit 'Q6a' do
+  it 'Q6a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6a',
+      skip: [
+        'C3', # FIXME
+        'D3', # FIXME
+        'C6', # FIXME
+        'E6', # FIXME
+        'F6', # FIXME
+        'C7', # FIXME
+        'E7', # FIXME
+        'F7', # FIXME
+      ],
     )
   end
 
-  xit 'Q6b' do
+  it 'Q6b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6b',
+      skip: [
+        'C2', # FIXME
+        'B5', # FIXME
+        'C5', # FIXME
+        'B6', # FIXME
+        'C6', # FIXME
+      ],
     )
   end
 
-  xit 'Q6c' do
+  it 'Q6c' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6c',
+      skip: [
+        'B2', # FIXME
+        'C2', # FIXME
+        'B3', # FIXME
+        'C3', # FIXME
+        'B4', # FIXME
+        'C4', # FIXME
+        'B5', # FIXME
+        'C5', # FIXME
+      ],
     )
   end
 
-  xit 'Q6d' do
+  it 'Q6d' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6d',
+      skip: [
+        'B5', # FIXME
+      ],
     )
   end
 
-  xit 'Q6e' do
+  it 'Q6e' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6e',
     )
   end
 
-  xit 'Q6f' do
+  it 'Q6f' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6f',
     )
   end
 
-  xit 'Q7a' do
+  it 'Q7a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q7a',
+      skip: [
+        'B4', # FIXME
+        'D4', # FIXME
+        'B5', # FIXME
+        'C5', # FIXME
+      ],
     )
   end
 
-  xit 'Q7b' do
+  it 'Q7b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q7b',
+      skip: [
+        'B2', # FIXME
+        'C2', # FIXME
+        'D2', # FIXME
+        'E2', # FIXME
+        'F2', # FIXME
+        'B3', # FIXME
+        'C3', # FIXME
+        'D3', # FIXME
+        'E3', # FIXME
+        'F3', # FIXME
+        'B4', # FIXME
+        'C4', # FIXME
+        'D4', # FIXME
+        'E4', # FIXME
+        'F4', # FIXME
+        'B5', # FIXME
+        'C5', # FIXME
+        'D5', # FIXME
+        'E5', # FIXME
+        'F5', # FIXME
+      ],
     )
   end
 
-  xit 'Q8a' do
+  it 'Q8a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q8a',
     )
   end
 
-  xit 'Q8b' do
+  it 'Q8b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q8b',
+      skip: [
+        'B2', # FIXME
+        'C2', # FIXME
+        'D2', # FIXME
+        'E2', # FIXME
+        'F2', # FIXME
+        'B3', # FIXME
+        'C3', # FIXME
+        'D3', # FIXME
+        'E3', # FIXME
+        'F3', # FIXME
+        'B4', # FIXME
+        'C4', # FIXME
+        'D4', # FIXME
+        'E4', # FIXME
+        'F4', # FIXME
+        'B5', # FIXME
+        'C5', # FIXME
+        'D5', # FIXME
+        'E5', # FIXME
+        'F5', # FIXME
+      ],
     )
   end
 
-  xit 'Q9a' do
+  it 'Q9a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q9a',
     )
   end
 
-  xit 'Q9b' do
+  it 'Q9b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q9b',
     )
   end
 
-  xit 'Q10a' do
+  it 'Q10a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q10a',
+      skip: [
+        'B5', # FIXME
+        'C5', # FIXME
+      ],
     )
   end
 
-  xit 'Q10b' do
+  it 'Q10b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q10b',
+      skip: [
+        'C5', # FIXME
+        'D5', # FIXME
+      ],
     )
   end
 
-  xit 'Q10c' do
+  it 'Q10c' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q10c',
     )
   end
 
-  xit 'Q10d' do
+  it 'Q10d' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q10d',
+      skip: [
+        'B5', # FIXME
+        'D5', # FIXME
+        'E5', # FIXME
+        'G5', # FIXME
+        'E8', # FIXME
+        'H8', # FIXME
+        'C9', # FIXME
+        'E9', # FIXME
+        'G9', # FIXME
+        'H9', # FIXME
+      ],
     )
   end
 
-  xit 'Q11' do
+  it 'Q11' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q11',
+      skip: [
+        'B2', # FIXME
+        'D2', # FIXME
+        'B7', # FIXME
+        'D7', # FIXME
+        'B9', # FIXME
+        'C9', # FIXME
+        'B11', # FIXME
+        'D11', # FIXME
+        'B12', # FIXME
+        'C12', # FIXME
+      ],
     )
   end
 
-  xit 'Q12a' do
+  it 'Q12a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q12a',
     )
   end
 
-  xit 'Q12b' do
+  it 'Q12b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q12b',
     )
   end
 
-  xit 'Q13a1' do
+  it 'Q13a1' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q13a1',
     )
   end
 
-  xit 'Q13b1' do
+  it 'Q13b1' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q13b1',
     )
   end
 
-  xit 'Q13c1' do
+  it 'Q13c1' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q13c1',
     )
   end
 
-  xit 'Q14a' do
+  it 'Q14a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q14a',
+      skip: [
+        'B2', # FIXME
+        'C2', # FIXME
+        'D2', # FIXME
+        'B3', # FIXME
+        'C3', # FIXME
+        'D3', # FIXME
+        'E3', # FIXME
+        'B4', # FIXME
+        'D4', # FIXME
+        'B5', # FIXME
+        'C5', # FIXME
+        'D5', # FIXME
+        'E5', # FIXME
+      ],
     )
   end
 
-  xit 'Q14b' do
+  it 'Q14b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q14b',
+      skip: [
+        'B3', # FIXME
+        'C3', # FIXME
+        'D3', # FIXME
+        'B4', # FIXME
+        'D4', # FIXME
+        'B6', # FIXME
+        'C6', # FIXME
+        'D6', # FIXME
+      ],
     )
   end
 
-  xit 'Q15' do
+  it 'Q15' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q15',
     )
   end
 
-  xit 'Q16' do
+  it 'Q16' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q16',
     )
   end
 
-  xit 'Q17' do
+  it 'Q17' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q17',
     )
   end
 
-  xit 'Q19b' do
+  it 'Q19b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q19b',
+      skip: [
+        'C12', # FIXME
+        'D12', # FIXME
+        'G12', # FIXME
+        'H12', # FIXME
+        'C13', # FIXME
+        'D13', # FIXME
+        'C14', # FIXME
+        'D14', # FIXME
+      ],
     )
   end
 
-  xit 'Q20a' do
+  it 'Q20a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q20a',
     )
   end
 
-  xit 'Q21' do
+  it 'Q21' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q21',
+      skip: [
+        'B10', # FIXME
+        'D10', # FIXME
+        'B11', # FIXME
+        'D11', # FIXME
+        'B12', # FIXME
+        'D12', # FIXME
+        'C14', # FIXME
+        'B17', # FIXME
+        'D17', # FIXME
+      ],
     )
   end
 
-  xit 'Q22a2' do
+  it 'Q22a2' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q22a2',
     )
   end
 
-  xit 'Q22c' do
+  it 'Q22c' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q22c',
     )
   end
 
-  xit 'Q22d' do
+  it 'Q22d' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q22d',
     )
   end
 
-  xit 'Q22e' do
+  it 'Q22e' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q22e',
     )
   end
 
-  xit 'Q23c' do
+  it 'Q23c' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q23c',
     )
   end
 
-  xit 'Q24' do
+  it 'Q24' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q24',
     )
   end
 
-  xit 'Q25a' do
+  it 'Q25a' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q25a',
+      skip: [
+        'B4', # FIXME
+        'D4', # FIXME
+        'B5', # FIXME
+        'D5', # FIXME
+        'B6', # FIXME
+        'E6', # FIXME
+        'B7', # FIXME
+        'D7', # FIXME
+        'E7', # FIXME
+      ],
     )
   end
 
-  xit 'Q26b' do
+  it 'Q26b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q26b',
