@@ -198,16 +198,8 @@ module HomelessSummaryReport
         detail_variant_name = "spm_#{household_category}__#{demographic_category}"
         if section == 'Measure 7'
           calculations.each do |calculation|
-            # For measure 7 we only want the large buckets, we'll add the detail buckets as a json blob
-            destinations.first(3).each.with_index do |ids, i|
-              value = calculate(detail_variant_name, field, calculation, data.merge(destination: ids))
-              details = []
-              destinations.drop(3).each do |d_id|
-                next unless ::HUD.destination_type(d_id) == ::HUD.destination_type(ids.first)
-
-                count = calculate(detail_variant_name, field, calculation, data.merge(destination: d_id))
-                details << "#{HUD.destination(d_id)}: #{count}" if count&.positive?
-              end
+            if calculation.to_s == 'count'
+              value = calculate(detail_variant_name, field, calculation, data)
 
               results << HomelessSummaryReport::Result.new(
                 report_id: id,
@@ -215,13 +207,40 @@ module HomelessSummaryReport
                 household_category: household_category,
                 demographic_category: demographic_category,
                 field: field,
-                characteristic: headers[i],
+                characteristic: headers.first,
                 calculation: calculation,
                 format: format_string(calculation),
                 value: value,
                 detail_link_slug: detail_variant_name,
-                details: details,
               )
+            else
+              # For measure 7 we only want the large buckets, we'll add the detail buckets as a json blob
+              destinations.first(3).each.with_index do |ids, i|
+                destination_name = measures[section][:headers].drop(1)[i]
+                value = calculate(detail_variant_name, field, calculation, data.merge(destination: ids))
+                details = []
+                destinations.drop(3).each do |d_id|
+                  next unless ::HUD.destination_type(d_id) == ::HUD.destination_type(ids.first)
+
+                  count = calculate(detail_variant_name, field, calculation, data.merge(destination: d_id))
+                  details << "#{HUD.destination(d_id)}: #{count}" if count&.positive?
+                end
+
+                results << HomelessSummaryReport::Result.new(
+                  report_id: id,
+                  section: section,
+                  household_category: household_category,
+                  demographic_category: demographic_category,
+                  field: field,
+                  characteristic: headers[i],
+                  calculation: calculation,
+                  format: format_string(calculation),
+                  value: value,
+                  detail_link_slug: detail_variant_name,
+                  destination: destination_name,
+                  details: details,
+                )
+              end
             end
           end
         else
@@ -246,9 +265,26 @@ module HomelessSummaryReport
     end
 
     private def format_string(calculation)
-      return '%0.1f' if calculation == :percent
+      return '%0.1f' if calculation.in?([:percent, :average])
 
       '%0d'
+    end
+
+    def formatted_value_for(section:, household_category:, demographic_category:, field:, calculation:, destination: nil)
+      result = results.detect do |row|
+        checks = [
+          row.section == section.to_s,
+          row.household_category == household_category.to_s,
+          row.demographic_category == demographic_category.to_s,
+          row.field == field.to_s,
+          row.calculation == calculation.to_s,
+        ]
+        checks << (row.destination == destination.to_s) if destination.present?
+        checks.all?(true)
+      end
+      return '' unless result
+
+      format(result.format, result.value)
     end
 
     private def add_clients(report_clients)

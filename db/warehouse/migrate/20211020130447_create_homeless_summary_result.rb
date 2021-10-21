@@ -6,6 +6,7 @@ class CreateHomelessSummaryResult < ActiveRecord::Migration[5.2]
       t.string :household_category
       t.string :demographic_category
       t.string :field
+      t.string :destination
       t.string :characteristic
       t.string :calculation
       t.float :value

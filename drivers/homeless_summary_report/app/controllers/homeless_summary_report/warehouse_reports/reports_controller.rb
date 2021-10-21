@@ -29,6 +29,7 @@ module HomelessSummaryReport::WarehouseReports
     end
 
     def show
+      @results = @report.results.to_a
     end
 
     def create

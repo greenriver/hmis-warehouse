@@ -12498,6 +12498,7 @@ CREATE TABLE public.homeless_summary_report_results (
     household_category character varying,
     demographic_category character varying,
     field character varying,
+    destination character varying,
     characteristic character varying,
     calculation character varying,
     value double precision,
