@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@cable_ready/polyfills": "^4.4.6",
+    "@stimulus/polyfills": "^2.0.0",
     "billboard.js": "^1.12.9",
     "cable_ready": "^5.0.0-pre0",
     "minimist": ">=1.2.2",
