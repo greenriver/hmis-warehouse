@@ -43,7 +43,6 @@
 //= require billboard.js/dist/billboard.min
 //= require moment.min.js
 //= require bootstrap-datetimepicker
-
 //= require stimulus
 //= require promise-polyfill/dist/polyfill.min.js
 
