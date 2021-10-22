@@ -45,6 +45,9 @@ jobs:
       - name: Run brakeman
         run: |
           bundle exec brakeman -q --no-pager --except PermitAttributes,Render
+      - name: Compile assests for checking
+        run: |
+          bundle exec rake assets:precompile
       - uses: ali-kamalizade/es-check-action@1.0.2
         with:
           directory: 'public/assets'
