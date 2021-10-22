@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~>6.0.2'
+gem 'rails', '~> 6.1'
 gem 'rails_drivers'
 
 # bundle exec rake doc:rails generates the API under doc/api.
@@ -10,7 +10,8 @@ gem 'nokogiri', '>= 1.11.0.rc4' # >= 1.11.0.rc4 due to CVE-2020-26247
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '=12.0.10'
+#gem 'composite_primary_keys', '=12.0.10'
+gem 'composite_primary_keys', '=13.0.0'
 gem 'pg'
 # version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
 gem 'activerecord-sqlserver-adapter'
@@ -20,7 +21,7 @@ gem 'order_as_specified'
 # locking active record extended here temporarily since upgrading it to 2.0.0 gives
 # NoMethodError: undefined method `relation' for "DATE_TRUNC('month', date_of_activity)":Arel::Nodes::SqlLiteral
 # on .count for active record queries of Arel
-gem 'active_record_extended', '~> 1.4.0'
+gem 'active_record_extended'
 gem 'active_median'
 
 # style-inliner https://github.com/premailer/premailer
@@ -97,8 +98,7 @@ gem 'logstop'
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
 gem 'delayed_job'
-#locking temporarily to protect the delayed job monkey patch
-gem 'delayed_job_active_record'#, '4.1.4'
+gem 'delayed_job_active_record'
 gem 'uglifier'
 gem 'daemons'
 
