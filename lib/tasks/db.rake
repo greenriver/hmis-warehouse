@@ -3,7 +3,7 @@ namespace :db do
     desc "Conditionally load the database schema"
     task :conditional_load, [] => [:environment] do |t, args|
       if ApplicationRecord.connection.tables.length == 0
-        Rake::Task['db:schema:load:primary'].invoke
+        Rake::Task['db:schema:load'].invoke
       else
         puts "Refusing to load the database schema since there are tables present. This is not an error."
       end
@@ -14,7 +14,7 @@ namespace :db do
     desc "Conditionally load the database structure"
     task :conditional_load, [] => [:environment] do |t, args|
       if ApplicationRecord.connection.tables.length == 0
-        Rake::Task['db:structure:load:primary'].invoke
+        Rake::Task['db:structure:load'].invoke
       else
         puts "Refusing to load the database structure since there are tables present. This is not an error."
       end
