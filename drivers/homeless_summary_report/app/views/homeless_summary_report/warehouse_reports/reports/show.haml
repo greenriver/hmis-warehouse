@@ -27,5 +27,6 @@
       - base_variant = details[:base_variant]
       - data[:fields].each do |field, row|
         - if measure == 'Measure 7'
+          = render 'chart_stacked', measure: measure, household_category: household_category, field: field, row: row
         - else
           = render 'chart', measure: measure, household_category: household_category, field: field, row: row

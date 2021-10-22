@@ -2,11 +2,14 @@
 - variant_slug = "#{[measure.underscore.tr(' ', '_'), household_category, field].join('__')}-chart"
 
 .chart-wrapper
-  .d-flex
-    %h3= "#{@report.title_for(household_category, :all)} #{row[:title]}"
-    .ml-auto
-      %a.jToggleChartData{href: '#'} toggle demographics
-  .jChart.c-chart--horizontal-bar{class: "#{variant_slug}", data: {chart: chart_data.to_json, active: 'one_' }}
+  .row
+    .col-sm-4
+      %h3= "#{@report.title_for(household_category, :all)} #{row[:title]}"
+      %a.jToggleChartData{href: '#'}
+        Toggle demographics
+        %i.icon-users
+    .col-sm-8
+      .jChart.c-chart--horizontal-bar{class: "#{variant_slug}", data: {chart: chart_data.to_json, active: 'one_' }}
 
 -# = debug chart_data.to_json
 = content_for :page_js do

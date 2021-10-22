@@ -164,7 +164,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         const bg_color = color(row.id);
         const box = `<td class='name'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
         const value = `<td>${row.value}</td>`;
-        console.log(support.all_counts, tooltip_title)
+        // console.log(support, tooltip_title)
         let details = `<td class='text-left' rowspan='2'>${support.all_counts[tooltip_title]}</td>`;
         html += box;
         html += value;

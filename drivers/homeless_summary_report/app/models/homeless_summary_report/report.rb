@@ -232,7 +232,7 @@ module HomelessSummaryReport
                   household_category: household_category,
                   demographic_category: demographic_category,
                   field: field,
-                  characteristic: headers[i],
+                  characteristic: headers.drop(1)[i],
                   calculation: calculation,
                   format: format_string(calculation),
                   value: value,
@@ -287,6 +287,21 @@ module HomelessSummaryReport
       format(result.format, result.value)
     end
 
+    private def details_counts_for_destination(section:, household_category:, demographic_category:, field:, destination:)
+      result = results.detect do |row|
+        checks = [
+          row.section == section.to_s,
+          row.household_category == household_category.to_s,
+          row.demographic_category == demographic_category.to_s,
+          row.field == field.to_s,
+          row.calculation == 'count_destinations',
+        ]
+        checks << (row.destination == destination.to_s) if destination.present?
+        checks.all?(true)
+      end
+      result.details
+    end
+
     def max_value_for(section)
       results.where(section: section).where.not(calculation: :count).maximum(:value)
     end
@@ -301,6 +316,8 @@ module HomelessSummaryReport
       columns = {}
       counts = {}
       ([:all] + self.class.demographic_variants.keys).each do |demographic_category|
+        next if exclude_variants(section, demographic_category)
+
         demographic_category = demographic_category.to_s
         section_columns = [['x', title_for(household_category, demographic_category)]]
         values = {}
@@ -341,8 +358,62 @@ module HomelessSummaryReport
       }
     end
 
+    def stacked_chart_data_for(section:, household_category:, field:)
+      data = measures[section]
+      row_data = data[:fields][field]
+
+      headers = data[:headers].dup.tap { |i| i.delete_at(row_data[:calculations].find_index(:count)) } # delete_at acts on original object
+      headers = headers[0..2]
+      columns = {}
+      detail_counts = {}
+
+      ([:all] + self.class.demographic_variants.keys).each do |demographic_category|
+        next if exclude_variants(section, demographic_category)
+
+        demographic_category = demographic_category.to_s
+        section_columns = [['x', title_for(household_category, demographic_category)]]
+        section_detail_counts = {}
+        values = {}
+        headers.each.with_index do |destination, c_idx|
+          values[headers[c_idx]] ||= []
+          values[headers[c_idx]] << formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: :count_destinations, destination: destination)
+          section_detail_counts[headers[c_idx]] = details_counts_for_destination(section: section, household_category: household_category, demographic_category: demographic_category, field: field, destination: destination)
+        end
+        values.each do |k, v|
+          section_columns << [k] + v
+        end
+
+        columns[demographic_category] = section_columns
+        detail_counts[title_for(household_category, demographic_category)] = section_detail_counts
+      end
+
+      all_columns = {}
+      columns.values.first.each do |m|
+        all_columns[m.first] ||= [m.first]
+      end
+      columns.values.each do |m|
+        m.each do |r|
+          all_columns[r.first] << r.last
+        end
+      end
+      {
+        params: [],
+        one_columns: columns['all'],
+        all_columns: all_columns.values,
+        groups: [headers],
+        options: {
+          height: 150,
+          max: max_value_for(section),
+        },
+        support: {
+          one_detail_counts: detail_counts['All Persons'],
+          all_detail_counts: detail_counts,
+        },
+      }
+    end
+
     def title_for(household_category, demographic_category)
-      titles = [variants[household_category][:base_variant][:name]]
+      titles = [variants[household_category.to_sym][:base_variant][:name]]
       titles << self.class.demographic_variants[demographic_category.to_sym][:name] unless demographic_category.to_s == 'all'
       titles.join(' ')
     end
@@ -820,7 +891,7 @@ module HomelessSummaryReport
         'Measure 2' => [:returned_to_homelessness_from_permanent_destination],
         'Measure 7' => [:returned_to_homelessness_from_permanent_destination],
       }
-      @exclude_variants[measure_name.to_s]&.include?(variant)
+      @exclude_variants[measure_name.to_s]&.include?(variant.to_sym)
     end
 
     def calculate(variant, field, calculation, options)
