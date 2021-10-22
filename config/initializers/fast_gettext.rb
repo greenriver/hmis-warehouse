@@ -24,6 +24,9 @@ if database_exists? && ActiveRecord::Base.connection.table_exists?('translation_
     :ignore_fuzzy => true,
     # :report_warning => false
   )
-  FastGettext.default_available_locales = ['en']
+  FastGettext.default_available_locales = [:en]
+  FastGettext.default_text_domain = 'hmis_warehouse'
+else
+  FastGettext.add_text_domain('hmis_warehouse', :path => 'locale')
   FastGettext.default_text_domain = 'hmis_warehouse'
 end
