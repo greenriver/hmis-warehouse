@@ -21,7 +21,7 @@
       createLine(data) {
         return '<article class="test-line"><span class="body">' + data["message"] + '</span></article>';
       }
-    })
-  }
+    });
+  };
 
 }).call(this);

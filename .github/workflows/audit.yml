@@ -47,6 +47,6 @@ jobs:
           bundle exec brakeman -q --no-pager --except PermitAttributes,Render
       - uses: ali-kamalizade/es-check-action@1.0.2
         with:
-          directory: '/app/public/assets'
+          directory: 'public/assets'
           ecmaVersion: 'es5'
           files: '*.js'
