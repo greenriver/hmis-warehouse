@@ -1059,7 +1059,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Population Dashboards'] << {
           url: 'dashboards/adult_only_households',
           name: 'Adult only Households',
-          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (< 18).',
+          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (less than 18).',
           limitable: true,
           health: false,
         }
@@ -1068,7 +1068,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Population Dashboards'] << {
           url: 'dashboards/adults_with_children',
           name: 'Adult and Child Households',
-          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (< 18).',
+          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (less than 18).',
           limitable: true,
           health: false,
         }
@@ -1077,7 +1077,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Population Dashboards'] << {
           url: 'dashboards/child_only_households',
           name: 'Child only Households',
-          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (< 18) and no adults (+ 18).',
+          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (less than 18) and no adults (+ 18).',
           limitable: true,
           health: false,
         }
