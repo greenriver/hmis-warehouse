@@ -63,7 +63,7 @@
 //= require selectable_list
 //= require viewable_entities
 //= require ./cable
-//= require ./test_channel
+
 //= require ./init_stimulus
 //= require cable_ready.cjs.umd
 //= require ./background_render
