@@ -232,17 +232,9 @@ class ApplicationController < ActionController::Base
 
   def check_all_db_migrations
     return true unless Rails.env.development?
-
-    GrdaWarehouseBase.setup_config
-    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rake warehouse:db:migrate RAILS_ENV=#{::Rails.env}" if GrdaWarehouseBase.needs_migration?
-
-    HealthBase.setup_config
-    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if HealthBase.needs_migration?
-
-    ReportingBase.setup_config
-    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" if ReportingBase.needs_migration?
-
-    ApplicationRecord.setup_config
+    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:warehouse RAILS_ENV=#{::Rails.env}" if GrdaWarehouseBase.needs_migration?
+    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:health RAILS_ENV=#{::Rails.env}" if HealthBase.needs_migration?
+    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:reporting RAILS_ENV=#{::Rails.env}" if ReportingBase.needs_migration?
   end
 
   def health_emergency?

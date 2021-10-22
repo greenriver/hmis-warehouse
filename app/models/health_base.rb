@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class HealthBase < ActiveRecord::Base
-  establish_connection DB_HEALTH
+class HealthBase < ApplicationRecord
   self.abstract_class = true
+  connects_to database: { writing: :health, reading: :health }
   has_paper_trail versions: {class_name: 'Health::HealthVersion'}
 
   include ArelHelper
@@ -42,23 +42,7 @@ class HealthBase < ActiveRecord::Base
     end
   end
 
-  def self.setup_config
-    new_config = {
-      'db' => ['db/health'],
-      'db/migrate' => ['db/health/migrate'],
-      'db/seeds' => ['db/health/seeds'],
-      'config/database' => ['config/database_health.yml'],
-    }
-    # set config variables for custom database
-    new_config.each do |path, value|
-      Rails.application.config.paths[path] = value
-    end
-    db_config = Rails.application.config.paths['config/database'].to_a.first
-    ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env]
-  end
-
   def self.needs_migration?
-    # integers from file list
-    (ActiveRecord::MigrationContext.new('db/health/migrate').migrations.collect(&:version) - Health::SchemaMigration.pluck(:version).map(&:to_i)).any?
+    ActiveRecord::MigrationContext.new('db/health/migrate', Health::SchemaMigration).needs_migration?
   end
 end

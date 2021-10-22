@@ -1,28 +1,49 @@
 default: &default
-  adapter: <%= ENV.fetch('DATABASE_ADAPTER') { 'postgresql' } %>
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i %>
   timeout: 5000
-  <% if ENV['DATABASE_PORT'] %>
-  port: <%= ENV['DATABASE_PORT'] %>
-  <% end %>
-  <% if ENV['DATABASE_USER'] %>
-  username: <%= ENV['DATABASE_USER'] %>
-  <% end %>
-  <% if ENV['DATABASE_PASS'] %>
-  password: <%= ENV['DATABASE_PASS'] %>
-  <% end %>
-  <% if ENV['DATABASE_HOST'] %>
-  host: <%= ENV['DATABASE_HOST'] %>
-  <% end %>
+  port: <%= ENV.fetch('DATABASE_PORT') { 5432 }.to_i  %>
   <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
   sslmode: 'verify-full'
   sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
   <% end %>
 
 <%= ENV.fetch('RAILS_ENV') { 'unknown' } %>:
-  <<: *default
-  database: <%= ENV['DATABASE_APP_DB'] %>
+  primary:
+    <<: *default
+    adapter: <%= ENV['DATABASE_ADAPTER'] %>
+    database: <%= ENV['DATABASE_APP_DB'] %>
+    host: <%= ENV['DATABASE_HOST'] %>
+    password: <%= ENV['DATABASE_PASS'] %>
+    username: <%= ENV['DATABASE_USER'] %>
+  warehouse:
+    <<: *default
+    adapter: <%= ENV['WAREHOUSE_DATABASE_ADAPTER'] %>
+    database: <%= ENV['WAREHOUSE_DATABASE_DB'] %>
+    host: <%= ENV['WAREHOUSE_DATABASE_HOST'] %>
+    password: <%= ENV['WAREHOUSE_DATABASE_PASS'] %>
+    username: <%= ENV['WAREHOUSE_DATABASE_USER'] %>
+    migrations_paths: db/warehouse/migrate
+  health:
+    <<: *default
+    adapter: <%= ENV['HEALTH_DATABASE_ADAPTER'] %>
+    database: <%= ENV['HEALTH_DATABASE_DB'] %>
+    host: <%= ENV['HEALTH_DATABASE_HOST'] %>
+    password: <%= ENV['HEALTH_DATABASE_PASS'] %>
+    username: <%= ENV['HEALTH_DATABASE_USER'] %>
+    migrations_paths: db/health/migrate
+  reporting:
+    <<: *default
+    adapter: <%= ENV['REPORTING_DATABASE_ADAPTER'] %>
+    database: <%= ENV['REPORTING_DATABASE_DB'] %>
+    host: <%= ENV['REPORTING_DATABASE_HOST'] %>
+    password: <%= ENV['REPORTING_DATABASE_PASS'] %>
+    username: <%= ENV['REPORTING_DATABASE_USER'] %>
+    migrations_paths: db/reporting/migrate
 
 <%= ENV.fetch('RAILS_ENV') { 'unknown' } %>_cas:
   <<: *default
+  adapter: <%= ENV['DATABASE_ADAPTER'] %>
   database: <%= ENV['DATABASE_CAS_DB'] %>
+  host: <%= ENV['DATABASE_HOST'] %>
+  password: <%= ENV['DATABASE_PASS'] %>
+  username: <%= ENV['DATABASE_USER'] %>

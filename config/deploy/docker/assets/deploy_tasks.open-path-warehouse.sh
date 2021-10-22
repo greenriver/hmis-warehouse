@@ -2,33 +2,22 @@
 
 set -eo pipefail
 
-# strip extension installation to avoid permissions failures
-# use sed -i.bak syntax for cross compatibility with macos and linux
-sed -i.bak '/EXTENSION/d' db/structure.sql
-sed -i.bak '/EXTENSION/d' db/health/structure.sql
-sed -i.bak '/EXTENSION/d' db/reporting/structure.sql
-sed -i.bak '/EXTENSION/d' db/warehouse/structure.sql
-
-# Only enable for initial deployments to new installations
-# TODO: fix the bootstra_databases! method in roll_out.rb to handle a first install
-# ./bin/db_prep
-
 echo Storing Themed Maintenance Page
 bundle exec rake maintenance:create
 
 echo Migrating with individual rake tasks
 
 echo Migrating app database
-bundle exec rake db:migrate
+bundle exec rake db:migrate:primary
 
 echo Migrating warehouse database
-bundle exec rake warehouse:db:migrate
+bundle exec rake db:migrate:warehouse
 
 echo Migrating health database
-bundle exec rake health:db:migrate
+bundle exec rake db:migrate:health
 
 echo Migrating reporting database
-bundle exec rake reporting:db:migrate
+bundle exec rake db:migrate:reporting
 
 echo Report seeding
 bundle exec rake reports:seed

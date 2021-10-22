@@ -11,6 +11,7 @@ Rails.application.configure do
 
   config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
   config.action_cable.allowed_request_origins = [ /.+/ ]
+  config.hosts = [ /.*/ ]
 
   # Do not eager load code on boot.
   config.eager_load = false

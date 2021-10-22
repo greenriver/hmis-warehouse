@@ -20,7 +20,7 @@ class Rack::Attack
   end
 
   def self.rapid_paths(request)
-    request.path.include?('rollup') || request.path.include?('cohort') || request.path.include?('core_demographics') || asset_paths(request)
+    request.path.include?('rollup') || request.path.include?('cohort') || asset_paths(request)
   end
 
   def self.asset_paths(request)
@@ -148,7 +148,7 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
 
   # ... and now try to send ot somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
-    notifier_config = Rails.application.config_for(:exception_notifier).fetch('slack', nil)
+    notifier_config = Rails.application.config_for(:exception_notifier).fetch(:slack, nil)
     notifier  = Slack::Notifier.new(
       notifier_config['webhook_url'],
       channel: notifier_config['channel'],
