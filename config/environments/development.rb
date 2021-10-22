@@ -112,7 +112,7 @@ Rails.application.configure do
   end
 
   # Web console from outside of docker
-  config.web_console.whitelisted_ips = ['172.16.0.0/12', '192.168.0.0/16', '10.0.0.0/8']
+  config.web_console.allowed_ips = ['172.16.0.0/12', '192.168.0.0/16', '10.0.0.0/8']
 
   console do
     if ENV['CONSOLE'] == 'pry'
