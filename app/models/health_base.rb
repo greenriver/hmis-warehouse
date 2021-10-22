@@ -11,7 +11,7 @@ class HealthBase < ApplicationRecord
 
   include ArelHelper
   class << self
-    cattr_accessor :phi_dictionary
+    attr_accessor :phi_dictionary
 
     def phi_dictionary_entry
       self.phi_dictionary ||= {}
