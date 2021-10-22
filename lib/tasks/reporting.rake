@@ -107,7 +107,7 @@ namespace :reporting do
         if ReportingBase.connection.table_exists?(:schema_migrations)
           puts "Refusing to load the reporting database schema since there are tables present. This is not an error."
         else
-          Rake::Task['reporting:db:schema:load'].invoke
+          Rake::Task['db:schema:load:reporting'].invoke
         end
       end
     end
