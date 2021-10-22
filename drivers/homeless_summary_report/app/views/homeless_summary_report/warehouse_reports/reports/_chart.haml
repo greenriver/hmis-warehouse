@@ -1,11 +1,14 @@
 - chart_data = @report.chart_data_for(section: measure, household_category: household_category, field: field)
 - variant_slug = "#{[measure.underscore.tr(' ', '_'), household_category, field].join('__')}-chart"
-- title = [household_category, field].join(' ')
-%h3= title
+
 .chart-wrapper
-  .jChart.c-chart--horizontal-bar{class: "#{variant_slug}", data: {chart: chart_data.to_json, active: 'columns' }}
-  %a.jToggleChartData{href: '#'} push me
-=debug chart_data.to_json
+  .d-flex
+    %h3= "#{@report.title_for(household_category, :all)} #{row[:title]}"
+    .ml-auto
+      %a.jToggleChartData{href: '#'} toggle demographics
+  .jChart.c-chart--horizontal-bar{class: "#{variant_slug}", data: {chart: chart_data.to_json, active: 'one_' }}
+
+-# = debug chart_data.to_json
 = content_for :page_js do
   :javascript
     $(document).ready(function(){
@@ -13,12 +16,12 @@
       $('.jChart.#{variant_slug}').closest('.chart-wrapper').find('.jToggleChartData').on('click', function(e) {
         e.preventDefault();
         let active = $('.jChart.#{variant_slug}').data('active');
-        if(active == 'one') {
+        if(active == 'one_') {
           active = 'all_';
-          chart.chart.resize({height: 500})
+          chart.chart.resize({height: 850})
         } else {
-          active = 'one'
-          chart.chart.resize({height: 80})
+          active = 'one_'
+          chart.chart.resize({height: 150})
         }
         $('.jChart.#{variant_slug}').data('active', active);
         let new_columns = $('.jChart.#{variant_slug}').data('chart')[`${active}columns`];

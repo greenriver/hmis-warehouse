@@ -1497,37 +1497,6 @@
       "note": ""
     },
     {
-      "warning_type": "Remote Code Execution",
-      "warning_code": 24,
-      "fingerprint": "9cdbaf0f28cc1c8f4a9e148ea3fb9638bf5dc5a1858a903f2d9731c8743eb010",
-      "check_name": "UnsafeReflection",
-      "message": "Unsafe reflection method `constantize` called with parameter value",
-      "file": "app/views/data_sources/custom_imports/show.haml",
-      "line": 4,
-      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
-      "code": "config_scope.find(params[:id].to_i).import_type.constantize",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "DataSources::CustomImportsController",
-          "method": "show",
-          "line": 20,
-          "file": "app/controllers/data_sources/custom_imports_controller.rb",
-          "rendered": {
-            "name": "data_sources/custom_imports/show",
-            "file": "app/views/data_sources/custom_imports/show.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "data_sources/custom_imports/show"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "a005f0450a283e9aa0cfbb7447941c9b23a6b49277b9e02d914765b5ccf577cc",
@@ -2468,6 +2437,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-10-21 17:04:19 +0000",
+  "updated": "2021-10-21 22:31:02 +0000",
   "brakeman_version": "5.0.4"
 }

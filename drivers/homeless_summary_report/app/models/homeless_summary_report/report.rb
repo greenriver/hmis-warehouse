@@ -313,26 +313,30 @@ module HomelessSummaryReport
         end
 
         columns[demographic_category] = section_columns
-
-        section_counts = []
-        calculations.each.with_index do |_, c_idx|
-          section_counts << [headers[c_idx], formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: :count)]
-        end
-        counts[demographic_category] = section_counts.to_h
+        counts[title_for(household_category, demographic_category)] = formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: :count)
       end
-      all_columns = columns.values.map(&:first).map(&:first)
+
+      all_columns = {}
+      columns.values.first.each do |m|
+        all_columns[m.first] ||= [m.first]
+      end
+      columns.values.each do |m|
+        m.each do |r|
+          all_columns[r.first] << r.last
+        end
+      end
       {
         params: [],
         one_columns: columns['all'],
-        all_columns: all_columns,
+        all_columns: all_columns.values,
         options: {
-          height: 80,
+          height: 150,
           max: max_value_for(section),
         },
         support: {
           unit: headers,
-          counts: counts['all'],
-          all_counts: counts.values.map { |r| r.flatten(1) },
+          counts: counts['All Persons'],
+          all_counts: counts,
         },
       }
     end
@@ -388,7 +392,6 @@ module HomelessSummaryReport
         spec[:variants].each do |demographic_category, sub_spec|
           detail_variant_name = "spm_#{household_category}__#{demographic_category}"
           client_ids_in_demographic_category = client_ids_for_demographic_category(spec, sub_spec)
-          # binding.pry
           report_clients.each do |client_id, report_client|
             next unless client_id.in?(client_ids_in_demographic_category)
 
