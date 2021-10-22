@@ -45,3 +45,8 @@ jobs:
       - name: Run brakeman
         run: |
           bundle exec brakeman -q --no-pager --except PermitAttributes,Render
+      - uses: actions/es-check-action@1.0.2
+          with:
+            directory: 'dist'
+            ecmaVersion: 'es5'
+            files: 'public/assets/*.js'
