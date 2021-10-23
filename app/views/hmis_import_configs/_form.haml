@@ -5,3 +5,4 @@
 = f.input :s3_bucket_name
 = f.input :s3_path
 = f.input :zip_file_password, as: :string, input_html: { value: @config.zip_file_password }
+= f.input :file_count, label: 'How many files should we attempt to import daily?', hint: 'This will not re-import a file with the same name, but can be used if the datasource is split across multiple files.', collection: (1..10).to_a, as: :select_two

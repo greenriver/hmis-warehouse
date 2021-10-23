@@ -137,7 +137,11 @@ namespace :grda_warehouse do
         path: conf.s3_path,
         file_password: conf.zip_file_password,
       }
-      Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisAutoMigrate::S3', options: options)
+      # Deal with fetching more than one file
+      conf.possible_files.each do |file_name|
+        options[:file_name] = file_name
+        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisAutoMigrate::S3', options: options)
+      end
     end
   end
 
