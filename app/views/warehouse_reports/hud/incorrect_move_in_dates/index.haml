@@ -3,7 +3,8 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = render 'filter'
-- if @enrollments.to_a.any?
+
+- if @pagy.count.positive?
   .d-flex
     .ml-auto.mb-4
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
