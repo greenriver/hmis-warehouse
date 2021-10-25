@@ -94,13 +94,7 @@ module Importers::HmisAutoMigrate
       files = []
       # Returns oldest first
       @s3.fetch_key_list(prefix: @s3_path).each do |entry|
-        if entry.include?(@s3_path)
-          if @file_name.blank?
-            files << entry
-          elsif entry.include?(@file_name)
-            files << entry
-          end
-        end
+        files << entry if entry.include?(@s3_path) && (@file_name.blank? || entry.include?(@file_name))
       end
       return nil if files.empty?
 
