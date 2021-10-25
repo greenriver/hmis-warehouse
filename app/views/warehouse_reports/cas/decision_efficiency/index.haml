@@ -1,37 +1,32 @@
 - title = 'Coordinated Access System Decision Efficiency'
 - content_for :title, title
 
-:css
-  .stat + * {
-    margin-left: 1em;
-  }
-
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
-.row
-  .col-sm-12
 
-.well
-  .row
-    .col-sm-12
-      = simple_form_for @step_range, as: :steps, url: chart_warehouse_reports_cas_decision_efficiency_index_path, html: { method: :get } do |f|
-        .form-group
-          %p
-            Limit to matches created within a date range.
-            = render 'filter', f: f
-          .row
-            .col
-              = f.input :route, collection: @step_range.available_routes, input_html: {value: @step_range.route, class: [:jTrigger]}, as: :select_two
-          .row
-            .col-sm-5.jDependent
-              = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }, as: :select_two
-            .col-sm-5.jDependent
-              = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step' }, as: :select_two
-            .col-sm-2
-              = f.input :unit, label: 'In', collection: @step_range.units.map{|m| [m.titleize.pluralize, m]}, include_blank: false, input_html: { class: 'jUnits '}, as: :select_two
-.well
-  %canvas#counts{ width: 800, height: 200, data: {legal_steps: @step_range.ordered_steps.to_json} }
-  #stats(style="display:table;margin:1em auto;")
+= render 'filter'
+
+.table-responsive.card
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th Route
+        %th Program
+        %th Sub Program
+        %th Match started
+        %th= "#{@filter.first} completed"
+        %th= "#{@filter.last} completed"
+        %th Days Between Steps
+    %tbody
+      - @data.each do |row|
+        %tr
+          %td= row[:match_route]
+          %td= row[:program_name]
+          %td= row[:sub_program_name]
+          %td= link_to(row[:match_stated_at], GrdaWarehouse::Config.get(:cas_url) + "/matches/#{row[:match_id]}",  target: '_blank')
+          %td= row[:first_ended_at]
+          %td= row[:second_ended_at]
+          %td= row[:second_ended_at].to_date - row[:first_ended_at].to_date
 
 - content_for :page_js do
   :javascript
@@ -39,12 +34,7 @@
       $('.jTrigger').on('change', function(e){
         $('.jDependent :input').val('');
         $form = $(this).closest('form');
-        console.log($form.serialize());
+        // console.log($form.serialize());
         window.location.href = window.location.href + '?' + $form.serialize();
       });
-      var chart = $('#counts');
-      var efficiency_chart = new App.WarehouseReports.Cas.DecisionEfficiency(chart);
     });
-
-
-
