@@ -259,10 +259,10 @@ module HudReports
     helper_method :default_report_version
 
     private def report_version
-      version = filter_params[:report_version] ||
-        @report&.options&.try(:[], 'report_version') ||
-        @filter&.report_version ||
-        link_params.try(:[], :filter).try(:[], :report_version) ||
+      version = filter_params[:report_version].presence ||
+        @report&.options&.try(:[], 'report_version').presence ||
+        @filter&.report_version.presence ||
+        link_params.try(:[], :filter).try(:[], :report_version).presence ||
         default_report_version
       version.to_sym
     end
