@@ -1,6 +1,7 @@
 namespace :gettext do
   def files_to_translate
-    Dir.glob("{app}/**/*.{rb,haml}")# + Dir.glob("{app}/controllers/**/*.{rb}")# + Dir.glob("{app}/models/**/*.{rb}")
+    Dir.glob("{app}/**/*.{rb,haml}") +
+    Dir.glob("{drivers}/**/*.{rb,haml}")
   end
 
   desc "synchronise po files with db, creating keys and translations that do not exist"
