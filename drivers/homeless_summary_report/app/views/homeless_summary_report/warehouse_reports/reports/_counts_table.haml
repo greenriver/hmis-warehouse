@@ -4,7 +4,8 @@
   %h3= title
   - if demographic_category == 'all'
     - spm_id = @report.clients.send(detail_variant_name).limit(1).pluck(detail_variant_name)
-    .ml-auto= link_to 'View related SPM report', hud_reports_spm_path(spm_id), target: :_blank
+    - if spm_id
+      .ml-auto= link_to 'View related SPM report', hud_reports_spm_path(spm_id), target: :_blank
 .card.mb-4
   %table.table.table-striped.mb-0
     %thead
