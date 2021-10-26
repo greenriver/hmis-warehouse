@@ -1,0 +1,27 @@
+- if @data.any?
+  %h2 Details
+  .table-responsive.card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Days Between Steps
+          %th= "#{@filter.first_step} completed"
+          %th= "#{@filter.second_step} completed"
+          %th Route
+          %th Program
+          %th Sub Program
+          %th Match started
+          %th Client
+          %th= "#{_('HSA')} Contacts"
+      %tbody
+        - @data.each do |row|
+          %tr
+            %td= row[:days]
+            %td= row[:first_ended_at]&.to_date
+            %td= row[:second_ended_at]&.to_date
+            %td= row[:match_route]
+            %td= row[:program_name]
+            %td= row[:sub_program_name]
+            %td= link_to(row[:match_stated_at]&.to_date, GrdaWarehouse::Config.get(:cas_url) + "/matches/#{row[:match_id]}",  target: '_blank')
+            %td= "#{row[:first_name]} #{row[:last_name]}"
+            %td= JSON.parse(row[:hsa_contacts])&.map { |m| "#{m['name']} <#{m['email']}>" }.join(', ')

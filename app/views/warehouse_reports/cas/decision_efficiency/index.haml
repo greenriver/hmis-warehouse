@@ -5,28 +5,9 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
 
 = render 'filter'
+= render 'summary'
+= render 'table'
 
-.table-responsive.card
-  %table.table.table-striped.mb-0
-    %thead
-      %tr
-        %th Route
-        %th Program
-        %th Sub Program
-        %th Match started
-        %th= "#{@filter.first} completed"
-        %th= "#{@filter.last} completed"
-        %th Days Between Steps
-    %tbody
-      - @data.each do |row|
-        %tr
-          %td= row[:match_route]
-          %td= row[:program_name]
-          %td= row[:sub_program_name]
-          %td= link_to(row[:match_stated_at], GrdaWarehouse::Config.get(:cas_url) + "/matches/#{row[:match_id]}",  target: '_blank')
-          %td= row[:first_ended_at]
-          %td= row[:second_ended_at]
-          %td= row[:second_ended_at].to_date - row[:first_ended_at].to_date
 
 - content_for :page_js do
   :javascript
