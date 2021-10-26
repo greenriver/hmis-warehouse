@@ -486,7 +486,7 @@ module HomelessSummaryReport
       @client_ids_for_report_scope ||= report_scope.pluck(:client_id).uniq.to_set
     end
 
-    # This needs to temporarily set @filter to somethign useful for further limiting the default
+    # This needs to temporarily set @filter to something useful for further limiting the default
     # filter set.  When it's done, it can just clear it as calling `filter` will reset it from
     # the chosen options
     private def client_ids_for_demographic_category(spec, sub_spec)

@@ -3,7 +3,6 @@
 window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class HorizontalBar {
   constructor(chart_selector, options) {
     this._build_chart = this._build_chart.bind(this);
-    this._colors = this._colors.bind(this);
     this._observe = this._observe.bind(this);
     this._selector_exists = this._selector_exists.bind(this);
     this._selector_unprocessed = this._selector_unprocessed.bind(this);
@@ -50,7 +49,6 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         x: 'x',
         columns: columns,
         type: 'bar',
-        // color: this._colors,
         labels: {
           format: (v, id, i, j) => {
             if (this.options.showPercentageWithValue) {
@@ -122,26 +120,6 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
     } else {
       return console.log(`${this.chart_selector} not found on page`);
     }
-  }
-
-  _colors(c, d) {
-    let color;
-    let key = d;
-    if (key.x != null) {
-      key = key.x;
-    }
-    const colors = window.Chart.defaults.colors
-    if (['All'].includes(key)) {
-      color = '#288BEE';
-    } else {
-      color = this.color_map[key];
-      if (color == null) {
-        color = colors[this.next_color++];
-        this.color_map[key] = color;
-        this.next_color = this.next_color % colors.length;
-      }
-    }
-    return color;
   }
 
   _toolip(d, defaultTitleFormat, defaultValueFormat, color) {
