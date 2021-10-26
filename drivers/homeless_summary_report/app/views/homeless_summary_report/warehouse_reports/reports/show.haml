@@ -9,51 +9,6 @@
   = @report.filter.describe_filter_as_html
 
 - @report.measures.each do |measure, data|
-  -# Calculate the max for chart display
-  :ruby
-    values = []
-    headers = data[:headers]
-    @report.variants.each do |base_variant_slug, details|
-      detail_variant_name = "spm_#{base_variant_slug}__all"
-      data[:fields].each do |row|
-        field, row_data = row
-        sub_variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}_sub_variants_#{field}"
-        calculations = (row_data[:calculations] - [:count])
-        if measure == 'Measure 7'
-          calculations.each do |calculation|
-            stack = []
-            @report.destinations.first(3).each.with_index do |ids, i|
-              stack << @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: ids))
-            end
-            values << stack.sum
-          end
-        else
-          values += calculations.map { |calculation| @report.calculate(detail_variant_name, field, calculation, row_data) }
-        end
-        details[:variants].each do |sub_variant_slug, variant|
-          next if @report.exclude_variants(measure, sub_variant_slug)
-
-          data[:fields].each do |sub_row|
-            next unless sub_row.first == field
-
-            row_data = sub_row.last
-            sub_detail_variant_name = "spm_#{base_variant_slug}__#{sub_variant_slug}"
-            if measure == 'Measure 7'
-              calculations.each do |calculation|
-                stack = []
-                @report.destinations.first(3).each.with_index do |ids, i|
-                  stack << @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: ids))
-                end
-                values << stack.sum
-              end
-            else
-              values += calculations.map { |calculation| @report.calculate(sub_detail_variant_name, field, calculation, row_data) }
-            end
-          end
-        end
-      end
-    end
-    max_value = (values.compact.max || 100).to_i
   .well
     - measure_slug = measure.underscore.tr(' ', '_')
     .d-flex
@@ -62,29 +17,16 @@
         %a{href: '#', data: {toggle: :collapse, target: "\##{measure_slug}"}, aria: {expanded: 'false', controls: measure_slug}}
           View details
           %i.icon-arrow-circled-down
-    - @report.variants.each do |base_variant_slug, details|
-      - detail_variant_name = "spm_#{base_variant_slug}__all"
+    - @report.variants.each do |household_category, details|
       .collapse{id: measure_slug}
         - base_variant = details[:base_variant]
-        = render 'counts_table', data: data, detail_variant_name: detail_variant_name, title: base_variant[:name], measure: measure
-        - details[:variants].each do |sub_variant_slug, variant|
-          = render 'counts_table', data: data, detail_variant_name: "spm_#{base_variant_slug}__#{sub_variant_slug}", title: variant[:name], measure: measure
-      - data[:fields].each do |row|
-        - field, row_data = row
-        - sub_variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}_sub_variants_#{field}"
+        = render 'counts_table', measure: measure, data: data, household_category: household_category, demographic_category: 'all', title: base_variant[:name]
+        - details[:variants].each do |demographic_category, variant|
+          = render 'counts_table', data: data, household_category: household_category, demographic_category: demographic_category, title: variant[:name], measure: measure
+    - @report.variants.each do |household_category, details|
+      - base_variant = details[:base_variant]
+      - data[:fields].each do |field, row|
         - if measure == 'Measure 7'
-          = render 'chart_stacked', data: row, detail_variant_name: detail_variant_name, title: base_variant[:name], measure: measure, headers: headers, variant_link: sub_variant_slug, max_value: max_value
+          = render 'chart_stacked', measure: measure, household_category: household_category, field: field, row: row
         - else
-          = render 'chart', data: row, detail_variant_name: detail_variant_name, title: base_variant[:name], measure: measure, headers: headers, variant_link: sub_variant_slug, max_value: max_value
-        .mb-6.collapse{id: sub_variant_slug}
-          - details[:variants].each do |sub_variant_slug, variant|
-            - next if @report.exclude_variants(measure, sub_variant_slug)
-
-            - sub_detail_variant_name = "spm_#{base_variant_slug}__#{sub_variant_slug}"
-            - data[:fields].each do |row|
-              - next unless row.first == field
-              - if measure == 'Measure 7'
-                = render 'chart_stacked', data: row, detail_variant_name: sub_detail_variant_name, title: variant[:name], measure: measure, headers: headers, variant_link: nil, max_value: max_value
-              - else
-                = render 'chart', data: row, detail_variant_name: sub_detail_variant_name, title: variant[:name], measure: measure, headers: headers, variant_link: nil, max_value: max_value
-          %hr
+          = render 'chart', measure: measure, household_category: household_category, field: field, row: row

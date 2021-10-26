@@ -16,9 +16,11 @@ module GrdaWarehouse::CustomImports
     has_one :data_source, through: :config
 
     def check_hour
-      return true if Rails.environment.development?
+      return true if Rails.env.development?
+
       # Only allow imports during the specified hour where it hasn't started in the past 23 hours
-      return false unless config.import_files.maximum(:started_at) < 23.hours.ago
+      last_start_time = config.import_files.maximum(:started_at).presence || 3.days.ago
+      return false unless last_start_time < 23.hours.ago
       return false unless config.import_hour == Time.current.hour
 
       true

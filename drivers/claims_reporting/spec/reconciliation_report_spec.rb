@@ -215,16 +215,6 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
       assert_equal pcp_dates&.to_sentence, report.careplan_dates_for_patient(patient), "careplan_dates_for_patient(#{idx})"
     end
 
-    assert_equal [
-      'Medicaid ID',
-      'Last Name',
-      'First Name',
-      'Submitted QAs',
-      'QAs Outside Enrollment',
-      'QAs Without Required Careplan',
-      'Denied Claims',
-      'Careplan PCP signatures',
-    ], report.patients_without_payments_columns, 'patients_without_payments_columns'
     assert_instance_of Array, report.patients_without_payments_rows, 'patients_without_payments_rows'
     assert_equal active_patients.size, report.patients_without_payments_rows.size, 'patients_without_payments_rows'
     assert_instance_of Array, CSV.parse(report.to_csv), 'can make a CSV'

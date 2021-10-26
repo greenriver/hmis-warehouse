@@ -17,16 +17,43 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "\n"
 
+msgid "1) For scored elements that received 0 or 5 points, please explain how your agency plans to improve the performance over time."
+msgstr ""
+
+msgid "2) If your grant recaptured more than 10%, please explain how you intend to spend project funds in the coming year OR if you plan to voluntarily reallocate the excess budget."
+msgstr ""
+
+msgid "24 CFR 578.(a)(8) states that CoCs must establish and operate a Coordinated Entry System to allocate assistance as effectivley as possible, prioritizing services to those that need it the most."
+msgstr ""
+
 msgid "A claim was submitted for this CHA; it is no longer editable."
 msgstr ""
 
 msgid "A claim was submitted for this SSM; it is no longer editable."
 msgstr ""
 
+msgid "Achieving project outcomes provides a benchmark for how well projects help to end homelessness. Assessing & monitoring project outcomes is necessary to understand a project's rate of success and contribution to CoC-wide performance goals."
+msgstr ""
+
+msgid "Actual Expenditures in eLOCCS"
+msgstr ""
+
 msgid "Ad-Hoc Data Sources"
 msgstr ""
 
 msgid "Add a Release"
+msgstr ""
+
+msgid "Adult-Only Households"
+msgstr ""
+
+msgid "Adults with Children"
+msgstr ""
+
+msgid "Age"
+msgstr ""
+
+msgid "Agency Self-Report and eLOCCS data"
 msgstr ""
 
 msgid "Alerts"
@@ -45,6 +72,12 @@ msgid "Authorization for Use/Disclosure of Personal Information"
 msgstr ""
 
 msgid "Available for matching in CAS"
+msgstr ""
+
+msgid "Average Household Size"
+msgstr ""
+
+msgid "Average length of stay"
 msgstr ""
 
 msgid "BH CP Request for Care Plan Signature"
@@ -3425,7 +3458,16 @@ msgstr ""
 msgid "CHA R_TITLE"
 msgstr ""
 
+msgid "CP Quality Measures"
+msgstr ""
+
 msgid "CSPECH Eligible"
+msgstr ""
+
+msgid "Census Tracking Worksheets"
+msgstr ""
+
+msgid "Child-Only Households"
 msgstr ""
 
 msgid "Children under age 18 in household"
@@ -3437,6 +3479,9 @@ msgstr ""
 msgid "City of Boston DND Warehouse"
 msgstr ""
 
+msgid "Client Contact Locations"
+msgstr ""
+
 msgid "Client Notes"
 msgstr ""
 
@@ -3444,6 +3489,12 @@ msgid "Client Search"
 msgstr ""
 
 msgid "Client does not have a community preference."
+msgstr ""
+
+msgid "Clients Served"
+msgstr ""
+
+msgid "Clients moving into permanent housing"
 msgstr ""
 
 msgid "Cohort is visible in CAS"
@@ -3473,7 +3524,16 @@ msgstr ""
 msgid "Coordinated Entry Assessments"
 msgstr ""
 
+msgid "Coordinated Entry System Particpation 20%"
+msgstr ""
+
+msgid "Core Demographics"
+msgstr ""
+
 msgid "DMH Eligible"
+msgstr ""
+
+msgid "Data Source Report"
 msgstr ""
 
 msgid "Data Sources"
@@ -3494,10 +3554,19 @@ msgstr ""
 msgid "Destination"
 msgstr ""
 
+msgid "Destination Report"
+msgstr ""
+
+msgid "Disability Summary Report"
+msgstr ""
+
 msgid "Disability Verification on File"
 msgstr ""
 
 msgid "Ending Veteran & Chronic Homelessness in Boston"
+msgstr ""
+
+msgid "Ensure the program is on track to spend down all project funds by the end of its current grant term. For sub-contracted programs, subtract one month for the \"number of months since start of grant term\" to allow for the HUD billing delay in sub-contracted programs."
 msgstr ""
 
 msgid "Entry Date"
@@ -3521,16 +3590,37 @@ msgstr ""
 msgid "Full HAN Release on File"
 msgstr ""
 
+msgid "Fully signed data sharing agreement"
+msgstr ""
+
+msgid "Funds expended to date, as reflected in eLOCCS"
+msgstr ""
+
 msgid "Gender"
+msgstr ""
+
+msgid "Grant Management & Financials 10%"
 msgstr ""
 
 msgid "Green River"
 msgstr ""
 
+msgid "HAP Report"
+msgstr ""
+
 msgid "HIV+"
 msgstr ""
 
+msgid "HMIS Blackout"
+msgstr ""
+
+msgid "HMIS Data Quality 20%"
+msgstr ""
+
 msgid "HMIS Data Sources"
+msgstr ""
+
+msgid "HMIS Data Warehouse"
 msgstr ""
 
 msgid "HMIS Project ID"
@@ -3539,10 +3629,16 @@ msgstr ""
 msgid "HMIS Source Data"
 msgstr ""
 
+msgid "HMIS participation and data quality are priorities for TX-601 & HUD. Accurate, complete & timely data is crucial to determine how projects are contributing to ending homelessness.  High quality data is key to understanding what projects are doing and how the CoC & HUD can make informed decisions about the project."
+msgstr ""
+
 msgid "HSA Contacts"
 msgstr ""
 
 msgid "HUD Reports"
+msgstr ""
+
+msgid "HUD requires that projects meet threshold requirements throughout the life cycle of the project."
 msgstr ""
 
 msgid "HUES Eligible"
@@ -3554,7 +3650,28 @@ msgstr ""
 msgid "Health SFTP incoming claims data folder"
 msgstr ""
 
+msgid "Homeless Count Comparison Report"
+msgstr ""
+
+msgid "Homeless Population Report"
+msgstr ""
+
+msgid "Homeless Populations Report Generator"
+msgstr ""
+
 msgid "Homeless Service Provider Organization Name"
+msgstr ""
+
+msgid "Homeless Summary Report"
+msgstr ""
+
+msgid "Homeless or Housed"
+msgstr ""
+
+msgid "Household Composition"
+msgstr ""
+
+msgid "Household utilization rates demonstrate that the CoC is fully utilizing its inventory."
 msgstr ""
 
 msgid "Housing"
@@ -3596,7 +3713,28 @@ msgstr ""
 msgid "Import was successfully updated."
 msgstr ""
 
+msgid "Improving a household's access to financial resources is crucial to reducing vulnerability to homelessness. Increase in income is measured through the NOFA & System Performance Measures."
+msgstr ""
+
+msgid "Improving household access to financial resources is crucial to reducing vulnerability to homelessness. Increase in income is measured in the NOFA & System Performance Measures"
+msgstr ""
+
+msgid "In the boxes below, please respond to the following questions (if applicable). These responses will be reviewed by the Allocations Committee."
+msgstr ""
+
+msgid "Income, Non-Cash Benefits, Health Insurance Report"
+msgstr ""
+
+msgid "Indicates community success in ending chronic homelessness by measuring the number of chronically homeless participants served in the project during the measured year."
+msgstr ""
+
+msgid "Individuals"
+msgstr ""
+
 msgid "Ineligible Immigrant (Including Undocumented)"
+msgstr ""
+
+msgid "Inflow / Outflow"
 msgstr ""
 
 msgid "Invalid Email or password"
@@ -3606,6 +3744,15 @@ msgid "Invalid two-factor code."
 msgstr ""
 
 msgid "Is there anyplace you do NOT want to live?"
+msgstr ""
+
+msgid "It is important to HUD that programs demonstrate cost efficiency - the annual cost to retain or move someone into permanent housing. For projects that had an expansion, this question is marked N/A."
+msgstr ""
+
+msgid "It is important to HUD that programs show agency capacity to spend funds allocated in a timely manner and in full and allows for potential fund reallocation of unspent funds during the HUD CoC Competition."
+msgstr ""
+
+msgid "Length of Stay is measured to determine if clients are moving through the programs in an appropriate length of time and are efficiently moving towards a permanent and stable home. It also assists community system modeling efforts."
 msgstr ""
 
 msgid "Life-Time Sex Offender"
@@ -3630,6 +3777,9 @@ msgid "Location Option 4"
 msgstr ""
 
 msgid "Manually entered date at which the client became document ready"
+msgstr ""
+
+msgid "Messages"
 msgstr ""
 
 msgid "Meth Production Conviction"
@@ -3668,10 +3818,28 @@ msgstr ""
 msgid "No releases on file"
 msgstr ""
 
+msgid "Number Homeless Report"
+msgstr ""
+
+msgid "Number Homeless Report Generator"
+msgstr ""
+
+msgid "Number Housed Report"
+msgstr ""
+
+msgid "Number Housed Report Generator"
+msgstr ""
+
+msgid "Number of participants who exited to or remained in permanent supportive housing during the reporting period"
+msgstr ""
+
 msgid "Open Path ROI"
 msgstr ""
 
 msgid "Open Path ROI content"
+msgstr ""
+
+msgid "OpenPath HMIS Warehouse"
 msgstr ""
 
 msgid "Organizations"
@@ -3683,13 +3851,55 @@ msgstr ""
 msgid "Override CAS Match Date"
 msgstr ""
 
+msgid "PIT Count Participation"
+msgstr ""
+
+msgid "PIT Registration or PIT Data"
+msgstr ""
+
 msgid "Part of a family"
 msgstr ""
 
 msgid "Pathways"
 msgstr ""
 
+msgid "Patient Engagement Trends"
+msgstr ""
+
+msgid "People Experiencing Homelessness"
+msgstr ""
+
+msgid "People Housed"
+msgstr ""
+
+msgid "People in Families"
+msgstr ""
+
+msgid "Percent Homeless Comparison Report Generator"
+msgstr ""
+
+msgid "Percentage of clients with increased income"
+msgstr ""
+
+msgid "Performance Metrics"
+msgstr ""
+
+msgid "Performance Metrics Report"
+msgstr ""
+
 msgid "Please attach each file as a separate document. Please do not upload a packet in which a number of documents are in one file."
+msgstr ""
+
+msgid "Point-in-Time Report"
+msgstr ""
+
+msgid "Point-in-Time Report Generator"
+msgstr ""
+
+msgid "Point-in-Time by Month Report"
+msgstr ""
+
+msgid "Point-in-Time by Month Report Generator"
 msgstr ""
 
 msgid "Pre-Placement"
@@ -3701,6 +3911,15 @@ msgstr ""
 msgid "Previous Removal Reason"
 msgstr ""
 
+msgid "Prior Living Situation Report"
+msgstr ""
+
+msgid "Process Duplicates"
+msgstr ""
+
+msgid "Project Application & APR Data"
+msgstr ""
+
 msgid "Project Data Quality Report"
 msgstr ""
 
@@ -3710,10 +3929,31 @@ msgstr ""
 msgid "Project Name"
 msgstr ""
 
+msgid "Project Pass/Fail"
+msgstr ""
+
+msgid "Project Pass/Fail Report"
+msgstr ""
+
+msgid "Project Performance 50%"
+msgstr ""
+
+msgid "Project Scorecards"
+msgstr ""
+
 msgid "Projects"
 msgstr ""
 
+msgid "Projects must demonstrate understanding of compliance with federal & local regulations of project operations."
+msgstr ""
+
 msgid "Race"
+msgstr ""
+
+msgid "Racial Composition"
+msgstr ""
+
+msgid "Reducing returns to homelessness is one of the most important measures of program success and is HUD System Performance Measure 2a."
 msgstr ""
 
 msgid "Releases of Information"
@@ -3743,7 +3983,13 @@ msgstr ""
 msgid "Requires wheelchair accessible unit"
 msgstr ""
 
+msgid "Returns to Homelessness"
+msgstr ""
+
 msgid "Scan Card Services"
+msgstr ""
+
+msgid "Scanned Service Details"
 msgstr ""
 
 msgid "Scanned Services"
@@ -3773,10 +4019,37 @@ msgstr ""
 msgid "Stabilization Project"
 msgstr ""
 
+msgid "State-Level Homelessness Report"
+msgstr ""
+
+msgid "State-Level Homelessness Report Generator"
+msgstr ""
+
+msgid "Successful housing outcomes are one of the most important measures of project success."
+msgstr ""
+
+msgid "TCHC Sign-In Sheets"
+msgstr ""
+
+msgid "TX-601 established Community-wide performance expectations in 2016 and identified that well-functioning Housing Crisis Response System moves households from homelessness to permanent housing in less than 30 days."
+msgstr ""
+
+msgid "TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most."
+msgstr ""
+
+msgid "TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most. Projects are allowed to reject up to 10% of  CES referrals for reasons stated in the CES Operation Manual."
+msgstr ""
+
+msgid "Text Message Queue"
+msgstr ""
+
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
 msgstr ""
 
 msgid "The HMIS Warehouse can be used for homeless client care coordination and reporting."
+msgstr ""
+
+msgid "The measure indicates if agency is participating in CoC-related activities"
 msgstr ""
 
 msgid "This is a Family VI-SPDAT"
@@ -3791,6 +4064,18 @@ msgstr ""
 msgid "This list of agencies will change over time.  Please revisit this page for the updated list."
 msgstr ""
 
+msgid "Time Homeless"
+msgstr ""
+
+msgid "Time in Project"
+msgstr ""
+
+msgid "To support collaboration between agencies and knowledge of local resources at the CoC will provides CoC wide meetings with varying topics related to homelessness and housing services. The measure indicates agency participation."
+msgstr ""
+
+msgid "Type of Housing"
+msgstr ""
+
 msgid "U.S Citizen or Permanent Resident"
 msgstr ""
 
@@ -3798,6 +4083,9 @@ msgid "Unable to create new Data Source"
 msgstr ""
 
 msgid "Unable to find link"
+msgstr ""
+
+msgid "Unscored measures that provide insight into community performance.  May be scored in future competitions."
 msgstr ""
 
 msgid "Upload failed to queue, did you attach a file?"
@@ -3812,10 +4100,19 @@ msgstr ""
 msgid "Upload successful, please let the recipient know the file has been sent."
 msgstr ""
 
+msgid "User Directory"
+msgstr ""
+
+msgid "User Permission Report"
+msgstr ""
+
 msgid "VA Eligible"
 msgstr ""
 
 msgid "VASH Eligible"
+msgstr ""
+
+msgid "Veterans"
 msgstr ""
 
 msgid "View Report"
@@ -3825,6 +4122,9 @@ msgid "View Reports"
 msgstr ""
 
 msgid "Warehouse Project ID"
+msgstr ""
+
+msgid "Where People are Staying"
 msgstr ""
 
 msgid "Willing to live in congregate housing"
@@ -3845,6 +4145,9 @@ msgstr ""
 msgid "You must attach a file in the form."
 msgstr ""
 
+msgid "Youth and Young Adults"
+msgstr ""
+
 msgid "account requests"
 msgstr ""
 
@@ -3863,6 +4166,9 @@ msgstr ""
 msgid "contact us"
 msgstr ""
 
+msgid "data sources"
+msgstr ""
+
 msgid "enrollment"
 msgstr ""
 
@@ -3870,6 +4176,9 @@ msgid "groups"
 msgstr ""
 
 msgid "housing"
+msgstr ""
+
+msgid "imports"
 msgstr ""
 
 msgid "patient"
@@ -3894,6 +4203,9 @@ msgid "the Boston Emergency Shelter Commission"
 msgstr ""
 
 msgid "translation"
+msgstr ""
+
+msgid "user"
 msgstr ""
 
 msgid "user account"
