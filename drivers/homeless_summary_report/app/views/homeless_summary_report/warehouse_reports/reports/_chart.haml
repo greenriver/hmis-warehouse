@@ -1,51 +1,35 @@
-:ruby
-  client = @report.clients.send(detail_variant_name)&.first
-  if client
-    field, row_data = data
-    calculations = (row_data[:calculations] - [:count])
-    headers = headers.dup.tap {|i| i.delete_at(row_data[:calculations].find_index(:count)) } # delete_at acts on original object
-    if measure == 'Measure 7'
-      detail_headers = headers[3..]
-      headers = headers[0..2]
-    end
-    columns = [title]
-    values = []
-    detail_counts = []
-    calculations.each do |calculation|
-      values << @report.calculate(detail_variant_name, field, calculation, row_data)
-    end
-    columns += values
-    columns = [columns]
+- chart_data = @report.chart_data_for(section: measure, household_category: household_category, field: field)
+- variant_slug = "#{[measure.underscore.tr(' ', '_'), household_category, field].join('__')}-chart"
 
-    counts = []
-    calculations.each.with_index do |calculation, c_idx|
-      counts << [headers[c_idx], @report.calculate(detail_variant_name, field, :count, row_data)]
-    end
-    counts = counts.to_h
-
-    support = { unit: headers, counts: counts, detail_counts: detail_counts}
-    slug_extra = if variant_link then 'all' else 'sub_variants' end
-    variant_slug = "#{measure.underscore.tr(' ', '_')}_#{detail_variant_name}_#{field}__#{slug_extra}"
-    chart = { categories: headers, params: [], columns: columns, support: support, options: { height: 80, max: max_value }}
-  end
-- if client
+.chart-wrapper
   .row
     .col-sm-4
-      %h4 #{title}: #{row_data[:title]}
-      - if variant_link
-        %a{href: '#', data: {toggle: :collapse, target: "\##{variant_link}"}, aria: {expanded: 'false', controls: variant_link}}
-          Demographic breakdowns
-          %i.icon-arrow-circled-down
+      %h3= "#{@report.title_for(household_category, :all)} #{row[:title]}"
+      %a.jToggleChartData{href: '#'}
+        Toggle demographics
+        %i.icon-users
     .col-sm-8
-      .jChart.c-chart--horizontal-bar{class: "#{variant_slug}-chart", data: {chart: chart.to_json }}
+      .jChart.c-chart--horizontal-bar{class: "#{variant_slug}", data: {chart: chart_data.to_json, active: 'one_' }}
 
-  = content_for :page_js do
-    :javascript
-      $(document).ready(function(){
-        let chart = new App.WarehouseReports.HomelessSummaryReport.HorizontalBar('.jChart.#{variant_slug}-chart', {remote: false});
-        // Because these are hidden by default, they need to be re-drawn on show
-        $('.jChart.#{variant_slug}-chart').closest('.collapse').on('shown.bs.collapse', function(e) {
-          chart.chart.flush();
-        });
+-# = debug chart_data.to_json
+= content_for :page_js do
+  :javascript
+    $(document).ready(function(){
+      let chart = new App.WarehouseReports.HomelessSummaryReport.HorizontalBar('.jChart.#{variant_slug}', { remote: false });
+      $('.jChart.#{variant_slug}').closest('.chart-wrapper').find('.jToggleChartData').on('click', function(e) {
+        e.preventDefault();
+        let active = $('.jChart.#{variant_slug}').data('active');
+        if(active == 'one_') {
+          active = 'all_';
+          chart.chart.resize({height: 850})
+        } else {
+          active = 'one_'
+          chart.chart.resize({height: 150})
+        }
+        $('.jChart.#{variant_slug}').data('active', active);
+        let new_columns = $('.jChart.#{variant_slug}').data('chart')[`${active}columns`];
+        let data = { columns: new_columns, unload: true };
 
+        chart.chart.load(data);
       });
+    });

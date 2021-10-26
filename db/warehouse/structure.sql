@@ -12488,6 +12488,47 @@ ALTER SEQUENCE public.homeless_summary_report_clients_id_seq OWNED BY public.hom
 
 
 --
+-- Name: homeless_summary_report_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.homeless_summary_report_results (
+    id bigint NOT NULL,
+    report_id bigint,
+    section character varying,
+    household_category character varying,
+    demographic_category character varying,
+    field character varying,
+    destination character varying,
+    characteristic character varying,
+    calculation character varying,
+    value double precision,
+    format character varying,
+    details jsonb,
+    detail_link_slug character varying,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: homeless_summary_report_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.homeless_summary_report_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: homeless_summary_report_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.homeless_summary_report_results_id_seq OWNED BY public.homeless_summary_report_results.id;
+
+
+--
 -- Name: housing_resolution_plans; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -19740,6 +19781,13 @@ ALTER TABLE ONLY public.homeless_summary_report_clients ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: homeless_summary_report_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_results ALTER COLUMN id SET DEFAULT nextval('public.homeless_summary_report_results_id_seq'::regclass);
+
+
+--
 -- Name: housing_resolution_plans id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22439,6 +22487,14 @@ ALTER TABLE ONLY public.hmis_staff_x_clients
 
 ALTER TABLE ONLY public.homeless_summary_report_clients
     ADD CONSTRAINT homeless_summary_report_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: homeless_summary_report_results homeless_summary_report_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_results
+    ADD CONSTRAINT homeless_summary_report_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -38609,6 +38665,13 @@ CREATE INDEX index_homeless_summary_report_clients_on_updated_at ON public.homel
 
 
 --
+-- Name: index_homeless_summary_report_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_results_on_report_id ON public.homeless_summary_report_results USING btree (report_id);
+
+
+--
 -- Name: index_housing_resolution_plans_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46013,6 +46076,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211015172536'),
 ('20211018183403'),
 ('20211019154744'),
-('20211019164536');
+('20211019164536'),
+('20211020130447');
 
 
