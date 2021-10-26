@@ -12231,7 +12231,8 @@ CREATE TABLE public.hmis_import_configs (
     encrypted_zip_file_password character varying,
     encrypted_zip_file_password_iv character varying,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    file_count integer DEFAULT 1 NOT NULL
 );
 
 
@@ -46077,6 +46078,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211018183403'),
 ('20211019154744'),
 ('20211019164536'),
-('20211020130447');
+('20211020130447'),
+('20211023193009');
 
 
