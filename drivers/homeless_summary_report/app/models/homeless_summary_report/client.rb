@@ -12,15 +12,15 @@ module HomelessSummaryReport
     belongs_to :report
 
     # Create a scope for each report variant
-    household_variants = [
+    HOUSEHOLD_VARIANTS = [
       :all_persons,
       :without_children,
       :with_children,
       :only_children,
       :without_children_and_fifty_five_plus,
       :adults_with_children_where_parenting_adult_18_to_24,
-    ]
-    demographic_variants = [
+    ].freeze
+    DEMOGRAPHIC_VARIANTS = [
       :all,
       :white_non_hispanic_latino,
       :hispanic_latino,
@@ -36,10 +36,10 @@ module HomelessSummaryReport
       :has_psh_move_in_date,
       :first_time_homeless,
       :returned_to_homelessness_from_permanent_destination,
-    ]
+    ].freeze
 
-    household_variants.each do |variant_slug|
-      demographic_variants.each do |sub_variant_slug|
+    HOUSEHOLD_VARIANTS.each do |variant_slug|
+      DEMOGRAPHIC_VARIANTS.each do |sub_variant_slug|
         variant = "spm_#{variant_slug}__#{sub_variant_slug}".to_sym
         scope variant, -> { where(arel_table[variant[0..62]].gt(0)) }
         alias_attribute(variant, variant[0..62]) # Some fields are too long for postgres
@@ -68,5 +68,16 @@ module HomelessSummaryReport
     scope :spm_m7b2_c3, -> { where(arel_table[:spm_m7b2_c3].eq(true)) }
 
     scope :spm_exited_from_homeless_system, -> { where(arel_table[:spm_exited_from_homeless_system].eq(true)) }
+
+    # return a new client with all the SPM fields defaulted to 0 so we don't have to look for nils later
+    def self.new_with_default_values
+      new.tap do |defaulted|
+        HOUSEHOLD_VARIANTS.each do |household_category|
+          DEMOGRAPHIC_VARIANTS.each do |demographic_category|
+            defaulted["spm_#{household_category}__#{demographic_category}"[0..62]] = 0
+          end
+        end
+      end
+    end
   end
 end

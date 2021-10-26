@@ -434,7 +434,7 @@ module HomelessSummaryReport
               client_id = spm_client[:client_id]
               next unless client_id.in?(client_ids_for_report_scope)
 
-              report_client = report_clients[client_id] || Client.new
+              report_client = report_clients[client_id] || Client.new_with_default_values
               report_client[:client_id] = client_id
               report_client[:first_name] = spm_client[:first_name]
               report_client[:last_name] = spm_client[:last_name]
@@ -789,14 +789,14 @@ module HomelessSummaryReport
             ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latin(a)(o)(x)', true)],
             races: ['White'],
           },
-          demographic_filter: :filter_for_race,
+          demographic_filter: :filter_for_ethnicity,
         },
         hispanic_latino: {
           name: 'Hispanic/Latin(a)(o)(x)',
           extra_filters: {
             ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
           },
-          demographic_filter: :filter_for_race,
+          demographic_filter: :filter_for_ethnicity,
         },
         black_african_american: {
           name: 'Black/African American Persons',
