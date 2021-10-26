@@ -12,6 +12,13 @@ module WarehouseReports::Cas
 
     def index
       @data = report_scope
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = 'Decision Efficiency.xlsx'
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     private def filter
@@ -70,6 +77,7 @@ module WarehouseReports::Cas
           and(at2[:match_step].eq(second_step)),
         ).where(at2[:match_started_at].between(@filter.start..@filter.end + 1.day)).
         join(c_t).on(at[:client_id].eq(c_t[:id])).
+        order(at[:program_name].asc, at[:sub_program_name].asc).
         project(*columns.values)
       report_source.connection.select_rows(query.to_sql).map do |row|
         hashed_row = columns.keys.zip(row).to_h
@@ -103,6 +111,7 @@ module WarehouseReports::Cas
         first_name: c_t[:FirstName],
         last_name: c_t[:LastName],
         hsa_contacts: at[:hsa_contacts],
+        hsp_contacts: at[:hsp_contacts],
       }
     end
   end

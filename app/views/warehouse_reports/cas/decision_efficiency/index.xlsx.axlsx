@@ -1,0 +1,37 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Decision Efficiency') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  columns = [
+    'Days Between Steps',
+    "#{@filter.first_step} completed",
+    "#{@filter.second_step} completed",
+    'Route',
+    'Program',
+    'Sub Program',
+    'Match ID',
+    'Match started',
+    'Client',
+    "#{_('HSA')} Contacts",
+    "#{_('House Search Provider')} Contacts",
+    "#{_('House Search Provider')} Agencies",
+  ]
+  sheet.add_row(columns, style: title)
+  @data.each do |row|
+    sheet.add_row(
+      [
+        row[:days],
+        row[:first_ended_at]&.to_date,
+        row[:second_ended_at]&.to_date,
+        row[:match_route],
+        row[:program_name],
+        row[:sub_program_name],
+        row[:match_id],
+        row[:match_stated_at].to_date,
+        "#{row[:first_name]} #{row[:last_name]}",
+        JSON.parse(row[:hsa_contacts])&.map { |m| "#{m['name']} <#{m['email']}>" }.join('; '),
+        JSON.parse(row[:hsp_contacts])&.map { |m| "#{m['name']} <#{m['email']}>" }.join(', '),
+        JSON.parse(row[:hsp_contacts])&.map { |m| m['agency'] }.join(', '),
+      ],
+    )
+  end
+end
