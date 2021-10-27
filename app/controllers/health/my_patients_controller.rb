@@ -28,13 +28,13 @@ module Health
         end
         if params[:filter][:user].present?
           @active_filter = true
-          user_id = params[:filter][:user].to_i
-
-          @patients = if user_id.zero?
-            @patients.where(care_coordinator_id: nil)
-          else
-            @patients.where(care_coordinator_id: user_id)
+          user_id = if params[:filter][:user] == 'unassigned'
+            nil
+          else 
+            params[:filter][:user].to_i
           end
+
+          @patients.where(care_coordinator_id: user_id)
         end
         if params[:filter][:nurse_care_manager_id].present?
           @active_filter = true
