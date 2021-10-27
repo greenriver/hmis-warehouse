@@ -126,6 +126,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it "chooses the newest record's names when quality is equivalent and config is set to use latest name" do
       config.update(warehouse_client_name_order: :latest)
+      config.invalidate_cache
 
       source_1.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
       source_2.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
