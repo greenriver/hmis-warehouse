@@ -16,6 +16,8 @@ DEFAULT_DEST_ATTR = {
 
 RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
   describe 'When Updating destination records from client sources, using db based relationships' do
+    GrdaWarehouse::Config.delete_all
+    let!(:config) { create(:config) }
     let!(:destination_client) { create(:grda_warehouse_hud_client, PersonalID: 2) }
     let!(:source_data_source) { create(:source_data_source) }
     let!(:source_1) do
@@ -120,6 +122,20 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       destination_client.reload
       expect(destination_client.FirstName).to eq('Right')
       expect(destination_client.LastName).to eq('Right')
+    end
+
+    it "chooses the newest record's names when quality is equivalent and config is set to use latest name" do
+      config.update(warehouse_client_name_order: :latest)
+
+      source_1.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+
+      @cleanup.update_client_demographics_based_on_sources
+      destination_client.reload
+      expect(destination_client.FirstName).to eq('Right')
+      expect(destination_client.LastName).to eq('Right')
+
+      config.update(warehouse_client_name_order: :earliest)
     end
 
     it 'chooses the oldest, and treats nil like 99' do
