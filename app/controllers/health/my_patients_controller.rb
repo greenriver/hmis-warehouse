@@ -28,11 +28,23 @@ module Health
         end
         if params[:filter][:user].present?
           @active_filter = true
-          @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
+          user_id = params[:filter][:user].to_i
+
+          @patients = if user_id.zero?
+            @patients.where(care_coordinator_id: nil)
+          else
+            @patients.where(care_coordinator_id: user_id)
+          end
         end
         if params[:filter][:nurse_care_manager_id].present?
           @active_filter = true
-          @patients = @patients.where(nurse_care_manager_id: params[:filter][:nurse_care_manager_id].to_i)
+          nurse_care_manager_id = params[:filter][:nurse_care_manager_id].to_i
+
+          @patients = if nurse_care_manager_id.zero?
+            @patients.where(nurse_care_manager_id: nil)
+          else
+            @patients.where(nurse_care_manager_id: nurse_care_manager_id)
+          end
         end
       end
       respond_to do |format|
