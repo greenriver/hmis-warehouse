@@ -87,11 +87,11 @@ module WarehouseReports::Cas
     end
 
     private def first_step
-      @first_step ||= @filter.first_step.gsub(/\(\d+\)/, '').strip
+      @first_step ||= @filter.first_step&.gsub(/\(\d+\)/, '')&.strip
     end
 
     private def second_step
-      @second_step ||= @filter.second_step.gsub(/\(\d+\)/, '').strip
+      @second_step ||= @filter.second_step&.gsub(/\(\d+\)/, '')&.strip
     end
 
     private def columns
