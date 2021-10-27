@@ -352,8 +352,7 @@ class Deployer
   end
 
   def _remote_latest_tag
-    env = 'staging'
-    repo_url + ":" + "latest-#{env}--#{self.variant}"
+    repo_url + ":" + "latest--#{self.variant}"
   end
 
   def _remote_tag_base
