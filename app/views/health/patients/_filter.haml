@@ -39,7 +39,7 @@
           %input{type: :radio, name: 'filter[population]', value: :engagement_ending, autocomplete: :off, checked: active}
           Engagement Period Ending
 
-      - unassigned_selector = OpenStruct.new(name: 'Only Unassigned', id: 0)
+      - unassigned_selector = OpenStruct.new(name: 'Only Unassigned', id: 'unassigned')
       - selection_candidates = [unassigned_selector, current_user] + current_user.care_coordinators
       - options = options_from_collection_for_select(selection_candidates.uniq, :id, :name, params.dig(:filter, :user))
       = render 'inputs/select', field_name: 'filter[user]', label: 'Care Coordinator', options: options, html_options: { include_blank: 'All', style: 'width: 100%;' }

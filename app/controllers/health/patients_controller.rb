@@ -31,23 +31,24 @@ module Health
 
         if params[:filter][:user].present?
           @active_filter = true
-          user_id = params[:filter][:user].to_i
-
-          @patients = if user_id.zero?
-            @patients.where(care_coordinator_id: nil)
+          user_id = if params[:filter][:user] == 'unassigned'
+            nil
           else
-            @patients.where(care_coordinator_id: user_id)
+            params[:filter][:user].to_i
           end
+
+          @patients = @patients.where(care_coordinator_id: user_id)
         end
+
         if params[:filter][:nurse_care_manager_id].present?
           @active_filter = true
-          nurse_care_manager_id = params[:filter][:nurse_care_manager_id].to_i
-
-          @patients = if nurse_care_manager_id.zero?
-            @patients.where(nurse_care_manager_id: nil)
+          nurse_care_manager_id = if params[:filter][:nurse_care_manager_id] == 'unassigned'
+            nil
           else
-            @patients.where(nurse_care_manager_id: nurse_care_manager_id)
+            params[:filter][:nurse_care_manager_id].to_i
           end
+
+          @patients = @patients.where(nurse_care_manager_id: nurse_care_manager_id)
         end
       end
 
