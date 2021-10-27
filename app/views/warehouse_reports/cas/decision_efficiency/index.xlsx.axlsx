@@ -12,8 +12,8 @@ wb.add_worksheet(name: 'Decision Efficiency') do |sheet|
     'Match started',
     'Client',
     "#{_('HSA')} Contacts",
-    "#{_('House Search Provider')} Contacts",
-    "#{_('House Search Provider')} Agencies",
+    "#{_('Housing Search Provider')} Contacts",
+    "#{_('Housing Search Provider')} Agencies",
   ]
   sheet.add_row(columns, style: title)
   @data.each do |row|
