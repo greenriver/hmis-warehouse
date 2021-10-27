@@ -205,12 +205,30 @@ class Deployer
     else
       puts "[INFO] Not building or pushing image #{image_tag}. It's already in the repo."
 
+      _add_latest_tag_to_remote!
+
       if ENV['PULL_LATEST'] == 'true'
         puts "Pulling just so we have it locally (it's not required)."
         _run("docker image pull #{_remote_tag}")
         _tag_the_image!(authority: 'them')
       end
     end
+  end
+
+  def _add_latest_tag_to_remote!
+    getparams = {
+      repository_name: repo_name,
+      image_ids: {
+        image_tag: _remote_tag,
+      }
+    }
+    putparams = {
+      repository_name: repo_name,
+      image_tag: '',
+      manifest: manifest
+    }
+    manifest = ecr.batch_get_image(getparams).images[0].image_manifest
+    ecr.put_image(putparams)
   end
 
   def _check_secrets!
@@ -326,7 +344,8 @@ class Deployer
   end
 
   def _remote_latest_tag
-    repo_url + ":" + "latest--#{self.variant}"
+    env = 'staging'
+    repo_url + ":" + "latest-#{env}--#{self.variant}"
   end
 
   def _remote_tag_base
