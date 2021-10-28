@@ -1206,7 +1206,7 @@ module HudSpmReport::Generators::Fy2020
       # Latest exit interview (Stage=3) associated with this enrollment's exit.
       # The spec compare InformationDate but we historically just found the best candidate
       # linked to the enrollment
-      latest = income_map[3].values.last.first if income_map[3]
+      latest = income_map[3].values.last.first if income_map.try(:[], 3)
 
       if latest.present? && latest[:IncomeFromAnySource] == 1
         row[:latest_income] = latest[:TotalMonthlyIncome] || 0
