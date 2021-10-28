@@ -852,6 +852,8 @@ Rails.application.routes.draw do
       get :icon_font
       get :modals
       get :pagination
+      get :public_report
+      get :public_reports
       get :reports
       get :stimulus_select
       get :tags

@@ -119,6 +119,10 @@ class StyleGuidesController < ApplicationController
     ]
   end
 
+  def public_report
+    render layout: "test_public_report"
+  end
+
   def modal
   end
 
@@ -138,12 +142,13 @@ class StyleGuidesController < ApplicationController
       modals: 'Modals',
       stimulus_select: 'Stimulus Select',
       reports: 'Reports',
+      public_reports: 'Reports (Public)',
       tags: 'Tags',
     }
   end
   helper_method :guide_routes
 
-  private def lorem sentence_count: 3
+  private def lorem sentence_count: 10
     Faker::Lorem.paragraph(sentence_count: sentence_count)
   end
   helper_method :lorem
@@ -165,4 +170,5 @@ class StyleGuidesController < ApplicationController
       passed: Faker::Boolean.boolean
     }
   end
+
 end

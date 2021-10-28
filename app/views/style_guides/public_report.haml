@@ -1,0 +1,70 @@
+- modal_id = "section-1"
+- section_title = "Report Section Title With Modal"
+:sass
+  section
+    min-height: 25vh
+  .linked
+    cursor: pointer
+  .context
+    position: absolute
+    &,
+    &::before
+      top: 0
+      bottom: 0
+      left: 0
+      right: 0
+    &::before
+      content: ''
+      position: absolute
+      background: rgba(white, .75)
+    display: flex
+    justify-content: center
+
+  .context__container
+    max-width: 65%
+    z-index: 10
+    display: flex
+    flex-direction: column
+  .context__header
+    flex: 0 1 auto
+    display: flex
+    margin-bottom: 15px
+  .context__content
+    flex: 1
+    overflow: scroll
+    padding-right: 10px
+
+  @media only screen and (max-width: 600px)
+    .context-content__container
+      max-width: 95%
+
+%section
+  %h3.linked{data: {toggle: "modal", target: "##{modal_id}"}}
+    %span= section_title
+    %i.bi.bi-info-circle-fill
+  %p=lorem
+  - content_for("modal-footer-#{modal_id}") do
+    .d-flex
+      .ml-auto.btn.btn-dark{aria: {label: "Close"}, data:{dismiss: "modal"}, type: "button"} Close
+
+  - content_for("modal-body-#{modal_id}") do
+    %h3 Definition or context:
+    %p.mb-0=lorem
+
+  = render "modal", id: modal_id, title: section_title
+
+- context_id = "context"
+%section.position-relative
+  %h3.linked{data: {toggle:"collapse", target:"##{context_id}"}, aria:{expanded:"false", controls:context_id}, role: "button"}
+    %span Report Section with "collapse" context
+    %i.bi.bi-info-circle-fill
+  .context.collapse{id: context_id}
+    .context__container
+      .context__header
+        %h3 Definition or context:
+        %button.btn.btn-dark.ml-auto{data: {toggle:"collapse", target:"##{context_id}"}, aria:{expanded:"false", controls:context_id}, role: "button"}
+          %i.bi.bi-x-lg.mr-1
+          %span Close
+      .context__content
+        - 5.times do
+          %p=lorem
