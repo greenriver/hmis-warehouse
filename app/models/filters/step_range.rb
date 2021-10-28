@@ -5,11 +5,11 @@
 ###
 
 module Filters
-  class StepRange < ::ModelForm
+  class StepRange < ::Filters::FilterBase
     attribute :route, String, lazy: false, default: ->(o, _) { o.available_routes.first }
-    attribute :first,  String, lazy: false, default: ->(o, _) { o.ordered_steps&.first&.first }
-    attribute :second, String, lazy: false, default: ->(o, _) { o.ordered_steps[o.ordered_steps&.first&.first]&.first }
-    attribute :unit,   String, default: 'day'
+    attribute :first_step, String, lazy: false, default: ->(o, _) { o.ordered_steps&.first&.first }
+    attribute :second_step, String, lazy: false, default: ->(o, _) { o.ordered_steps[o.ordered_steps&.first&.first]&.first }
+    attribute :unit, String, default: 'day'
 
     def units
       if Rails.env.development?
