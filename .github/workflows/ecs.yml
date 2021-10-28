@@ -120,34 +120,10 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
         if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
         then
-          HAS_DJ=true
           echo pushing dj
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
         else
           echo not pushing dj
-        fi
-
-        echo Pushing 'latest' tags
-        BRANCH=${GITHUB_REF#refs/heads/}
-        if [[ "$BRANCH" =~ ^(production|staging|sandbox|demo|main|release-.*|deploy-.*)$ ]]; then
-          if [[ "$BRANCH" =~ ^(release-.*)$ ]]; then
-            IDENTIFIER='release' # All release-* branches share a single latest pool.
-          fi
-          IDENTIFIER=${BRANCH#deploy-} # Strip deploy prefix if present
-          LATEST_TAG="latest-$IDENTIFIER"
-          LATEST_BASE="$ECR_REGISTRY/$ECR_REPOSITORY:${LATEST_TAG}--base"
-          LATEST_WEB="$ECR_REGISTRY/$ECR_REPOSITORY:${LATEST_TAG}--web"
-
-          docker tag ${ECR_REPOSITORY}:latest--base $LATEST_BASE
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web $LATEST_WEB
-          docker push $LATEST_BASE
-          docker push $LATEST_WEB
-
-          if [ "$HAS_DJ" = "true" ]; then
-            LATEST_DJ="$ECR_REGISTRY/$ECR_REPOSITORY:${LATEST_TAG}--dj"
-            docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj $LATEST_DJ
-            docker push $LATEST_DJ
-          fi
         fi
 
         echo $IMAGE_TAG--base > image-tag.txt
