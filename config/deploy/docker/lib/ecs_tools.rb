@@ -1,7 +1,7 @@
 require 'aws-sdk-ecs'
 require 'aws-sdk-ecr'
 require_relative 'deployer'
-require 'awesome_print'
+require 'amazing_print'
 require 'aws-sdk-cloudwatchevents'
 
 class EcsTools
