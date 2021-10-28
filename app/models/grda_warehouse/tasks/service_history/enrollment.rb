@@ -127,8 +127,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # load the associated service history enrollment to get the id
       build_for_dates.except(
         *service_dates_from_service_history_for_enrollment,
-      ).each do |date, type_provided|
-        days << service_record(date, type_provided)
+      ).each do |date, record_type|
+        days << service_record(date, record_type)
       end
       return false unless days.any?
 
@@ -188,12 +188,12 @@ module GrdaWarehouse::Tasks::ServiceHistory
           @entry_record_id = service_history_enrollment_source.connection.insert(insert.to_sql)
           # Rails.logger.debug '===RebuildEnrollmentsJob=== Building days'
           # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-          build_for_dates.each do |d, type_provided|
-            days << service_record(d, type_provided)
+          build_for_dates.each do |d, record_type|
+            days << service_record(d, record_type)
           end
           if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month) || project_extrapolates_contacts?
-            type_provided = build_for_dates.values.last
-            days += add_extrapolated_days(build_for_dates.keys, type_provided)
+            record_type = build_for_dates.values.last
+            days += add_extrapolated_days(build_for_dates.keys, record_type)
           end
           # Rails.logger.debug '===RebuildEnrollmentsJob=== Days built'
           # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
@@ -258,22 +258,22 @@ module GrdaWarehouse::Tasks::ServiceHistory
       )
     end
 
-    def service_record(date, type_provided)
+    def service_record(date, record_type)
       default_service_day.merge(
         date: date,
         age: client_age_at(date),
-        service_type: type_provided,
+        service_type: record_type,
         record_type: :service,
         homeless: homeless?(date),
         literally_homeless: literally_homeless?(date),
       )
     end
 
-    def extrapolated_record(date, type_provided)
+    def extrapolated_record(date, record_type)
       default_service_day.merge(
         date: date,
         age: client_age_at(date),
-        service_type: type_provided,
+        service_type: record_type,
         record_type: :extrapolated,
         homeless: homeless?(date),
         literally_homeless: literally_homeless?(date),
@@ -283,7 +283,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # build out all days within the month
     # don't build for any dates we already have
     # never build past today, it makes counts and display very odd
-    def add_extrapolated_days(dates, type_provided)
+    def add_extrapolated_days(dates, record_type)
       extrapolated_dates = dates.map do |date|
         stop_on = [date.end_of_month, Date.current].min
         (date.beginning_of_month .. stop_on).to_a
@@ -294,7 +294,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       extrapolated_dates -= service_dates_from_service_history_for_enrollment
 
       extrapolated_dates.map do |date|
-        extrapolated_record(date, type_provided)
+        extrapolated_record(date, record_type)
       end
     end
 
@@ -733,9 +733,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         end.to_h
       else
         # Fetch all services provided between the start of the enrollment and the end of the build period
-        service_records = services.where(DateProvided: (self.EntryDate..build_until)).
+        service_records = services.where(DateProvided: (self.EntryDate..build_until), RecordType: 200).
           order(DateProvided: :asc).
-          pluck(:DateProvided, :TypeProvided).to_h
+          pluck(:DateProvided, :RecordType).to_h
         if project.so?
           # Find all contacts for SO.  Pretend like they are bed-nights
           living_situations = current_living_situations.where(InformationDate: (self.EntryDate..build_until)).

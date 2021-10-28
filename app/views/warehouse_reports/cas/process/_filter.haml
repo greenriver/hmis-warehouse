@@ -15,9 +15,9 @@
       = f.input :route, collection: @step_range.available_routes, input_html: {value: @step_range.route, class: [:jTrigger]}, as: :select_two
   .row
     .col-6.jDependent
-      = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }, as: :select_two
+      = f.input :first_step, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }, as: :select_two
     .col-6.jDependent
-      = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step'}, as: :select_two
+      = f.input :second_step, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first_step], include_blank: false, input_html: { id: 'second-step'}, as: :select_two
 
 - content_for :filter_actions do
   = f.submit 'Update', class: 'btn btn-primary mt-no-label'

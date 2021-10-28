@@ -6,6 +6,8 @@
 
 require 'memoist'
 
+# Useful notes for testing
+# reload!;  r = HomelessSummaryReport::Report.last; nr = HomelessSummaryReport::Report.new(user_id: r.user_id); nr.filter = r.filter; nr.run_and_save!
 module HomelessSummaryReport
   class Report < SimpleReports::ReportInstance
     extend Memoist
@@ -20,6 +22,7 @@ module HomelessSummaryReport
 
     belongs_to :user, optional: true
     has_many :clients
+    has_many :results
 
     after_initialize :filter
 
@@ -38,7 +41,8 @@ module HomelessSummaryReport
     def run_and_save!
       start
       begin
-        create_universe
+        populate_universe
+        populate_results
       rescue Exception => e
         update(failed_at: Time.current)
         raise e
@@ -141,34 +145,304 @@ module HomelessSummaryReport
       boolean ? 'Yes' : 'No'
     end
 
-    private def create_universe
+    private def populate_universe
       report_clients = {}
       add_clients(report_clients)
     end
 
+    private def populate_results
+      results = []
+      measures.each do |measure, data|
+        headers = data[:headers]
+        variants.each do |household_category, spec|
+          data[:fields].each do |row|
+            field, row_data = row
+            results += generate_results_for(
+              section: measure,
+              household_category: household_category,
+              demographic_category: 'all',
+              field: field,
+              headers: headers,
+              data: row_data,
+              calculations: row_data[:calculations],
+            )
+            spec[:variants].each do |demographic_category, _variant|
+              next if exclude_variants(measure, demographic_category)
+
+              data[:fields].each do |sub_row|
+                next unless sub_row.first == field
+
+                row_data = sub_row.last
+                results += generate_results_for(
+                  section: measure,
+                  household_category: household_category,
+                  demographic_category: demographic_category,
+                  field: field,
+                  headers: headers,
+                  data: row_data,
+                  calculations: row_data[:calculations],
+                )
+              end
+            end
+          end
+        end
+      end
+      HomelessSummaryReport::Result.transaction do
+        HomelessSummaryReport::Result.where(report_id: id).update_all(deleted_at: Time.current)
+        HomelessSummaryReport::Result.import(results)
+      end
+    end
+
+    private def generate_results_for(section:, household_category:, demographic_category:, field:, headers:, calculations:, data:)
+      [].tap do |results|
+        detail_variant_name = "spm_#{household_category}__#{demographic_category}"
+        if section == 'Measure 7'
+          calculations.each do |calculation|
+            if calculation.to_s == 'count'
+              value = calculate(detail_variant_name, field, calculation, data)
+
+              results << HomelessSummaryReport::Result.new(
+                report_id: id,
+                section: section,
+                household_category: household_category,
+                demographic_category: demographic_category,
+                field: field,
+                characteristic: headers.first,
+                calculation: calculation,
+                format: format_string(calculation),
+                value: value,
+                detail_link_slug: detail_variant_name,
+              )
+            else
+              # For measure 7 we only want the large buckets, we'll add the detail buckets as a json blob
+              destinations.first(3).each.with_index do |ids, i|
+                destination_name = measures[section][:headers].drop(1)[i]
+                value = calculate(detail_variant_name, field, calculation, data.merge(destination: ids))
+                details = []
+                destinations.drop(3).each do |d_id|
+                  next unless ::HUD.destination_type(d_id) == ::HUD.destination_type(ids.first)
+
+                  count = calculate(detail_variant_name, field, calculation, data.merge(destination: d_id))
+                  details << "#{HUD.destination(d_id)}: #{count}" if count&.positive?
+                end
+
+                results << HomelessSummaryReport::Result.new(
+                  report_id: id,
+                  section: section,
+                  household_category: household_category,
+                  demographic_category: demographic_category,
+                  field: field,
+                  characteristic: headers.drop(1)[i],
+                  calculation: calculation,
+                  format: format_string(calculation),
+                  value: value,
+                  detail_link_slug: detail_variant_name,
+                  destination: destination_name,
+                  details: details,
+                )
+              end
+            end
+          end
+        else
+          calculations.each.with_index do |calculation, i|
+            value = calculate(detail_variant_name, field, calculation, data)
+
+            results << HomelessSummaryReport::Result.new(
+              report_id: id,
+              section: section,
+              household_category: household_category,
+              demographic_category: demographic_category,
+              field: field,
+              characteristic: headers[i],
+              calculation: calculation,
+              format: format_string(calculation),
+              value: value,
+              detail_link_slug: detail_variant_name,
+            )
+          end
+        end
+      end
+    end
+
+    private def format_string(calculation)
+      return '%0.1f' if calculation.in?([:percent, :average])
+
+      '%0d'
+    end
+
+    def formatted_value_for(section:, household_category:, demographic_category:, field:, calculation:, destination: nil)
+      result = results.detect do |row|
+        checks = [
+          row.section == section.to_s,
+          row.household_category == household_category.to_s,
+          row.demographic_category == demographic_category.to_s,
+          row.field == field.to_s,
+          row.calculation == calculation.to_s,
+        ]
+        checks << (row.destination == destination.to_s) if destination.present?
+        checks.all?(true)
+      end
+      return '' unless result
+
+      format(result.format, result.value)
+    end
+
+    private def details_counts_for_destination(section:, household_category:, demographic_category:, field:, destination:)
+      result = results.detect do |row|
+        checks = [
+          row.section == section.to_s,
+          row.household_category == household_category.to_s,
+          row.demographic_category == demographic_category.to_s,
+          row.field == field.to_s,
+          row.calculation == 'count_destinations',
+        ]
+        checks << (row.destination == destination.to_s) if destination.present?
+        checks.all?(true)
+      end
+      result.details
+    end
+
+    def max_value_for(section)
+      results.where(section: section).where.not(calculation: :count).maximum(:value)
+    end
+    memoize :max_value_for
+
+    def chart_data_for(section:, household_category:, field:)
+      data = measures[section]
+      row_data = data[:fields][field]
+
+      calculations = (row_data[:calculations] - [:count])
+      headers = data[:headers].dup.tap { |i| i.delete_at(row_data[:calculations].find_index(:count)) } # delete_at acts on original object
+      columns = {}
+      counts = {}
+      ([:all] + self.class.demographic_variants.keys).each do |demographic_category|
+        next if exclude_variants(section, demographic_category)
+
+        demographic_category = demographic_category.to_s
+        section_columns = [['x', title_for(household_category, demographic_category)]]
+        values = {}
+        calculations.each.with_index do |calculation, c_idx|
+          values[headers[c_idx]] ||= []
+          values[headers[c_idx]] << formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: calculation)
+        end
+        values.each do |k, v|
+          section_columns << [k] + v
+        end
+
+        columns[demographic_category] = section_columns
+        counts[title_for(household_category, demographic_category)] = formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: :count)
+      end
+
+      all_columns = {}
+      columns.values.first.each do |m|
+        all_columns[m.first] ||= [m.first]
+      end
+      columns.values.each do |m|
+        m.each do |r|
+          all_columns[r.first] << r.last
+        end
+      end
+      {
+        params: [],
+        one_columns: columns['all'],
+        all_columns: all_columns.values,
+        options: {
+          height: 150,
+          max: max_value_for(section),
+        },
+        support: {
+          unit: headers,
+          counts: counts['All Persons'],
+          all_counts: counts,
+        },
+      }
+    end
+
+    def stacked_chart_data_for(section:, household_category:, field:)
+      data = measures[section]
+      row_data = data[:fields][field]
+
+      headers = data[:headers].dup.tap { |i| i.delete_at(row_data[:calculations].find_index(:count)) } # delete_at acts on original object
+      headers = headers[0..2]
+      columns = {}
+      detail_counts = {}
+
+      ([:all] + self.class.demographic_variants.keys).each do |demographic_category|
+        next if exclude_variants(section, demographic_category)
+
+        demographic_category = demographic_category.to_s
+        section_columns = [['x', title_for(household_category, demographic_category)]]
+        section_detail_counts = {}
+        values = {}
+        headers.each.with_index do |destination, c_idx|
+          values[headers[c_idx]] ||= []
+          values[headers[c_idx]] << formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: :count_destinations, destination: destination)
+          section_detail_counts[headers[c_idx]] = details_counts_for_destination(section: section, household_category: household_category, demographic_category: demographic_category, field: field, destination: destination)
+        end
+        values.each do |k, v|
+          section_columns << [k] + v
+        end
+
+        columns[demographic_category] = section_columns
+        detail_counts[title_for(household_category, demographic_category)] = section_detail_counts
+      end
+
+      all_columns = {}
+      columns.values.first.each do |m|
+        all_columns[m.first] ||= [m.first]
+      end
+      columns.values.each do |m|
+        m.each do |r|
+          all_columns[r.first] << r.last
+        end
+      end
+      {
+        params: [],
+        one_columns: columns['all'],
+        all_columns: all_columns.values,
+        groups: [headers],
+        options: {
+          height: 150,
+          max: max_value_for(section),
+        },
+        support: {
+          one_detail_counts: detail_counts['All Persons'],
+          all_detail_counts: detail_counts,
+        },
+      }
+    end
+
+    def title_for(household_category, demographic_category)
+      titles = [variants[household_category.to_sym][:base_variant][:name]]
+      titles << self.class.demographic_variants[demographic_category.to_sym][:name] unless demographic_category.to_s == 'all'
+      titles.join(' ')
+    end
+
     private def add_clients(report_clients)
       # Work through all the SPM report variants, building up the `report_clients` as we go.
-      run_spm.each do |variant_name, spec|
-        { '' => spec[:base_variant] }.merge(spec[:variants]).each do |sub_variant, report|
-          detail_variant_name = "spm_#{variant_name}__#{sub_variant.presence || 'all'}"
-          spm_fields.each do |spm_field, parts|
-            cells = parts[:cells]
-            cells.each do |cell|
-              spm_clients = answer_clients(report[:report], *cell)
-              spm_clients.each do |spm_client|
-                report_client = report_clients[spm_client[:client_id]] || Client.new
-                report_client[:client_id] = spm_client[:client_id]
-                report_client[:first_name] = spm_client[:first_name]
-                report_client[:last_name] = spm_client[:last_name]
-                report_client[:report_id] = id
-                report_client["spm_#{spm_field}"] = spm_client[spm_field]
-                if field_measure(spm_field) == 7
-                  field_name = "spm_m#{cell.join('_')}".delete('.').downcase.to_sym
-                  report_client[field_name] = true
-                end
-                report_client[detail_variant_name] = report[:report].id
-                report_clients[spm_client[:client_id]] = report_client
-              end
+      run_spm.each do |household_category, spec|
+        report = spec[:base_variant]
+        detail_variant_name = "spm_#{household_category}__all"
+        spm_fields.each do |spm_field, parts|
+          cells = parts[:cells]
+          cells.each do |cell|
+            spm_clients = answer_clients(report[:report], *cell)
+            spm_clients.each do |spm_client|
+              # because we need to include additional project types when running the SPM
+              # to be able to calculate returns to homelessness
+              # we need to exclude any client who isn't in the report scope from the final batch of clients
+              client_id = spm_client[:client_id]
+              next unless client_id.in?(client_ids_for_report_scope)
+
+              report_client = report_clients[client_id] || Client.new_with_default_values
+              report_client[:client_id] = client_id
+              report_client[:first_name] = spm_client[:first_name]
+              report_client[:last_name] = spm_client[:last_name]
+              report_client[:report_id] = id
+              report_client["spm_#{spm_field}"] = spm_client[spm_field]
+              report_client[field_name(cell)] = true if field_measure(spm_field) == 7
+              report_client[detail_variant_name] = report[:report].id
+              report_clients[client_id] = report_client
             end
           end
         end
@@ -184,6 +458,20 @@ module HomelessSummaryReport
         client
       end
 
+      # Set demographic flags
+      variants.each do |household_category, spec|
+        spec[:variants].each do |demographic_category, sub_spec|
+          detail_variant_name = "spm_#{household_category}__#{demographic_category}"
+          client_ids_in_demographic_category = client_ids_for_demographic_category(spec, sub_spec)
+          report_clients.each do |client_id, report_client|
+            next unless client_id.in?(client_ids_in_demographic_category)
+
+            # This previously inserted the report id, now we just need to make it > 0
+            report_client[detail_variant_name] = 1
+          end
+        end
+      end
+
       Client.import(
         report_clients.values,
         on_duplicate_key_update: {
@@ -192,6 +480,28 @@ module HomelessSummaryReport
         },
       )
       universe.add_universe_members(report_clients)
+    end
+
+    private def client_ids_for_report_scope
+      @client_ids_for_report_scope ||= report_scope.pluck(:client_id).uniq.to_set
+    end
+
+    # This needs to temporarily set @filter to something useful for further limiting the default
+    # filter set.  When it's done, it can just clear it as calling `filter` will reset it from
+    # the chosen options
+    private def client_ids_for_demographic_category(spec, sub_spec)
+      @filter = filter
+      base_variant = spec[:base_variant]
+      extra_filters = base_variant[:extra_filters] || {}
+      @filter.update(extra_filters.merge(sub_spec[:extra_filters] || {}))
+      # demographic_filter is a method known to filter_scopes
+      ids = send(sub_spec[:demographic_filter], report_scope).pluck(:client_id).uniq.to_set
+      @filter = nil
+      ids
+    end
+
+    private def field_name(cell)
+      "spm_m#{cell.join('_')}".delete('.').downcase.to_sym
     end
 
     private def answer(report, table, cell)
@@ -227,18 +537,6 @@ module HomelessSummaryReport
         )
         generator.new(report).run!(email: false, manual: false)
         spec[:base_variant][:report] = report
-
-        spec[:variants].each do |_, sub_spec|
-          processed_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id)
-          processed_filter.update(options.deep_merge(extra_filters.merge(sub_spec[:extra_filters] || {})))
-          report = HudReports::ReportInstance.from_filter(
-            processed_filter,
-            generator.title,
-            build_for_questions: questions,
-          )
-          generator.new(report).run!(email: false, manual: false)
-          sub_spec[:report] = report
-        end
       end
       # return @variants with reports for each question
       variants
@@ -491,78 +789,91 @@ module HomelessSummaryReport
             ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latin(a)(o)(x)', true)],
             races: ['White'],
           },
+          demographic_filter: :filter_for_ethnicity,
         },
         hispanic_latino: {
           name: 'Hispanic/Latin(a)(o)(x)',
           extra_filters: {
             ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
           },
+          demographic_filter: :filter_for_ethnicity,
         },
         black_african_american: {
           name: 'Black/African American Persons',
           extra_filters: {
             races: ['BlackAfAmerican'],
           },
+          demographic_filter: :filter_for_race,
         },
         asian: {
           name: 'Asian Persons',
           extra_filters: {
             races: ['Asian'],
           },
+          demographic_filter: :filter_for_race,
         },
         american_indian_alaskan_native: {
           name: 'American Indian/Alaskan Native Persons',
           extra_filters: {
             races: ['AmIndAKNative'],
           },
+          demographic_filter: :filter_for_race,
         },
         native_hawaiian_other_pacific_islander: {
           name: 'Native Hawaiian or Pacific Islander',
           extra_filters: {
             races: ['NativeHIPacific'],
           },
+          demographic_filter: :filter_for_race,
         },
         multi_racial: {
           name: 'Multiracial',
           extra_filters: {
             races: ['MultiRacial'],
           },
+          demographic_filter: :filter_for_race,
         },
         fleeing_dv: {
           name: 'Currently Fleeing DV',
           extra_filters: {
             currently_fleeing: [1],
           },
+          demographic_filter: :filter_for_dv_currently_fleeing,
         },
         veteran: {
           name: 'Veterans',
           extra_filters: {
             veteran_statuses: [1],
           },
+          demographic_filter: :filter_for_veteran_status,
         },
         has_disability: {
           name: 'With Indefinite and Impairing Disability',
           extra_filters: {
             indefinite_disabilities: [1],
           },
+          demographic_filter: :filter_for_indefinite_disabilities,
         },
         has_rrh_move_in_date: {
           name: 'Moved in to RRH',
           extra_filters: {
             rrh_move_in: true,
           },
+          demographic_filter: :filter_for_rrh_move_in,
         },
         has_psh_move_in_date: {
           name: 'Moved in to PSH',
           extra_filters: {
             psh_move_in: true,
           },
+          demographic_filter: :filter_for_psh_move_in,
         },
         first_time_homeless: {
           name: 'First Time Homeless in Past Two Years',
           extra_filters: {
             first_time_homeless: true,
           },
+          demographic_filter: :filter_for_first_time_homeless_in_past_two_years,
         },
         # NOTE: only display this on Measure 1 (it will never work on Measure 2)
         returned_to_homelessness_from_permanent_destination: {
@@ -570,6 +881,7 @@ module HomelessSummaryReport
           extra_filters: {
             returned_to_homelessness_from_permanent_destination: true,
           },
+          demographic_filter: :filter_for_returned_to_homelessness_from_permanent_destination,
         },
       }.freeze
     end
@@ -579,7 +891,7 @@ module HomelessSummaryReport
         'Measure 2' => [:returned_to_homelessness_from_permanent_destination],
         'Measure 7' => [:returned_to_homelessness_from_permanent_destination],
       }
-      @exclude_variants[measure_name.to_s]&.include?(variant)
+      @exclude_variants[measure_name.to_s]&.include?(variant.to_sym)
     end
 
     def calculate(variant, field, calculation, options)

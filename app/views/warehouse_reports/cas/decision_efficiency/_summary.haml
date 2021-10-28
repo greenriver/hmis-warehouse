@@ -1,0 +1,18 @@
+%h2 Days Between Steps
+.card.mb-6
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th Average
+        %th Median
+        %th Minimum
+        %th Maximum
+        %th Matches Included
+    %tbody
+      %tr
+        %td= mean(@data.map { |m| m[:days] }).round
+        %td= median(@data.map { |m| m[:days] })
+        - min, max = @data.map { |m| m[:days] }.minmax
+        %td= min || 0
+        %td= max || 0
+        %td= @data.count

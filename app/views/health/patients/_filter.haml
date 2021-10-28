@@ -39,12 +39,14 @@
           %input{type: :radio, name: 'filter[population]', value: :engagement_ending, autocomplete: :off, checked: active}
           Engagement Period Ending
 
-      %label Care Coordinator
-      - selection_candidates = [current_user] + current_user.care_coordinators
-      = select_tag('filter[user]', options_from_collection_for_select(selection_candidates.uniq, :id, :name, params.dig(:filter, :user)), include_blank: 'All', style: 'width: 100%;')
-      %label.mt-4 Nurse Care Manager
-      - selection_candidates = [current_user] + User.nurse_care_managers.to_a.to_a
-      = select_tag('filter[nurse_care_manager_id]', options_from_collection_for_select(selection_candidates.uniq, :id, :name, params.dig(:filter, :nurse_care_manager_id)), include_blank: 'All', style: 'width: 100%;')
+      - unassigned_selector = OpenStruct.new(name: 'Only Unassigned', id: 'unassigned')
+      - selection_candidates = [unassigned_selector, current_user] + current_user.care_coordinators
+      - options = options_from_collection_for_select(selection_candidates.uniq, :id, :name, params.dig(:filter, :user))
+      = render 'inputs/select', field_name: 'filter[user]', label: 'Care Coordinator', options: options, html_options: { include_blank: 'All', style: 'width: 100%;' }
+
+      - selection_candidates = [unassigned_selector, current_user] + User.nurse_care_managers.to_a
+      - options = options_from_collection_for_select(selection_candidates.uniq, :id, :name, params.dig(:filter, :nurse_care_manager_id))
+      = render 'inputs/select', field_name: 'filter[nurse_care_manager_id]', label: 'Nurse Care Manager', options: options, html_options: { include_blank: 'All', style: 'width: 100%;' }
 
       .o-filtration__actions.form__actions
         = link_to health_patients_path, class:'btn btn-secondary' do

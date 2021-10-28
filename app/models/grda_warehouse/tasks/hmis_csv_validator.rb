@@ -26,7 +26,7 @@ module GrdaWarehouse::Tasks
         export_ids = Set.new
         klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
         if File.exist?(file_path)
-          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter).each do |row|
+          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true).each do |row|
             unique_keys << row[klass.hud_key.to_s.downcase]
             export_ids << row['exportid']
             self.export_id ||= row['exportid'] if filename == 'Export.csv'

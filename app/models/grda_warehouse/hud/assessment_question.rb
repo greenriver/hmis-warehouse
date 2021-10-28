@@ -24,7 +24,7 @@ module GrdaWarehouse::Hud
     belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment'), optional: true
     belongs_to :direct_enrollment, **hud_enrollment_belongs, optional: true
     has_one :enrollment, through: :assessment
-    has_one :client, through: :assessments, inverse_of: :assessment_questions
+    has_one :client, through: :assessment, inverse_of: :assessment_questions
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), optional: true
 
     belongs_to :data_source

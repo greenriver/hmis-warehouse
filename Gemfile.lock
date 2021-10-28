@@ -527,6 +527,7 @@ GEM
     overcommit (0.57.0)
       childprocess (>= 0.6.3, < 5)
       iniparse (~> 1.4)
+    pagy (5.1.2)
     paper_trail (11.1.0)
       activerecord (>= 5.2)
       request_store (~> 1.1)
@@ -943,6 +944,7 @@ DEPENDENCIES
   omniauth-oauth2
   omniauth-rails_csrf_protection
   overcommit
+  pagy
   paper_trail
   parallel
   paranoia (~> 2.0)
