@@ -3632,6 +3632,9 @@ msgstr ""
 msgid "HMIS participation and data quality are priorities for TX-601 & HUD. Accurate, complete & timely data is crucial to determine how projects are contributing to ending homelessness.  High quality data is key to understanding what projects are doing and how the CoC & HUD can make informed decisions about the project."
 msgstr ""
 
+msgid "HSA"
+msgstr ""
+
 msgid "HSA Contacts"
 msgstr ""
 
@@ -3666,6 +3669,9 @@ msgid "Homeless Summary Report"
 msgstr ""
 
 msgid "Homeless or Housed"
+msgstr ""
+
+msgid "House Search Provider"
 msgstr ""
 
 msgid "Household Composition"

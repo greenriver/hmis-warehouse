@@ -7,6 +7,10 @@
   margin-bottom: space(8);
 }
 
+.c-filters.c-card {
+  overflow-y: visible;
+}
+
 .c-filters__row,
 .c-filters__group {
   display: flex;
