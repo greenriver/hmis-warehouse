@@ -149,19 +149,19 @@ module HudSpmReport::Generators::Fy2020
           columns,
           scope.where(client_id: clients_by_id.keys).order(client_id: :asc),
         )
-        updated_columns = Set.new
-        pending_associations = {}
 
         hashes.group_by do |r|
           r.fetch(:client_id)
         end.each do |client_id, rows|
+          updated_columns = Set.new
+          pending_associations = {}
           client = clients_by_id.fetch(client_id)
           if (data = yield(client, rows))
             updated_columns += data.keys
             pending_associations[client] = build_report_client(client, data)
           end
+          append_report_clients(measure_name, pending_associations, updated_columns.to_a)
         end
-        append_report_clients(measure_name, pending_associations, updated_columns.to_a)
       end
     end
 
