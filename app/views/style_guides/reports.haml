@@ -92,4 +92,4 @@
               %tr
                 - indicator_set.each do |indicator|
                   %td{colspan: indicator_set.one? ? indicator_levels.length : 1 }
-                    = render "hud_reports/indicator", indicator: indicator, constrain_width: indicator_set.one?
+                    = render "warehouse_reports/indicator", indicator: indicator, constrain_width: indicator_set.one?
