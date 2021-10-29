@@ -144,24 +144,24 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def process_scope_by_client(measure_name, scope, columns)
-      each_client_batch scope do |clients_by_id|
+      each_client_batch(scope) do |clients_by_id|
         hashes = pluck_to_hash(
           columns,
           scope.where(client_id: clients_by_id.keys).order(client_id: :asc),
         )
+        updated_columns = Set.new
+        pending_associations = {}
 
         hashes.group_by do |r|
           r.fetch(:client_id)
         end.each do |client_id, rows|
           client = clients_by_id.fetch(client_id)
-          updated_columns = Set.new
-          pending_associations = {} # FIXME, should this be out one loop?
           if (data = yield(client, rows))
             updated_columns += data.keys
             pending_associations[client] = build_report_client(client, data)
           end
-          append_report_clients measure_name, pending_associations, updated_columns.to_a
         end
+        append_report_clients(measure_name, pending_associations, updated_columns.to_a)
       end
     end
 
@@ -345,7 +345,7 @@ module HudSpmReport::Generators::Fy2020
         end.to_h
 
         # Import clients
-        append_report_clients measure_one, pending_associations, updated_columns
+        append_report_clients(measure_one, pending_associations, updated_columns)
       end
     end
 
@@ -452,7 +452,7 @@ module HudSpmReport::Generators::Fy2020
         }
       end
 
-      process_scope_by_client measure_four, m4_leavers_scope, stay_columns do |_client_id, enrollments|
+      process_scope_by_client(measure_four, m4_leavers_scope, stay_columns) do |_client_id, enrollments|
         # c. For each client, remove all but the stay with the latest [project start date].
         final_stay = enrollments.max_by { |e| e[:first_date_in_program] }
         next unless final_stay
@@ -493,7 +493,7 @@ module HudSpmReport::Generators::Fy2020
       # This could be merged with M3
       return unless add_clients_for_question?(measure_five)
 
-      process_scope_by_client measure_five, m5_enrollments_scope, SHE_COLUMNS do |_client_id, client_enrollments|
+      process_scope_by_client(measure_five, m5_enrollments_scope, SHE_COLUMNS) do |_client_id, client_enrollments|
         # 1. Select clients entering any of the applicable project types in the report date range
         active_enrollments = client_enrollments.select do |e|
           (
@@ -572,7 +572,7 @@ module HudSpmReport::Generators::Fy2020
         hud_project_type(SO).
         where.not(client_id: m7_stays.hud_project_type(SO).select(:client_id))
 
-      process_scope_by_client 'Measure 7', m7a1_exits, SHE_COLUMNS do |_client, client_enrollments|
+      process_scope_by_client('Measure 7', m7a1_exits, SHE_COLUMNS) do |_client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
@@ -997,7 +997,7 @@ module HudSpmReport::Generators::Fy2020
         end
 
         # Steps 7 - 9 are handled in MeasureTwo#run_question!
-        append_report_clients question_name, spm_clients, updated_columns
+        append_report_clients(question_name, spm_clients, updated_columns)
       end
     end
 
