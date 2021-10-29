@@ -24,9 +24,9 @@ RSpec.shared_context 'path context', shared_context: :metadata do
     HudPathReport::Filters::PathFilter.new(shared_filter.merge(project_ids: [so_project_id, services_project_id]))
   end
 
-  def run(filter, question_name)
+  def run(filter, question_names)
     generator = HudPathReport::Generators::Fy2020::Generator
-    generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: [question_name])).run!
+    generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: Array.wrap(question_names))).run!
   end
 
   def default_setup_path

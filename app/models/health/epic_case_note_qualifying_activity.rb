@@ -12,14 +12,13 @@ module Health
     phi_patient :patient_id
 
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :epic_case_note_source_id, Phi::OtherIdentifier, "ID of source Epic case note"
-    #phi_attr :encounter_type
-    phi_attr :update_date, Phi::Date, "Last updated date"
-    phi_attr :staff, Phi::SmallPopulation, "Name of staffs"
+    phi_attr :epic_case_note_source_id, Phi::OtherIdentifier, 'ID of source Epic case note'
+    # phi_attr :encounter_type
+    phi_attr :update_date, Phi::Date, 'Last updated date'
+    phi_attr :staff, Phi::SmallPopulation, 'Name of staffs'
     phi_attr :part_1, Phi::FreeText
     phi_attr :part_2, Phi::FreeText
     phi_attr :part_3, Phi::FreeText
-
 
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_case_note_qualifying_activities, optional: true
     has_many :patient, through: :epic_patient
@@ -27,7 +26,7 @@ module Health
 
     self.source_key = :NOTE_ID
 
-    def self.csv_map(version: nil)
+    def self.csv_map(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       {
         PAT_ID: :patient_id,
         NOTE_ID: :id_in_source,
@@ -58,7 +57,7 @@ module Health
         part_1,
         part_2,
         part_3,
-      ].join().gsub('  ', "\n")
+      ].join.gsub('  ', "\n")
     end
   end
 end

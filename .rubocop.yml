@@ -51,6 +51,9 @@ Style/TrailingCommaInHashLiteral:
 Style/OptionalBooleanParameter:
   Enabled: false
 
+Style/LineEndConcatenation:
+  Enabled: false
+
 Lint/ConstantDefinitionInBlock:
   Enabled: false
 

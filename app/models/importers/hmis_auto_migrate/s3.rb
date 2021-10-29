@@ -8,7 +8,7 @@ require 'aws-sdk-rails'
 require 'zip'
 module Importers::HmisAutoMigrate
   class S3 < Base
-    def initialize(
+    def initialize( # rubocop:disable Metrics/ParameterLists
       data_source_id:,
       deidentified: false,
       allowed_projects: false,
@@ -18,7 +18,8 @@ module Importers::HmisAutoMigrate
       secret_access_key:,
       bucket_name:,
       path:,
-      file_password: nil
+      file_password: nil,
+      file_name: nil
     )
       setup_notifier('HMIS S3 AutoMigrate Importer')
       @data_source_id = data_source_id
@@ -43,6 +44,7 @@ module Importers::HmisAutoMigrate
       @file_path = file_path
       @local_path = File.join(file_path, @data_source_id.to_s, Time.current.to_i.to_s)
       @stale = false
+      @file_name = file_name
     end
 
     def self.available_connections
@@ -72,7 +74,7 @@ module Importers::HmisAutoMigrate
       file = fetch_most_recent
       return unless file
 
-      unchanged_file?(file)
+      recently_imported?(file)
       return if @stale
 
       log("Found #{file}")
@@ -92,7 +94,7 @@ module Importers::HmisAutoMigrate
       files = []
       # Returns oldest first
       @s3.fetch_key_list(prefix: @s3_path).each do |entry|
-        files << entry if entry.include?(@s3_path)
+        files << entry if entry.include?(@s3_path) && (@file_name.blank? || entry.include?(@file_name))
       end
       return nil if files.empty?
 
@@ -103,17 +105,19 @@ module Importers::HmisAutoMigrate
       nil
     end
 
-    private def previous_import
-      GrdaWarehouse::Upload.where(data_source_id: @data_source_id, user_id: User.setup_system_user.id).select(:id, :file).order(id: :desc).first
+    private def previous_imports
+      GrdaWarehouse::Upload.where(data_source_id: @data_source_id, user_id: User.setup_system_user.id).select(:id, :file).order(id: :desc).limit(10)
     end
 
-    def unchanged_file?(file)
+    def recently_imported?(file)
       incoming_filename = File.basename(file, File.extname(file))
-      previous_import_filename = previous_import&.file&.file&.filename || 'none.zip'
-      previous_import_filename = File.basename(previous_import_filename, File.extname(previous_import_filename))
-      return unless incoming_filename == previous_import_filename
+      previous_import_filenames = previous_imports.map do |pi|
+        name = pi&.file&.file&.filename || 'none.zip'
+        File.basename(name, File.extname(name))
+      end
+      return unless incoming_filename.in?(previous_import_filenames)
 
-      log("WARNING, filename has not changed since last import: #{incoming_filename}")
+      log("WARNING, filename has been imported recently: #{incoming_filename}")
       log('Refusing to import.')
       @stale = true
     end

@@ -1541,7 +1541,8 @@ CREATE TABLE public."Organization" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "VictimServicesProvider" integer,
-    "VictimServiceProvider" integer
+    "VictimServiceProvider" integer,
+    confidential boolean DEFAULT false NOT NULL
 );
 
 
@@ -2080,6 +2081,39 @@ CREATE TABLE public.ar_internal_metadata (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
+
+
+--
+-- Name: assessment_answer_lookups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.assessment_answer_lookups (
+    id bigint NOT NULL,
+    assessment_question character varying,
+    response_code character varying,
+    response_text character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: assessment_answer_lookups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.assessment_answer_lookups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: assessment_answer_lookups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.assessment_answer_lookups_id_seq OWNED BY public.assessment_answer_lookups.id;
 
 
 --
@@ -4810,7 +4844,8 @@ CREATE TABLE public.configs (
     enable_system_cohorts boolean DEFAULT false,
     currently_homeless_cohort boolean DEFAULT false,
     show_client_last_seen_info_in_client_details boolean DEFAULT true,
-    ineligible_uses_extrapolated_days boolean DEFAULT true NOT NULL
+    ineligible_uses_extrapolated_days boolean DEFAULT true NOT NULL,
+    warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL
 );
 
 
@@ -4867,6 +4902,171 @@ CREATE SEQUENCE public.contacts_id_seq
 --
 
 ALTER SEQUENCE public.contacts_id_seq OWNED BY public.contacts.id;
+
+
+--
+-- Name: custom_imports_b_al_rows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.custom_imports_b_al_rows (
+    id bigint NOT NULL,
+    import_file_id bigint,
+    data_source_id bigint,
+    assessment_question character varying,
+    response_code character varying,
+    response_text character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: custom_imports_b_al_rows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.custom_imports_b_al_rows_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: custom_imports_b_al_rows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.custom_imports_b_al_rows_id_seq OWNED BY public.custom_imports_b_al_rows.id;
+
+
+--
+-- Name: custom_imports_b_services_rows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.custom_imports_b_services_rows (
+    id bigint NOT NULL,
+    import_file_id bigint,
+    data_source_id bigint,
+    row_number integer NOT NULL,
+    personal_id character varying NOT NULL,
+    unique_id character varying,
+    agency_id character varying NOT NULL,
+    enrollment_id character varying,
+    service_id character varying,
+    date date,
+    service_name character varying,
+    service_category character varying,
+    service_item character varying,
+    service_program_usage character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: custom_imports_b_services_rows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.custom_imports_b_services_rows_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: custom_imports_b_services_rows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.custom_imports_b_services_rows_id_seq OWNED BY public.custom_imports_b_services_rows.id;
+
+
+--
+-- Name: custom_imports_config; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.custom_imports_config (
+    id bigint NOT NULL,
+    user_id bigint,
+    data_source_id bigint,
+    active boolean DEFAULT true NOT NULL,
+    description character varying,
+    import_hour integer,
+    import_type character varying,
+    s3_region character varying,
+    s3_bucket character varying,
+    s3_prefix character varying,
+    encrypted_s3_access_key_id character varying,
+    encrypted_s3_access_key_id_iv character varying,
+    encrypted_s3_secret character varying,
+    encrypted_s3_secret_iv character varying,
+    last_import_attempted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: custom_imports_config_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.custom_imports_config_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: custom_imports_config_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.custom_imports_config_id_seq OWNED BY public.custom_imports_config.id;
+
+
+--
+-- Name: custom_imports_files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.custom_imports_files (
+    id bigint NOT NULL,
+    type character varying,
+    config_id bigint,
+    data_source_id bigint,
+    file character varying,
+    status character varying,
+    summary jsonb,
+    import_errors jsonb,
+    content_type character varying,
+    content bytea,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: custom_imports_files_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.custom_imports_files_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: custom_imports_files_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.custom_imports_files_id_seq OWNED BY public.custom_imports_files.id;
 
 
 --
@@ -5306,7 +5506,8 @@ CREATE TABLE public.exports (
     content bytea,
     file character varying,
     delayed_job_id integer,
-    version character varying
+    version character varying,
+    confidential boolean DEFAULT false NOT NULL
 );
 
 
@@ -5648,6 +5849,39 @@ CREATE SEQUENCE public.generate_service_history_log_id_seq
 --
 
 ALTER SEQUENCE public.generate_service_history_log_id_seq OWNED BY public.generate_service_history_log.id;
+
+
+--
+-- Name: generic_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.generic_services (
+    id bigint NOT NULL,
+    client_id bigint,
+    source_type character varying,
+    source_id bigint,
+    date date,
+    title character varying
+);
+
+
+--
+-- Name: generic_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.generic_services_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: generic_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.generic_services_id_seq OWNED BY public.generic_services.id;
 
 
 --
@@ -11998,7 +12232,8 @@ CREATE TABLE public.hmis_import_configs (
     encrypted_zip_file_password character varying,
     encrypted_zip_file_password_iv character varying,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    file_count integer DEFAULT 1 NOT NULL
 );
 
 
@@ -12252,6 +12487,47 @@ CREATE SEQUENCE public.homeless_summary_report_clients_id_seq
 --
 
 ALTER SEQUENCE public.homeless_summary_report_clients_id_seq OWNED BY public.homeless_summary_report_clients.id;
+
+
+--
+-- Name: homeless_summary_report_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.homeless_summary_report_results (
+    id bigint NOT NULL,
+    report_id bigint,
+    section character varying,
+    household_category character varying,
+    demographic_category character varying,
+    field character varying,
+    destination character varying,
+    characteristic character varying,
+    calculation character varying,
+    value double precision,
+    format character varying,
+    details jsonb,
+    detail_link_slug character varying,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: homeless_summary_report_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.homeless_summary_report_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: homeless_summary_report_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.homeless_summary_report_results_id_seq OWNED BY public.homeless_summary_report_results.id;
 
 
 --
@@ -14979,7 +15255,8 @@ CREATE TABLE public.recurring_hmis_exports (
     version character varying,
     encrypted_zip_password character varying,
     encrypted_zip_password_iv character varying,
-    encryption_type character varying
+    encryption_type character varying,
+    confidential boolean DEFAULT false NOT NULL
 );
 
 
@@ -18090,6 +18367,13 @@ ALTER TABLE ONLY public.api_client_data_source_ids ALTER COLUMN id SET DEFAULT n
 
 
 --
+-- Name: assessment_answer_lookups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.assessment_answer_lookups ALTER COLUMN id SET DEFAULT nextval('public.assessment_answer_lookups_id_seq'::regclass);
+
+
+--
 -- Name: available_file_tags id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -18321,6 +18605,34 @@ ALTER TABLE ONLY public.contacts ALTER COLUMN id SET DEFAULT nextval('public.con
 
 
 --
+-- Name: custom_imports_b_al_rows id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_al_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_al_rows_id_seq'::regclass);
+
+
+--
+-- Name: custom_imports_b_services_rows id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_services_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_services_rows_id_seq'::regclass);
+
+
+--
+-- Name: custom_imports_config id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_config ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_config_id_seq'::regclass);
+
+
+--
+-- Name: custom_imports_files id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_files ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_files_id_seq'::regclass);
+
+
+--
 -- Name: dashboard_export_reports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -18458,6 +18770,13 @@ ALTER TABLE ONLY public.generate_service_history_batch_logs ALTER COLUMN id SET 
 --
 
 ALTER TABLE ONLY public.generate_service_history_log ALTER COLUMN id SET DEFAULT nextval('public.generate_service_history_log_id_seq'::regclass);
+
+
+--
+-- Name: generic_services id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.generic_services ALTER COLUMN id SET DEFAULT nextval('public.generic_services_id_seq'::regclass);
 
 
 --
@@ -19291,6 +19610,13 @@ ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.homeless_summary_report_clients ALTER COLUMN id SET DEFAULT nextval('public.homeless_summary_report_clients_id_seq'::regclass);
+
+
+--
+-- Name: homeless_summary_report_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_results ALTER COLUMN id SET DEFAULT nextval('public.homeless_summary_report_results_id_seq'::regclass);
 
 
 --
@@ -20551,6 +20877,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
+-- Name: assessment_answer_lookups assessment_answer_lookups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.assessment_answer_lookups
+    ADD CONSTRAINT assessment_answer_lookups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: available_file_tags available_file_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -20815,6 +21149,38 @@ ALTER TABLE ONLY public.contacts
 
 
 --
+-- Name: custom_imports_b_al_rows custom_imports_b_al_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_al_rows
+    ADD CONSTRAINT custom_imports_b_al_rows_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_imports_b_services_rows custom_imports_b_services_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_services_rows
+    ADD CONSTRAINT custom_imports_b_services_rows_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_imports_config custom_imports_config_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_config
+    ADD CONSTRAINT custom_imports_config_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_imports_files custom_imports_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_files
+    ADD CONSTRAINT custom_imports_files_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: dashboard_export_reports dashboard_export_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -20972,6 +21338,14 @@ ALTER TABLE ONLY public.generate_service_history_batch_logs
 
 ALTER TABLE ONLY public.generate_service_history_log
     ADD CONSTRAINT generate_service_history_log_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: generic_services generic_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.generic_services
+    ADD CONSTRAINT generic_services_pkey PRIMARY KEY (id);
 
 
 --
@@ -21924,6 +22298,14 @@ ALTER TABLE ONLY public.hmis_staff_x_clients
 
 ALTER TABLE ONLY public.homeless_summary_report_clients
     ADD CONSTRAINT homeless_summary_report_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: homeless_summary_report_results homeless_summary_report_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_results
+    ADD CONSTRAINT homeless_summary_report_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -23094,6 +23476,13 @@ CREATE INDEX funder_date_updated ON public."Funder" USING btree ("DateUpdated");
 --
 
 CREATE INDEX funder_export_id ON public."Funder" USING btree ("ExportID");
+
+
+--
+-- Name: gs_source_id_source_type_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX gs_source_id_source_type_uniq ON public.generic_services USING btree (source_id, source_type);
 
 
 --
@@ -36642,6 +37031,13 @@ CREATE INDEX index_api_client_data_source_ids_on_warehouse_id ON public.api_clie
 
 
 --
+-- Name: index_assessment_answer_lookups_on_response_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_assessment_answer_lookups_on_response_code ON public.assessment_answer_lookups USING btree (response_code);
+
+
+--
 -- Name: index_cas_availabilities_on_available_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -37104,6 +37500,118 @@ CREATE INDEX index_contacts_on_type ON public.contacts USING btree (type);
 
 
 --
+-- Name: index_custom_imports_b_al_rows_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_al_rows_on_created_at ON public.custom_imports_b_al_rows USING btree (created_at);
+
+
+--
+-- Name: index_custom_imports_b_al_rows_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_al_rows_on_data_source_id ON public.custom_imports_b_al_rows USING btree (data_source_id);
+
+
+--
+-- Name: index_custom_imports_b_al_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_al_rows_on_import_file_id ON public.custom_imports_b_al_rows USING btree (import_file_id);
+
+
+--
+-- Name: index_custom_imports_b_al_rows_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_al_rows_on_updated_at ON public.custom_imports_b_al_rows USING btree (updated_at);
+
+
+--
+-- Name: index_custom_imports_b_services_rows_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_services_rows_on_created_at ON public.custom_imports_b_services_rows USING btree (created_at);
+
+
+--
+-- Name: index_custom_imports_b_services_rows_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_services_rows_on_data_source_id ON public.custom_imports_b_services_rows USING btree (data_source_id);
+
+
+--
+-- Name: index_custom_imports_b_services_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_services_rows_on_import_file_id ON public.custom_imports_b_services_rows USING btree (import_file_id);
+
+
+--
+-- Name: index_custom_imports_b_services_rows_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_services_rows_on_updated_at ON public.custom_imports_b_services_rows USING btree (updated_at);
+
+
+--
+-- Name: index_custom_imports_config_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_config_on_created_at ON public.custom_imports_config USING btree (created_at);
+
+
+--
+-- Name: index_custom_imports_config_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_config_on_data_source_id ON public.custom_imports_config USING btree (data_source_id);
+
+
+--
+-- Name: index_custom_imports_config_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_config_on_updated_at ON public.custom_imports_config USING btree (updated_at);
+
+
+--
+-- Name: index_custom_imports_config_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_config_on_user_id ON public.custom_imports_config USING btree (user_id);
+
+
+--
+-- Name: index_custom_imports_files_on_config_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_files_on_config_id ON public.custom_imports_files USING btree (config_id);
+
+
+--
+-- Name: index_custom_imports_files_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_files_on_created_at ON public.custom_imports_files USING btree (created_at);
+
+
+--
+-- Name: index_custom_imports_files_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_files_on_data_source_id ON public.custom_imports_files USING btree (data_source_id);
+
+
+--
+-- Name: index_custom_imports_files_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_files_on_updated_at ON public.custom_imports_files USING btree (updated_at);
+
+
+--
 -- Name: index_data_monitorings_on_calculated_on; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -37269,6 +37777,13 @@ CREATE INDEX index_files_on_type ON public.files USING btree (type);
 --
 
 CREATE INDEX index_files_on_vispdat_id ON public.files USING btree (vispdat_id);
+
+
+--
+-- Name: index_generic_services_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_generic_services_on_client_id ON public.generic_services USING btree (client_id);
 
 
 --
@@ -37934,6 +38449,13 @@ CREATE INDEX index_homeless_summary_report_clients_on_report_id ON public.homele
 --
 
 CREATE INDEX index_homeless_summary_report_clients_on_updated_at ON public.homeless_summary_report_clients USING btree (updated_at);
+
+
+--
+-- Name: index_homeless_summary_report_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_results_on_report_id ON public.homeless_summary_report_results USING btree (report_id);
 
 
 --
@@ -45244,6 +45766,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211001135131'),
 ('20211001160706'),
 ('20211004174014'),
-('20211013135958');
+('20211009183833'),
+('20211011191547'),
+('20211013135958'),
+('20211015172536'),
+('20211019154744'),
+('20211019164536'),
+('20211020130447'),
+('20211023193009'),
+('20211027185505');
 
 

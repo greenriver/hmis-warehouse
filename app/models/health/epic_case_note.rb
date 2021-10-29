@@ -10,13 +10,13 @@
 module Health
   class EpicCaseNote < EpicBase
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier, "ID of Epic case note"
+    phi_attr :id, Phi::OtherIdentifier, 'ID of Epic case note'
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :contact_date, Phi::Date, "Date of contact"
+    phi_attr :contact_date, Phi::Date, 'Date of contact'
     # phi_attr :closed
     # phi_attr :encounter_type
-    phi_attr :provider_name, Phi::SmallPopulation, "Name of provider"
-    phi_attr :location, Phi::Location, "Location of encounter"
+    phi_attr :provider_name, Phi::SmallPopulation, 'Name of provider'
+    phi_attr :location, Phi::Location, 'Location of encounter'
     phi_attr :chief_complaint_1, Phi::FreeText
     phi_attr :chief_complaint_1_comment, Phi::FreeText
     phi_attr :chief_complaint_2, Phi::FreeText
@@ -25,7 +25,7 @@ module Health
     phi_attr :dx_1_name, Phi::FreeText
     phi_attr :dx_2_icd10, Phi::SmallPopulation
     phi_attr :dx_2_name, Phi::FreeText
-    #phi_attr :homeless_status
+    # phi_attr :homeless_status
 
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_case_notes, optional: true
     has_many :patient, through: :epic_patient
@@ -34,13 +34,13 @@ module Health
     scope :with_housing_status, -> do
       where.not(homeless_status: [nil, ''], contact_date: nil)
     end
-    scope :within_range, -> (range) do
+    scope :within_range, ->(range) do
       where(contact_date: range)
     end
 
     self.source_key = :PAT_ENC_CSN_ID
 
-    def self.csv_map(version: nil)
+    def self.csv_map(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       {
         PAT_ID: :patient_id,
         PAT_ENC_CSN_ID: :id_in_source,

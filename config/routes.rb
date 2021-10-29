@@ -471,6 +471,7 @@ Rails.application.routes.draw do
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
       # get :enrollment_details
     end
+    resources :hud_assessments, only: [:show], controller: 'clients/hud_assessments'
     # resource :history, only: [:show], controller: 'clients/history' do
     #   get :pdf, on: :collection
     #   post :queue, on: :collection
@@ -610,6 +611,7 @@ Rails.application.routes.draw do
   resources :data_sources do
     resources :uploads, except: [:update, :destroy, :edit]
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
+    resources :custom_imports, controller: 'data_sources/custom_imports'
     resource :api_config
     resource :hmis_import_config
   end
@@ -620,7 +622,7 @@ Rails.application.routes.draw do
     get :download, on: :collection
   end
 
-  resources :organizations, only: [:destroy] do
+  resources :organizations, only: [:destroy, :edit, :update] do
     resources :contacts, except: [:show], controller: 'organizations/contacts'
   end
   resources :projects, only: [:edit, :show, :update, :destroy] do

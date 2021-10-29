@@ -1,6 +1,6 @@
 $('.panel-collapsible .panel-collapse').on('show.bs.collapse hide.bs.collapse', function(e) {
-  const state = e.handleObj.type === 'show' ? 'down' : 'right'
-  const $parent = $(this).parent()
+  var state = e.handleObj.type === 'show' ? 'down' : 'right'
+  var $parent = $(this).parent()
   $parent
     .find('.j-toggle-arrow')
     .removeClass()

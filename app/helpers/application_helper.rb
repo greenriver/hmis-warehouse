@@ -5,6 +5,7 @@
 ###
 
 module ApplicationHelper
+  include Pagy::Frontend
   # permissions
   # See Role.rb for specifics of what permissions are available
   (Role.permissions + User.additional_permissions).each do |permission|

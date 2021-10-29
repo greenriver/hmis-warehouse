@@ -1,11 +1,11 @@
 .row
-  .col-md-8
+  .col-md-6
     = render 'warehouse_reports/date_range_filters', f:f
   - if @show_ph_destinations
-    .col-sm-4.d-flex.align-items-center.pt-no-label
+    .col-sm-3.d-flex.align-items-center.pt-no-label
       = f.input :ph, as: :boolean, label: 'Limit to permanent destinations'
   - if GrdaWarehouse::Config.get(:multi_coc_installation)
-    .col-sm-4
+    .col-sm-3
       = f.input :coc_codes, collection: GrdaWarehouse::Lookups::CocCode.options_for_select(user: current_user), placeholder: 'Any CoC', as: :select_two, input_html: { multiple: true }, label: 'CoC Limit', required: false
 .row
   .col-sm-4

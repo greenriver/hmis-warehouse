@@ -22,17 +22,17 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
     has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :enrollment_coc
 
-    scope :viewable_by, -> (user) do
+    scope :viewable_by, ->(user) do
       if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope
       elsif user.coc_codes.none?
         none
       else
-        where( CoCCode: user.coc_codes )
+        where(CoCCode: user.coc_codes)
       end
     end
 
-    scope :in_coc, -> (coc_code:) do
+    scope :in_coc, ->(coc_code:) do
       where(CoCCode: coc_code)
     end
 
@@ -43,6 +43,5 @@ module GrdaWarehouse::Hud
         :ProjectID,
       ]
     end
-
   end
 end

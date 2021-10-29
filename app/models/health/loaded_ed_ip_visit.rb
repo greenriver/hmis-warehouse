@@ -29,7 +29,7 @@ module Health
     phi_attr :patient_url, Phi::OtherIdentifier, 'URL may contain unique patient identifier'
     phi_attr :admitted_inpatient, Phi::SmallPopulation, 'Was the patient admitted?'
 
-    belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
+    belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id, optional: true
     belongs_to :ed_ip_visit_file
     has_one :ed_ip_visit, dependent: :destroy
 

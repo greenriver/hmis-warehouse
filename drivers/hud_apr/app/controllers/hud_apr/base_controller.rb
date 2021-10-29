@@ -10,14 +10,14 @@ module HudApr
 
     def available_report_versions
       {
-        'FY 2020' => :fy2020,
-        'FY 2021' => :fy2021,
+        'FY 2020' => { slug: :fy2020, active: false },
+        'FY 2022' => { slug: :fy2021, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2020
+      :fy2021
     end
 
     private def filter_class

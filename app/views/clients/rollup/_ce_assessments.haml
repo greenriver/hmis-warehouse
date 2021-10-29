@@ -28,7 +28,7 @@
               .ds{class: "ds-color-#{assessment.data_source_id}"}= ds_short_name_for(assessment.enrollment.client.id)
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
             %td.date-cell= assessment.enrollment.EntryDate
-            %td= assessment.AssessmentDate
+            %td= link_to(assessment.AssessmentDate, client_hud_assessment_path(@client, assessment))
             %td= HUD.assessment_type assessment.AssessmentType
             %td= HUD.assessment_level assessment.AssessmentLevel
             %td= HUD.prioritization_status assessment.PrioritizationStatus
