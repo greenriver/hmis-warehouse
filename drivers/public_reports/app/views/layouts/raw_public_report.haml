@@ -1,66 +1,66 @@
 %html(lang="en")
-    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
-    %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
-    %title= [@report.instance_title, _('Boston DND Warehouse')].join(' :: ')
-    %link{href: @report.font_path, rel: 'stylesheet', type: 'text/css'}
-    = stylesheet_link_tag('https://cdnjs.cloudflare.com/ajax/libs/billboard.js/3.0.3/billboard.min.css')
-    = stylesheet_link_tag('https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css', integrity: 'sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l', crossorigin: 'anonymous')
-    = stylesheet_link_tag('https://unpkg.com/leaflet@1.7.1/dist/leaflet.css', integrity: 'sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==', crossorigin: 'anonymous')
-    = javascript_include_tag('https://d3js.org/d3.v6.min.js')
-    = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/billboard.js/3.0.3/billboard.min.js')
-    = javascript_include_tag('https://code.jquery.com/jquery-3.5.1.slim.min.js', integrity: 'sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj', crossorigin: 'anonymous')
-    = javascript_include_tag('https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js', integrity: 'sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF', crossorigin: 'anonymous')
-    = javascript_include_tag('https://unpkg.com/leaflet@1.7.1/dist/leaflet.js', integrity: 'sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==', crossorigin: 'anonymous')
-    = javascript_include_tag('https://kit.fontawesome.com/b8b025dd15.js', crossorigin: 'anonymous')
-    :css
-      body {
-        background-color: transparent;
-      }
-      body,
-      .bb-legend-item,
-      .bb svg {
-        font-family: '#{@report.font_family}', sans-serif;
-        font-style: normal;
-        font-weight: #{@report.font_weight};
-        font-size: #{@report.font_size};
-      }
-      .bb-legend-item {
-        font-size: 0.8rem;
-      }
-      .completed-at {
-        font-size: 0.75rem;
-        color: #8D8D8D;
-        text-align: right;
-        margin-right: 2em;
-      }
-      .legend-wrapper {
-        display: flex;
-        flex-wrap: wrap;
-      }
-      .legend-wrapper-vertical {
-        flex-direction: row;
-        justify-content: flex-end;
-        align-items: center;
-        align-content: center;
-      }
-      .legend-wrapper-vertical .chart-legend-item-prs1 {
-        display: flex;
-        width: 100%;
-        margin-right: 2rem;
-        margin-bottom: 0.5rem;
-        align-content: flex-end;
-      }
-      .legend-wrapper-horizontal .chart-legend-item-prs1 {
-        display: flex;
-        width: 40%;
-        margin-right: 2rem;
-        margin-bottom: 0.5rem;
-      }
-      .chart-legend-item-prs1 .chart-legend-item-swatch-prs1 {
-        width: 20px;
-        height: 20px;
-        margin-right: 0.8rem;
-      }
+  %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+  %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
+  %title= [@report.instance_title, _('Boston DND Warehouse')].join(' :: ')
+  %link{href: @report.font_path, rel: 'stylesheet', type: 'text/css'}
+  = stylesheet_link_tag('https://cdnjs.cloudflare.com/ajax/libs/billboard.js/3.0.3/billboard.min.css')
+  = stylesheet_link_tag('https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css', integrity: 'sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l', crossorigin: 'anonymous')
+  = stylesheet_link_tag('https://unpkg.com/leaflet@1.7.1/dist/leaflet.css', integrity: 'sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==', crossorigin: 'anonymous')
+  = javascript_include_tag('https://d3js.org/d3.v6.min.js')
+  = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/billboard.js/3.0.3/billboard.min.js')
+  = javascript_include_tag('https://code.jquery.com/jquery-3.5.1.slim.min.js', integrity: 'sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj', crossorigin: 'anonymous')
+  = javascript_include_tag('https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js', integrity: 'sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF', crossorigin: 'anonymous')
+  = javascript_include_tag('https://unpkg.com/leaflet@1.7.1/dist/leaflet.js', integrity: 'sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==', crossorigin: 'anonymous')
+  = javascript_include_tag('https://kit.fontawesome.com/b8b025dd15.js', crossorigin: 'anonymous')
+  :css
+    body {
+      background-color: transparent;
+    }
+    body,
+    .bb-legend-item,
+    .bb svg {
+      font-family: '#{@report.font_family}', sans-serif;
+      font-style: normal;
+      font-weight: #{@report.font_weight};
+      font-size: #{@report.font_size};
+    }
+    .bb-legend-item {
+      font-size: 0.8rem;
+    }
+    .completed-at {
+      font-size: 0.75rem;
+      color: #8D8D8D;
+      text-align: right;
+      margin-right: 2em;
+    }
+    .legend-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .legend-wrapper-vertical {
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      align-content: center;
+    }
+    .legend-wrapper-vertical .chart-legend-item-prs1 {
+      display: flex;
+      width: 100%;
+      margin-right: 2rem;
+      margin-bottom: 0.5rem;
+      align-content: flex-end;
+    }
+    .legend-wrapper-horizontal .chart-legend-item-prs1 {
+      display: flex;
+      width: 40%;
+      margin-right: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .chart-legend-item-prs1 .chart-legend-item-swatch-prs1 {
+      width: 20px;
+      height: 20px;
+      margin-right: 0.8rem;
+    }
 
   %body
     = yield
