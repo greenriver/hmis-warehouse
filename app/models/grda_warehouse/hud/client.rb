@@ -1433,14 +1433,14 @@ module GrdaWarehouse::Hud
       return nil unless GrdaWarehouse::Config.get(:eto_api_available)
 
       api_configs = EtoApi::Base.api_configs
-      source_api_ids.detect do |api_id|
-        api_key = api_configs.select { |_k, v| v['data_source_id'] == api_id.data_source_id }&.keys&.first
+      source_eto_client_lookups.detect do |c_lookup|
+        api_key = api_configs.select { |_k, v| v['data_source_id'] == c_lookup.data_source_id }&.keys&.first
         return nil unless api_key.present?
 
         api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect) rescue nil # rubocop:disable Style/RescueModifier
         image_data = api.client_image( # rubocop:disable Style/RescueModifier
-          client_id: api_id.id_in_data_source,
-          site_id: api_id.site_id_in_data_source,
+          client_id: c_lookup.participant_site_identifier,
+          site_id: c_lookup.site_id,
         ) rescue nil
         (image_data && image_data.length.positive?) # rubocop:disable Style/SafeNavigation
       end
@@ -1452,21 +1452,23 @@ module GrdaWarehouse::Hud
     def image_for_source_client(cache_for = 10.minutes) # rubocop:disable Lint/UnusedMethodArgument
       return '' unless GrdaWarehouse::Config.get(:eto_api_available) && source?
 
-      image_data = nil # rubocop:disable Lint/UselessAssignment
+      image_data = nil
       return fake_client_image_data || self.class.no_image_on_file_image unless Rails.env.production?
       return nil unless GrdaWarehouse::Config.get(:eto_api_available)
 
       api_configs = EtoApi::Base.api_configs
-      api_key = api_configs.select { |_k, v| v['data_source_id'] == api_id.data_source_id }&.keys&.first
-      return nil unless api_key.present?
+      eto_client_lookups.detect do |c_lookup|
+        api_key = api_configs.select { |_k, v| v['data_source_id'] == c_lookup.data_source_id }&.keys&.first
+        return nil unless api_key.present?
 
-      api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect)
-      image_data = api.client_image( # rubocop:disable Style/RescueModifier
-        client_id: api_id.id_in_data_source,
-        site_id: api_id.site_id_in_data_source,
-      ) rescue nil
+        api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect)
+        image_data = api.client_image( # rubocop:disable Style/RescueModifier
+          client_id: c_lookup.participant_site_identifier,
+          site_id: c_lookup.site_id,
+        ) rescue nil
+        (image_data && image_data.length.positive?) # rubocop:disable Style/SafeNavigation
+      end
       set_local_client_image_cache(image_data)
-
       image_data || self.class.no_image_on_file_image
     end
 
@@ -1513,16 +1515,15 @@ module GrdaWarehouse::Hud
     end
 
     def accessible_via_api?
-      GrdaWarehouse::Config.get(:eto_api_available) && source_api_ids.exists?
+      GrdaWarehouse::Config.get(:eto_api_available) && source_hmis_clients.exists?
     end
 
-    # If we have source_api_ids, but are lacking hmis_clients
+    # If we have source_eto_client_lookups, but are lacking hmis_clients
     # or our hmis_clients are out of date
     def requires_api_update?(check_period: 1.day)
       return false unless accessible_via_api?
 
-      api_ids = source_api_ids.count
-      return true if api_ids > source_hmis_clients.count
+      return true if source_eto_client_lookups.distinct.count(:enterprise_guid) > source_hmis_clients.count
 
       last_updated = source_hmis_clients.pluck(:updated_at).max
       return last_updated < check_period.ago if last_updated.present?
@@ -1533,7 +1534,7 @@ module GrdaWarehouse::Hud
     def update_via_api
       return nil unless accessible_via_api?
 
-      client_ids = source_api_ids.pluck(:client_id)
+      client_ids = source_eto_client_lookups.distinct.pluck(:client_id)
       if client_ids.any? # rubocop:disable Style/IfUnlessModifier, Style/GuardClause
         Importing::RunEtoApiUpdateForClientJob.perform_later(destination_id: id, client_ids: client_ids.uniq)
       end
