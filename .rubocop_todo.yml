@@ -2087,7 +2087,6 @@ Style/FormatString:
 # Cop supports --auto-correct.
 Style/GlobalStdStream:
   Exclude:
-    - 'app/models/grda_warehouse/config.rb'
     - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
 
 # Offense count: 106
@@ -2700,7 +2699,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/census/by_project_client.rb'
     - 'app/models/grda_warehouse/census/by_project_type.rb'
     - 'app/models/grda_warehouse/census/by_project_type_client.rb'
-    - 'app/models/grda_warehouse/config.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/individual.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
     - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
