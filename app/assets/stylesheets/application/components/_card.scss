@@ -275,3 +275,49 @@
   background-color: lighten($brand-danger-l, 10%);
   padding: space(4);
 }
+
+.card-content .row--internal,
+.card-wrapper {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.card-wrapper {
+  display: flex;
+  margin-bottom: space(2);
+}
+
+.c-card--internal {
+  display: flex;
+  flex: 1;
+  .card-content {
+    flex: 1;
+    min-height: 100px;
+    background: #f9f9f9;
+  }
+  .card-title {
+    margin-top: 0;
+    margin-bottom: space(3);
+  }
+}
+$levels: (
+  warning: $brand-warning,
+  danger: $brand-danger,
+  info: $brand-info,
+);
+@each $level, $color in $levels {
+  .c-card--#{$level} {
+    border-color: rgba($color, .35);
+    .card-content {
+      background: rgba($color, .2);
+    }
+  }
+}
+.c-card--form {
+  .form-group {
+    margin-bottom: 10px;
+  }
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+}

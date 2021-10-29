@@ -2,95 +2,55 @@
   timeline_id = "entry-timeline"
   appointment_cal_id = "appointments"
 
-:sass
-  .c-card--internal
-    .card-content
-      min-height: 100px
-      background: #f9f9f9
-  .c-card--form
-    .form-group
-      margin-bottom: 10px
-    .form-group:last-child
-      margin-bottom: 0
-  .c-cal
-    display: flex
-    flex-direction: column
-    align-items: center
-
-  .c-cal__week
-    margin-bottom: 2px
-    display: flex
-    justify-content: space-between
-    width: 100%
-
-  .c-cal__day
-    min-height: 30px
-    background: #FFF
-    border-radius: 3px
-    font-size: 13px
-    display: flex
-    align-items: center
-    justify-content: center
-    border: 1px solid #f9f9f9
-    margin-left: 2px
-    margin-right: 2px
-    flex: 1 1 .14285714%
-    overflow: hidden
-    &.fill,
-    &.past
-      background: none
-      color: #CCC
-    &.active
-      background: #333
-      color: white
-      font-weight: bold
-  .c-cal__day--label
-    test-align: center
-    height: auto
-    background: none
-
 .card.d-block
-  .card-content.p-4
-    %header.d-flex.flex-wrap.mb-4.row
-      .col-md-6
-        %h1.flex-grow-1= @name
-        = detail_block(title: "DOB", value: "#{l(Date.today)} (#{rand(1..100)})")
-      .col-md-6
-        .row.align-items-stretch.justify-content-end
-          .col-md-3
-            .card
+  .card-content.px-4.pt-4.pb-2
+    %header.d-flex.flex-wrap.row
+      .col-md-12.col-lg-3.pr-0
+        %h1.flex-grow-1
+          = link_to @name, ""
+        .mb-4= detail_block(title: "DOB", value: "#{l(Date.today)} (#{rand(1..100)})")
+      .col-md-12.col-lg-9
+        .row.align-items-stretch.justify-content-end.row--internal
+          .col-md-2.card-wrapper
+            .card.c-card--internal.c-card--danger
               .card-content.p-4
-                %h3 Score
+                %h2.h4.card-title Score
                 %div{style: "font-weight: bold; font-size: 24px"}=number_with_precision(rand, precision: 2)
-          .col-md-6
-            .card
+          .col-md-6.card-wrapper
+            .card.c-card--internal.c-card--warning
               .card-content.p-4
-                %h3 Covid Vaccination Status
-                .d-flex.justify-content-between
-                  .mr-4= detail_block(title: "Doses", value: rand(0..3))
+                %h2.h4.card-title Covid Vaccination Status
+                .d-flex.justify-content-between.flex-wrap
+                  - title = details_title_attr({manufacturer: "Moderna"})
+                  .mr-4.mb-2= detail_block(title: "Doses", value: rand(0..3), tooltip: title)
                   = detail_block(title: "Last Dose Date", value: l(Date.today))
-    .row.mb-4
-      .col-md-3.flex-fill
+          .col-md-4.card-wrapper
+            .card.c-card--internal
+              .card-content.p-4
+                %h2.h4.card-title Latest Entry
+                .d-flex.justify-content-between.flex-wrap
+                  .mb-2= detail_block(title: "Last Entry", value: l(Date.today))
+                  = detail_block(title: "Project", value: Faker::Company.name)
+    .row.row--internal
+      .col-md-3.card-wrapper
         .card.c-card--internal.c-card--form
           .card-content.p-4
+            %h2.h4.card-title Care Staff
             = simple_form_for @form, as: :care_managers, url: '#' do |f|
               = f.input :care_coordinator
               = f.input :nurse_care_manager
-      .col-md-6.flex-fill
+      .col-md-6.card-wrapper
         .card.c-card--internal
           .card-content.p-4
             .row
               .col-6
-                .c-detail
-                  .c-detail__title Section 1
+                %h2.h4.card-title Section 1
               .col-6
-                .c-detail
-                  .c-detail__title Section 2
-      .col-md-3.flex-fill
+                %h2.h4.card-title Section 2
+      .col-md-3.card-wrapper
         .card.c-card--internal
           .card-content.p-4
-            .c-detail
-              .c-detail__title Upcoming appointments
+            %h2.h4.card-title Upcoming Appointments
             .c-cal
               .c-cal__week
                 - Date::DAYNAMES.each do |d|
@@ -103,21 +63,5 @@
                       - next
                     :ruby
                       class_name = appt[:scheduled] ? "active" : ""
-                      title = calendar_details_title_attr(appt[:metadata])
-                    .c-cal__day{class: class_name, title:title, data: ({toggle: 'tooltip', html: "true"} if title.present?) }=appt[:date].day
-
-    .card.c-card--internal
-      .card-content.p-4
-        .row
-          .col-3.d-flex.justify-content-between
-            = detail_block(title: "Last Entry", value: l(Date.today))
-            = detail_block(title: "Project", value: Faker::Company.name)
-          .col-9
-            %div{id: timeline_id}
-    :javascript
-      document.addEventListener('DOMContentLoaded', function (event) {
-        new App.Health.EntryTimeline(
-          document.getElementById("#{timeline_id}"),
-          #{@timeline_config.html_safe}
-        )
-      })
+                      title = details_title_attr(appt[:metadata])
+                    .c-cal__day{class: class_name, title: title, data: ({toggle: 'tooltip', html: "true"} if title.present?) }=appt[:date].day

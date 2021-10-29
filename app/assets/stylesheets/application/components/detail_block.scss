@@ -1,0 +1,12 @@
+@import '../helpers';
+
+.c-detail-block__title {
+  font-weight: 400;
+  margin-bottom: space(1);
+}
+
+.c-detail-block__value {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 18px;
+}
