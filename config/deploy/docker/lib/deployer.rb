@@ -20,6 +20,7 @@ class Deployer
   WAIT_TIME   = 2
 
   attr_accessor :image_tag
+  attr_accessor :image_tag_latest
 
   # The AWS identifier for the payload of secret environment variables
   attr_accessor :secrets_arn
@@ -211,6 +212,29 @@ class Deployer
         _tag_the_image!(authority: 'them')
       end
     end
+
+    _add_latest_tag!
+  end
+
+  def _add_latest_tag!
+    if image_tag_latest.nil?
+      return
+    end
+
+    getparams = {
+      repository_name: repo_name,
+      image_ids: [{
+        image_tag: image_tag,
+      }]
+    }
+    manifest = ecr.batch_get_image(getparams).images[0].image_manifest
+
+    putparams = {
+      repository_name: repo_name,
+      image_tag: image_tag_latest,
+      image_manifest: manifest
+    }
+    ecr.put_image(putparams)
   end
 
   def _check_secrets!
@@ -234,9 +258,11 @@ class Deployer
       self.image_tag = "#{_ruby_version}--pre-cache"
     elsif ENV['IMAGE_TAG']
       self.image_tag = ENV['IMAGE_TAG'] + "--#{variant}"
+      self.image_tag_latest = "latest-" + ENV['IMAGE_TAG'] + "--#{variant}"
     else
       version = `git rev-parse --short=9 HEAD`.chomp
       self.image_tag = "githash-#{version}--#{variant}"
+      self.image_tag_latest = "latest-#{target_group_name}--#{variant}"
     end
 
     # puts "Setting image tag to #{image_tag}"
