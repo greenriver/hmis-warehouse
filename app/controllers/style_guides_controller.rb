@@ -7,7 +7,6 @@
 class StyleGuidesController < ApplicationController
   include AjaxModalRails::Controller
   include ClientPathGenerator
-  skip_before_action :authenticate_user!
 
   def index
   end
