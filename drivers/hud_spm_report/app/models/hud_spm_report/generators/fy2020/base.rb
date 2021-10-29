@@ -1619,7 +1619,7 @@ module HudSpmReport::Generators::Fy2020
       end
 
       return true if @literally_homeless.include?([client_id, enrollment_id])
-      return false if night[:age] > 17
+      return false if night[:age].blank? || night[:age] > 17
 
       # Children may inherit living the living situation from their HoH
       hoh_client = hoh_for_children_without_living_situation(PH + TH, client_id, enrollment_id)
