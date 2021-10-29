@@ -6,7 +6,8 @@
   = f.input :type, label: 'Note type', collection: GrdaWarehouse::ClientNotes::Base.available_types(current_user), label_method: :type_name, include_blank: false, as: :select_two
   = f.input :note, label: 'Note', input_html: {rows: 10}
   = f.input :send_notification, as: :boolean, label: 'Send notifications?', input_html: { class: :jNotifications }
-  = f.input :recipients, collection: User.can_view_clients, input_html: {multiple: true}, wrapper_html: { class: :jRecipients }, as: :select_two
+  .jRecipients
+    = f.input :recipients, collection: User.active.can_view_clients, as: :select_two, input_html: {multiple: true}
   = f.submit value: 'Add Note', class: 'btn btn-secondary'
 
 = content_for :page_js do
@@ -15,6 +16,7 @@
       $('.jNotifications').on('change', function(e) {
         if($(this).is(':checked')){
           $('.jRecipients').show();
+          $('.select2-select-all').remove();
         } else {
           $('.jRecipients option:selected').prop('selected', false);
           $('.jRecipients').hide();
