@@ -103,7 +103,13 @@ GEM
     aws-partitions (1.489.0)
     aws-record (2.5.0)
       aws-sdk-dynamodb (~> 1.18)
+    aws-sdk-cloudwatch (1.54.0)
+      aws-sdk-core (~> 3, >= 3.119.0)
+      aws-sigv4 (~> 1.1)
     aws-sdk-cloudwatchevents (1.49.0)
+      aws-sdk-core (~> 3, >= 3.119.0)
+      aws-sigv4 (~> 1.1)
+    aws-sdk-cloudwatchlogs (1.44.0)
       aws-sdk-core (~> 3, >= 3.119.0)
       aws-sigv4 (~> 1.1)
     aws-sdk-core (3.119.0)
@@ -116,6 +122,9 @@ GEM
       aws-sigv4 (~> 1.1)
     aws-sdk-ec2 (1.221.0)
       aws-sdk-core (~> 3, >= 3.109.0)
+      aws-sigv4 (~> 1.1)
+    aws-sdk-ecr (1.44.0)
+      aws-sdk-core (~> 3, >= 3.119.0)
       aws-sigv4 (~> 1.1)
     aws-sdk-ecs (1.72.0)
       aws-sdk-core (~> 3, >= 3.109.0)
@@ -527,6 +536,7 @@ GEM
     overcommit (0.57.0)
       childprocess (>= 0.6.3, < 5)
       iniparse (~> 1.4)
+    pagy (5.1.2)
     paper_trail (11.1.0)
       activerecord (>= 5.2)
       request_store (~> 1.1)
@@ -850,9 +860,12 @@ DEPENDENCIES
   authtrail
   auto-session-timeout
   autoprefixer-rails
+  aws-sdk-cloudwatch (~> 1)
   aws-sdk-cloudwatchevents (~> 1)
+  aws-sdk-cloudwatchlogs (~> 1)
   aws-sdk-dynamodb
   aws-sdk-ec2 (~> 1)
+  aws-sdk-ecr (~> 1)
   aws-sdk-ecs (~> 1)
   aws-sdk-glacier (~> 1)
   aws-sdk-iam (~> 1)
@@ -943,6 +956,7 @@ DEPENDENCIES
   omniauth-oauth2
   omniauth-rails_csrf_protection
   overcommit
+  pagy
   paper_trail
   parallel
   paranoia (~> 2.0)

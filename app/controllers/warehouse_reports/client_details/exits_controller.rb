@@ -21,6 +21,7 @@ module WarehouseReports::ClientDetails
     end
 
     def index
+      @show_ph_destinations = true
       @report = report_source.new(filter: @filter, user: current_user)
 
       respond_to do |format|

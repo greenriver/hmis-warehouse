@@ -35,6 +35,6 @@
       - @clients.each do |client|
         = render 'client_access_control/clients/client_card', client: client
 
-    %p= paginate @clients, params: {sort: @column, direction: @direction}
+    = paginate @clients, params: {sort: @column, direction: @direction}
 
     = render 'application/js_link', base_path: 'clients/'

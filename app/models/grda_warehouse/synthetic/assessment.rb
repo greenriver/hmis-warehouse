@@ -11,7 +11,7 @@ module GrdaWarehouse::Synthetic
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     belongs_to :source, polymorphic: true, optional: true
-    belongs_to :hud_assessment, class_name: 'GrdaWarehouse::Hud::Assessment', optional: true, primary_key: :hud_assessment_assessment_id, foreign_key: :AssessmentID, optional: true
+    belongs_to :hud_assessment, class_name: 'GrdaWarehouse::Hud::Assessment', optional: true, primary_key: :hud_assessment_assessment_id, foreign_key: :AssessmentID
 
     validates_presence_of :enrollment
     validates_presence_of :client

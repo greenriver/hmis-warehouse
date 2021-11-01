@@ -30,4 +30,15 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
       )
     end
   end
+
+  def possible_files
+    files = []
+    # Returns oldest first
+    s3.fetch_key_list(prefix: s3_path).each do |entry|
+      files << entry if entry.include?(s3_path)
+    end
+    return files if files.empty?
+
+    files.last(file_count).map { |f| File.basename(f) }
+  end
 end

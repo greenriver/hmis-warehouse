@@ -17,6 +17,7 @@ class ApplicationController < ActionController::Base
 
   include ControllerAuthorization
   include ActivityLogger
+  include Pagy::Backend
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
@@ -116,7 +117,7 @@ class ApplicationController < ActionController::Base
     key_for_host = "translation-fresh-at-for-#{set_hostname}"
     last_change = Rails.cache.read('translation-fresh-at') || Time.current
     last_loaded_for_host = Rails.cache.read(key_for_host)
-    if last_loaded_for_host.blank? || last_change > last_loaded_for_host
+    if last_loaded_for_host.blank? || last_change > last_loaded_for_host # rubocop:disable Style/GuardClause
       FastGettext.cache.reload!
       Rails.cache.write(key_for_host, Time.current)
     end
@@ -275,7 +276,7 @@ class ApplicationController < ActionController::Base
   helper_method :bypass_2fa_enabled?
 
   def set_hostname
-    @op_hostname ||= begin
+    @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
       `hostname`
     rescue StandardError
       'test-server'

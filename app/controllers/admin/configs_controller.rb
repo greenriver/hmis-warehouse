@@ -87,6 +87,7 @@ module Admin
         :enable_youth_hrp,
         :show_client_last_seen_info_in_client_details,
         :ineligible_uses_extrapolated_days,
+        :warehouse_client_name_order,
         client_details: [],
       )
     end

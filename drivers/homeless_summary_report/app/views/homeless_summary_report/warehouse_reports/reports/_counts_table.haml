@@ -1,28 +1,25 @@
-- client = @report.clients.send(detail_variant_name)&.first
+- detail_variant_name = "spm_#{household_category}__#{demographic_category}"
+- headers = if measure == 'Measure 7' then data[:headers].first(4) else data[:headers] end
 .d-flex
   %h3= title
-  - if client
-    - spm_id = client[detail_variant_name]
-    .ml-auto= link_to 'View related SPM report', hud_reports_spm_path(spm_id), target: :_blank
-
-- if client
-  .card.mb-4
-    %table.table.table-striped.mb-0
-      %thead
-        %tr
-          %th
-          - data[:headers].each do |header|
-            %th= header
-      - data[:fields].each do |field, row_data|
-        %tr
-          %th
-            = "#{row_data[:title]}:"
-          - row_data[:calculations].each do |calculation|
-            - if calculation == :count_destinations
-              - @report.destinations.each do |id|
-                %td= @report.calculate(detail_variant_name, field, calculation, row_data.merge(destination: id))
-            - else
-              %td= link_to_if calculation == :count, @report.calculate(detail_variant_name, field, calculation, row_data), details_homeless_summary_report_warehouse_reports_report_path(@report, variant: detail_variant_name, cell: field)
-- else
-  %p.none-found
-    No Clients found.
+  - if demographic_category == 'all'
+    - spm_id = @report.clients.send(detail_variant_name).limit(1).pluck(detail_variant_name)
+    - if spm_id.present?
+      .ml-auto= link_to 'View related SPM report', hud_reports_spm_path(spm_id), target: :_blank
+.card.mb-4
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th
+        - headers.each do |header|
+          %th= header
+    - data[:fields].each do |field, row_data|
+      %tr
+        %th #{row_data[:title]}:
+        - row_data[:calculations].each do |calculation|
+          - if calculation == :count_destinations
+            - @report.destinations.first(3).each.with_index do |id, i|
+              - destination = headers[i + 1]
+              %td= @report.formatted_value_for(section: measure, household_category: household_category, demographic_category: demographic_category, field: field, calculation: calculation, destination: destination)
+          - else
+            %td= link_to_if calculation == :count, @report.formatted_value_for(section: measure, household_category: household_category, demographic_category: demographic_category, field: field, calculation: calculation), details_homeless_summary_report_warehouse_reports_report_path(@report, variant: detail_variant_name, cell: field)

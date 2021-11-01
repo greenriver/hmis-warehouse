@@ -223,6 +223,7 @@ module LsaSqlServer
         :HHTypeEST,
         :HoHEST,
         :AdultEST,
+        :AHARAdultEST,
         :HHChronicEST,
         :HHVetEST,
         :HHDisabilityEST,
@@ -238,6 +239,7 @@ module LsaSqlServer
         :HHTypeRRH,
         :HoHRRH,
         :AdultRRH,
+        :AHARAdultRRH,
         :HHChronicRRH,
         :HHVetRRH,
         :HHDisabilityRRH,
@@ -253,6 +255,7 @@ module LsaSqlServer
         :HHTypePSH,
         :HoHPSH,
         :AdultPSH,
+        :AHARAdultPSH,
         :HHChronicPSH,
         :HHVetPSH,
         :HHDisabilityPSH,
@@ -263,7 +266,6 @@ module LsaSqlServer
         :AC3PlusPSH,
         :AHARPSH,
         :AHARHoHPSH,
-        :AHARAdultPSH,
         :ReportID,
       ]
     end

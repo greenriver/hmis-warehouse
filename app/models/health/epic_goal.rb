@@ -10,13 +10,13 @@
 module Health
   class EpicGoal < EpicBase
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier, "ID of goal"
+    phi_attr :id, Phi::OtherIdentifier, 'ID of goal'
     phi_attr :entered_by, Phi::NeedsReview
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :ordered_date, Phi::Date, "Ordered date"
+    phi_attr :ordered_date, Phi::Date, 'Ordered date'
     phi_attr :goal_created_at, Phi::Date, "Date of goal's creation"
-    phi_attr :title, Phi::FreeText, "Title of goal"
-    phi_attr :contents, Phi::FreeText, "Content of goal"
+    phi_attr :title, Phi::FreeText, 'Title of goal'
+    phi_attr :contents, Phi::FreeText, 'Content of goal'
     phi_attr :received_valid_complaint, Phi::NeedsReview
 
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_goals, optional: true
@@ -28,7 +28,7 @@ module Health
 
     self.source_key = :GOAL_ID
 
-    def self.csv_map(version: nil)
+    def self.csv_map(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       {
         PAT_ID: :patient_id,
         GOAL_ID: :id_in_source,
@@ -45,9 +45,11 @@ module Health
     def objective
       part(:objective)
     end
+
     def steps
       part(:steps)
     end
+
     def team
       part(:team)
     end
@@ -63,6 +65,5 @@ module Health
       }
       @parts[section]
     end
-
   end
 end

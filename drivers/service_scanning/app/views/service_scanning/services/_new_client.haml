@@ -1,10 +1,9 @@
 - if @show_new_client_form
   .slab
-    %p
-      .row
-        .col-sm-6
-          Don't see the client you are looking for?
-        .col-sm-6.text-right
-          = link_to new_client_service_scanning_services_path, class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
-            %span.icon-plus
-            Add a Client
+    .row
+      .col-sm-6
+        Don't see the client you are looking for?
+      .col-sm-6.text-right
+        = link_to new_client_service_scanning_services_path, class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+          %span.icon-plus
+          Add a Client

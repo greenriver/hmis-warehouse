@@ -192,15 +192,19 @@ module GrdaWarehouse::Tasks
     # Find any destination clients that have been marked deleted where the source client is not deleted
     # and a warehouse client record exists.  Un-delete them and queue them for re-processing
     private def restore_previously_deleted_destinations
-      source_client_ids = GrdaWarehouse::Hud::Client.source.select(:id)
-      deleted_destination_ids = GrdaWarehouse::WarehouseClient.
-        where(source_id: source_client_ids).
-        where.not(destination_id: client_destinations.select(:id)).select(:destination_id)
-      return unless deleted_destination_ids.present?
+      destination_client_ids = client_destinations.pluck(:id)
+      known_warehouse_destination_client_ids = GrdaWarehouse::WarehouseClient.
+        where(source_id: GrdaWarehouse::Hud::Client.source.select(:id)).
+        distinct.
+        pluck(:destination_id)
+      deleted_destination_ids = known_warehouse_destination_client_ids - destination_client_ids
+      return unless deleted_destination_ids.any?
 
       @notifier.ping("Restoring #{deleted_destination_ids.count} destination clients and invalidating their data")
-      client_destinations.only_deleted.where(id: deleted_destination_ids).find_each(&:force_full_service_history_rebuild)
-      client_destinations.only_deleted.where(id: deleted_destination_ids).update_all(DateDeleted: nil)
+      deleted_destination_ids.each_slice(5_000) do |batch|
+        client_destinations.only_deleted.where(id: batch).find_each(&:force_full_service_history_rebuild)
+        client_destinations.only_deleted.where(id: batch).update_all(DateDeleted: nil)
+      end
     end
 
     # figure out who doesn't yet have an entry in warehouse clients

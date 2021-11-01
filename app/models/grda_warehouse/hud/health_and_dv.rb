@@ -31,7 +31,7 @@ module GrdaWarehouse::Hud
       ]
     end
 
-    scope :currently_fleeing, ->() do
+    scope :currently_fleeing, -> do
       where(CurrentlyFleeing: 1)
     end
   end
