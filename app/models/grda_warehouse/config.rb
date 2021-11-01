@@ -115,6 +115,13 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_warehouse_client_name_orders
+      {
+        'Name is set initially and not changed' => :earliest,
+        'Name is set to most recently changed source client' => :latest,
+      }
+    end
+
     def self.client_search_available?
       get(:pii_encryption_type).to_sym.in?([:none])
     end
@@ -136,10 +143,10 @@ module GrdaWarehouse
       @cache_store ||= begin
         store = ActiveSupport::Cache::MemoryStore.new
 
-        if ENV["RAILS_LOG_TO_STDOUT"].present?
-          store.logger = Logger.new(STDOUT)
+        if ENV['RAILS_LOG_TO_STDOUT'].present?
+          store.logger = Logger.new($stdout)
         else
-          store.logger = Logger.new(Rails.root.join("log/cache.log"))
+          store.logger = Logger.new(Rails.root.join('log/cache.log'))
         end
 
         store.logger.level = Logger::INFO
