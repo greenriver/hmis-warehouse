@@ -160,9 +160,10 @@ module PerformanceMeasurement
               report_client = report_clients[spm_client[:client_id]] || Client.new
               report_client[:client_id] = spm_client[:client_id]
               report_client[:dob] = spm_client[:dob]
-              report_client["#{variant_name}_stayer"] = spm_client[:m3_active_project_types].present?
+              # report_client["#{variant_name}_stayer"] = spm_client[:m3_active_project_types].present? # This is from 3.1 C6, which we don't calculate
+              report_client["#{variant_name}_first_time"] = spm_client[:m5_active_project_types].present? && spm_client[:m5_recent_project_types].blank?
               report_client[:report_id] = id
-              report_client[detail_variant_name] = spm_client[:report].id
+              report_client["#{variant_name}_spm_id"] = spec[:report].id
               report_clients[spm_client[:client_id]] = report_client
             end
           end
@@ -237,9 +238,14 @@ module PerformanceMeasurement
 
     def spm_fields
       {
-        m3_active_project_types: {
-          cells: [['3.1', 'C6']],
-          title: 'Sheltered Clients',
+        # We don't currently calculate this as it should come from the PIT
+        # m3_active_project_types: {
+        #   cells: [['3.1', 'C6']],
+        #   title: 'Sheltered Clients',
+        # },
+        m5_recent_project_types: {
+          cells: [['5.1', 'C4']],
+          title: 'First Time',
         },
       }
     end

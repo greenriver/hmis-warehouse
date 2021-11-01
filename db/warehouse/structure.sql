@@ -14553,7 +14553,9 @@ CREATE TABLE public.pm_clients (
     comparison_ce_assessment_score integer,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    reporting_spm_id integer,
+    comparison_spm_id integer
 );
 
 
@@ -46081,6 +46083,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211019164536'),
 ('20211020130447'),
 ('20211023193009'),
-('20211027185505');
+('20211027185505'),
+('20211101203339');
 
 
