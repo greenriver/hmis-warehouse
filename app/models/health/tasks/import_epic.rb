@@ -10,7 +10,6 @@ require 'charlock_holmes'
 
 module Health::Tasks
   class ImportEpic
-    include TsqlImport
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :logger
 
@@ -75,12 +74,7 @@ module Health::Tasks
       end
 
       klass.transaction do
-        if klass.use_tsql_import?
-          klass.where(data_source_id: @data_source_id).delete_all
-          insert_batch(klass, clean_values.first.keys, clean_values.map(&:values), transaction: false, batch_size: 500)
-        else
-          klass.process_new_data(clean_values)
-        end
+        klass.process_new_data(clean_values)
       end
     end
 
