@@ -28,6 +28,8 @@ module Health
     end
 
     def self.process_new_data(values)
+      return unless values.present?
+
       where(data_source_id: values.first[:data_source_id]).delete_all # Rather than merge, discard old data
       import(values)
     end
