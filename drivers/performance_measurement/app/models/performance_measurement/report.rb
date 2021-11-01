@@ -64,7 +64,8 @@ module PerformanceMeasurement
     def filter
       @filter ||= begin
         f = ::Filters::FilterBase.new(user_id: user_id)
-        f.update(options.with_indifferent_access) if options.present?
+        f.update(options.with_indifferent_access)
+        f.update(start: f.end - 1.years)
         f
       end
     end
@@ -84,6 +85,28 @@ module PerformanceMeasurement
 
     def title
       _('Performance Measurement Dashboard')
+    end
+
+    protected def build_control_sections
+      [
+        build_simple_control_section,
+      ]
+    end
+
+    private def build_simple_control_section
+      ::Filters::UiControlSection.new(id: 'general').tap do |section|
+        section.add_control(
+          id: 'start',
+          required: true,
+          value: filter.start,
+        )
+        section.add_control(
+          id: 'coc_codes',
+          label: 'CoC Codes',
+          short_label: 'CoC',
+          value: filter.chosen_coc_codes,
+        )
+      end
     end
 
     def multiple_project_types?
@@ -129,39 +152,21 @@ module PerformanceMeasurement
       # Run CoC-wide SPMs for year prior to selected date and period 2 years prior
       # add records for each client to indicate which projects they were enrolled in within the report window
       run_spm.each do |variant_name, spec|
-        { '' => spec[:base_variant] }.merge(spec[:variants]).each do |sub_variant, report|
-          detail_variant_name = "spm_#{variant_name}__#{sub_variant.presence || 'all'}"
-          spm_fields.each do |spm_field, parts|
-            cells = parts[:cells]
-            cells.each do |cell|
-              spm_clients = answer_clients(report[:report], *cell)
-              spm_clients.each do |spm_client|
-                report_client = report_clients[spm_client[:client_id]] || Client.new
-                report_client[:client_id] = spm_client[:client_id]
-                report_client[:first_name] = spm_client[:first_name]
-                report_client[:last_name] = spm_client[:last_name]
-                report_client[:report_id] = id
-                report_client["spm_#{spm_field}"] = spm_client[spm_field]
-                if field_measure(spm_field) == 7
-                  field_name = "spm_m#{cell.join('_')}".delete('.').downcase.to_sym
-                  report_client[field_name] = true
-                end
-                report_client[detail_variant_name] = report[:report].id
-                report_clients[spm_client[:client_id]] = report_client
-              end
+        spm_fields.each do |_spm_field, parts|
+          cells = parts[:cells]
+          cells.each do |cell|
+            spm_clients = answer_clients(spec[:report], *cell)
+            spm_clients.each do |spm_client|
+              report_client = report_clients[spm_client[:client_id]] || Client.new
+              report_client[:client_id] = spm_client[:client_id]
+              report_client[:dob] = spm_client[:dob]
+              report_client["#{variant_name}_stayer"] = spm_client[:m3_active_project_types].present?
+              report_client[:report_id] = id
+              report_client[detail_variant_name] = spm_client[:report].id
+              report_clients[spm_client[:client_id]] = report_client
             end
           end
         end
-      end
-
-      # With all the fields populated we need to process `exited_from_homeless_system`
-      report_clients = report_clients.transform_values! do |client|
-        client.spm_exited_from_homeless_system = (
-            client.spm_m7a1_c3 ||
-            client.spm_m7a1_c4 ||
-            client.spm_m7b1_c3
-          ) && !client.spm_m7b2_c3
-        client
       end
 
       Client.import(
@@ -194,228 +199,49 @@ module PerformanceMeasurement
       ]
       # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
       # so that the returns calculation will work.
+      # For now, we're using a fixed set of project types
       options = filter.to_h
-      options[:project_type_codes] ||= []
-      options[:project_type_codes] += [:es, :so, :sh, :th]
+      options[:project_type_codes] = [:es, :so, :sh, :th, :ph]
+      # Because we want data back for all projects in the CoC we need to run this as the System User who will have access to everything
+      options[:user_id] = User.setup_system_user.id
+
       generator = HudSpmReport::Generators::Fy2020::Generator
       variants.each do |_, spec|
-        base_variant = spec[:base_variant]
-        extra_filters = base_variant[:extra_filters] || {}
-        processed_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id)
-        processed_filter.update(options.deep_merge(extra_filters))
+        processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
+        processed_filter.update(options.deep_merge(spec[:options]))
         report = HudReports::ReportInstance.from_filter(
           processed_filter,
           generator.title,
           build_for_questions: questions,
         )
         generator.new(report).run!(email: false, manual: false)
-        spec[:base_variant][:report] = report
-
-        spec[:variants].each do |_, sub_spec|
-          processed_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id)
-          processed_filter.update(options.deep_merge(extra_filters.merge(sub_spec[:extra_filters] || {})))
-          report = HudReports::ReportInstance.from_filter(
-            processed_filter,
-            generator.title,
-            build_for_questions: questions,
-          )
-          generator.new(report).run!(email: false, manual: false)
-          sub_spec[:report] = report
-        end
+        spec[:report] = report
       end
       # return @variants with reports for each question
       variants
     end
 
     def variants
-      @variants ||= self.class.report_variants
-    end
-
-    def variant_name(variant)
-      @variant_names ||= {}.tap do |names|
-        variants.each do |variant_slug, details|
-          names["#{variant_slug}__all"] = details[:base_variant][:name]
-          details[:variants].each do |sub_variant_slug, sub_details|
-            names["#{variant_slug}__#{sub_variant_slug}"] = sub_details[:name]
-          end
-        end
-      end
-      @variant_names[variant]
-    end
-
-    def self.report_variants
-      household_types = {
-        all_persons: {
-          base_variant: {
-            name: 'All Persons',
-            extra_filters: {
-              household_type: :all,
-            },
-          },
-          variants: {},
+      @variants ||= {
+        reporting: {
+          options: {},
         },
-        with_children: {
-          base_variant: {
-            name: 'Persons in Adult/Child Households',
-            extra_filters: {
-              household_type: :with_children,
-            },
+        comparison: {
+          options: {
+            start: filter.start - 1.years,
+            end: filter.end - 1.years,
           },
-          variants: {},
-        },
-        only_children: {
-          base_variant: {
-            name: 'Persons in Child Only Households',
-            extra_filters: {
-              household_type: :only_children,
-            },
-          },
-          variants: {},
-        },
-        without_children_and_fifty_five_plus: {
-          base_variant: {
-            name: 'Persons in Adult Only Households who are Age 55+',
-            extra_filters: {
-              household_type: :without_children,
-              age_ranges: [
-                :fifty_five_to_fifty_nine,
-                :sixty_to_sixty_one,
-                :over_sixty_one,
-              ],
-            },
-          },
-          variants: {},
-        },
-        adults_with_children_where_parenting_adult_18_to_24: {
-          base_variant: {
-            name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
-            extra_filters: {
-              household_type: :with_children,
-              hoh_only: true,
-              age_ranges: [
-                :eighteen_to_twenty_four,
-              ],
-            },
-          },
-          variants: {},
         },
       }
-      household_types.each do |_, reports|
-        demographic_variants.each do |key, variant|
-          reports[:variants][key] = variant
-        end
-      end
-      household_types.freeze
     end
 
-    def self.available_variants
-      [].tap do |av|
-        report_variants.keys.each do |variant|
-          av << "#{variant}__all"
-          report_variants.values.flat_map { |m| m[:variants].keys }.each do |sub_v|
-            av << "#{variant}__#{sub_v}"
-          end
-        end
-      end
-    end
-
-    def self.demographic_variants
+    def spm_fields
       {
-        white_non_hispanic_latino: {
-          name: 'White Non-Hispanic/Non-Latin(a)(o)(x) Persons',
-          extra_filters: {
-            ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latin(a)(o)(x)', true)],
-            races: ['White'],
-          },
+        m3_active_project_types: {
+          cells: [['3.1', 'C6']],
+          title: 'Sheltered Clients',
         },
-        hispanic_latino: {
-          name: 'Hispanic/Latin(a)(o)(x)',
-          extra_filters: {
-            ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
-          },
-        },
-        black_african_american: {
-          name: 'Black/African American Persons',
-          extra_filters: {
-            races: ['BlackAfAmerican'],
-          },
-        },
-        asian: {
-          name: 'Asian Persons',
-          extra_filters: {
-            races: ['Asian'],
-          },
-        },
-        american_indian_alaskan_native: {
-          name: 'American Indian/Alaskan Native Persons',
-          extra_filters: {
-            races: ['AmIndAKNative'],
-          },
-        },
-        native_hawaiian_other_pacific_islander: {
-          name: 'Native Hawaiian or Pacific Islander',
-          extra_filters: {
-            races: ['NativeHIPacific'],
-          },
-        },
-        multi_racial: {
-          name: 'Multiracial',
-          extra_filters: {
-            races: ['MultiRacial'],
-          },
-        },
-        fleeing_dv: {
-          name: 'Currently Fleeing DV',
-          extra_filters: {
-            currently_fleeing: [1],
-          },
-        },
-        veteran: {
-          name: 'Veterans',
-          extra_filters: {
-            veteran_statuses: [1],
-          },
-        },
-        has_disability: {
-          name: 'With Indefinite and Impairing Disability',
-          extra_filters: {
-            indefinite_disabilities: [1],
-          },
-        },
-        has_rrh_move_in_date: {
-          name: 'Moved in to RRH',
-          extra_filters: {
-            rrh_move_in: true,
-          },
-        },
-        has_psh_move_in_date: {
-          name: 'Moved in to PSH',
-          extra_filters: {
-            psh_move_in: true,
-          },
-        },
-        first_time_homeless: {
-          name: 'First Time Homeless in Past Two Years',
-          extra_filters: {
-            first_time_homeless: true,
-          },
-        },
-        # NOTE: only display this on Measure 1 (it will never work on Measure 2)
-        returned_to_homelessness_from_permanent_destination: {
-          name: 'Returned to Homelessness from Permanent Destination',
-          extra_filters: {
-            returned_to_homelessness_from_permanent_destination: true,
-          },
-        },
-      }.freeze
-    end
-
-    def exclude_variants(measure_name, variant)
-      @exclude_variants ||= {
-        'Measure 2' => [:returned_to_homelessness_from_permanent_destination],
-        'Measure 7' => [:returned_to_homelessness_from_permanent_destination],
       }
-      @exclude_variants[measure_name.to_s]&.include?(variant)
     end
 
     def calculate(variant, field, calculation, options)
