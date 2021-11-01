@@ -347,7 +347,11 @@ module GrdaWarehouse::Tasks
         best_name_client = non_blank_names.max do |a, b|
           comp = b[:NameDataQuality] <=> a[:NameDataQuality] # Desc
           if comp == 0 # rubocop:disable Style/NumericPredicate
-            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
+            comp = if GrdaWarehouse::Config.get(:warehouse_client_name_order).to_s == 'latest'
+              a[:DateCreated] <=> b[:DateCreated] # asc (newer names win)
+            else
+              b[:DateCreated] <=> a[:DateCreated] # desc (original name wins)
+            end
           end
           comp
         end
@@ -534,7 +538,7 @@ module GrdaWarehouse::Tasks
     #     e. Veteran Status (if yes or no)
     #   3. Never remove attribute unless it doesn't exist in any of the sources (never remove name)
     def update_client_demographics_based_on_sources
-      batch_size = 1000
+      batch_size = 1_000
       processed = 0
       changed = {
         dobs: Set.new,
