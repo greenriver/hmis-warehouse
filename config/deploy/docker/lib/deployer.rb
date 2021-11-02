@@ -218,16 +218,22 @@ class Deployer
 
   def _add_latest_tag!
     if image_tag_latest.nil?
-      return
+      return # No latest tag set.
     end
 
     getparams = {
       repository_name: repo_name,
       image_ids: [{
         image_tag: image_tag,
+        image_tag: image_tag_latest
       }]
     }
-    manifest = ecr.batch_get_image(getparams).images[0].image_manifest
+    images = ecr.batch_get_image(getparams).images
+
+    if images.count > 1
+      return # Image with latest-* tag already exists.
+    end
+    manifest = images.image_manifest
 
     putparams = {
       repository_name: repo_name,
