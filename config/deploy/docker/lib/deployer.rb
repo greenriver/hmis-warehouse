@@ -218,7 +218,8 @@ class Deployer
 
   def _add_latest_tag!
     if image_tag_latest.nil?
-      return # No latest tag set.
+      puts "[INFO] Skipping latest tag. No latest tag set (probably this is the pre-cache image)."
+      return
     end
 
     getparams = {
@@ -231,7 +232,8 @@ class Deployer
     images = ecr.batch_get_image(getparams).images
 
     if images.count > 1
-      return # Image with latest-* tag already exists.
+      puts "[INFO] Skipping latest tag. This image has already been pushed with a latest tag for this environment."
+      return
     end
     manifest = images.image_manifest
 
