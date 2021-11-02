@@ -3042,6 +3042,42 @@ ALTER SEQUENCE public.hl7_value_set_codes_id_seq OWNED BY public.hl7_value_set_c
 
 
 --
+-- Name: import_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.import_configs (
+    id bigint NOT NULL,
+    name character varying,
+    host character varying,
+    path character varying,
+    username character varying,
+    encrypted_password character varying,
+    encrypted_password_iv character varying,
+    destination character varying,
+    data_source_name character varying
+);
+
+
+--
+-- Name: import_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.import_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: import_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.import_configs_id_seq OWNED BY public.import_configs.id;
+
+
+--
 -- Name: loaded_ed_ip_visits; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5027,6 +5063,13 @@ ALTER TABLE ONLY public.hl7_value_set_codes ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: import_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_configs ALTER COLUMN id SET DEFAULT nextval('public.import_configs_id_seq'::regclass);
+
+
+--
 -- Name: loaded_ed_ip_visits id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5742,6 +5785,14 @@ ALTER TABLE ONLY public.health_goals
 
 ALTER TABLE ONLY public.hl7_value_set_codes
     ADD CONSTRAINT hl7_value_set_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: import_configs import_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_configs
+    ADD CONSTRAINT import_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -7244,6 +7295,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211006152946'),
 ('20211006153817'),
 ('20211006154441'),
-('20211006204046');
+('20211006204046'),
+('20211029203229'),
+('20211029203304');
 
 
