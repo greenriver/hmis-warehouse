@@ -44,12 +44,12 @@ module PerformanceMeasurement::WarehouseReports
       )
       # Make sure the form will work
       filters
-      respond_with(@report, location: homeless_summary_report_warehouse_reports_reports_path)
+      respond_with(@report, location: performance_measurement_warehouse_reports_reports_path)
     end
 
     def destroy
       @report.destroy
-      respond_with(@report, location: homeless_summary_report_warehouse_reports_reports_path)
+      respond_with(@report, location: performance_measurement_warehouse_reports_reports_path)
     end
 
     def details
@@ -104,7 +104,7 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     private def report_class
-      HomelessSummaryReport::Report
+      PerformanceMeasurement::Report
     end
 
     def filter_params

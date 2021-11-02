@@ -20,6 +20,7 @@ module PerformanceMeasurement
 
     belongs_to :user
     has_many :clients
+    has_many :projects
 
     after_initialize :filter
 
@@ -64,7 +65,7 @@ module PerformanceMeasurement
     def filter
       @filter ||= begin
         f = ::Filters::FilterBase.new(user_id: user_id)
-        f.update(options.with_indifferent_access)
+        f.update((options || {}).with_indifferent_access)
         f.update(start: f.end - 1.years)
         f
       end
@@ -85,6 +86,10 @@ module PerformanceMeasurement
 
     def title
       _('Performance Measurement Dashboard')
+    end
+
+    def report_sections
+      @report_sections ||= build_control_sections
     end
 
     protected def build_control_sections
@@ -151,6 +156,8 @@ module PerformanceMeasurement
     private def add_clients(report_clients)
       # Run CoC-wide SPMs for year prior to selected date and period 2 years prior
       # add records for each client to indicate which projects they were enrolled in within the report window
+      project_clients = Set.new
+      involved_projects = Set.new
       run_spm.each do |variant_name, spec|
         spm_fields.each do |_spm_field, parts|
           cells = parts[:cells]
@@ -161,7 +168,18 @@ module PerformanceMeasurement
               report_client[:client_id] = spm_client[:client_id]
               report_client[:dob] = spm_client[:dob]
               # report_client["#{variant_name}_stayer"] = spm_client[:m3_active_project_types].present? # This is from 3.1 C6, which we don't calculate
-              report_client["#{variant_name}_first_time"] = spm_client[:m5_active_project_types].present? && spm_client[:m5_recent_project_types].blank?
+              parts[:questions].each do |question|
+                report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
+                spm_client[question[:history_source]].each do |row|
+                  involved_projects << row['project_id']
+                  project_clients << {
+                    client_id: spm_client[:client_id],
+                    project_id: row['project_id'],
+                    for_question: question[:name], # allows limiting for a specific response
+                    period: variant_name,
+                  }
+                end
+              end
               report_client[:report_id] = id
               report_client["#{variant_name}_spm_id"] = spec[:report].id
               report_clients[spm_client[:client_id]] = report_client
@@ -238,14 +256,27 @@ module PerformanceMeasurement
 
     def spm_fields
       {
-        # We don't currently calculate this as it should come from the PIT
-        # m3_active_project_types: {
-        #   cells: [['3.1', 'C6']],
-        #   title: 'Sheltered Clients',
-        # },
+        m3_active_project_types: {
+          cells: [['3.2', 'C2']],
+          title: 'Sheltered Clients',
+          questions: [
+            {
+              name: :served_on_pit_date,
+              value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
+              history_source: :m3_history,
+            },
+          ],
+        },
         m5_recent_project_types: {
           cells: [['5.1', 'C4']],
           title: 'First Time',
+          questions: [
+            {
+              name: :first_time,
+              value_calculation: ->(spm_client) { spm_client[:m5_active_project_types].present? && spm_client[:m5_recent_project_types].blank? },
+              history_source: :m5_history,
+            },
+          ],
         },
       }
     end

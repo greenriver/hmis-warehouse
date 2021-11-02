@@ -13288,7 +13288,8 @@ CREATE TABLE public.hud_report_spm_clients (
     m7a1_destination integer,
     m7b1_destination integer,
     m7b2_destination integer,
-    m7_history jsonb
+    m7_history jsonb,
+    m3_history jsonb
 );
 
 
@@ -14450,9 +14451,9 @@ CREATE TABLE public.pm_client_projects (
     id bigint NOT NULL,
     client_id bigint,
     project_id bigint,
-    reporting_period boolean DEFAULT false NOT NULL,
-    comparison_period boolean DEFAULT false NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    for_question character varying,
+    period character varying
 );
 
 
@@ -14585,13 +14586,13 @@ ALTER SEQUENCE public.pm_clients_id_seq OWNED BY public.pm_clients.id;
 CREATE TABLE public.pm_projects (
     id bigint NOT NULL,
     report_id bigint,
-    reporting_period boolean DEFAULT false NOT NULL,
-    comparison_period boolean DEFAULT false NOT NULL,
     reporting_ave_bed_capacity_per_night double precision,
     reporting_ave_clients_per_night double precision,
     comparison_ave_bed_capacity_per_night double precision,
     comparison_ave_clients_per_night double precision,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    project_id integer,
+    period character varying
 );
 
 
@@ -39173,20 +39174,6 @@ CREATE INDEX index_pm_client_projects_on_project_id ON public.pm_client_projects
 
 
 --
--- Name: index_pm_client_projects_on_project_id_and_comparison_period; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pm_client_projects_on_project_id_and_comparison_period ON public.pm_client_projects USING btree (project_id, comparison_period);
-
-
---
--- Name: index_pm_client_projects_on_project_id_and_reporting_period; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pm_client_projects_on_project_id_and_reporting_period ON public.pm_client_projects USING btree (project_id, reporting_period);
-
-
---
 -- Name: index_pm_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43352,20 +43339,6 @@ CREATE INDEX organization_export_id ON public."Organization" USING btree ("Expor
 
 
 --
--- Name: pm_pc_comparison_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX pm_pc_comparison_index ON public.pm_client_projects USING btree (client_id, project_id, comparison_period);
-
-
---
--- Name: pm_pc_reporting_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX pm_pc_reporting_index ON public.pm_client_projects USING btree (client_id, project_id, reporting_period);
-
-
---
 -- Name: ppfc_ppfp_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46084,6 +46057,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211020130447'),
 ('20211023193009'),
 ('20211027185505'),
-('20211101203339');
+('20211101203339'),
+('20211102203208');
 
 

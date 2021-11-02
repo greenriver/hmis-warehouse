@@ -68,7 +68,7 @@ module HudSpmReport::Generators::Fy2020
       first_date_in_program: :first_date_in_program,
       last_date_in_program: :last_date_in_program,
       project_type: :computed_project_type,
-      project_id: :project_id,
+      project_id: p_t[:id],
       project_name: :project_name,
       household_id: she_household_column,
       housing_status_at_entry: :housing_status_at_entry,
@@ -281,6 +281,7 @@ module HudSpmReport::Generators::Fy2020
         enrollment_id: shs_t[:service_history_enrollment_id],
         date: shs_t[:date],
         project_type: shs_t[:project_type],
+        project_id: p_t[:id],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
         DateToStreetESSH: e_t[:DateToStreetESSH],
@@ -321,6 +322,7 @@ module HudSpmReport::Generators::Fy2020
           end.map do |enrollment_id, dates|
             {
               enrollment_id: enrollment_id,
+              project_id: dates.first[:project_id],
               DateToStreetESSH: dates.first[:DateToStreetESSH]&.iso8601,
               first_date_in_program: dates.first[:first_date_in_program]&.iso8601,
               last_date_in_program: dates.first[:last_date_in_program]&.iso8601,
@@ -362,6 +364,7 @@ module HudSpmReport::Generators::Fy2020
       process_scope_by_client(measure_three, active_enrollments_scope.hud_project_type(ES_SH_TH), SHE_COLUMNS) do |_client, enrollments|
         {
           m3_active_project_types: enrollments.map { |e| e[:project_type] }.uniq,
+          m3_history: enrollments.map { |e| { project_id: e[:project_id] } },
         }
       end
     end
@@ -378,7 +381,7 @@ module HudSpmReport::Generators::Fy2020
         PersonalID: c_t[:PersonalID],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
-        project_id: she_t[:project_id],
+        project_id: p_t[:id],
         project_name: she_t[:project_name],
         enrollment_group_id: she_t[:enrollment_group_id],
         project_tracking_method: she_t[:project_tracking_method],

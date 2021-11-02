@@ -1,0 +1,14 @@
+- url = polymorphic_path(@report.report_path_array)
+= simple_form_for @filter, as: :filters, url: url do |f|
+  - content_for :filters_col_full do
+    %p Please note, the report will cover the year prior to the date chosen, and provide a comparison to the year before that.
+    .d-flex
+      .mr-4
+        = f.input :end, as: :date_picker, label: 'End date of period'
+      .mr-auto
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), required: false, input_html: { multiple: true, class: ['select2-id-when-selected'], placeholder: 'Any CoC' }, label: 'CoC Codes', as: :select_two, placeholder: 'Any CoC'
+
+  - content_for :filter_actions do
+    = f.submit 'Queue Report', class: ['btn', 'btn-primary']
+
+  = render 'warehouse_reports/filters', f:f
