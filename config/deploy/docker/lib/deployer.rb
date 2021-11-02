@@ -224,18 +224,29 @@ class Deployer
 
     getparams = {
       repository_name: repo_name,
-      image_ids: [{
-        image_tag: image_tag,
-        image_tag: image_tag_latest
-      }]
+      image_ids: [
+        {image_tag: image_tag},
+        {image_tag: image_tag_latest}
+      ]
     }
     images = ecr.batch_get_image(getparams).images
 
-    if images.count > 1
+    byebug
+    if images.count == 2 && images[0].image_id.image_digest == images[1].image_id.image_digest
       puts "[INFO] Skipping latest tag. This image has already been pushed with a latest tag for this environment."
       return
+    elsif images.count > 2
+      puts "[ERROR] More than two images found, something is wrong."
+      return
+    elsif images.count < 1
+      puts "[ERROR] No images found, something is wrong."
     end
-    manifest = images.image_manifest
+
+    manifest = images.find { |image| image.image_id.image_tag == image_tag }
+
+    if manifest.nil?
+      puts "[ERROR] No manifest found, something is wrong."
+    end
 
     putparams = {
       repository_name: repo_name,
