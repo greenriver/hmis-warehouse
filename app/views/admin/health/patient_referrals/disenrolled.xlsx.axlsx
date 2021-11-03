@@ -11,7 +11,6 @@ wb.add_worksheet(name: 'Pending Removals') do |sheet|
       'Enrollment Start Date',
       'Disenrollment Date',
       "#{@sender.receiver_name} Disenrollment Reason",
-      'Disenrollment Date',
       'ACO Name',
       'Agency',
     ],
