@@ -18,7 +18,7 @@ module GrdaWarehouse::Hud
     self.hud_key = :GeographyID
     acts_as_paranoid column: :DateDeleted
 
-    belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies
+    belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies, optional: true
     has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :geographies
     belongs_to :data_source
@@ -210,7 +210,7 @@ module GrdaWarehouse::Hud
     # when we export, we always need to replace GeographyID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)
-      attributes = self.hud_csv_headers.dup
+      attributes = hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:GeographyID)] = :id
       attributes[attributes.index(:ProjectID)] = 'project.id'

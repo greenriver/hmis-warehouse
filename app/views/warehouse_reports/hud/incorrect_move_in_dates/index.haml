@@ -3,17 +3,18 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = render 'filter'
-- if @enrollments.exists?
+
+- if @pagy.count.positive?
   .d-flex
     .ml-auto.mb-4
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
         %i.icon-download2
         Download
   .d-flex
-    %p= page_entries_info @enrollments, entry_name: _('enrollment')
-    %p.ml-auto= paginate @enrollments
-  .table-responsive
-    %table.table.table-sm.table-hover
+    %p!= pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
+    %p.ml-auto!= pagy_bootstrap_nav(@pagy)
+  .table-responsive.card
+    %table.table.table-striped.mb-0
       %thead
         %tr
           %th Client
@@ -34,4 +35,4 @@
             %td= en.exit&.ExitDate
             %td= HUD.destination(en.exit&.Destination)
   .d-flex
-    %p.ml-auto= paginate @enrollments
+    %p.ml-auto!= pagy_bootstrap_nav(@pagy)

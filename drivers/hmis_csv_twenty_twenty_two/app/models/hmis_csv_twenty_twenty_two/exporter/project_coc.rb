@@ -9,14 +9,15 @@ module HmisCsvTwentyTwentyTwo::Exporter
     include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
     setup_hud_column_access(GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2022'))
 
-    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :project_cocs
+    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :project_cocs, optional: true
 
-    def apply_overrides row, data_source_id:
+    def apply_overrides(row, data_source_id:)
       override = coc_code_override_for(project_coc_id: row[:ProjectCoCID].to_i, data_source_id: data_source_id)
       row[:CoCCode] = override if override
 
       override = geography_type_override_for(project_coc_id: row[:ProjectCoCID].to_i, data_source_id: data_source_id)
       row[:GeographyType] = override if override
+      row[:GeographyType] = 99 if row[:GeographyType].blank?
 
       override = geocode_override_for(project_coc_id: row[:ProjectCoCID].to_i, data_source_id: data_source_id)
       row[:Geocode] = override if override
@@ -28,10 +29,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row[:Address1] = row[:Address1][0...100] if row[:Address1]
       row[:Address2] = row[:Address2][0...100] if row[:Address2]
       row[:City] = row[:City][0...50] if row[:City]
-      row[:ZIP] = row[:ZIP].to_s.rjust(5, '0')[0...5] if row[:ZIP]
+      row[:Zip] = row[:Zip].to_s.rjust(5, '0')[0...5] if row[:Zip]
+      row[:Zip] = '0' * 5 if row[:Zip].blank?
       row[:Geocode] = '0' * 6 if row[:Geocode].blank?
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
-      return row
+      row
     end
 
     def coc_code_override_for(project_coc_id:, data_source_id:)

@@ -285,6 +285,7 @@ module HUD
       162 => 'RHY referral',
       200 => 'Bed night',
       210 => 'HUD-VASH OTH voucher tracking',
+      300 => 'C2 Moving On Assistance Provided',
     }.freeze
   end
 
@@ -988,7 +989,7 @@ module HUD
 
   def institutional_situations(as:, version: nil)
     case version
-    when '2020', nil
+    when '2020', '2022', nil
       case as
       when :prior, :current, :destination
         [
@@ -1005,7 +1006,7 @@ module HUD
 
   def temporary_and_permanent_housing_situations(as:, version: nil)
     case version
-    when '2020', nil
+    when '2020', '2022', nil
       case as
       when :prior, :current
         [
@@ -1055,7 +1056,7 @@ module HUD
 
   def other_situations(as:, version: nil)
     case version
-    when '2020', nil
+    when '2020', '2022', nil
       case as
       when :prior
         [

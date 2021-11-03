@@ -318,7 +318,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/service_history_service.rb",
-      "line": 136,
+      "line": 137,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -643,6 +643,67 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "5a1955512a47a479a1a953ca07fcda49e5e2b0d8e3e3871b3280a89b55bb4d80",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/homeless_summary_report/app/views/homeless_summary_report/warehouse_reports/reports/_counts_table.haml",
+      "line": 6,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "report_class.find(params[:id].to_i).clients.send(\"spm_#{household_category}__#{demographic_category}\").limit(1).pluck(\"spm_#{household_category}__#{demographic_category}\")",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "HomelessSummaryReport::WarehouseReports::ReportsController",
+          "method": "show",
+          "line": 33,
+          "file": "drivers/homeless_summary_report/app/controllers/homeless_summary_report/warehouse_reports/reports_controller.rb",
+          "rendered": {
+            "name": "homeless_summary_report/warehouse_reports/reports/show",
+            "file": "drivers/homeless_summary_report/app/views/homeless_summary_report/warehouse_reports/reports/show.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "homeless_summary_report/warehouse_reports/reports/show",
+          "line": 23,
+          "file": "drivers/homeless_summary_report/app/views/homeless_summary_report/warehouse_reports/reports/show.haml",
+          "rendered": {
+            "name": "homeless_summary_report/warehouse_reports/reports/_counts_table",
+            "file": "drivers/homeless_summary_report/app/views/homeless_summary_report/warehouse_reports/reports/_counts_table.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "homeless_summary_report/warehouse_reports/reports/_counts_table"
+      },
+      "user_input": "household_category",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "5f663e1330e1986e8d398745960c0bc7d3b81ecec41fbb3da180f7eed7495c70",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with parameter value",
+      "file": "app/controllers/data_sources/custom_imports_controller.rb",
+      "line": 19,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "config_scope.find(params[:id].to_i).import_type.constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DataSources::CustomImportsController",
+        "method": "show"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "5fb07f23d96197864df77d4b7aa712e9cf74547e169e91a8f107307827019e80",
@@ -740,7 +801,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 656,
+      "line": 660,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} ADD id BIGINT identity (1,1) NOT NULL; \"))",
       "render_path": null,
@@ -982,7 +1043,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 386,
+      "line": 390,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute(\"drop database #{@rds.database}\\n\")",
       "render_path": null,
@@ -1182,7 +1243,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 57,
+      "line": 61,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1302,7 +1363,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 45,
+      "line": 49,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1633,7 +1694,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 533,
+      "line": 776,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -1812,7 +1873,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 409,
+      "line": 413,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE TABLE #{Reporting::MonthlyReports::Base.remainder_table} (CHECK ( #{\" type NOT IN ('#{Reporting::MonthlyReports::Base.sub_tables.keys.join(\"', '\")}') \"} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});\")",
       "render_path": null,
@@ -1942,7 +2003,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 465,
+      "line": 469,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -2002,7 +2063,7 @@
       "check_name": "Render",
       "message": "Render path contains parameter value",
       "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/_need_map.haml",
-      "line": 30,
+      "line": 32,
       "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
       "code": "render(action => report_scope.find(params[:id].to_i).map_type, {})",
       "render_path": [
@@ -2043,7 +2104,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 785,
+      "line": 787,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -2203,7 +2264,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 665,
+      "line": 669,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} DROP COLUMN id; \"))",
       "render_path": null,
@@ -2362,7 +2423,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 393,
+      "line": 397,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE TABLE #{details[:table_name]} ( CHECK ( #{\"type = '#{details[:type]}'\"} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});\")",
       "render_path": null,
@@ -2376,6 +2437,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-09-22 13:07:05 +0000",
+  "updated": "2021-10-21 22:31:02 +0000",
   "brakeman_version": "5.0.4"
 }

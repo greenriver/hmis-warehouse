@@ -1,5 +1,5 @@
 require 'aws-sdk-route53'
-require 'awesome_print'
+require 'amazing_print'
 
 class Domains
   def list!

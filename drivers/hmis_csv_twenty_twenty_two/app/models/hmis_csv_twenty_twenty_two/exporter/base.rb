@@ -12,7 +12,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     include ::Export::Exporter
     include ::Export::Scopes
 
-    attr_accessor :logger, :notifier_config, :file_path, :version, :export
+    attr_accessor :logger, :notifier_config, :file_path, :version, :export, :include_deleted
 
     def initialize( # rubocop:disable  Metrics/ParameterLists
       version: '2022',
@@ -26,6 +26,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       faked_pii: false,
       include_deleted: false,
       faked_environment: :development,
+      confidential: false,
       file_path: 'var/hmis_export',
       logger: Rails.logger,
       debug: true
@@ -44,6 +45,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       @user = ::User.find(user_id)
       @include_deleted = include_deleted
       @faked_environment = faked_environment
+      @confidential = confidential
     end
 
     def export!

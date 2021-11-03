@@ -10,7 +10,7 @@
 module Health
   class ParticipationFormFile < Health::HealthFile
 
-    belongs_to :participation_form, class_name: 'Health::ParticipationForm', foreign_key: :parent_id
+    belongs_to :participation_form, class_name: 'Health::ParticipationForm', foreign_key: :parent_id, optional: true
 
     def title
       'Participation Form'

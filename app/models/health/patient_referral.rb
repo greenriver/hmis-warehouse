@@ -152,9 +152,9 @@ module Health
     has_many :relationships_unclaimed, -> do
       merge(Health::AgencyPatientReferral.unclaimed)
     end, class_name: 'Health::AgencyPatientReferral'
-    belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: :agency_id
+    belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: :agency_id, optional: true
     belongs_to :patient, optional: true
-    belongs_to :aco, class_name: 'Health::AccountableCareOrganization', foreign_key: :accountable_care_organization_id
+    belongs_to :aco, class_name: 'Health::AccountableCareOrganization', foreign_key: :accountable_care_organization_id, optional: true
 
     def self.first_enrollment_start_date
       Rails.cache.fetch('first_health_enrollment_start_date', expires_in: 1.hours) do

@@ -9,11 +9,6 @@
   %p.mt-4 No clients matched the current criteria.
 - else
   %div
-    SPM Report Variant:
-    %em
-      = "#{@report.variants[@variant.to_sym][:name]}:"
-      = link_to 'view related SPM report', result_hud_reports_spm_measure_path(@spm_id, @measure)
-  %div
     SPM Report Cell:
     %em
       = @cell_name

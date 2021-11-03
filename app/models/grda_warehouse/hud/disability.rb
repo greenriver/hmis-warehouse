@@ -15,8 +15,8 @@ module GrdaWarehouse::Hud
 
     attr_accessor :source_id
 
-    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
-    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities, optional: true
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities, optional: true
     has_one :client, through: :enrollment, inverse_of: :disabilities
     has_one :project, through: :enrollment
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :disabilities, optional: true
@@ -49,7 +49,7 @@ module GrdaWarehouse::Hud
     #################################
 
     scope :sorted_entry_date_information_date, -> do
-      order(e_t[:EntryDate].desc,d_t[:InformationDate].desc)
+      order(e_t[:EntryDate].desc, d_t[:InformationDate].desc)
     end
 
     scope :newest_first, -> do
@@ -96,7 +96,7 @@ module GrdaWarehouse::Hud
     end
 
     # This defines ? methods for each disability type, eg: physical?
-    self.disability_types.each do |hud_key, disability_type|
+    disability_types.each do |hud_key, disability_type|
       define_method "#{disability_type}?".to_sym do
         self.DisabilityType == hud_key
       end
@@ -109,14 +109,14 @@ module GrdaWarehouse::Hud
     # see Disabilities.csv spec version 5
     def response
       if self.DisabilityType == 10
-        ::HUD::list('4.10.2', self.DisabilityResponse)
+        ::HUD.list('4.10.2', self.DisabilityResponse)
       else
-        ::HUD::list('1.8', self.DisabilityResponse)
+        ::HUD.list('1.8', self.DisabilityResponse)
       end
     end
 
     def disability_type_text
-      ::HUD::disability_type self.DisabilityType
+      ::HUD.disability_type self.DisabilityType
     end
 
     def self.related_item_keys

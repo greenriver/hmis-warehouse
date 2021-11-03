@@ -1,0 +1,36 @@
+- if @data.any?
+  .d-flex.mb-4
+    %h2 Details
+    .ml-auto
+      = link_to warehouse_reports_cas_decision_efficiency_index_path(format: :xlsx, params: link_params), class: 'btn btn-secondary' do
+        %i.icon-excel
+        Download
+  .table-responsive.card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Days Between Steps
+          %th= "#{@filter.first_step} completed"
+          %th= "#{@filter.second_step} completed"
+          %th Route
+          %th Program
+          %th Sub Program
+          %th Match started
+          %th Client
+          %th= "#{_('HSA')} Contacts"
+          %th= "#{_('Housing Search Provider')} Contacts"
+          %th= "#{_('Housing Search Provider')} Agencies"
+      %tbody
+        - @data.each do |row|
+          %tr
+            %td= row[:days]
+            %td= row[:first_ended_at]&.to_date
+            %td= row[:second_ended_at]&.to_date
+            %td= row[:match_route]
+            %td= row[:program_name]
+            %td= row[:sub_program_name]
+            %td= link_to(row[:match_stated_at]&.to_date, GrdaWarehouse::Config.get(:cas_url) + "/matches/#{row[:match_id]}",  target: '_blank')
+            %td= "#{row[:first_name]} #{row[:last_name]}"
+            %td= JSON.parse(row[:hsa_contacts])&.map { |m| "#{m['name']} <#{m['email']}>" }.join(', ') if row[:hsa_contacts].present?
+            %td= JSON.parse(row[:hsp_contacts])&.map { |m| "#{m['name']} <#{m['email']}>" }.join(', ') if row[:hsp_contacts].present?
+            %td= JSON.parse(row[:hsp_contacts])&.map { |m| m['agency'] }.join(', ') if row[:hsp_contacts].present?

@@ -40,7 +40,7 @@ module HudApr::Generators::Shared::Fy2021
 
       project_rows = []
 
-      GrdaWarehouse::Hud::Project.find(@report.project_ids).each do |project|
+      GrdaWarehouse::Hud::Project.where(id: @report.project_ids).order(ProjectName: :asc).find_each do |project|
         project_row = [
           project.organization.OrganizationName,
           project.OrganizationID,

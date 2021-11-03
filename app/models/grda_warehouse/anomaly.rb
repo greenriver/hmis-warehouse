@@ -7,7 +7,7 @@
 module GrdaWarehouse
   class Anomaly < GrdaWarehouseBase
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :user, foreign_key: :submitted_by
+    belongs_to :user, foreign_key: :submitted_by, optional: true
     has_many :notes, through: :client, source: :anomaly_notes
 
     scope :resolved, -> { where(status: :resolved) }

@@ -67,7 +67,7 @@ module Health
     # NOTE: not sure if this is the right order but it seems they should have some kind of order
     has_many :hpc_goals, -> { order 'health_goals.start_date' }, class_name: 'Health::Goal::Hpc'
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
 
     has_one :claims_roster, class_name: 'Health::Claims::Roster', primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :amount_paids, class_name: 'Health::Claims::AmountPaid', primary_key: :medicaid_id, foreign_key: :medicaid_id
@@ -105,8 +105,8 @@ module Health
     end
     has_many :patient_referrals
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
-    belongs_to :care_coordinator, class_name: 'User'
-    belongs_to :nurse_care_manager, class_name: 'User'
+    belongs_to :care_coordinator, class_name: 'User', optional: true
+    belongs_to :nurse_care_manager, class_name: 'User', optional: true
     has_many :qualifying_activities
     has_many :status_dates
 

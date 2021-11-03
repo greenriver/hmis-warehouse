@@ -865,7 +865,18 @@ module GrdaWarehouse::Hud
         [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
-        service_history_enrollments.with_service_between(start_date: range.first, end_date: range.last).exists?
+        if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
+          service_history_enrollments.with_service_between(
+            start_date: range.first,
+            end_date: range.last,
+          ).exists?
+        else
+          service_history_enrollments.with_service_between(
+            start_date: range.first,
+            end_date: range.last,
+            service_scope: GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated,
+          ).exists?
+        end
       else
         raise NotImplementedError
       end
@@ -1422,14 +1433,14 @@ module GrdaWarehouse::Hud
       return nil unless GrdaWarehouse::Config.get(:eto_api_available)
 
       api_configs = EtoApi::Base.api_configs
-      source_api_ids.detect do |api_id|
-        api_key = api_configs.select { |_k, v| v['data_source_id'] == api_id.data_source_id }&.keys&.first
+      source_eto_client_lookups.detect do |c_lookup|
+        api_key = api_configs.select { |_k, v| v['data_source_id'] == c_lookup.data_source_id }&.keys&.first
         return nil unless api_key.present?
 
         api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect) rescue nil # rubocop:disable Style/RescueModifier
         image_data = api.client_image( # rubocop:disable Style/RescueModifier
-          client_id: api_id.id_in_data_source,
-          site_id: api_id.site_id_in_data_source,
+          client_id: c_lookup.participant_site_identifier,
+          site_id: c_lookup.site_id,
         ) rescue nil
         (image_data && image_data.length.positive?) # rubocop:disable Style/SafeNavigation
       end
@@ -1441,21 +1452,23 @@ module GrdaWarehouse::Hud
     def image_for_source_client(cache_for = 10.minutes) # rubocop:disable Lint/UnusedMethodArgument
       return '' unless GrdaWarehouse::Config.get(:eto_api_available) && source?
 
-      image_data = nil # rubocop:disable Lint/UselessAssignment
+      image_data = nil
       return fake_client_image_data || self.class.no_image_on_file_image unless Rails.env.production?
       return nil unless GrdaWarehouse::Config.get(:eto_api_available)
 
       api_configs = EtoApi::Base.api_configs
-      api_key = api_configs.select { |_k, v| v['data_source_id'] == api_id.data_source_id }&.keys&.first
-      return nil unless api_key.present?
+      eto_client_lookups.detect do |c_lookup|
+        api_key = api_configs.select { |_k, v| v['data_source_id'] == c_lookup.data_source_id }&.keys&.first
+        return nil unless api_key.present?
 
-      api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect)
-      image_data = api.client_image( # rubocop:disable Style/RescueModifier
-        client_id: api_id.id_in_data_source,
-        site_id: api_id.site_id_in_data_source,
-      ) rescue nil
+        api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect)
+        image_data = api.client_image( # rubocop:disable Style/RescueModifier
+          client_id: c_lookup.participant_site_identifier,
+          site_id: c_lookup.site_id,
+        ) rescue nil
+        (image_data && image_data.length.positive?) # rubocop:disable Style/SafeNavigation
+      end
       set_local_client_image_cache(image_data)
-
       image_data || self.class.no_image_on_file_image
     end
 
@@ -1502,16 +1515,15 @@ module GrdaWarehouse::Hud
     end
 
     def accessible_via_api?
-      GrdaWarehouse::Config.get(:eto_api_available) && source_api_ids.exists?
+      GrdaWarehouse::Config.get(:eto_api_available) && source_hmis_clients.exists?
     end
 
-    # If we have source_api_ids, but are lacking hmis_clients
+    # If we have source_eto_client_lookups, but are lacking hmis_clients
     # or our hmis_clients are out of date
     def requires_api_update?(check_period: 1.day)
       return false unless accessible_via_api?
 
-      api_ids = source_api_ids.count
-      return true if api_ids > source_hmis_clients.count
+      return true if source_eto_client_lookups.distinct.count(:enterprise_guid) > source_hmis_clients.count
 
       last_updated = source_hmis_clients.pluck(:updated_at).max
       return last_updated < check_period.ago if last_updated.present?
@@ -1522,7 +1534,7 @@ module GrdaWarehouse::Hud
     def update_via_api
       return nil unless accessible_via_api?
 
-      client_ids = source_api_ids.pluck(:client_id)
+      client_ids = source_eto_client_lookups.distinct.pluck(:client_id)
       if client_ids.any? # rubocop:disable Style/IfUnlessModifier, Style/GuardClause
         Importing::RunEtoApiUpdateForClientJob.perform_later(destination_id: id, client_ids: client_ids.uniq)
       end
@@ -2312,38 +2324,36 @@ module GrdaWarehouse::Hud
     # Build a set of potential client matches grouped by criteria
     # FIXME: consolidate this logic with merge_candidates below
     def potential_matches
-      @potential_matches ||= begin
-        {}.tap do |m|
-          c_arel = self.class.arel_table
-          # Find anyone with a nickname match
-          nicks = Nickname.for(self.FirstName).map(&:name)
+      @potential_matches ||= {}.tap do |m|
+        c_arel = self.class.arel_table
+        # Find anyone with a nickname match
+        nicks = Nickname.for(self.FirstName).map(&:name)
 
-          if nicks.any?
-            nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
-            similar_destinations = self.class.destination.where(
-              nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search),
-            ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
-              where.not(id: self.id) # rubocop:disable Style/RedundantSelf
-            m[:by_nickname] = similar_destinations if similar_destinations.any?
-          end
-          # Find anyone with similar sounding names
-          alt_first_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.FirstName).to_s).map(&:name)
-          alt_last_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.LastName).to_s).map(&:name)
-          alt_names = alt_first_names + alt_last_names
-          if alt_names.any?
-            alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
-            similar_destinations = self.class.destination.where(
-              nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
-                and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).
-              or(nf('LOWER', [c_arel[:LastName]]).in(alt_names_for_search).
-                and(nf('LOWER', [c_arel[:FirstName]]).matches("#{self.FirstName.downcase}%"))),
-            ).where.not(id: self.id) # rubocop:disable Style/RedundantSelf
-            m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
-          end
-          # Find anyone with similar sounding names
-          # similar_destinations = self.class.where(id: GrdaWarehouse::WarehouseClient.where(source_id:  self.class.source.where("difference(?, FirstName) > 1", self.FirstName).where('LastName': self.class.source.where('soundex(LastName) = soundex(?)', self.LastName).select('LastName')).where.not(id: source_clients.pluck(:id)).pluck(:id)).pluck(:destination_id))
-          # m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
+        if nicks.any?
+          nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
+          similar_destinations = self.class.destination.where(
+            nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search),
+          ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
+            where.not(id: self.id) # rubocop:disable Style/RedundantSelf
+          m[:by_nickname] = similar_destinations if similar_destinations.any?
         end
+        # Find anyone with similar sounding names
+        alt_first_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.FirstName).to_s).map(&:name)
+        alt_last_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.LastName).to_s).map(&:name)
+        alt_names = alt_first_names + alt_last_names
+        if alt_names.any?
+          alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
+          similar_destinations = self.class.destination.where(
+            nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
+              and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).
+            or(nf('LOWER', [c_arel[:LastName]]).in(alt_names_for_search).
+              and(nf('LOWER', [c_arel[:FirstName]]).matches("#{self.FirstName.downcase}%"))),
+          ).where.not(id: self.id) # rubocop:disable Style/RedundantSelf
+          m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
+        end
+        # Find anyone with similar sounding names
+        # similar_destinations = self.class.where(id: GrdaWarehouse::WarehouseClient.where(source_id:  self.class.source.where("difference(?, FirstName) > 1", self.FirstName).where('LastName': self.class.source.where('soundex(LastName) = soundex(?)', self.LastName).select('LastName')).where.not(id: source_clients.pluck(:id)).pluck(:id)).pluck(:destination_id))
+        # m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
       end
 
       # TODO

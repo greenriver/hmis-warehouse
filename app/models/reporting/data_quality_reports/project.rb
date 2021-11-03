@@ -10,8 +10,8 @@ module Reporting::DataQualityReports
 
     self.table_name = :warehouse_data_quality_report_projects
 
-    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', foreign_key: :report_id
-    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
+    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', foreign_key: :report_id, optional: true
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
 
     def calculate_coc_code project:
       project.project_cocs.map(&:CoCCode).uniq.join(', ')

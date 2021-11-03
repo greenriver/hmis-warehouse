@@ -188,6 +188,7 @@ module Filters
           enforce_one_year_range: enforce_one_year_range,
           times_homeless_in_last_three_years: times_homeless_in_last_three_years,
           report_version: report_version,
+          ph: ph,
         },
       }
     end
@@ -216,6 +217,7 @@ module Filters
         :limit_to_vispdat,
         :enforce_one_year_range,
         :report_version,
+        :ph,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],

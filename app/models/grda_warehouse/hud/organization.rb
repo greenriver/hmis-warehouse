@@ -27,11 +27,15 @@ module GrdaWarehouse::Hud
     accepts_nested_attributes_for :projects
 
     # NOTE: you need to add a distinct to this or group it to keep from getting repeats
-    scope :residential, -> {
+    scope :residential, -> do
       joins(:projects).where(
         Project.arel_table[:ProjectType].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS),
       )
-    }
+    end
+
+    scope :confidential, -> do
+      where(confidential: true)
+    end
 
     scope :dmh, -> do
       where(dmh: true)
@@ -209,6 +213,10 @@ module GrdaWarehouse::Hud
           end
         end
       end
+    end
+
+    def self.confidential_organization_name
+      'Confidential Organization'
     end
 
     def self.names

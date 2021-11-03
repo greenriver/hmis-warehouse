@@ -17,6 +17,7 @@ module HudSpmReport::HudReports
         class_name: 'HudSpmReport::Fy2020::SpmClient',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
+        optional: true,
       )
     end
   end

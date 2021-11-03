@@ -8,7 +8,6 @@ require 'csv'
 require 'memoist'
 module GrdaWarehouse::Tasks
   class HmisCsvValidator
-    include HmisTwentyTwenty
     extend Memoist
     attr_accessor :errors, :project_ids, :enrollment_ids, :export_id, :path
     def initialize(path)
@@ -19,7 +18,7 @@ module GrdaWarehouse::Tasks
       return unless path.present? && File.directory?(path)
 
       Rails.logger.debug "Processing HMIS data from #{path}"
-      self.class.importable_files_map.each do |filename, klass_name|
+      HmisCsvTwentyTwentyTwo.importable_files_map.each do |filename, klass_name|
         Rails.logger.debug "Checking #{filename}"
         file_path = File.join(path, filename)
         downcase_converter = ->(header) { header.downcase }
@@ -27,7 +26,7 @@ module GrdaWarehouse::Tasks
         export_ids = Set.new
         klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
         if File.exist?(file_path)
-          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter).each do |row|
+          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true).each do |row|
             unique_keys << row[klass.hud_key.to_s.downcase]
             export_ids << row['exportid']
             self.export_id ||= row['exportid'] if filename == 'Export.csv'
@@ -63,13 +62,13 @@ module GrdaWarehouse::Tasks
       self.errors ||= {}
       self.errors[filename] ||= {}
       self.errors[filename][column] ||= {}
-      self.errors[filename][column][message] ||= { count: 0, example: example}
+      self.errors[filename][column][message] ||= { count: 0, example: example }
       self.errors[filename][column][message][:count] += 1
       self.errors[filename][column][message][:example] ||= example
     end
 
     private def validations(klass)
-      klass.hmis_configuration(version: '2020').map do |column, structure|
+      klass.hmis_configuration(version: '2022').map do |column, structure|
         validation_methods = []
         validation_methods << case structure[:type]
         when :integer

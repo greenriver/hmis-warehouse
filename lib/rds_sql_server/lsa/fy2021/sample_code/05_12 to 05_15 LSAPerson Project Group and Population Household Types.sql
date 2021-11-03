@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  05_12 to 05_15 LSAPerson Project Group and Population Household Types.sql  
-Date:  02 SEP 2021   
+Date:  13 OCT 2021
 
 	
 	5.12 Set Population Identifiers for Active HouseholdIDs
@@ -10,14 +10,15 @@ Date:  02 SEP 2021
 
 	update hhid
 	set hhid.HHChronic = coalesce((select min(
-					case when (lp.CHTime = 365 and lp.CHTimeStatus in (1,2))
-							or (lp.CHTime = 400 and lp.CHTimeStatus = 2) then 1
+					case when ((lp.CHTime = 365 and lp.CHTimeStatus in (1,2))
+							or (lp.CHTime = 400 and lp.CHTimeStatus = 2))
+							and lp.DisabilityStatus = 1 then 1
 						when lp.CHTime in (365, 400) then 2
 						when lp.CHTime = 270 and lp.DisabilityStatus = 1 then 3
 					else null end)
 			from tlsa_Person lp
 			inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID and n.Active = 1 
-				and n.RelationshipToHoH = 1 or n.ActiveAge between 18 and 65
+				and (n.RelationshipToHoH = 1 or n.ActiveAge between 18 and 65)
 			inner join tlsa_HHID hh on hh.HouseholdID = n.HouseholdID
 			where n.HouseholdID = hhid.HouseholdID), 0)
 		, hhid.HHVet = (select max(
@@ -503,37 +504,34 @@ Date:  02 SEP 2021
 	insert into lsa_Person (RowTotal
 		, Gender, Race, Ethnicity, VetStatus, DisabilityStatus
 		, CHTime, CHTimeStatus, DVStatus
-		, ESTAgeMin, ESTAgeMax, HHTypeEST, HoHEST, AdultEST, HHChronicEST, HHVetEST, HHDisabilityEST
+		, ESTAgeMin, ESTAgeMax, HHTypeEST, HoHEST, AdultEST, AHARAdultEST, HHChronicEST, HHVetEST, HHDisabilityEST
 		, HHFleeingDVEST, HHAdultAgeAOEST, HHAdultAgeACEST, HHParentEST, AC3PlusEST, AHAREST, AHARHoHEST
-		, RRHAgeMin, RRHAgeMax, HHTypeRRH, HoHRRH, AdultRRH, HHChronicRRH, HHVetRRH, HHDisabilityRRH
+		, RRHAgeMin, RRHAgeMax, HHTypeRRH, HoHRRH, AdultRRH, AHARAdultRRH, HHChronicRRH, HHVetRRH, HHDisabilityRRH
 		, HHFleeingDVRRH, HHAdultAgeAORRH, HHAdultAgeACRRH, HHParentRRH, AC3PlusRRH, AHARRRH, AHARHoHRRH
-		, PSHAgeMin, PSHAgeMax, HHTypePSH, HoHPSH, AdultPSH, HHChronicPSH, HHVetPSH, HHDisabilityPSH
+		, PSHAgeMin, PSHAgeMax, HHTypePSH, HoHPSH, AdultPSH, AHARAdultPSH, HHChronicPSH, HHVetPSH, HHDisabilityPSH
 		, HHFleeingDVPSH, HHAdultAgeAOPSH, HHAdultAgeACPSH, HHParentPSH, AC3PlusPSH, AHARPSH, AHARHoHPSH
-		, AHARAdultEST, AHARAdultRRH, AHARAdultPSH
 		, ReportID 
 		)
 	select count(distinct PersonalID)
 		, Gender, Race, Ethnicity, VetStatus, DisabilityStatus
 		, CHTime, CHTimeStatus, DVStatus
-		, ESTAgeMin, ESTAgeMax, HHTypeEST, HoHEST, AdultEST, HHChronicEST, HHVetEST, HHDisabilityEST
+		, ESTAgeMin, ESTAgeMax, HHTypeEST, HoHEST, AdultEST, AHARAdultEST, HHChronicEST, HHVetEST, HHDisabilityEST
 		, HHFleeingDVEST, HHAdultAgeAOEST, HHAdultAgeACEST, HHParentEST, AC3PlusEST, AHAREST, AHARHoHEST
-		, RRHAgeMin, RRHAgeMax, HHTypeRRH, HoHRRH, AdultRRH, HHChronicRRH, HHVetRRH, HHDisabilityRRH
+		, RRHAgeMin, RRHAgeMax, HHTypeRRH, HoHRRH, AdultRRH, AHARAdultRRH, HHChronicRRH, HHVetRRH, HHDisabilityRRH
 		, HHFleeingDVRRH, HHAdultAgeAORRH, HHAdultAgeACRRH, HHParentRRH, AC3PlusRRH, AHARRRH, AHARHoHRRH
-		, PSHAgeMin, PSHAgeMax, HHTypePSH, HoHPSH, AdultPSH, HHChronicPSH, HHVetPSH, HHDisabilityPSH
+		, PSHAgeMin, PSHAgeMax, HHTypePSH, HoHPSH, AdultPSH, AHARAdultPSH, HHChronicPSH, HHVetPSH, HHDisabilityPSH
 		, HHFleeingDVPSH, HHAdultAgeAOPSH, HHAdultAgeACPSH, HHParentPSH, AC3PlusPSH, AHARPSH, AHARHoHPSH
-		, AHARAdultEST, AHARAdultRRH, AHARAdultPSH
 		, ReportID 
 	from tlsa_Person
 	group by 
 		Gender, Race, Ethnicity, VetStatus, DisabilityStatus
 		, CHTime, CHTimeStatus, DVStatus
-		, ESTAgeMin, ESTAgeMax, HHTypeEST, HoHEST, AdultEST, HHChronicEST, HHVetEST, HHDisabilityEST
+		, ESTAgeMin, ESTAgeMax, HHTypeEST, HoHEST, AdultEST, AHARAdultEST, HHChronicEST, HHVetEST, HHDisabilityEST
 		, HHFleeingDVEST, HHAdultAgeAOEST, HHAdultAgeACEST, HHParentEST, AC3PlusEST, AHAREST, AHARHoHEST
-		, RRHAgeMin, RRHAgeMax, HHTypeRRH, HoHRRH, AdultRRH, HHChronicRRH, HHVetRRH, HHDisabilityRRH
+		, RRHAgeMin, RRHAgeMax, HHTypeRRH, HoHRRH, AdultRRH, AHARAdultRRH, HHChronicRRH, HHVetRRH, HHDisabilityRRH
 		, HHFleeingDVRRH, HHAdultAgeAORRH, HHAdultAgeACRRH, HHParentRRH, AC3PlusRRH, AHARRRH, AHARHoHRRH
-		, PSHAgeMin, PSHAgeMax, HHTypePSH, HoHPSH, AdultPSH, HHChronicPSH, HHVetPSH, HHDisabilityPSH
+		, PSHAgeMin, PSHAgeMax, HHTypePSH, HoHPSH, AdultPSH, AHARAdultPSH, HHChronicPSH, HHVetPSH, HHDisabilityPSH
 		, HHFleeingDVPSH, HHAdultAgeAOPSH, HHAdultAgeACPSH, HHParentPSH, AC3PlusPSH, AHARPSH, AHARHoHPSH
-		, AHARAdultEST, AHARAdultRRH, AHARAdultPSH
 		, ReportID 
 	
 /*

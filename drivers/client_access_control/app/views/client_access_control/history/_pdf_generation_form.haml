@@ -7,6 +7,6 @@
           .col-sm-5
             %p Generate Homeless Verification PDF
           .col-sm-4
-            = f.input_field :years, collection: {'Last 3 years' => 3, 'Last 5 years' => 5}, include_blank: false, label: false, style: 'width: 100%;', as: :select_two
-          .col-sm-3
+            = f.input :years, as: :select_two, collection: {'Last 3 years' => 3, 'Last 5 years' => 5}, include_blank: false, label: false, style: 'width: 100%;'
+          .col-sm-3.pt-2
             = f.submit 'Generate PDF', class: "btn btn-secondary"

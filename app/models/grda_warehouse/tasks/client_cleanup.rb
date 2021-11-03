@@ -347,7 +347,11 @@ module GrdaWarehouse::Tasks
         best_name_client = non_blank_names.max do |a, b|
           comp = b[:NameDataQuality] <=> a[:NameDataQuality] # Desc
           if comp == 0 # rubocop:disable Style/NumericPredicate
-            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
+            comp = if GrdaWarehouse::Config.get(:warehouse_client_name_order).to_s == 'latest'
+              a[:DateCreated] <=> b[:DateCreated] # asc (newer names win)
+            else
+              b[:DateCreated] <=> a[:DateCreated] # desc (original name wins)
+            end
           end
           comp
         end
@@ -412,7 +416,7 @@ module GrdaWarehouse::Tasks
     def choose_best_gender dest_attr, source_clients
       # Most recent 0 or 1 if no 0 or 1 use the most recent value
       # Valid responses for gender categories are [0, 1, 99]
-      # Valid responses for GenderNone are [8, 9, 99] -- should be null if all other fields are 0 or 99
+      # Valid responses for GenderNone are [8, 9, 99] -- should be null if any other gender field contains a 1
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
       sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
@@ -440,8 +444,12 @@ module GrdaWarehouse::Tasks
         end
       end
 
-      # if we still don't have any responses, use the most-recent GenderNone response
-      dest_attr[:GenderNone] = sorted_source_clients.first[:GenderNone] if dest_attr.values_at(*gender_columns).any?(1)
+      # if we have any yes responses, set this to nil, otherwise use the most-recent GenderNone response
+      if dest_attr.values_at(*gender_columns).any?(1)
+        dest_attr[:GenderNone] = nil
+      else
+        dest_attr[:GenderNone] = sorted_source_clients.first[:GenderNone]
+      end
       dest_attr
     end
 
@@ -478,8 +486,13 @@ module GrdaWarehouse::Tasks
           break if known_values.include?(value)
         end
       end
-      # if we still don't have any responses, use the most-recent RaceNone response
-      dest_attr[:RaceNone] = sorted_source_clients.first[:RaceNone] if dest_attr.values_at(*race_columns).any?(1)
+
+      # if we have any yes responses, set this to nil, otherwise use the most-recent RaceNone response
+      if dest_attr.values_at(*race_columns).any?(1)
+        dest_attr[:RaceNone] = nil
+      else
+        dest_attr[:RaceNone] = sorted_source_clients.first[:RaceNone]
+      end
       dest_attr
     end
 
@@ -525,7 +538,7 @@ module GrdaWarehouse::Tasks
     #     e. Veteran Status (if yes or no)
     #   3. Never remove attribute unless it doesn't exist in any of the sources (never remove name)
     def update_client_demographics_based_on_sources
-      batch_size = 1000
+      batch_size = 1_000
       processed = 0
       changed = {
         dobs: Set.new,

@@ -22,12 +22,19 @@ module PublicReports
     end
 
     def color_shades(category = nil)
+      range = (0..9)
+      # Maps get treated differently, but should use the youth color scheme
+      if category == :map_primary_color
+        range = (0..4)
+        category = :youth_primary_color
+      end
+
       if category.blank? || ! tintable.include?(category.to_sym)
-        (0..9).to_a.map do |i|
+        range.to_a.map do |i|
           shade(i)
         end.compact
       else
-        (0..9).to_a.map do |i|
+        range.to_a.map do |i|
           shade(i, category)
         end.compact
       end
@@ -83,7 +90,7 @@ module PublicReports
 
     # Useful for text on a colored background
     def contrasting_color(hex_color)
-      color = hex_color.gsub('#','')
+      color = hex_color.gsub('#', '')
       convert_to_brightness_value(color) > 382.5 ? darken(color) : lighten(color)
     end
 
@@ -92,7 +99,7 @@ module PublicReports
     end
 
     private def rgb_from_hex(hex)
-      hex = hex.gsub('#','')
+      hex = hex.gsub('#', '')
       hex.scan(/../).map(&:hex)
     end
 

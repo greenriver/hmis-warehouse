@@ -22,7 +22,7 @@
         Download Excel
   %p= page_entries_info @clients, entry_name: _('client')
   .card
-    %table.table.table-sm.table-hover
+    %table.table.table-striped.mb-0
       %thead
         %tr
           %th Last Name
@@ -53,7 +53,7 @@
                 = ::HUD.project_type_brief(client.first_service_history.project.act_as_project_type)
             %td= client.first_service_history.project_name
             %td= client.first_service_history.organization.try(:OrganizationName)
-            %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.join(', ')
+            %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')
   %p= paginate @clients
 - else
   %p.well.none-found No clients found

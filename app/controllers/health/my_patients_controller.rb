@@ -26,15 +26,30 @@ module Health
         when 'engagement_ending'
           @patients = @patients.engagement_ending
         end
+
         if params[:filter][:user].present?
           @active_filter = true
-          @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
+          user_id = if params[:filter][:user] == 'unassigned'
+            nil
+          else
+            params[:filter][:user].to_i
+          end
+
+          @patients = @patients.where(care_coordinator_id: user_id)
         end
+
         if params[:filter][:nurse_care_manager_id].present?
           @active_filter = true
-          @patients = @patients.where(nurse_care_manager_id: params[:filter][:nurse_care_manager_id].to_i)
+          nurse_care_manager_id = if params[:filter][:nurse_care_manager_id] == 'unassigned'
+            nil
+          else
+            params[:filter][:nurse_care_manager_id].to_i
+          end
+
+          @patients = @patients.where(nurse_care_manager_id: nurse_care_manager_id)
         end
       end
+
       respond_to do |format|
         format.html do
           @patients = @patients.order(last_name: :asc, first_name: :asc).
@@ -61,9 +76,9 @@ module Health
           or(patient_source.where(nurse_care_manager_id: current_user.id))
       end
 
-      patient_ids_with_qas_in_month = population.
+      patient_ids_with_payable_qas_in_month = population.
         joins(:qualifying_activities).
-        merge(Health::QualifyingActivity.in_range(Date.current.beginning_of_month..Date.tomorrow)).
+        merge(Health::QualifyingActivity.payable.in_range(Date.current.beginning_of_month..Date.tomorrow)).
         pluck(:id)
 
       population.
@@ -73,7 +88,7 @@ module Health
           population.
             joins(:patient_referral).
             merge(Health::PatientReferral.pending_disenrollment.not_confirmed_rejected).
-            where.not(id: patient_ids_with_qas_in_month),
+            where.not(id: patient_ids_with_payable_qas_in_month),
         )
     end
 
