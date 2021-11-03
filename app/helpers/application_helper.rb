@@ -72,6 +72,14 @@ module ApplicationHelper
     end
   end
 
+  def change_direction_icon direction, tooltip: ''
+    allow_directions = [:up, :down, :none]
+    direction = :none if allow_directions.exclude? direction
+    tooltip_data = {}
+    tooltip_data = { toggle: :tooltip, title: tooltip } if tooltip.present?
+    embedded_svg("change-#{direction}")
+  end
+
   def svg_checkbox(wrapper_class:, symbol_name:, size: 'xs', tooltip: nil)
     capture do
       content_tag(:span, class: "icon-svg--#{size} #{wrapper_class} mr-2", data: { toggle: :tooltip, title: tooltip }) do

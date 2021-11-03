@@ -13,3 +13,16 @@
   font-size: 16px;
   font-weight: bold;
 }
+
+.bb-xgrid-line.date-tick line {
+  stroke: #ccc !important;
+}
+
+.bb-xgrid-line.date-tick.--start-of-month line {
+  stroke: black !important;
+  stroke-width: 3px;
+}
+
+.bb-xgrid-line.date-tick.--start-of-week line {
+  stroke: #333 !important;
+}

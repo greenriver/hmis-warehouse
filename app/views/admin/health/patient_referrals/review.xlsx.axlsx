@@ -1,8 +1,29 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Patient Assignments to Review") do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {hosizontal: :center})
-  sheet.add_row(['First Name', 'Last Name', 'DOB', 'Medicaid ID'])
+wb.add_worksheet(name: 'Assignments to Review') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, format_code: '@', alignment: {hosizontal: :center})
+  text = sheet.styles.add_style(format_code: '@')
+  sheet.add_row(
+    [
+      'Medicaid ID',
+      'Last Name',
+      'First Name',
+      'DOB',
+      'Enrollment Start Date',
+      'ACO Name',
+    ],
+    style: title,
+  )
   @patient_referrals.each do |pr|
-    sheet.add_row([pr.first_name, pr.last_name, pr.birthdate, pr.medicaid_id])
+    sheet.add_row(
+      [
+        pr.medicaid_id,
+        pr.last_name,
+        pr.first_name,
+        pr.birthdate,
+        pr.enrollment_start_date,
+        pr.aco_name.presence || pr.aco&.short_name,
+      ],
+      style: [text, text, text, nil, nil, text],
+    )
   end
 end

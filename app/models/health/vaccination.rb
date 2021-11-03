@@ -190,10 +190,6 @@ module Health
       GrdaWarehouse::HealthEmergency::Vaccination.import(new_vaccinations) if new_vaccinations.present?
     end
 
-    def self.use_tsql_import?
-      false
-    end
-
     def self.vaccination_type_options
       {
         'ModernaTX, Inc.' => MODERNA,

@@ -240,6 +240,7 @@ group :development do
   gem 'flamegraph', require: false
   gem 'stackprof', require: false
   gem 'active_record_query_trace', require: false
+  gem 'marginalia'
   gem 'overcommit', require: false
   gem 'rubocop', require: false
   gem 'rubocop-rspec', require: false

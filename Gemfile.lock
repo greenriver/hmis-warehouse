@@ -472,6 +472,9 @@ GEM
     mail (2.7.1)
       mini_mime (>= 0.1.1)
     marcel (1.0.2)
+    marginalia (1.11.1)
+      actionpack (>= 5.2)
+      activerecord (>= 5.2)
     maxminddb (0.1.22)
     memoist (0.16.2)
     memory_profiler (0.9.14)
@@ -947,6 +950,7 @@ DEPENDENCIES
   list_matcher
   lograge
   logstop
+  marginalia
   maxminddb
   memoist
   memory_profiler

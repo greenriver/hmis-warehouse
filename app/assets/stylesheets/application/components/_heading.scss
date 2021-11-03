@@ -9,3 +9,16 @@
 .c-heading--full-bleed {
   @include full-bleed;
 }
+
+.c-heading--shout {
+  text-transform: uppercase;
+}
+
+@for $i from 1 through length($indicator-colors) {
+  $color: lighten(nth($indicator-colors, $i), 10%);
+  .c-heading--highlight-#{$i} {
+    color: determine-color-for-best-contrast($color);
+    background: $color;
+    padding: space(2);
+  }
+}

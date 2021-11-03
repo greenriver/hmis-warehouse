@@ -1,0 +1,23 @@
+%h1.mb-4 CoC indicator comparison table
+
+:ruby
+  indicator_levels = ["System-Level Indicators", "Project-Level Indicators"]
+%table.table.c-table--indicator
+  %thead
+    %th.blank{style: "width: 15%"}
+    - indicator_levels.each do |level|
+      %th{style: "width: #{85.0/indicator_levels.length.to_f}%"}=level
+  %tbody
+    - @indicator_groups.each_with_index do |group, i|
+      %tr.c-table__row{class: "c-table__row--highlight-#{i+1}"}
+        %th.level{style: "width: 15%"}
+          .h2=group[:title]
+          %p.font-weight-normal=group[:description]
+        %td.p-0{colspan: 2, style: "width: 85%"}
+          %table.table
+            - indicators = group[:indicators]
+            - indicators.each do |indicator_set|
+              %tr
+                - indicator_set.each do |indicator|
+                  %td{colspan: indicator_set.one? ? indicator_levels.length : 1 }
+                    = render "warehouse_reports/indicator", indicator: indicator, constrain_width: indicator_set.one?
