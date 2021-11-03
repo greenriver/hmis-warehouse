@@ -1,0 +1,42 @@
+:scss
+  // This is only to get the modal to render as a block-level element
+  // for previewing style
+  .styleguide-modal {
+    position: static;
+    opacity: 1;
+    display: block;
+    .modal-dialog {
+      transform: none;
+    }
+  }
+  section {
+    margin-bottom: 75px;
+  }
+
+%section
+  %h1 Default Modal
+  - id = "default"
+  - content_for("modal-footer-#{id}") do
+    %button.btn.btn-secondary{data: {dismiss: "modal"}, type: "button"} Close
+    %button.btn.btn-primary{type: "button"} Save changes
+  - content_for("modal-body-#{id}") do
+    %div=lorem(sentence_count: 10)
+  = render "style_guides/modal", id: id, title: "Default Modal"
+
+%section
+  %h1 Modal with color-coded headers/headings
+  - id = "color-headers"
+  - content_for("modal-header-#{id}") do
+    .modal-header--highlight-2
+      .modal-header__content
+        %h5.modal-title
+          %span.modal-title--primary Brief
+          %span.modal-title--secondary Length of Time Homeless
+        %button.close{aria: {label: "Close"}, data:{dismiss: "modal"}, type: "button"}
+          %span{"aria-hidden" => "true"} ×
+      %p.note #{l(Date.today - 1.month)} - #{l(Date.today)}
+  - content_for("modal-body-#{id}") do
+    %div{style: 'min-height: 200px'}
+      - (1..3).each do |i|
+        %h3.c-heading--shout{class: "c-heading--highlight-#{i}"} Heading #{i}
+  = render "style_guides/modal", id: id
