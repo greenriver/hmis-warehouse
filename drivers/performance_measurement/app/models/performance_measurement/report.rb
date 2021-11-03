@@ -164,7 +164,7 @@ module PerformanceMeasurement
           cells.each do |cell|
             spm_clients = answer_clients(spec[:report], *cell)
             spm_clients.each do |spm_client|
-              report_client = report_clients[spm_client[:client_id]] || Client.new
+              report_client = report_clients[spm_client[:client_id]] || Client.new(report_id: id)
               report_client[:client_id] = spm_client[:client_id]
               report_client[:dob] = spm_client[:dob]
               # report_client["#{variant_name}_stayer"] = spm_client[:m3_active_project_types].present? # This is from 3.1 C6, which we don't calculate
@@ -173,6 +173,7 @@ module PerformanceMeasurement
                 spm_client[question[:history_source]].each do |row|
                   involved_projects << row['project_id']
                   project_clients << {
+                    report_id: id,
                     client_id: spm_client[:client_id],
                     project_id: row['project_id'],
                     for_question: question[:name], # allows limiting for a specific response
@@ -180,7 +181,6 @@ module PerformanceMeasurement
                   }
                 end
               end
-              report_client[:report_id] = id
               report_client["#{variant_name}_spm_id"] = spec[:report].id
               report_clients[spm_client[:client_id]] = report_client
             end
@@ -195,6 +195,8 @@ module PerformanceMeasurement
           columns: Client.attribute_names.map(&:to_sym),
         },
       )
+      Project.import([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] })
+      ClientProject.import(project_clients.first.keys, project_clients)
       universe.add_universe_members(report_clients)
     end
 

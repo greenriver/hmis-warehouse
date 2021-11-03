@@ -14452,6 +14452,7 @@ CREATE TABLE public.pm_client_projects (
     client_id bigint,
     project_id bigint,
     deleted_at timestamp without time zone,
+    report_id integer,
     for_question character varying,
     period character varying
 );

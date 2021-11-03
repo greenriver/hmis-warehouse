@@ -1,5 +1,6 @@
 class AdjustPerformanceMeasurementFields < ActiveRecord::Migration[5.2]
   def change
+    add_column :pm_client_projects, :report_id, :integer
     add_column :pm_client_projects, :for_question, :string
     add_column :pm_client_projects, :period, :string
     remove_column :pm_client_projects, :reporting_period, :boolean
