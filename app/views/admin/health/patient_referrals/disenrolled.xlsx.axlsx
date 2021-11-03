@@ -1,8 +1,35 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Assigned Patients") do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {hosizontal: :center})
-  sheet.add_row(['First Name', 'Last Name', 'DOB', 'Medicaid ID', 'Agency', "#{@sender.receiver_name} Disenrollment Reason", 'Disenrollment Date'])
+wb.add_worksheet(name: 'Pending Removals') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, format_code: '@', alignment: {hosizontal: :center})
+  text = sheet.styles.add_style(format_code: '@')
+  sheet.add_row(
+    [
+      'Medicaid ID',
+      'Last Name',
+      'First Name',
+      'DOB',
+      'Enrollment Start Date',
+      'Disenrollment Date',
+      "#{@sender.receiver_name} Disenrollment Reason",
+      'ACO Name',
+      'Agency',
+    ],
+    style: title,
+  )
   @patient_referrals.each do |pr|
-    sheet.add_row([pr.first_name, pr.last_name, pr.birthdate, pr.medicaid_id, pr.assigned_agency&.name, pr.stop_reason_description, pr.actual_or_pending_disenrollment_date])
+    sheet.add_row(
+      [
+        pr.medicaid_id,
+        pr.last_name,
+        pr.first_name,
+        pr.birthdate,
+        pr.enrollment_start_date,
+        pr.actual_or_pending_disenrollment_date,
+        pr.stop_reason_description,
+        pr.aco_name.presence || pr.aco&.short_name,
+        pr.assigned_agency&.name,
+      ],
+      style: [text, text, text, nil, nil, nil, text, text, text],
+    )
   end
 end
