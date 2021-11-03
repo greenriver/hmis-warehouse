@@ -8,9 +8,12 @@ module Importing
   class RunHealthImportJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
+    PILOT_IMPORT = 'pilot'.freeze
+
     def perform
       change_counts = Health::Tasks::ImportEpic.new.run!
-      change_counts.merge!(Health::Tasks::PatientClientMatcher.new.run!)
+      change_counts[PILOT_IMPORT] ||= {}
+      change_counts[PILOT_IMPORT].merge!(Health::Tasks::PatientClientMatcher.new.run!)
       Health::EpicTeamMember.process!
       Health::EpicQualifyingActivity.update_qualifying_activities!
       Health::QualifyingActivity.transaction do
@@ -19,7 +22,7 @@ module Importing
       end
       Health::Patient.update_demographic_from_sources
 
-      return unless change_counts.values.sum.positive?
+      return unless change_counts.values.reduce([]) { |arr, hash| arr << hash.values }.flatten.sum.positive?
 
       # consent changes are only computed for pilot patients, so this produces confusing messages
       # if the data in the import from Epic is corrupted.
