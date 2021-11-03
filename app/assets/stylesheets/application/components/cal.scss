@@ -1,0 +1,40 @@
+.c-cal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.c-cal__week {
+  margin-bottom: 2px;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.c-cal__day {
+  min-height: 30px;
+  background: #FFF;
+  border-radius: 3px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #f9f9f9;
+  margin-left: 2px;
+  margin-right: 2px;
+  flex: 1 1 .14285714%;
+  overflow: hidden;
+  &.fill,
+  &.past {
+    background: none;
+    color: #CCC;
+  }
+  &.active {
+    background: #333;
+    color: white;
+    font-weight: bold;
+  }
+}
+.c-cal__day--label {
+  text-align: center;
+  height: auto;
+  background: none;
+}

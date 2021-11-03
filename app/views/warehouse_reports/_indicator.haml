@@ -1,0 +1,16 @@
+- if indicator
+  .c-indicator{class: ("c-indicator--constrained-width" if constrain_width)}
+    .c-indicator__title=indicator[:title]
+    .c-indicator__content
+      .c-indicator__passed{class: indicator[:passed] ? "pass" : "fail"}
+        = checkmark_or_x(indicator[:passed])
+      - base_value_classname = "c-indicator__value"
+      .c-indicator__values
+        - [:primary_value, :secondary_value].each do |key|
+          - if indicator[key]
+            %div{class: [base_value_classname, "#{base_value_classname}--#{key.to_s.gsub('_value', '')}"]}
+              %span.c-indicator__value-number= indicator.dig(key, :value)
+              %span.c-indicator__value-unit= indicator.dig(key, :unit)
+        .c-indicator__change-icon= change_direction_icon(indicator[:direction])
+        - if indicator[:value_label].present?
+          %span.c-indicator__label=sanitize(indicator[:value_label])
