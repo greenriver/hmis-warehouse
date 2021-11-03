@@ -235,17 +235,17 @@ class Deployer
       puts "[INFO] Skipping latest tag. This image has already been pushed with a latest tag for this environment."
       return
     elsif images.count > 2
-      puts "[ERROR] More than two images found during latest-* check, something is wrong."
+      raise "More than two images found during latest-* check, something is wrong."
       return
     elsif images.count < 1
-      puts "[ERROR] No images matching tag #{image_tag} found during latest-* check, something is wrong."
+      raise "No images matching tag #{image_tag} found during latest-* check, something is wrong."
     end
 
     image = images.find { |image| image.image_id.image_tag == image_tag }
     manifest = image.image_manifest
 
     if manifest.nil?
-      puts "[ERROR] No manifest matching tag #{image_tag} found during latest-* check, something is wrong."
+      raise "No manifest matching tag #{image_tag} found during latest-* check, something is wrong."
     end
 
     putparams = {
