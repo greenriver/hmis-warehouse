@@ -15,7 +15,7 @@
 
       = f.input :DOB, as: :date_picker, label: 'DOB'
     .col-sm-6
-      = f.input :Gender, collection: HUD::genders.invert, as: :select_two
+      = f.input :Gender, collection: HUD::genders.invert, as: :select_two, input_html: { multiple: true }
       = f.input :VeteranStatus, collection: HUD::no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status', as: :select_two
 
   = f.submit value: 'Save', class: 'btn btn-secondary'

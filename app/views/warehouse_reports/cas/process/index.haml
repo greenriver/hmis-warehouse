@@ -16,9 +16,9 @@
     .col-sm-10
       %p
         The following matches started between #{@range.start} and #{@range.end}.  Looking at the time between
-        %strong #{@step_range.first}
+        %strong #{@step_range.first_step}
         and
-        %strong #{@step_range.second}.
+        %strong #{@step_range.second_step}.
     .col-sm-2.ml-auto
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel

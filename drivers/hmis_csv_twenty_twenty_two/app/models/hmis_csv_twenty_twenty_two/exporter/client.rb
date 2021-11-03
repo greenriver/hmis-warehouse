@@ -30,17 +30,36 @@ module HmisCsvTwentyTwentyTwo::Exporter
       )
     end
 
-    def apply_overrides row, data_source_id: # rubocop:disable Lint/UnusedMethodArgument
+    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
       row[:FirstName] = row[:FirstName][0...50] if row[:FirstName]
       row[:MiddleName] = row[:MiddleName][0...50] if row[:MiddleName]
       row[:LastName] = row[:LastName][0...50] if row[:LastName]
       row[:NameSuffix] = row[:NameSuffix][0...50] if row[:NameSuffix]
 
-      row[:NameDataQuality] = 99 if row[:NameDataQuality].blank?
-      row[:SSNDataQuality] = 99 if row[:SSNDataQuality].blank?
-      row[:DOBDataQuality] = 99 if row[:DOBDataQuality].blank?
+      [
+        :NameDataQuality,
+        :SSNDataQuality,
+        :DOBDataQuality,
+        :GenderNone,
+        :Female,
+        :Male,
+        :NoSingleGender,
+        :Transgender,
+        :Questioning,
+        :VeteranStatus,
+        :AmIndAKNative,
+        :Asian,
+        :BlackAfAmerican,
+        :NativeHIPacific,
+        :White,
+        :Ethnicity,
+        :VeteranStatus,
+      ].each do |required_column|
+        row[required_column] = 99 if row[required_column].blank?
+      end
+      row[:UserID] = 'op-system' if row[:UserID].blank?
 
-      return row
+      row
     end
 
     # There are situations where clients have multiple source clients,

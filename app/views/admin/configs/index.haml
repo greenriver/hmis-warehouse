@@ -42,6 +42,7 @@
           = f.input :infer_family_from_household_id, label: 'Should "presented as an individual" be inferred from the count of matching household ids? (unchecked uses project inventory HouseholdType)'
           = f.input :expose_coc_code, label: 'Expose CoC Code on client dashboard rows?', hint: 'This is most useful if the installation spans multiple CoCs'
           = f.input :enable_youth_hrp, label: 'Enable Youth Housing Resolution Plans'
+          = f.input :warehouse_client_name_order, label: 'How should the names on clients be calculated?', collection: GrdaWarehouse::Config.available_warehouse_client_name_orders, as: :select_two
 
       %section.o-section-card
         %h3 Reporting Options
@@ -102,6 +103,7 @@
           = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', as: :select_two, input_html: { multiple: true }
           = f.input :health_priority_age, label: 'Age above which should be automatically flagged as health prioritized'
           = f.input :domestic_violence_lookback_days, label: 'How long should a victim of domestic violence be considered a victim?', collection: GrdaWarehouse::Config.dv_days, as: :select_two
+          = f.input :ineligible_uses_extrapolated_days, label: 'Should calculations of ineligibility for CAS and Cohorts include extrapolated days?'
 
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
 = content_for :page_js do

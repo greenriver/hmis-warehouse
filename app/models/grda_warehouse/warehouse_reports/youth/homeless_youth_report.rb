@@ -189,7 +189,6 @@ module GrdaWarehouse::WarehouseReports::Youth
       @stably_housed_b ||= get_client_ids(stably_housed_case_management_during_range) - stably_housed_a
     end
 
-
     def five_a
       @five_a ||= get_client_ids(received_flex_funds_scope)
     end
@@ -356,7 +355,7 @@ module GrdaWarehouse::WarehouseReports::Youth
       @six_q ||= begin
         result = {}
         available_types = GrdaWarehouse::Youth::YouthReferral.new.available_referrals -
-            [ 'Referred to other services / activities not listed above', 'Other' ]
+            ['Referred to other services / activities not listed above', 'Other']
         groups = referral_in_range_scope.pluck(:referred_to, :client_id).group_by(&:first)
         groups.each do |group, items|
           next if available_types.include?(group)
@@ -437,28 +436,27 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def f_two_a
       @f_two_a ||= get_client_ids(all_served.
-          where('client_race ?| array[:race]', race: 'White' ))
+          where('client_race ?| array[:race]', race: 'White'))
     end
 
     def f_two_b
       @f_two_b ||= get_client_ids(all_served.
-          where('client_race ?| array[:race]', race: 'BlackAfAmerican' ))
+          where('client_race ?| array[:race]', race: 'BlackAfAmerican'))
     end
 
     def f_two_c
       @f_two_c ||= get_client_ids(all_served.
-          where('client_race ?| array[:race]', race: 'Asian' ))
+          where('client_race ?| array[:race]', race: 'Asian'))
     end
 
     def f_two_d
       @f_two_d ||= get_client_ids(all_served.
-          where('client_race ?| array[:race]', race: 'AmIndAKNative' ))
+          where('client_race ?| array[:race]', race: 'AmIndAKNative'))
     end
 
     def f_two_e
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @f_two_e ||= get_client_ids(all_served.
-        where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
+        where('client_race ?| array[:race]', race: ['NativeHIPacific', 'RaceNone']))
     end
 
     def f_two_f
@@ -613,32 +611,31 @@ module GrdaWarehouse::WarehouseReports::Youth
     def g_two_a
       @g_two_a ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: 'White' ))
+          where('client_race ?| array[:race]', race: 'White'))
     end
 
     def g_two_b
       @g_two_b ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: 'BlackAfAmerican' ))
+          where('client_race ?| array[:race]', race: 'BlackAfAmerican'))
     end
 
     def g_two_c
       @g_two_c ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: 'Asian' ))
+          where('client_race ?| array[:race]', race: 'Asian'))
     end
 
     def g_two_d
       @g_two_d ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: 'AmIndAKNative' ))
+          where('client_race ?| array[:race]', race: 'AmIndAKNative'))
     end
 
     def g_two_e
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @g_two_e ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
+          where('client_race ?| array[:race]', race: ['NativeHIPacific', 'RaceNone']))
     end
 
     def g_two_f
@@ -688,32 +685,31 @@ module GrdaWarehouse::WarehouseReports::Youth
     def h_two_a
       @h_two_a ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: 'White' ))
+          where('client_race ?| array[:race]', race: 'White'))
     end
 
     def h_two_b
       @h_two_b ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: 'BlackAfAmerican' ))
+          where('client_race ?| array[:race]', race: 'BlackAfAmerican'))
     end
 
     def h_two_c
       @h_two_c ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: 'Asian' ))
+          where('client_race ?| array[:race]', race: 'Asian'))
     end
 
     def h_two_d
       @h_two_d ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: 'AmIndAKNative' ))
+          where('client_race ?| array[:race]', race: 'AmIndAKNative'))
     end
 
     def h_two_e
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       @h_two_e ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
+          where('client_race ?| array[:race]', race: ['NativeHIPacific', 'RaceNone']))
     end
 
     def h_two_f
@@ -865,7 +861,7 @@ module GrdaWarehouse::WarehouseReports::Youth
       {
         'Yes, in RRH' => 'RRH',
         'Yes, in market-rate housing' => 'Market-Rate',
-        'Yes, in transitional housing'=> 'Transitional',
+        'Yes, in transitional housing' => 'Transitional',
         'Yes, with family' => 'Family',
       }
     end
@@ -878,6 +874,5 @@ module GrdaWarehouse::WarehouseReports::Youth
           'Experiencing homelessness: in shelter',
         ]
     end
-
   end
 end

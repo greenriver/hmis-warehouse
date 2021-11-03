@@ -84,14 +84,13 @@ module Reporting::DataQualityReports
   class Enrollment < ReportingBase
     include ArelHelper
 
-    COMPLETE = [1, 2]
-    REFUSED = [8, 9]
-    YES_NO = [0,1]
-    VALID_GENDERS = [0,1,2,3,4]
+    COMPLETE = [1, 2].freeze
+    REFUSED = [8, 9].freeze
+    YES_NO = [0, 1].freeze
 
     self.table_name = :warehouse_data_quality_report_enrollments
 
-    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', foreign_key: :report_id
+    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', foreign_key: :report_id, optional: true
 
     scope :enrolled, -> do
       where enrolled: true
@@ -134,34 +133,35 @@ module Reporting::DataQualityReports
       where should_have_income_annual_assessment: true
     end
 
-    def is_adult? date:
+    def is_adult? date: # rubocop:disable Naming/PredicateName
       age = calculate_age date: date
       age.present? && age > 18
     end
 
-    def is_exited? exit_record:, report_start:, report_end:
+    def is_exited? exit_record:, report_start:, report_end: # rubocop:disable Naming/PredicateName
       exit_record.present? && exit_record.ExitDate.in?(report_start..report_end)
     end
 
-    def is_entered? entry_date:, report_start:, report_end:
-       entry_date.in?(report_start..report_end)
+    def is_entered? entry_date:, report_start:, report_end: # rubocop:disable Naming/PredicateName
+      entry_date.in?(report_start..report_end)
     end
 
     def calculate_age date:
       GrdaWarehouse::Hud::Client.age date: date, dob: dob
     end
 
-    def is_stayer? report_end:, exit_date:
+    def is_stayer? report_end:, exit_date: # rubocop:disable Naming/PredicateName
       return true if exit_date.blank?
+
       exit_date > report_end
     end
 
-    def is_leaver? report_end:, exit_date:
+    def is_leaver? report_end:, exit_date: # rubocop:disable Naming/PredicateName
       exit_date.present? && exit_date <= report_end
     end
 
     # Blanks should not be allowed according to the spec
-    def is_head_of_household? enrollment:
+    def is_head_of_household? enrollment: # rubocop:disable Naming/PredicateName
       enrollment.RelationshipToHoH.blank? || enrollment.RelationshipToHoH == 1
     end
 
@@ -181,8 +181,9 @@ module Reporting::DataQualityReports
       dob.present? && dob > entry_date
     end
 
-    def is_active? project:, service_dates:, report_start:, report_end:
+    def is_active? project:, service_dates:, report_start:, report_end: # rubocop:disable Naming/PredicateName
       return true unless project.bed_night_tracking?
+
       ((report_start..report_end).to_a & service_dates).any?
     end
 
@@ -211,20 +212,22 @@ module Reporting::DataQualityReports
       if ! project.bed_night_tracking? || exit_date.blank? || service_dates.blank?
         false
       else
-        service_dates.max > exit_date rescue false
+        begin
+          service_dates.max > exit_date
+        rescue StandardError
+          false
+        end
       end
     end
 
     # NOTE: days served between start and (exit or report_end), whichever is earlier
-    def calculate_days_of_service project:, service_dates:, entry_date:, exit_date:,  report_end:
+    def calculate_days_of_service project:, service_dates:, entry_date:, exit_date:, report_end:
       if project.bed_night_tracking?
-        service_dates.select{ |d| d <= report_end }.uniq.count
+        service_dates.select { |d| d <= report_end }.uniq.count
+      elsif exit_date.present? && exit_date <= report_end
+        (exit_date - entry_date).to_i
       else
-        if exit_date.present? && exit_date <= report_end
-          (exit_date - entry_date).to_i
-        else
-          (report_end - entry_date).to_i
-        end
+        (report_end - entry_date).to_i
       end
     end
 
@@ -232,7 +235,7 @@ module Reporting::DataQualityReports
     # We're adding in not collected and complete so these need to be added in the following
     # order
     # refused, not collected, missing, partial, complete
-    def set_name_completeness  first_name:, last_name:, name_quality:
+    def set_name_completeness first_name:, last_name:, name_quality:
       if calculate_name_refused(name_quality: name_quality)
         self.name_refused = true
         return
@@ -268,8 +271,7 @@ module Reporting::DataQualityReports
       name_quality == 99
     end
 
-
-    def set_ssn_completeness  ssn:, ssn_quality:
+    def set_ssn_completeness ssn:, ssn_quality:
       if calculate_ssn_refused(ssn_quality: ssn_quality)
         self.ssn_refused = true
         return
@@ -309,7 +311,7 @@ module Reporting::DataQualityReports
       ssn_quality == 99
     end
 
-    def set_dob_completeness  dob:, dob_quality:, head_of_household:, entry_date:, enrollment_created_date:
+    def set_dob_completeness dob:, dob_quality:, head_of_household:, entry_date:, enrollment_created_date:
       if calculate_dob_refused(dob_quality: dob_quality)
         self.dob_refused = true
         return
@@ -323,7 +325,7 @@ module Reporting::DataQualityReports
         dob_quality: dob_quality,
         head_of_household: head_of_household,
         entry_date: entry_date,
-        enrollment_created_date: enrollment_created_date
+        enrollment_created_date: enrollment_created_date,
       )
         self.dob_missing = true
         return
@@ -362,35 +364,35 @@ module Reporting::DataQualityReports
       dob_quality == 99
     end
 
-    def set_gender_completeness  gender:
-      if calculate_gender_refused(gender: gender)
+    def set_gender_completeness(gender_none:, gender_multi:)
+      if calculate_gender_refused(gender_none: gender_none)
         self.gender_refused = true
         return
       end
-      if calculate_gender_not_collected(gender: gender)
+      if calculate_gender_not_collected(gender_none: gender_none)
         self.gender_not_collected = true
         return
       end
-      if calculate_gender_missing(gender: gender)
+      if calculate_gender_missing(gender_multi: gender_multi)
         self.gender_missing = true
         return
       end
       self.gender_complete = true
     end
 
-    def calculate_gender_refused gender:
-      gender.in?(REFUSED)
+    def calculate_gender_refused gender_none:
+      gender_none.in?(REFUSED)
     end
 
-    def calculate_gender_missing gender:
-      gender.blank?
+    def calculate_gender_missing gender_multi:
+      gender_multi.blank?
     end
 
-    def calculate_gender_not_collected gender:
-      gender == 99
+    def calculate_gender_not_collected gender_none:
+      gender_none == 99
     end
 
-    def set_veteran_completeness  veteran:, entry_date:
+    def set_veteran_completeness veteran:, entry_date:
       if calculate_veteran_refused(veteran: veteran, entry_date: entry_date)
         self.veteran_refused = true
         return
@@ -408,11 +410,13 @@ module Reporting::DataQualityReports
 
     def calculate_veteran_refused veteran:, entry_date:
       return false unless is_adult?(date: entry_date)
+
       veteran.in?(REFUSED)
     end
 
     def calculate_veteran_missing veteran:, entry_date:
       return false unless is_adult?(date: entry_date)
+
       veteran.blank?
     end
 
@@ -420,7 +424,7 @@ module Reporting::DataQualityReports
       veteran == 99
     end
 
-    def set_ethnicity_completeness  ethnicity:
+    def set_ethnicity_completeness ethnicity: # rubocop:disable Naming/AccessorMethodName
       if calculate_ethnicity_refused(ethnicity: ethnicity)
         self.ethnicity_refused = true
         return
@@ -510,12 +514,14 @@ module Reporting::DataQualityReports
 
     def calculate_disabling_condition_refused disabling_condition:
       return false unless is_adult?(date: Date.current)
+
       disabling_condition.in?(REFUSED)
     end
 
     def calculate_disabling_condition_missing disabling_condition:, all_indefinite_and_impairs:
       return false unless is_adult?(date: Date.current)
-      disabling_condition.blank? || disabling_condition == 0 && all_indefinite_and_impairs.present? && all_indefinite_and_impairs.any?(1)
+
+      disabling_condition.blank? || disabling_condition.zero? && all_indefinite_and_impairs.present? && all_indefinite_and_impairs.any?(1)
     end
 
     def calculate_disabling_condition_not_collected disabling_condition:
@@ -544,37 +550,40 @@ module Reporting::DataQualityReports
 
     def calculate_destination_refused destination:, head_of_household:
       return false unless is_adult?(date: Date.current) || head_of_household
+
       destination.in?(REFUSED)
     end
 
     def calculate_destination_missing destination:, head_of_household:
       return false unless is_adult?(date: Date.current) || head_of_household
+
       destination.blank?
     end
 
     def calculate_destination_not_collected destination:, head_of_household:
       return false unless is_adult?(date: Date.current) || head_of_household
+
       destination.in? [30, 99]
     end
 
-    def set_prior_living_situation_completeness  prior_living_situation:, head_of_household:
+    def set_prior_living_situation_completeness prior_living_situation:, head_of_household:
       if calculate_prior_living_situation_refused(
         prior_living_situation: prior_living_situation,
-        head_of_household: head_of_household
+        head_of_household: head_of_household,
       )
         self.prior_living_situation_refused = true
         return
       end
       if calculate_prior_living_situation_not_collected(
         prior_living_situation: prior_living_situation,
-        head_of_household: head_of_household
+        head_of_household: head_of_household,
       )
         self.prior_living_situation_not_collected = true
         return
       end
       if calculate_prior_living_situation_missing(
         prior_living_situation: prior_living_situation,
-        head_of_household: head_of_household
+        head_of_household: head_of_household,
       )
         self.prior_living_situation_missing = true
         return
@@ -584,37 +593,40 @@ module Reporting::DataQualityReports
 
     def calculate_prior_living_situation_refused prior_living_situation:, head_of_household:
       return false unless is_adult?(date: Date.current) || head_of_household
+
       prior_living_situation.in?(REFUSED)
     end
 
     def calculate_prior_living_situation_missing prior_living_situation:, head_of_household:
       return false unless is_adult?(date: Date.current) || head_of_household
+
       prior_living_situation.blank?
     end
 
     def calculate_prior_living_situation_not_collected prior_living_situation:, head_of_household:
       return false unless is_adult?(date: Date.current) || head_of_household
+
       prior_living_situation == 99
     end
 
-    def set_income_at_entry_completeness  income_at_entry:
+    def set_income_at_entry_completeness income_at_entry: # rubocop:disable Naming/AccessorMethodName
       if calculate_income_at_entry_refused(
         income_at_entry: income_at_entry,
-        head_of_household: head_of_household
+        head_of_household: head_of_household,
       )
         self.income_at_entry_refused = true
         return
       end
       if calculate_income_at_entry_not_collected(
         income_at_entry: income_at_entry,
-        head_of_household: head_of_household
+        head_of_household: head_of_household,
       )
         self.income_at_entry_not_collected = true
         return
       end
       if calculate_income_at_entry_missing(
         income_at_entry: income_at_entry,
-        head_of_household: head_of_household
+        head_of_household: head_of_household,
       )
         self.income_at_entry_missing = true
         return
@@ -624,16 +636,19 @@ module Reporting::DataQualityReports
 
     def calculate_income_at_entry_refused income_at_entry:, head_of_household:
       return false unless is_adult?(date: Date.current) || head_of_household
+
       income_at_entry.present? && income_at_entry.IncomeFromAnySource.in?(REFUSED)
     end
 
     def calculate_income_at_entry_missing income_at_entry:, head_of_household:
       return false unless is_adult?(date: Date.current) || head_of_household
+
       income_at_entry.blank? || income_at_entry.IncomeFromAnySource.blank?
     end
 
     def calculate_income_at_entry_not_collected income_at_entry:, head_of_household:
       return false unless is_adult?(date: Date.current) || head_of_household
+
       income_at_entry.present? && income_at_entry.IncomeFromAnySource == 99
     end
 
@@ -672,6 +687,7 @@ module Reporting::DataQualityReports
       return false unless is_adult?(date: Date.current) || head_of_household
       return false if exit_date.blank? # no exit
       return false if exit_date > report_end # exit after report end
+
       income_at_exit.present? && income_at_exit.IncomeFromAnySource.in?(REFUSED)
     end
 
@@ -679,6 +695,7 @@ module Reporting::DataQualityReports
       return false unless is_adult?(date: Date.current) || head_of_household
       return false if exit_date.blank? # no exit
       return false if exit_date > report_end # exit after report end
+
       income_at_exit.blank? || income_at_exit.IncomeFromAnySource.blank?
     end
 
@@ -686,12 +703,13 @@ module Reporting::DataQualityReports
       return false unless is_adult?(date: Date.current) || head_of_household
       return false if exit_date.blank? # no exit
       return false if exit_date > report_end # exit after report end
+
       income_at_exit.present? && income_at_exit.IncomeFromAnySource == 99
     end
 
     def set_income_at_annual_completeness entry_date:, exit_date:, income_record:, head_of_household:, report_end:
       # Short circuit if we shouldn't have a record
-      if ! should_calculate_annual_completeness?(
+      unless should_calculate_annual_completeness?(
         entry_date: entry_date,
         exit_date: exit_date,
         head_of_household: head_of_household,
@@ -740,6 +758,7 @@ module Reporting::DataQualityReports
         head_of_household: head_of_household,
         report_end: report_end,
       )
+
       income_record.present? && income_record.IncomeFromAnySource.in?(REFUSED)
     end
 
@@ -750,6 +769,7 @@ module Reporting::DataQualityReports
         head_of_household: head_of_household,
         report_end: report_end,
       )
+
       income_record.blank? || income_record.IncomeFromAnySource.blank?
     end
 
@@ -760,6 +780,7 @@ module Reporting::DataQualityReports
         head_of_household: head_of_household,
         report_end: report_end,
       )
+
       income_record.present? && income_record.IncomeFromAnySource == 99
     end
 
@@ -767,82 +788,92 @@ module Reporting::DataQualityReports
     # or heads-of-household at entry
     def should_calculate_income_change? entry_date:, head_of_household:
       return true if is_adult?(date: entry_date) || head_of_household
+
       return false
     end
 
     # This should be nil unless we have some income
-    def calculate_income_at_entry_earned income_at_entry:,  entry_date:, head_of_household:
+    def calculate_income_at_entry_earned income_at_entry:, entry_date:, head_of_household:
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_at_entry.present?
+
       income_for_types(types: earned_income_types, income_record: income_at_entry)
     end
 
     def calculate_income_at_entry_non_employment_cash income_at_entry:,  entry_date:, head_of_household:
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_at_entry.present?
+
       income_for_types(types: non_employment_cash_income_types, income_record: income_at_entry)
     end
 
     def calculate_income_at_entry_overall income_at_entry:,  entry_date:, head_of_household:
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_at_entry.present?
+
       income_for_types(
         types: (earned_income_types + non_employment_cash_income_types),
-        income_record: income_at_entry
+        income_record: income_at_entry,
       )
     end
 
-    def calculate_income_at_later_date_earned income_record:,  entry_date:, head_of_household:, report_end:
+    def calculate_income_at_later_date_earned income_record:, entry_date:, head_of_household:, report_end: # rubocop:disable Lint/UnusedMethodArgument
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_record.present?
+
       income_for_types(
         types: earned_income_types,
-        income_record: income_record
+        income_record: income_record,
       )
     end
 
-    def calculate_income_at_later_date_non_employment_cash income_record:,  entry_date:, head_of_household:, report_end:
+    def calculate_income_at_later_date_non_employment_cash income_record:,  entry_date:, head_of_household:, report_end: # rubocop:disable Lint/UnusedMethodArgument
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_record.present?
+
       income_for_types(
         types: non_employment_cash_income_types,
-        income_record: income_record
+        income_record: income_record,
       )
     end
 
-    def calculate_income_at_later_date_overall income_record:,  entry_date:, head_of_household:, report_end:
+    def calculate_income_at_later_date_overall income_record:,  entry_date:, head_of_household:, report_end: # rubocop:disable Lint/UnusedMethodArgument
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_record.present?
+
       income_for_types(
         types: (earned_income_types + non_employment_cash_income_types),
-        income_record: income_record
+        income_record: income_record,
       )
     end
 
-    def calculate_income_at_penultimate_earned income_record:,  entry_date:, head_of_household:, report_end:
+    def calculate_income_at_penultimate_earned income_record:,  entry_date:, head_of_household:, report_end: # rubocop:disable Lint/UnusedMethodArgument
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_record.present?
+
       income_for_types(
         types: earned_income_types,
-        income_record: income_record
+        income_record: income_record,
       )
     end
 
-    def calculate_income_at_penultimate_non_employment_cash income_record:,  entry_date:, head_of_household:, report_end:
+    def calculate_income_at_penultimate_non_employment_cash income_record:,  entry_date:, head_of_household:, report_end: # rubocop:disable Lint/UnusedMethodArgument
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_record.present?
+
       income_for_types(
         types: non_employment_cash_income_types,
-        income_record: income_record
+        income_record: income_record,
       )
     end
 
-    def calculate_income_at_penultimate_overall income_record:,  entry_date:, head_of_household:, report_end:
+    def calculate_income_at_penultimate_overall income_record:, entry_date:, head_of_household:, report_end: # rubocop:disable Lint/UnusedMethodArgument
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_record.present?
+
       income_for_types(
         types: (earned_income_types + non_employment_cash_income_types),
-        income_record: income_record
+        income_record: income_record,
       )
     end
 
@@ -850,14 +881,16 @@ module Reporting::DataQualityReports
     # more than one year since the report end
     def should_calculate_annual_completeness? entry_date:, exit_date:, head_of_household:, report_end:
       return true if (is_adult?(date: entry_date) || head_of_household) && entry_date + 1.years < report_end && (exit_date.blank? || exit_date.present? && entry_date + 1.years < exit_date)
+
       return false
     end
 
     # similar to income at exit, but the InformationDate must be within the past year
-    def calculate_income_at_annual_earned income_record:,  entry_date:, exit_date:, head_of_household:, report_end:
+    def calculate_income_at_annual_earned income_record:, entry_date:, exit_date:, head_of_household:, report_end:
       return unless should_calculate_annual_completeness?(entry_date: entry_date, exit_date: exit_date, head_of_household: head_of_household, report_end: report_end)
       return unless income_record.present?
       return unless income_record.InformationDate < report_end && income_record.InformationDate + 1.years >= report_end
+
       income_for_types(
         types: earned_income_types,
         income_record: income_record,
@@ -865,10 +898,11 @@ module Reporting::DataQualityReports
     end
 
     # similar to income at exit, but the InformationDate must be within the past year
-    def calculate_income_at_annual_non_employment_cash income_record:,  entry_date:, exit_date:, head_of_household:, report_end:
+    def calculate_income_at_annual_non_employment_cash income_record:, entry_date:, exit_date:, head_of_household:, report_end:
       return unless should_calculate_annual_completeness?(entry_date: entry_date, exit_date: exit_date, head_of_household: head_of_household, report_end: report_end)
       return unless income_record.present?
       return unless income_record.InformationDate < report_end && income_record.InformationDate + 1.years >= report_end
+
       income_for_types(
         types: non_employment_cash_income_types,
         income_record: income_record,
@@ -876,10 +910,11 @@ module Reporting::DataQualityReports
     end
 
     # similar to income at exit, but the InformationDate must be within the past year
-    def calculate_income_at_annual_overall income_record:,  entry_date:, exit_date:, head_of_household:, report_end:
+    def calculate_income_at_annual_overall income_record:, entry_date:, exit_date:, head_of_household:, report_end:
       return unless should_calculate_annual_completeness?(entry_date: entry_date, exit_date: exit_date, head_of_household: head_of_household, report_end: report_end)
       return unless income_record.present?
       return unless income_record.InformationDate < report_end && income_record.InformationDate + 1.years >= report_end
+
       income_for_types(
         types: (earned_income_types + non_employment_cash_income_types),
         income_record: income_record,
@@ -888,14 +923,16 @@ module Reporting::DataQualityReports
 
     def later_income incomes:, report_end:
       return nil unless incomes.present?
+
       @later_income ||= incomes.select do |income|
         income.DataCollectionStage.in?([3, 2, 5]) && income.InformationDate.present? && income.InformationDate <= report_end
-      end.sort_by(&:InformationDate).last
+      end.max_by(&:InformationDate)
     end
 
     def penultimate_income incomes:, report_end:
       return nil unless incomes.present?
       return nil unless incomes.count > 1
+
       @penultimate_income ||= incomes.select do |income|
         income.InformationDate.present? && income.InformationDate <= report_end
       end.sort_by(&:InformationDate).last(2).first
@@ -903,6 +940,7 @@ module Reporting::DataQualityReports
 
     def income_for_types types:, income_record:
       return unless income_record.present?
+
       income = nil
       types.each do |type|
         income_for_type = income_record[type.to_s]
@@ -936,17 +974,19 @@ module Reporting::DataQualityReports
         :PensionAmount,
         :ChildSupportAmount,
         :AlimonyAmount,
-        :OtherIncomeAmount
+        :OtherIncomeAmount,
       ]
     end
 
     def calculate_days_to_move_in_date entry_date:, move_in_date:
       return nil unless move_in_date.present?
+
       (move_in_date - entry_date).to_i
     end
 
     def calculate_days_in_ph_before_move_in_date project_type:, entry_date:, move_in_date:, report_end:
       return nil unless project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
+
       # if we don't have a move-in-date use the earlier of report_end and today.
       # if the report_end is before the move-in-date use the report end
       # if for some odd reason we are running this with a future report_end, use today
@@ -958,6 +998,7 @@ module Reporting::DataQualityReports
       return false if project.serves_families? && project.serves_individuals?
       return false if household_type == 'individual' && project.serves_individuals?
       return false if household_type == 'family' && project.serves_families?
+
       return true
     end
   end

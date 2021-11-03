@@ -13,7 +13,7 @@ module HudReports
     self.table_name = 'hud_report_universe_members'
 
     belongs_to :report_cell, class_name: 'HudReports::ReportCell'
-    belongs_to :universe_membership, polymorphic: true, inverse_of: :hud_reports_universe_members
+    belongs_to :universe_membership, polymorphic: true, inverse_of: :hud_reports_universe_members, optional: true
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   end

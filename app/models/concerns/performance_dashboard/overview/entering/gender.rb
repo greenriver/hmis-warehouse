@@ -15,10 +15,24 @@ module PerformanceDashboard::Overview::Entering::Gender
       entering.
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:client_id, c_t[:Gender], :first_date_in_program).each do |id, gender, _|
-          counted[gender_bucket(gender)] ||= Set.new
-          buckets[gender_bucket(gender)] << id unless counted[gender_bucket(gender)].include?(id)
-          counted[gender_bucket(gender)] << id
+        pluck(:client_id, *HUD.gender_fields.map { |g| c_t[g] }, :first_date_in_program).each do |row|
+          id = row.first
+          _entry_date = row.last
+          row = row.slice(1..-1) # remove first and last elements from the row
+          genders = HUD.gender_fields.map.with_index do |k, i|
+            if k == :GenderNone
+              row[i]
+            elsif row[i] == 1
+              HUD.gender_id_to_field_name.invert[k]
+            end
+          end.compact
+          next unless genders.present?
+
+          genders.each do |gender|
+            counted[gender_bucket(gender)] ||= Set.new
+            buckets[gender_bucket(gender)] << id unless counted[gender_bucket(gender)].include?(id)
+            counted[gender_bucket(gender)] << id
+          end
         end
       buckets
     end
@@ -52,10 +66,6 @@ module PerformanceDashboard::Overview::Entering::Gender
       order(she_t[:first_date_in_program].desc)
     details = details.where(gender_query(sub_key)) if sub_key
     details.pluck(*detail_columns(options).values).
-      map do |row|
-        row[-1] = "#{HUD.gender(row.last)} (#{row.last})"
-        row
-      end.
       index_by(&:first)
   end
 end

@@ -15,7 +15,7 @@ module PerformanceMetrics
 
     acts_as_paranoid
 
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :clients
 
     after_initialize :filter
@@ -649,7 +649,7 @@ module PerformanceMetrics
         'Question 16',
       ]
       caper_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(filter.to_h)
-      generator = HudApr::Generators::Caper::Fy2020::Generator
+      generator = HudApr::Generators::Caper::Fy2021::Generator
       caper_report = HudReports::ReportInstance.from_filter(caper_filter, generator.title, build_for_questions: questions)
       generator.new(caper_report).run!(email: false, manual: false)
       caper_report

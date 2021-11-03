@@ -125,7 +125,7 @@ namespace :grda_warehouse do
 
   desc 'S3 Import HUD Zips from all Data Sources'
   task import_data_sources_s3: [:environment, 'log:info_to_stdout'] do
-    Importers::HmisAutoDetect::S3.available_connections.each do |conf|
+    Importers::HmisAutoMigrate::S3.available_connections.each do |conf|
       next unless conf.active?
 
       options = {
@@ -137,13 +137,17 @@ namespace :grda_warehouse do
         path: conf.s3_path,
         file_password: conf.zip_file_password,
       }
-      Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisAutoDetect::S3', options: options)
+      # Deal with fetching more than one file
+      conf.possible_files.each do |file_name|
+        options[:file_name] = file_name
+        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisAutoMigrate::S3', options: options)
+      end
     end
   end
 
   desc 'Sync from FTPS -> S3'
   task ftps_s3_sync: [:environment, 'log:info_to_stdout'] do
-     GrdaWarehouse::LftpS3Sync.find_each(&:fetch_and_push)
+    GrdaWarehouse::LftpS3Sync.find_each(&:fetch_and_push)
   end
 
   desc 'Identify duplicates'

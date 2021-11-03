@@ -116,10 +116,18 @@ module
         {}.tap do |clients|
           report_scope.joins(:client).order(first_date_in_program: :desc).
             distinct.
-            pluck(:client_id, age_calculation, c_t[:Gender], :first_date_in_program).
-            each do |client_id, age, gender, _|
+            pluck(:client_id, age_calculation, c_t[:Female], c_t[:Male], c_t[:NoSingleGender], c_t[:Transgender], c_t[:Questioning], c_t[:GenderNone], :first_date_in_program).
+            each do |client_id, age, female, male, no_single_gender, transgender, questioning, gender_none, _|
+              genders = {
+                Male: male,
+                Female: female,
+                NoSingleGender: no_single_gender,
+                Transgender: transgender,
+                Questioning: questioning,
+                GenderNone: gender_none,
+              }
               clients[client_id] ||= {
-                gender: gender.presence || 99,
+                gender: GrdaWarehouse::Hud::Client.gender_binary(genders).presence || 99,
                 age: age,
               }
             end

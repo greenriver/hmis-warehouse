@@ -13,6 +13,13 @@ module HMIS::Structure::Base
     scope :delete_pending, -> do
       where.not(pending_date_deleted: nil)
     end
+
+    def imported_item_type(importer_log_id)
+      # NOTE: add additional years here as the spec changes, always the newest first for performance
+      return '2022' if RailsDrivers.loaded.include?(:hmis_csv_importer) && imported_items_2022.where(importer_log_id: importer_log_id).exists?
+
+      '2020'
+    end
   end
 
   module ClassMethods
@@ -20,13 +27,17 @@ module HMIS::Structure::Base
       :DateDeleted
     end
 
+    def hud_csv_version
+      @hud_csv_version ||= '2022'
+    end
+
     # default name for a CSV file
-    def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+    def hud_csv_file_name(version: hud_csv_version) # rubocop:disable Lint/UnusedMethodArgument
       "#{name.demodulize}.csv"
     end
 
     # an array (in order) of the expected columns for hud CSV data
-    def hud_csv_headers(version: nil)
+    def hud_csv_headers(version: hud_csv_version)
       hmis_structure(version: version).keys.freeze
     end
 
@@ -96,7 +107,7 @@ module HMIS::Structure::Base
       @additional_upsert_columns || []
     end
 
-    def upsert_column_names(version: nil)
+    def upsert_column_names(version: hud_csv_version)
       @upsert_column_names ||= (hud_csv_headers(version: version) +
         [:source_hash, :pending_date_deleted] +
         additional_upsert_columns -
@@ -107,7 +118,7 @@ module HMIS::Structure::Base
       []
     end
 
-    def hmis_table_create!(version: nil, constraints: true, types: true)
+    def hmis_table_create!(version: hud_csv_version, constraints: true, types: true)
       return if connection.table_exists?(table_name)
 
       connection.create_table table_name do |t|
@@ -126,20 +137,25 @@ module HMIS::Structure::Base
       end
     end
 
-    def hmis_table_create_indices!(version: nil)
+    def hmis_table_create_indices!(version: hud_csv_version)
+      existing_indices = connection.indexes(table_name).map { |i| [i.name, i.columns] }
       hmis_indices(version: version).each do |columns, _|
         # enforce a short index name
         # cols = columns.map { |c| "#{c[0..5]&.downcase}#{c[-4..]&.downcase}" }
         # name = ([table_name[0..4]+table_name[-4..]] + cols).join('_')
-        name = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + SecureRandom.alphanumeric(4)
-        next if connection.index_exists?(table_name, columns, name: name)
+        name = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + Digest::MD5.hexdigest(columns.join('_'))[0, 4]
+        next if existing_indices.include?([name, columns.map(&:to_s)])
 
         connection.add_index table_name, columns, name: name
       end
     end
 
-    def hmis_structure(version: nil)
+    def hmis_structure(version: hud_csv_version)
       hmis_configuration(version: version).transform_values { |v| v.select { |k| k.in?(HMIS_STRUCTURE_KEYS) } }
+    end
+
+    def keys_for_migrations(version: hud_csv_version)
+      hmis_configuration(version: version).keys.map(&:to_s) + ['id']
     end
 
     HMIS_STRUCTURE_KEYS = [:type, :limit, :null].freeze

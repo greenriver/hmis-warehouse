@@ -17,6 +17,7 @@ module HudApr::HudReports
         class_name: 'HudApr::Fy2020::AprClient',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
+        optional: true,
       )
 
       # duplicate belongs_to to
@@ -28,6 +29,7 @@ module HudApr::HudReports
         class_name: 'HudApr::Fy2020::AprClient',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
+        optional: true,
       )
 
       # duplicate belongs_to to
@@ -39,6 +41,7 @@ module HudApr::HudReports
         class_name: 'HudApr::Fy2020::AprClient',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
+        optional: true,
       )
     end
   end

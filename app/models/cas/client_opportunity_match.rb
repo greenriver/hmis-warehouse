@@ -6,7 +6,7 @@
 
 module Cas
   class ClientOpportunityMatch < CasBase
-    belongs_to :client
+    belongs_to :client, optional: true
     scope :proposed, -> { where active: false, closed: false }
     scope :candidate, -> { proposed } # alias
     scope :active, -> { where active: true }

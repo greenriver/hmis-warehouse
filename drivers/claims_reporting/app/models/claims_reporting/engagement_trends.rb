@@ -14,7 +14,7 @@ module ClaimsReporting
     extend Memoist
     acts_as_paranoid
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do
@@ -358,8 +358,8 @@ module ClaimsReporting
           gender_female: 'Female',
           gender_male: 'Male',
           gender_mtf: 'Trans Female (MTF or Male to Female)',
-          gender_tfm: 'Trans Male (FTM or Female to Male)',
-          gender_non_conforming: 'Gender non-conforming (i.e. not exclusively male or female)',
+          gender_ftm: 'Trans Male (FTM or Female to Male)',
+          no_single_gender: 'No Single Gender',
         },
         'Housing Status' => {
           'Housed at start' => 'Housed at start',

@@ -14,18 +14,21 @@ module ClaimsReporting::Health
 
       has_many :medical_claims, class_name: 'ClaimsReporting::MedicalClaim', foreign_key: :member_id, primary_key: :medicaid_id
 
-      def medical_claims_for_qualifying_activity(qa)
+      def medical_claims_for_qualifying_activity(qa, denied: false) # rubocop:disable Naming/MethodParameterName
         activity_date_range = Range.new(*qualifying_activities.map(&:date_of_activity).minmax)
 
         (
           medical_claims_by_service_start_date(date_range: activity_date_range)[qa.date_of_activity] || []
         ).select do |c|
-          qa.procedure_with_modifiers == c.procedure_with_modifiers
+          procedure_matches = qa.procedure_with_modifiers == c.procedure_with_modifiers
+          procedure_matches &&= c.claim_status == 'D' if denied
+
+          procedure_matches
         end
       end
 
-      def best_medical_claim_for_qualifying_activity(qa)
-        matching_claims = medical_claims_for_qualifying_activity(qa)
+      def best_medical_claim_for_qualifying_activity(qa, denied: false) # rubocop:disable Naming/MethodParameterName
+        matching_claims = medical_claims_for_qualifying_activity(qa, denied: denied)
 
         return matching_claims.first if matching_claims.size <= 1
 

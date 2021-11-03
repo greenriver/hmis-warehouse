@@ -8,8 +8,8 @@ module ProjectPassFail
   class Client < GrdaWarehouseBase
     self.table_name = :project_pass_fails_clients
     belongs_to :project_pass_fail, inverse_of: :clients
-    belongs_to :project, inverse_of: :clients
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+    belongs_to :project, inverse_of: :clients, optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
 
     def calculate_universal_data_elements(apr_client)
       assign_attributes(
@@ -22,7 +22,7 @@ module ProjectPassFail
         dob: apr_client.dob,
         dob_quality: apr_client.dob_quality,
         ethnicity: apr_client.ethnicity,
-        gender: apr_client.gender,
+        gender_multi: apr_client.gender_multi,
         name_quality: apr_client.name_quality,
         race: apr_client.race,
         ssn_quality: apr_client.ssn_quality,
@@ -55,6 +55,7 @@ module ProjectPassFail
         ssn_quality: 'SSN Quality',
         ethnicity: 'Ethnicity',
         gender: 'Gender',
+        gender_multi: 'Gender 2022',
         race: 'Race',
         veteran_status: 'Veteran Status',
         relationship_to_hoh: 'Relationship to HoH',

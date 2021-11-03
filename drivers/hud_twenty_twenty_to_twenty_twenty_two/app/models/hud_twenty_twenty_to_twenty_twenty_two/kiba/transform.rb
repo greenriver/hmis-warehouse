@@ -11,7 +11,7 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba::Transform
     Kiba.parse do
       source source_class, source_config
 
-      transform(&:to_hash) # Make sure what the sourc returns is a hash
+      transform(&:to_hash) # Make sure what the source returns is a hash
       transforms.each do |t|
         transform t
       end

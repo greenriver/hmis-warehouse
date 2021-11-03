@@ -9,7 +9,7 @@
 
 module Health
   class EncounterRecord < HealthBase
-    belongs_to :encounter_report
+    belongs_to :encounter_report, optional: true
 
     phi_patient :medicaid_id
     phi_attr :date, Phi::Date, "Date of encouter"

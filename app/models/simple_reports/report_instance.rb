@@ -9,7 +9,7 @@ module SimpleReports
     acts_as_paranoid
     self.table_name = 'simple_report_instances'
 
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :report_cells
 
     scope :viewable_by, ->(user) do

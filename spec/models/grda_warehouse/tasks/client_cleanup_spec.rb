@@ -6,11 +6,17 @@ DEFAULT_DEST_ATTR = {
   SSN: '555555555',
   DOB: '1978-06-12',
   VeteranStatus: nil,
-  Gender: nil,
+  Female: nil,
+  Male: nil,
+  NoSingleGender: nil,
+  Transgender: nil,
+  Questioning: nil,
+  GenderNone: nil,
 }.freeze
 
 RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
   describe 'When Updating destination records from client sources, using db based relationships' do
+    let!(:config) { GrdaWarehouse::Config.first || create(:config) }
     let!(:destination_client) { create(:grda_warehouse_hud_client, PersonalID: 2) }
     let!(:source_data_source) { create(:source_data_source) }
     let!(:source_1) do
@@ -115,6 +121,21 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       destination_client.reload
       expect(destination_client.FirstName).to eq('Right')
       expect(destination_client.LastName).to eq('Right')
+    end
+
+    it "chooses the newest record's names when quality is equivalent and config is set to use latest name" do
+      config.class.update_all(warehouse_client_name_order: :latest)
+      config.class.all.each(&:invalidate_cache)
+
+      source_1.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+
+      @cleanup.update_client_demographics_based_on_sources
+      destination_client.reload
+      expect(destination_client.FirstName).to eq('Right')
+      expect(destination_client.LastName).to eq('Right')
+
+      config.update(warehouse_client_name_order: :earliest)
     end
 
     it 'chooses the oldest, and treats nil like 99' do
@@ -266,33 +287,53 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.VeteranStatus).to eq(@veteran)
     end
 
-    it 'overwrites nil gender if something is non-blank' do
-      source_1.update(Gender: nil, DateUpdated: 3.days.ago)
-      source_2.update(Gender: 99, DateUpdated: 2.days.ago)
+    describe 'Gender Fields' do
+      (::HUD.gender_fields - [:GenderNone]).each do |col|
+        it "uses newest known gender value for #{col}" do
+          destination_client.update(col => 1)
+          source_1.update(col => 1, DateUpdated: 2.days.ago)
+          source_2.update(col => 0, DateUpdated: 1.days.ago)
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client[col]).to eq(0)
+        end
 
-      @cleanup.update_client_demographics_based_on_sources
-      destination_client.reload
-      expect(destination_client.Gender).to eq(99)
-    end
+        it 'overwrites nil gender if something is non-blank' do
+          source_1.update(col => nil, DateUpdated: 3.days.ago)
+          source_2.update(col => 99, DateUpdated: 2.days.ago)
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client[col]).to eq(99)
+        end
 
-    it 'only updates gender known value if some client is a known value' do
-      destination_client.update(Gender: 3)
-      source_1.update(Gender: 99, DateUpdated: 3.days.ago)
-      source_2.update(Gender: 8, DateUpdated: 2.days.ago)
+        it 'only updates gender known value if some client is a known value' do
+          destination_client.update(col => 0)
+          destination_client.reload
+          source_1.update(col => 99, DateUpdated: 3.days.ago) # while valid, it should not change the 0
+          source_2.update(col => 8, DateUpdated: 2.days.ago) # note, this is an invalid value
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client[col]).to eq(0)
+        end
 
-      @cleanup.update_client_demographics_based_on_sources
-      destination_client.reload
-      expect(destination_client.Gender).to eq(3)
-    end
+        it 'overwrites gender with newest known value' do
+          destination_client.update(col => 0)
+          source_1.update(col => 1, DateUpdated: 1.day.ago)
+          source_2.update(col => 0, DateUpdated: 2.days.ago)
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client[col]).to eq(1)
+        end
 
-    it 'overwrites gender with newest known value' do
-      destination_client.update(Gender: 3)
-      source_1.update(Gender: 1, DateUpdated: 1.day.ago)
-      source_2.update(Gender: 2, DateUpdated: 2.days.ago)
-
-      @cleanup.update_client_demographics_based_on_sources
-      destination_client.reload
-      expect(destination_client.Gender).to eq(1)
+        it 'uses newest known gender value' do
+          destination_client.update(col => 1)
+          source_1.update(col => 1, DateUpdated: 2.days.ago)
+          source_2.update(col => 0, DateUpdated: 1.days.ago)
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client[col]).to eq(0)
+        end
+      end
     end
 
     describe 'Race Fields' do
@@ -663,51 +704,55 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(@veteran).to eq(@dest_attr[:VeteranStatus])
     end
 
-    it 'overwrites nil gender if something is non-blank' do
-      source_1.update(Gender: nil, DateUpdated: 3.days.ago)
-      source_2.update(Gender: 99, DateUpdated: 2.days.ago)
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
-        Hash[@cleanup.client_columns.keys.zip(row)]
+    describe 'Gender Fields' do
+      (::HUD.gender_fields - [:GenderNone]).each do |col|
+        it "overwrites nil #{col} if something is non-blank" do
+          source_1.update(col => nil, DateUpdated: 3.days.ago)
+          source_2.update(col => 99, DateUpdated: 2.days.ago)
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
+            Hash[@cleanup.client_columns.keys.zip(row)]
+          end
+
+          @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+          expect(99).to eq(@dest_attr[col])
+        end
+
+        it "only updates #{col} known value if some client is a known value" do
+          @dest_attr[col] = 1
+          source_1.update(col => 99, DateUpdated: 3.days.ago)
+          source_2.update(col => 8, DateUpdated: 2.days.ago)
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
+            Hash[@cleanup.client_columns.keys.zip(row)]
+          end
+
+          @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+          expect(1).to eq(@dest_attr[col])
+        end
+
+        it "overwrites #{col} with newest known value" do
+          @dest_attr[col] = 0
+          source_1.update(col => 1, DateUpdated: 1.day.ago)
+          source_2.update(col => 0, DateUpdated: 2.days.ago)
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
+            Hash[@cleanup.client_columns.keys.zip(row)]
+          end
+
+          @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+          expect(1).to eq(@dest_attr[col])
+        end
+
+        it "uses newest known #{col} value" do
+          @dest_attr[col] = 0
+          source_1.update(col => 0, DateUpdated: 2.days.ago)
+          source_2.update(col => 1, DateUpdated: 1.days.ago)
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
+            Hash[@cleanup.client_columns.keys.zip(row)]
+          end
+
+          @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+          expect(1).to eq(@dest_attr[col])
+        end
       end
-
-      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(99).to eq(@dest_attr[:Gender])
-    end
-
-    it 'only updates gender known value if some client is a known value' do
-      @dest_attr[:Gender] = 3
-      source_1.update(Gender: 99, DateUpdated: 3.days.ago)
-      source_2.update(Gender: 8, DateUpdated: 2.days.ago)
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
-        Hash[@cleanup.client_columns.keys.zip(row)]
-      end
-
-      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(3).to eq(@dest_attr[:Gender])
-    end
-
-    it 'overwrites gender with newest known value' do
-      @dest_attr[:Gender] = 3
-      source_1.update(Gender: 1, DateUpdated: 1.day.ago)
-      source_2.update(Gender: 2, DateUpdated: 2.days.ago)
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
-        Hash[@cleanup.client_columns.keys.zip(row)]
-      end
-
-      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(1).to eq(@dest_attr[:Gender])
-    end
-
-    it 'uses newest known gender value' do
-      @dest_attr[:Gender] = 4
-      source_1.update(Gender: 1, DateUpdated: 2.days.ago)
-      source_2.update(Gender: 4, DateUpdated: 1.days.ago)
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
-        Hash[@cleanup.client_columns.keys.zip(row)]
-      end
-
-      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(4).to eq(@dest_attr[:Gender])
     end
 
     describe 'Race Fields' do
@@ -760,6 +805,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         end
       end
     end
+
     describe 'Ethnicity' do
       [:Ethnicity].each do |col|
         it "overwrites nil #{col} if something is non-blank" do

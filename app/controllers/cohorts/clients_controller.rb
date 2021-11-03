@@ -316,7 +316,7 @@ module Cohorts
     end
 
     def client_columns
-      @client_columns ||= [:id, :FirstName, :LastName, :DOB, :SSN, :Gender, :VeteranStatus]
+      @client_columns ||= [:id, :FirstName, :LastName, :DOB, :SSN, :VeteranStatus]
     end
 
     def create

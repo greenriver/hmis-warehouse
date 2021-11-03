@@ -1836,7 +1836,8 @@ CREATE TABLE public.ed_ip_visit_files (
     deleted_at timestamp without time zone,
     started_at timestamp without time zone,
     completed_at timestamp without time zone,
-    failed_at timestamp without time zone
+    failed_at timestamp without time zone,
+    message character varying
 );
 
 
@@ -1865,24 +1866,11 @@ ALTER SEQUENCE public.ed_ip_visit_files_id_seq OWNED BY public.ed_ip_visit_files
 --
 
 CREATE TABLE public.ed_ip_visits (
-    id integer NOT NULL,
-    ed_ip_visit_file_id integer NOT NULL,
+    id bigint NOT NULL,
+    loaded_ed_ip_visit_id bigint,
     medicaid_id character varying,
-    last_name character varying,
-    first_name character varying,
-    gender character varying,
-    dob date,
     admit_date date,
-    discharge_date date,
-    discharge_disposition character varying,
     encounter_major_class character varying,
-    visit_type character varying,
-    encounter_facility character varying,
-    chief_complaint character varying,
-    diagnosis character varying,
-    attending_physician character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone
 );
 
@@ -1892,7 +1880,6 @@ CREATE TABLE public.ed_ip_visits (
 --
 
 CREATE SEQUENCE public.ed_ip_visits_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3086,6 +3073,57 @@ CREATE SEQUENCE public.hl7_value_set_codes_id_seq
 --
 
 ALTER SEQUENCE public.hl7_value_set_codes_id_seq OWNED BY public.hl7_value_set_codes.id;
+
+
+--
+-- Name: loaded_ed_ip_visits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.loaded_ed_ip_visits (
+    id integer NOT NULL,
+    ed_ip_visit_file_id integer NOT NULL,
+    medicaid_id character varying,
+    last_name character varying,
+    first_name character varying,
+    gender character varying,
+    dob date,
+    admit_date date,
+    discharge_date date,
+    discharge_disposition character varying,
+    encounter_major_class character varying,
+    visit_type character varying,
+    encounter_facility character varying,
+    chief_complaint character varying,
+    diagnosis character varying,
+    attending_physician character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    member_record_number character varying,
+    patient_identifier character varying,
+    patient_url character varying,
+    admitted_inpatient character varying
+);
+
+
+--
+-- Name: loaded_ed_ip_visits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.loaded_ed_ip_visits_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: loaded_ed_ip_visits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.loaded_ed_ip_visits_id_seq OWNED BY public.loaded_ed_ip_visits.id;
 
 
 --
@@ -5046,6 +5084,13 @@ ALTER TABLE ONLY public.hl7_value_set_codes ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: loaded_ed_ip_visits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.loaded_ed_ip_visits ALTER COLUMN id SET DEFAULT nextval('public.loaded_ed_ip_visits_id_seq'::regclass);
+
+
+--
 -- Name: medications id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5757,6 +5802,14 @@ ALTER TABLE ONLY public.hl7_value_set_codes
 
 
 --
+-- Name: loaded_ed_ip_visits loaded_ed_ip_visits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.loaded_ed_ip_visits
+    ADD CONSTRAINT loaded_ed_ip_visits_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: medications medications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6337,24 +6390,10 @@ CREATE INDEX index_ed_ip_visit_files_on_user_id ON public.ed_ip_visit_files USIN
 
 
 --
--- Name: index_ed_ip_visits_on_created_at; Type: INDEX; Schema: public; Owner: -
+-- Name: index_ed_ip_visits_on_loaded_ed_ip_visit_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_ed_ip_visits_on_created_at ON public.ed_ip_visits USING btree (created_at);
-
-
---
--- Name: index_ed_ip_visits_on_deleted_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ed_ip_visits_on_deleted_at ON public.ed_ip_visits USING btree (deleted_at);
-
-
---
--- Name: index_ed_ip_visits_on_ed_ip_visit_file_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ed_ip_visits_on_ed_ip_visit_file_id ON public.ed_ip_visits USING btree (ed_ip_visit_file_id);
+CREATE INDEX index_ed_ip_visits_on_loaded_ed_ip_visit_id ON public.ed_ip_visits USING btree (loaded_ed_ip_visit_id);
 
 
 --
@@ -6362,13 +6401,6 @@ CREATE INDEX index_ed_ip_visits_on_ed_ip_visit_file_id ON public.ed_ip_visits US
 --
 
 CREATE INDEX index_ed_ip_visits_on_medicaid_id ON public.ed_ip_visits USING btree (medicaid_id);
-
-
---
--- Name: index_ed_ip_visits_on_updated_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ed_ip_visits_on_updated_at ON public.ed_ip_visits USING btree (updated_at);
 
 
 --
@@ -6495,6 +6527,41 @@ CREATE INDEX index_health_goals_on_patient_id ON public.health_goals USING btree
 --
 
 CREATE INDEX index_health_goals_on_user_id ON public.health_goals USING btree (user_id);
+
+
+--
+-- Name: index_loaded_ed_ip_visits_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_loaded_ed_ip_visits_on_created_at ON public.loaded_ed_ip_visits USING btree (created_at);
+
+
+--
+-- Name: index_loaded_ed_ip_visits_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_loaded_ed_ip_visits_on_deleted_at ON public.loaded_ed_ip_visits USING btree (deleted_at);
+
+
+--
+-- Name: index_loaded_ed_ip_visits_on_ed_ip_visit_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_loaded_ed_ip_visits_on_ed_ip_visit_file_id ON public.loaded_ed_ip_visits USING btree (ed_ip_visit_file_id);
+
+
+--
+-- Name: index_loaded_ed_ip_visits_on_medicaid_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_loaded_ed_ip_visits_on_medicaid_id ON public.loaded_ed_ip_visits USING btree (medicaid_id);
+
+
+--
+-- Name: index_loaded_ed_ip_visits_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_loaded_ed_ip_visits_on_updated_at ON public.loaded_ed_ip_visits USING btree (updated_at);
 
 
 --
@@ -7223,6 +7290,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210607182656'),
 ('20210726193142'),
 ('20210806150431'),
-('20210928134057');
+('20210928134057'),
+('20211005200728'),
+('20211006152632'),
+('20211006152946'),
+('20211006153817'),
+('20211006154441'),
+('20211006204046');
+
 
 

@@ -10,7 +10,7 @@ module HudApr::Generators::CeApr::Fy2021
     include HudApr::CeAprCellDetailsConcern
 
     def self.fiscal_year
-      'FY 2021'
+      'FY 2022'
     end
 
     def self.generic_title

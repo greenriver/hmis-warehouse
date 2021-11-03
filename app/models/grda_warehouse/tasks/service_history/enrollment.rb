@@ -127,22 +127,26 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # load the associated service history enrollment to get the id
       build_for_dates.except(
         *service_dates_from_service_history_for_enrollment,
-      ).each do |date, type_provided|
-        days << service_record(date, type_provided)
+      ).each do |date, record_type|
+        days << service_record(date, record_type)
       end
       return false unless days.any?
 
-      service_history_service_source.import(
-        days.first.keys,
-        days.map(&:values),
-        validate: false,
-        batch_size: 1_000,
-        # Because this is a partitioned table, this doesnt work currently
-        # on_duplicate_key_update: {
-        #   conflict_target: shs_conflict_target,
-        #   columns: shs_update_columns,
-        # },
-      )
+      begin
+        service_history_service_source.import(
+          days.first.keys,
+          days.map(&:values),
+          validate: false,
+          batch_size: 1_000,
+          # Because this is a partitioned table, this doesn't work currently
+          # on_duplicate_key_update: {
+          #   conflict_target: shs_conflict_target,
+          #   columns: shs_update_columns,
+          # },
+        )
+      rescue ActiveRecord::RecordNotUnique
+        # Don't do anything, we can't on_duplicate_key_update
+      end
       update(processed_as: calculate_hash)
 
       :patch
@@ -167,7 +171,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       ]
     end
 
-    def create_service_history! force=false
+    def create_service_history! force = false
       # Rails.logger.debug '===RebuildEnrollmentsJob=== Initiating create_service_history'
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       return false unless force || source_data_changed?
@@ -178,18 +182,18 @@ module GrdaWarehouse::Tasks::ServiceHistory
       if project.present?
         date = self.EntryDate
         self.class.transaction do
-          remove_existing_service_history_for_enrollment()
+          remove_existing_service_history_for_enrollment
           entry_day = entry_record(date)
           insert = build_service_history_enrollment_insert(entry_day)
           @entry_record_id = service_history_enrollment_source.connection.insert(insert.to_sql)
           # Rails.logger.debug '===RebuildEnrollmentsJob=== Building days'
           # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-          build_for_dates.each do |d, type_provided|
-            days << service_record(d, type_provided)
+          build_for_dates.each do |d, record_type|
+            days << service_record(d, record_type)
           end
           if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month) || project_extrapolates_contacts?
-            type_provided = build_for_dates.values.last
-            days += add_extrapolated_days(build_for_dates.keys, type_provided)
+            record_type = build_for_dates.values.last
+            days += add_extrapolated_days(build_for_dates.keys, record_type)
           end
           # Rails.logger.debug '===RebuildEnrollmentsJob=== Days built'
           # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
@@ -203,17 +207,22 @@ module GrdaWarehouse::Tasks::ServiceHistory
         return false unless project.present?
 
         if days.any?
-          service_history_service_source.import(
-            days.first.keys,
-            days.map(&:values),
-            validate: false,
-            batch_size: 1_000,
-            # Because this is a partitioned table, this doesnt work currently
-            # on_duplicate_key_update: {
-            #   conflict_target: shs_conflict_target,
-            #   columns: shs_update_columns,
-            # },
-          )
+          begin
+            service_history_service_source.import(
+              days.first.keys,
+              days.map(&:values),
+              validate: false,
+              batch_size: 1_000,
+              # Because this is a partitioned table, this doesn't work currently
+              # on_duplicate_key_update: {
+              #   conflict_target: shs_conflict_target,
+              #   columns: shs_update_columns,
+              # },
+            )
+          rescue ActiveRecord::InvalidForeignKey
+            # sometimes we end up processing an enrollment when it's being rebuilt by a different task
+            # ignore the error if the enrollment record has been removed
+          end
         end
       end
       update(processed_as: calculate_hash)
@@ -228,7 +237,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def build_service_history_enrollment_insert day
       insert = Arel::Nodes::InsertStatement.new
       insert.relation = she_t
-      insert.columns = day.keys.map{|k| she_t[k]}
+      insert.columns = day.keys.map { |k| she_t[k] }
       insert.values = Arel::Nodes::Values.new(day.values, insert.columns)
       insert
     end
@@ -249,22 +258,22 @@ module GrdaWarehouse::Tasks::ServiceHistory
       )
     end
 
-    def service_record(date, type_provided)
+    def service_record(date, record_type)
       default_service_day.merge(
         date: date,
         age: client_age_at(date),
-        service_type: type_provided,
+        service_type: record_type,
         record_type: :service,
         homeless: homeless?(date),
         literally_homeless: literally_homeless?(date),
       )
     end
 
-    def extrapolated_record(date, type_provided)
+    def extrapolated_record(date, record_type)
       default_service_day.merge(
         date: date,
         age: client_age_at(date),
-        service_type: type_provided,
+        service_type: record_type,
         record_type: :extrapolated,
         homeless: homeless?(date),
         literally_homeless: literally_homeless?(date),
@@ -274,7 +283,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # build out all days within the month
     # don't build for any dates we already have
     # never build past today, it makes counts and display very odd
-    def add_extrapolated_days(dates, type_provided)
+    def add_extrapolated_days(dates, record_type)
       extrapolated_dates = dates.map do |date|
         stop_on = [date.end_of_month, Date.current].min
         (date.beginning_of_month .. stop_on).to_a
@@ -285,7 +294,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       extrapolated_dates -= service_dates_from_service_history_for_enrollment
 
       extrapolated_dates.map do |date|
-        extrapolated_record(date, type_provided)
+        extrapolated_record(date, record_type)
       end
     end
 
@@ -299,7 +308,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def calculate_hash
       # Use ProjectType to ignore overrides
-      @calculate_hash ||= self.class.calculate_hash_for(id, self.project.ProjectType)
+      @calculate_hash ||= self.class.calculate_hash_for(id, project.ProjectType)
     end
 
     # limit the date range so we can speed up partitioning searches
@@ -326,7 +335,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def extrapolated_dates_from_service_history_for_enrollment
-      return [] unless destination_client.present?  && service_history_enrollment.present?
+      return [] unless destination_client.present? && service_history_enrollment.present?
 
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
@@ -485,7 +494,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           where(
             HouseholdID: self.HouseholdID,
             ProjectID: self.ProjectID,
-            data_source_id: self.data_source_id,
+            data_source_id: data_source_id,
           ).where.not(
             PersonalID: self.PersonalID,
           ).pluck(Arel.sql(c_t[:DOB].as('dob').to_sql))
@@ -612,7 +621,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def part_of_a_family?
       @families ||= self.class.family_households
-      @families.key? [self.HouseholdID, self.ProjectID, self.data_source_id]
+      @families.key? [self.HouseholdID, self.ProjectID, data_source_id]
     end
 
     # Client is over 65 and everyone else is an adult
@@ -724,9 +733,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         end.to_h
       else
         # Fetch all services provided between the start of the enrollment and the end of the build period
-        service_records = services.where(DateProvided: (self.EntryDate..build_until)).
+        service_records = services.where(DateProvided: (self.EntryDate..build_until), RecordType: 200).
           order(DateProvided: :asc).
-          pluck(:DateProvided, :TypeProvided).to_h
+          pluck(:DateProvided, :RecordType).to_h
         if project.so?
           # Find all contacts for SO.  Pretend like they are bed-nights
           living_situations = current_living_situations.where(InformationDate: (self.EntryDate..build_until)).

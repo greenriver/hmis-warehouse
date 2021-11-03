@@ -9,8 +9,8 @@ module ServiceScanning
     include ArelHelper
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
-    belongs_to :user
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
+    belongs_to :user, optional: true
 
     scope :bed_night, -> do
       where(type: 'ServiceScanning::BedNight')

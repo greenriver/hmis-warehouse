@@ -91,12 +91,11 @@ module HUD
 
   # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
   def races(multi_racial: false)
-    TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
     race_list = {
       'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous', # 1
       'Asian' => 'Asian or Asian American', # 2
       'BlackAfAmerican' => 'Black, African American, or African', # 3
-      'NativeHIOtherPacific' => 'Native Hawaiian or Pacific Islander', # 4
+      'NativeHIPacific' => 'Native Hawaiian or Pacific Islander', # 4
       'White' => 'White', # 5
       'RaceNone' => 'None', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
     }
@@ -286,6 +285,7 @@ module HUD
       162 => 'RHY referral',
       200 => 'Bed night',
       210 => 'HUD-VASH OTH voucher tracking',
+      300 => 'C2 Moving On Assistance Provided',
     }.freeze
   end
 
@@ -616,6 +616,21 @@ module HUD
     }
   end
 
+  # 2.02.9
+  def h_o_p_w_a_med_assisted_living_fac(id, reverse = false)
+    map = h_o_p_w_a_med_assisted_living_facs
+
+    _translate map, id, reverse
+  end
+
+  def h_o_p_w_a_med_assisted_living_facs
+    {
+      0 => 'No',
+      1 => 'Yes',
+      2 => 'Non-HOPWA Funded Project',
+    }
+  end
+
   # 3.1.5
   def name_data_quality(id, reverse = false)
     _translate(name_data_quality_options, id, reverse)
@@ -690,8 +705,6 @@ module HUD
     {
       0 => 'Female',
       1 => 'Male',
-      2 => 'Trans Female (MTF or Male to Female)', # retained for backwards compatibility
-      3 => 'Trans Male (FTM or Female to Male)', # retained for backwards compatibility
       4 => 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
       5 => 'Transgender',
       6 => 'Questioning',
@@ -699,6 +712,29 @@ module HUD
       9 => 'Client refused',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def gender_fields
+    gender_id_to_field_name.values.uniq.freeze
+  end
+
+  def gender_id_to_field_name
+    {
+      0 => :Female,
+      1 => :Male,
+      4 => :NoSingleGender,
+      5 => :Transgender,
+      6 => :Questioning,
+      8 => :GenderNone,
+      9 => :GenderNone,
+      99 => :GenderNone,
+    }.freeze
+  end
+
+  def gender_comparison_value(key)
+    return key if key.in?([8, 9, 99])
+
+    1
   end
 
   def no_single_gender_queries
@@ -953,7 +989,7 @@ module HUD
 
   def institutional_situations(as:, version: nil)
     case version
-    when '2020', nil
+    when '2020', '2022', nil
       case as
       when :prior, :current, :destination
         [
@@ -970,7 +1006,7 @@ module HUD
 
   def temporary_and_permanent_housing_situations(as:, version: nil)
     case version
-    when '2020', nil
+    when '2020', '2022', nil
       case as
       when :prior, :current
         [
@@ -1020,7 +1056,7 @@ module HUD
 
   def other_situations(as:, version: nil)
     case version
-    when '2020', nil
+    when '2020', '2022', nil
       case as
       when :prior
         [

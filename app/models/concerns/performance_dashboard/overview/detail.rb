@@ -35,12 +35,11 @@ module PerformanceDashboard::Overview::Detail
 
   def detail_column_display(header:, column:)
     case header
-    when 'Gender'
-      HUD.gender(column)
+    when 'Female', 'Male', 'No Single Gender', 'Transgender', 'Questioning', 'Unknown Gender'
+      HUD.no_yes_reasons_for_missing_data(column)
     when 'Ethnicity'
       HUD.ethnicity(column)
-    when HUD.race('AmIndAKNative'), HUD.race('Asian'), HUD.race('BlackAfAmerican'), HUD.race('NativeHIOtherPacific'), HUD.race('White'), HUD.race('RaceNone')
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
+    when HUD.race('AmIndAKNative'), HUD.race('Asian'), HUD.race('BlackAfAmerican'), HUD.race('NativeHIPacific'), HUD.race('White'), HUD.race('RaceNone')
       HUD.no_yes_reasons_for_missing_data(column)
     when 'Veteran Status'
       HUD.veteran_status(column)
@@ -96,7 +95,14 @@ module PerformanceDashboard::Overview::Detail
     }
     # Add any additional columns
     columns['Age'] = she_t[:age] if options[:age]
-    columns['Gender'] = c_t[:Gender] if options[:gender]
+    if options[:gender]
+      columns['Female'] = c_t[:Female]
+      columns['Male'] = c_t[:Male]
+      columns['No Single Gender'] = c_t[:NoSingleGender]
+      columns['Transgender'] = c_t[:Transgender]
+      columns['Questioning'] = c_t[:Questioning]
+      columns['Unknown Gender'] = c_t[:GenderNone]
+    end
     if options[:household]
       columns['Age'] = she_t[:age]
       columns['Other Clients Under 18'] = she_t[:other_clients_under_18]

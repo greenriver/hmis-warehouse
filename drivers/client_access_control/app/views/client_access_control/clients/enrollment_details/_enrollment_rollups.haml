@@ -1,4 +1,4 @@
-%section.row.o-dashboard__block--primary
+%section.row.o-dashboard__block--primary.client--enrollment-history
   .col-sm-12
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'current_living_situations'}}
       %header
@@ -15,9 +15,9 @@
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'employment_education'}}
       %header
         %h1.h3 Employment and Education
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'services-full'}}
+    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'services-all'}}
       %header
-        %h1#full_services.h3 Services &mdash; Full Bed Register
+        %h1#full_services.h3 Services
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'income-benefits'}}
       %header
         %h1.h3 Income and Benefits
@@ -27,6 +27,7 @@
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'ce_events'}}
       %header
         %h1.h3 Coordinated Entry Events
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'hmis_clients'}}
-      %header
-        %h1.h3 HMIS Clients (from ETO)
+    - if GrdaWarehouse::Config.get(:eto_api_available)
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'hmis_clients'}}
+        %header
+          %h1.h3 HMIS Clients (from ETO)

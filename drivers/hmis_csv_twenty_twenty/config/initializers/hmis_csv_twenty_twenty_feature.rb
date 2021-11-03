@@ -13,4 +13,4 @@
 RailsDrivers.loaded << :hmis_csv_twenty_twenty
 
 Importers::HmisAutoDetect.add_importer('HmisCsvTwentyTwenty')
-Filters::HmisExport.register_version('HMIS 2020', '2020', 'HmisCsvTwentyTwenty::ExportJob')
+# Filters::HmisExport.register_version('HMIS 2020', '2020', 'HmisCsvTwentyTwenty::ExportJob')

@@ -26,7 +26,7 @@ module IncomeBenefitsReport
 
     acts_as_paranoid
 
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :clients
     has_many :incomes
 
@@ -369,7 +369,6 @@ module IncomeBenefitsReport
         race: race_string,
         dob: client.DOB,
         age: client.age_on(age_date),
-        gender: client.Gender,
         household_id: household_id,
         head_of_household: enrollment[:head_of_household],
         enrollment: enrollment.enrollment,

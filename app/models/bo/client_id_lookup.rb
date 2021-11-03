@@ -315,7 +315,7 @@ module Bo
       source_clients = GrdaWarehouse::Hud::Client.source.where(
         data_source_id: @data_source_id,
         PersonalID: personal_ids,
-      ).select(:id, :PersonalID, :disability_verified_on)
+      ).select(:id, :PersonalID, :disability_verified_on, :data_source_id)
       updated_source_counts = 0
       updated_destination_counts = 0
       source_clients.each do |client|

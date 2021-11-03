@@ -11,19 +11,20 @@ module Health
   class ComprehensiveHealthAssessment < HealthBase
     acts_as_paranoid
     phi_patient :patient_id
-    phi_attr :user_id, Phi::SmallPopulation, "ID of user"
-    phi_attr :reviewed_by_id, Phi::SmallPopulation, "ID of reviewer"
+    phi_attr :user_id, Phi::SmallPopulation, 'ID of user'
+    phi_attr :reviewed_by_id, Phi::SmallPopulation, 'ID of reviewer'
     phi_attr :reviewer, Phi::SmallPopulation
-    phi_attr :completed_at, Phi::Date, "Date of assessment completion"
-    phi_attr :reviewed_at, Phi::Date, "Date of review"
-    phi_attr :health_file_id, Phi::OtherIdentifier, "ID of health file"
+    phi_attr :completed_at, Phi::Date, 'Date of assessment completion'
+    phi_attr :reviewed_at, Phi::Date, 'Date of review'
+    phi_attr :health_file_id, Phi::OtherIdentifier, 'ID of health file'
     phi_attr :answers, Phi::FreeText
 
     # Generates translation keys of the form "CHA A_Q5_A6"
     def self.answers_for section: nil, question: nil, number: 0
       return [] unless section.present? &&
         question.present? &&
-        number&.is_a?(Integer)
+        number&.is_a?(Integer) # rubocop:disable Lint/RedundantSafeNavigation
+
       (1..number).map do |n|
         question_key = "#{section}_Q#{question}"
         answer_key = "#{section}_Q#{question}_A#{n}"
@@ -51,10 +52,7 @@ module Health
       end
     end
 
-    NO_PREFIX = [
-      'R_Q1', 'R_Q2', 'R_Q3', 'R_Q4', 'R_Q5', 'R_Q7', 'R_Q8',
-
-    ]
+    NO_PREFIX = ['R_Q1', 'R_Q2', 'R_Q3', 'R_Q4', 'R_Q5', 'R_Q7', 'R_Q8'].freeze
 
     EIGHTS_RESPONSES = [
       'uncertain',
@@ -65,17 +63,15 @@ module Health
       'did not occur',
       'could not (would not) respond',
       'did not occur—no urine output from bladder in last 3 days',
-    ]
+    ].freeze
 
     BLANK_RESPONSES = [
       'not applicable (first assessment, or more than 30 days since last assessment)',
-    ]
+    ].freeze
 
-    LETTERS = ('a' .. 'z').to_a
+    LETTERS = ('a' .. 'z').to_a.freeze
 
-    LETTER_BASED = [
-      'B_Q2', 'B_Q4',
-    ]
+    LETTER_BASED = ['B_Q2', 'B_Q4'].freeze
 
     ZERO_BASED = [
       'C_Q1', 'C_Q2', 'C_Q3',
@@ -90,21 +86,21 @@ module Health
       'L_Q2',
       'M_Q1A',
       'N_Q1',
-      'O_Q1',
-    ]
+      'O_Q1'
+    ].freeze
 
-    QUESTION_ANSWER_OPTIONS = {
-      a_q1:  nil,
-      a_q2:  answers_for(section: 'A', question: 2, number: 2),
-      a_q3:  nil,
-      a_q4:  answers_for(section: 'A', question: 4, number: 6),
+    QUESTION_ANSWER_OPTIONS = { # rubocop:disable Style/MutableConstant
+      a_q1: nil,
+      a_q2: answers_for(section: 'A', question: 2, number: 2),
+      a_q3: nil,
+      a_q4: answers_for(section: 'A', question: 4, number: 6),
       a_q5a: nil,
       a_q5b: nil,
       a_q5c: nil,
-      a_q6:  nil,
-      a_q7:  answers_for(section: 'A', question: 7, number: 7),
-      a_q8:  nil,
-      a_q9:  nil,
+      a_q6: nil,
+      a_q7: answers_for(section: 'A', question: 7, number: 7),
+      a_q8: nil,
+      a_q9: nil,
       a_q10: nil,
       a_q11: answers_for(section: 'A', question: 11, number: 14),
       a_q12: answers_for(section: 'A', question: 12, number: 8),
@@ -172,14 +168,14 @@ module Health
       g_q2e: indicators,
       g_q2f: indicators,
 
-      g_q3:  answers_for(section: 'G', question: 3, number: 4),
+      g_q3: answers_for(section: 'G', question: 3, number: 4),
       g_q4a: answers_for(section: 'G', question: '4A', number: 5),
       g_q4b: answers_for(section: 'G', question: '4B', number: 4),
-      g_q5:  answers_for(section: 'G', question: 5, number: 4),
+      g_q5: answers_for(section: 'G', question: 5, number: 4),
       g_q6a: answers_for(section: 'G', question: '6A', number: 2),
       g_q6b: answers_for(section: 'G', question: '6B', number: 2),
 
-      h_q1:  answers_for(section: 'H', question: 1, number: 7),
+      h_q1: answers_for(section: 'H', question: 1, number: 7),
 
       i_q1a: (indicators = answers_for(section: 'I', question: '1A', number: 4)),
       i_q1b: indicators,
@@ -302,7 +298,7 @@ module Health
       j_q6d: answers_for(section: 'J', question: '6D', number: 2),
       j_q6e: answers_for(section: 'J', question: '6E', number: 6),
 
-      j_q7a: indicators = (answers_for(section: 'J', question: '7A', number: 2)),
+      j_q7a: indicators = answers_for(section: 'J', question: '7A', number: 2),
       j_q7b: indicators,
 
       j_q8: answers_for(section: 'J', question: 8, number: 5),
@@ -878,17 +874,17 @@ module Health
     }
 
     belongs_to :patient
-    belongs_to :user
-    belongs_to :reviewed_by, class_name: 'User'
+    belongs_to :user, optional: true
+    belongs_to :reviewed_by, class_name: 'User', optional: true
 
     has_one :health_file, class_name: 'Health::ComprehensiveHealthAssessmentFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 
-    enum status: {not_started: 0, in_progress: 1, complete: 2}
+    enum status: { not_started: 0, in_progress: 1, complete: 2 }
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
-    scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil)}
+    scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil) }
     scope :complete, -> { where.not(completed_at: nil) }
     scope :completed, -> { complete }
 
@@ -906,7 +902,7 @@ module Health
     end
     scope :during_current_enrollment, -> do
       where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date])).
-      joins(patient: :patient_referral)
+        joins(patient: :patient_referral)
     end
     scope :during_contributing_enrollments, -> do
       where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date])).
@@ -919,8 +915,8 @@ module Health
         merge(
           Health::PatientReferral.contributing.
             where(
-              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:completed_at].to_sql} + INTERVAL '1 year'"))
-            )
+              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:completed_at].to_sql} + INTERVAL '1 year'")),
+            ),
         )
     end
 
@@ -929,8 +925,8 @@ module Health
       where(
         id: order(
           :patient_id,
-          completed_at: :asc
-        ).group(:patient_id, :id).distinct_on(:patient_id).select(:id)
+          completed_at: :asc,
+        ).group(:patient_id, :id).distinct_on(:patient_id).select(:id),
       )
     end
 
@@ -939,23 +935,23 @@ module Health
       where(
         id: order(
           :patient_id,
-          completed_at: :desc
-        ).group(:patient_id, :id).distinct_on(:patient_id).select(:id)
+          completed_at: :desc,
+        ).group(:patient_id, :id).distinct_on(:patient_id).select(:id),
       )
     end
 
     attr_accessor :reviewed_by_supervisor, :completed, :file
 
-    attr_accessor *QUESTION_ANSWER_OPTIONS.keys
+    attr_accessor(*QUESTION_ANSWER_OPTIONS.keys)
 
     before_save :set_answers, :set_reviewed_at
 
     validate :validate_health_file_if_present
 
     def complete?
-     completed_at.present?
+      completed_at.present?
     end
-    alias_method :completed?, :complete?
+    alias completed? complete?
 
     def active?
       completed_at && completed_at >= 1.years.ago
@@ -968,34 +964,26 @@ module Health
     end
 
     private def set_reviewed_at
-      if reviewed_by
-        self.reviewed_at = DateTime.current
-      end
+      self.reviewed_at = DateTime.current if reviewed_by
     end
 
     def validate_health_file_if_present
-      if file.present? && file.invalid?
-        errors.add :file, file.errors.messages.try(:[], :file)&.uniq&.join('; ')
-      end
+      errors.add :file, file.errors.messages.try(:[], :file)&.uniq&.join('; ') if file.present? && file.invalid?
     end
 
     private def set_answers
-      hash = self.answers.dup
+      hash = answers.dup
       QUESTION_ANSWER_OPTIONS.keys.each do |section_question|
         section_code  = section_question.to_s.upcase.split('_').first
         section       = _("CHA #{section_code}_TITLE")
         section_subtitle = _("CHA #{section_code}_SUBTITLE")
-        question      = _("CHA #{section_question.upcase}")
+        question = _("CHA #{section_question.upcase}")
         question_header = ''
-        unless "CHA #{section_question.upcase}_HEADER" == _("CHA #{section_question.upcase}_HEADER")
-          question_header = _("CHA #{section_question.upcase}_HEADER")
-        end
+        question_header = _("CHA #{section_question.upcase}_HEADER") unless "CHA #{section_question.upcase}_HEADER" == _("CHA #{section_question.upcase}_HEADER")
         question_sub_header = ''
-        unless "CHA #{section_question.upcase}_SUBHEADER" == _("CHA #{section_question.upcase}_SUBHEADER")
-          question_sub_header = _("CHA #{section_question.upcase}_SUBHEADER")
-        end
-        if matches = section_question.match(/(g_q1.)p$/)
-          if code = matches.try(:[], 1)&.upcase
+        question_sub_header = _("CHA #{section_question.upcase}_SUBHEADER") unless "CHA #{section_question.upcase}_SUBHEADER" == _("CHA #{section_question.upcase}_SUBHEADER")
+        if (matches = section_question.match(/(g_q1.)p$/))
+          if (code = matches.try(:[], 1)&.upcase)
             question_header = _("CHA #{code}_HEADER")
           end
         end
@@ -1021,7 +1009,7 @@ module Health
     end
 
     def answer question_code
-      section, question = question_code.to_s.upcase.split('_')
+      section, _question = question_code.to_s.upcase.split('_')
 
       answers.dig(section, 'answers', question_code.to_s, 'answer')
     end
@@ -1050,6 +1038,5 @@ module Health
 
     # allow keys, but some keys need to allow multiple checkbox selections (b_q2 & b_q4)
     PERMITTED_PARAMS = QUESTION_ANSWER_OPTIONS.keys - [:b_q2, :b_q4, :r_q8] + [{ b_q2: [] }, { b_q4: [] }, { r_q8: [] }]
-
   end
 end

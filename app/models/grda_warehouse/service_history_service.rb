@@ -8,20 +8,20 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ArelHelper
   include ServiceHistoryServiceConcern
 
-  belongs_to :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id], inverse_of: :service_history_services
+  belongs_to :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id], inverse_of: :service_history_services, optional: true
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :enrollment, through: :service_history_enrollment
 
-  scope :service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
+  scope :service_between, ->(start_date:, end_date:, service_scope: :current_scope) do
     if service_scope.is_a?(ActiveRecord::Relation)
       merge(service_scope).where(date: start_date..end_date)
     else
       (send(service_scope) || all).
-      where(date: start_date..end_date)
+        where(date: start_date..end_date)
     end
   end
 
-  scope :hud_project_type, -> (project_types) do
+  scope :hud_project_type, ->(project_types) do
     in_project_type(project_types)
   end
 
@@ -40,11 +40,11 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_UNSHELTERED_PROJECT_TYPES)
   end
 
-  scope :homeless_between, -> (start_date:, end_date:) do
+  scope :homeless_between, ->(start_date:, end_date:) do
     homeless(chronic_types_only: false).where(date: (start_date..end_date))
   end
 
-  scope :literally_homeless_between, -> (start_date:, end_date:) do
+  scope :literally_homeless_between, ->(start_date:, end_date:) do
     homeless(chronic_types_only: true).where(date: (start_date..end_date))
   end
 
@@ -112,7 +112,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
       RETURNS TRIGGER AS $$
       BEGIN
       IF "
-    trigger += trigger_ifs.join(' ELSIF ');
+    trigger += trigger_ifs.join(' ELSIF ')
     trigger += "
       ELSE
         INSERT INTO #{remainder_table} VALUES (NEW.*);
@@ -125,6 +125,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     BEFORE INSERT ON #{parent_table}
     FOR EACH ROW EXECUTE PROCEDURE #{trigger_name}();
     "
+    trigger
   end
 
   def self.trigger_name

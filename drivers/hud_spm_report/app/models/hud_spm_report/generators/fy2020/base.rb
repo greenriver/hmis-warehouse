@@ -144,23 +144,24 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def process_scope_by_client(measure_name, scope, columns)
-      each_client_batch scope do |clients_by_id|
-        hashes = pluck_to_hash columns, scope.where(
-          client_id: clients_by_id.keys,
-        ).order(client_id: :asc)
+      each_client_batch(scope) do |clients_by_id|
+        hashes = pluck_to_hash(
+          columns,
+          scope.where(client_id: clients_by_id.keys).order(client_id: :asc),
+        )
+        updated_columns = Set.new
+        pending_associations = {}
 
         hashes.group_by do |r|
           r.fetch(:client_id)
         end.each do |client_id, rows|
           client = clients_by_id.fetch(client_id)
-          updated_columns = Set.new
-          pending_associations = {}
           if (data = yield(client, rows))
             updated_columns += data.keys
             pending_associations[client] = build_report_client(client, data)
           end
-          append_report_clients measure_name, pending_associations, updated_columns.to_a
         end
+        append_report_clients(measure_name, pending_associations, updated_columns.to_a)
       end
     end
 
@@ -284,6 +285,7 @@ module HudSpmReport::Generators::Fy2020
         last_date_in_program: she_t[:last_date_in_program],
         DateToStreetESSH: e_t[:DateToStreetESSH],
         MoveInDate: she_t[:move_in_date],
+        age: shs_t[:age],
       }
 
       updated_columns = [
@@ -294,13 +296,16 @@ module HudSpmReport::Generators::Fy2020
         :m1_history,
       ]
 
-      each_client_batch active_enrollments_scope do |clients_by_id|
+      each_client_batch(active_enrollments_scope) do |clients_by_id|
         # select all the necessary service history
         # for this batch of clients
-        nights_for_batch = pluck_to_hash shs_columns, services_scope.
-          where(shs_t[:date].between(LOOKBACK_STOP_DATE..@report.end_date)).
-          where(client_id: clients_by_id.keys).
-          order(client_id: :asc, date: :asc)
+        nights_for_batch = pluck_to_hash(
+          shs_columns,
+          services_scope.
+            where(shs_t[:date].between(LOOKBACK_STOP_DATE..@report.end_date)).
+            where(client_id: clients_by_id.keys).
+            order(client_id: :asc, date: :asc),
+        )
 
         # transform them into per client metrics
         pending_associations = nights_for_batch.group_by do |r|
@@ -340,7 +345,7 @@ module HudSpmReport::Generators::Fy2020
         end.to_h
 
         # Import clients
-        append_report_clients measure_one, pending_associations, updated_columns
+        append_report_clients(measure_one, pending_associations, updated_columns)
       end
     end
 
@@ -391,19 +396,13 @@ module HudSpmReport::Generators::Fy2020
 
       # a. Select each client’s project stays in which the client was active on
       # the [report end date] in any of the relevant projects as determined in step 1.
-      process_scope_by_client measure_four, m4_stayers_scope, stay_columns do |_client_id, enrollments|
+      process_scope_by_client(measure_four, m4_stayers_scope, stay_columns) do |_client_id, enrollments|
         # b. For each client, remove any stays where the [length of stay] is < 365 days.
         # Use the calculation of [length of stay] as described in the HMIS Reporting
         # Glossary, including time in the project prior to the [report start date].
         long_enrollments = enrollments.select do |e|
-          # PERF N+1
           night_count = if e[:project_tracking_method] == 3
-            GrdaWarehouse::ServiceHistoryService.
-              service.
-              where(
-                client_id: e[:client_id],
-                service_history_enrollment_id: e[:enrollment_id],
-              ).select(:date).distinct.count
+            es_nbn_length_of_stay_for(e[:client_id], e[:enrollment_id])
           else
             # exiting on the same day is a stay of 0 days
             ((e[:last_date_in_program] || @report.end_date) - e[:first_date_in_program])
@@ -453,7 +452,7 @@ module HudSpmReport::Generators::Fy2020
         }
       end
 
-      process_scope_by_client measure_four, m4_leavers_scope, stay_columns do |_client_id, enrollments|
+      process_scope_by_client(measure_four, m4_leavers_scope, stay_columns) do |_client_id, enrollments|
         # c. For each client, remove all but the stay with the latest [project start date].
         final_stay = enrollments.max_by { |e| e[:first_date_in_program] }
         next unless final_stay
@@ -482,12 +481,19 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
+    private def es_nbn_length_of_stay_for(client_id, enrollment_id)
+      @es_nbn_length_of_stay_for ||= begin
+        services_scope.joins(service_history_enrollment: :project).merge(GrdaWarehouse::Hud::Project.night_by_night).distinct.group(:client_id, :service_history_enrollment_id).count(:date)
+      end
+      @es_nbn_length_of_stay_for[client_id, enrollment_id]
+    end
+
     private def add_m5_clients
       measure_five = 'Measure 5'
       # This could be merged with M3
       return unless add_clients_for_question?(measure_five)
 
-      process_scope_by_client measure_five, m5_enrollments_scope, SHE_COLUMNS do |_client_id, client_enrollments|
+      process_scope_by_client(measure_five, m5_enrollments_scope, SHE_COLUMNS) do |_client_id, client_enrollments|
         # 1. Select clients entering any of the applicable project types in the report date range
         active_enrollments = client_enrollments.select do |e|
           (
@@ -566,7 +572,7 @@ module HudSpmReport::Generators::Fy2020
         hud_project_type(SO).
         where.not(client_id: m7_stays.hud_project_type(SO).select(:client_id))
 
-      process_scope_by_client 'Measure 7', m7a1_exits, SHE_COLUMNS do |_client, client_enrollments|
+      process_scope_by_client('Measure 7', m7a1_exits, SHE_COLUMNS) do |_client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
@@ -625,6 +631,8 @@ module HudSpmReport::Generators::Fy2020
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
+        last_exit[:destination] ||= destination_for(table_1_project_types, last_exit[:client_id], last_exit[:household_id])
+
         #  puts "#{table_1_dest_field} checking #{last_exit}"
 
         # 3. If the latest exit was from a PH-PSH project (type 3)
@@ -642,8 +650,7 @@ module HudSpmReport::Generators::Fy2020
         # 24) cause leavers with those destinations to be completely excluded
         # from the entire measure (all of column C).
         excluded_destinations = [15, 6, 25, 24]
-
-        if last_exit[:project_type].in? excluded_destinations
+        if last_exit[:destination].in? excluded_destinations
           # puts "EXCLUDED #{last_exit} in Step 4 from #{table_1_dest_field}"
           next
         end
@@ -761,6 +768,8 @@ module HudSpmReport::Generators::Fy2020
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
+        last_exit[:destination] ||= destination_for(table_1_project_types, last_exit[:client_id], last_exit[:household_id])
+
         #  puts "#{table_1_dest_field} checking #{last_exit}"
 
         # 3. If the latest exit was from a PH project (types 3, 9 and 10)
@@ -779,7 +788,7 @@ module HudSpmReport::Generators::Fy2020
         # from the entire measure (all of column C).
         excluded_destinations = [15, 6, 25, 24]
 
-        if last_exit[:project_type].in? excluded_destinations
+        if last_exit[:destination].in? excluded_destinations
           # puts "EXCLUDED #{last_exit} in Step 4 from #{table_1_dest_field}"
           next
         end
@@ -988,7 +997,7 @@ module HudSpmReport::Generators::Fy2020
         end
 
         # Steps 7 - 9 are handled in MeasureTwo#run_question!
-        append_report_clients question_name, spm_clients, updated_columns
+        append_report_clients(question_name, spm_clients, updated_columns)
       end
     end
 
@@ -1044,42 +1053,46 @@ module HudSpmReport::Generators::Fy2020
     #       {IncomeFromAnySource:, :TotalMonthlyIncome, :EarnedAmount, ...}
     #     ]
     # }
-    private def income_and_benfits(client_id:, enrollment_group_id:, data_source_id:)
-      # PERF N+1
-      columns = [
-        :IncomeFromAnySource,
-        :TotalMonthlyIncome,
-        :EarnedAmount,
-        :InformationDate,
-        :DataCollectionStage,
-      ]
-
-      assessments = GrdaWarehouse::Hud::IncomeBenefit.
-        joins(enrollment: :service_history_enrollment).
-        where(ib_t[:InformationDate].lteq(@report.end_date)).
-        where(she_t[:client_id].eq(client_id)).
-        where(EnrollmentID: enrollment_group_id, data_source_id: data_source_id).
-        order(InformationDate: :asc).
-        pluck(*columns).map do |r|
-          Hash[columns.zip(r)]
-        end.group_by { |m| m[:DataCollectionStage] }
-
-      income_map = {}
-      assessments.each do |stage, stage_assessments|
-        income_map[stage] = stage_assessments.group_by { |m| m[:InformationDate] }
+    private def income_and_benefits(enrollment_group_id:, data_source_id:)
+      columns = {
+        EnrollmentID: :EnrollmentID,
+        data_source_id: :data_source_id,
+        IncomeFromAnySource: :IncomeFromAnySource,
+        TotalMonthlyIncome: :TotalMonthlyIncome,
+        EarnedAmount: :EarnedAmount,
+        InformationDate: :InformationDate,
+        DataCollectionStage: :DataCollectionStage,
+      }
+      @income_and_benefits ||= {}.tap do |income_map|
+        GrdaWarehouse::Hud::IncomeBenefit.
+          joins(enrollment: :service_history_enrollment).
+          where(she_t[:id].in(Arel.sql(active_enrollments_scope.select(:id).to_sql))).
+          where(ib_t[:InformationDate].lteq(@report.end_date)).
+          order(InformationDate: :asc).
+          pluck(*columns.values).map do |r|
+            Hash[columns.keys.zip(r)]
+          end.each do |row|
+            enrollment_key = [row[:data_source_id], row[:EnrollmentID]]
+            stage = row[:DataCollectionStage]
+            information_date = row[:InformationDate]
+            income_map[enrollment_key] ||= {}
+            income_map[enrollment_key][stage] ||= {}
+            income_map[enrollment_key][stage][information_date] ||= []
+            income_map[enrollment_key][stage][information_date] << row
+          end
       end
-      income_map
+      @income_and_benefits[[data_source_id, enrollment_group_id]]
     end
 
     # Add stayer related income fields to the row and return it.
     #
     # Returns nil if no earlier income report could be found
     private def add_stayer_income(row)
-      income_map = income_and_benfits(
-        client_id: row[:client_id],
+      income_map = income_and_benefits(
         enrollment_group_id: row[:enrollment_group_id],
         data_source_id: row[:data_source_id],
       )
+      return nil unless income_map.present?
 
       # This spec said:
       # f. For each client, determine the most recent Income and Sources
@@ -1147,8 +1160,7 @@ module HudSpmReport::Generators::Fy2020
     #
     # Returns nil if no earlier income report could be found
     private def add_leaver_income(row)
-      income_map = income_and_benfits(
-        client_id: row[:client_id],
+      income_map = income_and_benefits(
         enrollment_group_id: row[:enrollment_group_id],
         data_source_id: row[:data_source_id],
       )
@@ -1172,7 +1184,7 @@ module HudSpmReport::Generators::Fy2020
       # Latest entry interview (Stage=1) associated with this enrollment's entry.
       # The spec compare InformationDate but we historically just found the best candidate
       # linked to the enrollment
-      earliest = income_map[1].values.first.first if income_map[1]
+      earliest = income_map[1].values.first.first if income_map.try(:[], 1)
 
       # g. Clients who are completely missing their Income and Sources at project start
       # are excluded entirely from the universe of clients.
@@ -1194,7 +1206,7 @@ module HudSpmReport::Generators::Fy2020
       # Latest exit interview (Stage=3) associated with this enrollment's exit.
       # The spec compare InformationDate but we historically just found the best candidate
       # linked to the enrollment
-      latest = income_map[3].values.last.first if income_map[3]
+      latest = income_map[3].values.last.first if income_map.try(:[], 3)
 
       if latest.present? && latest[:IncomeFromAnySource] == 1
         row[:latest_income] = latest[:TotalMonthlyIncome] || 0
@@ -1554,86 +1566,66 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def literally_homeless?(night)
-      # PERF: reduce SQL queries and consolidate the logic to find the HOH
+      # Get client_id, enrollment_id pairs for es_so_sh for all enrollments open during range (filter applied)
+      # Get client_id, enrollment_id pairs for ph_th for all enrollments open during range (filter applied)
+      # If client_id and enrollment_id are in set, return true
+      # else if client is > 17 return false
+      # else figure out if HoH is in group
 
       client_id = night[:client_id]
       enrollment_id = night[:enrollment_id]
 
-      # Literally HUD homeless
-      # Clients from ES, SO SH
-      es_so_sh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        hud_project_type(ES + SO + SH).
-        open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-        with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-        where(she_t[:client_id].eq(client_id).and(she_t[:id].eq(enrollment_id))).
-        distinct.
-        select(:client_id)
+      @literally_homeless ||= begin
+        # Literally HUD homeless
+        # Clients from ES, SO SH
+        es_so_sh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          hud_project_type(ES + SO + SH).
+          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+          with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+          distinct.
+          select(:client_id)
 
-      es_so_sh_client_ids = add_filters(es_so_sh_scope).distinct.pluck(:client_id)
+        es_so_sh_ids = add_filters(es_so_sh_scope).distinct.pluck(:client_id, she_t[:id])
 
-      # Clients from PH & TH under certain conditions
-      homeless_living_situations = [16, 1, 18]
-      institutional_living_situations = [15, 6, 7, 25, 4, 5]
-      housed_living_situations = [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]
+        # Clients from PH & TH under certain conditions
+        homeless_living_situations = [16, 1, 18]
+        institutional_living_situations = [15, 6, 7, 25, 4, 5]
+        housed_living_situations = [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]
 
-      ph_th_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        hud_project_type(PH + TH).
-        open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-        with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-        where(she_t[:client_id].eq(client_id).and(she_t[:id].eq(enrollment_id))).
-        joins(:enrollment).
-        where(
-          e_t[:LivingSituation].in(homeless_living_situations).
-            or(
-              e_t[:LivingSituation].in(institutional_living_situations).
-                and(e_t[:LOSUnderThreshold].eq(1)).
-                and(e_t[:PreviousStreetESSH].eq(1)),
-            ).
-            or(
-              e_t[:LivingSituation].in(housed_living_situations).
-                and(e_t[:LOSUnderThreshold].eq(1)).
-                and(e_t[:PreviousStreetESSH].eq(1)),
-            ),
-        ).
-        distinct.
-        select(:client_id)
-
-      ph_th_client_ids = add_filters(ph_th_scope).distinct.pluck(:client_id)
-
-      literally_homeless = es_so_sh_client_ids + ph_th_client_ids
-
-      # Children may inherit living the living situation from their HoH
-      hoh_client = hoh_for_children_without_living_situation(PH + TH, client_id, enrollment_id)
-
-      if hoh_client.present?
-        ph_th_hoh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        ph_th_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           hud_project_type(PH + TH).
           open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
           with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          where(she_t[:client_id].eq(hoh_client[:client_id]).and(she_t[:enrollment_group_id].eq(hoh_client[:enrollment_id]))).
           joins(:enrollment).
           where(
             e_t[:LivingSituation].in(homeless_living_situations).
-                or(
-                  e_t[:LivingSituation].in(institutional_living_situations).
-                      and(e_t[:LOSUnderThreshold].eq(1)).
-                      and(e_t[:PreviousStreetESSH].eq(1)),
-                ).
-                or(
-                  e_t[:LivingSituation].in(housed_living_situations).
-                      and(e_t[:LOSUnderThreshold].eq(1)).
-                      and(e_t[:PreviousStreetESSH].eq(1)),
-                ),
+              or(
+                e_t[:LivingSituation].in(institutional_living_situations).
+                  and(e_t[:LOSUnderThreshold].eq(1)).
+                  and(e_t[:PreviousStreetESSH].eq(1)),
+              ).
+              or(
+                e_t[:LivingSituation].in(housed_living_situations).
+                  and(e_t[:LOSUnderThreshold].eq(1)).
+                  and(e_t[:PreviousStreetESSH].eq(1)),
+              ),
           ).
           distinct.
           select(:client_id)
 
-        ph_th_hoh_client_ids = add_filters(ph_th_hoh_scope).distinct.pluck(:client_id)
+        ph_th_ids = add_filters(ph_th_scope).distinct.pluck(:client_id, she_t[:id])
 
-        literally_homeless += client_id if ph_th_hoh_client_ids.present?
+        es_so_sh_ids + ph_th_ids
       end
 
-      literally_homeless.include?(client_id)
+      return true if @literally_homeless.include?([client_id, enrollment_id])
+      return false if night[:age].blank? || night[:age] > 17
+
+      # Children may inherit living the living situation from their HoH
+      hoh_client = hoh_for_children_without_living_situation(PH + TH, client_id, enrollment_id)
+      return false unless hoh_client.present?
+
+      @literally_homeless.include?([hoh_client[:client_id], hoh_client[:enrollment_id]])
     end
 
     private def children_without_living_situation(project_types)
@@ -1670,14 +1662,14 @@ module HudSpmReport::Generators::Fy2020
         child_id_to_hoh = {}
         child_candidates.each do |(client_id, dob, entry_date, age, hoh_id, household_id, enrollment_group_id)|
           age = age_for_report dob: dob, entry_date: entry_date, age: age
-          child_id_to_hoh[[client_id, enrollment_group_id]] = head_of_household_for(project_types, hoh_id, household_id) if age.present? && age <= 17
+          child_id_to_hoh[[client_id, enrollment_group_id]] = head_of_household_for(project_types, hoh_id, household_id, entry_date) if age.present? && age <= 17
         end
         child_id_to_hoh
       end
     end
 
-    private def head_of_household_for(project_types, client_id, household_id)
-      hoh_client_ids(project_types)[[client_id, household_id]]
+    private def head_of_household_for(project_types, client_id, household_id, entry_date)
+      hoh_client_ids(project_types)[[client_id, household_id, entry_date]]
     end
 
     private def hoh_client_ids(project_types)
@@ -1695,8 +1687,21 @@ module HudSpmReport::Generators::Fy2020
             :client_id,
             :enrollment_group_id,
             she_household_column,
-          ).map do |(hoh_id, client_id, enrollment_id, household_id)|
-            [[hoh_id, household_id], { client_id: client_id, enrollment_id: enrollment_id }]
+            :first_date_in_program,
+            :destination,
+          ).map do |(hoh_id, client_id, enrollment_id, household_id, entry_date, destination)|
+            [
+              [
+                hoh_id,
+                household_id,
+                entry_date,
+              ],
+              {
+                client_id: client_id,
+                enrollment_id: enrollment_id,
+                destination: destination,
+              },
+            ]
           end.to_h
       end
     end

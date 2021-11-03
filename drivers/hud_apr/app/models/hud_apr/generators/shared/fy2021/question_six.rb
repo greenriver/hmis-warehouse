@@ -53,7 +53,7 @@ module HudApr::Generators::Shared::Fy2021
       clients = clients.or(dob_quality(table_name: table_name))
       clients = clients.or(race_quality(table_name: table_name))
       clients = clients.or(simple_quality(table_name: table_name, row: 6, attr: :ethnicity))
-      clients = clients.or(simple_quality(table_name: table_name, row: 7, attr: :gender))
+      clients = clients.or(simple_quality(table_name: table_name, row: 7, attr: :gender_multi))
 
       count = clients.distinct.count
       @report.answer(question: table_name, cell: 'E8').update(summary: count)

@@ -18,7 +18,6 @@ module WarehouseReports
       'SSNQuality',
       'DOB',
       'Ethnicity',
-      'Gender',
       'VeteranStatus',
       'DisablingCondition',
       'LivingSituation',
@@ -213,7 +212,7 @@ module WarehouseReports
 
       # grab in all the necessary names and ids to make the form and queries
       # returns map from type keys to maps from names to ids: { type: { name: id } }
-      # rubocop:disable Metrics/ParameterLists, Lint/ShadowingOuterLocalVariable
+      # rubocop:disable Lint/ShadowingOuterLocalVariable
       def all_sources
         @all_sources ||= begin
           st = data_sources.arel_table
@@ -267,7 +266,7 @@ module WarehouseReports
           }
         end
       end
-      # rubocop:enable Metrics/ParameterLists, Lint/ShadowingOuterLocalVariable
+      # rubocop:enable Lint/ShadowingOuterLocalVariable
 
       private
 

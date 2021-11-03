@@ -8,7 +8,7 @@ module WarehouseReports
   class HmisExportsController < ApplicationController
     include WarehouseReportAuthorization
     before_action :require_can_export_hmis_data!
-    before_action :set_export, only: [:show, :destroy, :cancel]
+    before_action :set_export, only: [:show, :destroy, :cancel, :edit, :update]
     before_action :set_jobs, only: [:index, :running, :create]
     before_action :set_exports, only: [:index, :running, :create]
 
@@ -70,6 +70,16 @@ module WarehouseReports
       send_data @export.content, filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip", type: @export.content_type, disposition: 'attachment'
     end
 
+    def edit
+      @recurrence = @export.recurring_hmis_export
+    end
+
+    def update
+      @export.recurring_hmis_export.update(recurrence_params.merge(user_id: current_user.id))
+      flash[:info] = 'Recurrence options updated'
+      redirect_to warehouse_reports_hmis_exports_path
+    end
+
     def cancel
       @export.recurring_hmis_export.destroy if can_cancel? @export
       redirect_to warehouse_reports_hmis_exports_path
@@ -114,6 +124,7 @@ module WarehouseReports
         :include_deleted,
         :directive,
         :faked_pii,
+        :confidential,
         :reporting_range,
         :reporting_range_days,
         :reporting_range,
@@ -135,6 +146,7 @@ module WarehouseReports
         :include_deleted,
         :directive,
         :faked_pii,
+        :confidential,
         :every_n_days,
         :reporting_range,
         :reporting_range_days,
@@ -143,6 +155,8 @@ module WarehouseReports
         :s3_region,
         :s3_bucket,
         :s3_prefix,
+        :zip_password,
+        :encryption_type,
         project_ids: [],
         project_group_ids: [],
         organization_ids: [],

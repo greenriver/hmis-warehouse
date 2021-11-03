@@ -12,7 +12,7 @@ module ProjectPassFail
     include Reporting::Status
     include Rails.application.routes.url_helpers
 
-    belongs_to :user
+    belongs_to :user, optional: true
     has_many :projects, inverse_of: :project_pass_fail
     has_many :clients, inverse_of: :project_pass_fail
 
@@ -189,7 +189,7 @@ module ProjectPassFail
       questions = [
         'Question 6',
       ]
-      generator = HudApr::Generators::Apr::Fy2020::Generator
+      generator = HudApr::Generators::Apr::Fy2021::Generator
       apr = HudReports::ReportInstance.from_filter(apr_filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
       apr

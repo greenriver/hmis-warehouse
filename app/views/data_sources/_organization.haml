@@ -9,10 +9,16 @@
         Treated as DMH for chronic calculations
     .col-sm-4.text-right
       - if can_edit_organizations?
-        = link_to organization_contacts_path(organization_id: org.id) do
-          View/Edit Organization Contacts
+        .mb-4
+          = link_to edit_organization_path(org), class: 'btn btn-secondary btn-sm' do
+            %i.icon-pencil
+            Edit Organization
+        .mb-4
+          = link_to organization_contacts_path(organization_id: org.id), class: 'btn btn-secondary btn-sm' do
+            %i.icon-users
+            View/Edit Organization Contacts
       - if can_delete_data_sources?
-        .mt-4.mb-4
+        .mb-4
           = link_to organization_path(org), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{org.OrganizationName} will delete ALL associated data.  Do you want to proceed?"} do
             %i.icon-cross
             Delete Organization

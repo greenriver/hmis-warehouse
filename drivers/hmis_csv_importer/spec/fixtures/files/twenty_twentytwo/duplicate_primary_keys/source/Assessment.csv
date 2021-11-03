@@ -1,0 +1,4 @@
+"AssessmentID","EnrollmentID","PersonalID","AssessmentDate","AssessmentLocation","AssessmentType","AssessmentLevel","PrioritizationStatus","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"1",557331,2f4b963171644a8b9902bdfe79a4b403,"2016-09-01","Somewhere safe","1","2","1","2016-09-02 15:46:17","2016-09-02 15:46:17","7",,"b6585c2320f69a2b920adb507cc9d82f"
+"2",557890,4c9da990d51b4ed1a2e45b972aeaecee,"2015-09-01","Somewhere safe","1","2","1","2015-09-02 15:46:17","2015-09-02 15:46:17","7",,"b6585c2320f69a2b920adb507cc9d82f"
+"1",559123,7b8c1279001142afac2fd0bde7a8f6bf,"2015-09-01","Somewhere safe","1","2","1","2015-09-02 15:46:17","2015-09-02 15:46:17","7",,"b6585c2320f69a2b920adb507cc9d82f"

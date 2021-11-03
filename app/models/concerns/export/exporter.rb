@@ -18,6 +18,7 @@ module Export::Exporter
         directive: @directive,
         hash_status: @hash_status,
         faked_pii: @faked_pii,
+        confidential: @confidential,
         project_ids: @projects,
         include_deleted: @include_deleted,
         version: @version,
@@ -60,7 +61,8 @@ module Export::Exporter
       Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
         files.each do |filename|
           zipfile.add(
-            File.join(@export.export_id, filename),
+            # File.join(@export.export_id, filename),
+            filename, # add without path
             File.join(@file_path, filename),
           )
         end

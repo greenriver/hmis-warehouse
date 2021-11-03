@@ -81,6 +81,7 @@
 //= require_directory ./warehouse_reports/rrh
 //= require_directory ./warehouse_reports/outflow
 //= require_directory ./warehouse_reports/performance_dashboards
+//= require_directory ./warehouse_reports/homeless_summary_report
 //= require_directory ./warehouse_reports
 //= require_directory ./d3_charts
 //= require_directory ./clients

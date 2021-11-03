@@ -1,0 +1,10 @@
+"Category","Number of adults at start","Number of adults at annual assessment (stayers)","Number of adults at exit (leavers)"
+"a. Adults with only earned income (i.e., employment income)",0,0,0
+"b. Adults with only other income",4,0,3
+"c. Adults with both earned and other income",0,1,0
+"d. Adults with no income",7,0,7
+"e. Adults with Client Doesn't Know/Client Refused income information",0,0,0
+"f. Adults with missing income information",1,0,1
+"g. Number of adult stayers not yet required to have an annual assessment",,0,
+"h. Number of adult stayers without required annual assessment",,0,
+"i. Total adults",12,1,11

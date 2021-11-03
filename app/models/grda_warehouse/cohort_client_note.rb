@@ -9,7 +9,7 @@ module GrdaWarehouse
     acts_as_paranoid
     belongs_to :cohort_client
     has_one :client, through: :cohort_client
-    belongs_to :user
+    belongs_to :user, optional: true
 
     validates_presence_of :cohort_client, :note
 
@@ -21,6 +21,5 @@ module GrdaWarehouse
     def destroyable_by user
       user.can_edit_cohort_clients? || user.can_manage_cohorts? # || user_id == user.id
     end
-
   end
 end

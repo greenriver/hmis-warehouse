@@ -7,7 +7,7 @@
   .o-page__sort
     = render 'sort'
   .o-page__filter
-    = render 'filter'
+    = render 'health/patients/filter'
   - if @patients.present?
     .o-page__link.ml-auto
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto disab'}) do

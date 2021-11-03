@@ -607,12 +607,11 @@ module ReportGenerators::Pit::Fy2018
         multiple_races: Set.new,
       }
       client_ids.each do |id|
-        TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
         races = metadata_for_client(client_id: id).slice(
           :AmIndAKNative,
           :Asian,
           :BlackAfAmerican,
-          :NativeHIOtherPacific,
+          :NativeHIPacific,
           :White
         ).select{|k,v| v == 1}
         if races.size == 1
@@ -623,8 +622,7 @@ module ReportGenerators::Pit::Fy2018
             makeup[:asian] << id
           when :BlackAfAmerican
             makeup['black or african-american'] << id
-          when :NativeHIOtherPacific
-            TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
+          when :NativeHIPacific
             makeup[:native_hawaiian_or_other_pacific_islander] << id
           when :White
             makeup[:white] << id
@@ -872,7 +870,6 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def client_columns
-      TodoOrDie('When we update reporting for 2022 spec', by: '2021-10-01')
       {
         PersonalID: c_t[:PersonalID].as('PersonalID').to_sql,
         data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
@@ -882,7 +879,7 @@ module ReportGenerators::Pit::Fy2018
         AmIndAKNative: c_t[:AmIndAKNative].as('AmIndAKNative').to_sql,
         Asian: c_t[:Asian].as('Asian').to_sql,
         BlackAfAmerican: c_t[:BlackAfAmerican].as('BlackAfAmerican').to_sql,
-        NativeHIOtherPacific: c_t[:NativeHIOtherPacific].as('NativeHIOtherPacific').to_sql,
+        NativeHIPacific: c_t[:NativeHIPacific].as('NativeHIPacific').to_sql,
         White: c_t[:White].as('White').to_sql,
         RaceNone: c_t[:RaceNone].as('RaceNone').to_sql,
         id: c_t[:id].as('id').to_sql,

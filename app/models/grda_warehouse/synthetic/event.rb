@@ -8,9 +8,9 @@ module GrdaWarehouse::Synthetic
   class Event < GrdaWarehouseBase
     self.table_name = 'synthetic_events'
 
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment'
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :source, polymorphic: true
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :source, polymorphic: true, optional: true
     belongs_to :hud_event, class_name: 'GrdaWarehouse::Hud::Event', optional: true, primary_key: :hud_event_event_id, foreign_key: :EventID
 
     validates_presence_of :enrollment
@@ -68,7 +68,7 @@ module GrdaWarehouse::Synthetic
           to_import.compact,
           on_duplicate_key_update: {
             conflict_target: ['"EventID"', :data_source_id],
-            columns: event_source.hmis_configuration.keys,
+            columns: event_source.hmis_configuration(version: '2022').keys,
           },
         )
         batch.each.with_index do |synthetic, i|

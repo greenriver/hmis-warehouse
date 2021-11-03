@@ -9,13 +9,7 @@ module Filters
     include ArelHelper
     attribute :start_date, Date, default: 1.years.ago.to_date
     attribute :end_date, Date, default: Date.current
-    attribute :version, String, default: ->(_r, _) do
-      if Date.current >= '2019-10-01'.to_date || ! Rails.env.production?
-        '2020'
-      else
-        '6.11'
-      end
-    end
+    attribute :version, String, default: '2022'
     attribute :hash_status, Integer, default: 1
     attribute :period_type, Integer, default: 3
     attribute :directive, Integer, default: 2
@@ -26,6 +20,7 @@ module Filters
     attribute :data_source_ids, Array, default: []
     attribute :user_id, Integer, default: nil
     attribute :faked_pii, Boolean, default: false
+    attribute :confidential, Boolean, default: false
 
     attribute :every_n_days, Integer, default: 0
     attribute :reporting_range, String, default: 'fixed'
@@ -38,6 +33,8 @@ module Filters
     attribute :s3_region, String
     attribute :s3_bucket, String
     attribute :s3_prefix, String
+    attribute :zip_password, String
+    attribute :encryption_type, String
 
     validates_presence_of :start_date, :end_date
 
@@ -93,6 +90,7 @@ module Filters
         include_deleted: include_deleted,
         faked_pii: faked_pii,
         user_id: user_id,
+        confidential: confidential,
         recurring_hmis_export_id: recurring_hmis_export_id,
       }
     end

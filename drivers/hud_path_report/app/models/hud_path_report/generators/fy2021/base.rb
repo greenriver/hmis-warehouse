@@ -136,7 +136,7 @@ module HudPathReport::Generators::Fy2021
     private def active_in_path(enrollment)
       return true if enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).exists?
       return true if enrollment.DateOfEngagement&.between?(@report.start_date, @report.end_date)
-      return true if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(@report.start_date, @report.end_date)
+      return true if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?(@report.start_date, @report.end_date)
       return true if enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).exists?
 
       false
@@ -144,7 +144,7 @@ module HudPathReport::Generators::Fy2021
 
     private def enrolled_in_path(enrollment)
       return false unless enrollment.ClientEnrolledInPATH == 1
-      return false unless enrollment.DateOfPATHStatus.between?(enrollment.EntryDate, @report.end_date)
+      return false unless enrollment.DateOfPATHStatus&.between?(enrollment.EntryDate, @report.end_date)
 
       enrollment.exit&.ExitDate.nil? || enrollment.DateOfPATHStatus <= enrollment.exit.ExitDate
     end

@@ -7,7 +7,7 @@
 module HudPathReport::Generators::Fy2021
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
-      'FY 2021'
+      'FY 2022'
     end
 
     def self.generic_title
@@ -16,6 +16,10 @@ module HudPathReport::Generators::Fy2021
 
     def self.short_name
       'PATH'
+    end
+
+    def self.file_prefix
+      "v3.5 #{short_name} #{fiscal_year}"
     end
 
     def url

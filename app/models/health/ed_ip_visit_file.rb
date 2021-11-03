@@ -12,29 +12,18 @@ module Health
     acts_as_paranoid
     require 'csv'
 
-    phi_attr :file, Phi::FreeText, "Name of file"
-    phi_attr :content, Phi::FreeText, "Content of file"
+    phi_attr :file, Phi::FreeText, 'Name of file'
+    phi_attr :content, Phi::FreeText, 'Content of file'
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     mount_uploader :file, EdIpVisitFileUploader
 
-    phi_patient :medicaid_id
-    phi_attr :last_name, Phi::Name
-    phi_attr :first_name, Phi::Name
-    phi_attr :gender, Phi::SmallPopulation
-    phi_attr :dob, Phi::Date
-    phi_attr :admit_date, Phi::Date
-    phi_attr :discharge_date, Phi::Date
-    phi_attr :discharge_disposition, Phi::FreeText
-    phi_attr :encounter_major_class, Phi::SmallPopulation
-    phi_attr :visit_type, Phi::SmallPopulation
-    phi_attr :encounter_facility, Phi::SmallPopulation
-    phi_attr :chief_complaint_diagnosis, Phi::FreeText
-    phi_attr :attending_physician, Phi::SmallPopulation
+    has_many :loaded_ed_ip_visits, dependent: :destroy
 
-    belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
-    has_many :ed_ip_visits, dependent: :destroy
+    def label
+      'ED & IP Visits'
+    end
 
     def status
       if failed_at.present?
@@ -50,42 +39,21 @@ module Health
       end
     end
 
-    def self.header_map
-      {
-        medicaid_id: 'Medicaid ID',
-        last_name: 'Last Name',
-        first_name: 'First Name',
-        gender: 'Gender',
-        dob: 'DOB',
-        admit_date: 'Admit Date',
-        discharge_date: 'Discharge Date',
-        discharge_disposition: 'Discharge Disposition',
-        encounter_major_class: 'Encounter Major Class',
-        visit_type: 'Visit Type',
-        encounter_facility: 'Encounter Facility',
-        chief_complaint: 'Chief Complaint',
-        diagnosis: 'Diagnosis',
-        attending_physician: 'Attending Physician',
-      }
+    def columns
+      self.class.header_map
     end
 
-    def csv_date_columns
-      @csv_date_columns ||= [
-        :dob,
-        :admit_date,
-        :discharge_date,
-      ]
-    end
-
-    def create_visits!
+    def load!
       update(started_at: Time.current)
       visits = []
       if check_header
-        ::CSV.parse(content, headers: true).each do |row|
+        ::CSV.parse(content, headers: true, liberal_parsing: true).each do |row|
           model_row = {
-            ed_ip_visit_file_id: self.id,
+            ed_ip_visit_file_id: id,
           }
           self.class.header_map.each do |column, title|
+            next unless Health::LoadedEdIpVisit.column_names.include?(column.to_s)
+
             value = row[title]
             if csv_date_columns.include?(column) && value
               model_row[column] = Date.strptime(value, '%m/%d/%Y')
@@ -93,46 +61,49 @@ module Health
               model_row[column] = value
             end
           end
-          visits << Health::EdIpVisit.new(model_row)
+          visits << model_row
         end
-        Health::EdIpVisit.import(visits)
+        Health::LoadedEdIpVisit.import!(visits)
         update(completed_at: Time.current)
         return true
       else
-        update(failed_at: Time.current)
+        update(failed_at: Time.current, message: 'Check header failed')
         return false
       end
+    rescue Exception => e
+      update(failed_at: Time.current, message: e.message)
+      return false
     end
 
-    def label
-      type
-    end
+    def ingest!(loaded_visits)
+      visits = []
+      loaded_visits.each do |loaded_visit|
+        next unless loaded_visit.medicaid_id
 
-    def columns
-      self.class.header_map
+        visits << {
+          medicaid_id: loaded_visit.medicaid_id,
+          admit_date: loaded_visit.admit_date,
+          encounter_major_class: loaded_visit.encounter_major_class,
+          loaded_ed_ip_visit_id: loaded_visit.id,
+        }
+      end
+      Health::EdIpVisit.import(visits)
     end
 
     private def check_header
-      incoming = ::CSV.parse(content.lines.first).flatten.map{|m| m&.strip}
-      expected = parsed_expected_header.map{|m| m&.strip}
+      incoming = ::CSV.parse(content.lines.first).flatten.map { |m| m&.strip }
+      expected = parsed_expected_header.map { |m| m&.strip }
       # You can update the header string with File.read('path/to/file.csv').lines.first
       # Using CSV parse in case the quoting styles differ
-      if incoming == expected
-        return true
-      else
+      return true if incoming == expected
 
-        Rails.logger.error (incoming - expected).inspect
-        Rails.logger.error (expected - incoming).inspect
-      end
+      Rails.logger.error (incoming - expected).inspect
+      Rails.logger.error (expected - incoming).inspect
       return false
     end
 
     private def parsed_expected_header
       CSV.parse(expected_header).flatten
-    end
-
-    def label
-      'ED & IP Visits'
     end
 
     private def expected_header

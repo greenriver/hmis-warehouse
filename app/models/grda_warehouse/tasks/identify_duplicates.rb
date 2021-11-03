@@ -16,67 +16,75 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
-      restore_previously_deleted_destinations
-      Rails.logger.info 'Loading unprocessed clients'
-      started_at = DateTime.now
-      @unprocessed = load_unprocessed
-
-      @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
-      return unless @dnd_warehouse_data_source
-
-      # compare unprocessed to destinations, looking for a match
-      # If we don't find a match:
-      #   create a new destination (based on the unprocessed client)
-      #   add a associated record to WarehouseClient
-      # If we do find a match:
-      #   create the associated WarehouseClient
-
-      Rails.logger.info "Matching #{@unprocessed.size} unprocessed clients"
-      matched = 0
-      new_created = 0
-      @unprocessed.each_with_index do |c, index|
-        match = check_for_obvious_match(c)
-        client = GrdaWarehouse::Hud::Client.find(c)
-        if match.present?
-          matched += 1
-          destination_client = GrdaWarehouse::Hud::Client.find(match)
-          destination_client.invalidate_service_history
-          # Set SSN & DOB if we have it in the incoming client, but not in the destination
-          should_save = false
-          if client.DOB.present? && destination_client.DOB.blank?
-            destination_client.DOB = client.DOB
-            should_save = true
-          end
-          if client.SSN.present? && destination_client.SSN.blank?
-            destination_client.SSN = client.SSN
-            should_save = true
-          end
-
-          destination_client.save if should_save
-        else
-          new_created += 1
-          destination_client = client.dup
-          destination_client.data_source_id = @dnd_warehouse_data_source.id
-          destination_client.save
-        end
-        GrdaWarehouse::WarehouseClient.create(
-          id_in_source: client.PersonalID,
-          source_id: client.id,
-          destination_id: destination_client.id,
-          data_source_id: client.data_source_id,
-        )
-
-        print "Matched: #{index} #{DateTime.now}\n" if (index % 1000).zero? && index.positive?
+      if GrdaWarehouseBase.advisory_lock_exists?('identify_duplicates')
+        msg = 'Skipping identify duplicates, all ready running.'
+        Rails.logger.warn msg
+        @notifier.ping(msg) if @send_notifications
+        return
       end
-      completed_at = DateTime.now
-      GrdaWarehouse::IdentifyDuplicatesLog.create(
-        started_at: started_at,
-        completed_at: completed_at,
-        to_match: @unprocessed.size,
-        matched: matched,
-        new_created: new_created,
-      )
-      Rails.logger.info 'Done'
+      GrdaWarehouseBase.with_advisory_lock('identify_duplicates') do
+        restore_previously_deleted_destinations
+        Rails.logger.info 'Loading unprocessed clients'
+        started_at = DateTime.now
+        @unprocessed = load_unprocessed
+
+        @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
+        return unless @dnd_warehouse_data_source
+
+        # compare unprocessed to destinations, looking for a match
+        # If we don't find a match:
+        #   create a new destination (based on the unprocessed client)
+        #   add a associated record to WarehouseClient
+        # If we do find a match:
+        #   create the associated WarehouseClient
+
+        Rails.logger.info "Matching #{@unprocessed.size} unprocessed clients"
+        matched = 0
+        new_created = 0
+        @unprocessed.each_with_index do |c, index|
+          match = check_for_obvious_match(c)
+          client = GrdaWarehouse::Hud::Client.find(c)
+          if match.present?
+            matched += 1
+            destination_client = GrdaWarehouse::Hud::Client.find(match)
+            destination_client.invalidate_service_history
+            # Set SSN & DOB if we have it in the incoming client, but not in the destination
+            should_save = false
+            if client.DOB.present? && destination_client.DOB.blank?
+              destination_client.DOB = client.DOB
+              should_save = true
+            end
+            if client.SSN.present? && destination_client.SSN.blank?
+              destination_client.SSN = client.SSN
+              should_save = true
+            end
+
+            destination_client.save if should_save
+          else
+            new_created += 1
+            destination_client = client.dup
+            destination_client.data_source_id = @dnd_warehouse_data_source.id
+            destination_client.save
+          end
+          GrdaWarehouse::WarehouseClient.create(
+            id_in_source: client.PersonalID,
+            source_id: client.id,
+            destination_id: destination_client.id,
+            data_source_id: client.data_source_id,
+          )
+
+          print "Matched: #{index} #{DateTime.now}\n" if (index % 1000).zero? && index.positive?
+        end
+        completed_at = DateTime.now
+        GrdaWarehouse::IdentifyDuplicatesLog.create(
+          started_at: started_at,
+          completed_at: completed_at,
+          to_match: @unprocessed.size,
+          matched: matched,
+          new_created: new_created,
+        )
+        Rails.logger.info 'Done'
+      end
     end
 
     # look at all existing records for duplicates and merge destination clients
@@ -184,15 +192,19 @@ module GrdaWarehouse::Tasks
     # Find any destination clients that have been marked deleted where the source client is not deleted
     # and a warehouse client record exists.  Un-delete them and queue them for re-processing
     private def restore_previously_deleted_destinations
-      source_client_ids = GrdaWarehouse::Hud::Client.source.select(:id)
-      deleted_destination_ids = GrdaWarehouse::WarehouseClient.
-        where(source_id: source_client_ids).
-        where.not(destination_id: client_destinations.select(:id)).select(:destination_id)
-      return unless deleted_destination_ids.present?
+      destination_client_ids = client_destinations.pluck(:id)
+      known_warehouse_destination_client_ids = GrdaWarehouse::WarehouseClient.
+        where(source_id: GrdaWarehouse::Hud::Client.source.select(:id)).
+        distinct.
+        pluck(:destination_id)
+      deleted_destination_ids = known_warehouse_destination_client_ids - destination_client_ids
+      return unless deleted_destination_ids.any?
 
       @notifier.ping("Restoring #{deleted_destination_ids.count} destination clients and invalidating their data")
-      client_destinations.only_deleted.where(id: deleted_destination_ids).find_each(&:force_full_service_history_rebuild)
-      client_destinations.only_deleted.where(id: deleted_destination_ids).update_all(DateDeleted: nil)
+      deleted_destination_ids.each_slice(5_000) do |batch|
+        client_destinations.only_deleted.where(id: batch).find_each(&:force_full_service_history_rebuild)
+        client_destinations.only_deleted.where(id: batch).update_all(DateDeleted: nil)
+      end
     end
 
     # figure out who doesn't yet have an entry in warehouse clients
@@ -226,7 +238,7 @@ module GrdaWarehouse::Tasks
         personal_id_matches = check_personal_ids(client.PersonalID)
         all_matches += personal_id_matches
       end
-      obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1 && !split?(client, i))}.compact
+      obvious_matches = all_matches.uniq.map { |i| i if all_matches.count(i) > 1 && !split?(client, i) }.compact
 
       return obvious_matches.first if obvious_matches.any?
 

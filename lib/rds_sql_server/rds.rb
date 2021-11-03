@@ -228,8 +228,8 @@ class Rds
       can_create_table = false
       while can_create_table == false
         begin
-          load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
-          ::LsaSqlServer::DbUp.hmis_table_create!(version: '2020')
+          load 'lib/rds_sql_server/lsa/fy2021/lsa_sql_server.rb'
+          ::LsaSqlServer::DbUp.hmis_table_create!(version: '2022')
           ::LsaSqlServer::DbUp.create!(status: 'up')
           can_create_table = true
         rescue Exception => e

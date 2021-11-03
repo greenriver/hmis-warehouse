@@ -1,10 +1,9 @@
 - if GrdaWarehouse::DataSource.authoritative.any? && params[:q].present? && can_create_clients?
   .slab
-    %p
-      .row
-        .col-sm-6
-          Don't see the client you are looking for?
-        .col-sm-6.text-right
-          = link_to polymorphic_path([:new] + client_path_generator), class: 'btn btn-secondary' do
-            %span.icon-plus
-            Add a Client
+    .row
+      .col-sm-6
+        Don't see the client you are looking for?
+      .col-sm-6.text-right
+        = link_to polymorphic_path([:new] + client_path_generator), class: 'btn btn-secondary' do
+          %span.icon-plus
+          Add a Client

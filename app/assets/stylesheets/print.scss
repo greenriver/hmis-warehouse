@@ -164,6 +164,13 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   font-family: sans-serif;
 }
 
+// Wicked PDF sometimes adds a blank page at the end
+// As per https://github.com/wkhtmltopdf/wkhtmltopdf/issues/3088
+// This will suppress it.
+.hide-blank-page {
+  height: 0;
+}
+
 .l-print,
 .l-print table {
   font-size: $pdf-default-font-size;
