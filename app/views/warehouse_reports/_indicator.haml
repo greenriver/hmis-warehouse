@@ -1,6 +1,6 @@
 - if indicator
   .c-indicator{class: ("c-indicator--constrained-width" if constrain_width)}
-    .c-indicator__title=indicator[:title]
+    .c-indicator__title.text-center=indicator[:title]
     .c-indicator__content
       .c-indicator__passed{class: indicator[:passed] ? "pass" : "fail"}
         = checkmark_or_x(indicator[:passed])

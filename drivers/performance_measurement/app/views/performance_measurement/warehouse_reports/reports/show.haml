@@ -10,3 +10,35 @@
 
 = debug @report.projects.count
 = debug @report.clients.count
+%table.table.c-table--indicator
+  %thead
+    %tr
+      %th.blank{style: "width: 15%"}
+      %th{style: "width: #{85.0/2.0}%"} System-Level Indicators
+      %th{style: "width: #{85.0/2.0}%"} Project-Level Indicators
+  %tbody
+    %tr.c-table__row.c-table__row--highlight-1
+      %th.level{style: "width: 15%"}
+        .h2 Rare
+      %td.p-0{colspan: 2, style: 'width: 85%'}
+        %table.table.m-0
+          %tr
+            %td{colspan: 2}
+              = render 'warehouse_reports/indicator', indicator: @report.system_homelessness_indicator, constrain_width: true
+          %tr
+            %td
+            %td
+    %tr.c-table__row.c-table__row--highlight-2
+      %th.level{style: "width: 15%"}
+        .h2 Brief
+      %td.p-0{colspan: 2, style: 'width: 85%'}
+        %table.table.m-0
+          %tr
+            %td TT
+    %tr.c-table__row.c-table__row--highlight-3
+      %th.level{style: "width: 15%"}
+        .h2 Non-Recurring
+      %td.p-0{colspan: 2, style: 'width: 85%'}
+        %table.table.m-0
+          %tr
+            %td TT

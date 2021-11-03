@@ -159,7 +159,7 @@ module PerformanceMeasurement
       project_clients = Set.new
       involved_projects = Set.new
       run_spm.each do |variant_name, spec|
-        spm_fields.each do |_spm_field, parts|
+        spm_fields.each do |parts|
           cells = parts[:cells]
           cells.each do |cell|
             spm_clients = answer_clients(spec[:report], *cell)
@@ -168,18 +168,17 @@ module PerformanceMeasurement
               report_client[:client_id] = spm_client[:client_id]
               report_client[:dob] = spm_client[:dob]
               # report_client["#{variant_name}_stayer"] = spm_client[:m3_active_project_types].present? # This is from 3.1 C6, which we don't calculate
-              parts[:questions].each do |question|
-                report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
-                spm_client[question[:history_source]].each do |row|
-                  involved_projects << row['project_id']
-                  project_clients << {
-                    report_id: id,
-                    client_id: spm_client[:client_id],
-                    project_id: row['project_id'],
-                    for_question: question[:name], # allows limiting for a specific response
-                    period: variant_name,
-                  }
-                end
+              question = parts[:question]
+              report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
+              spm_client[question[:history_source]].each do |row|
+                involved_projects << row['project_id']
+                project_clients << {
+                  report_id: id,
+                  client_id: spm_client[:client_id],
+                  project_id: row['project_id'],
+                  for_question: question[:name], # allows limiting for a specific response
+                  period: variant_name,
+                }
               end
               report_client["#{variant_name}_spm_id"] = spec[:report].id
               report_clients[spm_client[:client_id]] = report_client
@@ -196,7 +195,7 @@ module PerformanceMeasurement
         },
       )
       Project.import([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] })
-      ClientProject.import(project_clients.first.keys, project_clients)
+      ClientProject.import(project_clients.first.keys, project_clients.map(&:values))
       universe.add_universe_members(report_clients)
     end
 
@@ -205,7 +204,7 @@ module PerformanceMeasurement
     end
 
     private def answer_clients(report, table, cell)
-      report.answer(question: table, cell: cell).universe_members.map(&:universe_membership)
+      report.answer(question: table, cell: cell).universe_members.preload(:universe_membership).map(&:universe_membership)
     end
 
     private def run_spm
@@ -226,17 +225,23 @@ module PerformanceMeasurement
       # Because we want data back for all projects in the CoC we need to run this as the System User who will have access to everything
       options[:user_id] = User.setup_system_user.id
 
-      generator = HudSpmReport::Generators::Fy2020::Generator
-      variants.each do |_, spec|
-        processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
-        processed_filter.update(options.deep_merge(spec[:options]))
-        report = HudReports::ReportInstance.from_filter(
-          processed_filter,
-          generator.title,
-          build_for_questions: questions,
-        )
-        generator.new(report).run!(email: false, manual: false)
-        spec[:report] = report
+      # TODO: re-enable this
+      # generator = HudSpmReport::Generators::Fy2020::Generator
+      # variants.each do |_, spec|
+      #   processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
+      #   processed_filter.update(options.deep_merge(spec[:options]))
+      #   report = HudReports::ReportInstance.from_filter(
+      #     processed_filter,
+      #     generator.title,
+      #     build_for_questions: questions,
+      #   )
+      #   generator.new(report).run!(email: false, manual: false)
+      #   spec[:report] = report
+      # end
+
+      # for testing
+      variants.values.reverse.each.with_index do |spec, i|
+        spec[:report] = HudReports::ReportInstance.order(id: :desc).first(2)[i]
       end
       # return @variants with reports for each question
       variants
@@ -257,29 +262,104 @@ module PerformanceMeasurement
     end
 
     def spm_fields
-      {
-        m3_active_project_types: {
+      [
+        {
           cells: [['3.2', 'C2']],
           title: 'Sheltered Clients',
-          questions: [
-            {
-              name: :served_on_pit_date,
-              value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
-              history_source: :m3_history,
-            },
-          ],
+          question: {
+            name: :served_on_pit_date,
+            value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
+            history_source: :m3_history,
+          },
         },
-        m5_recent_project_types: {
+        {
           cells: [['5.1', 'C4']],
           title: 'First Time',
-          questions: [
-            {
-              name: :first_time,
-              value_calculation: ->(spm_client) { spm_client[:m5_active_project_types].present? && spm_client[:m5_recent_project_types].blank? },
-              history_source: :m5_history,
-            },
-          ],
+          question: {
+            name: :first_time,
+            value_calculation: ->(spm_client) { spm_client[:m5_active_project_types].present? && spm_client[:m5_recent_project_types].blank? },
+            history_source: :m5_history,
+          },
         },
+        {
+          cells: [['1a', 'B2']],
+          title: 'Length of Time Homeless in ES, SH, TH',
+          question: {
+            name: :days_homeless_es_sh_th,
+            value_calculation: ->(spm_client) { spm_client[:m1a_es_sh_th_days] },
+            history_source: :m1_history,
+          },
+        },
+        {
+          cells: [['1b', 'B2']],
+          title: 'Length of Time Homeless in ES, SH, TH, PH',
+          question: {
+            name: :days_homeless_es_sh_th_ph,
+            value_calculation: ->(spm_client) { spm_client[:m1b_es_sh_th_ph_days] },
+            history_source: :m1_history,
+          },
+        },
+        {
+          cells: [['7a', 'C2']],
+          title: 'Exits from SO',
+          question: {
+            name: :so_destination,
+            value_calculation: ->(spm_client) { spm_client[:m7a1_destination] },
+            history_source: :m7_history,
+          },
+        },
+        {
+          cells: [['7b.1', 'C2']],
+          title: 'Exits from ES, SH, TH, RRH, PH with No Move-in',
+          question: {
+            name: :es_sh_th_rrh_destination,
+            value_calculation: ->(spm_client) { spm_client[:m7b1_destination] },
+            history_source: :m7_history,
+          },
+        },
+        {
+          cells: [['7b.2', 'C2']],
+          title: 'RRH, PH with Move-in or Permanent Exit',
+          questions: {
+            name: :moved_in_destination, # NOTE: destination 0 == stayer in the SPM
+            value_calculation: ->(spm_client) { spm_client[:m7b2_destination] },
+            history_source: :m7_history,
+          },
+        },
+      ]
+    end
+
+    def passed?(field, reporting_value, comparison_value)
+      case field
+      when :served_on_pit_date
+        reporting_value < comparison_value
+      end
+    end
+
+    def homeless_client_count(period)
+      column = "#{period}_served_on_pit_date"
+      clients.where(column => true).count
+    end
+
+    def system_homelessness_indicator
+      field = :served_on_pit_date
+      reporting_count = homeless_client_count(:reporting)
+      comparison_count = homeless_client_count(:comparison)
+      passed = passed?(field, reporting_count, comparison_count)
+      direction = if reporting_count == comparison_count
+        :none
+      elsif passed
+        :down
+      else
+        :up
+      end
+
+      {
+        title: 'Number of Homeless People',
+        passed: passed,
+        direction: direction,
+        primary_value: { value: number_with_delimiter(reporting_count), unit: 'clients' },
+        value_label: 'Change over year',
       }
     end
 

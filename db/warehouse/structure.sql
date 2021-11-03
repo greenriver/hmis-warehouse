@@ -14557,7 +14557,8 @@ CREATE TABLE public.pm_clients (
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
     reporting_spm_id integer,
-    comparison_spm_id integer
+    comparison_spm_id integer,
+    reporting_days_homeless_es_sh_th_ph integer
 );
 
 
