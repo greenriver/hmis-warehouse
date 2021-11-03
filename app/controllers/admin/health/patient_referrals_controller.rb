@@ -63,7 +63,7 @@ module Admin::Health
           render 'index'
         end
         format.xlsx do
-          headers['Content-Disposition'] = 'attachment; filename=RejectedReferrals.xlsx'
+          headers['Content-Disposition'] = 'attachment; filename=Refused Consent and Other Removals.xlsx'
         end
       end
     end
