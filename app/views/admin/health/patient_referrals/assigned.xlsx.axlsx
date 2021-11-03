@@ -5,8 +5,8 @@ wb.add_worksheet(name: 'Agency Assigned') do |sheet|
   sheet.add_row(
     [
       'Medicaid ID',
-      'First Name',
       'Last Name',
+      'First Name',
       'DOB',
       'Enrollment Start Date',
       'ACO Name',
@@ -25,7 +25,7 @@ wb.add_worksheet(name: 'Agency Assigned') do |sheet|
         pr.aco_name.presence || pr.aco&.short_name,
         pr.assigned_agency&.name,
       ],
-      style: text,
+      style: [text, text, text, nil, nil, text, text],
     )
   end
 end

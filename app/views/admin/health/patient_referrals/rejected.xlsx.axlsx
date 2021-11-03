@@ -1,5 +1,5 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: 'Refused Consent and Other Removals') do |sheet|
+wb.add_worksheet(name: 'Refused Consent; Other Removals') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, format_code: '@', alignment: {hosizontal: :center})
   text = sheet.styles.add_style(format_code: '@')
   sheet.add_row(
@@ -30,7 +30,7 @@ wb.add_worksheet(name: 'Refused Consent and Other Removals') do |sheet|
         pr.aco_name.presence || pr.aco&.short_name,
         pr.assigned_agency&.name,
       ],
-      style: text,
+      style: [text, text, text, nil, nil, nil, text, text, text],
     )
   end
 end

@@ -30,7 +30,7 @@ wb.add_worksheet(name: 'Pending Removals') do |sheet|
         pr.aco_name.presence || pr.aco&.short_name,
         pr.assigned_agency&.name,
       ],
-      style: text,
+      style: [text, text, text, nil, nil, nil, text, text, text],
     )
   end
 end
