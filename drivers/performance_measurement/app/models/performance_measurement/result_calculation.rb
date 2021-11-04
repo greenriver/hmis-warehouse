@@ -343,11 +343,11 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def stayers_with_increased_income
-      increased_income(:increased_income, :income_stayer, 'Stayer',  __method__)
+      increased_income(:increased_income, :income_stayer, 'Stayer', __method__)
     end
 
     def leavers_with_increased_income
-      increased_income(:increased_income, :income_leaver, 'Leaver',  __method__)
+      increased_income(:increased_income, :income_leaver, 'Leaver', __method__)
     end
 
     def increased_income(income_field, status_field, status, meth)
