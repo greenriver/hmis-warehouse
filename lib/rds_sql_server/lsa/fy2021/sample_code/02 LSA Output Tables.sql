@@ -2,7 +2,7 @@
 LSA FY2021 Sample Code
 
 Name:  02 LSA Output Tables.sql 
-Date:  16 SEP 2021
+Date:  14 OCT 2021
  
 
 There are some deliberate differences from data typing and nullability as defined by 
@@ -38,7 +38,7 @@ create table lsa_Project(
 	ProjectID nvarchar(32) not NULL,
 	OrganizationID nvarchar(32) not NULL,
 	ProjectName nvarchar(100) not NULL,
-	ProjectCommonName nvarchar(100),
+	ProjectCommonName nvarchar(50),
 	OperatingStartDate nvarchar(10) not NULL,	--HMIS: date
 	OperatingEndDate nvarchar(10),				--HMIS: date
 	ContinuumProject int not NULL,
@@ -65,9 +65,9 @@ if object_id ('lsa_Organization') is not NULL drop table lsa_Organization
 
 create table lsa_Organization(
 	OrganizationID nvarchar(32) not NULL,
-	OrganizationName nvarchar(100) not NULL,
+	OrganizationName nvarchar(50) not NULL,
 	VictimServiceProvider int not NULL,
-	OrganizationCommonName nvarchar(100),
+	OrganizationCommonName nvarchar(50),
 	DateCreated nvarchar(19) not NULL,			--HMIS: datetime
 	DateUpdated nvarchar(19) not NULL,			--HMIS: datetime
 	UserID nvarchar(32),						--HMIS: not NULL
@@ -257,6 +257,7 @@ create table lsa_Person (
 	HHTypeEST int not NULL,
 	HoHEST int not NULL,
 	AdultEST int not NULL,
+	AHARAdultEST int not NULL,
 	HHChronicEST int not NULL,
 	HHVetEST int not NULL,
 	HHDisabilityEST int not NULL,
@@ -267,12 +268,12 @@ create table lsa_Person (
 	AC3PlusEST int not NULL,
 	AHAREST int not NULL,
 	AHARHoHEST int not NULL,
-	AHARAdultEST int not NULL,
 	RRHAgeMin int not NULL,
 	RRHAgeMax int not NULL,
 	HHTypeRRH int not NULL,
 	HoHRRH int not NULL,
 	AdultRRH int not NULL,
+	AHARAdultRRH int not NULL,
 	HHChronicRRH int not NULL,
 	HHVetRRH int not NULL,
 	HHDisabilityRRH int not NULL,
@@ -283,12 +284,12 @@ create table lsa_Person (
 	AC3PlusRRH int not NULL,
 	AHARRRH int not NULL,
 	AHARHoHRRH int not NULL,
-	AHARAdultRRH int not NULL,
 	PSHAgeMin int not NULL,
 	PSHAgeMax int not NULL,
 	HHTypePSH int not NULL,
 	HoHPSH int not NULL,
 	AdultPSH int not NULL,
+	AHARAdultPSH int not NULL,
 	HHChronicPSH int not NULL,
 	HHVetPSH int not NULL,
 	HHDisabilityPSH int not NULL,
@@ -299,7 +300,6 @@ create table lsa_Person (
 	AC3PlusPSH int not NULL,
 	AHARPSH int not NULL,
 	AHARHoHPSH int not NULL,
-	AHARAdultPSH int not NULL,
 	ReportID int not NULL
 	)
 
