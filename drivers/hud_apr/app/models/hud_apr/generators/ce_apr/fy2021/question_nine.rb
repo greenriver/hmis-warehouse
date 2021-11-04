@@ -85,10 +85,10 @@ module HudApr::Generators::CeApr::Fy2021
 
       # Populate row 3 with calculated values
       columns.each do |col, _|
-        numerator = @report.answer(question: table_name, cell: "#{col}1").summary || 0
-        denominator = numerator + (@report.answer(question: table_name, cell: "#{col}2").summary || 0)
+        numerator = @report.answer(question: table_name, cell: "#{col}2").summary || 0
+        denominator = numerator + (@report.answer(question: table_name, cell: "#{col}3").summary || 0)
         value = percentage(numerator / denominator.to_f)
-        @report.answer(question: table_name, cell: "#{col}3").update(summary: value)
+        @report.answer(question: table_name, cell: "#{col}4").update(summary: value)
       end
     end
 
