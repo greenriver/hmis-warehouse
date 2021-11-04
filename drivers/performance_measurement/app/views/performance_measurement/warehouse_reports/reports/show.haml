@@ -29,7 +29,19 @@
     %tr
       %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:time_to_move_in_median)
     %tr.c-table__row.c-table__row--highlight-3
-      %th.level.w-20{rowspan: 5}
+      %th.level.w-20{rowspan: 8}
         .h2 Non-Recurring
-      %tr
-        %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:so_positive_destinations)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:so_positive_destinations)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:es_sh_th_rrh_positive_destinations)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:moved_in_positive_destinations)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:returned_in_six_months)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:returned_in_twenty_two_years)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:stayers_with_increased_income)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:leavers_with_increased_income)

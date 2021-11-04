@@ -14,5 +14,10 @@ class CreatePmResults < ActiveRecord::Migration[5.2]
       t.timestamps
       t.datetime :deleted_at
     end
+
+    add_column :pm_clients, :reporting_income_stayer, :boolean
+    add_column :pm_clients, :comparison_income_stayer, :boolean
+    add_column :pm_clients, :reporting_income_leaver, :boolean
+    add_column :pm_clients, :comparison_income_leaver, :boolean
   end
 end

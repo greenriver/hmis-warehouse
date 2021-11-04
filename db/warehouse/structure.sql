@@ -14558,7 +14558,11 @@ CREATE TABLE public.pm_clients (
     deleted_at timestamp without time zone,
     reporting_spm_id integer,
     comparison_spm_id integer,
-    reporting_days_homeless_es_sh_th_ph integer
+    reporting_days_homeless_es_sh_th_ph integer,
+    reporting_income_stayer boolean,
+    comparison_income_stayer boolean,
+    reporting_income_leaver boolean,
+    comparison_income_leaver boolean
 );
 
 
