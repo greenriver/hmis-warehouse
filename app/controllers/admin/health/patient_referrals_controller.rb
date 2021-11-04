@@ -30,7 +30,7 @@ module Admin::Health
           render 'index'
         end
         format.xlsx do
-          headers['Content-Disposition'] = 'attachment; filename=PatientReferrals.xlsx'
+          headers['Content-Disposition'] = 'attachment; filename=Assignments to Review.xlsx'
         end
       end
     end
@@ -46,7 +46,7 @@ module Admin::Health
           render 'index'
         end
         format.xlsx do
-          headers['Content-Disposition'] = 'attachment; filename=AssignedReferrals.xlsx'
+          headers['Content-Disposition'] = 'attachment; filename=Agency Assigned.xlsx'
         end
       end
     end
@@ -63,7 +63,7 @@ module Admin::Health
           render 'index'
         end
         format.xlsx do
-          headers['Content-Disposition'] = 'attachment; filename=RejectedReferrals.xlsx'
+          headers['Content-Disposition'] = 'attachment; filename=Refused Consent and Other Removals.xlsx'
         end
       end
     end
@@ -77,7 +77,7 @@ module Admin::Health
           render 'index'
         end
         format.xlsx do
-          headers['Content-Disposition'] = 'attachment; filename=DisenrolledReferrals.xlsx'
+          headers['Content-Disposition'] = 'attachment; filename=Pending Removals.xlsx'
         end
       end
     end
@@ -91,7 +91,7 @@ module Admin::Health
           render 'index'
         end
         format.xlsx do
-          headers['Content-Disposition'] = 'attachment; filename=AcceptedDisenrollmentReferrals.xlsx'
+          headers['Content-Disposition'] = 'attachment; filename=Accepted Removals.xlsx'
         end
       end
     end
