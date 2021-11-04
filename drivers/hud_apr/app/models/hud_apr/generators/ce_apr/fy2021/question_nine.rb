@@ -109,12 +109,12 @@ module HudApr::Generators::CeApr::Fy2021
 
       generate_table(table_name, q9c_table_rows, { last_row: 8 })
 
-      # Populate row 7 with calculated values
+      # Populate row 8 with calculated values
       columns.each do |col, _|
-        numerator = @report.answer(question: table_name, cell: "#{col}2").summary || 0
-        denominator = @report.answer(question: table_name, cell: "#{col}6").summary || 0
+        numerator = @report.answer(question: table_name, cell: "#{col}3").summary || 0
+        denominator = @report.answer(question: table_name, cell: "#{col}7").summary || 0
         value = percentage(numerator / denominator.to_f)
-        @report.answer(question: table_name, cell: "#{col}7").update(summary: value)
+        @report.answer(question: table_name, cell: "#{col}8").update(summary: value)
       end
     end
 
