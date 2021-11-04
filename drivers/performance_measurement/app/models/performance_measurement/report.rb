@@ -21,6 +21,7 @@ module PerformanceMeasurement
     belongs_to :user
     has_many :clients
     has_many :projects
+    has_many :results
 
     after_initialize :filter
 
@@ -346,6 +347,7 @@ module PerformanceMeasurement
       reporting_count = homeless_client_count(:reporting)
       comparison_count = homeless_client_count(:comparison)
       passed = passed?(field, reporting_count, comparison_count)
+      change = (reporting_count - comparison_count) / comparison_count.to_f
       direction = if reporting_count == comparison_count
         :none
       elsif passed
@@ -354,13 +356,33 @@ module PerformanceMeasurement
         :up
       end
 
-      {
+      PerformanceMeasurement::Result.new(
+        report_id: id,
+        field: :system_homelessness_indicator,
         title: 'Number of Homeless People',
         passed: passed,
         direction: direction,
-        primary_value: { value: number_with_delimiter(reporting_count), unit: 'clients' },
+        primary_value: number_with_delimiter(reporting_count),
+        primary_unit: 'clients',
+        secondary_value: change,
+        secondary_unit: '%',
         value_label: 'Change over year',
-      }
+      )
+    end
+
+    def results_for(field)
+      results.find_by(field: field)
+    end
+
+    def save_results
+      results = [
+        system_homelessness_indicator,
+        # TODO: additional metrics
+      ]
+      PerformanceMeasurement::Result.transaction do
+        PerformanceMeasurement::Result.where(report_id: id).delete_all
+        PerformanceMeasurement::Result.import(results)
+      end
     end
 
     def calculate(variant, field, calculation, options)

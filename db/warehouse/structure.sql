@@ -14618,6 +14618,47 @@ ALTER SEQUENCE public.pm_projects_id_seq OWNED BY public.pm_projects.id;
 
 
 --
+-- Name: pm_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pm_results (
+    id bigint NOT NULL,
+    report_id bigint,
+    field character varying NOT NULL,
+    title character varying NOT NULL,
+    passed boolean DEFAULT false NOT NULL,
+    direction character varying,
+    primary_value integer,
+    primary_unit character varying,
+    secondary_value integer,
+    secondary_unit character varying,
+    value_label character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: pm_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pm_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pm_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pm_results_id_seq OWNED BY public.pm_results.id;
+
+
+--
 -- Name: project_data_quality; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20075,6 +20116,13 @@ ALTER TABLE ONLY public.pm_projects ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: pm_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_results ALTER COLUMN id SET DEFAULT nextval('public.pm_results_id_seq'::regclass);
+
+
+--
 -- Name: project_data_quality id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22822,6 +22870,14 @@ ALTER TABLE ONLY public.pm_clients
 
 ALTER TABLE ONLY public.pm_projects
     ADD CONSTRAINT pm_projects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pm_results pm_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_results
+    ADD CONSTRAINT pm_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -39218,6 +39274,20 @@ CREATE INDEX index_pm_projects_on_report_id ON public.pm_projects USING btree (r
 
 
 --
+-- Name: index_pm_results_on_field; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_results_on_field ON public.pm_results USING btree (field);
+
+
+--
+-- Name: index_pm_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_results_on_report_id ON public.pm_results USING btree (report_id);
+
+
+--
 -- Name: index_proj_proj_id_org_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46060,6 +46130,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211023193009'),
 ('20211027185505'),
 ('20211101203339'),
-('20211102203208');
+('20211102203208'),
+('20211103235413');
 
 

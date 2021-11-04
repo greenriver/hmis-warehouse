@@ -24,7 +24,7 @@
         %table.table.m-0
           %tr
             %td{colspan: 2}
-              = render 'warehouse_reports/indicator', indicator: @report.system_homelessness_indicator, constrain_width: true
+              = render 'warehouse_reports/indicator', indicator: @report.results_for(:system_homelessness_indicator), constrain_width: true
           %tr
             %td
             %td
