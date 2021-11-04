@@ -162,7 +162,7 @@ class Rds
       timezone: 'US Eastern Standard Time',
       copy_tags_to_snapshot: true,
       multi_az: false,
-      engine_version: '14.00.3015.40.v1',
+      # engine_version: '14.00.3381.3.v1',
       tags: [
         { key: 'Rails Environment', value: Rails.env },
       ],
