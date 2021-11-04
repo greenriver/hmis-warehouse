@@ -960,7 +960,7 @@ module GrdaWarehouse::WarehouseReports
       if RailsDrivers.loaded.include?(:performance_measurement)
         r_list['Performance'] << {
           url: 'performance_measurement/warehouse_reports/reports',
-          name: 'Performance Measurement Report',
+          name: 'CoC Performance Measurement Dashboard',
           description: 'Identify and track performance toward rare, brief, and non-recurring homelessness system-wide',
           limitable: true,
           health: false,

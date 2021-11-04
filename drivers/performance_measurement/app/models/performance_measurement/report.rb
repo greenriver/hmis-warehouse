@@ -15,6 +15,7 @@ module PerformanceMeasurement
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include PerformanceMeasurement::ResultCalculation
 
     acts_as_paranoid
 
@@ -41,6 +42,7 @@ module PerformanceMeasurement
       start
       begin
         create_universe
+        save_results
       rescue Exception => e
         update(failed_at: Time.current)
         raise e
@@ -86,7 +88,7 @@ module PerformanceMeasurement
     end
 
     def title
-      _('Performance Measurement Dashboard')
+      _('CoC Performance Measurement Dashboard')
     end
 
     def report_sections
@@ -330,87 +332,32 @@ module PerformanceMeasurement
       ]
     end
 
-    def passed?(field, reporting_value, comparison_value)
-      case field
-      when :served_on_pit_date
-        reporting_value < comparison_value
-      end
-    end
+    # def calculate(variant, field, calculation, options)
+    #   cell = "spm_#{field}"
+    #   scope = clients.send(variant).send(cell)
 
-    def homeless_client_count(period)
-      column = "#{period}_served_on_pit_date"
-      clients.where(column => true).count
-    end
+    #   value = case calculation
 
-    def system_homelessness_indicator
-      field = :served_on_pit_date
-      reporting_count = homeless_client_count(:reporting)
-      comparison_count = homeless_client_count(:comparison)
-      passed = passed?(field, reporting_count, comparison_count)
-      change = (reporting_count - comparison_count) / comparison_count.to_f
-      direction = if reporting_count == comparison_count
-        :none
-      elsif passed
-        :down
-      else
-        :up
-      end
-
-      PerformanceMeasurement::Result.new(
-        report_id: id,
-        field: :system_homelessness_indicator,
-        title: 'Number of Homeless People',
-        passed: passed,
-        direction: direction,
-        primary_value: number_with_delimiter(reporting_count),
-        primary_unit: 'clients',
-        secondary_value: change,
-        secondary_unit: '%',
-        value_label: 'Change over year',
-      )
-    end
-
-    def results_for(field)
-      results.find_by(field: field)
-    end
-
-    def save_results
-      results = [
-        system_homelessness_indicator,
-        # TODO: additional metrics
-      ]
-      PerformanceMeasurement::Result.transaction do
-        PerformanceMeasurement::Result.where(report_id: id).delete_all
-        PerformanceMeasurement::Result.import(results)
-      end
-    end
-
-    def calculate(variant, field, calculation, options)
-      cell = "spm_#{field}"
-      scope = clients.send(variant).send(cell)
-
-      value = case calculation
-
-      when :count
-        scope.count
-      when :average
-        scope.average(cell)
-      when :median
-        scope.median(cell)
-      when :percent
-        # denominator should always be the "all" variant
-        denominator = clients.send('spm_all_persons__all').send(options[:total]).count
-        (scope.count / denominator.to_f) * 100 unless denominator.zero?
-      when :count_destinations
-        # spm_m7a1_destination
-        rc_t = Client.arel_table
-        scope.where(
-          rc_t[:spm_m7a1_destination].in(Array.wrap(options[:destination])).
-          or(rc_t[:spm_m7b1_destination].in(Array.wrap(options[:destination]))),
-        ).count
-      end
-      value&.round(1) || 0
-    end
-    memoize :calculate
+    #   when :count
+    #     scope.count
+    #   when :average
+    #     scope.average(cell)
+    #   when :median
+    #     scope.median(cell)
+    #   when :percent
+    #     # denominator should always be the "all" variant
+    #     denominator = clients.send('spm_all_persons__all').send(options[:total]).count
+    #     (scope.count / denominator.to_f) * 100 unless denominator.zero?
+    #   when :count_destinations
+    #     # spm_m7a1_destination
+    #     rc_t = Client.arel_table
+    #     scope.where(
+    #       rc_t[:spm_m7a1_destination].in(Array.wrap(options[:destination])).
+    #       or(rc_t[:spm_m7b1_destination].in(Array.wrap(options[:destination]))),
+    #     ).count
+    #   end
+    #   value&.round(1) || 0
+    # end
+    # memoize :calculate
   end
 end

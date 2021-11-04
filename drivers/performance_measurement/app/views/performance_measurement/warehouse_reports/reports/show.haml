@@ -1,44 +1,35 @@
 = render 'breadcrumbs'
 = render 'beta_warning'
 
-- title = "Performance Measurement Report"
+- title = _("CoC Performance Measurement Dashboard")
 - content_for :title, title
 %h1= content_for :title
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
   = @report.filter.describe_filter_as_html
 
-= debug @report.projects.count
-= debug @report.clients.count
 %table.table.c-table--indicator
-  %thead
-    %tr
-      %th.blank{style: "width: 15%"}
-      %th{style: "width: #{85.0/2.0}%"} System-Level Indicators
-      %th{style: "width: #{85.0/2.0}%"} Project-Level Indicators
   %tbody
     %tr.c-table__row.c-table__row--highlight-1
-      %th.level{style: "width: 15%"}
+      %th.level.w-20{rowspan: 3}
         .h2 Rare
-      %td.p-0{colspan: 2, style: 'width: 85%'}
-        %table.table.m-0
-          %tr
-            %td{colspan: 2}
-              = render 'warehouse_reports/indicator', indicator: @report.results_for(:system_homelessness_indicator), constrain_width: true
-          %tr
-            %td
-            %td
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:count_of_homeless_clients)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:first_time_homeless_clients)
     %tr.c-table__row.c-table__row--highlight-2
-      %th.level{style: "width: 15%"}
+      %th.level.w-20{rowspan: 5}
         .h2 Brief
-      %td.p-0{colspan: 2, style: 'width: 85%'}
-        %table.table.m-0
-          %tr
-            %td TT
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:length_of_homeless_stay_average)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:length_of_homeless_stay_median)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:time_to_move_in_average)
+    %tr
+      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:time_to_move_in_median)
     %tr.c-table__row.c-table__row--highlight-3
-      %th.level{style: "width: 15%"}
+      %th.level.w-20{rowspan: 5}
         .h2 Non-Recurring
-      %td.p-0{colspan: 2, style: 'width: 85%'}
-        %table.table.m-0
-          %tr
-            %td TT
+      %tr
+        %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:so_positive_destinations)
