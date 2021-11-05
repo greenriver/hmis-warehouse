@@ -111,8 +111,8 @@ module HudApr::Generators::CeApr::Fy2021
 
       # Populate row 8 with calculated values
       columns.each do |col, _|
-        numerator = @report.answer(question: table_name, cell: "#{col}3").summary || 0
-        denominator = @report.answer(question: table_name, cell: "#{col}7").summary || 0
+        numerator = @report.answer(question: table_name, cell: "#{col}7").summary || 0
+        denominator = @report.answer(question: table_name, cell: "#{col}3").summary || 0
         value = percentage(numerator / denominator.to_f)
         @report.answer(question: table_name, cell: "#{col}8").update(summary: value)
       end
