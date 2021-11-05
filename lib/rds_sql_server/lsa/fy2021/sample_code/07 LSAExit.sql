@@ -96,7 +96,7 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	update ex
 	set ex.ReturnTime = coalesce (
 			(select datediff(dd, qx.ExitDate, min(rn.EntryDate))
-			from tlsa_hhid qx
+			from tlsa_HHID qx
 			inner join tlsa_HHID rn on rn.HoHID = qx.HoHID 
 				and case qx.ExitCohort 
 						when -2 then rn.Exit2HHType
@@ -121,13 +121,6 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	7.4 HoH and Adult Members of Exit Cohorts
 */
 
-	update ex
-	set ex.HHChronic = 0, ex.Step = '7.4.1'
-	from tlsa_Exit ex
-	inner join tlsa_HHID hhid on hhid.HouseholdID = ex.QualifyingExitHHID
-	where (ex.ExitFrom = 3 and hhid.EntryDate <= dateadd(yy, -1, hhid.ExitDate))
-		or (ex.ExitFrom in (5,6) and hhid.MoveInDate <= dateadd(yy, -1, hhid.ExitDate))
-
 	truncate table tlsa_ExitHoHAdult
 
 	insert into tlsa_ExitHoHAdult (
@@ -136,7 +129,7 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 		CHTime, CHTimeStatus, Step)
 	select distinct n.PersonalID, ex.QualifyingExitHHID,
 		ex.Cohort, case when n.DisabilityStatus = 1 then 1 else 0 end,
-		dateadd(dd, -1, (dateadd(yy, -3, n.ExitDate))),
+		dateadd(dd, 1, (dateadd(yy, -3, n.ExitDate))),
 		n.ExitDate, 
 		case when hn.MonthsHomelessPastThreeYears in (112,113) 
 			and hn.TimesHomelessPastThreeYears = 4
@@ -144,16 +137,19 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 		case when hn.MonthsHomelessPastThreeYears in (112,113) 
 			and hn.TimesHomelessPastThreeYears = 4
 			and hn.EntryDate > dateadd(yyyy, -1, n.ExitDate) then 2 else null end
-		, '7.4.2'
+		, '7.4'
 	from tlsa_Exit ex
+	inner join tlsa_HHID hhid on hhid.HouseholdID = ex.QualifyingExitHHID
 	inner join tlsa_CohortDates cd on cd.Cohort = ex.Cohort
 	inner join tlsa_Enrollment n on n.HouseholdID = ex.QualifyingExitHHID 
 		and n.ExitDate between cd.CohortStart and cd.CohortEnd
 	inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
-	where ex.HHChronic is null and n.RelationshipToHoH = 1 
-		or (cd.Cohort = 0 and n.ActiveAge between 18 and 65)
-		or (cd.Cohort = -1 and n.Exit1Age between 18 and 65)
-		or (cd.Cohort = -2 and n.Exit2Age between 18 and 65)
+	where (n.RelationshipToHoH = 1 
+			or (cd.Cohort = 0 and n.ActiveAge between 18 and 65)
+			or (cd.Cohort = -1 and n.Exit1Age between 18 and 65)
+			or (cd.Cohort = -2 and n.Exit2Age between 18 and 65))
+		and (ex.ExitFrom <> 3 or hhid.EntryDate > dateadd(yy, -1, hhid.ExitDate))
+		and (ex.ExitFrom not in (5,6) or hhid.MoveInDate > dateadd(yy, -1, hhid.ExitDate))
 
 /*
 	7.5 Get Dates to Exclude from Counts of ES/SH/Street Days
@@ -164,14 +160,14 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	insert into ch_Exclude (PersonalID, excludeDate, Step)
 	select distinct ha.PersonalID, cal.theDate, '7.5'
 	from tlsa_ExitHoHAdult ha
-	inner join tlsa_Enrollment chn on chn.PersonalID = ha.PersonalID and chn.EntryDate < ha.LastActive
-		and chn.ExitDate > ha.CHStart
+	inner join tlsa_Enrollment chn on chn.PersonalID = ha.PersonalID 
 	inner join ref_Calendar cal on cal.theDate >=
 			case when chn.LSAProjectType in (3,13) then chn.MoveInDate  
 				else chn.EntryDate end
-		and ((cal.theDate < chn.ExitDate 
-			or chn.ExitDate is null))
-			and cal.theDate between ha.CHStart and ha.LastActive
+		and cal.theDate < chn.ExitDate
+			and cal.theDate between 
+				(select min(earliest.CHStart) from tlsa_ExitHoHAdult earliest where earliest.PersonalID = ha.PersonalID) 
+				and (select max(latest.LastActive) from tlsa_ExitHoHAdult latest where latest.PersonalID = ha.PersonalID)
 	where chn.LSAProjectType in (2,3,13) and ha.CHTime is null
 
 /*
@@ -188,8 +184,10 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 		inner join tlsa_Enrollment chn on chn.PersonalID = ha.PersonalID 
 		inner join ref_Calendar cal on 
 			cal.theDate >= chn.EntryDate 
-		and (cal.theDate < chn.ExitDate or chn.ExitDate is null)
-			and cal.theDate between ha.CHStart and ha.LastActive
+		and cal.theDate < chn.ExitDate
+			and cal.theDate between 
+				(select min(earliest.CHStart) from tlsa_ExitHoHAdult earliest where earliest.PersonalID = ha.PersonalID) 
+				and (select max(latest.LastActive) from tlsa_ExitHoHAdult latest where latest.PersonalID = ha.PersonalID)
 		left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
 			and chx.PersonalID = chn.PersonalID
 	where chn.LSAProjectType in (0,8)
@@ -201,15 +199,16 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	select distinct ha.PersonalID, cal.theDate, '7.6.2'
 	from tlsa_ExitHoHAdult ha
 		inner join tlsa_Enrollment chn on chn.PersonalID = ha.PersonalID 
-		inner join tlsa_HHID hhid on hhid.HouseholdID = chn.HouseholdID
-		inner join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
+		inner join hmis_Services bn on bn.EnrollmentID = chn.EnrollmentID
 			and bn.RecordType = 200 
 			and bn.DateProvided >= chn.EntryDate 
-			and (bn.DateProvided < chn.ExitDate or chn.ExitDate is null)
+			and bn.DateProvided < chn.ExitDate
 			and bn.DateDeleted is null
 		inner join ref_Calendar cal on 
 			cal.theDate = bn.DateProvided 
-			and cal.theDate between ha.CHStart and ha.LastActive
+			and cal.theDate between 
+			(select min(earliest.CHStart) from tlsa_ExitHoHAdult earliest where earliest.PersonalID = ha.PersonalID) 
+				and (select max(latest.LastActive) from tlsa_ExitHoHAdult latest where latest.PersonalID = ha.PersonalID)
 		left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
 			and chx.PersonalID = chn.PersonalID
 		left outer join ch_Include chi on chi.ESSHStreetDate = cal.theDate 
@@ -228,7 +227,9 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 		inner join hmis_Enrollment hn on hn.EnrollmentID = chn.EnrollmentID
 		inner join ref_Calendar cal on 
 			cal.theDate >= hn.DateToStreetESSH
-			and cal.theDate between ha.CHStart and ha.LastActive
+			and cal.theDate between 			
+				(select min(earliest.CHStart) from tlsa_ExitHoHAdult earliest where earliest.PersonalID = ha.PersonalID) 
+				and (select max(latest.LastActive) from tlsa_ExitHoHAdult latest where latest.PersonalID = ha.PersonalID)
 		left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
 			and chx.PersonalID = chn.PersonalID
 		left outer join ch_Include chi on chi.ESSHStreetDate = cal.theDate 
@@ -250,7 +251,6 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 				chn.LSAProjectType in (3,13)
 				and (cal.theDate < chn.MoveInDate
 					 or (chn.MoveInDate is NULL and cal.theDate < chn.ExitDate)
-					 or (chn.MoveInDate is NULL and chn.ExitDate is NULL and cal.theDate <= ha.LastActive)
 					)
 				)
 			)						
@@ -279,7 +279,7 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 
 	-- For any given PersonalID:
 	--	Any ESSHStreetDate in ch_Include without a record for the day before is the start of an episode (episodeStart).
-	--	Any cdDate in ch_Include without a record for the day after is the end of an episode (episodeEnd).
+	--	Any ESSHStreetDate in ch_Include without a record for the day after is the end of an episode (episodeEnd).
 	--	Each episodeStart combined with the next earliest episodeEnd represents one episode.
 	--	The length of the episode is the difference in days between episodeStart and episodeEnd + 1 day.
 
@@ -308,14 +308,11 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	set CHTime = 365, CHTimeStatus = 1, ha.Step = '7.8.1'
 	from tlsa_ExitHoHAdult ha
 		inner join ch_Episodes chep on chep.PersonalID = ha.PersonalID
-			and chep.episodeDays >= 365
 			and chep.episodeEnd > dateadd(yyyy, -1, ha.LastActive) 
-			and chep.episodeStart <= dateadd(yyyy, -1, ha.LastActive)
+			and chep.episodeStart <= dateadd(yyyy, -1, chep.episodeEnd)
 
 	--Clients with a total of 365+ days in the three year period and at least four episodes 
 	--  meet time criteria for CH
-
-
 	update ha
 	set ha.CHTime = case when time_sum.count_days >= 365 then 365
 			when time_sum.count_days >= 270 then 270
@@ -329,11 +326,9 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 			, count(distinct chep.episodeStart) as count_eps
 		from tlsa_ExitHoHAdult hoha 
 		inner join ch_Include chi on chi.PersonalID = hoha.PersonalID 
-			and chi.ESSHStreetDate between dateadd(yyyy, -3, hoha.LastActive) and hoha.LastActive
+			and chi.ESSHStreetDate between hoha.CHStart and hoha.LastActive
 		inner join ch_Episodes chep on chep.PersonalID = hoha.PersonalID
-			and chep.episodeDays >= 365
-			and chep.episodeEnd > dateadd(yyyy, -1, hoha.LastActive) 
-			and chep.episodeStart <= dateadd(yyyy, -1, hoha.LastActive)
+			and chep.episodeEnd between hoha.CHStart and hoha.LastActive 
 		group by hoha.PersonalID, hoha.Cohort) time_sum on time_sum.PersonalID = ha.PersonalID and time_sum.Cohort = ha.Cohort
 	where ha.CHTime is null
 

@@ -28,55 +28,68 @@ Populates and references:
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 10, 1, hh.HoHID, hh.HHType, '8.3.2'
-	from tlsa_Household hh where hh.HHAdultAge = 18 and hh.HHType = 1
+	from tlsa_Household hh 
+	where hh.HHAdultAge = 18 and hh.HHType = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 11, 1, hh.HoHID, hh.HHType, '8.3.3'
-	from tlsa_Household hh where hh.HHAdultAge = 24 and hh.HHType = 1
+	from tlsa_Household hh 
+	where hh.HHAdultAge = 24 and hh.HHType = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 12, 1, hh.HoHID, hh.HHType, '8.3.4'
-	from tlsa_Household hh where hh.HHType = 2 and hh.HHParent = 1 and HHAdultAge in (18,24)
+	from tlsa_Household hh 
+	where hh.HHType = 2 and hh.HHParent = 1 and HHAdultAge in (18,24)
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 13, 1, hh.HoHID, hh.HHType, '8.3.5'
-	from tlsa_Household hh where hh.HHVet = 1 
+	from tlsa_Household hh 
+	where hh.HHVet = 1 
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 14, 1, hh.HoHID, hh.HHType, '8.3.6'
-	from tlsa_Household hh where hh.HHVet = 0 and hh.HHAdultAge in (25, 55) and hh.HHType = 1
+	from tlsa_Household hh 
+	where hh.HHVet = 0 and hh.HHAdultAge in (25, 55) and hh.HHType = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 15, 1, hh.HoHID, hh.HHType, '8.3.7'
-	from tlsa_Household hh where hh.HHChronic = 1
+	from tlsa_Household hh 
+	where hh.HHChronic = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 16, 1, hh.HoHID, hh.HHType, '8.3.8'
-	from tlsa_Household hh where hh.HHChronic in (1,2)
+	from tlsa_Household hh 
+	where hh.HHChronic in (1,2)
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 17, 1, hh.HoHID, hh.HHType, '8.3.9'
-	from tlsa_Household hh where hh.HHChronic in (0,3)
+	from tlsa_Household hh 
+	where hh.HHChronic in (0,3)
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 18, 1, hh.HoHID, hh.HHType, '8.3.10'
-	from tlsa_Household hh where hh.HHDisability = 1
+	from tlsa_Household hh 
+	where hh.HHDisability = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 19, 1, hh.HoHID, hh.HHType, '8.3.11'
-	from tlsa_Household hh where hh.HHFleeingDV = 1
+	from tlsa_Household hh 
+	where hh.HHFleeingDV = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 20, 1, hh.HoHID, hh.HHType, '8.3.12'
-	from tlsa_Household hh where hh.Stat = 1
+	from tlsa_Household hh 
+	where hh.Stat = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 21, 1, hh.HoHID, hh.HHType, '8.3.13'
-	from tlsa_Household hh where hh.Stat = 2
+	from tlsa_Household hh 
+	where hh.Stat = 2
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 22, 1, hh.HoHID, hh.HHType, '8.3.14'
-	from tlsa_Household hh where hh.PSHMoveIn = 1
+	from tlsa_Household hh 
+	where hh.PSHMoveIn = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct case when hh.HoHRace = 5 and hh.HoHEthnicity <> 1 then 23
@@ -89,27 +102,35 @@ Populates and references:
 			when hh.HoHRace = 4 then 30
 			else 31 end
 		, 1, hh.HoHID, hh.HHType, '8.3.15'
-	from tlsa_Household hh where hh.HoHRace not in (98,99)
+	from tlsa_Household hh 
+	where hh.HoHRace not in (98,99)
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 32, 1, hh.HoHID, hh.HHType, '8.3.16'
-	from tlsa_Household hh where hh.HoHEthnicity = 0
+	from tlsa_Household hh 
+	where hh.HoHEthnicity = 0
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 33, 1, hh.HoHID, hh.HHType, '8.3.17'
-	from tlsa_Household hh where hh.HoHEthnicity = 1
+	from tlsa_Household hh 
+	where hh.HoHEthnicity = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 34, 1, hh.HoHID, hh.HHType, '8.3.18'
-	from tlsa_Household hh where hh.HHAdultAge = 55 and hh.HHType = 1
+	from tlsa_Household hh 
+	where hh.HHAdultAge = 55 and hh.HHType = 1
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 35, 1, hh.HoHID, hh.HHType, '8.3.19'
-	from tlsa_Household hh where hh.HHParent = 1 and hh.HHType = 3
+	from tlsa_Household hh 
+	where hh.HHParent = 1 and hh.HHType = 3
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 36, 1, hh.HoHID, hh.HHType, '8.3.20'
-	from tlsa_Household hh where hh.HHChild = 3 and hh.HHType = 2
+	from tlsa_Household hh 
+	where hh.HHChild = 3 and hh.HHType = 2
+
+	-- End LSAHousehold populations / begin LSAExit populations
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
 	select distinct 10, ex.Cohort, ex.HoHID, ex.HHType, '8.3.21'
@@ -239,7 +260,7 @@ Populates and references:
 		rv.Cohort, rv.Universe, ph.HHType,
 		rp.PopID, rv.SystemPath, rv.RowID, 
 		hh.ReportID, '8.4-8.7'
-	from tlsa_household hh 
+	from tlsa_Household hh 
 	inner join tlsa_AveragePops pop on (pop.PopID = 0 or (pop.HHType = hh.HHType and pop.HoHID = hh.HoHID)) and pop.Cohort = 1
 	inner join ref_RowPopulations rp on rp.PopID = pop.PopID 
 	inner join ref_PopHHTypes ph on ph.PopID = rp.PopID and (ph.HHType = hh.HHType or ph.HHType = 0)

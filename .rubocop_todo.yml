@@ -137,7 +137,6 @@ Layout/DotPosition:
 # Cop supports --auto-correct.
 Layout/ElseAlignment:
   Exclude:
-    - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/grda_warehouse/us_census_api/variable_importer.rb'
 
@@ -646,7 +645,6 @@ Layout/EmptyLinesAroundModuleBody:
 # SupportedStylesAlignWith: keyword, variable, start_of_line
 Layout/EndAlignment:
   Exclude:
-    - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/us_census_api/variable_importer.rb'
@@ -720,7 +718,6 @@ Layout/FirstHashElementIndentation:
     - 'app/models/glacier/archive_runner.rb'
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'
-    - 'app/models/glacier/runner.rb'
     - 'app/models/glacier/uploader.rb'
     - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
@@ -815,7 +812,6 @@ Layout/IndentationConsistency:
 Layout/IndentationWidth:
   Exclude:
     - 'app/models/consent_limit.rb'
-    - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
@@ -1859,7 +1855,6 @@ Naming/HeredocDelimiterCase:
 # ForbiddenDelimiters: (?-mix:(^|\s)(EO[A-Z]{1}|END)(\s|$))
 Naming/HeredocDelimiterNaming:
   Exclude:
-    - 'app/models/glacier/runner.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
 
@@ -2159,7 +2154,6 @@ Style/IfUnlessModifier:
     - 'app/models/cas/user.rb'
     - 'app/models/glacier/chunker.rb'
     - 'app/models/glacier/restore.rb'
-    - 'app/models/glacier/runner.rb'
     - 'app/models/glacier/tester.rb'
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/enrollment.rb'
@@ -2350,7 +2344,6 @@ Style/MutableConstant:
 # SupportedStyles: both, prefix, postfix
 Style/NegatedIf:
   Exclude:
-    - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -2489,7 +2482,6 @@ Style/PercentLiteralDelimiters:
 Style/RedundantBegin:
   Exclude:
     - 'app/models/glacier/archive_runner.rb'
-    - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/tasks/service_history/base.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
 
@@ -2687,7 +2679,6 @@ Style/StringLiterals:
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/chunker.rb'
     - 'app/models/glacier/restore.rb'
-    - 'app/models/glacier/runner.rb'
     - 'app/models/glacier/tester.rb'
     - 'app/models/glacier/uploader.rb'
     - 'app/models/glacier/utils.rb'
@@ -2905,7 +2896,6 @@ Style/TrailingCommaInArguments:
 # SupportedStylesForMultiline: comma, consistent_comma, no_comma
 Style/TrailingCommaInArrayLiteral:
   Exclude:
-    - 'app/models/glacier/runner.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
@@ -2938,7 +2928,6 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/glacier/archive_runner.rb'
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'
-    - 'app/models/glacier/runner.rb'
     - 'app/models/glacier/uploader.rb'
     - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/shape.rb'
