@@ -83,7 +83,7 @@ module HudApr::Generators::CeApr::Fy2021
 
       generate_table(table_name, q9b_table_rows, { last_row: 4 })
 
-      # Populate row 3 with calculated values
+      # Populate row 4 with calculated values
       columns.each do |col, _|
         numerator = @report.answer(question: table_name, cell: "#{col}2").summary || 0
         denominator = numerator + (@report.answer(question: table_name, cell: "#{col}3").summary || 0)
