@@ -16,7 +16,7 @@ Date:	16 SEP 2021
 		, VictimServiceProvider
 		, DateCreated, DateUpdated, ExportID)
 	select distinct ho.OrganizationID
-		, left(ho.OrganizationName, 100)
+		, left(ho.OrganizationName, 50)
 		, ho.VictimServiceProvider	
 		, format(ho.DateCreated, 'yyyy-MM-dd HH:mm:ss')
 		, format(ho.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
