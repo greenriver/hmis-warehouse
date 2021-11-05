@@ -47,6 +47,7 @@ module GrdaWarehouse::Tasks
               :processed_service_history,
               :hmis_client,
               :source_disabilities,
+              most_recent_pathways_or_rrh_assessment: :assessment_questions,
               cohort_clients: :cohort,
             ).
               where(id: client_id_batch).find_each do |client|
@@ -115,6 +116,7 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Hud::Client.cas_active
     end
 
+    # TODO: update so all things coming from HMIS assessments or ETO get a wrapper method that checks assessments first and then client attribute
     def project_client_columns
       {
         client_identifier: :id,
@@ -149,21 +151,21 @@ module GrdaWarehouse::Tasks
         dmh_eligible: :dmh_eligible,
         va_eligible: :va_eligible,
         hues_eligible: :hues_eligible,
-        hiv_positive: :hiv_positive,
+        hiv_positive: :hiv_positive, # Should come from c_housing_HIV == 1 -> Client.hiv_positive
         housing_release_status: :release_status_for_cas,
         us_citizen: :us_citizen,
         asylee: :asylee,
         ineligible_immigrant: :ineligible_immigrant,
         lifetime_sex_offender: :lifetime_sex_offender,
-        meth_production_conviction: :meth_production_conviction,
-        family_member: :family_member,
-        child_in_household: :child_in_household,
+        meth_production_conviction: :meth_production_conviction, # Needs to populate Client.meth_production_conviction
+        family_member: :family_member, # c_additional_household_members == 1 -> Client.family_member
+        child_in_household: :child_in_household, # any c_member1_age < 18 -> Client.child_in_household
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years_cached,
         days_literally_homeless_in_last_three_years: :literally_homeless_last_three_years_cached,
         vispdat_score: :most_recent_vispdat_score,
         vispdat_length_homeless_in_days: :days_homeless_for_vispdat_prioritization,
         vispdat_priority_score: :calculate_vispdat_priority_score,
-        ha_eligible: :ha_eligible,
+        ha_eligible: :ha_eligible, # does this need to be based on a score in the transfer assessment?
         cspech_eligible: :cspech_eligible,
         income_total_monthly: :max_current_total_monthly_income,
         alternate_names: :alternate_names,
@@ -173,25 +175,25 @@ module GrdaWarehouse::Tasks
         assessment_score: :assessment_score_for_cas,
         ssvf_eligible: :ssvf_eligible,
         rrh_desired: :rrh_desired,
-        youth_rrh_desired: :youth_rrh_desired,
+        youth_rrh_desired: :youth_rrh_desired, # c_youth_choice
         rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
         rrh_assessment_collected_at: :rrh_assessment_collected_at,
-        requires_wheelchair_accessibility: :requires_wheelchair_accessibility,
-        required_number_of_bedrooms: :required_number_of_bedrooms,
+        requires_wheelchair_accessibility: :requires_wheelchair_accessibility, # c_disability_accomodations
+        required_number_of_bedrooms: :required_number_of_bedrooms, # c_larger_room_size
         required_minimum_occupancy: :required_minimum_occupancy,
-        requires_elevator_access: :requires_elevator_access,
-        neighborhood_interests: :neighborhood_ids_for_cas,
+        requires_elevator_access: :requires_elevator_access, # c_disability_accomodations
+        neighborhood_interests: :neighborhood_ids_for_cas, # "c_neighborhoods_all" "c_neighborhood_allston_brighton" "c_neighborhood_backbayplus" "c_neighborhood_charlestown" "c_neighborhood_dorchester21" "c_neighborhood_dorchester22" "c_neighborhood_dorchester24" "c_neighborhood_dorchester25" "c_neighborhood_downtownplus" "c_neighborhood_eastboston" "c_neighborhood_hydepark" "c_neighborhood_jamaicaplain" "c_neighborhood_mattapan" "c_neighborhood_missionhill" "c_neighborhood_roslindale" "c_neighborhood_roxbury" "c_neighborhood_southboston_seaport" "c_neighborhood_westroxbury"
         interested_in_set_asides: :interested_in_set_asides,
-        default_shelter_agency_contacts: :default_shelter_agency_contacts,
+        default_shelter_agency_contacts: :default_shelter_agency_contacts, # c_casemanager_contacts
         tags: :cas_tags,
         vash_eligible: :vash_eligible,
         pregnancy_status: :cas_pregnancy_status,
-        income_maximization_assistance_requested: :income_maximization_assistance_requested,
+        income_maximization_assistance_requested: :income_maximization_assistance_requested, # c_interest_income_max
         pending_subsidized_housing_placement: :pending_subsidized_housing_placement,
         rrh_th_desired: :rrh_th_desired,
-        sro_ok: :sro_ok,
-        evicted: :evicted,
-        dv_rrh_desired: :dv_rrh_desired,
+        sro_ok: :sro_ok, # c_singleadult_sro
+        evicted: :evicted, # c_pathways_barrier_eviction
+        dv_rrh_desired: :dv_rrh_desired, # c_survivor_choice
         health_prioritized: :health_prioritized_for_cas?,
       }
     end

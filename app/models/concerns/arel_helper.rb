@@ -237,6 +237,10 @@ module ArelHelper
     GrdaWarehouse::Hud::Assessment.arel_table
   end
 
+  def asq_t
+    GrdaWarehouse::Hud::AssessmentQuestion.arel_table
+  end
+
   def ev_t
     GrdaWarehouse::Hud::Event.arel_table
   end
@@ -576,6 +580,10 @@ module ArelHelper
 
     def as_t
       GrdaWarehouse::Hud::Assessment.arel_table
+    end
+
+    def asq_t
+      GrdaWarehouse::Hud::AssessmentQuestion.arel_table
     end
 
     def ev_t

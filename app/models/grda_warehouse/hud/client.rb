@@ -35,6 +35,14 @@ module GrdaWarehouse::Hud
     has_one :ce_assessment, -> do
       merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active)
     end, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
+    has_one :most_recent_pathways_or_rrh_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: :PersonalID, # FIXME: needs to be on PersonalID, data_source_id
+        scope: pathways_or_rrh,
+      )
+    end, class_name: 'GrdWarehouse::Hud::Assessment'
 
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
@@ -2674,11 +2682,27 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def most_recent_pathways_or_rrh_assessment
+      @most_recent_pathways_or_rrh_assessment ||= most_recent_pathways_or_rrh_assessment
+    end
+
     def days_homeless_in_last_three_years_cached
+      # Use pathways/transfer assessment if available
+      days = days_homeless_from_most_recent_hud_assessment.assessment_questions.detect do |m|
+        m.AssessmentQuestion == GrdaWarehouse::Hud::AssessmentQuestion.DAYS_HOMELESS_ASSESSMENT_QUESTION
+      end&.AssessmentAnswer
+      return days if days.present?
+
       processed_service_history&.days_homeless_last_three_years
     end
 
     def literally_homeless_last_three_years_cached
+      # Use pathways/transfer assessment if available
+      days = days_homeless_from_most_recent_hud_assessment.assessment_questions.detect do |m|
+        m.AssessmentQuestion == GrdaWarehouse::Hud::AssessmentQuestion.DAYS_HOMELESS_ASSESSMENT_QUESTION
+      end&.AssessmentAnswer
+      return days if days.present?
+
       processed_service_history&.literally_homeless_last_three_years
     end
 
