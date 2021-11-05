@@ -40,9 +40,9 @@ module HudApr::Generators::Shared::Fy2021
 
       project_rows = []
 
-      GrdaWarehouse::Hud::Project.where(id: @report.project_ids).order(ProjectName: :asc).find_each do |project|
+      q4_project_scope.order(ProjectName: :asc).find_each do |project|
         project_row = [
-          project.organization.OrganizationName,
+          project.organization&.OrganizationName,
           project.OrganizationID,
           project.ProjectName,
           project.ProjectID,
@@ -77,6 +77,10 @@ module HudApr::Generators::Shared::Fy2021
         last_row: project_rows.size + 1,
       }
       @report.answer(question: table_name).update(metadata: metadata)
+    end
+
+    private def q4_project_scope
+      GrdaWarehouse::Hud::Project.where(id: @report.project_ids)
     end
   end
 end

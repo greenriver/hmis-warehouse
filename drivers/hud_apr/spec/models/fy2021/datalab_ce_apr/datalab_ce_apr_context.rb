@@ -47,9 +47,10 @@ RSpec.shared_context 'datalab ce apr context', shared_context: :metadata do
       restore_fixpoint :datalab_2021_app
       restore_fixpoint :datalab_2021_warehouse, connection: warehouse
     else
-      Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
+      files = Dir.glob(hmis_file_prefix).select { |f| File.directory? f }
+      files.each.with_index do |file_path, i|
         puts "*** #{file_path} ***"
-        import_hmis_csv_fixture(file_path, version: 'AutoMigrate')
+        import_hmis_csv_fixture(file_path, run_jobs: i == files.count - 1, version: 'AutoMigrate')
       end
       store_fixpoint :datalab_2021_app
       store_fixpoint :datalab_2021_warehouse, connection: warehouse
