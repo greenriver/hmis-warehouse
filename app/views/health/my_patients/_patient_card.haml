@@ -51,8 +51,13 @@
               .card-content.p-4
                 - title = 'Risk Score'
                 - score = @scores[title][patient.medicaid_id]
+                - description = 'Latest Social Determinants of Health (SDH) risk score, including DxCG score and SDH components.'
+                - description += '<br>For members with less than 6 months managed care eligible experience their score is blended'
+                - description += 'with the plan-age--sex-RC-plan selection average.'
+                - description += '<br>All scores are then normalized to the members rating category and region.'
                 %h2.h4.card-title
                   = title
+                  %i.icon-info{data: {toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom, title: title, content: description, html: :true}}
                 - if score.present?
                   %div{style: "font-weight: bold; font-size: 24px"}= number_with_precision(score, precision: 2)
                 - else
@@ -76,7 +81,7 @@
                         = doses.count
                         - items = doses.map { |dose| "<tr><td>#{dose[:type]} #{dose[:number]}</td> <td>#{dose[:date]}</td></tr>" }
                         - content = %Q{<table></tr><tbody>#{items.join.html_safe}</tbody></table>}
-                        %i.icon-info{data: { toggle: :popover, trigger: :focus, title: 'Vaccine Doses', content: content, html: :true }}
+                        %i.icon-info{data: {toggle: :popover, trigger: :focus, title: 'Vaccine Doses', content: content, html: :true }}
                     .c-detail-block
                       .c_detail-block__title
                         Last Dose Date
