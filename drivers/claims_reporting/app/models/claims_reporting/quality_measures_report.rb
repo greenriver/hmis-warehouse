@@ -1174,7 +1174,7 @@ module ClaimsReporting
 
     # BH CP #13: Hospital Readmissions (Adult)
     private def calculate_bh_cp_13(member, claims, enrollments) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
-      @patient_risk_score_calculator ||= ::ClaimsReporting::Calculators::PatientRiskScore.new(date_range: date_range)
+      @patient_risk_score_calculator ||= ::ClaimsReporting::Calculators::PatientPcrRiskScore.new(date_range: date_range)
       rows = []
 
       # puts "BH_CP_13: Checking MemberRoster#id=#{member.id}"

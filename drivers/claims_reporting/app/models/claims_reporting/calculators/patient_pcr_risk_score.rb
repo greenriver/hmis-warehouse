@@ -5,7 +5,7 @@
 ###
 
 module ClaimsReporting::Calculators
-  class PatientRiskScore
+  class PatientPcrRiskScore
     def initialize(medicaid_ids = [], date_range: Date.current.beginning_of_year..Date.current.end_of_year)
       @medicaid_ids = medicaid_ids
       @date_range = date_range
@@ -31,14 +31,14 @@ module ClaimsReporting::Calculators
 
     def self.dashboard_sort_options
       {
-        column: 'risk_score',
+        column: 'pcr_risk_score',
         direction: :desc,
         title: 'Estimated Readmission Risk',
       }
     end
 
     def sort_order(column, direction)
-      return unless column == 'risk_score'
+      return unless column == 'pcr_risk_score'
 
       order = to_map.sort_by { |_, v| v.to_f }
       order.reverse! if direction == :desc

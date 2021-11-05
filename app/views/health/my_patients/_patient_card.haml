@@ -49,12 +49,12 @@
           .col-md-2.card-wrapper
             .card.c-card--internal
               .card-content.p-4
-                - title = 'Estimated Readmission Risk'
+                - title = 'Risk Score'
                 - score = @scores[title][patient.medicaid_id]
                 %h2.h4.card-title
-                  Risk Score
+                  = title
                 - if score.present?
-                  %div{style: "font-weight: bold; font-size: 24px"}= number_with_precision(score, precision: 4)
+                  %div{style: "font-weight: bold; font-size: 24px"}= number_with_precision(score, precision: 2)
                 - else
                   Unknown
           .col-md-6.card-wrapper

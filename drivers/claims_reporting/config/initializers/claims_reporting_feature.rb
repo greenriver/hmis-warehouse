@@ -13,4 +13,5 @@
 RailsDrivers.loaded << :claims_reporting
 
 Rails.application.config.patient_dashboards << { title: 'COVID Vaccination Status', calculator: 'ClaimsReporting::Calculators::CovidVaccinationStatus' }
-Rails.application.config.patient_dashboards << { title: 'Estimated Readmission Risk', calculator: 'ClaimsReporting::Calculators::PatientRiskScore' }
+# Rails.application.config.patient_dashboards << { title: 'Estimated Readmission Risk', calculator: 'ClaimsReporting::Calculators::PatientPcrRiskScore' }
+Rails.application.config.patient_dashboards << { title: 'Risk Score', calculator: 'ClaimsReporting::Calculators::PatientSdhRiskScore' }
