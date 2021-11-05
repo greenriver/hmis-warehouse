@@ -15,7 +15,6 @@ module ClaimsReporting::Calculators
       @to_map ||= {}.tap do |result|
         @medicaid_ids.each do |medicaid_id|
           member = member_by_member_id(medicaid_id)
-          result[medicaid_id] = 'Not Calculated'
           next unless member.present?
 
           claims = medical_claims_by_member_id(medicaid_id)
@@ -25,7 +24,7 @@ module ClaimsReporting::Calculators
                 Hl7.in_set?('Observation Stay', claim)
             )
           end.sort_by(&:service_start_date)
-          result[medicaid_id] = ihs_risk_adjustment(member, stay_claims, claims)&.dig(:expected_readmit_rate)&.round(4) || 'Not Calculated'
+          result[medicaid_id] = ihs_risk_adjustment(member, stay_claims, claims)&.dig(:expected_readmit_rate)&.round(4)
         end
       end
     end

@@ -1,0 +1,17 @@
+%p.note.small
+  Upcoming Appointments at #{Health::Appointment.ignore_departments.to_sentence} are not shown.
+
+.c-cal
+  .c-cal__week
+    - Date::DAYNAMES.each do |d|
+      .c-cal__day.c-cal__day--label=d[0]
+  - @appointments.in_groups_of(7).each do |week|
+    .c-cal__week
+      - week.each do |day|
+        - if day.nil? || Date.today > day[:date]
+          .c-cal__day.fill
+          - next
+        - class_name = day[:scheduled] ? "active" : ""
+        - details = controller.render_to_string(partial: 'calendar_details', layout: false, locals: { visits: day[:visits] })
+        .c-cal__day{class: class_name, title: day[:date], data: {toggle: :popover, boundary: :window, trigger: :focus, placement: :left, title: day[:date], content: details, html: :true}}
+          = day[:date].day

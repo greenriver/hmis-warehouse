@@ -45,9 +45,15 @@ module ClaimsReporting::Calculators
         group_by(&:first).
         transform_values! { |claims| claims.map { |claim| DATA_FIELDS.zip(claim).to_h } }
       claims = @vaccination_claims[member_id]
-      return 'Unknown' unless claims.present?
+      return [] unless claims.present?
 
-      "#{types_from_claims(claims)} #{doses_from_claims(claims)}"
+      claims.map do |claim|
+        {
+          type: vaccination_types[claim[:procedure_code]],
+          number: vaccination_doses[claim[:procedure_code]],
+          date: claim[:service_start_date],
+        }
+      end
     end
 
     def vaccination_types
