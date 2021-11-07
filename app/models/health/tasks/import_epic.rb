@@ -25,31 +25,31 @@ module Health::Tasks
       @to_revoke = []
       @to_restore = []
       @new_patients = []
-      @configs = configs || Health::ImportConfig.all
+      @configs = configs.presence || Health::ImportConfig.all
       @prevent_massive_change = prevent_massive_change
 
-      raise 'load_locally only supports a single config' if @load_locally && @configs.keys.count > 1
+      raise 'load_locally only supports a single config' if @load_locally && @configs.count > 1
     end
 
     def run!
       results = {}
 
-      @configs.each do |_, config|
+      @configs.each do |config|
         @config = config
-        ds = Health::DataSource.find_by(name: @config['data_source_name'])
+        ds = Health::DataSource.find_by(name: @config.data_source_name)
         @data_source_id = ds.id
         fetch_files unless @load_locally
         import_files
         # update_consent # Only applies to pilot patients, so, should not change
         sync_epic_pilot_patients
         update_housing_statuses
-        results[@config['name']] = change_counts
+        results[@config.name] = change_counts
       end
       change_counts
     end
 
     def import(klass:, file:)
-      path = File.join((@local_path || @config['destination']), file)
+      path = File.join((@local_path || @config.destination), file)
       handle = read_csv_file(path: path)
       unless header_row_matches(file: handle, klass: klass)
         msg = "Incorrect file format for #{file}"
@@ -68,7 +68,7 @@ module Health::Tasks
       count_incoming = clean_values.size
       count_existing = klass.where(data_source_id: @data_source_id).count
       if above_acceptable_change_threshold(klass, count_incoming, count_existing)
-        msg = "ALERT: Refusing to import #{klass.name} for data source #{@config['data_source_name']}, change is too great.  Incoming: #{count_incoming} Existing: #{count_existing}"
+        msg = "ALERT: Refusing to import #{klass.name} for data source #{@config.data_source_name}, change is too great.  Incoming: #{count_incoming} Existing: #{count_existing}"
         notify msg
         return
       end
@@ -106,7 +106,7 @@ module Health::Tasks
     def update_consent
       klass = Health::EpicPatient
       file = Health.model_to_filename(klass)
-      path = "#{@config['destination']}/#{file}"
+      path = "#{@config.destination}/#{file}"
 
       consented = klass.pilot.consented.pluck(:id_in_source)
       revoked = klass.pilot.consent_revoked.pluck(:id_in_source)
@@ -149,13 +149,13 @@ module Health::Tasks
 
     def fetch_files
       sftp = Net::SFTP.start(
-        @config['host'],
-        @config['username'],
-        password: @config['password'],
+        @config.host,
+        @config.username,
+        password: @config.password,
         # verbose: :debug,
         auth_methods: ['publickey', 'password'],
       )
-      sftp.download!(@config['path'], @config['destination'], recursive: true)
+      sftp.download!(@config.path, @config.destination, recursive: true)
 
       notify 'Health data downloaded'
     end
