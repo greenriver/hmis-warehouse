@@ -37,10 +37,6 @@ module GrdaWarehouse::Hud
       where(synthetic: true)
     end
 
-    scope :with_days_homeless, -> do
-      joins(:assessment_questions).merge(GrdaWarehouse::Hud::AssessmentQuestion.with_days_homeless)
-    end
-
     scope :pathways_or_rrh, -> do
       where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.pathways_or_rrh.select(:AssessmentID))
     end

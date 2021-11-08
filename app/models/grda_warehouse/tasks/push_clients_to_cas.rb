@@ -33,6 +33,7 @@ module GrdaWarehouse::Tasks
         @client_ids = client_source.pluck(:id)
         updated_clients = []
         update_columns = (Cas::ProjectClient.column_names - ['id']).map(&:to_sym)
+        calculator_instance = GrdaWarehouse::Config.get(:cas_calculator).constantize.new
         Cas::ProjectClient.transaction do
           Cas::ProjectClient.update_all(sync_with_cas: false)
           @client_ids.each_slice(1_000) do |client_id_batch|
@@ -54,7 +55,7 @@ module GrdaWarehouse::Tasks
               project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client_columns.map do |destination, source|
                 # puts "Processing: #{destination} from: #{source}"
-                project_client[destination] = client.value_for_cas_project_client(source)
+                project_client[destination] = calculator_instance.value_for_cas_project_client(client: client, column: source)
               end
 
               case GrdaWarehouse::Config.get(:cas_days_homeless_source)

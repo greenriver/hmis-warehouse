@@ -20,8 +20,6 @@ module GrdaWarehouse::Hud
       '1' => 'Yes',
     }.freeze
 
-    DAYS_HOMELESS_ASSESSMENT_QUESTION = :c_new_boston_homeless_nights_total
-
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_questions, optional: true
     belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment'), optional: true
     belongs_to :direct_enrollment, **hud_enrollment_belongs, optional: true
@@ -31,11 +29,6 @@ module GrdaWarehouse::Hud
 
     belongs_to :data_source
     has_one :lookup, class_name: 'GrdaWarehouse::AssessmentAnswerLookup', primary_key: [:AssessmentQuestion, :AssessmentAnswer], foreign_key: [:assessment_question, :response_code]
-
-    scope :with_days_homeless, -> do
-      # NOTE: this may need to be updated depending on community use of this
-      where(AssessmentQuestion: DAYS_HOMELESS_ASSESSMENT_QUESTION).where.not(AssessmentAnswer: nil)
-    end
 
     scope :pathways_or_rrh, -> do
       where(AssessmentQuestion: :c_housing_assessment_name)

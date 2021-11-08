@@ -5,11 +5,9 @@
 ###
 
 require 'restclient'
-require 'memoist'
 module GrdaWarehouse::Hud
   class Client < Base
     self.primary_key = :id
-    extend Memoist
     include Rails.application.routes.url_helpers
     include RandomScope
     include ArelHelper
@@ -2679,10 +2677,6 @@ module GrdaWarehouse::Hud
         end
         vispdat_score + vispdat_prioritized_days_score
       end
-    end
-
-    def most_recent_pathways_or_rrh_assessment
-      @most_recent_pathways_or_rrh_assessment ||= most_recent_pathways_or_rrh_assessment
     end
 
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.current)

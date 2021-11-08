@@ -4845,7 +4845,8 @@ CREATE TABLE public.configs (
     currently_homeless_cohort boolean DEFAULT false,
     show_client_last_seen_info_in_client_details boolean DEFAULT true,
     ineligible_uses_extrapolated_days boolean DEFAULT true NOT NULL,
-    warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL
+    warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL,
+    cas_calculator character varying DEFAULT 'GrdaWarehouse::CasProjectClientCalculator::Default'::character varying NOT NULL
 );
 
 
@@ -13288,7 +13289,8 @@ CREATE TABLE public.hud_report_spm_clients (
     m7a1_destination integer,
     m7b1_destination integer,
     m7b2_destination integer,
-    m7_history jsonb
+    m7_history jsonb,
+    m3_history jsonb
 );
 
 
@@ -14440,6 +14442,225 @@ CREATE SEQUENCE public.performance_metrics_clients_id_seq
 --
 
 ALTER SEQUENCE public.performance_metrics_clients_id_seq OWNED BY public.performance_metrics_clients.id;
+
+
+--
+-- Name: pm_client_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pm_client_projects (
+    id bigint NOT NULL,
+    client_id bigint,
+    project_id bigint,
+    deleted_at timestamp without time zone,
+    report_id integer,
+    for_question character varying,
+    period character varying
+);
+
+
+--
+-- Name: pm_client_projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pm_client_projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pm_client_projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pm_client_projects_id_seq OWNED BY public.pm_client_projects.id;
+
+
+--
+-- Name: pm_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pm_clients (
+    id bigint NOT NULL,
+    report_id bigint,
+    client_id bigint,
+    dob date,
+    veteran boolean DEFAULT false NOT NULL,
+    reporting_age integer,
+    reporting_hoh boolean DEFAULT false NOT NULL,
+    reporting_stayer boolean DEFAULT false NOT NULL,
+    reporting_leaver boolean DEFAULT false NOT NULL,
+    reporting_first_time boolean DEFAULT false NOT NULL,
+    reporting_days_homeless_es_sh_th integer,
+    reporting_days_homeless_before_move_in integer,
+    reporting_destination integer,
+    reporting_days_to_return integer,
+    reporting_increased_income boolean DEFAULT false NOT NULL,
+    reporting_pit_project_id integer,
+    reporting_pit_project_type integer,
+    reporting_served_on_pit_date boolean DEFAULT false NOT NULL,
+    reporting_served_in_so boolean DEFAULT false NOT NULL,
+    reporting_current_project_types integer[],
+    reporting_prior_project_types integer[],
+    reporting_so_destination integer,
+    reporting_es_sh_th_rrh_destination integer,
+    reporting_moved_in_destination integer,
+    reporting_moved_in_stayer integer,
+    reporting_so_es_sh_th_2_yr_permanent_dest boolean DEFAULT false NOT NULL,
+    reporting_so_es_sh_th_return_6_mo boolean DEFAULT false NOT NULL,
+    reporting_so_es_sh_th_return_2_yr boolean DEFAULT false NOT NULL,
+    reporting_prior_living_situation integer,
+    reporting_prevention_tool_score integer,
+    reporting_ce_enrollment boolean DEFAULT false NOT NULL,
+    reporting_ce_diversion boolean DEFAULT false NOT NULL,
+    reporting_days_in_ce integer,
+    reporting_days_since_assessment integer,
+    reporting_days_ce_to_assessment integer,
+    reporting_days_ce_to_referral integer,
+    reporting_days_referral_to_ph_entry integer,
+    reporting_ce_assessment_score integer,
+    comparison_age integer,
+    comparison_hoh boolean DEFAULT false NOT NULL,
+    comparison_stayer boolean DEFAULT false NOT NULL,
+    comparison_leaver boolean DEFAULT false NOT NULL,
+    comparison_first_time boolean DEFAULT false NOT NULL,
+    comparison_days_homeless_es_sh_th integer,
+    comparison_days_homeless_before_move_in integer,
+    comparison_destination integer,
+    comparison_days_to_return integer,
+    comparison_increased_income boolean DEFAULT false NOT NULL,
+    comparison_pit_project_id integer,
+    comparison_pit_project_type integer,
+    comparison_served_on_pit_date boolean DEFAULT false NOT NULL,
+    comparison_served_in_so boolean DEFAULT false NOT NULL,
+    comparison_current_project_types integer[],
+    comparison_prior_project_types integer[],
+    comparison_so_destination integer,
+    comparison_es_sh_th_rrh_destination integer,
+    comparison_moved_in_destination integer,
+    comparison_moved_in_stayer integer,
+    comparison_so_es_sh_th_2_yr_permanent_dest boolean DEFAULT false NOT NULL,
+    comparison_so_es_sh_th_return_6_mo boolean DEFAULT false NOT NULL,
+    comparison_so_es_sh_th_return_2_yr boolean DEFAULT false NOT NULL,
+    comparison_prior_living_situation integer,
+    comparison_prevention_tool_score integer,
+    comparison_ce_enrollment boolean DEFAULT false NOT NULL,
+    comparison_ce_diversion boolean DEFAULT false NOT NULL,
+    comparison_days_in_ce integer,
+    comparison_days_since_assessment integer,
+    comparison_days_ce_to_assessment integer,
+    comparison_days_ce_to_referral integer,
+    comparison_days_referral_to_ph_entry integer,
+    comparison_ce_assessment_score integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    reporting_spm_id integer,
+    comparison_spm_id integer,
+    reporting_days_homeless_es_sh_th_ph integer,
+    reporting_income_stayer boolean,
+    comparison_income_stayer boolean,
+    reporting_income_leaver boolean,
+    comparison_income_leaver boolean
+);
+
+
+--
+-- Name: pm_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pm_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pm_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pm_clients_id_seq OWNED BY public.pm_clients.id;
+
+
+--
+-- Name: pm_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pm_projects (
+    id bigint NOT NULL,
+    report_id bigint,
+    reporting_ave_bed_capacity_per_night double precision,
+    reporting_ave_clients_per_night double precision,
+    comparison_ave_bed_capacity_per_night double precision,
+    comparison_ave_clients_per_night double precision,
+    deleted_at timestamp without time zone,
+    project_id integer,
+    period character varying
+);
+
+
+--
+-- Name: pm_projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pm_projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pm_projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pm_projects_id_seq OWNED BY public.pm_projects.id;
+
+
+--
+-- Name: pm_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pm_results (
+    id bigint NOT NULL,
+    report_id bigint,
+    field character varying NOT NULL,
+    title character varying NOT NULL,
+    passed boolean DEFAULT false NOT NULL,
+    direction character varying,
+    primary_value integer,
+    primary_unit character varying,
+    secondary_value integer,
+    secondary_unit character varying,
+    value_label character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: pm_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pm_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pm_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pm_results_id_seq OWNED BY public.pm_results.id;
 
 
 --
@@ -19879,6 +20100,34 @@ ALTER TABLE ONLY public.performance_metrics_clients ALTER COLUMN id SET DEFAULT 
 
 
 --
+-- Name: pm_client_projects id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_client_projects ALTER COLUMN id SET DEFAULT nextval('public.pm_client_projects_id_seq'::regclass);
+
+
+--
+-- Name: pm_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_clients ALTER COLUMN id SET DEFAULT nextval('public.pm_clients_id_seq'::regclass);
+
+
+--
+-- Name: pm_projects id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_projects ALTER COLUMN id SET DEFAULT nextval('public.pm_projects_id_seq'::regclass);
+
+
+--
+-- Name: pm_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_results ALTER COLUMN id SET DEFAULT nextval('public.pm_results_id_seq'::regclass);
+
+
+--
 -- Name: project_data_quality id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22602,6 +22851,38 @@ ALTER TABLE ONLY public.non_hmis_uploads
 
 ALTER TABLE ONLY public.performance_metrics_clients
     ADD CONSTRAINT performance_metrics_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pm_client_projects pm_client_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_client_projects
+    ADD CONSTRAINT pm_client_projects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pm_clients pm_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_clients
+    ADD CONSTRAINT pm_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pm_projects pm_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_projects
+    ADD CONSTRAINT pm_projects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pm_results pm_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pm_results
+    ADD CONSTRAINT pm_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -38935,6 +39216,83 @@ CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performan
 
 
 --
+-- Name: index_pm_client_projects_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_client_projects_on_client_id ON public.pm_client_projects USING btree (client_id);
+
+
+--
+-- Name: index_pm_client_projects_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_client_projects_on_deleted_at ON public.pm_client_projects USING btree (deleted_at);
+
+
+--
+-- Name: index_pm_client_projects_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_client_projects_on_project_id ON public.pm_client_projects USING btree (project_id);
+
+
+--
+-- Name: index_pm_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_clients_on_client_id ON public.pm_clients USING btree (client_id);
+
+
+--
+-- Name: index_pm_clients_on_client_id_and_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_clients_on_client_id_and_report_id ON public.pm_clients USING btree (client_id, report_id);
+
+
+--
+-- Name: index_pm_clients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_clients_on_deleted_at ON public.pm_clients USING btree (deleted_at);
+
+
+--
+-- Name: index_pm_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_clients_on_report_id ON public.pm_clients USING btree (report_id);
+
+
+--
+-- Name: index_pm_projects_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_projects_on_deleted_at ON public.pm_projects USING btree (deleted_at);
+
+
+--
+-- Name: index_pm_projects_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_projects_on_report_id ON public.pm_projects USING btree (report_id);
+
+
+--
+-- Name: index_pm_results_on_field; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_results_on_field ON public.pm_results USING btree (field);
+
+
+--
+-- Name: index_pm_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_results_on_report_id ON public.pm_results USING btree (report_id);
+
+
+--
 -- Name: index_proj_proj_id_org_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45770,10 +46128,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211011191547'),
 ('20211013135958'),
 ('20211015172536'),
+('20211018183403'),
 ('20211019154744'),
 ('20211019164536'),
 ('20211020130447'),
 ('20211023193009'),
-('20211027185505');
+('20211027185505'),
+('20211101203339'),
+('20211102203208'),
+('20211103235413'),
+('20211108203857');
 
 
