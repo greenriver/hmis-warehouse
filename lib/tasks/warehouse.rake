@@ -89,20 +89,5 @@ namespace :warehouse do
         Rake::Task['db:test:prepare'].invoke
       end
     end
-
-    # append and prepend proper tasks to all the tasks defined here above
-    ns.tasks.each do |task|
-      task.enhance ['warehouse:set_custom_config'] do
-        Rake::Task['warehouse:revert_to_original_config'].invoke
-      end
-    end
-  end
-
-  task set_custom_config: [:environment] do
-    GrdaWarehouseBase.setup_config
-  end
-
-  task revert_to_original_config: [:environment] do
-    ApplicationRecord.setup_config
   end
 end
