@@ -19,6 +19,7 @@ module GrdaWarehouse::Hud
     include SiteChronic
     include ClientHealthEmergency
     include ::Youth::Intake
+    include CasClientData
     has_paper_trail
 
     attr_accessor :source_id
@@ -39,10 +40,10 @@ module GrdaWarehouse::Hud
       one_for_column(
         :AssessmentDate,
         source_arel_table: as_t,
-        group_on: :PersonalID, # FIXME: needs to be on PersonalID, data_source_id
+        group_on: [:PersonalID, :data_source_id],
         scope: pathways_or_rrh,
       )
-    end, class_name: 'GrdWarehouse::Hud::Assessment'
+    end, **hud_assoc(:ExportID, 'Assessment')
 
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client

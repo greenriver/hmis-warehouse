@@ -54,7 +54,7 @@ module GrdaWarehouse::Tasks
               project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client_columns.map do |destination, source|
                 # puts "Processing: #{destination} from: #{source}"
-                project_client[destination] = client.send(source)
+                project_client[destination] = client.value_for_cas_project_client(source)
               end
 
               case GrdaWarehouse::Config.get(:cas_days_homeless_source)
@@ -157,7 +157,7 @@ module GrdaWarehouse::Tasks
         asylee: :asylee,
         ineligible_immigrant: :ineligible_immigrant,
         lifetime_sex_offender: :lifetime_sex_offender,
-        meth_production_conviction: :meth_production_conviction, # Needs to populate Client.meth_production_conviction
+        meth_production_conviction: :meth_production_conviction, # Needs to populate Client.meth_production_conviction from c_transfer_barrier_meth
         family_member: :family_member, # c_additional_household_members == 1 -> Client.family_member
         child_in_household: :child_in_household, # any c_member1_age < 18 -> Client.child_in_household
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years_cached,

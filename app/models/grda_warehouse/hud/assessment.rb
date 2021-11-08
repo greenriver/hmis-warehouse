@@ -42,7 +42,18 @@ module GrdaWarehouse::Hud
     end
 
     scope :pathways_or_rrh, -> do
-      where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.pathways_or_rrh)
+      where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.pathways_or_rrh.select(:AssessmentID))
+    end
+
+    def question_matching_requirement(question, answer = nil)
+      matching_question = assessment_questions.
+        detect do |q|
+          q.AssessmentQuestion.to_s == question
+        end
+      return nil if matching_question.blank?
+      return matching_question unless answer.present?
+
+      matching_question.AssessmentAnswer.to_s == answer
     end
   end
 end

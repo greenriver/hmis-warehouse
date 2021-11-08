@@ -155,9 +155,10 @@ module ArelHelper
       end
 
       direction = :desc unless direction.in?([:asc, :desc])
+      group_columns = Array.wrap(group_on).map { |c| source_arel_table[c] }
 
-      max_by_group = source.distinct_on(source_arel_table[group_on]).
-        order(source_arel_table[group_on], source_arel_table[column].send(direction))
+      max_by_group = source.distinct_on(group_columns).
+        order(*group_columns, source_arel_table[column].send(direction))
 
       join = source_arel_table.create_join(
         max_by_group.as(most_recent.name),
