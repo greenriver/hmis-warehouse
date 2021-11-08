@@ -102,7 +102,7 @@ development:
     database: <%= ENV['DATABASE_APP_DB'] %>
     <<: *default_app_db
   <<: *other_db
-  
+
 staging:
   primary:
     database: <%= ENV['DATABASE_APP_DB'] %>
@@ -121,7 +121,7 @@ development_cas:
   primary:
     database: <%= ENV['DATABASE_CAS_DB'] %>
     <<: *default_app_db
-    
+
 staging_cas:
   primary:
     database: <%= ENV['DATABASE_CAS_DB'] %>
@@ -156,4 +156,3 @@ test:
     <<: *default_reporting_db
     database: <%= ENV['REPORTING_DATABASE_DB_TEST'] %>
     migrations_paths: db/reporting/migrate
-  
