@@ -5,9 +5,11 @@
 ###
 
 require 'restclient'
+require 'memoist'
 module GrdaWarehouse::Hud
   class Client < Base
     self.primary_key = :id
+    extend Memoist
     include Rails.application.routes.url_helpers
     include RandomScope
     include ArelHelper
@@ -2649,10 +2651,6 @@ module GrdaWarehouse::Hud
       return family_member
     end
 
-    def days_homeless_for_vispdat_prioritization
-      vispdat_prioritization_days_homeless || days_homeless_in_last_three_years
-    end
-
     def calculate_vispdat_priority_score
       vispdat_score = most_recent_vispdat_score
       return nil unless vispdat_score.present?
@@ -2685,26 +2683,6 @@ module GrdaWarehouse::Hud
 
     def most_recent_pathways_or_rrh_assessment
       @most_recent_pathways_or_rrh_assessment ||= most_recent_pathways_or_rrh_assessment
-    end
-
-    def days_homeless_in_last_three_years_cached
-      # Use pathways/transfer assessment if available
-      days = days_homeless_from_most_recent_hud_assessment.assessment_questions.detect do |m|
-        m.AssessmentQuestion == GrdaWarehouse::Hud::AssessmentQuestion.DAYS_HOMELESS_ASSESSMENT_QUESTION
-      end&.AssessmentAnswer
-      return days if days.present?
-
-      processed_service_history&.days_homeless_last_three_years
-    end
-
-    def literally_homeless_last_three_years_cached
-      # Use pathways/transfer assessment if available
-      days = days_homeless_from_most_recent_hud_assessment.assessment_questions.detect do |m|
-        m.AssessmentQuestion == GrdaWarehouse::Hud::AssessmentQuestion.DAYS_HOMELESS_ASSESSMENT_QUESTION
-      end&.AssessmentAnswer
-      return days if days.present?
-
-      processed_service_history&.literally_homeless_last_three_years
     end
 
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.current)

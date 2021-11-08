@@ -176,7 +176,7 @@ module GrdaWarehouse::Tasks
         ssvf_eligible: :ssvf_eligible,
         rrh_desired: :rrh_desired,
         youth_rrh_desired: :youth_rrh_desired, # c_youth_choice
-        rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
+        rrh_assessment_contact_info: :contact_info_for_rrh_assessment, # TODO? (currently a string from ETO)
         rrh_assessment_collected_at: :rrh_assessment_collected_at,
         requires_wheelchair_accessibility: :requires_wheelchair_accessibility, # c_disability_accomodations
         required_number_of_bedrooms: :required_number_of_bedrooms, # c_larger_room_size
