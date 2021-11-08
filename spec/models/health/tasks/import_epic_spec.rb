@@ -17,12 +17,12 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
   end
 
   describe 'Importing' do
-    configs = {
-      a: {
-        'data_source_name' => 'BHCHP EPIC',
-        'destination' => 'var/health/testing',
-      },
-    }
+    configs = [
+      OpenStruct.new(
+        data_source_name: 'BHCHP EPIC',
+        destination: 'var/health/testing',
+      ),
+    ]
 
     describe 'None of the associated models contain any initial data' do
       Health.models_by_health_filename.each do |_, klass|
@@ -35,7 +35,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
 
     describe 'After the initial import' do
       Health::DataSource.create!(name: 'BHCHP EPIC')
-      dest_path = configs[:a]['destination']
+      dest_path = configs.first.destination
       FileUtils.mkdir_p(dest_path) unless Dir.exist?(dest_path)
       FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/simple/*.csv'), dest_path)
       Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
@@ -64,7 +64,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
     end
 
     describe 'Files with only one row each do not import, and do not change the counts' do
-      dest_path = configs[:a]['destination']
+      dest_path = configs.first.destination
       FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/simple/*.csv'), dest_path)
       counts = {}
       Health.models_by_health_filename.each do |file_name, klass|
@@ -90,7 +90,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
     end
 
     describe 'Files with one fewer row decrease the counts by 1' do
-      dest_path = configs[:a]['destination']
+      dest_path = configs.first.destination
       FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/simple/*.csv'), dest_path)
       counts = {}
       Health.models_by_health_filename.each do |file_name, klass|
