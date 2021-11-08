@@ -10,7 +10,6 @@ require 'charlock_holmes'
 
 module Health::Tasks
   class ImportEpic
-    include TsqlImport
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :logger
 
@@ -26,29 +25,33 @@ module Health::Tasks
       @to_revoke = []
       @to_restore = []
       @new_patients = []
-      @configs = configs
+      @configs = configs.presence || Health::ImportConfig.all
       @prevent_massive_change = prevent_massive_change
+
+      raise 'load_locally only supports a single config' if @load_locally && @configs.count > 1
     end
 
     def run!
-      @configs ||= YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
-      @configs.each do |_, config|
+      results = {}
+
+      @configs.each do |config|
         @config = config
-        ds = Health::DataSource.find_by(name: config['data_source_name'])
+        ds = Health::DataSource.find_by(name: @config.data_source_name)
         @data_source_id = ds.id
         fetch_files unless @load_locally
         import_files
-        update_consent
+        # update_consent # Only applies to pilot patients, so, should not change
         sync_epic_pilot_patients
         update_housing_statuses
-        return change_counts
+        results[@config.name] = change_counts
       end
+      change_counts
     end
 
     def import(klass:, file:)
-      path = File.join((@local_path || @config['destination']), file)
+      path = File.join((@local_path || @config.destination), file)
       handle = read_csv_file(path: path)
-      if ! header_row_matches(file: handle, klass: klass)
+      unless header_row_matches(file: handle, klass: klass)
         msg = "Incorrect file format for #{file}"
         notify msg
         return
@@ -57,32 +60,27 @@ module Health::Tasks
       instance = klass.new # need an instance to cache some queries
       CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
         row = instance.clean_row(row: row, data_source_id: @data_source_id)
-        clean_values << row.to_h.map do |k,v|
+        clean_values << row.to_h.map do |k, v|
           clean_key = klass.csv_map[k.to_sym] || k.to_sym
           [clean_key, klass.clean_value(clean_key, v)]
         end.to_h.except(nil).merge(data_source_id: @data_source_id)
       end
       count_incoming = clean_values.size
-      count_existing = klass.count
+      count_existing = klass.where(data_source_id: @data_source_id).count
       if above_acceptable_change_threshold(klass, count_incoming, count_existing)
-        msg = "ALERT: Refusing to import #{klass.name} change is too great.  Incoming: #{count_incoming} Existing: #{count_existing}"
+        msg = "ALERT: Refusing to import #{klass.name} for data source #{@config.data_source_name}, change is too great.  Incoming: #{count_incoming} Existing: #{count_existing}"
         notify msg
         return
       end
 
       klass.transaction do
-        if klass.use_tsql_import?
-          klass.delete_all
-          insert_batch(klass, clean_values.first.keys, clean_values.map(&:values), transaction: false, batch_size: 500)
-        else
-          klass.process_new_data(clean_values)
-        end
+        klass.process_new_data(clean_values)
       end
     end
 
     # currently just a 10% change will prevent deletion
     # always allow import if we don't have any in the warehouse
-    def above_acceptable_change_threshold klass, incoming, existing
+    def above_acceptable_change_threshold(_klass, incoming, existing)
       return false unless @prevent_massive_change
       return false if existing.zero?
       return false if incoming > existing
@@ -108,7 +106,7 @@ module Health::Tasks
     def update_consent
       klass = Health::EpicPatient
       file = Health.model_to_filename(klass)
-      path = "#{@config['destination']}/#{file}"
+      path = "#{@config.destination}/#{file}"
 
       consented = klass.pilot.consented.pluck(:id_in_source)
       revoked = klass.pilot.consent_revoked.pluck(:id_in_source)
@@ -128,14 +126,15 @@ module Health::Tasks
       Health::EpicPatient.
         where.not(housing_status: nil, housing_status_timestamp: nil).
         find_each do |patient|
-          status = patient.epic_housing_statuses.where(collected_on: patient.housing_status_timestamp.to_date).first_or_create do |status|
+          status_for_patient = patient.epic_housing_statuses.where(collected_on: patient.housing_status_timestamp.to_date).first_or_create do |status|
             status.status = patient.housing_status
           end
-          status.update(status: patient.housing_status)
+          status_for_patient.update(status: patient.housing_status)
         end
     end
 
-    # keep pilot patients in sync with epic export
+    # keep pilot patients in sync with epic export, we keep this just in case there are any patients left that
+    # don't have referrals
     def sync_epic_pilot_patients
       patients_by_datasource = Health::Patient.pluck(:medicaid_id, :data_source_id).to_h
 
@@ -143,29 +142,29 @@ module Health::Tasks
         next if patients_by_datasource[ep.medicaid_id] != ep.data_source_id
 
         patient = Health::Patient.where(id_in_source: ep.id_in_source, data_source_id: ep.data_source_id).first_or_create
-        attributes = ep.attributes.select{|k,_| k.to_sym.in?(Health::EpicPatient.csv_map.values)}
+        attributes = ep.attributes.select { |k, _| k.to_sym.in?(Health::EpicPatient.csv_map.values) }
         patient.update(attributes)
       end
     end
 
     def fetch_files
       sftp = Net::SFTP.start(
-        @config['host'],
-        @config['username'],
-        password: @config['password'],
+        @config.host,
+        @config.username,
+        password: @config.password,
         # verbose: :debug,
-        auth_methods: ['publickey','password'],
+        auth_methods: ['publickey', 'password'],
       )
-      sftp.download!(@config['path'], @config['destination'], recursive: true)
+      sftp.download!(@config.path, @config.destination, recursive: true)
 
       notify 'Health data downloaded'
     end
 
     def read_csv_file path:
       # Look at the file to see if we can determine the encoding
-      @file_encoding = CharlockHolmes::EncodingDetector
-        .detect(File.read(path))
-        .try(:[], :encoding)
+      @file_encoding = CharlockHolmes::EncodingDetector.
+        detect(File.read(path)).
+        try(:[], :encoding)
       file_lines = IO.readlines(path).size - 1
       @logger.info "Processing #{file_lines} lines in: #{path}"
       options = if @file_encoding.starts_with? 'UTF'

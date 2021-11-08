@@ -1,0 +1,21 @@
+- id ||= "exampleModal"
+- title ||= ""
+- header_block = "modal-header-#{id}"
+- footer_block = "modal-footer-#{id}"
+
+.modal.styleguide-modal{id: id, aria:{ hidden: "true", labelledby: "#{id}Label"}, role: "dialog", tabindex: "-1"}
+  .modal-dialog{role: "document"}
+    .modal-content
+      - if content_for?(header_block)
+        = yield header_block
+      - else
+        .modal-header
+          - if title.present?
+            %h5.modal-title{id: "#{id}Label"}=title
+          %button.close{aria: {label: "Close"}, data:{dismiss: "modal"}, type: "button"}
+            %span{"aria-hidden" => "true"} ×
+      .modal-body
+        = yield "modal-body-#{id}"
+      - if content_for?(footer_block)
+        .modal-footer
+          = yield footer_block

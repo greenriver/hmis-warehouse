@@ -439,6 +439,8 @@ Date:  13 OCT 2021
 	update lp set lp.PSHAgeMin = case when lp.PSHAgeMin is NULL then -1 else cast(replace(cast(lp.PSHAgeMin as varchar), '0', '') as int) end from tlsa_Person lp
 	update lp set lp.RRHAgeMax = case when lp.RRHAgeMax is NULL then -1 else cast(replace(cast(lp.RRHAgeMax as varchar), '0', '') as int) end from tlsa_Person lp
 	update lp set lp.RRHAgeMin = case when lp.RRHAgeMin is NULL then -1 else cast(replace(cast(lp.RRHAgeMin as varchar), '0', '') as int) end from tlsa_Person lp
+	update lp set lp.ESTAgeMax = case when lp.ESTAgeMax is NULL then -1 else cast(replace(cast(lp.ESTAgeMax as varchar), '0', '') as int) end from tlsa_Person lp
+	update lp set lp.ESTAgeMin = case when lp.ESTAgeMin is NULL then -1 else cast(replace(cast(lp.ESTAgeMin as varchar), '0', '') as int) end from tlsa_Person lp
 	   	  
 	/*
 		5.14 Adult Age Population Identifiers - LSAPerson

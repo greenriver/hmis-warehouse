@@ -20,7 +20,6 @@
           - options = options_from_collection_for_select(GrdaWarehouse::DataSource.options_for_select(user: current_user).each, :last, :first, params[:data_source_id])
           = render 'inputs/select', field_name: :select_tag_2, label: 'Data Source', options: options, html_options: { include_blank: 'All Data Sources',  multiple: true }
 
-
           %h4 Select 2 - Default
           = f.input :stimulus_select, collection: collection, as: :select_two
 
@@ -52,5 +51,18 @@
           = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, as: :select_two, input_html: { multiple: true, data: { 'stimulus-select-target' => 'projectTypes', action: 'change->stimulus-select#updateDependentProjectList' }}
           = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }, placeholder: 'Any Organization'}, label: 'Organizations', required: false
           = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: {'stimulus-select-target' => 'projects', project_url: api_projects_path() }, placeholder: 'Any Project'}, label: 'Projects', required: false
+
+          .c-filters.c-card
+            .c-card__content
+              %table.table.table-striped
+                %thead
+                  %tr
+                    %th.nobr Testing wide things
+                    %th.nobr Testing wide things
+                    %th.nobr Testing wide things
+                    %th.nobr Testing wide things
+                    %th.nobr Testing wide things
+              %h4 Select 2 - Default in a Well where the content doesn't fit horizontally
+              = f.input :stimulus_select, collection: collection, as: :select_two
 
           = f.submit 'Update'

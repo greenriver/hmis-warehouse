@@ -218,16 +218,35 @@ class Deployer
 
   def _add_latest_tag!
     if image_tag_latest.nil?
+      puts "[INFO] Skipping latest tag. No latest tag set (probably this is the pre-cache image)."
       return
     end
 
     getparams = {
       repository_name: repo_name,
-      image_ids: [{
-        image_tag: image_tag,
-      }]
+      image_ids: [
+        {image_tag: image_tag},
+        {image_tag: image_tag_latest}
+      ]
     }
-    manifest = ecr.batch_get_image(getparams).images[0].image_manifest
+    images = ecr.batch_get_image(getparams).images
+
+    if images.count == 2 && images[0].image_id.image_digest == images[1].image_id.image_digest
+      puts "[INFO] Skipping latest tag. This image has already been pushed with a latest tag for this environment."
+      return
+    elsif images.count > 2
+      raise "More than two images found during latest-* check, something is wrong."
+      return
+    elsif images.count < 1
+      raise "No images matching tag #{image_tag} found during latest-* check, something is wrong."
+    end
+
+    image = images.find { |image| image.image_id.image_tag == image_tag }
+    manifest = image.image_manifest
+
+    if manifest.nil?
+      raise "No manifest matching tag #{image_tag} found during latest-* check, something is wrong."
+    end
 
     putparams = {
       repository_name: repo_name,

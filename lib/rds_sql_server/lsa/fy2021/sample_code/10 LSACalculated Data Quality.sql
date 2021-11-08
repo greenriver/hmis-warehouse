@@ -32,7 +32,7 @@ Date:  20 AUG 2021
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct hn.EnrollmentID), 20, 10, 0, 0, -1
-		, case when hx.ExitDate is null then 60
+		, case when hx.ExitDate is null or hx.ExitDate > cd.CohortEnd then 60
 			else 61 end 
 		, p.ProjectID, cd.ReportID, '10.3'
 	from tlsa_Enrollment n
@@ -53,9 +53,9 @@ Date:  20 AUG 2021
 		where svc.RecordType = 200 and svc.DateDeleted is null
 		group by svc.EnrollmentID
 		) bn on bn.EnrollmentID = hhid.EnrollmentID
-	where (hx.ExitDate is null and bn.LastBednight <= dateadd(dd, -90, cd.CohortEnd))
-		or (hx.ExitDate <> dateadd(dd, 1, bn.LastBednight))
-	group by case when hx.ExitDate is null then 60
+	where ((hx.ExitDate is null or hx.ExitDate > cd.CohortEnd) and bn.LastBednight <= dateadd(dd, -90, cd.CohortEnd))
+		or (hx.ExitDate between cd.CohortStart and cd.CohortEnd and hx.ExitDate <> dateadd(dd, 1, bn.LastBednight))
+	group by case when hx.ExitDate is null or hx.ExitDate > cd.CohortEnd then 60
 			else 61 end 
 		, p.ProjectID, cd.ReportID
 
