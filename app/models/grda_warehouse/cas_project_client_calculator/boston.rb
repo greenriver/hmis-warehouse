@@ -52,6 +52,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :default_shelter_agency_contacts,
         :days_homeless_in_last_three_years_cached,
         :literally_homeless_last_three_years_cached,
+        :cas_assessment_name,
       ]
     end
     memoize :pathways_questions
@@ -171,6 +172,19 @@ module GrdaWarehouse::CasProjectClientCalculator
 
       # client.most_recent_pathways_or_rrh_assessment.
       #   question_matching_requirement('c_casemanager_contacts')&.AssessmentAnswer
+    end
+
+    private def cas_assessment_name(client)
+      # c_housing_assessment_name	1	Pathways
+      # c_housing_assessment_name	2	RRH-PSH Transfer
+      value = client.most_recent_pathways_or_rrh_assessment.
+        question_matching_requirement('c_housing_assessment_name')&.AssessmentAnswer
+      return 'IdentifiedClientAssessment' unless value.present?
+
+      {
+        1 => 'PathwaysVersionThreePathways',
+        2 => 'PathwaysVersionThreeTransfer',
+      }[value.to_i] || 'IdentifiedClientAssessment'
     end
   end
 end

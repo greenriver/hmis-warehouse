@@ -261,5 +261,10 @@ module CasClientData
     private def days_homeless_for_vispdat_prioritization
       vispdat_prioritization_days_homeless || days_homeless_in_last_three_years
     end
+
+    # Default to the original assessment, identified since it comes from HMIS
+    private def cas_assessment_name
+      'IdentifiedClientAssessment'
+    end
   end
 end
