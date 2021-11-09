@@ -20,7 +20,9 @@
             %rect{ width: "10", height: "10", fill: @report.settings.color(1, :location_type) }
         %div{ class: 'chart-legend-item-label-prs1' } Unsheltered
   .w-30
-    %p Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.
+    %p
+      Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.
+      = render 'glossary_button'
 .jHomelessBreakdownSection.household_type
   = render 'homeless_row', data: data['adult_only']
   = render 'homeless_row', data: data['adult_and_child']
