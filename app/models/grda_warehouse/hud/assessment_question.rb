@@ -30,6 +30,10 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
     has_one :lookup, class_name: 'GrdaWarehouse::AssessmentAnswerLookup', primary_key: [:AssessmentQuestion, :AssessmentAnswer], foreign_key: [:assessment_question, :response_code]
 
+    scope :pathways_or_rrh, -> do
+      where(AssessmentQuestion: :c_housing_assessment_name)
+    end
+
     # NOTE: you probably want to join/preload :lookup
     def human_readable
       lookup&.response_text || default_response_text(self.AssessmentAnswer) || self.AssessmentAnswer
