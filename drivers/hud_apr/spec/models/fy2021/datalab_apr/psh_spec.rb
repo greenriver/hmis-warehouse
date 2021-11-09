@@ -42,14 +42,9 @@ RSpec.describe 'Datalab 2021 APR - PSH', type: :model do
       file_path: result_file_prefix + 'psh',
       question: 'Q6a',
       skip: [
-        'C3', # FIXME
-        'D3', # FIXME
-        'C6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-        'C7', # FIXME
-        'E7', # FIXME
-        'F7', # FIXME
+        'C4', # Testkit error?
+        'E4', # Cascading error
+        'F4', # Cascading error
       ],
     )
   end

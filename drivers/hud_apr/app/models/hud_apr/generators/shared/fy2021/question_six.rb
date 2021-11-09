@@ -71,7 +71,8 @@ module HudApr::Generators::Shared::Fy2021
       answer = @report.answer(question: table_name, cell: 'C2')
       m_members = universe.members.where(
         a_t[:first_name].eq(nil).
-          or(a_t[:last_name].eq(nil)),
+          or(a_t[:last_name].eq(nil)).
+          or(a_t[:name_quality].eq(99)),
       )
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
@@ -104,7 +105,10 @@ module HudApr::Generators::Shared::Fy2021
 
       # SSN missing
       answer = @report.answer(question: table_name, cell: 'C3')
-      m_members = universe.members.where(a_t[:ssn].eq(nil))
+      m_members = universe.members.where(
+        a_t[:ssn].eq(nil).
+          or(a_t[:ssn_quality].eq(99)),
+      )
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
 
@@ -113,7 +117,8 @@ module HudApr::Generators::Shared::Fy2021
       q_member_ids = []
       universe.members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
-        q_member_ids << u_member.id if member.ssn_quality == 2 || !HUD.valid_social?(member.ssn)
+        q_member_ids << u_member.id if member.ssn_quality == 2 ||
+          (member.ssn_quality == 1 && !HUD.valid_social?(member.ssn))
       end
       q_members = universe.members.where(id: q_member_ids)
       answer.add_members(q_members)
@@ -141,7 +146,10 @@ module HudApr::Generators::Shared::Fy2021
 
       # DOB missing
       answer = @report.answer(question: table_name, cell: 'C4')
-      m_members = universe.members.where(a_t[:dob].eq(nil))
+      m_members = universe.members.where(
+        a_t[:dob].eq(nil).and(a_t[:dob_quality].eq(1)).
+          or(a_t[:dob_quality].eq(99)),
+      )
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
 
@@ -150,7 +158,8 @@ module HudApr::Generators::Shared::Fy2021
       q_member_ids = []
       universe.members.find_each do |u_member|
         member = u_member.universe_membership
-        q_member_ids << u_member.id if member.dob_quality == 2 || !valid_dob?(member)
+        q_member_ids << u_member.id if member.dob_quality == 2 ||
+          (member.dob_quality == 1 && !valid_dob?(member))
       end
       q_members = universe.members.where(id: q_member_ids)
       answer.add_members(q_members)
@@ -217,7 +226,10 @@ module HudApr::Generators::Shared::Fy2021
 
       # Missing
       answer = @report.answer(question: table_name, cell: 'C' + row_label)
-      m_members = universe.members.where(a_t[attr].eq(nil))
+      m_members = universe.members.where(
+        a_t[attr].eq(nil).
+          or(a_t[attr].eq(99)),
+      )
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
 
