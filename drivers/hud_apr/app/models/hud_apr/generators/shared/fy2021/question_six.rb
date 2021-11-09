@@ -271,14 +271,17 @@ module HudApr::Generators::Shared::Fy2021
       # veteran status
       answer = @report.answer(question: table_name, cell: 'B2')
       members = universe.members.where(
-        a_t[:veteran_status].in([8, 9]).or(a_t[:veteran_status].eq(nil)). # no veteran status data
+        adult_clause.and(a_t[:veteran_status].in([8, 9, 99]).or(a_t[:veteran_status].eq(nil))). # no veteran status data
           or(a_t[:veteran_status].eq(1).and(a_t[:age].lt(18))), # you can't be a veteran and under 18
       )
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C2')
-      answer.update(summary: percentage(members.count / universe.members.count.to_f))
+      # Only adults are in the population of possible veterans
+      # Add the minors who claim veteran status to ensure that the error rate cannot be greater than 100%
+      veteran_denominator = universe.members.where(adult_clause.or(a_t[:veteran_status].eq(1).and(a_t[:age].lt(18))))
+      answer.update(summary: percentage(members.count / veteran_denominator.count.to_f))
 
       # project start date
       answer = @report.answer(question: table_name, cell: 'B3')
@@ -328,7 +331,7 @@ module HudApr::Generators::Shared::Fy2021
       # disabling condition
       answer = @report.answer(question: table_name, cell: 'B6')
       members = universe.members.where(
-        a_t[:disabling_condition].in([8, 9]).
+        a_t[:disabling_condition].in([8, 9, 99]).
           or(a_t[:disabling_condition].eq(nil)).
           or(a_t[:disabling_condition].eq(0).
             and(a_t[:indefinite_and_impairs].eq(true).

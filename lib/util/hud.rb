@@ -2448,7 +2448,7 @@ module HUD
   end
 
   def cocs
-    {
+    codes = {
       'CO-500' => 'Colorado Balance of State CoC',
       'CO-503' => 'Metropolitan Denver CoC',
       'CO-504' => 'Colorado Springs/El Paso County CoC',
@@ -2845,6 +2845,8 @@ module HUD
       'TX-624' => 'Wichita Falls/Wise, Palo Pinto, Wichita, Archer Counties CoC',
       'UT-503' => 'Utah Balance of State CoC',
       'VA-500' => 'Richmond/Henrico, Chesterfield, Hanover Counties CoC',
-    }.freeze
+    }
+    codes['XX-500'] = 'Test CoC' unless Rails.env.production?
+    codes.freeze
   end
 end
