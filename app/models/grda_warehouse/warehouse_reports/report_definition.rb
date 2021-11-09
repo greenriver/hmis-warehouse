@@ -993,6 +993,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:tc_client_data_report)
+        r_list['Operational'] << {
+          url: 'tc_client_data_report/warehouse_reports/tc_client_data_reports',
+          name: 'Attachment III - Client Data Report',
+          description: 'Attachment III - Client Data Report',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:public_reports)
         # Only attempt this if the driver is loaded, and only install the reports
         # if the bucket can be setup correctly

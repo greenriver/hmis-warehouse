@@ -1,0 +1,19 @@
+= simple_form_for @filter, as: :filters, url: tc_client_data_report_warehouse_reports_tc_client_data_reports_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col
+        = f.input :start, as: :date_picker, label: 'Start Date'
+      .col
+        = f.input :end, as: :date_picker, label: 'End Date'
+    .row
+      - if report_filter_visible?(:project_ids, current_user)
+        .col
+          = f.input :project_ids, collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false, label: 'Projects'
+      .col
+        = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), placeholder: 'None', as: :select_two, input_html: { multiple: true }, label: 'Project Groups'
+
+  - content_for :filter_actions do
+    = f.submit 'Update Filter', class: 'btn btn-primary'
+    = link_to 'Download XLSX', census_tracking_warehouse_reports_census_trackers_path(format: :xlsx, params: @filter.for_params), class: 'btn btn-secondary'
+
+  = render 'warehouse_reports/filters', f:f
