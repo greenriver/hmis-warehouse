@@ -8,7 +8,7 @@ require 'rails_helper'
 
 RSpec.describe 'CasCeData::Synthetic::Assessment', type: :model do
   let!(:data_source) { create :grda_warehouse_data_source }
-  let!(:project) { create :hud_project, data_source_id: data_source.id, ProjectType: 13 }
+  let!(:project) { create :hud_project, data_source_id: data_source.id, ProjectType: 13, ContinuumProject: 1 }
   let!(:source_client) { create :hud_client, data_source_id: data_source.id }
   let!(:enrollment) { create :hud_enrollment, data_source_id: data_source.id, PersonalID: source_client.PersonalID, ProjectID: project.ProjectID }
 
