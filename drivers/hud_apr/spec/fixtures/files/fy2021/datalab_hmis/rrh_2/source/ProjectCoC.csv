@@ -1,2 +1,2 @@
-"ProjectCoCID","ProjectID","COCCode","Geocode","Address1","Address2","City","State","ZIP","GeographyType","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
-"47737050","957","XX-500","391062","2134 Alpine Pl.","","Anytown","OH","12345",2,2021-09-02 00:00:00,2021-09-02 00:00:00,"0",,"34D730921221471F8C6DD6DF5BD87B3D"
+"ProjectCoCID","ProjectID","CoCCode","Geocode","Address1","Address2","City","State","ZIP","GeographyType","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"47737050","957","XX-500","391062","2134 Alpine Pl.","","Anytown","OH","12345",2,2021-09-02 00:00:00,2021-09-02 00:00:00,"0",,"B01B1DCB65B97398AD1E2CF1147649B9"

@@ -1,9 +1,9 @@
 "Special need","Total persons","a. Without children","b. Adults in households with children and adults","c. Children in households with children and adults","d. With only children","e. Unknown household type"
-"a. Mental Health Disorder",4,1,1,2,0,0
+"a. Mental Health Disorder",4,1,0,1,0,2
 "b. Alcohol Use Disorder",2,1,0,0,1,0
-"c. Drug Use Disorder",2,1,1,0,0,0
-"d. Both Alcohol and Drug Use Disorders",1,0,0,1,0,0
-"e. Chronic Health Condition",6,2,2,2,0,0
-"f. HIV/AIDS",0,0,0,0,0,0
-"g. Developmental Disability",3,1,1,1,0,0
-"h. Physical Disability",6,2,2,2,0,0
+"c. Drug Use Disorder",2,1,0,0,0,1
+"d. Both Alcohol and Drug Use Disorders",1,0,0,0,0,1
+"e. Chronic Health Condition",6,2,0,1,0,3
+"f. HIV/AIDS",1,1,0,0,0,0
+"g. Developmental Disability",3,1,0,1,0,1
+"h. Physical Disability",6,2,0,1,0,3

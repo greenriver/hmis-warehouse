@@ -1,2 +1,2 @@
-"ProjectCoCID","ProjectID","COCCode","Geocode","Address1","Address2","City","State","ZIP","GeographyType","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
-"47737030","808","XX-500","391062","365 Apple Road","","Anytown","OH","12345",2,2021-09-02 00:00:00,2021-09-02 00:00:00,"0",,"E58D586BD82E4E5C9E08938F3EECDE91"
+"ProjectCoCID","ProjectID","CoCCode","Geocode","Address1","Address2","City","State","ZIP","GeographyType","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"47737030","808","XX-500","391062","365 Apple Road","","Anytown","OH","12345",2,2021-09-02 00:00:00,2021-09-02 00:00:00,"0",,"0477D2FF9011E58A5BFE1F9FD31D0E31"

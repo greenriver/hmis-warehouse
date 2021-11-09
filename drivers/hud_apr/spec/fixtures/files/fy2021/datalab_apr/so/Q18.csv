@@ -2,11 +2,11 @@
 "a. Adults with only earned income (i.e., employment income)",0,0,0
 "b. Adults with only other income",9,0,7
 "c. Adults with both earned and other income",1,1,2
-"d. Adults with no income",15,0,15
+"d. Adults with no income",14,0,14
 "e. Adults with Client Doesn't Know/Client Refused income information",0,0,0
 "f. Adults with missing income information",2,0,2
 "g. Number of adult stayers not yet required to have an annual assessment",,0,
 "h. Number of adult stayers without required annual assessment",,0,
-"i. Total adults",27,1,26
+"i. Total adults",26,1,25
 "j. 1 or more source of income",10,1,9
-"k. Adults with income information at start AND follow-up/exit",,1,24
+"k. Adults with income information at start AND follow-up/exit",,1,23

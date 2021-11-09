@@ -1,9 +1,9 @@
 "1. Total number of persons served",40
-"2. Number of adults (age 18 or over)",29
-"3. Number of children (under age 18)",10
-"4. Number of persons with unknown age",1
+"2. Number of adults (age 18 or over)",28
+"3. Number of children (under age 18)",9
+"4. Number of persons with unknown age",3
 "5. Number of leavers",33
-"6. Number of adult leavers",24
+"6. Number of adult leavers",23
 "7. Number of adult and head of household leavers",27
 "8. Number of stayers",7
 "9. Number of adult stayers",5
@@ -11,6 +11,6 @@
 "11. Number of chronically homeless persons",1
 "12. Number of youth under age 25",6
 "13. Number of parenting youth under age 25 with children",1
-"14. Number of adult heads of household",26
-"15. Number of child and unknown-age Heads of household",4
+"14. Number of adult heads of household",25
+"15. Number of child and unknown-age Heads of household",5
 "16. Heads of households and adult stayers in the project 365 days or more",2
