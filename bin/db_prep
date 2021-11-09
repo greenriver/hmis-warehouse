@@ -18,6 +18,10 @@ def run_or_exit(cmd)
 end
 
 Dir.chdir APP_ROOT do
+  puts "\n== Materialize database.yml =="
+  load "bin/materialize.database.yaml.rb"
+  puts File.read('config/database.yml')
+
   puts "\n== Preparing Database =="
   run_or_exit 'bundle exec rake db:create:primary'
   run_or_exit 'bundle exec rake db:schema:conditional_load'
