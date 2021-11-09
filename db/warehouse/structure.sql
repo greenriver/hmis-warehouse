@@ -15378,6 +15378,16 @@ CREATE TABLE public.recent_report_enrollments (
     history_generated_on date,
     original_household_id character varying,
     service_history_processing_job_id bigint,
+    "MentalHealthDisorderFam" integer,
+    "AlcoholDrugUseDisorderFam" integer,
+    "ClientLeaseholder" integer,
+    "HOHLeasesholder" integer,
+    "IncarceratedAdult" integer,
+    "PrisonDischarge" integer,
+    "CurrentPregnant" integer,
+    "CoCPrioritized" integer,
+    "TargetScreenReqd" integer,
+    "HOHLeaseholder" integer,
     demographic_id integer,
     client_id integer
 );
@@ -46137,6 +46147,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211101203339'),
 ('20211102203208'),
 ('20211103235413'),
-('20211108203857');
+('20211108203857'),
+('20211109161950');
 
 
