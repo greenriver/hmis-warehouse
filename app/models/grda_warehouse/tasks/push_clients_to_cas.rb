@@ -117,7 +117,7 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Hud::Client.cas_active
     end
 
-    # TODO: update so all things coming from HMIS assessments or ETO get a wrapper method that checks assessments first and then client attribute
+    # TODO: Need to update this to handle new contact format from Clarity, need to add which type of assessment is being sent.
     def project_client_columns
       {
         client_identifier: :id,
