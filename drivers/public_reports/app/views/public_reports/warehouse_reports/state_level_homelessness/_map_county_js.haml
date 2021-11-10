@@ -46,7 +46,6 @@
       };
 
       // L.geoJSON(this.state, geoJSONOptions).addTo(this.map);
-      console.log(this.shapes)
       this.geojson = L.geoJSON(this.shapes, geoJSONOptions).addTo(this.map);
       this.map.fitBounds(this.geojson.getBounds());
 
@@ -154,11 +153,9 @@
     }
 
     updateMetrics(metrics) {
-      console.log(metrics)
       this.metrics = metrics
       this.geojson.getLayers().forEach((l) => {
         const place_name = l.feature.properties.name
-        console.log(l.feature.properties)
         l.feature.properties.metric = this.metrics[place_name].rate
         this.geojson.resetStyle(l);
         return l.setStyle({
