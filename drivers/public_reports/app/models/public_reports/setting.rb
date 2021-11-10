@@ -9,6 +9,16 @@ module PublicReports
     attr_encrypted :s3_access_key_id, key: ENV['ENCRYPTION_KEY'][0..31]
     attr_encrypted :s3_secret, key: ENV['ENCRYPTION_KEY'][0..31]
 
+    def self.available_map_types
+      types = {
+        coc: 'Continuum of Care',
+        county: 'County',
+        zip: 'Zipcode',
+      }
+      types[:place] = 'Town/City' if GrdaWarehouse::Shape::Town.exists?
+      types
+    end
+
     def color_pattern(category = nil)
       if category.blank? || ! color_categories.include?(category.to_sym)
         num_colors.map do |i|

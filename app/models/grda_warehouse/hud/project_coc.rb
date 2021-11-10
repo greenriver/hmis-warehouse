@@ -55,6 +55,12 @@ module GrdaWarehouse::Hud
       where(arel_table[:City].lower.in(place.map(&:downcase)))
     end
 
+    scope :in_county, ->(county:) do
+      county = Array(county)
+      # FIXME
+      where(arel_table[:City].lower.in(county.map(&:downcase)))
+    end
+
     scope :viewable_by, ->(user) do
       if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope

@@ -221,6 +221,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       merge(GrdaWarehouse::Hud::ProjectCoc.in_place(place: place))
   end
 
+  scope :in_county, ->(county:) do
+    joins(project: :project_cocs).
+      merge(GrdaWarehouse::Hud::ProjectCoc.in_county(county: county))
+  end
+
   # Category 3 is "Homeless only under other federal statuses" and
   # is defined as a housing status of value 5
   scope :category_3, -> do
