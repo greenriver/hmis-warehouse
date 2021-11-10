@@ -495,7 +495,11 @@ module PublicReports
           end_date = date.end_of_quarter
           charts[date.iso8601] = {}
           coc_codes.each do |coc_code|
-            population_overall = population_by_coc[date.year][coc_code]
+            population_overall = if Rails.env.production?
+              population_by_coc[date.year][coc_code]
+            else
+              500
+            end
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -530,7 +534,11 @@ module PublicReports
           end_date = date.end_of_quarter
           charts[date.iso8601] = {}
           zip_codes.each do |code|
-            population_overall = population_by_zip.try(:[], date.year).try(:[], code) || 0
+            population_overall = if Rails.env.production?
+              population_by_zip.try(:[], date.year).try(:[], code) || 0
+            else
+              500
+            end
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -1019,7 +1027,7 @@ module PublicReports
       return 'map_place_js' if map_by_place?
       return 'map_county_js' if map_by_county?
 
-      'map_js'
+      'map_js' # CoC
     end
 
     private def zip_geometries
@@ -1046,11 +1054,11 @@ module PublicReports
     end
 
     private def county_geometries
-      @county_geometries ||= GrdaWarehouse::Shape::County.where(name: zip_codes)
+      @county_geometries ||= GrdaWarehouse::Shape::County.where(namelsad: count_codes)
     end
 
     private def county_codes
-      @county_codes ||= state_county_shapes.map(&:name)
+      @county_codes ||= state_county_shapes.map(&:namelsad)
     end
 
     private def state_county_shapes

@@ -16,6 +16,10 @@ module GrdaWarehouse
       def self.simplification_distance_in_degrees
         0.0005
       end
+
+      def name
+        namelsad
+      end
     end
   end
 end
