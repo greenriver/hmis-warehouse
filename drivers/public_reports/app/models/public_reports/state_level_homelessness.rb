@@ -424,7 +424,7 @@ module PublicReports
       elsif map_by_county?
         census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
@@ -440,7 +440,7 @@ module PublicReports
       elsif map_by_county?
         census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
@@ -454,7 +454,7 @@ module PublicReports
       elsif map_by_county?
         census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
@@ -468,7 +468,7 @@ module PublicReports
       elsif map_by_county?
         census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
@@ -482,11 +482,11 @@ module PublicReports
       elsif map_by_county?
         census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
-    private def census_comparison(scope)
+    private def census_comparison_by_coc(scope)
       self.map_max_rate ||= 0
       self.map_max_count ||= 0
       {}.tap do |charts|
@@ -506,13 +506,13 @@ module PublicReports
                 end_date: end_date,
               ).in_coc(coc_code: coc_code).count
             else
-              max = [population_overall, 1].compact.max / 10_000
+              max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
             end
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
-            # rate per 10,000
+            # % of population
             rate = 0
-            rate = count / population_overall.to_f * 10_000.0 if population_overall&.positive?
+            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
             charts[date.iso8601][coc_code] = {
               count: count,
               overall_population: population_overall.to_i,
@@ -545,13 +545,13 @@ module PublicReports
                 end_date: end_date,
               ).in_zip(zip_code: code).count
             else
-              max = [population_overall, 1].compact.max / 10_000
+              max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
             end
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
-            # rate per 10,000
+            # % of population
             rate = 0
-            rate = count / population_overall.to_f * 10_000.0 if population_overall&.positive?
+            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
             charts[date.iso8601][code] = {
               count: count,
               overall_population: population_overall.to_i,

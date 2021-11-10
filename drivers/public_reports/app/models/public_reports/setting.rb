@@ -12,7 +12,7 @@ module PublicReports
     def self.available_map_types
       types = {
         coc: 'Continuum of Care',
-        county: 'County',
+        # county: 'County',
         zip: 'Zipcode',
       }
       types[:place] = 'Town/City' if GrdaWarehouse::Shape::Town.exists?
