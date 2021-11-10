@@ -1,0 +1,11 @@
+- if translated?('Public Report Glossary')
+  #context.context.collapse
+    .context__container
+      .context__header
+        %h3= _('Public Glossary Header')
+        %button.btn.btn-dark.ml-auto{role: :button, aria: {controls: :context, expanded: :false}, data: { target: '#context', toggle: :collapse}}
+          %i.bi.bi-x-lg.mr-1
+          %span Close
+      .context__content
+        - markdown = Redcarpet::Markdown.new(::TranslatedHtml)
+        = raw markdown.render(_('Public Report Glossary'))
