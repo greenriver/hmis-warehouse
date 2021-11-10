@@ -15,7 +15,11 @@ module TcClientDataReport
 
     def rows
       enrollments = enrollment_scope.
-        preload(:service_history_services, project: :project_cocs).
+        preload(
+          :service_history_services,
+          service_history_enrollment_for_head_of_household: { enrollment: :income_benefits },
+          project: :project_cocs,
+        ).
         where(client_id: client_scope.select(:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id)
@@ -23,6 +27,7 @@ module TcClientDataReport
       client_scope.
         map do |client|
           enrollment = enrollments[client.id].first
+          program_name = enrollment.project.ProjectName
           bed_night = enrollment.service_history_services.order(date: :asc).bed_night.first
           hoh_income = enrollment.
             service_history_enrollment_for_head_of_household.
@@ -31,6 +36,7 @@ module TcClientDataReport
             TotalMonthlyIncome
 
           {
+            program_name: program_name,
             service_date: bed_night&.date || enrollment.first_date_in_program, # first bed night, or entry date
             fort_worth_resident: nil, # leave blank
             service_location: nil, # leave blank
@@ -45,7 +51,7 @@ module TcClientDataReport
             income: hoh_income, # HoH income
             female_hoh: enrollment.head_of_household? && client.Female == 1,
           }
-        end
+        end.sort_by { |row| row[:service_date] }
     end
 
     private def enrollment_scope

@@ -14,10 +14,11 @@ module TcClientDataReport::WarehouseReports
     before_action :report
 
     def index
+      @rows = @report.rows
       respond_to do |format|
         format.html do
           flash[:error] = 'You must select a project' if params[:commit].present? && ! @show_report
-          @pagy, @rows = pagy_array(@report.rows)
+          @pagy, @rows = pagy_array(@rows)
         end
         format.xlsx do
           filename = "Attachment III - #{Time.current.to_s(:db)}.xlsx"
@@ -43,6 +44,7 @@ module TcClientDataReport::WarehouseReports
         :start,
         :end,
         :project_ids,
+        project_ids: [],
       )
 
       report_params[:project_ids] = Array.wrap(report_params[:project_ids]) if report_params[:project_ids].present?

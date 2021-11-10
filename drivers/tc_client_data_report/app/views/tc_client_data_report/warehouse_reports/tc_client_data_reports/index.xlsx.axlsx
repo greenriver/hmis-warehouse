@@ -1,0 +1,59 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Att III') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center, wrap_text: true})
+  headers = [
+    'Program Name',
+    'Item',
+    'Date of Services',
+    'Fort Worth Resident?',
+    'Service Location',
+    'Name',
+    'Street Address',
+    'Age',
+    'Gender',
+    'Hispanic/Latin(a)(o)(x)',
+    'Non-Hispanic/Non-Latin(a)(o)(x)',
+    'American Indian, Alaska Native, or Indigenous',
+    'Asian or Asian American',
+    'Black, African American, or African',
+    'Native Hawaiian or Pacific Islander',
+    'White',
+    'None',
+    'Disabled (Yes)',
+    'Disabled (No)',
+    'hhsize',
+    'HoH Income',
+    'FHOH (Yes)',
+    'FHOH (No)',
+  ]
+  sheet.add_row(headers, style: title)
+
+  @rows.each_with_index do |row, index|
+    sheet_row = [
+      row[:program_name],
+      index + 1,
+      row[:service_date],
+      row[:fort_worth_resident],
+      row[:service_location],
+      row[:client_name],
+      row[:street_address],
+      row[:age],
+      row[:genders],
+      ('X' if row[:ethnicity] == 1),
+      ('X' if row[:ethnicity] == 0),
+      ('X' if row[:races].include?('AmIndAKNative')),
+      ('X' if row[:races].include?('Asian')),
+      ('X' if row[:races].include?('BlackAfAmerican')),
+      ('X' if row[:races].include?('NativeHIPacific')),
+      ('X' if row[:races].include?('White')),
+      ('X' if row[:races].include?('RaceNone')),
+      ('X' if row[:disabled]),
+      ('X' unless row[:disabled]),
+      row[:hh_size],
+      row[:income],
+      ('X' if row[:female_hoh]),
+      ('X' unless row[:female_hoh]),
+    ]
+    sheet.add_row(sheet_row)
+  end
+end
