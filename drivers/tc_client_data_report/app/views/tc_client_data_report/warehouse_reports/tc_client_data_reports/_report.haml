@@ -1,0 +1,31 @@
+.overflow-scroll
+  %p!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+  %p.ml-auto!= pagy_bootstrap_nav(@pagy)
+  %table.table
+    %thead
+      %tr
+        %th Service Date
+        %th Client Name
+        %th Street Address
+        %th Age
+        %th Genders
+        %th Ethnicity
+        %th Races
+        %th Disabled?
+        %th HH Size
+        %th Monthly Income
+        %th FHOH
+    %tbody
+      - @rows.each do |row|
+        %tr
+          %td= row[:service_date]
+          %td= row[:client_name]
+          %td= row[:street_address]
+          %td= row[:age]
+          %td= row[:genders]
+          %td= HUD.ethnicity(row[:ethnicity])
+          %td= row[:races].join(', ')
+          %td= checkmark(row[:disabled])
+          %td= row[:hh_size]
+          %td= number_to_currency(row[:income])
+          %td= checkmark(row[:female_hoh])

@@ -16,7 +16,8 @@ module TcClientDataReport::WarehouseReports
     def index
       respond_to do |format|
         format.html do
-          flash[:error] = 'You must select one or more projects, or project groups' if params[:commit].present? && ! @show_report
+          flash[:error] = 'You must select a project' if params[:commit].present? && ! @show_report
+          @pagy, @rows = pagy_array(@report.rows)
         end
         format.xlsx do
           filename = "Attachment III - #{Time.current.to_s(:db)}.xlsx"
@@ -38,12 +39,14 @@ module TcClientDataReport::WarehouseReports
     private def report_params
       return nil unless params[:filters].present?
 
-      params.require(:filters).permit(
+      report_params = params.require(:filters).permit(
         :start,
         :end,
-        project_ids: [],
-        project_group_ids: [],
+        :project_ids,
       )
+
+      report_params[:project_ids] = Array.wrap(report_params[:project_ids]) if report_params[:project_ids].present?
+      report_params
     end
   end
 end
