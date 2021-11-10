@@ -45,7 +45,7 @@ module Health::Tasks
         update_housing_statuses
         results[@config.name] = change_counts
       end
-      change_counts
+      results
     end
 
     def import(klass:, file:)
