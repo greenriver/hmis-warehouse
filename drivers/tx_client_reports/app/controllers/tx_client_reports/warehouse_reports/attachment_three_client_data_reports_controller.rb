@@ -28,9 +28,9 @@ module TxClientReports::WarehouseReports
     end
 
     private def filter
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id, project_type_codes: [])
-      @filter.set_from_params(report_params)
-      @show_report = @filter.project_ids.present? || @filter.project_group_ids.present?
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id)
+      @filter.update(report_params.merge({ project_type_codes: [] }))
+      @show_report = @filter.project_ids.present?
     end
 
     private def report
@@ -38,7 +38,7 @@ module TxClientReports::WarehouseReports
     end
 
     private def report_params
-      return nil unless params[:filters].present?
+      return {} unless params[:filters].present?
 
       report_params = params.require(:filters).permit(
         :start,

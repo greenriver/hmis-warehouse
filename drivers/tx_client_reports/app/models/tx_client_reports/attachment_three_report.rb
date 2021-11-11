@@ -16,19 +16,17 @@ module TxClientReports
     def rows
       enrollments = enrollment_scope.
         preload(
-          :service_history_services,
           service_history_enrollment_for_head_of_household: { enrollment: :income_benefits },
           project: :project_cocs,
         ).
         where(client_id: client_scope.select(:id)).
-        order(first_date_in_program: :asc).
-        group_by(&:client_id)
+        order(first_date_in_program: :desc). # index by uses the last value, so this selects the oldest enrollment
+        index_by(&:client_id)
 
       client_scope.
         map do |client|
-          enrollment = enrollments[client.id].first
+          enrollment = enrollments[client.id]
           program_name = enrollment.project.ProjectName
-          bed_night = enrollment.service_history_services.order(date: :asc).bed_night.first
           hoh_income = enrollment.
             service_history_enrollment_for_head_of_household.
             enrollment.
@@ -37,12 +35,12 @@ module TxClientReports
 
           {
             program_name: program_name,
-            service_date: bed_night&.date || enrollment.first_date_in_program, # first bed night, or entry date
+            service_date: enrollment.first_date_in_program,
             fort_worth_resident: nil, # leave blank
             service_location: nil, # leave blank
             client_name: client.name,
             street_address: enrollment.project.project_cocs.first.Address1, # Shelter address
-            age: client.age,
+            age: enrollment.age, # Age at project entry to keep report stable
             genders: client.gender,
             ethnicity: client.Ethnicity,
             races: client.race_fields,
