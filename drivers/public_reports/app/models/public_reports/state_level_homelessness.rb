@@ -631,7 +631,7 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).in_county(county: code).count # FIXME: in_county needs to determine county from city name
+              ).in_county(county: code).count
             else
               max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
