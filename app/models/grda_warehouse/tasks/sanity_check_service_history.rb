@@ -116,13 +116,15 @@ module GrdaWarehouse::Tasks
     end
 
     private def clients_with_unprocessed_enrollments
-      @clients_with_unprocessed_enrollments ||= Set.new.tap do |ids|
+      @clients_with_unprocessed_enrollments ||= begin
+        ids = Set.new
         @destinations.keys.each_slice(@batch_size) do |batch|
           ids += GrdaWarehouse::Hud::Client.where(id: batch).
             joins(:source_enrollments).
             merge(GrdaWarehouse::Hud::Enrollment.unprocessed).
             pluck(:id)
         end
+        ids
       end
     end
 
