@@ -195,6 +195,10 @@ module GrdaWarehouse::Hud
       where(processed_as: nil)
     end
 
+    scope :processed, -> do
+      where.not(processed_as: nil)
+    end
+
     scope :unassigned, -> do
       jobs = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_job_ids
       return current_scope unless jobs.present?
