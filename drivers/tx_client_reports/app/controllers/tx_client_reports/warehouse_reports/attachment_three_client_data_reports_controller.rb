@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module TcClientDataReport::WarehouseReports
-  class TcClientDataReportsController < ApplicationController
+module TxClientReports::WarehouseReports
+  class AttachmentThreeClientDataReportsController < ApplicationController
     include AjaxModalRails::Controller
     include WarehouseReportAuthorization
     include ArelHelper
@@ -34,7 +34,7 @@ module TcClientDataReport::WarehouseReports
     end
 
     private def report
-      @report = TcClientDataReport::Report.new(@filter)
+      @report = TxClientReports::AttachmentThreeReport.new(@filter)
     end
 
     private def report_params

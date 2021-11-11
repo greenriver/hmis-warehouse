@@ -993,9 +993,9 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
-      if RailsDrivers.loaded.include?(:tc_client_data_report)
+      if RailsDrivers.loaded.include?(:tx_client_reports)
         r_list['Operational'] << {
-          url: 'tc_client_data_report/warehouse_reports/tc_client_data_reports',
+          url: 'tx_client_reports/warehouse_reports/attachment_three_client_data_reports',
           name: 'Attachment III - Client Data Report',
           description: 'Attachment III - Client Data Report',
           limitable: true,

@@ -1,4 +1,4 @@
-= simple_form_for @filter, as: :filters, url: tc_client_data_report_warehouse_reports_tc_client_data_reports_path, method: :get do |f|
+= simple_form_for @filter, as: :filters, url: tx_client_reports_warehouse_reports_attachment_three_client_data_reports_path, method: :get do |f|
   - content_for :filters_col_full do
     .row
       .col
@@ -10,6 +10,6 @@
 
   - content_for :filter_actions do
     = f.submit 'Update Filter', class: 'btn btn-primary'
-    = link_to 'Download XLSX', tc_client_data_report_warehouse_reports_tc_client_data_reports_path(format: :xlsx, params: @filter.for_params), class: 'btn btn-secondary'
+    = link_to 'Download XLSX', tx_client_reports_warehouse_reports_attachment_three_client_data_reports_path(format: :xlsx, params: @filter.for_params), class: 'btn btn-secondary'
 
   = render 'warehouse_reports/filters', f:f

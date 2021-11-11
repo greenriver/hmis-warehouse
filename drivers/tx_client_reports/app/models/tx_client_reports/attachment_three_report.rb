@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module TcClientDataReport
-  class Report
+module TxClientReports
+  class AttachmentThreeReport
     include ::Filter::FilterScopes
     include ArelHelper
 

@@ -5,9 +5,9 @@
 ###
 
 Rails.application.routes.draw do
-  namespace :tc_client_data_report do
+  namespace :tx_client_reports do
     namespace :warehouse_reports do
-      resources :tc_client_data_reports, only: [:index]
+      resources :attachment_three_client_data_reports, only: [:index]
     end
   end
 end
