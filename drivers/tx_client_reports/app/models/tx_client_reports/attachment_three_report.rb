@@ -14,9 +14,11 @@ module TxClientReports
     end
 
     def rows
+      return [] unless @filter.project_ids.any?
+
       enrollments = enrollment_scope.
         preload(
-          service_history_enrollment_for_head_of_household: { enrollment: :income_benefits },
+          service_history_enrollment_for_head_of_household: { enrollment: :income_benefits_at_entry },
           project: :project_cocs,
         ).
         where(client_id: client_scope.select(:id)).
@@ -28,9 +30,9 @@ module TxClientReports
           enrollment = enrollments[client.id]
           program_name = enrollment.project.ProjectName
           hoh_income = enrollment.
-            service_history_enrollment_for_head_of_household.
-            enrollment.
-            income_benefits_at_entry.
+            service_history_enrollment_for_head_of_household&.
+            enrollment&.
+            income_benefits_at_entry&.
             TotalMonthlyIncome
 
           {
@@ -44,7 +46,7 @@ module TxClientReports
             genders: client.gender,
             ethnicity: client.Ethnicity,
             races: client.race_fields,
-            disabled: client.currently_disabled?,
+            disabled: client_disabled?(client),
             hh_size: 1 + enrollment.other_clients_over_25 + enrollment.other_clients_under_18 + enrollment.other_clients_between_18_and_25, # Sum household membmers
             income: hoh_income, # HoH income
             female_hoh: enrollment.head_of_household? && client.Female == 1,
@@ -52,12 +54,21 @@ module TxClientReports
         end.sort_by { |row| row[:service_date] }
     end
 
-    private def enrollment_scope
-      enrollment_scope = filter_for_user_access(GrdaWarehouse::ServiceHistoryEnrollment.entry)
-      enrollment_scope = filter_for_projects(enrollment_scope)
-      enrollment_scope = filter_for_range(enrollment_scope)
+    private def client_disabled?(client)
+      disabled_client_ids.include?(client.id)
+    end
 
-      enrollment_scope
+    private def disabled_client_ids
+      @disabled_client_ids ||= GrdaWarehouse::Hud::Client.disabled_client_scope.
+        where(id: client_scope.select(:id)).pluck(:id)
+    end
+
+    private def enrollment_scope
+      scope = filter_for_user_access(GrdaWarehouse::ServiceHistoryEnrollment.entry)
+      scope = filter_for_projects(scope)
+      scope = filter_for_range(scope)
+
+      scope
     end
 
     private def client_scope

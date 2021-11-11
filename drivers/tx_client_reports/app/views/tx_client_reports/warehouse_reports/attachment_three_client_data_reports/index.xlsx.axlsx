@@ -1,10 +1,10 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Att III') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center, wrap_text: true})
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center, wrap_text: true })
   headers = [
     'Program Name',
     'Item',
-    'Date of Services',
+    'Date of First Service',
     'Fort Worth Resident?',
     'Service Location',
     'Name',
@@ -22,7 +22,7 @@ wb.add_worksheet(name: 'Att III') do |sheet|
     'Disabled (Yes)',
     'Disabled (No)',
     'hhsize',
-    'HoH Income',
+    'HoH Monthly Income',
     'FHOH (Yes)',
     'FHOH (No)',
   ]

@@ -11,13 +11,12 @@ module TxClientReports::WarehouseReports
     include ArelHelper
 
     before_action :filter
-    before_action :report
 
     def index
-      @rows = @report.rows
+      @rows = report.rows
       respond_to do |format|
         format.html do
-          flash[:error] = 'You must select a project' if params[:commit].present? && ! @show_report
+          flash[:error] = 'You must select a project' if params[:commit].present? && ! show_report?
           @pagy, @rows = pagy_array(@rows)
         end
         format.xlsx do
@@ -28,13 +27,20 @@ module TxClientReports::WarehouseReports
     end
 
     private def filter
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id)
-      @filter.update(report_params.merge({ project_type_codes: [] }))
-      @show_report = @filter.project_ids.present?
+      @filter ||= begin
+        f = ::Filters::FilterBase.new(user_id: current_user.id)
+        f.update(report_params.merge({ project_type_codes: [] }))
+        f
+      end
     end
 
+    private def show_report?
+      filter.project_ids.present?
+    end
+    helper_method :show_report?
+
     private def report
-      @report = TxClientReports::AttachmentThreeReport.new(@filter)
+      @report ||= TxClientReports::AttachmentThreeReport.new(@filter)
     end
 
     private def report_params
@@ -47,7 +53,7 @@ module TxClientReports::WarehouseReports
         project_ids: [],
       )
 
-      report_params[:project_ids] = Array.wrap(report_params[:project_ids]) if report_params[:project_ids].present?
+      report_params[:project_ids] = Array.wrap(report_params[:project_ids])
       report_params
     end
   end

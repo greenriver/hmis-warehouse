@@ -6,7 +6,7 @@
       .col
         = f.input :end, as: :date_picker, label: 'Contract End Date'
       .col
-        = f.input :project_ids, collection: [], as: :select_two, input_html: {data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: true, label: 'Project'
+        = f.input :project_ids, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, placeholder: 'Choose a Project'}, label: 'Project'
     .row
       .col
         %p
@@ -20,6 +20,9 @@
 
   - content_for :filter_actions do
     = f.submit 'Update Filter', class: 'btn btn-primary'
-    = button_to 'Download XLSX', tx_client_reports_warehouse_reports_attachment_three_client_data_reports_path(format: :xlsx, params: @filter.for_params), class: 'btn btn-secondary', disabled: !@show_report
+    - if show_report?
+      = link_to tx_client_reports_warehouse_reports_attachment_three_client_data_reports_path(format: :xlsx, params: @filter.for_params), class: 'btn btn-secondary' do
+        %i.icon-file-excel
+        Download Excel
 
   = render 'warehouse_reports/filters', f:f
