@@ -3671,9 +3671,6 @@ msgstr ""
 msgid "Homeless or Housed"
 msgstr ""
 
-msgid "House Search Provider"
-msgstr ""
-
 msgid "Household Composition"
 msgstr ""
 
@@ -3693,6 +3690,9 @@ msgid "Housing Release Status"
 msgstr ""
 
 msgid "Housing Search"
+msgstr ""
+
+msgid "Housing Search Provider"
 msgstr ""
 
 msgid "If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff."
@@ -3951,6 +3951,12 @@ msgid "Projects"
 msgstr ""
 
 msgid "Projects must demonstrate understanding of compliance with federal & local regulations of project operations."
+msgstr ""
+
+msgid "Public Glossary Header"
+msgstr ""
+
+msgid "Public Report Glossary"
 msgstr ""
 
 msgid "Race"

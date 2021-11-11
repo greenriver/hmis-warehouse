@@ -113,6 +113,8 @@ module Importers::HmisAutoMigrate
       incoming_filename = File.basename(file, File.extname(file))
       previous_import_filenames = previous_imports.map do |pi|
         name = pi&.file&.file&.filename || 'none.zip'
+        # Remove the name change made if the file was an encrypted zip
+        name = name.gsub('_decrypted.zip', '.zip')
         File.basename(name, File.extname(name))
       end
       return unless incoming_filename.in?(previous_import_filenames)

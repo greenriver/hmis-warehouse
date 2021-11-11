@@ -77,7 +77,7 @@ module ApplicationHelper
     direction = :none if allow_directions.exclude? direction
     tooltip_data = {}
     tooltip_data = { toggle: :tooltip, title: tooltip } if tooltip.present?
-    embedded_svg("change-#{direction}")
+    embedded_svg("change-#{direction}", options: tooltip_data)
   end
 
   def svg_checkbox(wrapper_class:, symbol_name:, size: 'xs', tooltip: nil)
@@ -228,6 +228,10 @@ module ApplicationHelper
       en: 'Text adjustments',
     }
     translations[locale.to_sym].presence || locale
+  end
+
+  def translated?(text)
+    _(text) != text
   end
 
   def options_for_available_tags(grouped_tags, _selected_name)

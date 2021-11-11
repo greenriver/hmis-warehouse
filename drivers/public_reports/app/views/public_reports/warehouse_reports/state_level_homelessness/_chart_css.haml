@@ -350,3 +350,67 @@
     position: absolute;
     height: 36px;
   }
+
+  /* info boxes */
+  a.info-button {
+    color:  #777777;
+    font-size: 16px;
+  }
+
+  .context {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+  }
+
+  .context, .context::before {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .context::before {
+    content: '';
+    position: absolute;
+    background: rgba(59, 59, 59, 0.95);
+  }
+
+  .context__container {
+    max-width: 65%;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .context__header {
+    flex: 0 1 auto;
+    display: flex;
+    margin-bottom: 15px;
+  }
+
+  .context__header {
+    color: white;
+  }
+
+  .context__content {
+    color: white;
+    flex: 1;
+    overflow: scroll;
+    padding-right: 10px;
+    height: 100%;
+  }
+
+  .collapsing {
+    position: relative;
+    height: 0;
+    overflow: hidden;
+    transition: height .15s ease;
+  }
+
+  @media only screen and (max-width: 600px) {
+    .context-content__container {
+      max-width: 95%;
+    }
+  }
+  /* end info boxes */

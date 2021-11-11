@@ -1,4 +1,5 @@
 = render 'chart_css'
 - data = @report.parsed_pre_calculated_data
-
-= render 'summary_counts', data: data
+%section.position-relative
+  = render 'summary_counts', data: data
+  = render 'glossary_content'
