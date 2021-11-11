@@ -134,7 +134,7 @@ module ServiceHistory::Builder
     private def builder_create_enrollment_jobs(scope)
       scope.unassigned.joins(:project, :destination_client).
         pluck_in_batches(:id, batch_size: 250) do |batch|
-        job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch))
+        job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))
         GrdaWarehouse::Hud::Enrollment.where(id: batch).update_all(service_history_processing_job_id: job.id)
       end
     end
