@@ -119,7 +119,6 @@ services:
 
   mailhog:
     image: mailhog/mailhog:latest
-    restart: always
     environment:
       VIRTUAL_HOST: mail.${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 8025
