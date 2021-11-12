@@ -15229,7 +15229,8 @@ CREATE TABLE public.public_report_settings (
     adults_only_primary_color character varying,
     adults_with_children_primary_color character varying,
     children_only_primary_color character varying,
-    veterans_primary_color character varying
+    veterans_primary_color character varying,
+    map_type character varying DEFAULT 'coc'::character varying NOT NULL
 );
 
 
@@ -46148,6 +46149,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211102203208'),
 ('20211103235413'),
 ('20211108203857'),
-('20211109161950');
+('20211109161950'),
+('20211110005810');
 
 

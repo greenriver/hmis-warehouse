@@ -14,6 +14,8 @@
       = f.input :s3_prefix, label: 'Prefix', hint: 'optional'
       = f.input :s3_access_key_id, label: 'Access Key ID'
       = f.input :s3_secret, label: 'Secret Access Key', as: :password
+      %h3 Map Options
+      = f.input :map_type, label: 'Map breakdowns', as: :select_two, collection: PublicReports::Setting.available_map_types.invert
   - content_for :filters_col_r do
     %section
       %h3 Appearance
