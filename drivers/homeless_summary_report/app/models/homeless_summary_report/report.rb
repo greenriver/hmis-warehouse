@@ -495,7 +495,11 @@ module HomelessSummaryReport
       extra_filters = base_variant[:extra_filters] || {}
       @filter.update(extra_filters.merge(sub_spec[:extra_filters] || {}))
       # demographic_filter is a method known to filter_scopes
-      ids = send(sub_spec[:demographic_filter], report_scope).pluck(:client_id).uniq.to_set
+      demographic_scope = report_scope
+      sub_spec[:demographic_filters].each do |demographic_filter|
+        demographic_scope = send(demographic_filter, report_scope)
+      end
+      ids = demographic_scope.pluck(:client_id).uniq.to_set
       @filter = nil
       ids
     end
@@ -789,91 +793,91 @@ module HomelessSummaryReport
             ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latin(a)(o)(x)', true)],
             races: ['White'],
           },
-          demographic_filter: :filter_for_ethnicity,
+          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
         },
         hispanic_latino: {
           name: 'Hispanic/Latin(a)(o)(x)',
           extra_filters: {
             ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
           },
-          demographic_filter: :filter_for_ethnicity,
+          demographic_filters: [:filter_for_ethnicity],
         },
         black_african_american: {
           name: 'Black/African American Persons',
           extra_filters: {
             races: ['BlackAfAmerican'],
           },
-          demographic_filter: :filter_for_race,
+          demographic_filters: [:filter_for_race],
         },
         asian: {
           name: 'Asian Persons',
           extra_filters: {
             races: ['Asian'],
           },
-          demographic_filter: :filter_for_race,
+          demographic_filters: [:filter_for_race],
         },
         american_indian_alaskan_native: {
           name: 'American Indian/Alaskan Native Persons',
           extra_filters: {
             races: ['AmIndAKNative'],
           },
-          demographic_filter: :filter_for_race,
+          demographic_filters: [:filter_for_race],
         },
         native_hawaiian_other_pacific_islander: {
           name: 'Native Hawaiian or Pacific Islander',
           extra_filters: {
             races: ['NativeHIPacific'],
           },
-          demographic_filter: :filter_for_race,
+          demographic_filters: [:filter_for_race],
         },
         multi_racial: {
           name: 'Multiracial',
           extra_filters: {
             races: ['MultiRacial'],
           },
-          demographic_filter: :filter_for_race,
+          demographic_filters: [:filter_for_race],
         },
         fleeing_dv: {
           name: 'Currently Fleeing DV',
           extra_filters: {
             currently_fleeing: [1],
           },
-          demographic_filter: :filter_for_dv_currently_fleeing,
+          demographic_filters: [:filter_for_dv_currently_fleeing],
         },
         veteran: {
           name: 'Veterans',
           extra_filters: {
             veteran_statuses: [1],
           },
-          demographic_filter: :filter_for_veteran_status,
+          demographic_filters: [:filter_for_veteran_status],
         },
         has_disability: {
           name: 'With Indefinite and Impairing Disability',
           extra_filters: {
             indefinite_disabilities: [1],
           },
-          demographic_filter: :filter_for_indefinite_disabilities,
+          demographic_filters: [:filter_for_indefinite_disabilities],
         },
         has_rrh_move_in_date: {
           name: 'Moved in to RRH',
           extra_filters: {
             rrh_move_in: true,
           },
-          demographic_filter: :filter_for_rrh_move_in,
+          demographic_filters: [:filter_for_rrh_move_in],
         },
         has_psh_move_in_date: {
           name: 'Moved in to PSH',
           extra_filters: {
             psh_move_in: true,
           },
-          demographic_filter: :filter_for_psh_move_in,
+          demographic_filters: [:filter_for_psh_move_in],
         },
         first_time_homeless: {
           name: 'First Time Homeless in Past Two Years',
           extra_filters: {
             first_time_homeless: true,
           },
-          demographic_filter: :filter_for_first_time_homeless_in_past_two_years,
+          demographic_filters: [:filter_for_first_time_homeless_in_past_two_years],
         },
         # NOTE: only display this on Measure 1 (it will never work on Measure 2)
         returned_to_homelessness_from_permanent_destination: {
@@ -881,7 +885,7 @@ module HomelessSummaryReport
           extra_filters: {
             returned_to_homelessness_from_permanent_destination: true,
           },
-          demographic_filter: :filter_for_returned_to_homelessness_from_permanent_destination,
+          demographic_filters: [:filter_for_returned_to_homelessness_from_permanent_destination],
         },
       }.freeze
     end
