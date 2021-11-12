@@ -260,7 +260,6 @@ group :test do
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
-  # gem 'after_commit_exception_notification'
   gem 'rails-controller-testing'
   # gem 'simplecov'
   # gem 'simplecov-console'
