@@ -117,8 +117,17 @@ module HomelessSummaryReport
     end
 
     # @return filtered scope
-    def report_scope
-      # Report range
+    def report_scope(measure)
+      @filter = filter
+      # Measure 2 needs a 2 year look-back
+      # Measure 7 needs to extend one day before the filter start to match the SPM
+      case measure
+      when 'Measure 2'
+        @filter.update(start: @filter.start - 2.years)
+      when 'Measure 7'
+        @filter.update(start: @filter.start - 1.days)
+      end
+      puts measure
       scope = report_scope_source
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
@@ -130,6 +139,9 @@ module HomelessSummaryReport
       scope = filter_for_projects(scope)
       scope = filter_for_funders(scope)
       scope = filter_for_ca_homeless(scope)
+      # force re-calculation of filter
+      @filter = nil
+      filter
       scope
     end
 
@@ -428,12 +440,7 @@ module HomelessSummaryReport
           cells.each do |cell|
             spm_clients = answer_clients(report[:report], *cell)
             spm_clients.each do |spm_client|
-              # because we need to include additional project types when running the SPM
-              # to be able to calculate returns to homelessness
-              # we need to exclude any client who isn't in the report scope from the final batch of clients
               client_id = spm_client[:client_id]
-              next unless client_id.in?(client_ids_for_report_scope)
-
               report_client = report_clients[client_id] || Client.new_with_default_values
               report_client[:client_id] = client_id
               report_client[:first_name] = spm_client[:first_name]
@@ -482,25 +489,26 @@ module HomelessSummaryReport
       universe.add_universe_members(report_clients)
     end
 
-    private def client_ids_for_report_scope
-      @client_ids_for_report_scope ||= report_scope.pluck(:client_id).uniq.to_set
-    end
-
     # This needs to temporarily set @filter to something useful for further limiting the default
     # filter set.  When it's done, it can just clear it as calling `filter` will reset it from
     # the chosen options
     private def client_ids_for_demographic_category(spec, sub_spec)
+      # Force measure 2 because it has the largest date range, and we only use this to check to see if
+      # someone existed in a demographic category, time is irrelevant for these
+      measure = 'Measure 2'
+      demographic_scope = report_scope(measure)
+
       @filter = filter
       base_variant = spec[:base_variant]
       extra_filters = base_variant[:extra_filters] || {}
       @filter.update(extra_filters.merge(sub_spec[:extra_filters] || {}))
       # demographic_filter is a method known to filter_scopes
-      demographic_scope = report_scope
       sub_spec[:demographic_filters].each do |demographic_filter|
-        demographic_scope = send(demographic_filter, report_scope)
+        demographic_scope = send(demographic_filter, demographic_scope)
       end
       ids = demographic_scope.pluck(:client_id).uniq.to_set
       @filter = nil
+      filter
       ids
     end
 
@@ -523,11 +531,12 @@ module HomelessSummaryReport
         'Measure 2',
         'Measure 7',
       ]
-      # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
-      # so that the returns calculation will work.
       options = filter.to_h
-      options[:project_type_codes] ||= []
-      options[:project_type_codes] += [:es, :so, :sh, :th]
+      # NOTE: The returns to homeless calculation in the SPM won't work unless homeless types are included in the calculation.
+      # For now we've decided to let that slide, and require people to pick the right project types when running the report.
+      # The two lines commented below could potentially help with forcing that.
+      # options[:project_type_codes] ||= []
+      # options[:project_type_codes] += [:es, :so, :sh, :th]
       generator = HudSpmReport::Generators::Fy2020::Generator
       variants.each do |_, spec|
         base_variant = spec[:base_variant]
@@ -605,7 +614,7 @@ module HomelessSummaryReport
     def m2_fields
       {
         m2_reentry_days: {
-          title: 'Clients exiting to Permanent Destinations',
+          title: 'Clients exiting to Permanent Destinations Within 2 Years Prior to Report Start',
           calculations: [:count, :percent],
           total: :spm_m2_reentry_days,
         },
