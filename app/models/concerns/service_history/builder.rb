@@ -135,7 +135,7 @@ module ServiceHistory::Builder
 
     # Class method
     private def builder_create_enrollment_jobs(scope)
-      en_ids = scope.distinct.joins(:project, :destination_client).pluck(:id).uniq
+      en_ids = scope.distinct.joins(:project, :destination_client).order(:data_source_id).pluck(:id, :data_source_id).map(&:first).uniq
       already_queued = Set.new
       builder_batch_job_scope.each do |dj|
         en_ids = dj.payload_object.instance_variable_get(:@enrollment_ids)
