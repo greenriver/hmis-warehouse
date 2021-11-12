@@ -93,6 +93,7 @@ jobs:
           mkdir app/assets/stylesheets/theme/styles
           touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
+          cp config/database.yml.ci config/database.yml
 
       - name: Prepare test db
         env:
@@ -133,7 +134,6 @@ jobs:
           REPORTING_DATABASE_DB: reporting_db
         run: |
           pg_isready -h postgres -U postgres
-          cp config/database.yml.ci config/database.yml
           bin/db_prep
 
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass

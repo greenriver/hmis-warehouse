@@ -19,7 +19,7 @@ end
 
 Dir.chdir APP_ROOT do
   puts "\n== Materialize database.yml =="
-  load "bin/materialize.database.yaml.rb"
+  #load "bin/materialize.database.yaml.rb"
   puts File.read('config/database.yml')
 
   puts "\n== Preparing Database =="
