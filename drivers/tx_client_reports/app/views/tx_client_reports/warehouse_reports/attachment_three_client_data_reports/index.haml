@@ -1,0 +1,10 @@
+- title = _('Attachment III - Client Data Reports')
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
+%h1.mb-5= title
+
+= render 'filter'
+
+- if show_report?
+  = render 'report'

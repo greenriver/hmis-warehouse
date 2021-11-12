@@ -1,0 +1,28 @@
+= simple_form_for @filter, as: :filters, url: tx_client_reports_warehouse_reports_attachment_three_client_data_reports_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col
+        = f.input :start, as: :date_picker, label: 'Contract Start Date'
+      .col
+        = f.input :end, as: :date_picker, label: 'Contract End Date'
+      .col
+        = f.input :project_ids, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, placeholder: 'Choose a Project'}, label: 'Project'
+    .row
+      .col
+        %p
+          Choose a contract start and end date, this report will find the first enrollment for each client overlapping the
+          contract dates and return a list of clients, where each client only appears once. Clients will be ordered by their
+          Entry Date.
+        %p
+          Note that if you want clients who are new in the current month, delete everyone with an open enrollment
+          starting prior to the first of the month. In the initial month of the contract, you should include all clients
+          with enrollments overlapping that month.
+
+  - content_for :filter_actions do
+    = f.submit 'Update Filter', class: 'btn btn-primary'
+    - if show_report?
+      = link_to tx_client_reports_warehouse_reports_attachment_three_client_data_reports_path(format: :xlsx, params: @filter.for_params), class: 'btn btn-secondary' do
+        %i.icon-file-excel
+        Download Excel
+
+  = render 'warehouse_reports/filters', f:f
