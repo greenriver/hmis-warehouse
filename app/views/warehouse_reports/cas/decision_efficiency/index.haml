@@ -14,8 +14,6 @@
     $(function(){
       $('.jTrigger').on('change', function(e){
         $('.jDependent :input').val('');
-        $form = $(this).closest('form');
-        // console.log($form.serialize());
-        window.location.href = window.location.href + '?' + $form.serialize();
+        window.location.href = window.location.href + '?steps[route]=' + $(this).val();
       });
     });

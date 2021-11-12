@@ -10,6 +10,7 @@ module Filters
     attribute :first_step, String, lazy: false, default: ->(o, _) { o.ordered_steps&.first&.first }
     attribute :second_step, String, lazy: false, default: ->(o, _) { o.ordered_steps[o.ordered_steps&.first&.first]&.first }
     attribute :unit, String, default: 'day'
+    attribute :interesting_date, String, default: 'created'
 
     def units
       if Rails.env.development?
@@ -17,6 +18,19 @@ module Filters
       else
         ['week', 'day']
       end
+    end
+
+    def available_interesting_dates
+      {
+        'Match Started' => 'created',
+        'Move-in Date' => 'move_in',
+      }
+    end
+
+    def interesting_column
+      return :client_move_in_date if interesting_date == 'move_in'
+
+      :match_started_at
     end
 
     # hash from steps to steps that may follow them
