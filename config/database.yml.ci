@@ -1,0 +1,36 @@
+test:
+  primary:
+    adapter: postgresql
+    host: postgres
+    pool: 5
+    timeout: 5000
+    username: postgres
+    password: postgres
+    database: boston_hmis_test
+  warehouse:
+    adapter: postgis
+    host: postgres
+    pool: 5
+    timeout: 5000
+    username: postgres
+    password: postgres
+    database: warehouse_test
+    migrations_paths: db/warehouse/migrate
+  health:
+    adapter: postgresql
+    host: postgres
+    pool: 5
+    timeout: 5000
+    username: postgres
+    password: postgres
+    database: health_test
+    migrations_paths: db/health/migrate
+  reporting:
+    adapter: postgresql
+    host: postgres
+    pool: 5
+    timeout: 5000
+    username: postgres
+    password: postgres
+    database: test_boston_reporting
+    migrations_paths: db/reporting/migrate

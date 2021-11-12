@@ -133,6 +133,7 @@ jobs:
           REPORTING_DATABASE_DB: reporting_db
         run: |
           pg_isready -h postgres -U postgres
+          cp config/database.yml.ci config/database.yml
           bin/db_prep
 
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
