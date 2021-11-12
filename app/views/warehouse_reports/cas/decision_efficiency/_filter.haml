@@ -1,13 +1,15 @@
 = simple_form_for @filter, as: :steps, url: warehouse_reports_cas_decision_efficiency_index_path, html: { method: :get } do |f|
   - content_for :filters_col_full do
-    %p Limit to matches created within a date range.
     .row
+      .col-sm-6
+        = f.input :route, collection: @filter.available_routes, input_html: {value: @filter.route, class: [:jTrigger]}, as: :select_two, hint: 'Changing this will reset the form'
+    .row
+      .col-sm-3
+        = f.input :interesting_date, as: :select_two, collection: @filter.available_interesting_dates, label: 'Date for filtering', hint: 'This date must fall in the range chosen.'
       .col-sm-3
         = f.input :start, as: :date_picker, label: 'Start Date'
       .col-sm-3
         = f.input :end, as: :date_picker, label: 'End Date'
-      .col-sm-6
-        = f.input :route, collection: @filter.available_routes, input_html: {value: @filter.route, class: [:jTrigger]}, as: :select_two
     .row
       .col-sm-6.jDependent
         = f.input :first_step, label: 'From Completion of', collection: @filter.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }, as: :select_two
