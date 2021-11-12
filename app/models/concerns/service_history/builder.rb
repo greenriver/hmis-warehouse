@@ -119,10 +119,12 @@ module ServiceHistory::Builder
       ).exists?
     end
 
+    # Class method
     private def builder_batch_job_scope
-      @builder_batch_job_scope ||= Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
+      Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
     end
 
+    # Class method
     private def builder_client_enrollment_ids(client_ids)
       GrdaWarehouse::Hud::Client.
         destination.
@@ -131,6 +133,7 @@ module ServiceHistory::Builder
         select(Arel.sql(e_t[:id].to_sql))
     end
 
+    # Class method
     private def builder_create_enrollment_jobs(scope)
       scope.unassigned.joins(:project, :destination_client).
         pluck_in_batches(:id, batch_size: 250) do |batch|
