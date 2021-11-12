@@ -22,10 +22,12 @@ module WarehouseReports::Cas
     end
 
     private def filter
+      # raise step_params.inspect
       @filter = ::Filters::StepRange.new(
         {
           start: 12.month.ago.to_date,
           end: Date.current,
+          interesting_date: 'created',
         }.merge(step_params),
       )
     end
@@ -49,7 +51,15 @@ module WarehouseReports::Cas
     private def step_params
       return {} unless params.key? :steps
 
-      params.require(:steps).permit(:first_step, :second_step, :unit, :route, :start, :end)
+      params.require(:steps).permit(
+        :first_step,
+        :second_step,
+        :unit,
+        :route,
+        :start,
+        :end,
+        :interesting_date,
+      )
     end
 
     private def report_source
@@ -69,13 +79,13 @@ module WarehouseReports::Cas
     end
 
     private def report_scope
-      query = at.where(at[:match_started_at].between(@filter.start..@filter.end + 1.day)).
+      query = at.where(at[@filter.interesting_column].between(@filter.start..@filter.end + 1.day).or(at[@filter.interesting_column].eq(nil))).
         join(at2).on(
           at[:client_id].eq(at2[:client_id]).
           and(at[:match_id].eq(at2[:match_id])).
           and(at[:match_step].eq(first_step)).
           and(at2[:match_step].eq(second_step)),
-        ).where(at2[:match_started_at].between(@filter.start..@filter.end + 1.day)).
+        ).where(at2[@filter.interesting_column].between(@filter.start..@filter.end + 1.day)).
         join(c_t).on(at[:client_id].eq(c_t[:id])).
         order(at[:program_name].asc, at[:sub_program_name].asc).
         project(*columns.values)
@@ -112,6 +122,7 @@ module WarehouseReports::Cas
         last_name: c_t[:LastName],
         hsa_contacts: at[:hsa_contacts],
         hsp_contacts: at[:hsp_contacts],
+        client_move_in_date: at2[:client_move_in_date],
       }
     end
   end
