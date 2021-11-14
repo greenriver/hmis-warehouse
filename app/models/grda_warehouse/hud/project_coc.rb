@@ -55,6 +55,15 @@ module GrdaWarehouse::Hud
       where(arel_table[:City].lower.in(place.map(&:downcase)))
     end
 
+    scope :in_county, ->(county:) do
+      county = Array(county)
+      zip_code_shapes.merge(
+        GrdaWarehouse::Shape::ZipCode.counties,
+      ).merge(
+        GrdaWarehouse::Shape::County.county_by_name(county),
+      )
+    end
+
     scope :viewable_by, ->(user) do
       if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope
@@ -63,6 +72,12 @@ module GrdaWarehouse::Hud
       else
         in_coc(coc_code: user.coc_codes)
       end
+    end
+
+    def self.zip_code_shapes
+      joins(<<~SQL)
+        INNER JOIN shape_zip_codes ON ( shape_zip_codes.zcta5ce10 = "ProjectCoC"."Zip" OR shape_zip_codes.zcta5ce10 = "ProjectCoC"."zip_override")
+      SQL
     end
 
     def effective_coc_code

@@ -33,6 +33,7 @@ module GrdaWarehouse::Tasks
         @client_ids = client_source.pluck(:id)
         updated_clients = []
         update_columns = (Cas::ProjectClient.column_names - ['id']).map(&:to_sym)
+        calculator_instance = GrdaWarehouse::Config.get(:cas_calculator).constantize.new
         Cas::ProjectClient.transaction do
           Cas::ProjectClient.update_all(sync_with_cas: false)
           @client_ids.each_slice(1_000) do |client_id_batch|
@@ -47,13 +48,14 @@ module GrdaWarehouse::Tasks
               :processed_service_history,
               :hmis_client,
               :source_disabilities,
+              most_recent_pathways_or_rrh_assessment: :assessment_questions,
               cohort_clients: :cohort,
             ).
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client_columns.map do |destination, source|
                 # puts "Processing: #{destination} from: #{source}"
-                project_client[destination] = client.send(source)
+                project_client[destination] = calculator_instance.value_for_cas_project_client(client: client, column: source)
               end
 
               case GrdaWarehouse::Config.get(:cas_days_homeless_source)
@@ -115,6 +117,7 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Hud::Client.cas_active
     end
 
+    # TODO: Need to update this to handle new contact format from Clarity, need to add which type of assessment is being sent.
     def project_client_columns
       {
         client_identifier: :id,
@@ -174,7 +177,7 @@ module GrdaWarehouse::Tasks
         ssvf_eligible: :ssvf_eligible,
         rrh_desired: :rrh_desired,
         youth_rrh_desired: :youth_rrh_desired,
-        rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
+        rrh_assessment_contact_info: :contact_info_for_rrh_assessment, # TODO? (currently a string from ETO)
         rrh_assessment_collected_at: :rrh_assessment_collected_at,
         requires_wheelchair_accessibility: :requires_wheelchair_accessibility,
         required_number_of_bedrooms: :required_number_of_bedrooms,
@@ -182,7 +185,7 @@ module GrdaWarehouse::Tasks
         requires_elevator_access: :requires_elevator_access,
         neighborhood_interests: :neighborhood_ids_for_cas,
         interested_in_set_asides: :interested_in_set_asides,
-        default_shelter_agency_contacts: :default_shelter_agency_contacts,
+        default_shelter_agency_contacts: :default_shelter_agency_contacts, # TODO: c_casemanager_contacts, but recent discussions indicate this should probably come from custom contacts file
         tags: :cas_tags,
         vash_eligible: :vash_eligible,
         pregnancy_status: :cas_pregnancy_status,
@@ -193,6 +196,7 @@ module GrdaWarehouse::Tasks
         evicted: :evicted,
         dv_rrh_desired: :dv_rrh_desired,
         health_prioritized: :health_prioritized_for_cas?,
+        assessment_name: :cas_assessment_name,
       }
     end
   end

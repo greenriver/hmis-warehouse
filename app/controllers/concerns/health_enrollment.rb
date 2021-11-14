@@ -81,6 +81,8 @@ module HealthEnrollment
     end
 
     def disenroll_patient(transaction, referral, file_date)
+      return if referral.removal_acknowledged?
+
       code = Health::Enrollment.disenrollment_reason_code(transaction)
 
       referral.update(

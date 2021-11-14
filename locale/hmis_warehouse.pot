@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-26 17:56+0000\n"
-"PO-Revision-Date: 2021-10-26 17:56+0000\n"
+"POT-Creation-Date: 2021-11-09 18:59+0000\n"
+"PO-Revision-Date: 2021-11-09 18:59+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3672,9 +3672,6 @@ msgstr ""
 msgid "Homeless or Housed"
 msgstr ""
 
-msgid "House Search Provider"
-msgstr ""
-
 msgid "Household Composition"
 msgstr ""
 
@@ -3694,6 +3691,9 @@ msgid "Housing Release Status"
 msgstr ""
 
 msgid "Housing Search"
+msgstr ""
+
+msgid "Housing Search Provider"
 msgstr ""
 
 msgid "If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff."
@@ -3952,6 +3952,12 @@ msgid "Projects"
 msgstr ""
 
 msgid "Projects must demonstrate understanding of compliance with federal & local regulations of project operations."
+msgstr ""
+
+msgid "Public Glossary Header"
+msgstr ""
+
+msgid "Public Report Glossary"
 msgstr ""
 
 msgid "Race"

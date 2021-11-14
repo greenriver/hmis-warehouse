@@ -213,7 +213,7 @@ class Deployer
       end
     end
 
-    # _add_latest_tag!
+    _add_latest_tag!
   end
 
   def _add_latest_tag!

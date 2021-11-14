@@ -5,38 +5,39 @@
 
 - if @jobs.any?
   %p Showing #{pluralize(@jobs.count, 'job')}
-  %table.table.table-hover.table-responsive
-    %thead
-      %th ID
-      %th Job
-      %th Queue
-      %th Run at
-      %th Locked by
-      %th Locked at
-      %th Failed at
-      %th Last error
-      %th
-      %th
-    %tbody
-      - @jobs.each do |job|
-        %tr
-          %td= job.id
-          %td= job.name.split(' ').first
-          %td= job.queue
-          %td= job.run_at
-          %td= job.locked_by
-          %td= job.locked_at
-          %td= job.failed_at
-          %td= job.last_error
-          %td
-            - if job.failed_at
-              = link_to admin_delayed_job_path(job), method: :patch, class: 'btn btn-sm btn-info', data: { confirm: 'Are you sure you want to re-queue this job?'} do
-                %i.icon-settings_backup_restore
-                Re-queue
-          %td
-            = link_to admin_delayed_job_path(job), method: :delete, class: 'btn btn-sm btn-danger', data: { confirm: 'Are you sure you want to DELETE this job?, there is no going back.'} do
-              %i.icon-cross
-              Delete
+  .card
+    %table.table.table-striped.table-responsive.mb-0
+      %thead
+        %th ID
+        %th Job
+        %th Queue
+        %th Run at
+        %th Locked by
+        %th Locked at
+        %th Failed at
+        %th Last error
+        %th
+        %th
+      %tbody
+        - @jobs.each do |job|
+          %tr
+            %td= job.id
+            %td= job.name.split(' ').first
+            %td= job.queue
+            %td= job.run_at
+            %td= job.locked_by
+            %td= job.locked_at
+            %td= job.failed_at
+            %td= job.last_error
+            %td
+              - if job.failed_at
+                = link_to admin_delayed_job_path(job), method: :patch, class: 'btn btn-sm btn-info', data: { confirm: 'Are you sure you want to re-queue this job?'} do
+                  %i.icon-settings_backup_restore
+                  Re-queue
+            %td
+              = link_to admin_delayed_job_path(job), method: :delete, class: 'btn btn-sm btn-danger', data: { confirm: 'Are you sure you want to DELETE this job?, there is no going back.'} do
+                %i.icon-cross
+                Delete
 
 - else
   %p No current jobs.
