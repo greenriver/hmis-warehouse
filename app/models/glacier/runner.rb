@@ -61,11 +61,12 @@ module Glacier
         #   * accept Todd's apology for having to do this.
 
         databases = if ENV['GLACIER_DATABASES'].blank? || ENV['GLACIER_DATABASES'] == 'DEFAULT'
-                      [
+                      dbs = [
                         ENV['DATABASE_APP_DB'],
                         ENV['WAREHOUSE_DATABASE_DB'],
-                        ENV['DATABASE_CAS_DB']
                       ]
+                      dbs << ENV['DATABASE_CAS_DB'] if CasBase.db_exists?
+                      dbs
                     else
                       ENV['GLACIER_DATABASES'].split(",")
                     end

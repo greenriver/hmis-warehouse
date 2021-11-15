@@ -1,13 +1,18 @@
 .d-flex
   .summary-count.w-50
     .count= number_with_delimiter(data['summary']['homeless_households'])
-    %h3.title Homeless Households
-
+    %h3.title
+      Homeless Households
+      = render 'glossary_button'
   .summary-count.w-50
     .count= number_with_delimiter(data['summary']['homeless_clients'])
-    %h3.title Total Homeless People in #{data['summary']['year']}
+    %h3.title
+      Total Homeless People in #{data['summary']['year']}
+      = render 'glossary_button'
 .d-flex
   .summary-count.w-50
     - unsheltered_percent = (data['summary']['unsheltered_clients'].to_f / data['summary']['homeless_clients']) * 100 rescue 0
     .count= percentage(unsheltered_percent, format: '%1.1f%%')
-    %h3.title Unsheltered
+    %h3.title
+      Unsheltered
+      = render 'glossary_button'

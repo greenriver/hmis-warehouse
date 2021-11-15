@@ -10,20 +10,21 @@
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
       Download Excel
 = paginate @users
-%table.table.table-hover
-  %thead
-    %tr
-      %th First Name
-      %th Last Name
-      %th Email
-      %th Agency
-      %th Last Login
-  %tbody
-    - @users.each do |user|
-      - highlight = 'table-warning' if user.stale_account?
-      %tr{class: highlight}
-        %td= link_to user.first_name, admin_user_audit_path(user)
-        %td= link_to user.last_name, admin_user_audit_path(user)
-        %td= user.email
-        %td= user.agency.name
-        %td= user.current_sign_in_at
+.card
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th First Name
+        %th Last Name
+        %th Email
+        %th Agency
+        %th Last Login
+    %tbody
+      - @users.each do |user|
+        - highlight = 'table-warning' if user.stale_account?
+        %tr{class: highlight}
+          %td= link_to user.first_name, admin_user_audit_path(user)
+          %td= link_to user.last_name, admin_user_audit_path(user)
+          %td= user.email
+          %td= user.agency.name
+          %td= user.current_sign_in_at

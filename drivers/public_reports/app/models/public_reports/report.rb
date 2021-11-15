@@ -109,7 +109,7 @@ module PublicReports
     end
 
     private def generate_embed_code
-      "<iframe width='500' height='400' src='#{generate_publish_url}' frameborder='0' sandbox><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
+      "<iframe width='500' height='400' src='#{generate_publish_url}' frameborder='0' sandbox='allow-scripts'><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
     end
 
     private def unpublish_similar

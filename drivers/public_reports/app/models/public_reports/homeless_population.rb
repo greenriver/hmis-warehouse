@@ -92,7 +92,7 @@ module PublicReports
     end
 
     def generate_embed_code_for(population)
-      "<iframe width='500' height='400' src='#{generate_publish_url_for(population)}' frameborder='0' sandbox><a href='#{generate_publish_url_for(population)}'>#{instance_title} -- #{population.to_s.humanize}</a></iframe>"
+      "<iframe width='500' height='400' src='#{generate_publish_url_for(population)}' frameborder='0' sandbox='allow-scripts'><a href='#{generate_publish_url_for(population)}'>#{instance_title} -- #{population.to_s.humanize}</a></iframe>"
     end
 
     def view_template

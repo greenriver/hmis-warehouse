@@ -1,30 +1,36 @@
 = render 'chart_css'
 - data = @report.parsed_pre_calculated_data
 
-= render 'summary_counts', data: data
+%section.position-relative
+  = render 'summary_counts', data: data
 
-%h3 Total Number of People Experiencing Homelessness
-- chart_class = 'pit-chart'
-%div{ class: chart_class }
-.d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
-= render 'line_chart', chart_class: chart_class, data: data['pit_chart'], category: :population
+  %h3
+    Total Number of People Experiencing Homelessness
+    = render 'glossary_button'
+  - chart_class = 'pit-chart'
+  %div{ class: chart_class }
+  .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
+  = render 'line_chart', chart_class: chart_class, data: data['pit_chart'], category: :population
 
-%h3 Total Number of People Entering and Exiting Homelessness
-- chart_class = 'inflow-outflow-chart'
-%div{ class: chart_class }
-.d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
-= render 'line_chart', chart_class: chart_class, data: data['inflow_outflow'], category: :population
+  %h3
+    Total Number of People Entering and Exiting Homelessness
+    = render 'glossary_button'
+  - chart_class = 'inflow-outflow-chart'
+  %div{ class: chart_class }
+  .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
+  = render 'line_chart', chart_class: chart_class, data: data['inflow_outflow'], category: :population
 
-= render 'slider', data: data['quarters']
-%h3 Where is the need?
-= render 'need_map', data: data['need_map'], max_rate: data['map_max_rate'], max_count: data['map_max_count']
+  = render 'slider', data: data['quarters']
+  %h3 Where is the need?
+  = render 'need_map', data: data['need_map'], max_rate: data['map_max_rate'], max_count: data['map_max_count']
 
-%h3 Who is experiencing homelessness?
-.d-flex
-  = render 'location_chart', data: data['location_chart']
-  = render 'household_type', data: data['household_type']
+  %h3 Who is experiencing homelessness?
+  .d-flex
+    = render 'location_chart', data: data['location_chart']
+    = render 'household_type', data: data['household_type']
 
-- chart_class = "race-chart"
-= render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Unknown']
+  - chart_class = "race-chart"
+  = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Unknown']
 
-= render 'homeless_breakdowns', data: data['homeless_breakdowns']
+  = render 'homeless_breakdowns', data: data['homeless_breakdowns']
+  = render 'glossary_content'

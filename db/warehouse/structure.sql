@@ -4845,7 +4845,8 @@ CREATE TABLE public.configs (
     currently_homeless_cohort boolean DEFAULT false,
     show_client_last_seen_info_in_client_details boolean DEFAULT true,
     ineligible_uses_extrapolated_days boolean DEFAULT true NOT NULL,
-    warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL
+    warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL,
+    cas_calculator character varying DEFAULT 'GrdaWarehouse::CasProjectClientCalculator::Default'::character varying NOT NULL
 );
 
 
@@ -15228,7 +15229,8 @@ CREATE TABLE public.public_report_settings (
     adults_only_primary_color character varying,
     adults_with_children_primary_color character varying,
     children_only_primary_color character varying,
-    veterans_primary_color character varying
+    veterans_primary_color character varying,
+    map_type character varying DEFAULT 'coc'::character varying NOT NULL
 );
 
 
@@ -15377,6 +15379,16 @@ CREATE TABLE public.recent_report_enrollments (
     history_generated_on date,
     original_household_id character varying,
     service_history_processing_job_id bigint,
+    "MentalHealthDisorderFam" integer,
+    "AlcoholDrugUseDisorderFam" integer,
+    "ClientLeaseholder" integer,
+    "HOHLeasesholder" integer,
+    "IncarceratedAdult" integer,
+    "PrisonDischarge" integer,
+    "CurrentPregnant" integer,
+    "CoCPrioritized" integer,
+    "TargetScreenReqd" integer,
+    "HOHLeaseholder" integer,
     demographic_id integer,
     client_id integer
 );
@@ -46135,6 +46147,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211027185505'),
 ('20211101203339'),
 ('20211102203208'),
-('20211103235413');
+('20211103235413'),
+('20211108203857'),
+('20211109161950'),
+('20211110005810');
 
 
