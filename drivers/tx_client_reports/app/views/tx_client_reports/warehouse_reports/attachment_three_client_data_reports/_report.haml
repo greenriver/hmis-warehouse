@@ -6,6 +6,7 @@
     %table.table.table-striped.mb-0
       %thead
         %tr
+          %th Program Name
           %th Date of First Service
           %th Client Name
           %th Street Address
@@ -20,6 +21,7 @@
       %tbody
         - @rows.each do |row|
           %tr
+            %td= row[:program_name]
             %td= row[:service_date]
             %td= row[:client_name]
             %td= row[:street_address]

@@ -5,8 +5,12 @@
         = f.input :start, as: :date_picker, label: 'Contract Start Date'
       .col
         = f.input :end, as: :date_picker, label: 'Contract End Date'
+    .row
       .col
-        = f.input :project_ids, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, placeholder: 'Choose a Project'}, label: 'Project'
+        = f.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, placeholder: 'Choose a Project'}, label: 'Projects'
+      .col
+        = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), placeholder: 'None', as: :select_two, input_html: { multiple: true }, label: 'Project Groups'
+
     .row
       .col
         %p

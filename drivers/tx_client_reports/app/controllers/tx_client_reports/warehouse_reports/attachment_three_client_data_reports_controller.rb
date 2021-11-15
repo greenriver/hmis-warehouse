@@ -51,6 +51,7 @@ module TxClientReports::WarehouseReports
         :end,
         :project_ids,
         project_ids: [],
+        project_group_ids: [],
       )
 
       report_params[:project_ids] = Array.wrap(report_params[:project_ids])
