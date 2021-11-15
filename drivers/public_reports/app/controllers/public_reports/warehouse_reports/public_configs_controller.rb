@@ -25,6 +25,7 @@ module PublicReports::WarehouseReports
         :s3_prefix,
         :s3_access_key_id,
         :s3_secret,
+        :map_type,
         :summary_color,
         :homeless_primary_color,
         :youth_primary_color,

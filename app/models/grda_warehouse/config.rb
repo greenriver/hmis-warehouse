@@ -122,6 +122,13 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_cas_calculators
+      {
+        'Boston Pathways' => 'GrdaWarehouse::CasProjectClientCalculator::Boston',
+        'Default' => 'GrdaWarehouse::CasProjectClientCalculator::Default',
+      }
+    end
+
     def self.client_search_available?
       get(:pii_encryption_type).to_sym.in?([:none])
     end

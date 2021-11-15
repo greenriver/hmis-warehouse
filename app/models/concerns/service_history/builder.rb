@@ -119,10 +119,12 @@ module ServiceHistory::Builder
       ).exists?
     end
 
+    # Class method
     private def builder_batch_job_scope
-      @builder_batch_job_scope ||= Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
+      Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
     end
 
+    # Class method
     private def builder_client_enrollment_ids(client_ids)
       GrdaWarehouse::Hud::Client.
         destination.
@@ -131,11 +133,19 @@ module ServiceHistory::Builder
         select(Arel.sql(e_t[:id].to_sql))
     end
 
+    # Class method
     private def builder_create_enrollment_jobs(scope)
-      scope.unassigned.joins(:project, :destination_client).
-        pluck_in_batches(:id, batch_size: 250) do |batch|
-        job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch))
-        GrdaWarehouse::Hud::Enrollment.where(id: batch).update_all(service_history_processing_job_id: job.id)
+      en_ids = scope.distinct.joins(:project, :destination_client).order(:data_source_id).pluck(:id, :data_source_id).map(&:first).uniq
+      already_queued = Set.new
+      builder_batch_job_scope.each do |dj|
+        en_ids = dj.payload_object.instance_variable_get(:@enrollment_ids)
+        already_queued += en_ids
+      end
+      en_ids -= already_queued.to_a
+      Rails.logger.info "Found #{en_ids.count} enrollments needing processing"
+      en_ids.each_slice(250) do |batch|
+        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))
+        # GrdaWarehouse::Hud::Enrollment.where(id: batch).update_all(service_history_processing_job_id: job.id)
       end
     end
   end

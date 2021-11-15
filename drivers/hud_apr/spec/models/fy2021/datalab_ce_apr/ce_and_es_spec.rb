@@ -120,7 +120,6 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
         'C3', # FIXME
         'D3', # FIXME
         'E3', # FIXME
-        'B4', # FIXME
         'C4', # FIXME
       ],
     )

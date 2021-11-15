@@ -31,6 +31,7 @@ module GrdaWarehouse::Tasks
       choose_sample
       # Load all of the data in batches, sometimes the massive queries are slow
       @destinations.keys.each_slice(@batch_size) do |batch|
+        batch -= clients_with_unprocessed_enrollments.to_a
         load_service_history_enrollments(batch)
         load_service_history_exits(batch)
         load_source_enrollments(batch)
@@ -112,6 +113,19 @@ module GrdaWarehouse::Tasks
           source_personal_ids: [],
         }]
       end.to_h
+    end
+
+    private def clients_with_unprocessed_enrollments
+      @clients_with_unprocessed_enrollments ||= begin
+        ids = Set.new
+        @destinations.keys.each_slice(@batch_size) do |batch|
+          ids += GrdaWarehouse::Hud::Client.where(id: batch).
+            joins(:source_enrollments).
+            merge(GrdaWarehouse::Hud::Enrollment.unprocessed).
+            pluck(:id)
+        end
+        ids
+      end
     end
 
     def load_service_history_enrollments(batch)

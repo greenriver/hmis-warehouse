@@ -166,6 +166,45 @@ namespace :health do
     Health::PatientReferral.cleanup_referrals
   end
 
+  desc "Check for lost hellosign signatures"
+  task check_hellosign_signatures: [:environment, 'log:info_to_stdout'] do
+    client_ids = Health::Careplan.
+      where(provider_signed_on: nil).
+      joins(:pcp_signature_requests).
+      where.not(signature_requests: { completed_at: nil } ).
+      joins(:patient).
+      pluck(:client_id)
+
+    puts 'no lost signatures found' if client_ids.count.zero?
+
+    client_ids.each do |client_id|
+      puts "https://#{ENV['FQDN']}/clients/#{client_id}/health/careplans"
+    end
+  end
+
+  desc "Identify and optionally remove (call with [destroy]) empty careplans"
+  task :cleanup_careplans, [:destroy] => [:environment, 'log:info_to_stdout'] do |task, args|
+    empty = [nil, '']
+    hcp_t = Health::Careplan.arel_table
+    careplans = Health::Careplan.
+      where(hcp_t[:initial_date].lt(Date.current - 1.week)).
+      where(
+        patient_health_problems: empty,
+        patient_strengths: empty,
+        patient_barriers: empty,
+        patient_signed_on: nil,
+      )
+
+    if args[:destroy] == 'destroy'
+      careplans.destroy_all
+    else
+      careplans.each do |careplan|
+        puts "https://#{ENV['FQDN']}/clients/#{careplan.patient.client_id}/health/careplans/#{careplan.id}/edit"
+      end
+    end
+
+  end
+
   # DB related, provides health:db:migrate etc.
   namespace :db do |ns|
 
