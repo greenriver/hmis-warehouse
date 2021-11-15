@@ -13290,7 +13290,22 @@ CREATE TABLE public.hud_report_spm_clients (
     m7b1_destination integer,
     m7b2_destination integer,
     m7_history jsonb,
-    m3_history jsonb
+    m3_history jsonb,
+    veteran boolean DEFAULT false NOT NULL,
+    m1_head_of_household boolean DEFAULT false NOT NULL,
+    m1_reporting_age integer,
+    m2_head_of_household boolean DEFAULT false NOT NULL,
+    m2_reporting_age integer,
+    m3_head_of_household boolean DEFAULT false NOT NULL,
+    m3_reporting_age integer,
+    m4_head_of_household boolean DEFAULT false NOT NULL,
+    m4_reporting_age integer,
+    m5_head_of_household boolean DEFAULT false NOT NULL,
+    m5_reporting_age integer,
+    m6_head_of_household boolean DEFAULT false NOT NULL,
+    m6_reporting_age integer,
+    m7_head_of_household boolean DEFAULT false NOT NULL,
+    m7_reporting_age integer
 );
 
 
@@ -46150,6 +46165,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211103235413'),
 ('20211108203857'),
 ('20211109161950'),
-('20211110005810');
+('20211110005810'),
+('20211115191349');
 
 
