@@ -16,7 +16,7 @@ module TxClientReports::WarehouseReports
       @rows = report.rows
       respond_to do |format|
         format.html do
-          flash[:error] = 'You must select a project' if params[:commit].present? && ! show_report?
+          show_validations
           @pagy, @rows = pagy_array(@rows)
         end
         format.xlsx do
@@ -24,6 +24,12 @@ module TxClientReports::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    private def show_validations
+      return unless params[:commit].present?
+
+      flash[:error] = 'You must select a project or project group' unless show_report?
     end
 
     private def filter
@@ -35,7 +41,7 @@ module TxClientReports::WarehouseReports
     end
 
     private def show_report?
-      filter.project_ids.present?
+      filter.project_ids.present? || filter.project_group_ids.present?
     end
     helper_method :show_report?
 

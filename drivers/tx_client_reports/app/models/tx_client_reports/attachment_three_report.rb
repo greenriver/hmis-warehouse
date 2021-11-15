@@ -47,7 +47,7 @@ module TxClientReports
             ethnicity: client.Ethnicity,
             races: client.race_fields,
             disabled: client_disabled?(client),
-            hh_size: 1 + enrollment.other_clients_over_25 + enrollment.other_clients_under_18 + enrollment.other_clients_between_18_and_25, # Sum household membmers
+            hh_size: 1 + enrollment.other_clients_over_25 + enrollment.other_clients_under_18 + enrollment.other_clients_between_18_and_25, # Sum household members
             income: hoh_income, # HoH income
             female_hoh: enrollment.head_of_household? && client.Female == 1,
           }
