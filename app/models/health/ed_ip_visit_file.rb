@@ -60,6 +60,8 @@ module Health
             else
               model_row[column] = value
             end
+            # Create an encounter identifier, if one does not exist, defaults to one visit per patient per day
+            model_row[:encounter_id] = "#{model_row[:medicaid_id]}_#{model_row[:admit_date]}_#{model_row[:visit_type]}" if model_row[:encounter_id].nil?
           end
           visits << model_row
         end
@@ -85,9 +87,13 @@ module Health
           admit_date: loaded_visit.admit_date,
           encounter_major_class: loaded_visit.encounter_major_class,
           loaded_ed_ip_visit_id: loaded_visit.id,
+          encounter_id: loaded_visit.encounter_id,
         }
       end
-      Health::EdIpVisit.import(visits)
+      Health::EdIpVisit.import(
+        visits,
+        on_duplicate_key_ignore: true,
+      )
     end
 
     private def check_header
