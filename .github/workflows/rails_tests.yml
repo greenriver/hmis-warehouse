@@ -18,7 +18,7 @@ jobs:
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
-    container: ruby:2.7-alpine
+    container: ruby:2.7.2-alpine
 
     # Service containers to run with job
     services:
