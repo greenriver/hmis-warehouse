@@ -1,6 +1,6 @@
 - url = client_health_patient_index_path(patient.client) rescue ''
 
-.card.d-block
+.card.c-card-overflow-inherit.d-block
   .card-content.px-4.pt-4.pb-2
     %header.d-flex.flex-wrap.row
       .col-md-12.col-lg-3.pr-0
@@ -81,7 +81,7 @@
                       No recent ES or SO contact
     .row.row--internal
       .col-md-3.card-wrapper
-        .card.c-card--internal.c-card--form
+        .card.c-card-overflow-inherit.c-card--internal.c-card--form
           .card-content.p-4
             %h2.h4.card-title Care Staff
             - if patient.client.present?
@@ -108,4 +108,3 @@
             %section#appointments-list.jAppointments{data: {path: calendar_client_health_appointments_path(client_id: patient.client.id)}}
               .text-center
                 %small Loading...
-
