@@ -117,22 +117,22 @@ production:
     <<: *ssl
   <<: *other_db
 
-development_cas:
-  primary:
-    database: <%= ENV['DATABASE_CAS_DB'] %>
-    <<: *default_app_db
-
-staging_cas:
-  primary:
-    database: <%= ENV['DATABASE_CAS_DB'] %>
-    <<: *default_app_db
-    <<: *ssl
-
-production_cas:
-  primary:
-    database: <%= ENV['DATABASE_CAS_DB'] %>
-    <<: *default_app_db
-    <<: *ssl
+# development_cas:
+#   primary:
+#     database: <%= ENV['DATABASE_CAS_DB'] %>
+#     <<: *default_app_db
+#
+# staging_cas:
+#   primary:
+#     database: <%= ENV['DATABASE_CAS_DB'] %>
+#     <<: *default_app_db
+#     <<: *ssl
+#
+# production_cas:
+#   primary:
+#     database: <%= ENV['DATABASE_CAS_DB'] %>
+#     <<: *default_app_db
+#     <<: *ssl
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
