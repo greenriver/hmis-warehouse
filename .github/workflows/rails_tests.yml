@@ -101,7 +101,6 @@ jobs:
           DATABASE_ADAPTER: postgresql
           DATABASE_APP_DB_TEST: boston_hmis_test
           DATABASE_DB_TEST: boston_cas_test
-          DATABASE_CAS_DB: boston_cas
           DATABASE_APP_DB: boston_db
           DATABASE_HOST: postgres
           DATABASE_PASS: postgres
@@ -154,7 +153,6 @@ jobs:
           DATABASE_ADAPTER: postgresql
           DATABASE_APP_DB_TEST: boston_hmis_test
           DATABASE_DB_TEST: boston_cas_test
-          DATABASE_CAS_DB: boston_cas
           DATABASE_APP_DB: boston_db
           DATABASE_HOST: postgres
           DATABASE_PASS: postgres
