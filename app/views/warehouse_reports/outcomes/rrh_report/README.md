@@ -110,8 +110,8 @@ A successful exit to permanent housing is defined as an exit to permanent housin
 
 ## Returns to Homelessness from Permanent Housing
 
-The number of unique clients that with a subsequent enrollment after successfully exiting Rapid Rehousing to a permanent housing destination.
+The number of unique clients who moved into, and then exited permanent housing to a permanent destination, and subsequently enrolled in a homeless project.
 
 ## Returns to Homelessness after Exit
 
-The number of unique clients with a subsequent enrollment after successfully exiting Rapid Rehousing to any destination.
+The number of unique clients who moved into, and then exited permanent housing to any destination, and subsequently enrolled in a homeless project.
