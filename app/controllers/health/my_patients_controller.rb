@@ -49,6 +49,7 @@ module Health
           @patients = @patients.where(nurse_care_manager_id: nurse_care_manager_id)
         end
       end
+
       @column = params[:sort] || 'name'
       @direction = params[:direction]&.to_sym || :asc
       respond_to do |format|

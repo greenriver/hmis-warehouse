@@ -1,30 +1,110 @@
 - url = client_health_patient_index_path(patient.client) rescue ''
-.c-card.clients__client-card
-  .c-card__content.d-flex.justify-content-between
-    .patient__demographics
-      %h4.patient__name.mt-0
-        = link_to_if patient.client.present?, patient.name, url
-      .patient__dob
-        DOB:
-        = patient.birthdate
-      .patient__care_coordinator.mt-4
-        %hr
-        - if patient.client.present?
-          = simple_form_for patient, as: :patient, url: client_health_patient_url(patient.client, patient), remote: true do |f|
-            = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:jCareCoordinator], id: "patient_care_coordinator_id_#{patient.id}"}, as: :select_two
-            = f.input :nurse_care_manager_id, collection: patient.available_nurse_care_managers, input_html: {class: [:jNurseCareManager], id: "nurse_care_manager_id_#{patient.id}"}, as: :select_two
-        - else
-          Patient record is not correctly assigned
-    .patient__upcoming-appointments.mb-4{style: 'max-width 450px;'}
-      - if patient.client
-        = render 'clients/recent_es_so', client: patient.client
-        %section#appointments-list.jAppointments{data: {path: upcoming_client_health_appointments_path(client_id: patient.client.id)}}
-    .patient__action-needed
-      .mb-4
-        = render 'health/patient/engagement', patient: patient
-      .ml-3.mb-4
-        - if ! patient.engaged?
-          = render 'health/patient/remaining_to_engage', patient: patient
-      .patient__link.text-right
-        - if patient.client.present?
-          = link_to 'View', url, class: 'btn btn-sm btn-secondary'
+
+.card.c-card-overflow-inherit.d-block
+  .card-content.px-4.pt-4.pb-2
+    %header.d-flex.flex-wrap.row
+      .col-md-12.col-lg-3.pr-0
+        %h1.flex-grow-1
+          = link_to_if patient.client.present?, patient.name, url
+        .mb-4
+          .c-detail-block
+            .c-detail-block__title
+              DOB
+            .c-detail-block__value
+              = "#{patient.birthdate} (#{patient.age(on_date: Date.current)})"
+      .col-md-12.col-lg-9
+        .row.align-items-stretch.justify-content-end.row--internal
+          .col-md-2.card-wrapper
+            .card.c-card--internal
+              .card-content.p-4
+                - title = 'Risk Score'
+                - score = @scores[title][patient.medicaid_id]
+                - description = 'Latest Social Determinants of Health (SDH) risk score, including DxCG score and SDH components.'
+                - description += '<br>For members with less than 6 months managed care eligible experience their score is blended'
+                - description += 'with the plan-age--sex-RC-plan selection average.'
+                - description += '<br>All scores are then normalized to the members rating category and region.'
+                %h2.h4.card-title
+                  = title
+                  %i.icon-info{data: {toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom, title: title, content: description, html: :true}}
+                - if score.present?
+                  %div{style: "font-weight: bold; font-size: 24px"}= number_with_precision(score, precision: 2)
+                - else
+                  Unknown
+          .col-md-6.card-wrapper
+            - title = 'COVID Vaccination Status'
+            - doses = @scores[title][patient.medicaid_id]
+            - vaccination_alert = doses.size.zero? ? 'c-card--warning' : ''
+            .card.c-card--internal{class: vaccination_alert}
+              .card-content.p-4
+                %h2.h4.card-title Covid Vaccination Status
+                .d-flex.justify-content-between.flex-wrap
+                  - if doses.size.zero?
+                    .c-detail-block
+                      .c-detail-block__value Unknown
+                  - else
+                    .c-detail-block
+                      .c_detail-block__title
+                        Doses
+                      .c-detail-block__value
+                        = doses.count
+                        - items = doses.map { |dose| "<tr><td>#{dose[:type]} #{dose[:number]}</td> <td>#{dose[:date]}</td></tr>" }
+                        - content = '<small>Vaccination information is from claims, and may be out of date.</small>'
+                        - content += "<table><tbody>#{items.join.html_safe}</tbody></table>"
+                        %i.icon-info{data: {toggle: :popover, trigger: :focus, title: 'Vaccine Doses', content: content, html: :true }}
+                    .c-detail-block
+                      .c_detail-block__title
+                        Last Dose Date
+                      .c-detail-block__value
+                        = doses.map { |dose| dose[:date] }.max
+          .col-md-4.card-wrapper
+            .card.c-card--internal
+              .card-content.p-4
+                %h2.h4.card-title Latest HMIS Contact
+                - enrollments = patient.client.es_so_enrollments_with_service_since(current_user, 2.weeks.ago)
+                - contact = enrollments.sort_by{ |e| e.service_history_services.maximum(:date) }.last
+                - if contact.present?
+                  .d-flex.justify-content-between.flex-wrap
+                    .mb-2
+                      .c-detail-block
+                        .c_detail-block__title
+                          Date
+                        .c-detail-block__value
+                          = contact.service_history_services.maximum(:date)
+                      .c-detail-block
+                        .c_detail-block__title
+                          Project
+                        .c-detail-block__value
+                          = contact.project.safe_project_name
+                - else
+                  .c-detail-block
+                    .c_detail-block__title
+                      No recent ES or SO contact
+    .row.row--internal
+      .col-md-3.card-wrapper
+        .card.c-card-overflow-inherit.c-card--internal.c-card--form
+          .card-content.p-4
+            %h2.h4.card-title Care Staff
+            - if patient.client.present?
+              = simple_form_for patient, as: :patient, url: client_health_patient_url(patient.client, patient), remote: true do |f|
+                = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:jCareCoordinator], id: "patient_care_coordinator_id_#{patient.id}"}, as: :select_two
+                = f.input :nurse_care_manager_id, collection: patient.available_nurse_care_managers, input_html: {class: [:jNurseCareManager], id: "nurse_care_manager_id_#{patient.id}"}, as: :select_two
+            - else
+              Patient record is not correctly assigned
+      .col-md-6.card-wrapper
+        .card.c-card--internal
+          .card-content.p-4
+            .row
+              .col-6
+                %h2.h4.card-title Last Month Activity
+                = render 'health/patient/engagement', patient: patient
+              .col-6
+                - if ! patient.engaged?
+                  %h2.h4.card-title Engagement Tasks
+                  = render 'health/patient/remaining_to_engage', patient: patient
+      .col-md-3.card-wrapper
+        .card.c-card--internal
+          .card-content.p-4
+            %h2.h4.card-title Upcoming Appointments
+            %section#appointments-list.jAppointments{data: {path: calendar_client_health_appointments_path(client_id: patient.client.id)}}
+              .text-center
+                %small Loading...

@@ -15,10 +15,12 @@
 
 %h2.mb-4 Patients
 
-.d-flex
-  .search
+.o-page__controls
+  .o-page__search
     = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
-  .filter.ml-4
+  .o-page__sort
+    = render 'sort'
+  .o-page__filter
     = render 'filter'
 
 - if @patients.any?
