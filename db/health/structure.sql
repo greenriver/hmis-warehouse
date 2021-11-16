@@ -36,6 +36,7 @@ CREATE TABLE public.accountable_care_organizations (
 --
 
 CREATE SEQUENCE public.accountable_care_organizations_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -69,6 +70,7 @@ CREATE TABLE public.agencies (
 --
 
 CREATE SEQUENCE public.agencies_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -103,6 +105,7 @@ CREATE TABLE public.agency_patient_referrals (
 --
 
 CREATE SEQUENCE public.agency_patient_referrals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -133,6 +136,7 @@ CREATE TABLE public.agency_users (
 --
 
 CREATE SEQUENCE public.agency_users_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -172,6 +176,7 @@ CREATE TABLE public.appointments (
 --
 
 CREATE SEQUENCE public.appointments_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -252,6 +257,7 @@ CREATE TABLE public.careplan_equipment (
 --
 
 CREATE SEQUENCE public.careplan_equipment_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -282,6 +288,7 @@ CREATE TABLE public.careplan_services (
 --
 
 CREATE SEQUENCE public.careplan_services_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -359,6 +366,7 @@ CREATE TABLE public.careplans (
 --
 
 CREATE SEQUENCE public.careplans_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -426,6 +434,7 @@ CREATE TABLE public.claims_amount_paid_location_month (
 --
 
 CREATE SEQUENCE public.claims_amount_paid_location_month_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -466,6 +475,7 @@ CREATE TABLE public.claims_claim_volume_location_month (
 --
 
 CREATE SEQUENCE public.claims_claim_volume_location_month_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -500,6 +510,7 @@ CREATE TABLE public.claims_ed_nyu_severity (
 --
 
 CREATE SEQUENCE public.claims_ed_nyu_severity_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -519,6 +530,7 @@ ALTER SEQUENCE public.claims_ed_nyu_severity_id_seq OWNED BY public.claims_ed_ny
 --
 
 CREATE SEQUENCE public.claims_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1453,6 +1465,7 @@ CREATE TABLE public.claims_roster (
 --
 
 CREATE SEQUENCE public.claims_roster_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1488,6 +1501,7 @@ CREATE TABLE public.claims_top_conditions (
 --
 
 CREATE SEQUENCE public.claims_top_conditions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1523,6 +1537,7 @@ CREATE TABLE public.claims_top_ip_conditions (
 --
 
 CREATE SEQUENCE public.claims_top_ip_conditions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1558,6 +1573,7 @@ CREATE TABLE public.claims_top_providers (
 --
 
 CREATE SEQUENCE public.claims_top_providers_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1598,6 +1614,7 @@ CREATE TABLE public.comprehensive_health_assessments (
 --
 
 CREATE SEQUENCE public.comprehensive_health_assessments_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1687,6 +1704,7 @@ CREATE TABLE public.cps (
 --
 
 CREATE SEQUENCE public.cps_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1719,6 +1737,7 @@ CREATE TABLE public.data_sources (
 --
 
 CREATE SEQUENCE public.data_sources_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1852,7 +1871,8 @@ CREATE TABLE public.ed_ip_visits (
     medicaid_id character varying,
     admit_date date,
     encounter_major_class character varying,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    encounter_id character varying
 );
 
 
@@ -1900,6 +1920,7 @@ CREATE TABLE public.eligibility_inquiries (
 --
 
 CREATE SEQUENCE public.eligibility_inquiries_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1940,6 +1961,7 @@ CREATE TABLE public.eligibility_responses (
 --
 
 CREATE SEQUENCE public.eligibility_responses_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2160,6 +2182,7 @@ CREATE TABLE public.enrollments (
 --
 
 CREATE SEQUENCE public.enrollments_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2200,6 +2223,7 @@ CREATE TABLE public.epic_careplans (
 --
 
 CREATE SEQUENCE public.epic_careplans_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2240,6 +2264,7 @@ CREATE TABLE public.epic_case_note_qualifying_activities (
 --
 
 CREATE SEQUENCE public.epic_case_note_qualifying_activities_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2287,6 +2312,7 @@ CREATE TABLE public.epic_case_notes (
 --
 
 CREATE SEQUENCE public.epic_case_notes_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2342,6 +2368,7 @@ CREATE TABLE public.epic_chas (
 --
 
 CREATE SEQUENCE public.epic_chas_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2380,6 +2407,7 @@ CREATE TABLE public.epic_goals (
 --
 
 CREATE SEQUENCE public.epic_goals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2465,6 +2493,7 @@ CREATE TABLE public.epic_patients (
 --
 
 CREATE SEQUENCE public.epic_patients_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2505,6 +2534,7 @@ CREATE TABLE public.epic_qualifying_activities (
 --
 
 CREATE SEQUENCE public.epic_qualifying_activities_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2545,6 +2575,7 @@ CREATE TABLE public.epic_ssms (
 --
 
 CREATE SEQUENCE public.epic_ssms_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2584,6 +2615,7 @@ CREATE TABLE public.epic_team_members (
 --
 
 CREATE SEQUENCE public.epic_team_members_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2622,6 +2654,7 @@ CREATE TABLE public.equipment (
 --
 
 CREATE SEQUENCE public.equipment_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2663,6 +2696,7 @@ CREATE TABLE public.health_files (
 --
 
 CREATE SEQUENCE public.health_files_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2989,6 +3023,7 @@ CREATE TABLE public.health_goals (
 --
 
 CREATE SEQUENCE public.health_goals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3104,7 +3139,8 @@ CREATE TABLE public.loaded_ed_ip_visits (
     member_record_number character varying,
     patient_identifier character varying,
     patient_url character varying,
-    admitted_inpatient character varying
+    admitted_inpatient character varying,
+    encounter_id character varying
 );
 
 
@@ -3151,6 +3187,7 @@ CREATE TABLE public.medications (
 --
 
 CREATE SEQUENCE public.medications_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3214,6 +3251,7 @@ CREATE TABLE public.member_status_report_patients (
 --
 
 CREATE SEQUENCE public.member_status_report_patients_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3258,6 +3296,7 @@ CREATE TABLE public.member_status_reports (
 --
 
 CREATE SEQUENCE public.member_status_reports_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3294,6 +3333,7 @@ CREATE TABLE public.participation_forms (
 --
 
 CREATE SEQUENCE public.participation_forms_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3325,6 +3365,7 @@ CREATE TABLE public.patient_referral_imports (
 --
 
 CREATE SEQUENCE public.patient_referral_imports_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3420,6 +3461,7 @@ CREATE TABLE public.patient_referrals (
 --
 
 CREATE SEQUENCE public.patient_referrals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3482,6 +3524,7 @@ CREATE TABLE public.patients (
 --
 
 CREATE SEQUENCE public.patients_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3519,6 +3562,7 @@ CREATE TABLE public.premium_payments (
 --
 
 CREATE SEQUENCE public.premium_payments_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3557,6 +3601,7 @@ CREATE TABLE public.problems (
 --
 
 CREATE SEQUENCE public.problems_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3609,6 +3654,7 @@ CREATE TABLE public.qualifying_activities (
 --
 
 CREATE SEQUENCE public.qualifying_activities_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3645,6 +3691,7 @@ CREATE TABLE public.release_forms (
 --
 
 CREATE SEQUENCE public.release_forms_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3775,6 +3822,7 @@ CREATE TABLE public.sdh_case_management_notes (
 --
 
 CREATE SEQUENCE public.sdh_case_management_notes_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3851,6 +3899,7 @@ CREATE TABLE public.self_sufficiency_matrix_forms (
 --
 
 CREATE SEQUENCE public.self_sufficiency_matrix_forms_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3891,6 +3940,7 @@ CREATE TABLE public.services (
 --
 
 CREATE SEQUENCE public.services_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3937,6 +3987,7 @@ CREATE TABLE public.signable_documents (
 --
 
 CREATE SEQUENCE public.signable_documents_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3979,6 +4030,7 @@ CREATE TABLE public.signature_requests (
 --
 
 CREATE SEQUENCE public.signature_requests_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4015,6 +4067,7 @@ CREATE TABLE public.soap_configs (
 --
 
 CREATE SEQUENCE public.soap_configs_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4126,6 +4179,7 @@ CREATE TABLE public.team_members (
 --
 
 CREATE SEQUENCE public.team_members_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4160,6 +4214,7 @@ CREATE TABLE public.teams (
 --
 
 CREATE SEQUENCE public.teams_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4481,6 +4536,7 @@ CREATE TABLE public.transaction_acknowledgements (
 --
 
 CREATE SEQUENCE public.transaction_acknowledgements_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4514,6 +4570,7 @@ CREATE TABLE public.user_care_coordinators (
 --
 
 CREATE SEQUENCE public.user_care_coordinators_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4598,6 +4655,7 @@ CREATE TABLE public.versions (
 --
 
 CREATE SEQUENCE public.versions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4635,6 +4693,7 @@ CREATE TABLE public.visits (
 --
 
 CREATE SEQUENCE public.visits_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5900,6 +5959,14 @@ ALTER TABLE ONLY public.rosters
 
 
 --
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
 -- Name: sdh_case_management_notes sdh_case_management_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6068,10 +6135,10 @@ ALTER TABLE ONLY public.visits
 
 
 --
--- Name: claims_reporting_medical_claims_service_dates; Type: INDEX; Schema: public; Owner: -
+-- Name: claims_reporting_medical_claims_service_daterange; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX claims_reporting_medical_claims_service_dates ON public.claims_reporting_medical_claims USING gist (daterange(service_start_date, service_end_date));
+CREATE INDEX claims_reporting_medical_claims_service_daterange ON public.claims_reporting_medical_claims USING gist (daterange(service_start_date, service_end_date, '[]'::text));
 
 
 --
@@ -6376,6 +6443,13 @@ CREATE INDEX index_ed_ip_visit_files_on_user_id ON public.ed_ip_visit_files USIN
 
 
 --
+-- Name: index_ed_ip_visits_on_encounter_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ed_ip_visits_on_encounter_id ON public.ed_ip_visits USING btree (encounter_id);
+
+
+--
 -- Name: index_ed_ip_visits_on_loaded_ed_ip_visit_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6408,20 +6482,6 @@ CREATE INDEX index_encounter_records_on_encounter_report_id ON public.encounter_
 --
 
 CREATE INDEX index_encounter_reports_on_user_id ON public.encounter_reports USING btree (user_id);
-
-
---
--- Name: index_epic_case_notes_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_epic_case_notes_on_patient_id ON public.epic_case_notes USING btree (patient_id);
-
-
---
--- Name: index_epic_goals_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_epic_goals_on_patient_id ON public.epic_goals USING btree (patient_id);
 
 
 --
@@ -6915,17 +6975,17 @@ CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING bt
 
 
 --
+-- Name: med_claim_member_procedure_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX med_claim_member_procedure_index ON public.claims_reporting_medical_claims USING btree (member_id, procedure_code);
+
+
+--
 -- Name: patients_client_id_constraint; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX patients_client_id_constraint ON public.patients USING btree (client_id) WHERE (deleted_at IS NULL);
-
-
---
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --
@@ -7290,6 +7350,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210607182656'),
 ('20210726193142'),
 ('20210806150431'),
+('20210928134057'),
 ('20211005200728'),
 ('20211006152632'),
 ('20211006152946'),
@@ -7297,6 +7358,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211006154441'),
 ('20211006204046'),
 ('20211029203229'),
-('20211029203304');
+('20211029203304'),
+('20211115191038');
 
 
