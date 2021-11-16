@@ -221,8 +221,6 @@ module PerformanceMeasurement
         'Measure 5',
         'Measure 7',
       ]
-      # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
-      # so that the returns calculation will work.
       # For now, we're using a fixed set of project types
       options = filter.to_h
       options[:project_type_codes] = [:es, :so, :sh, :th, :ph]

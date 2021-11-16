@@ -171,7 +171,9 @@ module HudSpmReport::Generators::Fy2020
     private def age_for_report(dob:, entry_date:, age:)
       # Age should be calculated at report start or enrollment start, whichever is greater
       return age if dob.blank?
+      return age if entry_date.blank?
 
+      entry_date = entry_date.to_date
       date = if entry_date > @report.start_date
         entry_date
       else
@@ -348,7 +350,7 @@ module HudSpmReport::Generators::Fy2020
             m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights, ES_SH_TH_PH, PH, true),
             m1_reporting_age: age_for_report(dob: client.DOB, entry_date: m1_history.last[:last_date_in_program], age: m1_history.first[:age]),
             veteran: client.veteran?,
-            m1_head_of_household: m1_history.last[:head_of_household],
+            m1_head_of_household: m1_history.last[:head_of_household] || false,
           )
           [client, report_client]
         end.to_h
@@ -374,7 +376,7 @@ module HudSpmReport::Generators::Fy2020
           m3_history: enrollments.map { |e| { project_id: e[:project_id] } },
           m3_reporting_age: age_for_report(dob: client.DOB, entry_date: enrollments.last[:last_date_in_program], age: enrollments.first[:age]),
           veteran: client.veteran?,
-          m3_head_of_household: enrollments.last[:head_of_household],
+          m3_head_of_household: enrollments.last[:head_of_household] || false,
         }
       end
     end
@@ -464,7 +466,7 @@ module HudSpmReport::Generators::Fy2020
           m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
           m4_reporting_age: final_stay[:age],
           veteran: client.veteran?,
-          m4_head_of_household: final_stay[:head_of_household],
+          m4_head_of_household: final_stay[:head_of_household] || false,
         }
       end
 
@@ -495,7 +497,7 @@ module HudSpmReport::Generators::Fy2020
           m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
           m4_reporting_age: final_stay[:age],
           veteran: client.veteran?,
-          m4_head_of_household: final_stay[:head_of_household],
+          m4_head_of_household: final_stay[:head_of_household] || false,
         }
       end
     end
@@ -562,7 +564,7 @@ module HudSpmReport::Generators::Fy2020
           m5_history: prior_enrollments + active_enrollments,
           m5_reporting_age: client_enrollments.last[:age],
           veteran: client.veteran?,
-          m5_head_of_household: active_enrollments.last[:head_of_household],
+          m5_head_of_household: active_enrollments.last[:head_of_household] || false,
         }
       end
     end
@@ -610,7 +612,7 @@ module HudSpmReport::Generators::Fy2020
           m7_history: client_enrollments,
           m7_reporting_age: client_enrollments.last[:age],
           veteran: client.veteran?,
-          m7_head_of_household: client_enrollments.last[:head_of_household],
+          m7_head_of_household: client_enrollments.last[:head_of_household] || false,
         }
       end
 
@@ -769,6 +771,8 @@ module HudSpmReport::Generators::Fy2020
       history_field = :m7_history
       table_1_dest_field = :m7b1_destination
       table_2_dest_field = :m7b2_destination
+      reporting_age_col = :m7_reporting_age
+      head_of_household_col = :m7_head_of_household
 
       # Universe
       # Metric 7b.1: Emergency Shelter (Project Type 1), Safe Haven (project type 8), Transitional Housing (Project Type 2), and Permanent Housing-Rapid Rehousing (Project Type 13) clients who exited during the report range, plus other PH (project types 3, 9, 10) clients who exited without moving into housing.
@@ -789,7 +793,7 @@ module HudSpmReport::Generators::Fy2020
         where.not(client_id: stays.hud_project_type(table_1_project_types).select(:client_id))
 
       # puts "#{table_1_dest_field} running..."
-      process_scope_by_client(question_name, table_1_exits, SHE_COLUMNS) do |_client, client_enrollments|
+      process_scope_by_client(question_name, table_1_exits, SHE_COLUMNS) do |client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
@@ -818,10 +822,13 @@ module HudSpmReport::Generators::Fy2020
           next
         end
 
+        max_enrollment = client_enrollments.max_by { |en| en[:first_date_in_program] }
         # Steps 5 - 7 are handled in the subclass
         {
           table_1_dest_field => last_exit[:destination] || 99,
           history_field => client_enrollments,
+          reporting_age_col => age_for_report(dob: client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age]),
+          head_of_household_col => max_enrollment[:head_of_household],
         }.tap do |data|
           # puts "FOUND #{last_exit} for #{table_1_dest_field}"
         end
@@ -849,10 +856,13 @@ module HudSpmReport::Generators::Fy2020
           next
         end
 
+        max_enrollment = client_enrollments.max_by { |en| en[:first_date_in_program] }
         # Steps 5 - 7 are handled in the subclass
         {
           table_2_dest_field => 0, # stayers may have destinations, but we note them as 0 so we can identify them
           history_field => client_enrollments,
+          reporting_age_col => age_for_report(dob: client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age]),
+          head_of_household_col => max_enrollment[:head_of_household],
         }.tap do |data|
           # puts "FOUND #{last_stay} for #{table_2_dest_field}"
         end
@@ -886,10 +896,13 @@ module HudSpmReport::Generators::Fy2020
           next
         end
 
+        max_enrollment = client_enrollments.max_by { |en| en[:first_date_in_program] }
         # Steps 6 - 7 are handled in the subclass
         {
           table_2_dest_field => last_exit[:destination] || 99,
           history_field => client_enrollments,
+          reporting_age_col => age_for_report(dob: client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age]),
+          head_of_household_col => max_enrollment[:head_of_household],
         }.tap do |data|
           # puts "FOUND #{last_stay} for #{table_2_dest_field}"
         end
@@ -1025,8 +1038,8 @@ module HudSpmReport::Generators::Fy2020
           }
 
           max_enrollment = reentries.max_by { |en| en[:first_date_in_program] }
-          spm_client[report_age_col] = age_for_report(dob: spm_client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age])
-          spm_client[head_of_household_col] = max_enrollment[:head_of_household]
+          spm_client[reporting_age_col] = age_for_report(dob: spm_client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age]) if max_enrollment.present?
+          spm_client[head_of_household_col] = max_enrollment.try(:[], :head_of_household) || false
 
           spm_clients[client] = spm_client
         end
