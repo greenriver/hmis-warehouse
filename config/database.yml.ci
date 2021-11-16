@@ -34,3 +34,11 @@ test:
     password: postgres
     database: test_boston_reporting
     migrations_paths: db/reporting/migrate
+  cas:
+    adapter: postgresql
+    host: postgres
+    pool: 5
+    timeout: 5000
+    username: postgres
+    password: postgres
+    database: test_boston_cas

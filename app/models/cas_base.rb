@@ -5,8 +5,8 @@
 ###
 
 class CasBase < ActiveRecord::Base
-  establish_connection "#{Rails.env}_cas".parameterize.underscore.to_sym
   self.abstract_class = true
+  connects_to database: { writing: :cas, reading: :cas}
 
   def self.db_exists?
     return false unless ENV['DATABASE_CAS_DB'].present?
