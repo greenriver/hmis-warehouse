@@ -55,9 +55,9 @@ gem 'rserve-simpler', require: false
 gem 'encryptor'
 
 # File processing
-gem 'carrierwave' #, '~> 1'
+gem 'carrierwave', '~> 1'
 gem 'carrierwave-i18n'
-gem 'carrierwave-aws'
+gem 'carrierwave-aws', '~> 1.4'
 gem 'ruby-filemagic'
 gem 'mini_magick'
 # there are no obvious breaking changes but
