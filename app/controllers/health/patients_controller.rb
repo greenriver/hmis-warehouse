@@ -59,6 +59,7 @@ module Health
       @agencies = @report.agency_counts
 
       medicaid_ids = @patients.map(&:medicaid_id)
+      @patients = patient_source.where(id: @patients.pluck(:id))
       if @column == 'name'
         @patients = @patients.order(last_name: @direction, first_name: @direction)
       else

@@ -60,25 +60,26 @@
             .card.c-card--internal
               .card-content.p-4
                 %h2.h4.card-title Latest HMIS Contact
-                - enrollments = patient.client.es_so_enrollments_with_service_since(current_user, 2.weeks.ago)
-                - contact = enrollments.sort_by{ |e| e.service_history_services.maximum(:date) }.last
-                - if contact.present?
-                  .d-flex.justify-content-between.flex-wrap
-                    .mb-2
-                      .c-detail-block
-                        .c_detail-block__title
-                          Date
-                        .c-detail-block__value
-                          = contact.service_history_services.maximum(:date)
-                      .c-detail-block
-                        .c_detail-block__title
-                          Project
-                        .c-detail-block__value
-                          = contact.project.safe_project_name
-                - else
-                  .c-detail-block
-                    .c_detail-block__title
-                      No recent ES or SO contact
+                - if patient.client.present?
+                  - enrollments = patient.client.es_so_enrollments_with_service_since(current_user, 2.weeks.ago)
+                  - contact = enrollments&.max_by{ |e| e.service_history_services.maximum(:date) }
+                  - if contact.present?
+                    .d-flex.justify-content-between.flex-wrap
+                      .mb-2
+                        .c-detail-block
+                          .c_detail-block__title
+                            Date
+                          .c-detail-block__value
+                            = contact.service_history_services.maximum(:date)
+                        .c-detail-block
+                          .c_detail-block__title
+                            Project
+                          .c-detail-block__value
+                            = contact.project.safe_project_name
+                  - else
+                    .c-detail-block
+                      .c_detail-block__title
+                        No recent ES or SO contact
     .row.row--internal
       .col-md-3.card-wrapper
         .card.c-card-overflow-inherit.c-card--internal.c-card--form
@@ -105,6 +106,7 @@
         .card.c-card--internal
           .card-content.p-4
             %h2.h4.card-title Upcoming Appointments
-            %section#appointments-list.jAppointments{data: {path: calendar_client_health_appointments_path(client_id: patient.client.id)}}
-              .text-center
-                %small Loading...
+            - if patient.client.present?
+              %section#appointments-list.jAppointments{data: {path: calendar_client_health_appointments_path(client_id: patient.client.id)}}
+                .text-center
+                  %small Loading...

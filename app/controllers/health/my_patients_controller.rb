@@ -56,6 +56,7 @@ module Health
       respond_to do |format|
         format.html do
           medicaid_ids = @patients.map(&:medicaid_id)
+          @patients = patient_source.where(id: @patients.pluck(:id))
           if @column == 'name'
             @patients = @patients.order(last_name: @direction, first_name: @direction)
           else
