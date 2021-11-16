@@ -6,7 +6,6 @@
 
 default_app_db: &default_app_db
   adapter: <%= ENV['DATABASE_ADAPTER'] %>
-  host: <%= ENV['DATABASE_HOST'] %>
   pool: 5
   timeout: 5000
   <% if ENV['DATABASE_PORT'] %>
@@ -24,7 +23,6 @@ default_app_db: &default_app_db
 
 default_warehouse_db: &default_warehouse_db
   adapter: <%= ENV['WAREHOUSE_DATABASE_ADAPTER'] %>
-  host: <%= ENV['WAREHOUSE_DATABASE_HOST'] %>
   pool: 5
   timeout: 5000
   <% if ENV['WAREHOUSE_DATABASE_PORT'] %>
@@ -42,7 +40,6 @@ default_warehouse_db: &default_warehouse_db
 
 default_health_db: &default_health_db
   adapter: <%= ENV['HEALTH_DATABASE_ADAPTER'] %>
-  host: <%= ENV['HEALTH_DATABASE_HOST'] %>
   pool: 5
   timeout: 5000
   <% if ENV['HEALTH_DATABASE_PORT'] %>
@@ -60,7 +57,6 @@ default_health_db: &default_health_db
 
 default_reporting_db: &default_reporting_db
   adapter: <%= ENV['REPORTING_DATABASE_ADAPTER'] %>
-  host: <%= ENV['REPORTING_DATABASE_HOST'] %>
   pool: 5
   timeout: 5000
   <% if ENV['REPORTING_DATABASE_PORT'] %>
@@ -74,6 +70,23 @@ default_reporting_db: &default_reporting_db
   <% end %>
   <% if ENV['REPORTING_DATABASE_HOST'] %>
   host: <%= ENV['REPORTING_DATABASE_HOST'] %>
+  <% end %>
+
+default_cas_db: &default_reporting_db
+  adapter: <%= ENV['CAS_DATABASE_ADAPTER'] %>
+  pool: 5
+  timeout: 5000
+  <% if ENV['CAS_DATABASE_PORT'] %>
+  port: <%= ENV['CAS_DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV['CAS_DATABASE_USER'] %>
+  username: <%= ENV['CAS_DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['CAS_DATABASE_PASS'] %>
+  password: <%= ENV['CAS_DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['CAS_DATABASE_HOST'] %>
+  host: <%= ENV['CAS_DATABASE_HOST'] %>
   <% end %>
 
 other_db: &other_db
@@ -92,11 +105,15 @@ other_db: &other_db
     database: <%= ENV['REPORTING_DATABASE_DB'] %>
     migrations_paths: db/reporting/migrate
 
+  cas:
+    <<: *default_cas_db
+    database: <%= ENV.fetch("CAS_DATABASE_DB") { ENV['DATABASE_CAS_DB'] } %>
+    migrations_paths: db/cas/migrate
+
 ssl: &ssl
   sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
   sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
 
-# unrolled from ENV['RAILS_ENV']
 development:
   primary:
     database: <%= ENV['DATABASE_APP_DB'] %>
@@ -116,23 +133,6 @@ production:
     <<: *default_app_db
     <<: *ssl
   <<: *other_db
-
-# development_cas:
-#   primary:
-#     database: <%= ENV['DATABASE_CAS_DB'] %>
-#     <<: *default_app_db
-#
-# staging_cas:
-#   primary:
-#     database: <%= ENV['DATABASE_CAS_DB'] %>
-#     <<: *default_app_db
-#     <<: *ssl
-#
-# production_cas:
-#   primary:
-#     database: <%= ENV['DATABASE_CAS_DB'] %>
-#     <<: *default_app_db
-#     <<: *ssl
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -156,3 +156,8 @@ test:
     <<: *default_reporting_db
     database: <%= ENV['REPORTING_DATABASE_DB_TEST'] %>
     migrations_paths: db/reporting/migrate
+
+  cas:
+    <<: *default_cas_db
+    database: <%= ENV['CAS_DATABASE_DB_TEST'] %>
+    migrations_paths: db/cas/migrate
