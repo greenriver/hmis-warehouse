@@ -119,6 +119,7 @@ class ScheduledTask
             # https://github.com/aws/containers-roadmap/issues/937
             # launch_type: "EC2",
             capacity_provider_strategy: _default_capacity_provider_strategy,
+            placement_strategy: _placement_strategy,
           },
         },
       ],
@@ -132,6 +133,21 @@ class ScheduledTask
   def _default_capacity_provider_strategy
     our_cluster = ecs.describe_clusters(clusters: [cluster_name]).clusters.first
     our_cluster.default_capacity_provider_strategy.map(&:to_h)
+  end
+
+  def _placement_strategy
+    [
+      {
+        # Distribute across zones first
+        "field": "attribute:ecs.availability-zone",
+        "type": "spread"
+      },
+      {
+        # Then try to maximize utilization (minimize number of EC2 instances)
+        "field": "memory",
+        "type": "binpack"
+      }
+    ]
   end
 
   def _container_overrides
