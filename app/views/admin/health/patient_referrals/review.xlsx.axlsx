@@ -23,6 +23,7 @@ wb.add_worksheet(name: 'Assignments to Review') do |sheet|
         pr.enrollment_start_date,
         pr.aco_name.presence || pr.aco&.short_name,
       ],
+      types: [:string, :string, :string, :date, :date, :string],
       style: [text, text, text, nil, nil, text],
     )
   end
