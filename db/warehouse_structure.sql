@@ -4858,7 +4858,9 @@ CREATE TABLE public.configs (
     currently_homeless_cohort boolean DEFAULT false,
     enable_youth_hrp boolean DEFAULT true NOT NULL,
     show_client_last_seen_info_in_client_details boolean DEFAULT true,
-    ineligible_uses_extrapolated_days boolean DEFAULT true NOT NULL
+    ineligible_uses_extrapolated_days boolean DEFAULT true NOT NULL,
+    warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL,
+    cas_calculator character varying DEFAULT 'GrdaWarehouse::CasProjectClientCalculator::Default'::character varying NOT NULL
 );
 
 
@@ -12268,7 +12270,8 @@ CREATE TABLE public.hmis_import_configs (
     encrypted_zip_file_password character varying,
     encrypted_zip_file_password_iv character varying,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    file_count integer DEFAULT 1 NOT NULL
 );
 
 
@@ -12524,6 +12527,47 @@ CREATE SEQUENCE public.homeless_summary_report_clients_id_seq
 --
 
 ALTER SEQUENCE public.homeless_summary_report_clients_id_seq OWNED BY public.homeless_summary_report_clients.id;
+
+
+--
+-- Name: homeless_summary_report_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.homeless_summary_report_results (
+    id bigint NOT NULL,
+    report_id bigint,
+    section character varying,
+    household_category character varying,
+    demographic_category character varying,
+    field character varying,
+    destination character varying,
+    characteristic character varying,
+    calculation character varying,
+    value double precision,
+    format character varying,
+    details jsonb,
+    detail_link_slug character varying,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: homeless_summary_report_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.homeless_summary_report_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: homeless_summary_report_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.homeless_summary_report_results_id_seq OWNED BY public.homeless_summary_report_results.id;
 
 
 --
@@ -14920,7 +14964,8 @@ CREATE TABLE public.public_report_settings (
     adults_only_primary_color character varying,
     adults_with_children_primary_color character varying,
     children_only_primary_color character varying,
-    veterans_primary_color character varying
+    veterans_primary_color character varying,
+    map_type character varying DEFAULT 'coc'::character varying NOT NULL
 );
 
 
@@ -19387,6 +19432,13 @@ ALTER TABLE ONLY public.homeless_summary_report_clients ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: homeless_summary_report_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_results ALTER COLUMN id SET DEFAULT nextval('public.homeless_summary_report_results_id_seq'::regclass);
+
+
+--
 -- Name: housing_resolution_plans id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21685,6 +21737,14 @@ ALTER TABLE ONLY public.hmis_staff_x_clients
 
 ALTER TABLE ONLY public.homeless_summary_report_clients
     ADD CONSTRAINT homeless_summary_report_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: homeless_summary_report_results homeless_summary_report_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.homeless_summary_report_results
+    ADD CONSTRAINT homeless_summary_report_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -30145,6 +30205,13 @@ CREATE INDEX index_homeless_summary_report_clients_on_updated_at ON public.homel
 
 
 --
+-- Name: index_homeless_summary_report_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_homeless_summary_report_results_on_report_id ON public.homeless_summary_report_results USING btree (report_id);
+
+
+--
 -- Name: index_housing_resolution_plans_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -36305,6 +36372,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211013135958'),
 ('20211015172536'),
 ('20211019154744'),
-('20211019164536');
+('20211019164536'),
+('20211020130447'),
+('20211023193009'),
+('20211027185505'),
+('20211108203857'),
+('20211109161950'),
+('20211110005810');
 
 
