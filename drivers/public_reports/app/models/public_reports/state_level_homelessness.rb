@@ -214,6 +214,29 @@ module PublicReports
       }
     end
 
+    def map_colors
+      @map_colors ||= {}.tap do |m_colors|
+        slight = 0.0001
+        max_rate = parsed_pre_calculated_data['map_max_rate']
+        colors = chart_color_shades(:map_primary_color)
+        m_colors[colors.first] = { description: '0%', range: (0..0) }
+        colors.drop(1).each.with_index do |color, i|
+          division_size = max_rate / colors.count
+          division_start = i * division_size
+          division_start = slight if division_start.zero?
+          division_end = (i + 1) * division_size
+          description = if i == colors.drop(2).count
+            "#{division_start.round}+"
+          elsif division_start == slight
+            "Any - #{division_end.round}%"
+          else
+            "#{division_start.round}% - #{division_end.round}%"
+          end
+          m_colors[color] = { description: description, range: (division_start..division_end) }
+        end
+      end
+    end
+
     private def pit_chart
       x = ['x']
       y = ['People served in ES, SO, SH, or TH']
