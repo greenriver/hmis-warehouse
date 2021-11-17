@@ -615,7 +615,18 @@ module HudApr::Generators::Shared::Fy2021
 
     private def ph(table_name, adults_and_hohs)
       ph = adults_and_hohs.where(a_t[:project_type].in([3, 9, 10, 13]))
-
+      residence_restriction = a_t[:prior_living_situation].in([16, 1, 18]).
+        or(
+          a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
+          and(a_t[:prior_length_of_stay].in([10, 11, 2, 3])).
+          and(a_t[:came_from_street_last_night].eq(1)),
+        ).
+        or(
+          a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
+            or(a_t[:prior_living_situation].eq(nil)).
+          and(a_t[:prior_length_of_stay].in([10, 11])).
+          and(a_t[:came_from_street_last_night].eq(1)),
+        )
       ph_buckets = [
         # count
         {
@@ -634,30 +645,36 @@ module HudApr::Generators::Shared::Fy2021
         # missing time in housing
         {
           cell: 'D4',
-          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
             or(a_t[:prior_living_situation].eq(nil)).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # date homeless missing
         {
           cell: 'E4',
-          clause: a_t[:date_homeless].eq(nil),
+          clause: residence_restriction.and(a_t[:date_homeless].eq(nil)),
           include_in_percent: true,
         },
         # times homeless dk/r/missing
         {
           cell: 'F4',
-          clause: a_t[:times_homeless].in([8, 9]).
-            or(a_t[:times_homeless].eq(nil)),
+          clause: residence_restriction.
+            and(
+              a_t[:times_homeless].in([8, 9]).
+              or(a_t[:times_homeless].eq(nil)),
+            ),
           include_in_percent: true,
         },
         # months homeless dk/r/missing
         {
           cell: 'G4',
-          clause: a_t[:months_homeless].in([8, 9]).
-            or(a_t[:months_homeless].eq(nil)),
+          clause: residence_restriction.
+            and(
+              a_t[:months_homeless].in([8, 9]).
+              or(a_t[:months_homeless].eq(nil)),
+            ),
           include_in_percent: true,
         },
       ]
