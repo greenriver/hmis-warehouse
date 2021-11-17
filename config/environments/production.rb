@@ -118,6 +118,13 @@ Rails.application.configure do
     config.middleware.use(ExceptionNotification::Rack,
       :slack => {
         :webhook_url => slack_config['webhook_url'],
+        :pre_callback => proc { |opts, _notifier, _backtrace, _message, message_opts|
+          log_stream_url = ENV.fetch('LOG_STREAM_URL', nil)
+          unless log_stream_url.nil?
+            opts[:data] = {} unless :data.in?(opts)
+            opts[:data][:log_url] = ENV['LOG_STREAM_URL']
+          end
+        },
         :channel => slack_config['channel'],
         :additional_parameters => {
           :mrkdwn => true,

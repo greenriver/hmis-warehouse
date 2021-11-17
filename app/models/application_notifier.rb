@@ -89,6 +89,12 @@ class ApplicationNotifier < Slack::Notifier
     Rails.logger.error('ApplicationNotifier#ping: ' + e.message)
   end
 
+  def post(payload={})
+    log_stream_url = ENV.fetch('LOG_STREAM_URL', nil)
+    payload[:text] += "\nLog url: #{log_stream_url}" unless log_stream_url.nil?
+    super
+  end
+
   # Send any rate_limit'd messages.
   # Will break the resulting mega-message into 4K char and burst out
   # a sequence of posts. If this the queue is too big, say bigger than

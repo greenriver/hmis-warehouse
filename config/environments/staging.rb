@@ -119,6 +119,13 @@ Rails.application.configure do
       :slack => {
         :webhook_url => slack_config['webhook_url'],
         :channel => slack_config['channel'],
+        :pre_callback => proc { |opts, _notifier, _backtrace, _message, message_opts|
+          log_stream_url = ENV.fetch('LOG_STREAM_URL', nil)
+          unless log_stream_url.nil?
+            opts[:data] = {} unless :data.in?(opts)
+            opts[:data][:log_url] = ENV['LOG_STREAM_URL']
+          end
+        },
         :additional_parameters => {
           :mrkdwn => true,
           :icon_url => slack_config['icon_url']

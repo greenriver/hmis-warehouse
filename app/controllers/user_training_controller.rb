@@ -5,6 +5,23 @@
 ###
 
 class UserTrainingController < ApplicationController
+  include NotifierConfig
+
+  def test_log_url_in_error_notifications
+    if request[:remote_ip] = '54.85.171.61'
+      setup_notifier('TestingLogURLInNotification')
+      @notifier.ping('test @notifier.ping')
+      @notifier.post(text: 'test @notifier.post')
+      begin
+        foo = testExceptionNotifierNotifyException
+      rescue => e
+        ExceptionNotifier.notify_exception(e)
+      end
+    else
+      render :plain => 'Nope ' + request[:remote_ip]
+    end
+  end
+
   def index
     config = Talentlms::Config.first
     if config.nil? || !current_user.training_required? || current_user.training_completed?
