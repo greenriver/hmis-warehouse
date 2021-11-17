@@ -26,27 +26,20 @@ module HudReports::Ages
     end
 
     private def adults?(ages)
-      ages.any? do |age|
-        next false if age.blank?
-
+      ages.reject(&:blank?).any? do |age|
         age >= 18
       end
     end
 
     private def children?(ages)
-      ages.any? do |age|
-        next false if age.blank?
-
+      ages.reject(&:blank?).any? do |age|
         age < 18
       end
     end
 
     private def unknown_ages?(ages)
       ages.any? do |age|
-        next true if age.blank?
-        next true if age < 1
-
-        false
+        age.blank? || age < 1
       end
     end
 

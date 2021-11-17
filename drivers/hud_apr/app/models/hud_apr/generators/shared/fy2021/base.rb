@@ -105,11 +105,12 @@ module HudApr::Generators::Shared::Fy2021
           end
 
           age = source_client.age_on(client_start_date)
-          household_type = if age.blank? || age.negative?
-            :unknown
-          else
-            household_types[get_hh_id(last_service_history_enrollment)]
-          end
+          household_type = household_types[get_hh_id(last_service_history_enrollment)]
+          # household_type = if age.blank? || age.negative?
+          #   :unknown
+          # else
+          #   household_types[get_hh_id(last_service_history_enrollment)]
+          # end
 
           household_calculation_date = if needs_ce_assessments?
             ce_latest_assessment.AssessmentDate
