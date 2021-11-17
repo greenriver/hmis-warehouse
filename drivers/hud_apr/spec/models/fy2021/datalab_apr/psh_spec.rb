@@ -41,11 +41,6 @@ RSpec.describe 'Datalab 2021 APR - PSH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'psh',
       question: 'Q6a',
-      skip: [
-        'C4', # Testkit error?
-        'E4', # Cascading error
-        'F4', # Cascading error
-      ],
     )
   end
 
