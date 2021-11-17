@@ -69,7 +69,7 @@ module PerformanceMeasurement
     def filter
       @filter ||= begin
         f = ::Filters::FilterBase.new(user_id: user_id)
-        f.update((options || {}).with_indifferent_access)
+        f.update((options || {}).merge(comparison_pattern: :prior_year).with_indifferent_access)
         f.update(start: f.end - 1.years)
         f
       end
@@ -199,15 +199,16 @@ module PerformanceMeasurement
         extra_calculations.each do |parts|
           filter.update(spec[:options])
           data = parts[:data].call(filter)
-          data.each.key do |client_id|
+          data.each_key do |client_id|
             report_client = report_clients[client_id] || Client.new(report_id: id)
-            report_client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(client_id, data)
-            parts[:project_ids].call(client_id, data).each do |project_id|
+            report_client[:dob] = parts[:value_calculation].call(:dob, client_id, data)
+            report_client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(:value, client_id, data)
+            parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id|
               project_clients << {
                 report_id: id,
                 client_id: client_id,
                 project_id: project_id,
-                for_question: row[:key], # allows limiting for a specific response
+                for_question: parts[:key], # allows limiting for a specific response
                 period: variant_name,
               }
             end
@@ -242,32 +243,45 @@ module PerformanceMeasurement
           key: :served_on_pit_date,
           data: ->(filter) {
             {}.tap do |project_types_by_client_id|
-              report_scope.joins(:service_history_services, :project).
+              report_scope.joins(:service_history_services, :project, :client).
                 where(shs_t[:date].eq(filter.pit_date)).
                 homeless.distinct.
-                pluck(:client_id, :computed_project_type, p_t[:id]).
-                each do |client_id, project_type, project_id|
-                  project_types_by_client_id[client_id] ||= { project_types: [], project_ids: [] }
-                  project_types_by_client_id[client_id][:project_types] << project_type
+                pluck(:client_id, c_t[:DOB], p_t[:id]).
+                each do |client_id, dob, project_id|
+                  project_types_by_client_id[client_id] ||= { value: true, project_ids: Set.new, dob: nil }
                   project_types_by_client_id[client_id][:project_ids] << project_id
+                  project_types_by_client_id[client_id][:dob] = dob
                 end
             end
           },
-          value_calculation: ->(client_id, data) {
+          value_calculation: ->(calculation, client_id, data) {
             details = data[client_id]
             return unless details.present?
 
-            details[:project_types]
-          },
-          project_ids: ->(client_id, data) {
-            details = data[client_id]
-            return unless details.present?
-
-            details[:project_ids]
+            details[calculation]
           },
         },
         {
           key: :served_on_pit_date_unsheltered,
+          data: ->(filter) {
+            {}.tap do |project_types_by_client_id|
+              report_scope.joins(:service_history_services, :project, :client).
+                where(shs_t[:date].eq(filter.pit_date)).
+                so.distinct.
+                pluck(:client_id, c_t[:DOB], p_t[:id]).
+                each do |client_id, dob, project_id|
+                  project_types_by_client_id[client_id] ||= { value: true, project_ids: Set.new, dob: nil }
+                  project_types_by_client_id[client_id][:project_ids] << project_id
+                  project_types_by_client_id[client_id][:dob] = dob
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
         },
       ]
     end

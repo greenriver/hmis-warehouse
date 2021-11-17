@@ -14579,10 +14579,10 @@ CREATE TABLE public.pm_clients (
     comparison_income_stayer boolean,
     reporting_income_leaver boolean,
     comparison_income_leaver boolean,
-    reporting_served_on_pit_date_sheltered integer[],
-    comparison_served_on_pit_date_sheltered integer[],
-    reporting_served_on_pit_date_usheltered integer[],
-    comparison_served_on_pit_date_unsheltered integer[]
+    reporting_served_on_pit_date_sheltered boolean DEFAULT false NOT NULL,
+    comparison_served_on_pit_date_sheltered boolean DEFAULT false NOT NULL,
+    reporting_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL,
+    comparison_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL
 );
 
 
@@ -14659,7 +14659,8 @@ CREATE TABLE public.pm_results (
     value_label character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    comparison_primary_value integer
 );
 
 
@@ -46171,6 +46172,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211109161950'),
 ('20211110005810'),
 ('20211115191349'),
-('20211117145404');
+('20211117145404'),
+('20211117181217');
 
 

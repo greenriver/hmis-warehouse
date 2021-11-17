@@ -11,7 +11,7 @@ module PerformanceMeasurement::ResultCalculation
     def passed?(field, reporting_value, comparison_value)
       case field
       when :served_on_pit_date, :first_time, :served_on_pit_date_sheltered, :served_on_pit_date_unsheltered
-        percent_changed(reporting_value, comparison_value) > goal(field)
+        percent_changed(reporting_value, comparison_value) < goal(field)
       when :days_homeless_es_sh_th, :days_homeless_before_move_in, :days_to_return
         reporting_value < goal(field)
       when :so_destination, :es_sh_th_rrh_destination, :moved_in_destination, :increased_income
@@ -44,7 +44,7 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def percent_changed(reporting_count, comparison_count)
-      (reporting_count - comparison_count) / comparison_count.to_f
+      ((reporting_count - comparison_count) / comparison_count.to_f) * 100
     end
 
     def percent_of(numerator, denominator)
@@ -101,6 +101,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: percent_changed(reporting_count, comparison_count),
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_count),
       )
     end
 
@@ -121,6 +122,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: percent_changed(reporting_count, comparison_count),
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_count),
       )
     end
 
@@ -141,6 +143,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: percent_changed(reporting_count, comparison_count),
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_count),
       )
     end
 
@@ -160,6 +163,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: percent_of(reporting_count - comparison_count, comparison_count),
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_count),
       )
     end
 
@@ -184,6 +188,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: percent_of(reporting_average - comparison_average, comparison_average),
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_average),
       )
     end
 
@@ -206,6 +211,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: percent_of(reporting_median - comparison_median, comparison_median),
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_median),
       )
     end
 
@@ -229,6 +235,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: percent_of(reporting_average - comparison_average, comparison_average),
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_average),
       )
     end
 
@@ -251,6 +258,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: percent_of(reporting_median - comparison_median, comparison_median),
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_median),
       )
     end
 
@@ -281,6 +289,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_numerator),
       )
     end
 
@@ -311,6 +320,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_numerator),
       )
     end
 
@@ -341,18 +351,19 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_numerator),
       )
     end
 
     def returned_in_six_months
-      returned_in_range(1..180, 'Six Months', __method__)
+      returned_in_range(1..180, __method__)
     end
 
     def returned_in_twenty_two_years
-      returned_in_range(1..180, 'Two Years', __method__)
+      returned_in_range(1..180, __method__)
     end
 
-    def returned_in_range(range, _descriptor, meth)
+    def returned_in_range(range, meth)
       field = :days_to_return
       reporting_returns = client_data(field, :reporting)
       comparison_returns = client_data(field, :comparison)
@@ -379,18 +390,19 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_numerator),
       )
     end
 
     def stayers_with_increased_income
-      increased_income(:increased_income, :income_stayer, 'Stayer', __method__)
+      increased_income(:increased_income, :income_stayer, __method__)
     end
 
     def leavers_with_increased_income
-      increased_income(:increased_income, :income_leaver, 'Leaver', __method__)
+      increased_income(:increased_income, :income_leaver, __method__)
     end
 
-    def increased_income(income_field, status_field, _status, meth)
+    def increased_income(income_field, status_field, meth)
       reporting_denominator = client_count(status_field, :reporting)
       comparison_denominator = client_count(status_field, :comparison)
       reporting_numerator = client_count(income_field, :reporting)
@@ -410,6 +422,7 @@ module PerformanceMeasurement::ResultCalculation
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
+        comparison_primary_value: number_with_delimiter(comparison_numerator),
       )
     end
 
@@ -419,7 +432,9 @@ module PerformanceMeasurement::ResultCalculation
 
     def save_results
       results = [
+        count_of_sheltered_homeless_clients,
         count_of_homeless_clients,
+        count_of_unsheltered_homeless_clients,
         first_time_homeless_clients,
         length_of_homeless_stay_average,
         length_of_homeless_stay_median,

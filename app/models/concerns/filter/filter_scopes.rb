@@ -13,7 +13,6 @@ module Filter::FilterScopes
     end
 
     private def filter_for_range(scope)
-      puts "START DATE: #{@filter.start_date}"
       scope.open_between(start_date: @filter.start_date, end_date: @filter.end_date).
         with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
     end

@@ -74,7 +74,7 @@ module ApplicationHelper
 
   def change_direction_icon direction, tooltip: ''
     allow_directions = [:up, :down, :none]
-    direction = :none if allow_directions.exclude? direction
+    direction = :none if allow_directions.exclude? direction.to_sym
     tooltip_data = {}
     tooltip_data = { toggle: :tooltip, title: tooltip } if tooltip.present?
     embedded_svg("change-#{direction}", options: tooltip_data)

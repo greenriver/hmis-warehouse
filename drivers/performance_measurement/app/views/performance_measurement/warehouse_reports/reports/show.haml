@@ -10,40 +10,11 @@
 
 %table.table.c-table--indicator
   %tbody
-    %tr.c-table__row.c-table__row--highlight-1
-      %th.level.w-20{rowspan: 3}
-        .h2 Rare
-    %tr
-      %td
-        - key = :count_of_homeless_clients
-        = render 'warehouse_reports/indicator', indicator: @report.results_for(key), link: performance_measurement_warehouse_reports_report_details_path(@report, key: key)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:first_time_homeless_clients)
-    %tr.c-table__row.c-table__row--highlight-2
-      %th.level.w-20{rowspan: 5}
-        .h2 Brief
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:length_of_homeless_stay_average)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:length_of_homeless_stay_median)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:time_to_move_in_average)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:time_to_move_in_median)
-    %tr.c-table__row.c-table__row--highlight-3
-      %th.level.w-20{rowspan: 8}
-        .h2 Non-Recurring
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:so_positive_destinations)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:es_sh_th_rrh_positive_destinations)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:moved_in_positive_destinations)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:returned_in_six_months)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:returned_in_twenty_two_years)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:stayers_with_increased_income)
-    %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:leavers_with_increased_income)
+    - @report.summary_table.each.with_index do |(title, group), i|
+      %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
+        %th.level.w-20{rowspan: group.count + 1}
+          .h2= title
+      - group.each do |row|
+        - key = row.first
+        %tr
+          %td= render 'warehouse_reports/indicator', indicator: @report.results_for(key), link: performance_measurement_warehouse_reports_report_details_path(@report, key: key)
