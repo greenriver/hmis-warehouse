@@ -17,7 +17,7 @@
 
 .o-page__controls
   .o-page__search
-    = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+    = render 'search_form', url: health_patients_path
   .o-page__sort
     = render 'sort'
   .o-page__filter

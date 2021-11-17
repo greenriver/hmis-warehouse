@@ -1,5 +1,5 @@
 .mt-5
-  = search_form_for @q, url: health_my_patients_path, method: :get do |f|
+  = search_form_for @q, url: url, method: :get do |f|
     - if params[:agency_id]
       = hidden_field_tag(:agency_id, params[:agency_id].to_i)
     .input-group{style: 'margin-bottom: 20px;'}
