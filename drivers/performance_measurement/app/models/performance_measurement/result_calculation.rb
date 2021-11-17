@@ -10,7 +10,7 @@ module PerformanceMeasurement::ResultCalculation
   included do
     def passed?(field, reporting_value, comparison_value)
       case field
-      when :served_on_pit_date, :first_time
+      when :served_on_pit_date, :first_time, :served_on_pit_date_sheltered, :served_on_pit_date_unsheltered
         percent_changed(reporting_value, comparison_value) > goal(field)
       when :days_homeless_es_sh_th, :days_homeless_before_move_in, :days_to_return
         reporting_value < goal(field)
@@ -22,7 +22,7 @@ module PerformanceMeasurement::ResultCalculation
     def goal(field)
       # TODO: what are the goals?
       case field
-      when :served_on_pit_date, :first_time
+      when :served_on_pit_date, :first_time, :served_on_pit_date_sheltered, :served_on_pit_date_unsheltered
         0 # FIXME
       when :days_homeless_es_sh_th, :days_homeless_before_move_in
         365 # FIXME
@@ -85,6 +85,26 @@ module PerformanceMeasurement::ResultCalculation
       clients.where.not(column => nil).pluck(column)
     end
 
+    def count_of_sheltered_homeless_clients
+      field = :served_on_pit_date_sheltered
+      reporting_count = client_count(field, :reporting)
+      comparison_count = client_count(field, :comparison)
+
+      PerformanceMeasurement::Result.new(
+        report_id: id,
+        field: __method__,
+        title: detail_title_for(__method__.to_sym),
+        passed: passed?(field, reporting_count, comparison_count),
+        direction: direction(field, reporting_count, comparison_count),
+        primary_value: number_with_delimiter(reporting_count),
+        primary_unit: 'clients',
+        secondary_value: percent_changed(reporting_count, comparison_count),
+        secondary_unit: '%',
+        value_label: 'Change over year',
+      )
+    end
+
+    # NOTE: SPM does not include SO, so this needs to be done based on SHS
     def count_of_homeless_clients
       field = :served_on_pit_date
       reporting_count = client_count(field, :reporting)
@@ -93,7 +113,27 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
-        title: 'Number of Homeless People',
+        title: detail_title_for(__method__.to_sym),
+        passed: passed?(field, reporting_count, comparison_count),
+        direction: direction(field, reporting_count, comparison_count),
+        primary_value: number_with_delimiter(reporting_count),
+        primary_unit: 'clients',
+        secondary_value: percent_changed(reporting_count, comparison_count),
+        secondary_unit: '%',
+        value_label: 'Change over year',
+      )
+    end
+
+    # NOTE: SPM does not include SO, so this needs to be done based on SHS
+    def count_of_unsheltered_homeless_clients
+      field = :served_on_pit_date_unsheltered
+      reporting_count = client_count(field, :reporting)
+      comparison_count = client_count(field, :comparison)
+
+      PerformanceMeasurement::Result.new(
+        report_id: id,
+        field: __method__,
+        title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_count, comparison_count),
         direction: direction(field, reporting_count, comparison_count),
         primary_value: number_with_delimiter(reporting_count),
@@ -112,7 +152,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
-        title: 'Number of First-Time Homeless People',
+        title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_count, comparison_count),
         direction: direction(field, reporting_count, comparison_count),
         primary_value: number_with_delimiter(reporting_count),
@@ -136,7 +176,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
-        title: 'Length of Homeless Stay (Average Days)',
+        title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_average, nil),
         direction: direction(field, reporting_average, comparison_average),
         primary_value: number_with_delimiter(reporting_average),
@@ -158,7 +198,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
-        title: 'Length of Homeless Stay (Median Days)',
+        title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_median, nil),
         direction: direction(field, reporting_median, comparison_median),
         primary_value: number_with_delimiter(reporting_median),
@@ -181,7 +221,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
-        title: 'Time to Move-in (Average Days)',
+        title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_average, nil),
         direction: direction(field, reporting_average, comparison_average),
         primary_value: number_with_delimiter(reporting_average),
@@ -203,7 +243,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
-        title: 'Time to Move-in (Median Days)',
+        title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_median, nil),
         direction: direction(field, reporting_median, comparison_median),
         primary_value: number_with_delimiter(reporting_median),
@@ -233,7 +273,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
-        title: 'Number of People Exiting SO to a Positive Destination',
+        title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_percent, nil),
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: number_with_delimiter(reporting_numerator),
@@ -263,7 +303,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
-        title: 'Number of People Exits from ES, SH, TH, RRH to a Positive Destination, or PH with No Move-in',
+        title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_percent, nil),
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: number_with_delimiter(reporting_numerator),
@@ -293,7 +333,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
-        title: 'Number of People in RRH or PH with Move-in or Permanent Exit',
+        title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_percent, nil),
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: number_with_delimiter(reporting_numerator),
@@ -312,7 +352,7 @@ module PerformanceMeasurement::ResultCalculation
       returned_in_range(1..180, 'Two Years', __method__)
     end
 
-    def returned_in_range(range, descriptor, meth)
+    def returned_in_range(range, _descriptor, meth)
       field = :days_to_return
       reporting_returns = client_data(field, :reporting)
       comparison_returns = client_data(field, :comparison)
@@ -331,7 +371,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
-        title: "Number of People Who Returned to Homelessness Within #{descriptor}",
+        title: detail_title_for(meth.to_sym),
         passed: passed?(field, reporting_percent, nil),
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: number_with_delimiter(reporting_numerator),
@@ -350,7 +390,7 @@ module PerformanceMeasurement::ResultCalculation
       increased_income(:increased_income, :income_leaver, 'Leaver', __method__)
     end
 
-    def increased_income(income_field, status_field, status, meth)
+    def increased_income(income_field, status_field, _status, meth)
       reporting_denominator = client_count(status_field, :reporting)
       comparison_denominator = client_count(status_field, :comparison)
       reporting_numerator = client_count(income_field, :reporting)
@@ -362,7 +402,7 @@ module PerformanceMeasurement::ResultCalculation
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
-        title: "#{status} With Increased Income",
+        title: detail_title_for(meth.to_sym),
         passed: passed?(income_field, reporting_percent, comparison_percent),
         direction: direction(income_field, reporting_percent, comparison_percent),
         primary_value: number_with_delimiter(reporting_numerator),

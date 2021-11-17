@@ -16,6 +16,7 @@ module PerformanceMeasurement
     include ActionView::Helpers::NumberHelper
     include ArelHelper
     include PerformanceMeasurement::ResultCalculation
+    include PerformanceMeasurement::Details
 
     acts_as_paranoid
 
@@ -72,6 +73,11 @@ module PerformanceMeasurement
         f.update(start: f.end - 1.years)
         f
       end
+    end
+
+    private def reset_filter
+      @filter = nil
+      filter
     end
 
     def self.viewable_by(user)
@@ -189,6 +195,25 @@ module PerformanceMeasurement
             end
           end
         end
+        # Augment clients with non-SPM related data
+        extra_calculations.each do |parts|
+          filter.update(spec[:options])
+          data = parts[:data].call(filter)
+          data.each.key do |client_id|
+            report_client = report_clients[client_id] || Client.new(report_id: id)
+            report_client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(client_id, data)
+            parts[:project_ids].call(client_id, data).each do |project_id|
+              project_clients << {
+                report_id: id,
+                client_id: client_id,
+                project_id: project_id,
+                for_question: row[:key], # allows limiting for a specific response
+                period: variant_name,
+              }
+            end
+          end
+          reset_filter
+        end
       end
 
       Client.import(
@@ -209,6 +234,42 @@ module PerformanceMeasurement
 
     private def answer_clients(report, table, cell)
       report.answer(question: table, cell: cell).universe_members.preload(:universe_membership).map(&:universe_membership)
+    end
+
+    private def extra_calculations
+      [
+        {
+          key: :served_on_pit_date,
+          data: ->(filter) {
+            {}.tap do |project_types_by_client_id|
+              report_scope.joins(:service_history_services, :project).
+                where(shs_t[:date].eq(filter.pit_date)).
+                homeless.distinct.
+                pluck(:client_id, :computed_project_type, p_t[:id]).
+                each do |client_id, project_type, project_id|
+                  project_types_by_client_id[client_id] ||= { project_types: [], project_ids: [] }
+                  project_types_by_client_id[client_id][:project_types] << project_type
+                  project_types_by_client_id[client_id][:project_ids] << project_id
+                end
+            end
+          },
+          value_calculation: ->(client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[:project_types]
+          },
+          project_ids: ->(client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[:project_ids]
+          },
+        },
+        {
+          key: :served_on_pit_date_unsheltered,
+        },
+      ]
     end
 
     private def run_spm
@@ -273,11 +334,34 @@ module PerformanceMeasurement
           history_source: :m3_history,
           questions: [
             {
-              name: :served_on_pit_date,
+              name: :served_on_pit_date_sheltered,
               value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
             },
           ],
         },
+        # SO is not included in this calculation in the SPM, need to find an alternate approach
+        # {
+        #   cells: [['3.2', 'C2']],
+        #   title: 'Sheltered Clients',
+        #   history_source: :m3_history,
+        #   questions: [
+        #     {
+        #       name: :served_on_pit_date,
+        #       value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
+        #     },
+        #   ],
+        # },
+        # {
+        #   cells: [['3.2', 'C2']],
+        #   title: 'Sheltered Clients',
+        #   history_source: :m3_history,
+        #   questions: [
+        #     {
+        #       name: :served_on_pit_date_unsheltered,
+        #       value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
+        #     },
+        #   ],
+        # },
         {
           cells: [['5.1', 'C4']],
           title: 'First Time',

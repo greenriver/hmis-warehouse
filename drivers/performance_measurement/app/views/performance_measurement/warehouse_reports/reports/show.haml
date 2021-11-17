@@ -14,7 +14,9 @@
       %th.level.w-20{rowspan: 3}
         .h2 Rare
     %tr
-      %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:count_of_homeless_clients)
+      %td
+        - key = :count_of_homeless_clients
+        = render 'warehouse_reports/indicator', indicator: @report.results_for(key), link: performance_measurement_warehouse_reports_report_details_path(@report, key: key)
     %tr
       %td= render 'warehouse_reports/indicator', indicator: @report.results_for(:first_time_homeless_clients)
     %tr.c-table__row.c-table__row--highlight-2

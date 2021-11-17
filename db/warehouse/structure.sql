@@ -14578,7 +14578,11 @@ CREATE TABLE public.pm_clients (
     reporting_income_stayer boolean,
     comparison_income_stayer boolean,
     reporting_income_leaver boolean,
-    comparison_income_leaver boolean
+    comparison_income_leaver boolean,
+    reporting_served_on_pit_date_sheltered integer[],
+    comparison_served_on_pit_date_sheltered integer[],
+    reporting_served_on_pit_date_usheltered integer[],
+    comparison_served_on_pit_date_unsheltered integer[]
 );
 
 
@@ -46166,6 +46170,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211108203857'),
 ('20211109161950'),
 ('20211110005810'),
-('20211115191349');
+('20211115191349'),
+('20211117145404');
 
 

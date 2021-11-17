@@ -314,6 +314,23 @@ module Filters
       last
     end
 
+    # Date that can be used to find the closest PIT date, either that contained in the range,
+    # or the most-recent PIT (third wednesday of January)
+    # for simplicity, we'll just find the date in the january prior to the end date
+    def pit_date
+      third_wednesday_of_end_year = third_wednesday(last.year, 1)
+      return third_wednesday_of_end_year if last > third_wednesday_of_end_year
+
+      third_wednesday(last.year - 1, last.month)
+    end
+
+    private def third_wednesday(year, month)
+      d = Date.new(year, month, 1)
+      d += 1.weeks if d.wday > 3 # if the first falls after Wednesday, move forward a week
+      d -= (d.wday - 3) % 7 # ensure the first Wednesday
+      d + 2.weeks # move to the 3rd Wednesday
+    end
+
     def date_range_words
       "#{start_date} - #{end_date}"
     end

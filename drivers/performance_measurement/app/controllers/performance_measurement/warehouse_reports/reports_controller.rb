@@ -12,7 +12,7 @@ module PerformanceMeasurement::WarehouseReports
     include BaseFilters
 
     before_action :require_can_access_some_version_of_clients!, only: [:details]
-    before_action :set_report, only: [:show, :destroy, :details]
+    before_action :set_report, only: [:show, :destroy]
 
     def index
       @reports = report_scope.ordered.
@@ -53,45 +53,14 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     def details
-      params = details_params(@report)
-      @variant = params['variant'] || 'all_persons'
-      @cell = "spm_#{params['cell']}"
-      @cell_name = @cell.humanize.split(' ')[1..].join(' ')
-      if @report.field_measure(params['cell']) == 1
-        @measure = 'Measure 1'
-        @data_cells = @report.m1_fields.keys
-      elsif @report.field_measure(params['cell']) == 2
-        @measure = 'Measure 2'
-        @data_cells = ['m2_reentry_days']
-      elsif @report.field_measure(params['cell']) == 7
-        @measure = 'Measure 7'
-        @data_cells = @report.m7_fields
-      end
-      @detail_clients = @report.clients.send(@variant).send(@cell)
-      @spm_id = @detail_clients&.first&.send(@variant)
+      @report = report_class.find(params[:report_id].to_i)
+      @key = params[:key].to_sym
     end
 
-    def details_params(report)
+    def details_params
       params.permit(
-        :variant,
-        :cell,
-      ).delete_if do |key, value|
-        key == 'variant' && report.class.available_variants.exclude?(value.gsub('spm_', ''))
-      end.delete_if do |key, value|
-        key == 'cell' && (report.spm_fields.keys + [
-          :m2_reentry_0_to_180_days,
-          :m2_reentry_181_to_365_days,
-          :m2_reentry_366_to_730_days,
-          :m7a1_c2,
-          :m7a1_c3,
-          :m7a1_c4,
-          :m7b1_c2,
-          :m7b1_c3,
-          :m7b2_c2,
-          :m7b2_c3,
-          :exited_from_homeless_system,
-        ]).exclude?(value.to_sym)
-      end
+        :key,
+      )
     end
     helper_method :details_params
 
