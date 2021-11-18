@@ -260,6 +260,8 @@ Populates and references:
 	9.3 Counts of People and Households by Project and Household Characteristics
 
 */
+
+	delete from lsa_Calculated where ReportRow in (53,54)
 	
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID
 		, ReportRow, ReportID, Step)
@@ -294,16 +296,17 @@ Populates and references:
 		group by rv.RowID, rv.Cohort, rv.Universe, hhid.ActiveHHType, rp.PopID, rv.SystemPath
 			, case when rv.Universe = 10 then hhid.ProjectID else null end
 
-
 /*
 	9.4 Counts of People by Project and Personal Characteristics
 */
+
+	delete from lsa_Calculated where ReportRow = 55
 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID
 		, ReportRow, ReportID, Step)
 	select distinct count(distinct n.PersonalID) 
 		, rv.Cohort, rv.Universe, hhid.ActiveHHType, rp.PopID, rv.SystemPath
-		, case when rp.ByProject = 1 and rv.Universe = 10 then hhid.ProjectID else null end
+		, case when rv.Universe = 10 then hhid.ProjectID else null end
 		, rv.RowID, (select ReportID from lsa_Report), '9.4.1'
 	from ref_RowValues rv
 	inner join ref_RowPopulations rp on rv.RowID between rp.RowMin and rp.RowMax 
@@ -327,10 +330,11 @@ Populates and references:
 				or (rv.Universe = 15 and hhid.LSAProjectType = 3)
 				or (rv.Universe = 16 and hhid.LSAProjectType in (0,1,2,8))
 			)
-		where rv.RowID = 55
+		where rv.RowID = 55 
+			and (rv.Universe = 10 or rp.ByProject is NULL)
 		group by rv.Cohort, rv.Universe, hhid.ActiveHHType, rp.PopID, rv.SystemPath
-		, case when rp.ByProject = 1 and rv.Universe = 10 then hhid.ProjectID else null end
-		, rv.RowID
+			, case when rv.Universe = 10 then hhid.ProjectID else null end
+			, rv.RowID
 
 /*
 	9.5 Counts of Bednights
@@ -345,6 +349,10 @@ Populates and references:
 */
 
 	-- By ProjectID (Universe 10) - night by night ES
+
+	delete from lsa_Calculated where ReportRow in (56,57)
+
+
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID, ReportRow, ReportID, Step)
 	select count(distinct n.PersonalID + cast(bn.DateProvided as varchar)), 1, 10, hhid.ActiveHHType, pop.PopID, -1
 			, hhid.ProjectID
