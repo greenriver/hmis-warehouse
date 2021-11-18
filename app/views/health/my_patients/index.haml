@@ -3,9 +3,12 @@
 
 .o-page__controls
   .o-page__search
-    = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+    = render 'health/patients/search_form', url: health_my_patients_path
+  .o-page__sort
+    = render 'health/patients/sort'
   .o-page__filter
     = render 'health/patients/filter'
+
   - if @patients.present?
     .o-page__link.ml-auto
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto disab'}) do

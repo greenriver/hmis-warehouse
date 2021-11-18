@@ -1,0 +1,12 @@
+.o-filtration.o-filtration--xs.client__sort.dropdown
+  %button.btn.btn-secondary.dropdown-toggle{data: {toggle: 'dropdown'}}
+    Sort
+    %span.caret
+  .o-filtration__container.dropdown-menu.options
+    %ul.mb-0.list-unstyled
+      - sort_options.each do |opt|
+        - if @column == opt[:column] && @direction == opt[:direction]
+          - title = "<span class='icon-checkbox-checked'></span> #{opt[:title]}".html_safe
+        - else
+          - title = "<span class='icon-checkbox-unchecked'></span> #{opt[:title]}".html_safe
+        %li= sort_as_link(title, opt[:column], opt[:direction])

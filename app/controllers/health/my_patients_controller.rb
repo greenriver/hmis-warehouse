@@ -10,6 +10,7 @@ module Health
     before_action :require_user_has_health_agency!
     before_action :set_patients
     include ClientPathGenerator
+    include HealthPatientDashboard
 
     def index
       @q = @patients.ransack(params[:q])
@@ -50,10 +51,20 @@ module Health
         end
       end
 
+      @column = params[:sort] || 'name'
+      @direction = params[:direction]&.to_sym || :asc
       respond_to do |format|
         format.html do
-          @patients = @patients.order(last_name: :asc, first_name: :asc).
-            page(params[:page].to_i).per(25)
+          medicaid_ids = @patients.map(&:medicaid_id)
+          @patients = patient_source.where(id: @patients.pluck(:id))
+          if @column == 'name'
+            @patients = @patients.order(last_name: @direction, first_name: @direction)
+          else
+            sort_order = determine_sort_order(medicaid_ids, @column, @direction)
+            @patients = @patients.order_as_specified(sort_order)
+          end
+          @patients = @patients.page(params[:page].to_i).per(25)
+          @scores = calculate_dashboards(medicaid_ids)
         end
         format.xlsx do
           date = Date.current.strftime('%Y-%m-%d')

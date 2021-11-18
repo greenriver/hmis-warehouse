@@ -16,6 +16,7 @@ gem 'pg'
 # version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
+gem 'order_as_specified'
 
 # locking active record extended here temporarily since upgrading it to 2.0.0 gives
 # NoMethodError: undefined method `relation' for "DATE_TRUNC('month', date_of_activity)":Arel::Nodes::SqlLiteral

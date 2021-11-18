@@ -14,6 +14,7 @@ module Health
 
     include ClientPathGenerator
     include AjaxModalRails::Controller
+    include HealthPatientDashboard
 
     def index
       @q = @patients.ransack(params[:q])
@@ -52,14 +53,21 @@ module Health
         end
       end
 
+      @column = params[:sort] || 'name'
+      @direction = params[:direction]&.to_sym || :asc
       @report = Health::AgencyPerformance.new(range: (@start_date..@end_date), agency_scope: Health::Agency.where(id: @active_agency.id))
-
       @agencies = @report.agency_counts
 
-      @patients = patient_source.
-        where(id: @patients.select(:id)).
-        order(last_name: :asc, first_name: :asc).
-        page(params[:page].to_i).per(25)
+      medicaid_ids = @patients.map(&:medicaid_id)
+      @patients = patient_source.where(id: @patients.pluck(:id))
+      if @column == 'name'
+        @patients = @patients.order(last_name: @direction, first_name: @direction)
+      else
+        sort_order = determine_sort_order(medicaid_ids, @column, @direction)
+        @patients = @patients.order_as_specified(sort_order)
+      end
+      @patients = @patients.page(params[:page].to_i).per(25)
+      @scores = calculate_dashboards(medicaid_ids)
     end
 
     def load_active_agency
