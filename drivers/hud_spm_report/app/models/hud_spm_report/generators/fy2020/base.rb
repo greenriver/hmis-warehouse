@@ -470,7 +470,7 @@ module HudSpmReport::Generators::Fy2020
         }
       end
 
-      process_scope_by_client(measure_four, m4_leavers_scope, stay_columns) do |_client_id, enrollments|
+      process_scope_by_client(measure_four, m4_leavers_scope, stay_columns) do |client, enrollments|
         # c. For each client, remove all but the stay with the latest [project start date].
         final_stay = enrollments.max_by { |e| e[:first_date_in_program] }
         next unless final_stay
@@ -896,13 +896,12 @@ module HudSpmReport::Generators::Fy2020
           next
         end
 
-        max_enrollment = client_enrollments.max_by { |en| en[:first_date_in_program] }
         # Steps 6 - 7 are handled in the subclass
         {
           table_2_dest_field => last_exit[:destination] || 99,
           history_field => client_enrollments,
-          reporting_age_col => age_for_report(dob: client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age]),
-          head_of_household_col => max_enrollment[:head_of_household],
+          reporting_age_col => age_for_report(dob: client.dob, entry_date: last_exit[:first_date_in_program], age: last_exit[:age]),
+          head_of_household_col => last_exit[:head_of_household],
         }.tap do |data|
           # puts "FOUND #{last_stay} for #{table_2_dest_field}"
         end
