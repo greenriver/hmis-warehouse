@@ -126,18 +126,11 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	insert into tlsa_ExitHoHAdult (
 		PersonalID, QualifyingExitHHID,
 		Cohort, DisabilityStatus, CHStart, LastActive, 
-		CHTime, CHTimeStatus, Step)
+		Step)
 	select distinct n.PersonalID, ex.QualifyingExitHHID,
-		ex.Cohort, case when n.DisabilityStatus = 1 then 1 else 0 end,
-		dateadd(dd, 1, (dateadd(yy, -3, n.ExitDate))),
-		n.ExitDate, 
-		case when hn.MonthsHomelessPastThreeYears in (112,113) 
-			and hn.TimesHomelessPastThreeYears = 4
-			and hn.EntryDate > dateadd(yyyy, -1, n.ExitDate) then 400 else null end,
-		case when hn.MonthsHomelessPastThreeYears in (112,113) 
-			and hn.TimesHomelessPastThreeYears = 4
-			and hn.EntryDate > dateadd(yyyy, -1, n.ExitDate) then 2 else null end
-		, '7.4'
+		ex.Cohort, max(case when n.DisabilityStatus = 1 then 1 else 0 end),
+		dateadd(dd, 1, (dateadd(yy, -3, max(n.ExitDate)))),
+		max(n.ExitDate), '7.4.1'
 	from tlsa_Exit ex
 	inner join tlsa_HHID hhid on hhid.HouseholdID = ex.QualifyingExitHHID
 	inner join tlsa_CohortDates cd on cd.Cohort = ex.Cohort
@@ -150,7 +143,23 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 			or (cd.Cohort = -2 and n.Exit2Age between 18 and 65))
 		and (ex.ExitFrom <> 3 or hhid.EntryDate > dateadd(yy, -1, hhid.ExitDate))
 		and (ex.ExitFrom not in (5,6) or hhid.MoveInDate > dateadd(yy, -1, hhid.ExitDate))
+	group by n.PersonalID, ex.QualifyingExitHHID, ex.Cohort
 
+	update hoha
+	set CHTime = 400, CHTimeStatus = 2, Step = '7.4.2'
+	from tlsa_ExitHoHAdult hoha
+	inner join tlsa_CohortDates cd on cd.Cohort = hoha.Cohort
+	inner join tlsa_Enrollment n on n.HouseholdID = hoha.QualifyingExitHHID 
+		and n.ExitDate between cd.CohortStart and cd.CohortEnd
+		and n.EntryDate > dateadd(yyyy, -1, hoha.LastActive)
+	inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
+	where (n.RelationshipToHoH = 1 
+			or (cd.Cohort = 0 and n.ActiveAge between 18 and 65)
+			or (cd.Cohort = -1 and n.Exit1Age between 18 and 65)
+			or (cd.Cohort = -2 and n.Exit2Age between 18 and 65))
+		and hn.MonthsHomelessPastThreeYears in (112,113) 
+		and hn.TimesHomelessPastThreeYears = 4
+		and hn.EntryDate = n.EntryDate 
 /*
 	7.5 Get Dates to Exclude from Counts of ES/SH/Street Days
 */
@@ -316,9 +325,10 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	update ha
 	set ha.CHTime = case when time_sum.count_days >= 365 then 365
 			when time_sum.count_days >= 270 then 270
-			else 0 end
+			else NULL end
 		, ha.CHTimeStatus = case when time_sum.count_eps >= 4 then 2
-			else 3 end 
+			when time_sum.count_eps < 4 then 3
+			else NULL end 
 	    , ha.Step = '7.8.2'
 	from tlsa_ExitHoHAdult ha
 	inner join (select hoha.PersonalID, hoha.Cohort
