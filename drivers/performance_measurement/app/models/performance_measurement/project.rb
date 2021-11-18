@@ -10,6 +10,8 @@ module PerformanceMeasurement
     acts_as_paranoid
 
     belongs_to :report
+    belongs_to :hud_project, class_name: 'GrdaWarehouse::Hud::Project'
+    has_many :client_projects
 
     scope :reporting_period, -> do
       where(reporting_period: true)

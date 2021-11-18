@@ -17,4 +17,4 @@
       - group.each do |row|
         - key = row.first
         %tr
-          %td= render 'warehouse_reports/indicator', indicator: @report.results_for(key), link: performance_measurement_warehouse_reports_report_details_path(@report, key: key)
+          %td= render 'warehouse_reports/indicator', indicator: @report.result_for(key), link: performance_measurement_warehouse_reports_report_details_path(@report, key: key)

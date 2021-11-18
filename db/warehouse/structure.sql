@@ -14660,7 +14660,10 @@ CREATE TABLE public.pm_results (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    comparison_primary_value integer
+    comparison_primary_value integer,
+    system_level boolean DEFAULT false NOT NULL,
+    project_id integer,
+    goal double precision
 );
 
 
@@ -46173,6 +46176,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211110005810'),
 ('20211115191349'),
 ('20211117145404'),
-('20211117181217');
+('20211117181217'),
+('20211118175318');
 
 

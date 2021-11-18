@@ -11,18 +11,20 @@
     %p= @report.detail_calculation_description_for(@key)
 
 %h2 System Level
+- result = @report.result_for(@key)
 .d-flex
-  .w-50= render 'warehouse_reports/indicator', indicator: @report.results_for(@key)
+  .w-50= render 'warehouse_reports/indicator', indicator: result
   .w-50
-    .jSystemLevelChart{ data: { chart: @report.data_for_system_level_bar(@key).to_json }}
-
+    .jSystemLevelChart{ data: { chart: result.data_for_system_level_bar.to_json }}
+= render 'projects'
 = content_for :page_js do
   :javascript
     $(document).ready(function(){
       var chart = bb.generate({
         data: $('.jSystemLevelChart').data('chart'),
         axis: {
-          x: { type: 'category' }
+          x: { type: 'category' },
+          y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
         },
         size: { height: 150 },
         legend: { show: false },

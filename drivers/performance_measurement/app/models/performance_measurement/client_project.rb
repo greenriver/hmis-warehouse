@@ -9,14 +9,20 @@ module PerformanceMeasurement
     self.table_name = :pm_client_projects
     acts_as_paranoid
 
-    belongs_to :client
+    belongs_to :client, primary_key: :client_id, foreign_key: :client_id
+    belongs_to :project
+    belongs_to :report
 
     scope :reporting_period, -> do
-      where(reporting_period: true)
+      where(period: :reporting)
     end
 
     scope :comparison_period, -> do
-      where(comparison_period: true)
+      where(period: :comparison)
+    end
+
+    scope :for_question, ->(key) do
+      where(for_question: key)
     end
   end
 end

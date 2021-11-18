@@ -24,6 +24,7 @@ module PerformanceMeasurement
     has_many :clients
     has_many :projects
     has_many :results
+    has_many :client_projects
 
     after_initialize :filter
 
@@ -204,6 +205,7 @@ module PerformanceMeasurement
             report_client[:dob] = parts[:value_calculation].call(:dob, client_id, data)
             report_client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(:value, client_id, data)
             parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id|
+              involved_projects << project_id
               project_clients << {
                 report_id: id,
                 client_id: client_id,

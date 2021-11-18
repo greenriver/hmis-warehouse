@@ -70,25 +70,38 @@ module PerformanceMeasurement::ResultCalculation
       (sorted[mid] + sorted[mid - 1]) / 2
     end
 
-    def client_count(field, period)
+    def client_count(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      clients.where(column => true).count
+      return clients.where(column => true).count if project_id.blank?
+
+      clients.joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where(project_id: project_id)).
+        where(column => true).count
     end
 
-    def client_sum(field, period)
+    def client_sum(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      clients.where.not(column => nil).sum(column)
+      return clients.where.not(column => nil).sum(column) if project_id.blank?
+
+      clients.joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where(project_id: project_id)).
+        where.not(column => nil).sum(column)
     end
 
-    def client_data(field, period)
+    def client_data(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      clients.where.not(column => nil).pluck(column)
+      return clients.where.not(column => nil).pluck(column) if project_id.blank?
+
+      clients.
+        joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where(project_id: project_id)).
+        where.not(column => nil).pluck(column)
     end
 
-    def count_of_sheltered_homeless_clients
+    def count_of_sheltered_homeless_clients(project_id: nil)
       field = :served_on_pit_date_sheltered
-      reporting_count = client_count(field, :reporting)
-      comparison_count = client_count(field, :comparison)
+      reporting_count = client_count(field, :reporting, project_id: project_id)
+      comparison_count = client_count(field, :comparison, project_id: project_id)
 
       PerformanceMeasurement::Result.new(
         report_id: id,
@@ -102,14 +115,17 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_count),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
     # NOTE: SPM does not include SO, so this needs to be done based on SHS
-    def count_of_homeless_clients
+    def count_of_homeless_clients(project_id: nil)
       field = :served_on_pit_date
-      reporting_count = client_count(field, :reporting)
-      comparison_count = client_count(field, :comparison)
+      reporting_count = client_count(field, :reporting, project_id: project_id)
+      comparison_count = client_count(field, :comparison, project_id: project_id)
 
       PerformanceMeasurement::Result.new(
         report_id: id,
@@ -123,14 +139,17 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_count),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
     # NOTE: SPM does not include SO, so this needs to be done based on SHS
-    def count_of_unsheltered_homeless_clients
+    def count_of_unsheltered_homeless_clients(project_id: nil)
       field = :served_on_pit_date_unsheltered
-      reporting_count = client_count(field, :reporting)
-      comparison_count = client_count(field, :comparison)
+      reporting_count = client_count(field, :reporting, project_id: project_id)
+      comparison_count = client_count(field, :comparison, project_id: project_id)
 
       PerformanceMeasurement::Result.new(
         report_id: id,
@@ -144,13 +163,16 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_count),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def first_time_homeless_clients
+    def first_time_homeless_clients(project_id: nil)
       field = :first_time
-      reporting_count = client_count(field, :reporting)
-      comparison_count = client_count(field, :comparison)
+      reporting_count = client_count(field, :reporting, project_id: project_id)
+      comparison_count = client_count(field, :comparison, project_id: project_id)
 
       PerformanceMeasurement::Result.new(
         report_id: id,
@@ -164,15 +186,18 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_count),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def length_of_homeless_stay_average
+    def length_of_homeless_stay_average(project_id: nil)
       field = :days_homeless_es_sh_th
-      reporting_count = client_count(field, :reporting)
-      comparison_count = client_count(field, :comparison)
-      reporting_days = client_sum(field, :reporting)
-      comparison_days = client_sum(field, :comparison)
+      reporting_count = client_count(field, :reporting, project_id: project_id)
+      comparison_count = client_count(field, :comparison, project_id: project_id)
+      reporting_days = client_sum(field, :reporting, project_id: project_id)
+      comparison_days = client_sum(field, :comparison, project_id: project_id)
 
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
@@ -189,13 +214,16 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_average),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def length_of_homeless_stay_median
+    def length_of_homeless_stay_median(project_id: nil)
       field = :days_homeless_es_sh_th
-      reporting_days = client_data(field, :reporting)
-      comparison_days = client_data(field, :comparison)
+      reporting_days = client_data(field, :reporting, project_id: project_id)
+      comparison_days = client_data(field, :comparison, project_id: project_id)
 
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
@@ -212,15 +240,18 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_median),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def time_to_move_in_average
+    def time_to_move_in_average(project_id: nil)
       field = :days_homeless_before_move_in
-      reporting_count = client_count(field, :reporting)
-      comparison_count = client_count(field, :comparison)
-      reporting_days = client_sum(field, :reporting)
-      comparison_days = client_sum(field, :comparison)
+      reporting_count = client_count(field, :reporting, project_id: project_id)
+      comparison_count = client_count(field, :comparison, project_id: project_id)
+      reporting_days = client_sum(field, :reporting, project_id: project_id)
+      comparison_days = client_sum(field, :comparison, project_id: project_id)
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
@@ -236,13 +267,16 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_average),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def time_to_move_in_median
+    def time_to_move_in_median(project_id: nil)
       field = :days_homeless_before_move_in
-      reporting_days = client_data(field, :reporting)
-      comparison_days = client_data(field, :comparison)
+      reporting_days = client_data(field, :reporting, project_id: project_id)
+      comparison_days = client_data(field, :comparison, project_id: project_id)
 
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
@@ -259,13 +293,16 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_median),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def so_positive_destinations
+    def so_positive_destinations(project_id: nil)
       field = :so_destination
-      reporting_destinations = client_data(field, :reporting)
-      comparison_destinations = client_data(field, :comparison)
+      reporting_destinations = client_data(field, :reporting, project_id: project_id)
+      comparison_destinations = client_data(field, :comparison, project_id: project_id)
       reporting_denominator = reporting_destinations.select(&:positive?).count
       reporting_numerator = reporting_destinations.select do |d|
         d.in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
@@ -290,13 +327,16 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_numerator),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def es_sh_th_rrh_positive_destinations
+    def es_sh_th_rrh_positive_destinations(project_id: nil)
       field = :es_sh_th_rrh_destination
-      reporting_destinations = client_data(field, :reporting)
-      comparison_destinations = client_data(field, :comparison)
+      reporting_destinations = client_data(field, :reporting, project_id: project_id)
+      comparison_destinations = client_data(field, :comparison, project_id: project_id)
       reporting_denominator = reporting_destinations.select(&:positive?).count
       reporting_numerator = reporting_destinations.select do |d|
         d.in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
@@ -321,13 +361,16 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_numerator),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def moved_in_positive_destinations
+    def moved_in_positive_destinations(project_id: nil)
       field = :moved_in_destination
-      reporting_destinations = client_data(field, :reporting)
-      comparison_destinations = client_data(field, :comparison)
+      reporting_destinations = client_data(field, :reporting, project_id: project_id)
+      comparison_destinations = client_data(field, :comparison, project_id: project_id)
       reporting_denominator = reporting_destinations.select(&:positive?).count
       reporting_numerator = reporting_destinations.select do |d|
         d.in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS_OR_STAYER)
@@ -352,21 +395,24 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_numerator),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def returned_in_six_months
-      returned_in_range(1..180, __method__)
+    def returned_in_six_months(project_id: nil)
+      returned_in_range(1..180, __method__, project_id: project_id)
     end
 
-    def returned_in_twenty_two_years
-      returned_in_range(1..180, __method__)
+    def returned_in_twenty_two_years(project_id: nil)
+      returned_in_range(1..180, __method__, project_id: project_id)
     end
 
-    def returned_in_range(range, meth)
+    def returned_in_range(range, meth, project_id: nil)
       field = :days_to_return
-      reporting_returns = client_data(field, :reporting)
-      comparison_returns = client_data(field, :comparison)
+      reporting_returns = client_data(field, :reporting, project_id: project_id)
+      comparison_returns = client_data(field, :comparison, project_id: project_id)
       reporting_denominator = reporting_returns.select(&:positive?).count
       reporting_numerator = reporting_returns.select do |d|
         d.between?(range.first, range.last)
@@ -391,18 +437,21 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_numerator),
+        system_level: project_id.blank?,
+        project_id: project_id,
+        goal: goal(field),
       )
     end
 
-    def stayers_with_increased_income
-      increased_income(:increased_income, :income_stayer, __method__)
+    def stayers_with_increased_income(project_id: nil)
+      increased_income(:increased_income, :income_stayer, __method__, project_id: project_id)
     end
 
-    def leavers_with_increased_income
-      increased_income(:increased_income, :income_leaver, __method__)
+    def leavers_with_increased_income(project_id: nil)
+      increased_income(:increased_income, :income_leaver, __method__, project_id: project_id)
     end
 
-    def increased_income(income_field, status_field, meth)
+    def increased_income(income_field, status_field, meth, project_id: nil)
       reporting_denominator = client_count(status_field, :reporting)
       comparison_denominator = client_count(status_field, :comparison)
       reporting_numerator = client_count(income_field, :reporting)
@@ -423,36 +472,48 @@ module PerformanceMeasurement::ResultCalculation
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: number_with_delimiter(comparison_numerator),
+        system_level: project_id.blank?,
+        project_id: project_id,
       )
     end
 
-    def results_for(field)
-      results.find_by(field: field)
+    def result_for(field, project_id: nil)
+      return results.find_by(field: field, system_level: true) if project_id.blank?
+
+      results.find_by(field: field, project_id: project_id)
     end
 
     def save_results
-      results = [
-        count_of_sheltered_homeless_clients,
-        count_of_homeless_clients,
-        count_of_unsheltered_homeless_clients,
-        first_time_homeless_clients,
-        length_of_homeless_stay_average,
-        length_of_homeless_stay_median,
-        time_to_move_in_average,
-        time_to_move_in_median,
-        so_positive_destinations,
-        es_sh_th_rrh_positive_destinations,
-        moved_in_positive_destinations,
-        returned_in_six_months,
-        returned_in_twenty_two_years,
-        stayers_with_increased_income,
-        leavers_with_increased_income,
-        # TODO: additional metrics
-      ]
+      results = result_methods.map { |method| send(method) }
+      projects.each do |project|
+        result_methods.each do |method|
+          results << send(method, project_id: project.project_id)
+        end
+      end
       PerformanceMeasurement::Result.transaction do
         PerformanceMeasurement::Result.where(report_id: id).delete_all
         PerformanceMeasurement::Result.import(results)
       end
+    end
+
+    private def result_methods
+      [
+        :count_of_sheltered_homeless_clients,
+        :count_of_homeless_clients,
+        :count_of_unsheltered_homeless_clients,
+        :first_time_homeless_clients,
+        :length_of_homeless_stay_average,
+        :length_of_homeless_stay_median,
+        :time_to_move_in_average,
+        :time_to_move_in_median,
+        :so_positive_destinations,
+        :es_sh_th_rrh_positive_destinations,
+        :moved_in_positive_destinations,
+        :returned_in_six_months,
+        :returned_in_twenty_two_years,
+        :stayers_with_increased_income,
+        :leavers_with_increased_income,
+      ]
     end
   end
 end

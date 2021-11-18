@@ -28,17 +28,27 @@ module PerformanceMeasurement::Details
       detail_hash[key][:calculation_description]
     end
 
-    def data_for_system_level_bar(key)
-      results = results_for(key)
-      {
-        x: 'x',
-        columns: [
-          ['x', filter.comparison_range_words, filter.date_range_words],
-          [results.primary_unit, results.comparison_primary_value, results.primary_value],
-        ],
-        type: 'bar',
-      }
+    def my_projects(user, key)
+      project_details(key).select do |project_id, _|
+        user.viewable_project_ids.include?(project_id)
+      end
     end
+    memoize :my_projects
+
+    def other_projects(user, key)
+      project_details(key).select do |project_id, _|
+        user.viewable_project_ids.exclude?(project_id)
+      end
+    end
+    memoize :other_projects
+
+    def project_details(key)
+      results.project.left_outer_joins(:hud_project).
+        order(p_t[:ProjectName].asc, p_t[GrdaWarehouse::Hud::Project.project_type_column].asc).
+        for_field(key).
+        index_by(&:project_id)
+    end
+    memoize :project_details
 
     private def detail_hash
       @detail_hash ||= {
@@ -56,7 +66,7 @@ module PerformanceMeasurement::Details
         },
         count_of_unsheltered_homeless_clients: {
           category: 'Rare',
-          title: 'Number of Sheltered Homeless People',
+          title: 'Number of Unsheltered Homeless People',
           goal_description: 'The CoC will reduce total counts of unsheltered homeless in HMIS by X% annually',
           calculation_description: 'The difference (as a percentage) between the number of un-duplicated total unsheltered homeless persons reported in HMIS (via SO projects) and the previous reporting period’s count',
         },
