@@ -50,7 +50,7 @@ module HudApr::Generators::Shared::Fy2021
       table_name = 'Q14b'
       metadata = {
         header_row: [' '] + sub_populations.keys,
-        row_labels: yes_know_dkn_clauses(a_t[:domestic_violence]).keys,
+        row_labels: yes_know_dkn_clauses(a_t[:currently_fleeing]).keys,
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
@@ -61,13 +61,13 @@ module HudApr::Generators::Shared::Fy2021
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       sub_populations.values.each_with_index do |population_clause, col_index|
-        yes_know_dkn_clauses(a_t[:domestic_violence]).values.each_with_index do |dv_clause, row_index|
+        yes_know_dkn_clauses(a_t[:currently_fleeing]).values.each_with_index do |dv_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
 
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
             where(adult_or_hoh_clause). # only valid for HoH and adults
-            where(a_t[:currently_fleeing].eq(1)). # Q14b requires currently fleeing
+            where(a_t[:domestic_violence].eq(1)). # Q14b requires DV
             where(population_clause).
             where(dv_clause)
           answer.add_members(members)
