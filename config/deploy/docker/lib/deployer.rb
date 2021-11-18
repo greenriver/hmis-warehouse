@@ -255,7 +255,7 @@ class Deployer
       image_manifest: manifest
     }
     response = ecr.put_image(putparams)
-    File.open("./tmp/latest-tag-log--#{image_tag}--#{image_tag_latest}--#{Time.now.strftime('%m-%d--%H:%M:%S')}", 'w') { |file| file.write(response.to_h.inspect) }
+    Rails.logger.info response.to_h.inspect
     puts ">> Latest tag '#{image_tag_latest}' is now even with '#{image_tag}'"
   end
 
