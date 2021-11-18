@@ -92,7 +92,7 @@ module HudApr::Generators::Shared::Fy2021
           disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
 
           health_and_dv = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= @report.end_date }.
+            select { |h| h.InformationDate <= @report.end_date && !h.DomesticViolenceVictim.nil? }.
             max_by(&:InformationDate)
 
           last_bed_night = enrollment.services.select do |s|
