@@ -7,6 +7,9 @@ Date:  20 AUG 2021
 
 	10.2 Get Counts of Enrollments Active after Operating End Date by ProjectID
 */
+
+	delete from lsa_Calculated  where ReportRow in (58,59)
+
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
@@ -28,6 +31,9 @@ Date:  20 AUG 2021
 /*
 	10.3 Get Counts of Night-by-Night Enrollments with Exit Date Discrepancies
 */
+
+	delete from lsa_Calculated where ReportRow in (60,61) 
+
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
@@ -62,6 +68,9 @@ Date:  20 AUG 2021
 /*
 	10.4 Get Counts of Households with no Enrollment CoC Record
 */
+
+	delete from lsa_Calculated where ReportRow = 62
+
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)

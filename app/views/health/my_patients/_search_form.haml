@@ -1,6 +1,0 @@
-.mt-5
-  = search_form_for @q, url: health_my_patients_path, method: :get do |f|
-    .input-group{style: 'margin-bottom: 20px;'}
-      = f.search_field :full_text_search, label: false, class: 'form-control'
-      %span.input-group-append
-        %button.btn.btn-secondary{type: :submit} Search
