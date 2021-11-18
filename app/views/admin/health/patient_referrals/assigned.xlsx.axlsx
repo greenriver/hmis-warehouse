@@ -25,6 +25,7 @@ wb.add_worksheet(name: 'Agency Assigned') do |sheet|
         pr.aco_name.presence || pr.aco&.short_name,
         pr.assigned_agency&.name,
       ],
+      types: [:string, :string, :string, :date, :date, :string, :string],
       style: [text, text, text, nil, nil, text, text],
     )
   end
