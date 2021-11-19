@@ -10,7 +10,7 @@ module PerformanceMeasurement
     acts_as_paranoid
 
     belongs_to :report
-    belongs_to :hud_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :project_id
+    belongs_to :hud_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :project_id, optional: true
 
     scope :for_field, ->(field) do
       where(field: field)

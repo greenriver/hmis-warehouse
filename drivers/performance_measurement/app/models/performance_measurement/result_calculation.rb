@@ -76,7 +76,7 @@ module PerformanceMeasurement::ResultCalculation
 
       clients.joins(:client_projects).
         merge(PerformanceMeasurement::ClientProject.where(project_id: project_id)).
-        where(column => true).count
+        where(column => true).distinct.count
     end
 
     def client_sum(field, period, project_id: nil)
@@ -85,7 +85,7 @@ module PerformanceMeasurement::ResultCalculation
 
       clients.joins(:client_projects).
         merge(PerformanceMeasurement::ClientProject.where(project_id: project_id)).
-        where.not(column => nil).sum(column)
+        where.not(column => nil).distinct.sum(column)
     end
 
     def client_data(field, period, project_id: nil)
@@ -95,11 +95,12 @@ module PerformanceMeasurement::ResultCalculation
       clients.
         joins(:client_projects).
         merge(PerformanceMeasurement::ClientProject.where(project_id: project_id)).
-        where.not(column => nil).pluck(column)
+        where.not(column => nil).distinct.pluck(column)
     end
 
     def count_of_sheltered_homeless_clients(project_id: nil)
       field = :served_on_pit_date_sheltered
+
       reporting_count = client_count(field, :reporting, project_id: project_id)
       comparison_count = client_count(field, :comparison, project_id: project_id)
 
@@ -109,12 +110,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_count, comparison_count),
         direction: direction(field, reporting_count, comparison_count),
-        primary_value: number_with_delimiter(reporting_count),
+        primary_value: reporting_count,
         primary_unit: 'clients',
         secondary_value: percent_changed(reporting_count, comparison_count),
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_count),
+        comparison_primary_value: comparison_count,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -122,12 +123,10 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     # NOTE: SPM does not include SO, so this needs to be done based on SHS
-    # FIXME: this doesn't seem to be working correctly for projects
     def count_of_homeless_clients(project_id: nil)
       field = :served_on_pit_date
       reporting_count = client_count(field, :reporting, project_id: project_id)
       comparison_count = client_count(field, :comparison, project_id: project_id)
-      # binding.pry if project_id == 4239
 
       PerformanceMeasurement::Result.new(
         report_id: id,
@@ -135,12 +134,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_count, comparison_count),
         direction: direction(field, reporting_count, comparison_count),
-        primary_value: number_with_delimiter(reporting_count),
+        primary_value: reporting_count,
         primary_unit: 'clients',
         secondary_value: percent_changed(reporting_count, comparison_count),
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_count),
+        comparison_primary_value: comparison_count,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -159,12 +158,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_count, comparison_count),
         direction: direction(field, reporting_count, comparison_count),
-        primary_value: number_with_delimiter(reporting_count),
+        primary_value: reporting_count,
         primary_unit: 'clients',
         secondary_value: percent_changed(reporting_count, comparison_count),
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_count),
+        comparison_primary_value: comparison_count,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -182,12 +181,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_count, comparison_count),
         direction: direction(field, reporting_count, comparison_count),
-        primary_value: number_with_delimiter(reporting_count),
+        primary_value: reporting_count,
         primary_unit: 'clients',
         secondary_value: percent_of(reporting_count - comparison_count, comparison_count),
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_count),
+        comparison_primary_value: comparison_count,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -210,12 +209,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_average, nil),
         direction: direction(field, reporting_average, comparison_average),
-        primary_value: number_with_delimiter(reporting_average),
+        primary_value: reporting_average,
         primary_unit: 'days',
         secondary_value: percent_of(reporting_average - comparison_average, comparison_average),
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_average),
+        comparison_primary_value: comparison_average,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -236,12 +235,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_median, nil),
         direction: direction(field, reporting_median, comparison_median),
-        primary_value: number_with_delimiter(reporting_median),
+        primary_value: reporting_median,
         primary_unit: 'days',
         secondary_value: percent_of(reporting_median - comparison_median, comparison_median),
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_median),
+        comparison_primary_value: comparison_median,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -263,12 +262,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_average, nil),
         direction: direction(field, reporting_average, comparison_average),
-        primary_value: number_with_delimiter(reporting_average),
+        primary_value: reporting_average,
         primary_unit: 'days',
         secondary_value: percent_of(reporting_average - comparison_average, comparison_average),
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_average),
+        comparison_primary_value: comparison_average,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -289,12 +288,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_median, nil),
         direction: direction(field, reporting_median, comparison_median),
-        primary_value: number_with_delimiter(reporting_median),
+        primary_value: reporting_median,
         primary_unit: 'days',
         secondary_value: percent_of(reporting_median - comparison_median, comparison_median),
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_median),
+        comparison_primary_value: comparison_median,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -323,12 +322,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_percent, nil),
         direction: direction(field, reporting_percent, comparison_percent),
-        primary_value: number_with_delimiter(reporting_numerator),
+        primary_value: reporting_numerator,
         primary_unit: 'clients',
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_numerator),
+        comparison_primary_value: comparison_numerator,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -357,12 +356,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_percent, nil),
         direction: direction(field, reporting_percent, comparison_percent),
-        primary_value: number_with_delimiter(reporting_numerator),
+        primary_value: reporting_numerator,
         primary_unit: 'clients',
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_numerator),
+        comparison_primary_value: comparison_numerator,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -391,12 +390,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(__method__.to_sym),
         passed: passed?(field, reporting_percent, nil),
         direction: direction(field, reporting_percent, comparison_percent),
-        primary_value: number_with_delimiter(reporting_numerator),
+        primary_value: reporting_numerator,
         primary_unit: 'clients',
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_numerator),
+        comparison_primary_value: comparison_numerator,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -433,12 +432,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(meth.to_sym),
         passed: passed?(field, reporting_percent, nil),
         direction: direction(field, reporting_percent, comparison_percent),
-        primary_value: number_with_delimiter(reporting_numerator),
+        primary_value: reporting_numerator,
         primary_unit: 'clients',
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_numerator),
+        comparison_primary_value: comparison_numerator,
         system_level: project_id.blank?,
         project_id: project_id,
         goal: goal(field),
@@ -468,12 +467,12 @@ module PerformanceMeasurement::ResultCalculation
         title: detail_title_for(meth.to_sym),
         passed: passed?(income_field, reporting_percent, comparison_percent),
         direction: direction(income_field, reporting_percent, comparison_percent),
-        primary_value: number_with_delimiter(reporting_numerator),
+        primary_value: reporting_numerator,
         primary_unit: 'clients',
         secondary_value: reporting_percent,
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: number_with_delimiter(comparison_numerator),
+        comparison_primary_value: comparison_numerator,
         system_level: project_id.blank?,
         project_id: project_id,
       )
@@ -494,7 +493,7 @@ module PerformanceMeasurement::ResultCalculation
       end
       PerformanceMeasurement::Result.transaction do
         PerformanceMeasurement::Result.where(report_id: id).delete_all
-        PerformanceMeasurement::Result.import(results)
+        PerformanceMeasurement::Result.import!(results, batch_size: 5_000)
       end
     end
 

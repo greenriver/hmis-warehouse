@@ -11,7 +11,7 @@ module PerformanceMeasurement
 
     belongs_to :report
     belongs_to :hud_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :project_id
-    has_many :client_projects
+    has_many :client_projects, primary_key: [:project_id, :report_id], foreign_key: [:project_id, :report_id]
 
     scope :reporting_period, -> do
       where(reporting_period: true)

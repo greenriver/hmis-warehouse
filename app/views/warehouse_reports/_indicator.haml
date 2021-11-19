@@ -13,7 +13,7 @@
             %div{class: [base_value_classname, "#{base_value_classname}--#{key.to_s.gsub('_value', '')}"]}
               %span.c-indicator__value-number
                 - if defined?(link)
-                  = link_to(indicator[value_key], link, target: :_blank)
+                  = link_to(number_with_delimiter(indicator[value_key]), link, target: :_blank)
                 - else
                   = indicator[value_key]
               %span.c-indicator__value-unit= indicator[unit_key]

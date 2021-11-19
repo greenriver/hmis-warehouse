@@ -39271,6 +39271,20 @@ CREATE INDEX index_pm_client_projects_on_project_id ON public.pm_client_projects
 
 
 --
+-- Name: index_pm_client_projects_on_project_id_and_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_client_projects_on_project_id_and_report_id ON public.pm_client_projects USING btree (project_id, report_id);
+
+
+--
+-- Name: index_pm_client_projects_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_client_projects_on_report_id ON public.pm_client_projects USING btree (report_id);
+
+
+--
 -- Name: index_pm_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39303,6 +39317,13 @@ CREATE INDEX index_pm_clients_on_report_id ON public.pm_clients USING btree (rep
 --
 
 CREATE INDEX index_pm_projects_on_deleted_at ON public.pm_projects USING btree (deleted_at);
+
+
+--
+-- Name: index_pm_projects_on_project_id_and_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_projects_on_project_id_and_report_id ON public.pm_projects USING btree (project_id, report_id);
 
 
 --
@@ -46177,6 +46198,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211115191349'),
 ('20211117145404'),
 ('20211117181217'),
-('20211118175318');
+('20211118175318'),
+('20211119184203');
 
 

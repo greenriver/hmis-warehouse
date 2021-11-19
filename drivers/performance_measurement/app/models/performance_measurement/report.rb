@@ -214,21 +214,23 @@ module PerformanceMeasurement
                 period: variant_name,
               }
             end
+            report_clients[client_id] = report_client
           end
           reset_filter
         end
       end
 
-      Client.import(
+      Client.import!(
         report_clients.values,
+        batch_size: 5_000,
         on_duplicate_key_update: {
           conflict_target: [:id],
           columns: Client.attribute_names.map(&:to_sym),
         },
       )
-      Project.import([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] })
+      Project.import!([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] }, batch_size: 5_000)
       # binding.pry
-      ClientProject.import(project_clients.first.keys, project_clients.map(&:values))
+      ClientProject.import!(project_clients.first.keys, project_clients.map(&:values), batch_size: 5_000)
       universe.add_universe_members(report_clients)
     end
 
@@ -243,7 +245,7 @@ module PerformanceMeasurement
     private def extra_calculations
       [
         {
-          key: :served_on_pit_date, # FIXME
+          key: :served_on_pit_date,
           data: ->(filter) {
             {}.tap do |project_types_by_client_id|
               report_scope.joins(:service_history_services, :project, :client).
@@ -257,7 +259,7 @@ module PerformanceMeasurement
                 end
             end
           },
-          value_calculation: ->(calculation, client_id, data) { # FIXME
+          value_calculation: ->(calculation, client_id, data) {
             details = data[client_id]
             return unless details.present?
 
@@ -306,7 +308,7 @@ module PerformanceMeasurement
       options[:user_id] = User.setup_system_user.id
 
       # TODO: remove this
-      if false # Rails.env.development?
+      if Rails.env.development?
         # for testing
         variants.values.reverse.each.with_index do |spec, i|
           spec[:report] = HudReports::ReportInstance.order(id: :desc).first(2)[i]
@@ -356,29 +358,6 @@ module PerformanceMeasurement
             },
           ],
         },
-        # SO is not included in this calculation in the SPM, need to find an alternate approach
-        # {
-        #   cells: [['3.2', 'C2']],
-        #   title: 'Sheltered Clients',
-        #   history_source: :m3_history,
-        #   questions: [
-        #     {
-        #       name: :served_on_pit_date,
-        #       value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
-        #     },
-        #   ],
-        # },
-        # {
-        #   cells: [['3.2', 'C2']],
-        #   title: 'Sheltered Clients',
-        #   history_source: :m3_history,
-        #   questions: [
-        #     {
-        #       name: :served_on_pit_date_unsheltered,
-        #       value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
-        #     },
-        #   ],
-        # },
         {
           cells: [['5.1', 'C4']],
           title: 'First Time',
@@ -446,7 +425,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['2a', 'C7']], # NOTE: we'd like D7, but it's calculated
+          cells: [['2', 'C7']], # NOTE: we'd like D7, but it's calculated
           title: 'Returned to Homelessness Within 6 months',
           history_source: :m2_history,
           questions: [
@@ -492,33 +471,5 @@ module PerformanceMeasurement
         },
       ]
     end
-
-    # def calculate(variant, field, calculation, options)
-    #   cell = "spm_#{field}"
-    #   scope = clients.send(variant).send(cell)
-
-    #   value = case calculation
-
-    #   when :count
-    #     scope.count
-    #   when :average
-    #     scope.average(cell)
-    #   when :median
-    #     scope.median(cell)
-    #   when :percent
-    #     # denominator should always be the "all" variant
-    #     denominator = clients.send('spm_all_persons__all').send(options[:total]).count
-    #     (scope.count / denominator.to_f) * 100 unless denominator.zero?
-    #   when :count_destinations
-    #     # spm_m7a1_destination
-    #     rc_t = Client.arel_table
-    #     scope.where(
-    #       rc_t[:spm_m7a1_destination].in(Array.wrap(options[:destination])).
-    #       or(rc_t[:spm_m7b1_destination].in(Array.wrap(options[:destination]))),
-    #     ).count
-    #   end
-    #   value&.round(1) || 0
-    # end
-    # memoize :calculate
   end
 end

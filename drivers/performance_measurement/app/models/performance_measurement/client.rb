@@ -11,6 +11,6 @@ module PerformanceMeasurement
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
-    has_many :client_projects, primary_key: :client_id, foreign_key: :client_id
+    has_many :client_projects, primary_key: [:client_id, :report_id], foreign_key: [:client_id, :report_id]
   end
 end
