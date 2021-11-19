@@ -841,7 +841,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 364,
+      "line": 367,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`",
       "render_path": null,
@@ -1203,7 +1203,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 80,
+      "line": 84,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.where.not(\"#{period}_#{field}\" => nil).sum(\"#{period}_#{field}\")",
       "render_path": null,
@@ -1539,6 +1539,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "9e626462f22a08347326d27ec9314b106f457512771f13a91fb042ac605d0207",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
+      "line": 88,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(:project_id => project_id)).where.not(\"#{period}_#{field}\" => nil).sum(\"#{period}_#{field}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMeasurement::ResultCalculation",
+        "method": "client_sum"
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "a005f0450a283e9aa0cfbb7447941c9b23a6b49277b9e02d914765b5ccf577cc",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1794,7 +1814,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 85,
+      "line": 93,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.where.not(\"#{period}_#{field}\" => nil).pluck(\"#{period}_#{field}\")",
       "render_path": null,
@@ -1999,6 +2019,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "c9110b6084eed04e9e9186b4a82f7e8657bf0c847f4ec62933377f272b57519b",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
+      "line": 79,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(:project_id => project_id)).where(\"#{period}_#{field}\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMeasurement::ResultCalculation",
+        "method": "client_count"
+      },
+      "user_input": "period",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "cc6ebf15e95f7fb90fd0f2c9861623ef42bfa69d297ee8c0c51583fc7b582cd7",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -2123,7 +2163,7 @@
       "check_name": "Render",
       "message": "Render path contains parameter value",
       "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/_need_map.haml",
-      "line": 32,
+      "line": 25,
       "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
       "code": "render(action => report_scope.find(params[:id].to_i).map_type, {})",
       "render_path": [
@@ -2235,6 +2275,26 @@
       },
       "user_input": "(HmisCsvTwentyTwenty::Aggregated::Enrollment.column_names & HmisCsvImporter::Aggregated::Enrollment.column_names)",
       "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "e48349f2eabf4e8b5ece0f8ad3e29cb2ac2bcb87f5f6f7e2d2a14968d4263b99",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
+      "line": 98,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(:project_id => project_id)).where.not(\"#{period}_#{field}\" => nil).pluck(\"#{period}_#{field}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceMeasurement::ResultCalculation",
+        "method": "client_data"
+      },
+      "user_input": "period",
+      "confidence": "Weak",
       "note": ""
     },
     {
@@ -2497,6 +2557,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-11-17 20:37:46 +0000",
+  "updated": "2021-11-19 01:03:46 +0000",
   "brakeman_version": "5.0.4"
 }
