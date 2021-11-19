@@ -10,7 +10,7 @@ module PerformanceMeasurement
     acts_as_paranoid
 
     belongs_to :client, primary_key: :client_id, foreign_key: :client_id
-    belongs_to :project
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
     belongs_to :report
 
     scope :reporting_period, -> do

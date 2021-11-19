@@ -122,10 +122,12 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     # NOTE: SPM does not include SO, so this needs to be done based on SHS
+    # FIXME: this doesn't seem to be working correctly for projects
     def count_of_homeless_clients(project_id: nil)
       field = :served_on_pit_date
       reporting_count = client_count(field, :reporting, project_id: project_id)
       comparison_count = client_count(field, :comparison, project_id: project_id)
+      # binding.pry if project_id == 4239
 
       PerformanceMeasurement::Result.new(
         report_id: id,

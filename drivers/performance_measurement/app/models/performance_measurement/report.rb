@@ -227,6 +227,7 @@ module PerformanceMeasurement
         },
       )
       Project.import([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] })
+      # binding.pry
       ClientProject.import(project_clients.first.keys, project_clients.map(&:values))
       universe.add_universe_members(report_clients)
     end
@@ -242,7 +243,7 @@ module PerformanceMeasurement
     private def extra_calculations
       [
         {
-          key: :served_on_pit_date,
+          key: :served_on_pit_date, # FIXME
           data: ->(filter) {
             {}.tap do |project_types_by_client_id|
               report_scope.joins(:service_history_services, :project, :client).
@@ -256,7 +257,7 @@ module PerformanceMeasurement
                 end
             end
           },
-          value_calculation: ->(calculation, client_id, data) {
+          value_calculation: ->(calculation, client_id, data) { # FIXME
             details = data[client_id]
             return unless details.present?
 
