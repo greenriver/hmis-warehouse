@@ -255,7 +255,7 @@ class Deployer
       image_manifest: manifest
     }
     response = ecr.put_image(putparams)
-    logfile = File.join('tmp',  "latest-tag-log--#{image_tag}--#{image_tag_latest}--#{Time.current.to_s(:db)}")
+    logfile = File.join('tmp',  "latest-tag-log--#{image_tag}--#{image_tag_latest}--#{Time.now.strftime('%m-%d--%H:%M:%S')}")
     File.write(logfile, response.to_h.inspect)
     puts ">> Latest tag '#{image_tag_latest}' is now even with '#{image_tag}'"
   end
