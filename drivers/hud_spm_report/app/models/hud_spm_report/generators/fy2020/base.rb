@@ -845,7 +845,7 @@ module HudSpmReport::Generators::Fy2020
       stays = stays.hud_project_type(table_2_project_types)
       exits = exits.hud_project_type(table_2_project_types)
 
-      process_scope_by_client(question_name, stays, SHE_COLUMNS) do |_client, client_enrollments|
+      process_scope_by_client(question_name, stays, SHE_COLUMNS) do |client, client_enrollments|
         last_stay = client_enrollments.max_by { |e| e[:first_date_in_program] }
         # puts "#{table_2_dest_field} checking stay #{last_stay}"
 

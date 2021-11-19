@@ -306,7 +306,7 @@ module PerformanceMeasurement
       options[:user_id] = User.setup_system_user.id
 
       # TODO: remove this
-      if Rails.env.development?
+      if false # Rails.env.development?
         # for testing
         variants.values.reverse.each.with_index do |spec, i|
           spec[:report] = HudReports::ReportInstance.order(id: :desc).first(2)[i]
