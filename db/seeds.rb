@@ -299,6 +299,6 @@ setup_fake_user() if Rails.env.development?
 maintain_data_sources()
 GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
 maintain_health_seeds()
-install_shapes()
+# install_shapes() # run manually as needed
 maintain_lookups()
 maintain_system_groups()

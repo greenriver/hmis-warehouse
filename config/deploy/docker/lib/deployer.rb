@@ -255,7 +255,8 @@ class Deployer
       image_manifest: manifest
     }
     response = ecr.put_image(putparams)
-    Rails.logger.info response.to_h.inspect
+    logfile = File.join('tmp',  "latest-tag-log--#{image_tag}--#{image_tag_latest}--#{Time.current.to_s(:db)}")
+    File.write(logfile, response.to_h.inspect)
     puts ">> Latest tag '#{image_tag_latest}' is now even with '#{image_tag}'"
   end
 
