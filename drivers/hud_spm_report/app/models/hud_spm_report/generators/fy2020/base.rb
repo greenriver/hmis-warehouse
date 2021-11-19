@@ -876,7 +876,7 @@ module HudSpmReport::Generators::Fy2020
         )
 
       # puts "#{table_2_dest_field} running #{table_2_exits.to_sql}"
-      process_scope_by_client(question_name, table_2_exits, SHE_COLUMNS) do |_client, client_enrollments|
+      process_scope_by_client(question_name, table_2_exits, SHE_COLUMNS) do |client, client_enrollments|
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
         # puts "#{table_2_dest_field} checking exit #{last_exit}"
 
