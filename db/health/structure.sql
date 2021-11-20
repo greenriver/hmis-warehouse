@@ -1852,7 +1852,8 @@ CREATE TABLE public.ed_ip_visits (
     medicaid_id character varying,
     admit_date date,
     encounter_major_class character varying,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    encounter_id character varying
 );
 
 
@@ -3104,7 +3105,8 @@ CREATE TABLE public.loaded_ed_ip_visits (
     member_record_number character varying,
     patient_identifier character varying,
     patient_url character varying,
-    admitted_inpatient character varying
+    admitted_inpatient character varying,
+    encounter_id character varying
 );
 
 
@@ -6376,6 +6378,13 @@ CREATE INDEX index_ed_ip_visit_files_on_user_id ON public.ed_ip_visit_files USIN
 
 
 --
+-- Name: index_ed_ip_visits_on_encounter_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ed_ip_visits_on_encounter_id ON public.ed_ip_visits USING btree (encounter_id);
+
+
+--
 -- Name: index_ed_ip_visits_on_loaded_ed_ip_visit_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6915,6 +6924,13 @@ CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING bt
 
 
 --
+-- Name: med_claim_member_procedure_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX med_claim_member_procedure_index ON public.claims_reporting_medical_claims USING btree (member_id, procedure_code);
+
+
+--
 -- Name: patients_client_id_constraint; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7290,6 +7306,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210607182656'),
 ('20210726193142'),
 ('20210806150431'),
+('20210928134057'),
 ('20211005200728'),
 ('20211006152632'),
 ('20211006152946'),
@@ -7297,6 +7314,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211006154441'),
 ('20211006204046'),
 ('20211029203229'),
-('20211029203304');
+('20211029203304'),
+('20211115191038');
 
 

@@ -1,20 +1,23 @@
 wb = xlsx_package.workbook
 
-wb.add_worksheet(name: "User Logins") do |sheet|
+wb.add_worksheet(name: 'User Logins') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
 
-  sheet.add_row([
-    'First Name',
-    'Last Name',
-    'Email',
-    'Agency',
-    'Last Login',
-  ], :style => title)
+  sheet.add_row(
+    [
+      'First Name',
+      'Last Name',
+      'Email',
+      'Agency',
+      'Last Login',
+    ],
+    style: title,
+  )
 
   @users.each do |user|
     row = [
-      user.last_name,
       user.first_name,
+      user.last_name,
       user.email,
       user.agency.name,
       user.current_sign_in_at,

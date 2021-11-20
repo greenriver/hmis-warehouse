@@ -11,18 +11,11 @@
 .state-map#comparison-map
 .d-flex
   .state-map-comparison-legend.ml-auto.mr-auto.d-flex
-    - colors = @report.chart_color_shades(:map_primary_color)
-    - colors.each_with_index do |color, i|
-      - division_size = max_rate / colors.count
-      - division_start = i * division_size
-      - division_end = (i + 1) * division_size
-      - division_end = division_end.round
-      - # range = if division_end == 1.0 then "#{division_start.round(1)}+" else "#{division_start.round(1)} - #{division_end}" end
-      - range = if division_end == 1 then "#{division_start.round}+" else "#{division_start.round}% - #{division_end}%" end
+    - @report.map_colors.each do |color, color_data|
       .ml-4
         .color-box.mr-auto.ml-auto.p-2{style: "background-color: #{color}; width: 20px; height: 20px; border: 1px solid \#CCCCCC;"}
         .color-range
-          = range
+          = color_data[:description]
 .d-flex
   .ml-auto.mr-auto.d-flex
     Percentage of homeless population
@@ -36,7 +29,7 @@
     const state = #{@report.state_shape.to_json.html_safe}
     const shapes = #{@report.map_shapes.to_json.html_safe}
     const data = #{data.to_json.html_safe}
-    const comparison_colors = #{colors.to_json.html_safe}
+    const comparison_colors = #{@report.map_colors.keys.to_json.html_safe}
 
     let selected_date = $('.jQuarters').data('dates')[$('.jQuarters').val()];
     let comparison_data = data.homeless_map

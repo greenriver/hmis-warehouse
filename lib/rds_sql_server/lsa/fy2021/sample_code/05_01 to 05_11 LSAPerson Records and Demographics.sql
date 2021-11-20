@@ -56,6 +56,7 @@ Date:  13 OCT 2021
 		, n.Step = '5.2.2'
 	from lsa_Report rpt
 	inner join tlsa_Enrollment n on n.EntryDate <= rpt.ReportEnd
+	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID and hhid.AHAR = 1
 	where n.Active = 1
 		and (n.ExitDate is null or n.ExitDate > rpt.ReportStart)
 		and n.LSAProjectType not in (3,13)
@@ -65,6 +66,7 @@ Date:  13 OCT 2021
 		, n.Step = '5.2.3'
 	from lsa_Report rpt
 	inner join tlsa_Enrollment n on n.EntryDate <= rpt.ReportEnd
+	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID and hhid.AHAR = 1
 	where n.Active = 1 
 		and n.MoveInDate is not null
 		and (n.ExitDate is null or n.ExitDate > (select ReportStart from lsa_Report)) 

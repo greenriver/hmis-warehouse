@@ -217,8 +217,9 @@ class Deployer
   end
 
   def _add_latest_tag!
+    puts "[INFO] Update latest tag for '#{image_tag}':"
     if image_tag_latest.nil?
-      puts "[INFO] Skipping latest tag. No latest tag set (probably this is the pre-cache image)."
+      puts ">> Skipping, no latest tag set (this is the pre-cache image)."
       return
     end
 
@@ -232,7 +233,7 @@ class Deployer
     images = ecr.batch_get_image(getparams).images
 
     if images.count == 2 && images[0].image_id.image_digest == images[1].image_id.image_digest
-      puts "[INFO] Skipping latest tag. This image has already been pushed with a latest tag for this environment."
+      puts ">> Latest tag '#{image_tag_latest}' is already even with tag '#{image_tag}'."
       return
     elsif images.count > 2
       raise "More than two images found during latest-* check, something is wrong."
@@ -253,7 +254,10 @@ class Deployer
       image_tag: image_tag_latest,
       image_manifest: manifest
     }
-    ecr.put_image(putparams)
+    response = ecr.put_image(putparams)
+    logfile = File.join('tmp',  "latest-tag-log--#{image_tag}--#{image_tag_latest}--#{Time.now.strftime('%m-%d--%H:%M:%S')}")
+    File.write(logfile, response.to_h.inspect)
+    puts ">> Latest tag '#{image_tag_latest}' is now even with '#{image_tag}'"
   end
 
   def _check_secrets!

@@ -82,6 +82,7 @@ module BostonHmis
     config.hmis_exporters = []
     config.synthetic_event_types = []
     config.synthetic_assessment_types = []
+    config.patient_dashboards = []
     config.hmis_migrations = {}
     config.hmis_data_lake = nil
     config.custom_imports = []

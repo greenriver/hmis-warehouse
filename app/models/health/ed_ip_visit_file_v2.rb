@@ -28,6 +28,7 @@ module Health
         visit_type: 'Visit Type',
         encounter_facility: 'Visit Facility',
         admitted_inpatient: 'Admitted Inpatient',
+        encounter_id: 'Encounter ID',
       }
     end
 
