@@ -65,6 +65,108 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
         ],
         # TODO: Enforce Race and Gender constraints?
+        Female: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        Male: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        NoSingleGender: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        Transgender: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        Questioning: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        GenderNone: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.gender_none.freeze },
+          },
+        ],
+        AmIndAKNative: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        Asian: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        BlackAfAmerican: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        NativeHIPacific: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        White: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_missing.freeze },
+          },
+        ],
+        RaceNone: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.race_none.freeze },
+          },
+        ],
       }
     end
 

@@ -306,6 +306,10 @@ module HUD
   end
 
   # 1.6
+  def gender_none(id, reverse = false)
+    race_none(id, reverse)
+  end
+
   def race_none(id, reverse = false)
     map = {
       8 => 'Client doesn\'t know',
