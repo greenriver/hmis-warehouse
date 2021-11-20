@@ -143,7 +143,11 @@ module ClientAccessControl::GrdaWarehouse::Hud
             # days included in adjusted days that are not also served by a residential project
             adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
             homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: enrollments)
-            most_recent_service = dates_served.max
+            most_recent_service = if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
+              dates_served.max
+            else
+              entry.service_history_services.service_excluding_extrapolated.maximum(:date)
+            end
             new_episode = new_episode?(enrollments: enrollments, enrollment: entry)
             {
               client_source_id: entry.source_client.id,

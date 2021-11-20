@@ -5,7 +5,7 @@
       .col-sm-3
         = f.input :on, collection: @hud_filter.chronic_days, label: 'Chronic on Date',input_html: {class: 'jFilterOn'}, as: :select_two
       .col-sm-2
-        = f.input :min_age, collection: @hud_filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control'
+        = f.input :min_age, collection: @hud_filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control', as: :select_two
       .col-sm-4
         = f.input :individual, as: :boolean, label: 'Individuals only', class: 'form-control', wrapper_html: {class: 'mb-0', data: {toggle: 'tooltip', title: 'Limit to clients who have not presented with a family in the last 3 years.'}}
         = f.input :dmh, as: :boolean, label: 'DMH only', class: 'form-control', wrapper_html: {class: 'mb-0', data: {toggle: 'tooltip', title: 'Limit to clients enrolled in a DMH Project.'}}
@@ -13,7 +13,7 @@
         = f.input :hoh, as: :boolean, label: 'Heads-of-household only', class: 'form-control', wrapper_html: {class: 'mb-0'}
     .row
       .col-sm-4
-        = f.input :last_service_after, label: 'Received Homeless Service After', collection: @hud_filter.date_ranges, include_blank: false
+        = f.input :last_service_after, label: 'Received Homeless Service After', collection: @hud_filter.date_ranges, include_blank: false, as: :select_two
 
     .panel-footer
       = f.button :submit, value: 'Search'

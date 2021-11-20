@@ -326,11 +326,12 @@ module GrdaWarehouse::Hud
         select(:client_id).distinct)
     end
 
-    scope :has_homeless_service_between_dates, ->(start_date: 31.days.ago, end_date: Date.current) do
-      where(id:
-        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
-        where(date: (start_date..end_date)).
-        select(:client_id).distinct)
+    scope :has_homeless_service_between_dates, ->(start_date: 31.days.ago, end_date: Date.current, include_extrapolated: true) do
+      shs_query = GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
+        where(date: (start_date..end_date))
+      return where(id: shs_query.select(:client_id).distinct) if include_extrapolated
+
+      where(id: shs_query.service_excluding_extrapolated.select(:client_id).distinct)
     end
 
     scope :full_text_search, ->(text) do
