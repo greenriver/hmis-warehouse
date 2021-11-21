@@ -71,7 +71,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         Male: [
@@ -80,7 +80,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         NoSingleGender: [
@@ -89,7 +89,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         Transgender: [
@@ -98,7 +98,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         Questioning: [
@@ -107,13 +107,13 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         GenderNone: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.race_gender_none_options.freeze },
+            arguments: { valid_options: HUD.race_gender_none_options.keys.map(&:to_s).freeze },
           },
         ],
         AmIndAKNative: [
@@ -122,7 +122,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         Asian: [
@@ -131,7 +131,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         BlackAfAmerican: [
@@ -140,7 +140,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         NativeHIPacific: [
@@ -149,7 +149,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         White: [
@@ -158,13 +158,13 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.freeze },
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         RaceNone: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.race_gender_none_options.freeze },
+            arguments: { valid_options: HUD.race_gender_none_options.keys.map(&:to_s).freeze },
           },
         ],
       }
