@@ -180,8 +180,15 @@ module PerformanceMeasurement
               report_client[:dob] = spm_client[:dob]
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
+
                 spm_client[parts[:history_source]].each do |row|
-                  involved_projects << row['project_id']
+                  begin
+                    involved_projects << row['project_id']
+                  rescue
+                    # FIXME: this appears to be an inconsistent storage, either hash, or array, sometimes
+                    # with a wrapper key of exit, reentry, service, etc.
+                    # binding.pry
+                  end
                   project_clients << {
                     report_id: id,
                     client_id: spm_client[:client_id],
