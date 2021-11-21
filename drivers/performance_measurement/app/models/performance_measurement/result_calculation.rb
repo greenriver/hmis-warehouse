@@ -44,6 +44,8 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def percent_changed(reporting_count, comparison_count)
+      return 0 unless reporting_count.present? && comparison_count.present?
+
       ((reporting_count - comparison_count) / comparison_count.to_f) * 100
     end
 
@@ -74,28 +76,43 @@ module PerformanceMeasurement::ResultCalculation
       column = "#{period}_#{field}"
       return clients.where(column => true).count if project_id.blank?
 
-      clients.joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where(project_id: project_id)).
+      @client_counts ||= {}
+      @client_counts[column] ||= clients.joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where.not(project_id: nil)).
+        group(:project_id).
         where(column => true).distinct.count
+      @client_counts[column][project_id] || 0
     end
 
     def client_sum(field, period, project_id: nil)
       column = "#{period}_#{field}"
       return clients.where.not(column => nil).sum(column) if project_id.blank?
 
-      clients.joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where(project_id: project_id)).
+      @client_sums ||= {}
+      @client_sums[column] ||= clients.joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where.not(project_id: nil)).
+        group(:project_id).
         where.not(column => nil).distinct.sum(column)
+      @client_sums[column][project_id] || 0
     end
 
     def client_data(field, period, project_id: nil)
       column = "#{period}_#{field}"
       return clients.where.not(column => nil).pluck(column) if project_id.blank?
 
+      @client_datas ||= {}
+      existing = @client_datas.dig(column)
+      return existing.dig(project_id) || [] if existing.present?
+
       clients.
         joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where(project_id: project_id)).
-        where.not(column => nil).distinct.pluck(column)
+        merge(PerformanceMeasurement::ClientProject.where.not(project_id: nil)).
+        where.not(column => nil).distinct.pluck(:project_id, column).each do |p_id, value|
+          @client_datas[column] ||= {}
+          @client_datas[column][p_id] ||= []
+          @client_datas[column][p_id] << value
+        end
+      @client_datas.dig(column, project_id) || []
     end
 
     def count_of_sheltered_homeless_clients(project_id: nil)

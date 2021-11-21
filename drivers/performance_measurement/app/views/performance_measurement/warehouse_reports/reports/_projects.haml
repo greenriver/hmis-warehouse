@@ -5,7 +5,6 @@
   .well
     - my_projects.each do |project_id, result|
       %h3= result.hud_project.name_and_type
-      = project_id
       .d-flex.mb-6
         .w-50= render 'warehouse_reports/indicator', indicator: result
         .w-50

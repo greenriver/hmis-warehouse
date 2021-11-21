@@ -181,14 +181,9 @@ module PerformanceMeasurement
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
 
-                spm_client[parts[:history_source]].each do |row|
-                  begin
-                    involved_projects << row['project_id']
-                  rescue
-                    # FIXME: this appears to be an inconsistent storage, either hash, or array, sometimes
-                    # with a wrapper key of exit, reentry, service, etc.
-                    # binding.pry
-                  end
+                # note history columns are arranged {enrollments: [{project_id: 1}, {project_id: 2}]}
+                spm_client[parts[:history_source]].values.flatten.each do |row|
+                  involved_projects << row['project_id']
                   project_clients << {
                     report_id: id,
                     client_id: spm_client[:client_id],
