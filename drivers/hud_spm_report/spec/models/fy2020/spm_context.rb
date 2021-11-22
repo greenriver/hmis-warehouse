@@ -81,7 +81,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     # relative to our own spec fixture files
     file_path = File.join('drivers/hud_spm_report/spec/fixtures/files', file_path)
 
-    import_hmis_csv_fixture(file_path)
+    import_hmis_csv_fixture(file_path, version: 'AutoMigrate')
     GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
   end
 end
