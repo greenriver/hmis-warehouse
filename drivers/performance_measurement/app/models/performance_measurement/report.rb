@@ -231,7 +231,6 @@ module PerformanceMeasurement
         },
       )
       Project.import!([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] }, batch_size: 5_000)
-      # binding.pry
       ClientProject.import!(project_clients.first.keys, project_clients.map(&:values), batch_size: 5_000)
       universe.add_universe_members(report_clients)
     end
@@ -309,26 +308,25 @@ module PerformanceMeasurement
       # Because we want data back for all projects in the CoC we need to run this as the System User who will have access to everything
       options[:user_id] = User.setup_system_user.id
 
-      # TODO: remove this
-      if Rails.env.development?
-        # for testing
-        variants.values.reverse.each.with_index do |spec, i|
-          spec[:report] = HudReports::ReportInstance.order(id: :desc).first(2)[i]
-        end
-      else
-        generator = HudSpmReport::Generators::Fy2020::Generator
-        variants.each do |_, spec|
-          processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
-          processed_filter.update(options.deep_merge(spec[:options]))
-          report = HudReports::ReportInstance.from_filter(
-            processed_filter,
-            generator.title,
-            build_for_questions: questions,
-          )
-          generator.new(report).run!(email: false, manual: false)
-          spec[:report] = report
-        end
+      # Re-enable the following if you don't want to have to run SPMs during development
+      # if Rails.env.development?
+      #   variants.values.reverse.each.with_index do |spec, i|
+      #     spec[:report] = HudReports::ReportInstance.order(id: :desc).first(2)[i]
+      #   end
+      # else
+      generator = HudSpmReport::Generators::Fy2020::Generator
+      variants.each do |_, spec|
+        processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
+        processed_filter.update(options.deep_merge(spec[:options]))
+        report = HudReports::ReportInstance.from_filter(
+          processed_filter,
+          generator.title,
+          build_for_questions: questions,
+        )
+        generator.new(report).run!(email: false, manual: false)
+        spec[:report] = report
       end
+      # end
       # return @variants with reports for each question
       variants
     end
