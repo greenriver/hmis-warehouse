@@ -78,6 +78,13 @@ module CasClientData
       ]
     end
 
+    def most_recent_pathways_or_rrh_assessment_for_destination
+      @most_recent_pathways_or_rrh_assessment_for_destination ||= source_clients.map(&:most_recent_pathways_or_rrh_assessment).
+        compact.
+        select { |a| a.AssessmentDate.present? }.
+        max_by(&:AssessmentDate)
+    end
+
     def active_in_cas?
       return false if deceased? || moved_in_with_ph?
 

@@ -48,7 +48,7 @@ module GrdaWarehouse::Tasks
               :processed_service_history,
               :hmis_client,
               :source_disabilities,
-              most_recent_pathways_or_rrh_assessment: :assessment_questions,
+              source_clients: { most_recent_pathways_or_rrh_assessment: :assessment_questions },
               cohort_clients: :cohort,
             ).
               where(id: client_id_batch).find_each do |client|

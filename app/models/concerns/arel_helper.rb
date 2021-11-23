@@ -155,7 +155,7 @@ module ArelHelper
       end
 
       direction = :desc unless direction.in?([:asc, :desc])
-      group_columns = Array.wrap(group_on).map { |c| source_arel_table[c] }
+      group_columns = Array.wrap(group_on).map { |c| scope.arel_table[c] }
 
       max_by_group = source.distinct_on(group_columns).
         order(*group_columns, source_arel_table[column].send(direction))

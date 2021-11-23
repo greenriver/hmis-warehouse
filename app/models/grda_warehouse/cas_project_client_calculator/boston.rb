@@ -13,7 +13,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     def value_for_cas_project_client(client:, column:)
       current_value = client.send(column)
       # Return existing value if we don't have anything in the new format
-      return current_value unless client.most_recent_pathways_or_rrh_assessment.present?
+      return current_value unless client.most_recent_pathways_or_rrh_assessment_for_destination.present?
 
       case column
       when *boolean_lookups.keys
@@ -58,20 +58,20 @@ module GrdaWarehouse::CasProjectClientCalculator
     memoize :pathways_questions
 
     private def for_boolean(client, key)
-      client.most_recent_pathways_or_rrh_assessment.
+      client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement(key, '1').
         present?
     end
 
     private def family_member(client)
-      response = client.most_recent_pathways_or_rrh_assessment.
+      response = client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_additional_household_members')
       response&.AssessmentAnswer&.to_i&.positive?
     end
 
     private def child_in_household(client)
       ages = (1..5).map do |i|
-        client.most_recent_pathways_or_rrh_assessment.
+        client.most_recent_pathways_or_rrh_assessment_for_destination.
           question_matching_requirement("c_member#{i}_age")&.AssessmentAnswer.presence
       end.compact
       return false if ages.blank?
@@ -83,7 +83,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_youth_choice	1	Youth-specific only: (Youth-specific programs are with agencies who have a focus on young populations; they may be able to offer drop-in spaces for youth, as well as community-building and connections with other youth)
       # c_youth_choice	2	Adult programs only: (Adult programs serve youth who are 18-24, but may not have built in community space or activities to connect with other youth. They can help you find those opportunities. The adult RRH programs typically have more frequent openings)
       # c_youth_choice	3	Both Adult and youth-specific programs
-      client.most_recent_pathways_or_rrh_assessment.
+      client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_youth_choice')&.AssessmentAnswer.in?([1, 3])
     end
 
@@ -91,12 +91,12 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_survivor_choice	1	Domestic Violence (DV)-specific only: (agencies who have a focus on populations experiencing violence; they may be able to offer specialized services for survivors in-house, such as support groups, clinical services, and legal services)
       # c_survivor_choice	2	Non-DV programs only (serve people fleeing violence, but may need to link you to outside, specialized agencies for services such as DV support groups, clinical services and legal services. Non-DV RRH programs typically have more frequent openings)
       # c_survivor_choice	3	Both DV and non-DV programs
-      client.most_recent_pathways_or_rrh_assessment.
+      client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_survivor_choice')&.AssessmentAnswer.in?([1, 3])
     end
 
     private def required_number_of_bedrooms(client)
-      bedrooms = client.most_recent_pathways_or_rrh_assessment.
+      bedrooms = client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_larger_room_size')&.AssessmentAnswer
       return unless bedrooms.present?
 
@@ -109,7 +109,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_disability_accomodations	5	Both Wheelchair accessible and First Floor/Elevator
       # c_disability_accomodations	3	Other accessibility
       # c_disability_accomodations	4	Not applicable
-      client.most_recent_pathways_or_rrh_assessment.
+      client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.in?([2, 5])
     end
 
@@ -119,7 +119,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_disability_accomodations	5	Both Wheelchair accessible and First Floor/Elevator
       # c_disability_accomodations	3	Other accessibility
       # c_disability_accomodations	4	Not applicable
-      client.most_recent_pathways_or_rrh_assessment.
+      client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.in?([1, 5])
     end
 
@@ -145,14 +145,14 @@ module GrdaWarehouse::CasProjectClientCalculator
         'c_neighborhood_westroxbury' => 'West Roxbury',
       }
       names = neighborhoods.map do |key, name|
-        name if client.most_recent_pathways_or_rrh_assessment.
+        name if client.most_recent_pathways_or_rrh_assessment_for_destination.
           question_matching_requirement(key, '1').present?
       end.compact
       Cas::Neighborhood.neighborhood_ids_from_names(names)
     end
 
     private def days_homeless_in_last_three_years_cached(client)
-      days = client.most_recent_pathways_or_rrh_assessment.
+      days = client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer
       return days if days.present?
 
@@ -160,7 +160,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def literally_homeless_last_three_years_cached(client)
-      days = client.most_recent_pathways_or_rrh_assessment.
+      days = client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer
       return days if days.present?
 
@@ -170,14 +170,14 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def default_shelter_agency_contacts(client)
       # TODO: this is being moved to custom pull from Clarity
 
-      # client.most_recent_pathways_or_rrh_assessment.
+      # client.most_recent_pathways_or_rrh_assessment_for_destination.
       #   question_matching_requirement('c_casemanager_contacts')&.AssessmentAnswer
     end
 
     private def cas_assessment_name(client)
       # c_housing_assessment_name	1	Pathways
       # c_housing_assessment_name	2	RRH-PSH Transfer
-      value = client.most_recent_pathways_or_rrh_assessment.
+      value = client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_housing_assessment_name')&.AssessmentAnswer
       return 'IdentifiedClientAssessment' unless value.present?
 
@@ -185,6 +185,18 @@ module GrdaWarehouse::CasProjectClientCalculator
         1 => 'PathwaysVersionThreePathways',
         2 => 'PathwaysVersionThreeTransfer',
       }[value.to_i] || 'IdentifiedClientAssessment'
+    end
+
+    private def max_current_total_monthly_income(client)
+      amount = client.most_recent_pathways_or_rrh_assessment_for_destination.
+        question_matching_requirement('c_hh_estimated_annual_gross')&.AssessmentAnswer
+      return amount if amount.present?
+
+      client.source_enrollments.open_on_date(Date.current).map do |enrollment|
+        enrollment.income_benefits.limit(1).
+          order(InformationDate: :desc).
+          pluck(:TotalMonthlyIncome).first
+      end.compact.max || 0
     end
   end
 end
