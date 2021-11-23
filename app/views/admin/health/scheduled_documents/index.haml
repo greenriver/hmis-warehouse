@@ -1,0 +1,32 @@
+- content_for :title,  'Scheduled Documents'
+%h1= content_for :title
+
+= render 'menus/health_admin_tabs'
+
+.row
+  .col.text-right
+    .btn-group
+      %button.btn.btn-default.dropdown-toggle(type='button' data-toggle='dropdown')
+        New Scheduled Document
+        %span.caret
+      %ul.dropdown-menu.dropdown-menu-right
+        %li
+          = link_to new_admin_health_scheduled_document_path(type: 'Health::ScheduledDocuments::EnrollmentDisenrollment') do
+            Enrollment-Disenrollment Files
+
+.row.mt-4
+  %table.table.table-striped
+    %thead
+      %th Document Name
+      %th Destination
+      %th Last Run At
+      %th
+    %tbody
+      - @scheduled_documents.each do |document|
+        %tr
+          %td= link_to document.name, edit_admin_health_scheduled_document_path(document)
+          %td= document.hostname
+          %td= document.last_run_at
+          %td
+            = link_to admin_health_scheduled_document_path(document), method: :delete, data: {confirm: 'Are you sure you want to delete this scheduled document?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+              %i.icon-cross

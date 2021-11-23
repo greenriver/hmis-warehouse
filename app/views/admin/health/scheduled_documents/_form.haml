@@ -1,0 +1,20 @@
+.row
+  .col
+    = f.input :name
+.row
+  .col-2
+    = f.input :protocol, as: :select_two, collection: available_protocols
+  .col-8
+    = f.input :hostname
+  .col-2
+    = f.input :port
+.row
+  .col-6
+    = f.input :username
+  .col-6
+    = f.input :password
+.row
+  .col
+    = f.input :file_path
+
+= render @scheduled_document, f: f
