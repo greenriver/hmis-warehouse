@@ -53,6 +53,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :days_homeless_in_last_three_years_cached,
         :literally_homeless_last_three_years_cached,
         :cas_assessment_name,
+        :max_current_total_monthly_income,
       ]
     end
     memoize :pathways_questions
@@ -76,7 +77,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       end.compact
       return false if ages.blank?
 
-      ages.min < 18
+      ages.map(&:to_i).min < 18
     end
 
     private def youth_rrh_desired(client)
@@ -84,7 +85,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_youth_choice	2	Adult programs only: (Adult programs serve youth who are 18-24, but may not have built in community space or activities to connect with other youth. They can help you find those opportunities. The adult RRH programs typically have more frequent openings)
       # c_youth_choice	3	Both Adult and youth-specific programs
       client.most_recent_pathways_or_rrh_assessment_for_destination.
-        question_matching_requirement('c_youth_choice')&.AssessmentAnswer.in?([1, 3])
+        question_matching_requirement('c_youth_choice')&.AssessmentAnswer.to_s.in?(['1', '3'])
     end
 
     private def dv_rrh_desired(client)
@@ -92,7 +93,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_survivor_choice	2	Non-DV programs only (serve people fleeing violence, but may need to link you to outside, specialized agencies for services such as DV support groups, clinical services and legal services. Non-DV RRH programs typically have more frequent openings)
       # c_survivor_choice	3	Both DV and non-DV programs
       client.most_recent_pathways_or_rrh_assessment_for_destination.
-        question_matching_requirement('c_survivor_choice')&.AssessmentAnswer.in?([1, 3])
+        question_matching_requirement('c_survivor_choice')&.AssessmentAnswer.to_s.in?(['1', '3'])
     end
 
     private def required_number_of_bedrooms(client)
@@ -110,7 +111,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_disability_accomodations	3	Other accessibility
       # c_disability_accomodations	4	Not applicable
       client.most_recent_pathways_or_rrh_assessment_for_destination.
-        question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.in?([2, 5])
+        question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.to_s.in?(['2', '5'])
     end
 
     private def requires_wheelchair_accessibility(client)
@@ -120,7 +121,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_disability_accomodations	3	Other accessibility
       # c_disability_accomodations	4	Not applicable
       client.most_recent_pathways_or_rrh_assessment_for_destination.
-        question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.in?([1, 5])
+        question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.to_s.in?(['1', '5'])
     end
 
     private def neighborhood_ids_for_cas(client)
@@ -190,7 +191,10 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def max_current_total_monthly_income(client)
       amount = client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_hh_estimated_annual_gross')&.AssessmentAnswer
-      return amount if amount.present?
+      if amount.present?
+        amount = amount.to_i
+        return (amount / 12).round if amount.positive?
+      end
 
       client.source_enrollments.open_on_date(Date.current).map do |enrollment|
         enrollment.income_benefits.limit(1).

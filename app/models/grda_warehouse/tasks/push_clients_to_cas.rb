@@ -33,7 +33,6 @@ module GrdaWarehouse::Tasks
         @client_ids = client_source.pluck(:id)
         updated_clients = []
         update_columns = (Cas::ProjectClient.column_names - ['id']).map(&:to_sym)
-        calculator_instance = GrdaWarehouse::Config.get(:cas_calculator).constantize.new
         Cas::ProjectClient.transaction do
           Cas::ProjectClient.update_all(sync_with_cas: false)
           @client_ids.each_slice(1_000) do |client_id_batch|
@@ -53,10 +52,7 @@ module GrdaWarehouse::Tasks
             ).
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
-              project_client_columns.map do |destination, source|
-                # puts "Processing: #{destination} from: #{source}"
-                project_client[destination] = calculator_instance.value_for_cas_project_client(client: client, column: source)
-              end
+              project_client.assign_attributes(attributes_for_cas_project_client(client))
 
               case GrdaWarehouse::Config.get(:cas_days_homeless_source)
               when 'days_homeless_plus_overrides'
@@ -118,7 +114,7 @@ module GrdaWarehouse::Tasks
     end
 
     # TODO: Need to update this to handle new contact format from Clarity, need to add which type of assessment is being sent.
-    def project_client_columns
+    private def project_client_columns
       {
         client_identifier: :id,
         first_name: :FirstName,
@@ -147,13 +143,13 @@ module GrdaWarehouse::Tasks
         calculated_first_homeless_night: :date_of_first_service,
         domestic_violence: :domestic_violence?,
         disability_verified_on: :disability_verified_on,
-        housing_assistance_network_released_on: :consent_form_signed_on,
         sync_with_cas: :active_in_cas?,
         dmh_eligible: :dmh_eligible,
         va_eligible: :va_eligible,
         hues_eligible: :hues_eligible,
         hiv_positive: :hiv_positive,
         housing_release_status: :release_status_for_cas,
+        housing_assistance_network_released_on: :consent_form_signed_on,
         us_citizen: :us_citizen,
         asylee: :asylee,
         ineligible_immigrant: :ineligible_immigrant,
@@ -177,7 +173,7 @@ module GrdaWarehouse::Tasks
         ssvf_eligible: :ssvf_eligible,
         rrh_desired: :rrh_desired,
         youth_rrh_desired: :youth_rrh_desired,
-        rrh_assessment_contact_info: :contact_info_for_rrh_assessment, # TODO? (currently a string from ETO)
+        rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
         rrh_assessment_collected_at: :rrh_assessment_collected_at,
         requires_wheelchair_accessibility: :requires_wheelchair_accessibility,
         required_number_of_bedrooms: :required_number_of_bedrooms,
@@ -185,7 +181,7 @@ module GrdaWarehouse::Tasks
         requires_elevator_access: :requires_elevator_access,
         neighborhood_interests: :neighborhood_ids_for_cas,
         interested_in_set_asides: :interested_in_set_asides,
-        default_shelter_agency_contacts: :default_shelter_agency_contacts, # TODO: c_casemanager_contacts, but recent discussions indicate this should probably come from custom contacts file
+        default_shelter_agency_contacts: :default_shelter_agency_contacts,
         tags: :cas_tags,
         vash_eligible: :vash_eligible,
         pregnancy_status: :cas_pregnancy_status,
@@ -198,6 +194,112 @@ module GrdaWarehouse::Tasks
         health_prioritized: :health_prioritized_for_cas?,
         assessment_name: :cas_assessment_name,
       }
+    end
+
+    private def attributes_for_cas_project_client(client)
+      @calculator_instance ||= GrdaWarehouse::Config.get(:cas_calculator).constantize.new
+      {}.tap do |options|
+        project_client_columns.map do |destination, source|
+          # puts "Processing: #{destination} from: #{source}"
+          options[destination] = @calculator_instance.value_for_cas_project_client(client: client, column: source)
+        end
+      end
+    end
+
+    def attributes_for_display(user, client)
+      attributes_for_cas_project_client(client).map do |k, value|
+        next if skip_for_display(user).include?(k)
+
+        [
+          title_display_for(k),
+          value_display_for(k, value),
+        ]
+      end.compact
+    end
+
+    def title_display_for(column)
+      override = title_override(column)
+      return override if override.present?
+
+      column.to_s.humanize
+    end
+
+    def value_display_for(key, value)
+      if value.in?([true, false])
+        ApplicationController.helpers.yes_no(value)
+      elsif key == :gender
+        HUD.gender(value)
+      elsif key == :ethnicity
+        HUD.ethnicity(value)
+      elsif key == :primary_race
+        Cas::PrimaryRace.find_by_numeric(value).try(&:text)
+      elsif key.in?([:veteran_status])
+        HUD.no_yes_reasons_for_missing_data(value)
+      elsif key == :neighborhood_interests
+        value.map do |id|
+          Cas::Neighborhood.find(id).name
+        end&.to_sentence
+      elsif key == :tags
+        value.keys.map do |id|
+          Cas::Tag.find(id).name
+        end&.join('; ')
+      elsif key == :default_shelter_agency_contacts
+        value.join('; ')
+      elsif key == :active_cohort_ids
+        value.map do |id|
+          GrdaWarehouse::Cohort.find(id).name
+        end&.to_sentence
+      else
+        value
+      end
+    end
+
+    private def title_override(column)
+      @title_override = GrdaWarehouse::Hud::Client.cas_columns
+      @title_override.merge!(
+        {
+          homephone: 'Home Phone',
+          cellphone: 'Cell Phone',
+          workphone: 'Work Phone',
+          hivaids_status: 'HIV/AIDS Status',
+          consent_form_signed_on: _('Housing Release Signature Date'),
+          ssvf_eligible: 'SSVF Eligible',
+          rrh_desired: 'RRH Desired',
+          youth_rrh_desired: 'Youth RRH Desired',
+          rrh_assessment_contact_info: 'RRH Assessment Contact',
+          rrh_assessment_collected_at: 'RRH Assessment Collected Date',
+          sro_ok: 'SRO OK',
+          dv_rrh_desired: 'DV RRH Desired',
+          rrh_th_desired: 'RRH TH Desired',
+          active_cohort_ids: 'Active Cohorts',
+        },
+      )
+      @title_override[column]
+    end
+
+    private def skip_for_display(user)
+      @skip_for_display ||= Set.new.tap do |keys|
+        [
+          :client_identifier,
+          :first_name,
+          :last_name,
+          :middle_name,
+          :ssn,
+          :ssn_quality_code,
+          :date_of_birth,
+          :dob_quality_code,
+          :alternate_names,
+        ].each do |k|
+          keys << k
+        end
+        keys << :hiv_positive unless user.can_view_hiv_status?
+        keys << :hues_eligible unless user.can_view_hiv_status?
+        keys << :hivaids_status unless user.can_view_hiv_status?
+        keys << :dmh_eligible unless user.can_view_dmh_status?
+        keys << :vispdat_score unless user.can_view_vspdat?
+        keys << :vispdat_length_homeless_in_days unless user.can_view_vspdat?
+        keys << :vispdat_priority_score unless user.can_view_vspdat?
+      end
     end
   end
 end
