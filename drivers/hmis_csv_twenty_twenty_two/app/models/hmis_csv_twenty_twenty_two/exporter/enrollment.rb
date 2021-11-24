@@ -34,6 +34,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def apply_overrides(row, data_source_id:)
       id_of_enrollment = enrollment_export_id(row[:EnrollmentID], row[:PersonalID], data_source_id)
 
+      # This should never happen, but somehow it does
+      row[:ProjectID] = 'Unknown' if row[:ProjectID].blank?
+
       # NOTE: RelationshipToHoH changes must come before HouseholdID
       row[:RelationshipToHoH] = 1 if row[:RelationshipToHoH].blank? && row[:HouseholdID].blank?
       row[:RelationshipToHoH] = 99 if row[:RelationshipToHoH].blank?
