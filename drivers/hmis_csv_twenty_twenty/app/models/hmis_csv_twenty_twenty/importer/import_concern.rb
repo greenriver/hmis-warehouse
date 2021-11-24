@@ -230,8 +230,8 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
       return unless t
 
-      t = t.change(year: "20#{t.year.to_s[-2..]}") if t.year.between?(100, 1900)
-      if t.year < 100
+      t = t.change(year: "20#{t.year.to_s[-2..]}") if t.year.between?(100, 1_800)
+      if t.year < 1_000
         # We will choose between 19XX and 20XX based on the idea
         # that our dates are most likely to be in the recent past and not
         # to far into the future
