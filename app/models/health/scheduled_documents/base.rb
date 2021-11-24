@@ -12,6 +12,22 @@ module Health
 
     validates :name, presence: true
 
+    # To be implemented in subclasses:
+
+    # Generate and deliver the scheduled document
+    def deliver(_user)
+      raise 'Not implemented'
+    end
+
+    # Should the scheduled document be delivered at the current time?
+    # The processor will periodically poll the defined scheduled documents, and invoke 'deliver' on
+    # the ones that return true to this query.
+    def should_be_delivered?
+      false
+    end
+
+    # The names of the parameters that should be added to the permitted parameters list for a scheduled document
+    # class
     def params
       []
     end

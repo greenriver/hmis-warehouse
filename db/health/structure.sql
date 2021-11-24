@@ -3798,7 +3798,8 @@ CREATE TABLE public.scheduled_documents (
     last_run_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    acos integer[] DEFAULT '{}'::integer[]
+    acos integer[] DEFAULT '{}'::integer[],
+    scheduled_day integer
 );
 
 

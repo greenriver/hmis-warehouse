@@ -1,5 +1,7 @@
 %hr
 .row
-  .col
+  .col-8
     - available_acos = Health::AccountableCareOrganization.active.where.not(e_d_file_prefix: [nil, ''])
     = f.input :acos, collection: available_acos, input_html: {multiple: true}, label: 'ACO/MCOs to include', as: :select_two
+  .col-4
+    = f.input :scheduled_day
