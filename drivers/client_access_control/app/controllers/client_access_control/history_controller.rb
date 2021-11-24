@@ -57,7 +57,7 @@ module ClientAccessControl
       file_name = 'service_history.pdf'
 
       # DEBUGGING
-      # render pdf: file_name, template: "client_access_control/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
+      # render pdf: file_name, template: 'client_access_control/history/pdf', layout: false, encoding: 'UTF-8', page_size: 'Letter'#, show_as_html: true
       # return
       # END DEBUGGING
 
