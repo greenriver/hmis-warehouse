@@ -210,7 +210,7 @@ module HmisCsvImporter::Importer::ImportConcern
 
     def self.fix_time_format(string, formats: HMIS_TIME_FORMATS)
       return string if string.blank?
-      return string if string.acts_like?(:time)
+      return string if string.acts_like?(:time) && (string.starts_with?('1') || string.starts_with?('2'))
 
       # We don't care if we have slashes or hyphens
       normalized = string.tr('/', '-')
@@ -222,15 +222,16 @@ module HmisCsvImporter::Importer::ImportConcern
         next if regexp_filter && !normalized.match?(regexp_filter)
 
         t ||= begin
-                Time.zone.strptime(normalized, strptime_pattern)
-              rescue StandardError
-                nil
-              end
+          Time.zone.strptime(normalized, strptime_pattern)
+        rescue StandardError
+          nil
+        end
       end
 
       return unless t
 
-      if t.year < 100
+      t = t.change(year: "20#{t.year.to_s[-2..]}") if t.year.between?(100, 1900)
+      if t.year < 1_000
         # We will choose between 19XX and 20XX based on the idea
         # that our dates are most likely to be in the recent past and not
         # to far into the future
