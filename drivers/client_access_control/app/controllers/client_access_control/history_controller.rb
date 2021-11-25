@@ -42,7 +42,7 @@ module ClientAccessControl
       @client = ::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
       set_pdf_dates
 
-      # require_client_needing_processing!
+      require_client_needing_processing!
       # force some consistency.  We may be generating this for a client we haven't seen in over a year
       # the processed data only gets cached for those with recent enrollments
       ::GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [@client.id])
