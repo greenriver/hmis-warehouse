@@ -42,7 +42,8 @@ module ClientAccessControl
       @client = ::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
       set_pdf_dates
 
-      require_client_needing_processing!
+      return not_authorized! unless client_needing_processing?
+
       # force some consistency.  We may be generating this for a client we haven't seen in over a year
       # the processed data only gets cached for those with recent enrollments
       ::GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [@client.id])
@@ -189,10 +190,10 @@ module ClientAccessControl
       end
     end
 
-    def require_client_needing_processing!
+    def client_needing_processing?
       return true if @client.generate_history_pdf || @client.generate_manual_history_pdf
 
-      not_authorized!
+      false
     end
 
     private def client_source
