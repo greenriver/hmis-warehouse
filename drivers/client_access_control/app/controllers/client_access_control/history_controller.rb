@@ -42,7 +42,7 @@ module ClientAccessControl
       @client = ::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
       set_pdf_dates
 
-      require_client_needing_processing!
+      # require_client_needing_processing!
       # force some consistency.  We may be generating this for a client we haven't seen in over a year
       # the processed data only gets cached for those with recent enrollments
       ::GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [@client.id])
@@ -56,12 +56,15 @@ module ClientAccessControl
       @project_type_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:project_type] }.transform_values(&:count)
       file_name = 'service_history.pdf'
 
-      # DEBUGGING
-      # render pdf: file_name, template: 'client_access_control/history/pdf', layout: false, encoding: 'UTF-8', page_size: 'Letter'#, show_as_html: true
-      # return
-      # END DEBUGGING
+      template_file = 'client_access_control/history/pdf'
+      pdf = nil
+      PdfGenerator.new.perform(
+        html: render(file: template_file, layout: false),
+        file_name: file_name,
+      ) do |io|
+        pdf = io.read
+      end
 
-      pdf = render_to_string pdf: file_name, template: 'client_access_control/history/pdf', layout: false, encoding: 'UTF-8', page_size: 'Letter'
       @file = ::GrdaWarehouse::ClientFile.new
       begin
         tmp_path = Rails.root.join('tmp', "service_history_pdf_#{@client.id}.pdf")
