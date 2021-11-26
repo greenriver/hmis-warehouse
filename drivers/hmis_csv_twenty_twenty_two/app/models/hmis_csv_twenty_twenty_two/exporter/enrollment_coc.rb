@@ -43,7 +43,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
             enrollments[[e_id, ds_id]] = p_id
           end
       end
-      @project_id_from_enrollment_id[[enrollment_id, data_source_id]]
+      @project_id_from_enrollment_id[[enrollment_id, data_source_id]] || 'Unknown'
     end
   end
 end
