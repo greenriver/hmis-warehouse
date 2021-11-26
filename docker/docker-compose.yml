@@ -127,6 +127,13 @@ services:
       - 8025
       - 1025
 
+  sftp:
+    container_name: hmis-warehouse-sftp
+    image: atmoz/sftp
+    volumes:
+      - /vagrant/sftp:/home/user/sftp
+    command: user:password
+
 volumes:
   bundle_alpine:
   node_modules_alpine:
