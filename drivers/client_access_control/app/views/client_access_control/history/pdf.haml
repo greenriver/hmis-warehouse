@@ -4,9 +4,8 @@
   - content_for :title, title
   - if ENV['PRINT_LOGO'].present?
     .history__logo
-      - logo_name = ENV['PRINT_LOGO']
-      - # = image_tag("theme/logo/#{logo_name}", width: 100, height: 100) # UNCOMMENT if using show_as_html: true
-      = wicked_pdf_image_tag("theme/logo/#{logo_name}", width: 100, height: 100)
+      - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
+      = image_tag(logo, width: 100, height: 100) if logo.present?
   .history__title
     %h1= content_for :title
   .history__summary
