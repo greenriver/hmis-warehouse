@@ -1,0 +1,21 @@
+= render 'breadcrumbs'
+= render 'beta_warning'
+
+- title = _("CoC Performance Measurement Dashboard")
+- content_for :title, title
+%h1= content_for :title
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+.well.report-listing.warehouse-reports__completed
+  = @report.filter.describe_filter_as_html
+
+%table.table.c-table--indicator
+  %tbody
+    - @report.summary_table.each.with_index do |(title, group), i|
+      %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
+        %th.level.w-20{rowspan: group.count + 1}
+          .h2= title
+      - group.each do |row|
+        - key = row.first
+        %tr
+          %td
+            = render 'warehouse_reports/indicator', indicator: @report.result_for(key), link: performance_measurement_warehouse_reports_report_details_path(@report, key: key)

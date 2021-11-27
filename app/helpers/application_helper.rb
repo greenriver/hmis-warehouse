@@ -47,14 +47,9 @@ module ApplicationHelper
     checkmark_or_x(boolean, tooltip, size: size, style: style)
   end
 
-  def checkmark_or_x(boolean, tooltip = nil, size: :xs, style: :font)
-    if boolean
-      symbol_name = 'checkmark'
-      wrapper_class = 'o-color--positive'
-    else
-      symbol_name = 'cross'
-      wrapper_class = 'o-color--danger'
-    end
+  def checkmark_or_x(boolean, tooltip = nil, symbol_names: { true => 'checkmark', false => 'cross' }, wrapper_classes: { true => 'o-color--positive', false => 'o-color--danger' }, size: :xs, style: :font)
+    symbol_name = symbol_names[boolean]
+    wrapper_class = wrapper_classes[boolean]
     html_class = "#{symbol_name} #{wrapper_class}"
     case size.to_sym
     when :md
@@ -74,7 +69,7 @@ module ApplicationHelper
 
   def change_direction_icon direction, tooltip: ''
     allow_directions = [:up, :down, :none]
-    direction = :none if allow_directions.exclude? direction
+    direction = :none if allow_directions.exclude? direction.to_sym
     tooltip_data = {}
     tooltip_data = { toggle: :tooltip, title: tooltip } if tooltip.present?
     embedded_svg("change-#{direction}", options: tooltip_data)

@@ -2086,7 +2086,6 @@ Style/GlobalStdStream:
 Style/GuardClause:
   Exclude:
     - 'app/controllers/application_controller.rb'
-    - 'app/models/access_group.rb'
     - 'app/models/cas/user.rb'
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'

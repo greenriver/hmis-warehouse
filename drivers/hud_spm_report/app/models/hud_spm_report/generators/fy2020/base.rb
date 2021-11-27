@@ -68,12 +68,13 @@ module HudSpmReport::Generators::Fy2020
       first_date_in_program: :first_date_in_program,
       last_date_in_program: :last_date_in_program,
       project_type: :computed_project_type,
-      project_id: :project_id,
+      project_id: p_t[:id],
       project_name: :project_name,
       household_id: she_household_column,
       housing_status_at_entry: :housing_status_at_entry,
       housing_status_at_exit: :housing_status_at_exit,
       MoveInDate: :move_in_date,
+      head_of_household: :head_of_household,
     }.freeze
 
     # HudReports::UniverseMember scope to use for this measure
@@ -137,6 +138,7 @@ module HudSpmReport::Generators::Fy2020
         :DOB, # for add_universe_members
         :first_name, # for add_universe_members
         :last_name, # for add_universe_members
+        :VeteranStatus,
       ).find_in_batches do |batch|
         clients_by_id = batch.index_by(&:id)
         yield clients_by_id
@@ -169,7 +171,9 @@ module HudSpmReport::Generators::Fy2020
     private def age_for_report(dob:, entry_date:, age:)
       # Age should be calculated at report start or enrollment start, whichever is greater
       return age if dob.blank?
+      return age if entry_date.blank?
 
+      entry_date = entry_date.to_date
       date = if entry_date > @report.start_date
         entry_date
       else
@@ -281,11 +285,13 @@ module HudSpmReport::Generators::Fy2020
         enrollment_id: shs_t[:service_history_enrollment_id],
         date: shs_t[:date],
         project_type: shs_t[:project_type],
+        project_id: p_t[:id],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
         DateToStreetESSH: e_t[:DateToStreetESSH],
         MoveInDate: she_t[:move_in_date],
         age: shs_t[:age],
+        head_of_household: she_t[:head_of_household],
       }
 
       updated_columns = [
@@ -321,6 +327,7 @@ module HudSpmReport::Generators::Fy2020
           end.map do |enrollment_id, dates|
             {
               enrollment_id: enrollment_id,
+              project_id: dates.first[:project_id],
               DateToStreetESSH: dates.first[:DateToStreetESSH]&.iso8601,
               first_date_in_program: dates.first[:first_date_in_program]&.iso8601,
               last_date_in_program: dates.first[:last_date_in_program]&.iso8601,
@@ -329,17 +336,21 @@ module HudSpmReport::Generators::Fy2020
               pre_entry: date_ranges(dates.select { |n| n[:pre_entry] }),
               service: date_ranges(dates.reject { |n| n[:pre_move_in] || n[:pre_entry] }),
               pre_move_in: date_ranges(dates.select { |n| n[:pre_move_in] }),
+              head_of_household: dates.first[:head_of_household],
             }
           end
 
           client = clients_by_id.fetch(client_id)
           report_client = build_report_client(
             client,
-            m1_history: m1_history,
+            m1_history: { enrollments: m1_history },
             m1a_es_sh_days: calculate_valid_days_in_project_type(nights, ES_SH, PH_TH, false),
             m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights, ES_SH_TH, PH, false),
             m1b_es_sh_ph_days: calculate_valid_days_in_project_type(nights, ES_SH_PH, PH_TH, true),
             m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights, ES_SH_TH_PH, PH, true),
+            m1_reporting_age: age_for_report(dob: client.DOB, entry_date: m1_history.last[:last_date_in_program], age: m1_history.first[:age]),
+            veteran: client.veteran?,
+            m1_head_of_household: m1_history.last[:head_of_household] || false,
           )
           [client, report_client]
         end.to_h
@@ -359,9 +370,13 @@ module HudSpmReport::Generators::Fy2020
       measure_three = 'Measure 3'
       return unless add_clients_for_question?(measure_three)
 
-      process_scope_by_client(measure_three, active_enrollments_scope.hud_project_type(ES_SH_TH), SHE_COLUMNS) do |_client, enrollments|
+      process_scope_by_client(measure_three, active_enrollments_scope.hud_project_type(ES_SH_TH), SHE_COLUMNS) do |client, enrollments|
         {
           m3_active_project_types: enrollments.map { |e| e[:project_type] }.uniq,
+          m3_history: { enrollments: enrollments.map { |e| { project_id: e[:project_id] } } },
+          m3_reporting_age: age_for_report(dob: client.DOB, entry_date: enrollments.last[:last_date_in_program], age: enrollments.first[:age]),
+          veteran: client.veteran?,
+          m3_head_of_household: enrollments.last[:head_of_household] || false,
         }
       end
     end
@@ -378,7 +393,7 @@ module HudSpmReport::Generators::Fy2020
         PersonalID: c_t[:PersonalID],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
-        project_id: she_t[:project_id],
+        project_id: p_t[:id],
         project_name: she_t[:project_name],
         enrollment_group_id: she_t[:enrollment_group_id],
         project_tracking_method: she_t[:project_tracking_method],
@@ -396,7 +411,7 @@ module HudSpmReport::Generators::Fy2020
 
       # a. Select each client’s project stays in which the client was active on
       # the [report end date] in any of the relevant projects as determined in step 1.
-      process_scope_by_client(measure_four, m4_stayers_scope, stay_columns) do |_client_id, enrollments|
+      process_scope_by_client(measure_four, m4_stayers_scope, stay_columns) do |client, enrollments|
         # b. For each client, remove any stays where the [length of stay] is < 365 days.
         # Use the calculation of [length of stay] as described in the HMIS Reporting
         # Glossary, including time in the project prior to the [report start date].
@@ -442,17 +457,20 @@ module HudSpmReport::Generators::Fy2020
 
         {
           m4_stayer: true,
-          m4_history: enrollments,
+          m4_history: { enrollments: enrollments },
           m4_latest_income: final_stay[:latest_income],
           m4_latest_earned_income: final_stay[:latest_earned_income],
           m4_latest_non_earned_income: final_stay[:latest_non_earned_income],
           m4_earliest_income: final_stay[:earliest_income],
           m4_earliest_earned_income: final_stay[:earliest_earned_income],
           m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
+          m4_reporting_age: final_stay[:age],
+          veteran: client.veteran?,
+          m4_head_of_household: final_stay[:head_of_household] || false,
         }
       end
 
-      process_scope_by_client(measure_four, m4_leavers_scope, stay_columns) do |_client_id, enrollments|
+      process_scope_by_client(measure_four, m4_leavers_scope, stay_columns) do |client, enrollments|
         # c. For each client, remove all but the stay with the latest [project start date].
         final_stay = enrollments.max_by { |e| e[:first_date_in_program] }
         next unless final_stay
@@ -477,6 +495,9 @@ module HudSpmReport::Generators::Fy2020
           m4_earliest_income: final_stay[:earliest_income],
           m4_earliest_earned_income: final_stay[:earliest_earned_income],
           m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
+          m4_reporting_age: final_stay[:age],
+          veteran: client.veteran?,
+          m4_head_of_household: final_stay[:head_of_household] || false,
         }
       end
     end
@@ -493,7 +514,7 @@ module HudSpmReport::Generators::Fy2020
       # This could be merged with M3
       return unless add_clients_for_question?(measure_five)
 
-      process_scope_by_client(measure_five, m5_enrollments_scope, SHE_COLUMNS) do |_client_id, client_enrollments|
+      process_scope_by_client(measure_five, m5_enrollments_scope, SHE_COLUMNS) do |client, client_enrollments|
         # 1. Select clients entering any of the applicable project types in the report date range
         active_enrollments = client_enrollments.select do |e|
           (
@@ -540,7 +561,10 @@ module HudSpmReport::Generators::Fy2020
         {
           m5_active_project_types: active_enrollments.map { |e| e[:project_type] }.uniq,
           m5_recent_project_types: prior_enrollments.map { |e| e[:project_type] }.uniq,
-          m5_history: prior_enrollments + active_enrollments,
+          m5_history: { prior_enrollments: prior_enrollments, active_enrollments: active_enrollments },
+          m5_reporting_age: client_enrollments.last[:age],
+          veteran: client.veteran?,
+          m5_head_of_household: active_enrollments.last[:head_of_household] || false,
         }
       end
     end
@@ -572,7 +596,7 @@ module HudSpmReport::Generators::Fy2020
         hud_project_type(SO).
         where.not(client_id: m7_stays.hud_project_type(SO).select(:client_id))
 
-      process_scope_by_client('Measure 7', m7a1_exits, SHE_COLUMNS) do |_client, client_enrollments|
+      process_scope_by_client('Measure 7', m7a1_exits, SHE_COLUMNS) do |client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
@@ -585,7 +609,10 @@ module HudSpmReport::Generators::Fy2020
 
         {
           m7a1_destination: last_exit[:destination] || 99,
-          m7_history: client_enrollments,
+          m7_history: { enrollments: client_enrollments },
+          m7_reporting_age: client_enrollments.last[:age],
+          veteran: client.veteran?,
+          m7_head_of_household: client_enrollments.last[:head_of_household] || false,
         }
       end
 
@@ -658,7 +685,7 @@ module HudSpmReport::Generators::Fy2020
         # Steps 5 - 7 are handled in the subclass
         {
           table_1_dest_field => last_exit[:destination] || 99,
-          history_field => client_enrollments,
+          history_field => { enrollments: client_enrollments },
         }.tap do |data|
           # puts "FOUND #{last_exit} for #{table_1_dest_field}"
         end
@@ -689,7 +716,7 @@ module HudSpmReport::Generators::Fy2020
         # Steps 5 - 7 are handled in the subclass
         {
           table_2_dest_field => 0, # stayers may have destinations, but we note them as 0 so we can identify them
-          history_field => client_enrollments,
+          history_field => { enrollments: client_enrollments },
         }.tap do |data|
           # puts "FOUND #{last_stay} for #{table_2_dest_field}"
         end
@@ -722,7 +749,7 @@ module HudSpmReport::Generators::Fy2020
         # Steps 6 - 7 are handled in the subclass
         {
           table_2_dest_field => last_exit[:destination] || 99,
-          history_field => client_enrollments,
+          history_field => { enrollments: client_enrollments },
         }.tap do |data|
           # puts "FOUND #{last_stay} for #{table_2_dest_field}"
         end
@@ -744,6 +771,8 @@ module HudSpmReport::Generators::Fy2020
       history_field = :m7_history
       table_1_dest_field = :m7b1_destination
       table_2_dest_field = :m7b2_destination
+      reporting_age_col = :m7_reporting_age
+      head_of_household_col = :m7_head_of_household
 
       # Universe
       # Metric 7b.1: Emergency Shelter (Project Type 1), Safe Haven (project type 8), Transitional Housing (Project Type 2), and Permanent Housing-Rapid Rehousing (Project Type 13) clients who exited during the report range, plus other PH (project types 3, 9, 10) clients who exited without moving into housing.
@@ -764,7 +793,7 @@ module HudSpmReport::Generators::Fy2020
         where.not(client_id: stays.hud_project_type(table_1_project_types).select(:client_id))
 
       # puts "#{table_1_dest_field} running..."
-      process_scope_by_client(question_name, table_1_exits, SHE_COLUMNS) do |_client, client_enrollments|
+      process_scope_by_client(question_name, table_1_exits, SHE_COLUMNS) do |client, client_enrollments|
         # 2. Of the project exits selected in step 1, determine the latest
         # project exit for each client.
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
@@ -793,10 +822,13 @@ module HudSpmReport::Generators::Fy2020
           next
         end
 
+        max_enrollment = client_enrollments.max_by { |en| en[:first_date_in_program] }
         # Steps 5 - 7 are handled in the subclass
         {
           table_1_dest_field => last_exit[:destination] || 99,
-          history_field => client_enrollments,
+          history_field => { enrollments: client_enrollments },
+          reporting_age_col => age_for_report(dob: client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age]),
+          head_of_household_col => max_enrollment[:head_of_household],
         }.tap do |data|
           # puts "FOUND #{last_exit} for #{table_1_dest_field}"
         end
@@ -813,7 +845,7 @@ module HudSpmReport::Generators::Fy2020
       stays = stays.hud_project_type(table_2_project_types)
       exits = exits.hud_project_type(table_2_project_types)
 
-      process_scope_by_client(question_name, stays, SHE_COLUMNS) do |_client, client_enrollments|
+      process_scope_by_client(question_name, stays, SHE_COLUMNS) do |client, client_enrollments|
         last_stay = client_enrollments.max_by { |e| e[:first_date_in_program] }
         # puts "#{table_2_dest_field} checking stay #{last_stay}"
 
@@ -824,10 +856,13 @@ module HudSpmReport::Generators::Fy2020
           next
         end
 
+        max_enrollment = client_enrollments.max_by { |en| en[:first_date_in_program] }
         # Steps 5 - 7 are handled in the subclass
         {
           table_2_dest_field => 0, # stayers may have destinations, but we note them as 0 so we can identify them
-          history_field => client_enrollments,
+          history_field => { enrollments: client_enrollments },
+          reporting_age_col => age_for_report(dob: client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age]),
+          head_of_household_col => max_enrollment[:head_of_household],
         }.tap do |data|
           # puts "FOUND #{last_stay} for #{table_2_dest_field}"
         end
@@ -841,7 +876,7 @@ module HudSpmReport::Generators::Fy2020
         )
 
       # puts "#{table_2_dest_field} running #{table_2_exits.to_sql}"
-      process_scope_by_client(question_name, table_2_exits, SHE_COLUMNS) do |_client, client_enrollments|
+      process_scope_by_client(question_name, table_2_exits, SHE_COLUMNS) do |client, client_enrollments|
         last_exit = client_enrollments.max_by { |e| e[:last_date_in_program] }
         # puts "#{table_2_dest_field} checking exit #{last_exit}"
 
@@ -864,7 +899,9 @@ module HudSpmReport::Generators::Fy2020
         # Steps 6 - 7 are handled in the subclass
         {
           table_2_dest_field => last_exit[:destination] || 99,
-          history_field => client_enrollments,
+          history_field => { enrollments: client_enrollments },
+          reporting_age_col => age_for_report(dob: client.dob, entry_date: last_exit[:first_date_in_program], age: last_exit[:age]),
+          head_of_household_col => last_exit[:head_of_household],
         }.tap do |data|
           # puts "FOUND #{last_stay} for #{table_2_dest_field}"
         end
@@ -880,15 +917,20 @@ module HudSpmReport::Generators::Fy2020
       exit_to_destination_col = :"#{m_code}_exit_to_destination"
       reentry_days_col = :"#{m_code}_reentry_days"
       history_col = :"#{m_code}_history"
+      reporting_age_col = :"#{m_code}_reporting_age"
+      head_of_household_col = :"#{m_code}_head_of_household"
 
       updated_columns = [
         :dob,
         :first_name,
         :last_name,
+        :veteran,
         exit_from_project_type_col,
         exit_to_destination_col,
         reentry_days_col,
         history_col,
+        reporting_age_col,
+        head_of_household_col,
       ].freeze
 
       each_client_batch(m_exits_scope, start_date: lookback_start_date, end_date: @report.end_date) do |clients_by_id|
@@ -924,6 +966,7 @@ module HudSpmReport::Generators::Fy2020
             dob: client.DOB,
             first_name: client.first_name,
             last_name: client.last_name,
+            veteran: client.veteran?,
           )
 
           # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
@@ -992,6 +1035,10 @@ module HudSpmReport::Generators::Fy2020
             exit: p_exit,
             reentries: reentries,
           }
+
+          max_enrollment = reentries.max_by { |en| en[:first_date_in_program] }
+          spm_client[reporting_age_col] = age_for_report(dob: spm_client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age]) if max_enrollment.present?
+          spm_client[head_of_household_col] = max_enrollment.try(:[], :head_of_household) || false
 
           spm_clients[client] = spm_client
         end

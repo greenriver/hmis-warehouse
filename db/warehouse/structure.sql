@@ -13290,7 +13290,22 @@ CREATE TABLE public.hud_report_spm_clients (
     m7b1_destination integer,
     m7b2_destination integer,
     m7_history jsonb,
-    m3_history jsonb
+    m3_history jsonb,
+    veteran boolean DEFAULT false NOT NULL,
+    m1_head_of_household boolean DEFAULT false NOT NULL,
+    m1_reporting_age integer,
+    m2_head_of_household boolean DEFAULT false NOT NULL,
+    m2_reporting_age integer,
+    m3_head_of_household boolean DEFAULT false NOT NULL,
+    m3_reporting_age integer,
+    m4_head_of_household boolean DEFAULT false NOT NULL,
+    m4_reporting_age integer,
+    m5_head_of_household boolean DEFAULT false NOT NULL,
+    m5_reporting_age integer,
+    m6_head_of_household boolean DEFAULT false NOT NULL,
+    m6_reporting_age integer,
+    m7_head_of_household boolean DEFAULT false NOT NULL,
+    m7_reporting_age integer
 );
 
 
@@ -14563,7 +14578,11 @@ CREATE TABLE public.pm_clients (
     reporting_income_stayer boolean,
     comparison_income_stayer boolean,
     reporting_income_leaver boolean,
-    comparison_income_leaver boolean
+    comparison_income_leaver boolean,
+    reporting_served_on_pit_date_sheltered boolean DEFAULT false NOT NULL,
+    comparison_served_on_pit_date_sheltered boolean DEFAULT false NOT NULL,
+    reporting_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL,
+    comparison_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL
 );
 
 
@@ -14640,7 +14659,11 @@ CREATE TABLE public.pm_results (
     value_label character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    comparison_primary_value integer,
+    system_level boolean DEFAULT false NOT NULL,
+    project_id integer,
+    goal double precision
 );
 
 
@@ -39248,6 +39271,20 @@ CREATE INDEX index_pm_client_projects_on_project_id ON public.pm_client_projects
 
 
 --
+-- Name: index_pm_client_projects_on_project_id_and_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_client_projects_on_project_id_and_report_id ON public.pm_client_projects USING btree (project_id, report_id);
+
+
+--
+-- Name: index_pm_client_projects_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_client_projects_on_report_id ON public.pm_client_projects USING btree (report_id);
+
+
+--
 -- Name: index_pm_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39280,6 +39317,13 @@ CREATE INDEX index_pm_clients_on_report_id ON public.pm_clients USING btree (rep
 --
 
 CREATE INDEX index_pm_projects_on_deleted_at ON public.pm_projects USING btree (deleted_at);
+
+
+--
+-- Name: index_pm_projects_on_project_id_and_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pm_projects_on_project_id_and_report_id ON public.pm_projects USING btree (project_id, report_id);
 
 
 --
@@ -46150,6 +46194,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211103235413'),
 ('20211108203857'),
 ('20211109161950'),
-('20211110005810');
+('20211110005810'),
+('20211115191349'),
+('20211117145404'),
+('20211117181217'),
+('20211118175318'),
+('20211119184203');
 
 
