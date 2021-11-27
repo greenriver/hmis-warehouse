@@ -182,7 +182,12 @@ module PerformanceMeasurement
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
 
                 # note history columns are arranged {enrollments: [{project_id: 1}, {project_id: 2}]}
-                spm_client[parts[:history_source]].values.flatten.each do |row|
+                enrollments = if spm_client[parts[:history_source]].is_a?(Hash)
+                  spm_client[parts[:history_source]].values
+                else
+                  spm_client[parts[:history_source]]
+                end
+                enrollments.flatten.each do |row|
                   involved_projects << row['project_id']
                   project_clients << {
                     report_id: id,
