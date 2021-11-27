@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module PerformanceManagement::DocumentExports
+module PerformanceMeasurement::DocumentExports
   class ReportExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
@@ -36,11 +36,11 @@ module PerformanceManagement::DocumentExports
     end
 
     protected def report_class
-      PerformanceManagement::Report
+      PerformanceMeasurement::Report
     end
 
     protected def view
-      context = PerformanceManagement::WarehouseReports::ReportsController.view_paths
+      context = PerformanceMeasurement::WarehouseReports::ReportsController.view_paths
       view = ReportExportTemplate.new(context, view_assigns)
       view.current_user = user
       view
