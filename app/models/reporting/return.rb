@@ -20,14 +20,13 @@ module Reporting
 
     def source_data(ids)
       source_data_scope(ids).
-        order(service_history_enrollment_id: :asc, date: :asc)
+        order(client_id: :asc, service_history_enrollment_id: :asc, date: :asc)
     end
 
     private def source_data_scope(ids)
       GrdaWarehouse::ServiceHistoryService.
         joins(service_history_enrollment: [:project, :organization, :client]).
         homeless.
-        # in_project_type([1,2,4,8]).
         where(client_id: ids).
         where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current))
     end
@@ -42,27 +41,30 @@ module Reporting
         batch_of_stays = []
         cache_client = GrdaWarehouse::Hud::Client.new
         client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
-        data = source_data(ids)
-        first_record = data.limit(1).pluck(*source_columns.values)
-        last_day = row_to_hash(first_record)
-
+        prior_day = nil
+        day = nil
         start_date = nil
         end_date = nil
         length_of_stay = 0
+        current_client_id = nil
         # create an array with a record for each enrollment that includes the first and last date seen
-        data.pluck_in_batches(source_columns.values, batch_size: 400_000) do |batch|
+        source_data(ids).pluck_in_batches(source_columns.values, batch_size: 400_000) do |batch|
           batch.each do |row|
             day = row_to_hash(row)
+            if current_client_id.blank? || current_client_id != day[:client_id]
+              prior_day = day.dup
+              length_of_stay = 0
+            end
 
-            # add a new row
-            if day[:service_history_enrollment_id] != last_day[:service_history_enrollment_id] || last_day[:date] < (day[:date] - 1.day)
+            # add a new row if we're looking at a new enrollment or the current enrollment has a break of more than one day
+            if day[:service_history_enrollment_id] != prior_day[:service_history_enrollment_id] || prior_day[:date] < (day[:date] - 1.day)
               # save off the previous stay
-              day[:length_of_stay] = length_of_stay
-              day[:start_date] = start_date
-              day[:end_date] = end_date
-              day[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: day[:client_id])
+              prior_day[:length_of_stay] = length_of_stay
+              prior_day[:start_date] = start_date
+              prior_day[:end_date] = end_date
+              prior_day[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: day[:client_id])
 
-              batch_of_stays << day
+              batch_of_stays << prior_day
 
               # reset
               length_of_stay = 0
@@ -73,9 +75,18 @@ module Reporting
             start_date ||= day[:date]
             end_date = day[:date]
             length_of_stay += 1
-            last_day = day
+            prior_day = day
           end
         end
+        # Ensure we save the last enrollment
+        prior_day[:length_of_stay] = length_of_stay
+        prior_day[:start_date] = start_date
+        prior_day[:end_date] = end_date
+        prior_day[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: prior_day[:client_id])
+
+        batch_of_stays << prior_day
+
+        # remove "date" from the batch, it doesn't exist in the table structure
         batch_of_stays.map! do |stay|
           stay.delete(:date)
           stay
