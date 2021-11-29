@@ -10,9 +10,10 @@ module Health
 
     def perform(user)
       scheduled_document_source.each do |scheduled_document|
-        if scheduled_document.should_be_delivered?
-          scheduled_document.update(last_delivered_at: Time.current) if scheduled_document.deliver(user)
-        end
+        next unless scheduled_document.should_be_delivered?
+        next unless scheduled_document.deliver(user)
+
+        scheduled_document.update(last_delivered_at: Time.current)
       end
     end
 

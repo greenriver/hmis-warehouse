@@ -35,6 +35,8 @@ module Health
       else
         raise 'Unknown protocol'
       end
+
+      true # File was sent
     end
 
     def send_via_sftp(file_name:, data:)
