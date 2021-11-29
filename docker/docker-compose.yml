@@ -131,7 +131,7 @@ services:
     container_name: hmis-warehouse-sftp
     image: atmoz/sftp
     volumes:
-      - /vagrant/sftp:/home/user/sftp
+      - ./tmp:/home/user/sftp
     command: user:password
 
 volumes:

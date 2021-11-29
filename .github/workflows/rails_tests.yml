@@ -43,6 +43,12 @@ jobs:
         ports:
           - 6379:6379
 
+      sftp:
+        image: atmoz/sftp
+        volumes:
+          - ./tmp:/home/user/sftp
+        options: user:password
+
     steps:
       - name: Set up dependencies
         env:
