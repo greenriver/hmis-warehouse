@@ -6,21 +6,21 @@ require 'aws-sdk-glacier'
 class Rds
   attr_accessor :client
 
-  REGION             = 'us-east-1'.freeze
-  AVAILABILITY_ZONE  = 'us-east-1a'.freeze
-  ACCESS_KEY_ID      = ENV.fetch('RDS_AWS_ACCESS_KEY_ID')
-  SECRET_ACCESS_KEY  = ENV.fetch('RDS_AWS_SECRET_ACCESS_KEY')
-  USERNAME           = ENV.fetch('RDS_USERNAME')
-  PASSWORD           = ENV.fetch('RDS_PASSWORD')
-  DB_INSTANCE_CLASS  = ENV.fetch('RDS_DB_INSTANCE_CLASS')
-  DB_ENGINE          = ENV.fetch('RDS_DB_ENGINE')
-  SECURITY_GROUP_IDS = [ENV.fetch('RDS_SECURITY_GROUP_ID')].freeze
-  DEFAULT_IDENTIFIER = ENV.fetch('RDS_IDENTIFIER') { 'testing' }
-  RDS_KMS_KEY_ID     = ENV.fetch('RDS_KMS_KEY_ID')
-  DB_SUBNET_GROUP    = ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
-  MAX_WAIT_TIME      = 1.hour
+  REGION             ||= 'us-east-1'.freeze
+  AVAILABILITY_ZONE  ||= 'us-east-1a'.freeze
+  ACCESS_KEY_ID      ||= ENV.fetch('RDS_AWS_ACCESS_KEY_ID')
+  SECRET_ACCESS_KEY  ||= ENV.fetch('RDS_AWS_SECRET_ACCESS_KEY')
+  USERNAME           ||= ENV.fetch('RDS_USERNAME')
+  PASSWORD           ||= ENV.fetch('RDS_PASSWORD')
+  DB_INSTANCE_CLASS  ||= ENV.fetch('RDS_DB_INSTANCE_CLASS')
+  DB_ENGINE          ||= ENV.fetch('RDS_DB_ENGINE')
+  SECURITY_GROUP_IDS ||= [ENV.fetch('RDS_SECURITY_GROUP_ID')].freeze
+  DEFAULT_IDENTIFIER ||= ENV.fetch('RDS_IDENTIFIER') { 'testing' }
+  RDS_KMS_KEY_ID     ||= ENV.fetch('RDS_KMS_KEY_ID')
+  DB_SUBNET_GROUP    ||= ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
+  MAX_WAIT_TIME      ||= 1.hour
 
-  NEVER_STARTING_STATUSES = [
+  NEVER_STARTING_STATUSES ||= [
     'deleting',
     'failed',
     'stopped',

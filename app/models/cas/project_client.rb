@@ -8,6 +8,5 @@ module Cas
   class ProjectClient < CasBase
     belongs_to :client, class_name: 'Cas::Client', optional: true
     belongs_to :data_source, optional: true
-    belongs_to :primary_race, optional: true, primary_key: :numeric, foreign_key: :primary_race
   end
 end

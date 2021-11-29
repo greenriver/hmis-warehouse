@@ -1,18 +1,16 @@
-The icon font is generated at icomoon, using their free service.
-[Green River: We have an account, where the icon set is saved: you can get the login from JS and skip Steps 0 & 1]
-To add fonts to the package, you can either re-create the font collection and add to it, or create an additional icon set with only the new icons and include that in the site as well.
+The icon font is generated at fontello.
 
 To recreate the icon font and add to it (recommended method):
-0. At https://icomoon.io/app/#/select choose (hamburger -> Deselect) to reset the selection
-1. Select the characters/images already used in this site (see: /style_guide/icon_font)
+0. At https://fontello.com upload the existing icons.svg from this directory
+1. Select the characters/images in the Custom Icons section
 2. Add new characters/images
-3. Click 'generate font' button
-4. Click 'Download' button (zip file)
+3. Rename the font "icons"
+4. Click 'Download webfont' button (zip file)
 5. From the zipped file, copy the fonts files (eot, svg, ttf, woff) to the /app/assets/fonts directory, replacing the files already there
-6. From the zip file's style.css, in the font-face declaration at the top of the file, copy the url variable from one of the font file paths, e.g. 'emfcbl' 
-7. In the stylesheet (/app/assets/stylesheets/vendor/icomoon.scss) font-face declaration, paste in the new url variable in each font file path
-8. From the zip file's style.css, copy all of the css declarations
-9. In the stylesheet (/app/assets/stylesheets/settings/_icons.scss), paste over all of the css declarations. The icons are listed in the scss file in the order they appear in icomoon, so it's helpful for future generation to keep them in the same order.
+6. From the zip file's css/icons-embedded.css, in the font-face declaration at the top of the file, copy the url variable from one of the font file paths, e.g. 'emfcbl'
+7. In the stylesheet (/app/assets/stylesheets/application/vendor/icons.scss) font-face declaration, paste in the new url variable in each font file path
+8. From the zip file's css/icon-codes.css, copy all of the css declarations
+9. In the stylesheet (/app/assets/stylesheets/application/_settings/_icons.scss), update the list of icon contents with the new version.
 10. Make sure you update app/views/style_guide/icon_font.haml with any icons you add
 
 To view all of the icons currently in use in the app, in development or on staging, view /style_guide/icon_font

@@ -36,6 +36,7 @@ module GrdaWarehouse::Hud
     has_one :ce_assessment, -> do
       merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active)
     end, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
+    # operates on source_clients only
     has_one :most_recent_pathways_or_rrh_assessment, -> do
       one_for_column(
         :AssessmentDate,
@@ -43,7 +44,7 @@ module GrdaWarehouse::Hud
         group_on: [:PersonalID, :data_source_id],
         scope: pathways_or_rrh,
       )
-    end, **hud_assoc(:ExportID, 'Assessment')
+    end, **hud_assoc(:PersonalID, 'Assessment')
 
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
@@ -326,11 +327,12 @@ module GrdaWarehouse::Hud
         select(:client_id).distinct)
     end
 
-    scope :has_homeless_service_between_dates, ->(start_date: 31.days.ago, end_date: Date.current) do
-      where(id:
-        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
+    scope :has_homeless_service_between_dates, ->(start_date: 31.days.ago, end_date: Date.current, include_extrapolated: true) do
+      shs_query = GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
-        select(:client_id).distinct)
+        distinct
+      shs_query = shs_query.service_excluding_extrapolated unless include_extrapolated
+      where(id: shs_query.select(:client_id))
     end
 
     scope :full_text_search, ->(text) do

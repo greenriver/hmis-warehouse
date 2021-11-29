@@ -5,7 +5,7 @@
       .col-sm-3
         = f.input :on, collection: @filter.chronic_days, label: 'Chronic on Date',input_html: {class: 'jFilterOn'}, as: :select_two
       .col-sm-2
-        = f.input :min_age, collection: @filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control'
+        = f.input :min_age, collection: @filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control', as: :select_two
       .col-sm-3
         = f.input :min_days_homeless, label: 'Min. Days Homeless', as: :integer, class: 'form-control'
       .col-sm-4
@@ -15,7 +15,7 @@
         = f.input :hoh, as: :boolean, label: 'Heads-of-household only', class: 'form-control', wrapper_html: {class: 'mb-0'}
     .row
       .col-sm-4
-        = f.input :last_service_after, label: 'Received Homeless Service After', collection: @filter.date_ranges, include_blank: false
+        = f.input :last_service_after, label: 'Received Homeless Service After', collection: @filter.date_ranges, include_blank: false, as: :select_two
 
     .panel-footer
       = f.button :submit, value: 'Search'

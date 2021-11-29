@@ -1,7 +1,7 @@
 = render 'breadcrumbs'
 .row
   .col-sm-8
-    %h1 Icon Font from icomoon
+    %h1 Icon Font from https://fontello.com
     %p See the readme.md in /app/assets/fonts for instructions on adding additional characters
     %p Char codes associated with class-names located in app/assets/stylesheets/settings/_icons.scss
     %h4.mb-3 Icons Currently Available in This App
@@ -9,22 +9,69 @@
 :ruby
   # Char codes located in app/assets/stylesheets/settings/_icons.scss
   icons = %W(
-    settings_backup_restore
-    move
-    home3
+    ok-circled
+    ok-circled2
+    cancel-circled
+    cancel-circled2
+    plus-circled
+    minus-circled
+    up-circle
+    wheelchair
+    helping-hands
+    medical-provider
+    mental-health
+    nurse-clipboard
+    reminder
+    team
     pencil
+    arrow-circled-down
+    arrow-circled-right
+    move
+    settings_backup_restore
+    envelope-o
+    home3
+    group
+    users
+    child
+    user2
+    house
+    minus-circle
+    undo
+    go
+    break
+    return
+    times-circle-o
+    check-circle
+    award
+    clip-board-check
+    file-drawn
+    group-alt
+    medkit
+    passport
+    star
+    map
+    child1
+    angle-down
+    file-text
+    clock-o
+    stop
+    check
     copy
     bell
     calendar
     printer
     database
     user
-    users
+    users2
     enlarge2
     shrink2
     lock
     unlocked
+    equalizer
     cog
+    list-numbered
+    list
+    list2
     menu
     download2
     upload2
@@ -37,228 +84,29 @@
     plus
     minus
     info
+    cancel-circle
     cross
     checkmark
     checkmark2
     enter
     exit
+    arrow-up
+    arrow-right
+    arrow-down
+    arrow-left
     arrow-right2
     arrow-left2
     checkbox-checked
     checkbox-unchecked
     filter
-    arrow-circled-down
-    arrow-circled-right
-    helping-hands
-    medical-provider
-    mental-health
-    nurse-clipboard
-    reminder
-    team
-    envelope-o
-    wheelchair
-    equalizer
-    guages
-    arrow-up
-    arrow-down
-    arrow-left
-    arrow-right
-    group
-    individual
-    child
-    clock
-    stop
-    minus-circle
-    house
-    step-back
-    home3
-    file-text
-    file-excel
     file-pdf
-    list-numbered
-    list
-    list2
+    file-excel
   )
-.row
-  %ol.style-guide__icon-list
-    - icons.each do |icon|
-      .col-sm-6.mb-6
-        %i{ class: "icon-#{icon}" }
-        = icon
 
--# .row
-  .col-sm-6
-    %ol.style-guide__icon-list
-      %li
-        %i.icon-envelope-o
-        icon-envelope-o (email)
-      %li
-        %i.icon-settings_backup_restore
-        icon-settings_backup_restore (restore)
-      %li
-        %i.icon-move
-        icon-move
-      %li
-        %i.icon-home3
-        icon-home3
-      %li
-        %i.icon-arrow-circled-down
-        icon-arrow-circled-down
-      %li
-        %i.icon-arrow-circled-right
-        icon-arrow-circled-right
-      %li
-        %i.icon-helping-hands
-        icon-helping-hands (case manager)
-        -# noun project: hands by Round Pixel
-      %li
-        %i.icon-medical-provider
-        icon-medical-provider
-        -# noun project: medical sign by Royyan Wijaya
-      %li
-        %i.icon-mental-health
-        icon-mental-health
-        -# noun project: mental health by Blair Adams
-      %li
-        %i.icon-nurse-clipboard
-        icon-nurse-clipboard (nurse care manager)
-        -# noun project: clipboard by Marc Anderson
-      %li
-        %i.icon-reminder
-        icon-reminder (other important contacts)
-        -# noun project: reminder by Ryan Sun
-      %li
-        %i.icon-team
-        icon-team (team case conferences)
-        -# noun project: job interview by Delwar Hossain
-      %li
-        %i.icon-wheelchair
-        icon-wheelchair (font-awesome)
-      %li
-        %i.icon-pencil
-        icon-pencil
-      %li
-        %i.icon-copy
-        icon-copy
-      %li
-        %i.icon-bell
-        icon-bell
-      %li
-        %i.icon-calendar
-        icon-calendar
-      %li
-        %i.icon-database
-        icon-database
-      %li
-        %i.icon-user
-        icon-user
-      %li
-        %i.icon-users
-        icon-users
-      %li
-        %i.icon-enlarge2
-        icon-enlarge2
-      %li
-        %i.icon-shrink2
-        icon-shrink2
-      %li
-        %i.icon-lock
-        icon-lock
-      %li
-        %i.icon-unlocked
-        icon-unlocked
-      %li
-        %i.icon-cog
-        icon-cog
-      %li
-        %i.icon-menu
-        icon-menu
-      %li
-        %i.icon-guages
-        icon-guages
-      %li
-        %i.icon-arrow-up
-        icon-arrow-up
-      %li
-        %i.icon-arrow-down
-        icon-arrow-down
-      %li
-        %i.icon-arrow-left
-        icon-arrow-left
-      %li
-        %i.icon-arrow-right
-        icon-arrow-right
-  .col-sm-6
-    %ol.style-guide__icon-list
-      %li
-        %i.icon-download2
-        icon-download2
-      %li
-        %i.icon-upload2
-        icon-upload2
-      %li
-        %i.icon-flag
-        icon-flag
-      %li
-        %i.icon-eye
-        icon-eye
-      %li
-        %i.icon-eye-blocked
-        icon-eye-blocked
-      %li
-        %i.icon-warning
-        icon-warning
-      %li
-        %i.icon-notification
-        icon-notification
-      %li
-        %i.icon-question
-        icon-question
-      %li
-        %i.icon-plus
-        icon-plus
-      %li
-        %i.icon-minus
-        icon-minus
-      %li
-        %i.icon-info
-        icon-info
-      %li
-        %i.icon-cross
-        icon-cross
-      %li
-        %i.icon-checkmark
-        icon-checkmark
-      %li
-        %i.icon-checkmark2
-        icon-checkmark2
-      %li
-        %i.icon-enter
-        icon-enter
-      %li
-        %i.icon-exit
-        icon-exit
-      %li
-        %i.icon-arrow-right2
-        icon-arrow-right2
-      %li
-        %i.icon-filter
-        icon-filter
-      %li
-        %i.icon-printer
-        icon-printer
-      %li
-        %i.icon-checkbox-checked
-        icon-checkbox-checked
-      %li
-        %i.icon-checkbox-unchecked
-        icon-checkbox-unchecked
-      %li
-        %i.icon-group
-        icon-group
-      %li
-        %i.icon-individual
-        icon-individual
-      %li
-        %i.icon-child
-        icon-child
+.style-guide__icon-list
+  - icons.each_slice(4) do |icons|
+    .row
+      - icons.each do |icon|
+        .col-sm-3.mb-6
+          %i{ class: "icon-#{icon}" }
+          %pre= ".icon-#{icon}"
