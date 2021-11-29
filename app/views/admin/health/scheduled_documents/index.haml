@@ -19,6 +19,7 @@
     %thead
       %th Document Name
       %th Destination
+      %th Active?
       %th Last Run At
       %th
     %tbody
@@ -26,7 +27,9 @@
         %tr
           %td= link_to document.name, edit_admin_health_scheduled_document_path(document)
           %td= document.hostname
+          %td= checkmark_or_x(document.active)
           %td= document.last_run_at
           %td
-            = link_to admin_health_scheduled_document_path(document), method: :delete, data: {confirm: 'Are you sure you want to delete this scheduled document?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+            = link_to admin_health_scheduled_document_path(document), method: :delete, data: {confirm: "Are you sure you want to delete #{document.name}?"}, class: 'btn btn-danger btn-sm btn-icon-only' do
+
               %i.icon-cross

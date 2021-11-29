@@ -14,6 +14,14 @@ module Health
 
     validates :name, presence: true
 
+    scope :active, -> do
+      where(active: true)
+    end
+
+    scope :inactive, -> do
+      where(active: false)
+    end
+
     # To be implemented in subclasses:
 
     # Generate and deliver the scheduled document

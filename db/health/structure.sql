@@ -3799,7 +3799,8 @@ CREATE TABLE public.scheduled_documents (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     acos integer[] DEFAULT '{}'::integer[],
-    scheduled_day integer
+    scheduled_day integer,
+    active boolean DEFAULT true
 );
 
 
@@ -7418,6 +7419,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211029203304'),
 ('20211115191038'),
 ('20211122200024'),
-('20211123203704');
+('20211123203704'),
+('20211129192820');
 
 

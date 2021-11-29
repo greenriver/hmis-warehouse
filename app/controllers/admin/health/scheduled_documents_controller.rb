@@ -63,6 +63,7 @@ module Admin::Health
     private def scheduled_document_params(scheduled_document)
       params.require(:scheduled_document).permit(
         :name,
+        :active,
         :protocol,
         :hostname,
         :port,
