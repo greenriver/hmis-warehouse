@@ -29,12 +29,10 @@ module Admin::Health
       document_type = new_scheduled_document_params[:type]
       raise 'Invalid Document Type' unless ALLOWED_DOCUMENT_CLASSES.include?(document_type)
 
-      scheduled_document = scheduled_document_source.create(type: document_type)
-      scheduled_document.update!(scheduled_document_params(scheduled_document))
-      redirect_to action: :index
-    rescue ActiveRecord::RecordInvalid
-      @scheduled_document = scheduled_document
-      render :new
+      @scheduled_document = scheduled_document_source.create(type: document_type)
+      @scheduled_document.update(scheduled_document_params(@scheduled_document))
+
+      respond_with(@scheduled_document, location: admin_health_scheduled_documents_path)
     end
 
     def edit
@@ -42,14 +40,14 @@ module Admin::Health
 
     def update
       @scheduled_document.update(scheduled_document_params(@scheduled_document))
-      redirect_to action: :index
-    rescue ActiveRecord::RecordInvalid
-      render :edit
+
+      respond_with(@scheduled_document, location: admin_health_scheduled_documents_path)
     end
 
     def destroy
       @scheduled_document.destroy
-      redirect_to action: :index
+
+      respond_with(@scheduled_document, location: admin_health_scheduled_documents_path)
     end
 
     def available_protocols
@@ -84,6 +82,10 @@ module Admin::Health
 
     private def scheduled_document_source
       Health::ScheduledDocuments::Base
+    end
+
+    private def flash_interpolation_options
+      { resource_name: @scheduled_document.name }
     end
   end
 end
