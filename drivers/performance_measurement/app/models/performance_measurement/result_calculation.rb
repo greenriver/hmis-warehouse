@@ -12,7 +12,7 @@ module PerformanceMeasurement::ResultCalculation
       case field
       when :served_on_pit_date, :first_time, :served_on_pit_date_sheltered, :served_on_pit_date_unsheltered
         percent_changed(reporting_value, comparison_value) < goal(field)
-      when :days_homeless_es_sh_th, :days_homeless_before_move_in, :days_to_return
+      when :days_homeless_es_sh_th, :days_homeless_es_sh_th_ph, :days_to_return
         reporting_value < goal(field)
       when :so_destination, :es_sh_th_rrh_destination, :moved_in_destination, :increased_income
         reporting_value > goal(field)
@@ -24,7 +24,7 @@ module PerformanceMeasurement::ResultCalculation
       case field
       when :served_on_pit_date, :first_time, :served_on_pit_date_sheltered, :served_on_pit_date_unsheltered
         0 # FIXME
-      when :days_homeless_es_sh_th, :days_homeless_before_move_in
+      when :days_homeless_es_sh_th, :days_homeless_es_sh_th_ph
         365 # FIXME
       when :so_destination, :es_sh_th_rrh_destination, :moved_in_destination, :days_to_return, :increased_income
         0 # FIXME (percent change)
@@ -265,7 +265,7 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def time_to_move_in_average(project_id: nil)
-      field = :days_homeless_before_move_in
+      field = :days_homeless_es_sh_th_ph
       reporting_count = client_count(field, :reporting, project_id: project_id)
       comparison_count = client_count(field, :comparison, project_id: project_id)
       reporting_days = client_sum(field, :reporting, project_id: project_id)
@@ -292,7 +292,7 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def time_to_move_in_median(project_id: nil)
-      field = :days_homeless_before_move_in
+      field = :days_homeless_es_sh_th_ph
       reporting_days = client_data(field, :reporting, project_id: project_id)
       comparison_days = client_data(field, :comparison, project_id: project_id)
 

@@ -14582,7 +14582,8 @@ CREATE TABLE public.pm_clients (
     reporting_served_on_pit_date_sheltered boolean DEFAULT false NOT NULL,
     comparison_served_on_pit_date_sheltered boolean DEFAULT false NOT NULL,
     reporting_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL,
-    comparison_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL
+    comparison_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL,
+    comparison_days_homeless_es_sh_th_ph integer
 );
 
 
@@ -46199,6 +46200,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211117145404'),
 ('20211117181217'),
 ('20211118175318'),
-('20211119184203');
+('20211119184203'),
+('20211129122357');
 
 

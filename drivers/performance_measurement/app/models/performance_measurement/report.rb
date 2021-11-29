@@ -188,6 +188,8 @@ module PerformanceMeasurement
                   spm_client[parts[:history_source]]
                 end
                 enrollments.flatten.each do |row|
+                  next if row['project_id'].blank?
+
                   involved_projects << row['project_id']
                   project_clients << {
                     report_id: id,
