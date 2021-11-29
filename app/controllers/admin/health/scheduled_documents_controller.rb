@@ -50,13 +50,6 @@ module Admin::Health
       respond_with(@scheduled_document, location: admin_health_scheduled_documents_path)
     end
 
-    def available_protocols
-      {
-        sftp: 'SFTP',
-      }.invert
-    end
-    helper_method :available_protocols
-
     private def set_scheduled_document
       @scheduled_document = scheduled_document_source.find(params[:id])
     end

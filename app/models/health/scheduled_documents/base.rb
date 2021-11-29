@@ -28,6 +28,12 @@ module Health
       false
     end
 
+    def available_protocols
+      {
+        sftp: 'SFTP',
+      }.invert
+    end
+
     def send_file(file_name:, data:)
       case protocol
       when 'sftp'

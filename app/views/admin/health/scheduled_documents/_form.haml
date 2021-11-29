@@ -3,7 +3,7 @@
     = f.input :name
 .row
   .col-2
-    = f.input :protocol, as: :select_two, collection: available_protocols
+    = f.input :protocol, as: :select_two, collection: @scheduled_document.available_protocols
   .col-8
     = f.input :hostname
   .col-2
