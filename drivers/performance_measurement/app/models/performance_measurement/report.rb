@@ -375,7 +375,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1a', 'B2']],
+          cells: [['1a', 'C2']],
           title: 'Length of Time Homeless in ES, SH, TH',
           history_source: :m1_history,
           questions: [
@@ -386,7 +386,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1b', 'B2']],
+          cells: [['1b', 'C2']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
           history_source: :m1_history,
           questions: [
@@ -397,7 +397,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['7a', 'C2']],
+          cells: [['7a.1', 'C2']],
           title: 'Exits from SO',
           history_source: :m7_history,
           questions: [

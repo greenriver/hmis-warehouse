@@ -18,4 +18,5 @@
         - key = row.first
         %tr
           %td
-            = render 'warehouse_reports/indicator', indicator: @report.result_for(key), link: performance_measurement_warehouse_reports_report_details_path(@report, key: key)
+            - indicator = @report.result_for(key)
+            = render 'warehouse_reports/indicator', indicator: indicator, link: performance_measurement_warehouse_reports_report_details_path(@report, key: key), title: @report.detail_goal_description_for(indicator.field.to_sym), description: @report.detail_calculation_description_for(indicator.field.to_sym)

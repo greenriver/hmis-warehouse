@@ -1,6 +1,13 @@
 - if indicator
   .c-indicator.c-indicator--constrained-width
-    .c-indicator__title.text-center=indicator[:title]
+    - data = {}
+    - data[:title] = title if defined?(title)
+    - data[:content] = description if defined?(description)
+    - data.merge!({ toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom })
+    .c-indicator__title.text-center
+      = indicator[:title]
+      - if data[:title].present?
+        %i.icon-info{ data: data }
     .c-indicator__content
       .c-indicator__passed.ml-auto{ class: indicator[:passed] ? "pass" : "fail" }
         = checkmark_or_x(indicator[:passed], size: :md, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'})
