@@ -1,4 +1,5 @@
 require 'dotenv'
+require 'active_support/core_ext/object/blank'
 Dotenv.load('.env', '.env.local')
 # Use this file to easily define all of your cron jobs.
 #
@@ -21,108 +22,142 @@ Dotenv.load('.env', '.env.local')
 
 # Learn more: http://github.com/javan/whenever
 
-# All installs get these
+# setup
 daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
-every 1.day, at: daily_schedule do
-  # Long-running
-  rake "grda_warehouse:daily"
-end
-shifted_time = if ENV['DAILY_EXPORT_SCHEDULE'].nil? || ENV['DAILY_EXPORT_SCHEDULE'].empty? then (Time.parse(daily_schedule) - 2.hours).strftime('%I:%M %P') else ENV['DAILY_EXPORT_SCHEDULE'] end
-every 1.day, at: shifted_time do
-  # Defers to delayed jobs
-  rake "grda_warehouse:process_recurring_hmis_exports"
-end
-shifted_time = Time.parse(daily_schedule) - 5.minutes
-every 1.day, at: shifted_time.strftime('%I:%M %P') do
-  # Fast and low RAM
-  rake "grda_warehouse:secure_files:clean_expired"
-end
-
-# refresh this every six hours, during the day
-every 1.day, at: ['7:15 am', '1:15 pm', '7:15 pm']  do
-  # Defers to delayed jobs
-  rake "grda_warehouse:warm_cohort_cache"
-end
-
-every 1.hour do
-  # Fast and low RAM
-  rake "grda_warehouse:hourly"
-end
-
-every 5.minutes do
-  # Long-running, but infrequently so
-  rake 'reporting:frequent'
-end
-
-if ENV['ECS'] == 'true'
-  every 2.minutes do
-    rake 'jobs:arbitrate_workoff'
-  end
-end
-
-every 4.hours do
-  # Defers to delayed jobs
-  rake "grda_warehouse:save_service_history_snapshots"
-end
-
-if ENV['LSA_DB_HOST'].to_s != ''
-  every 3.hours do
-    rake 'reporting:lsa_shut_down'
-  end
-end
-
-every 1.day, at: '4:02 am' do
-  # FIXME May need to be back-grounded?
-  rake "messages:daily"
-end
-
-# These only happen in some scenarios, now DB based
-every 1.day, at: '6:04 am' do
-  # Defers to delayed jobs
-  rake "eto:import:demographics_and_touch_points"
-end
-
-
 import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
-every 1.day, at: import_schedule do
-  # Defers to delayed jobs
-  rake "grda_warehouse:import_data_sources_s3"
-end
-shifted_time = Time.parse(import_schedule) - 4.hours
-every 1.day, at: shifted_time.strftime('%I:%M %P') do
-  rake "grda_warehouse:ftps_s3_sync"
-end
+glacier_import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
+export_schedule = if ENV['DAILY_EXPORT_SCHEDULE'].nil? || ENV['DAILY_EXPORT_SCHEDULE'].empty? then (Time.parse(daily_schedule) - 2.hours).strftime('%I:%M %P') else ENV['DAILY_EXPORT_SCHEDULE'] end
+file_cleaning_schedule = (Time.parse(daily_schedule) - 5.minutes).strftime('%I:%M %P')
+import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:%M %P')
+census_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
+database_backup_time = Time.parse(import_schedule) - 3.hours
 
-shifted_time = Time.parse(import_schedule) - 5.hours
-every 1.month, at: shifted_time.strftime('%I:%M %P') do
-  rake "us_census_api:all"
-end
+health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
+backup_glacier_trigger = ENV['GLACIER_NEEDS_BACKUP'] == 'true'
+glacier_files_backup_trigger = backup_glacier_trigger && ENV['GLACIER_FILESYSTEM_BACKUP'] == 'true'
+tasks = [
+  {
+    task: 'grda_warehouse:daily',
+    frequency: 1.day,
+    at: daily_schedule,
+    interruptable: false,
+  },
+  {
+    task: 'grda_warehouse:process_recurring_hmis_exports',
+    frequency: 1.day,
+    at: export_schedule,
+    interruptable: false,
+  },
+  {
+    task: 'grda_warehouse:secure_files:clean_expired',
+    frequency: 1.day,
+    at: file_cleaning_schedule,
+    interruptable: true,
+  },
+  {
+    task: 'grda_warehouse:warm_cohort_cache',
+    frequency: 1.day,
+    at: ['7:15 am', '1:15 pm', '7:15 pm'],
+    interruptable: true,
+  },
+  {
+    task: 'grda_warehouse:hourly',
+    frequency: 1.hour,
+    interruptable: true,
+  },
+  {
+    task: 'reporting:frequent',
+    frequency: 5.minutes,
+    interruptable: false,
+  },
+  {
+    task: 'jobs:arbitrate_workoff',
+    frequency: 2.minutes,
+    trigger: ENV['ECS'] == 'true',
+    interruptable: true,
+  },
+  {
+    task: 'grda_warehouse:save_service_history_snapshots',
+    frequency: 4.hours,
+    interruptable: true,
+  },
+  {
+    task: 'reporting:lsa_shut_down',
+    frequency: 3.hours,
+    trigger: ENV['LSA_DB_HOST'].to_s != '',
+    interruptable: true,
+  },
+  {
+    task: 'messages:daily',
+    frequency: 1.day,
+    at: '4:02 am',
+    interruptable: false,
+  },
+  {
+    task: 'eto:import:demographics_and_touch_points',
+    frequency: 1.day,
+    at: '6:04 am',
+    interruptable: false,
+  },
+  {
+    task: 'grda_warehouse:import_data_sources_s3',
+    frequency: 1.day,
+    at: import_schedule,
+    interruptable: false,
+  },
+  {
+    task: 'grda_warehouse:ftps_s3_sync',
+    frequency: 1.day,
+    at: import_prefetch_schedule,
+    interruptable: false,
+  },
+  {
+    task: 'us_census_api:all',
+    frequency: 1.month,
+    at: census_schedule,
+    interruptable: false,
+  },
+  {
+    task: 'health:daily',
+    frequency: 1.day,
+    at: '11:03 am',
+    trigger: health_trigger,
+    interruptable: false,
+  },
+  {
+    task: 'health:enrollments_and_eligibility',
+    frequency: 1.day,
+    at: '6:01 am',
+    trigger: health_trigger,
+    interruptable: false,
+  },
+  {
+    task: 'health:hourly',
+    frequency: 1.hour,
+    trigger: health_trigger,
+    interruptable: true,
+  },
+  {
+    task: 'glacier:backup:database',
+    frequency: 1.month,
+    at: database_backup_time,
+    trigger: backup_glacier_trigger,
+    interruptable: false,
+  },
+  {
+    task: 'glacier:backup:files',
+    frequency: 1.month,
+    at: database_backup_time - 1.hours,
+    trigger: glacier_files_backup_trigger,
+    interruptable: false,
+  },
+]
+tasks.each do |task|
+  next if task.key?(:trigger) && ! task[:trigger]
 
-if ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
-  every 1.day, at: '11:03 am' do
-    # Defers to delayed jobs
-    rake "health:daily"
-  end
-  every 1.day, at: '6:01 am' do
-    rake "health:enrollments_and_eligibility"
-  end
-  every 1.hour do
-    rake "health:hourly"
-  end
-end
-
-if ENV['GLACIER_NEEDS_BACKUP']=='true'
-  import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
-  database_backup_time = Time.parse(import_schedule) - 3.hours
-
-  every :month, at: database_backup_time do
-    rake "glacier:backup:database"
-  end
-
-  if ENV['GLACIER_FILESYSTEM_BACKUP'] == 'true'
-    # Files are for the logs, these end up in CloudWatch for ECS deployments
-    every :month, at: database_backup_time-1.hours do
-      rake "glacier:backup:files"
-    end
+  options = {}
+  options[:at] = task[:at] if task[:at].present?
+  every task[:frequency], options do
+    rake task[:task]
   end
 end
