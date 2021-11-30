@@ -132,7 +132,7 @@ services:
     image: atmoz/sftp
     volumes:
       - ./tmp:/home/user/sftp
-    command: user:password
+      - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
 volumes:
   bundle_alpine:
