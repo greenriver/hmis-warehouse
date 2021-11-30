@@ -15,6 +15,8 @@ namespace :health do
   end
 
   task hourly: [:environment, "log:info_to_stdout"] do
+    user = User.setup_system_user
+    Health::DeliverScheduledDocumentsJob.perform_later(user)
     Health::SignableDocument.process_unfetched_signed_documents
   end
 
@@ -142,12 +144,6 @@ namespace :health do
   task queue_retrieve_enrollments: [:environment, "log:info_to_stdout"] do
     user = User.setup_system_user
     Health::UpdatePatientEnrollmentsJob.perform_now(user)
-  end
-
-  desc "Queue Scheduled Documents"
-  task queue_scheduled_documents: [:environment, "log:info_to_stdout"] do
-    user = User.setup_system_user
-    Health::DeliverScheduledDocumentsJob.perform_later(user)
   end
 
   desc "Remove Derived Patient Referrals"

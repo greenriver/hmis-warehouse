@@ -1,9 +1,11 @@
 .row
-  .col-10
+  .col-7
     = f.input :name
   .col-2
     %label &nbsp;
     = f.input :active, as: :pretty_boolean
+  .col-3
+    = f.input :scheduled_hour, as: :select_two, collection: @scheduled_document.available_hours
 .row
   .col-2
     = f.input :protocol, as: :select_two, collection: @scheduled_document.available_protocols

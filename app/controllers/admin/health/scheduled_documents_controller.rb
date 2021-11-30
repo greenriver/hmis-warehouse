@@ -64,6 +64,7 @@ module Admin::Health
       params.require(:scheduled_document).permit(
         :name,
         :active,
+        :scheduled_hour,
         :protocol,
         :hostname,
         :port,

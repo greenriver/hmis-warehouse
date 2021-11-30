@@ -13,6 +13,7 @@ module Health
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
 
     validates :name, presence: true
+    validates :scheduled_hour, presence: true
 
     scope :active, -> do
       where(active: true)
@@ -40,6 +41,20 @@ module Health
       {
         sftp: 'SFTP',
       }.invert
+    end
+
+    def available_hours
+      (0..23).map { |h| [Time.strptime(h.to_s, '%H').strftime('%l %P'), h] }
+    end
+
+    def check_hour
+      return true if Rails.env.development?
+
+      # Only allow imports during the specified hour where it hasn't started in the past 23 hours
+      return false unless last_run_at < 23.hours.ago
+      return false unless scheduled_hour == Time.current.hour
+
+      true
     end
 
     def send_file(file_name:, data:)

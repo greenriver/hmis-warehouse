@@ -10,10 +10,11 @@ module Health
 
     def perform(user)
       scheduled_document_scope.each do |scheduled_document|
+        next unless scheduled_document.check_hour
         next unless scheduled_document.should_be_delivered?
         next unless scheduled_document.deliver(user)
 
-        scheduled_document.update(last_delivered_at: Time.current)
+        scheduled_document.update(last_run_at: Time.current)
       end
     end
 
