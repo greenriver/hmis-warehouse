@@ -12,6 +12,7 @@ class ScheduledTask
   attr_accessor :schedule_expression
   attr_accessor :target_group_name
   attr_accessor :task_definition_arn
+  attr_accessor :capacity_provider_strategy
 
   MAX_NAME_LENGTH = 64
 
@@ -118,7 +119,7 @@ class ScheduledTask
             # provider line and using launch_type only.
             # https://github.com/aws/containers-roadmap/issues/937
             # launch_type: "EC2",
-            capacity_provider_strategy: _default_capacity_provider_strategy,
+            capacity_provider_strategy: capacity_provider_strategy,
             placement_strategy: _placement_strategy,
           },
         },
@@ -128,11 +129,6 @@ class ScheduledTask
     cloudwatchevents.put_targets(payload)
 
     puts "... Added target to #{name}"
-  end
-
-  def _default_capacity_provider_strategy
-    our_cluster = ecs.describe_clusters(clusters: [cluster_name]).clusters.first
-    our_cluster.default_capacity_provider_strategy.map(&:to_h)
   end
 
   def _placement_strategy

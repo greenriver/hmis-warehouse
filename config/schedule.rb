@@ -152,12 +152,19 @@ tasks = [
     interruptable: false,
   },
 ]
+
+job_type :rake_spot, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent && echo capacity_provider:spot'
+
 tasks.each do |task|
   next if task.key?(:trigger) && ! task[:trigger]
 
   options = {}
   options[:at] = task[:at] if task[:at].present?
   every task[:frequency], options do
-    rake task[:task]
+    if ENV['ECS'] == 'true' && task[:interruptable]
+      rake_spot task[:task]
+    else
+      rake task[:task]
+    end
   end
 end
