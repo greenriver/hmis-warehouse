@@ -30,11 +30,9 @@ module CohortColumns
       lhv = JSON.parse(lhv)
       lhv.select do |row|
         row['project_id'].in? user.visible_project_ids_enrollment_context
-      end.
-        map do |row|
-          "#{row['project_name']}: #{row['date'].to_date}"
-        end.
-        join('; ')
+      end.sort_by { |row| row['date'] }.reverse.map do |row|
+        "#{row['project_name']}: #{row['date'].to_date}"
+      end.join('; ')
     end
   end
 end
