@@ -16,7 +16,7 @@ namespace :health do
 
   task hourly: [:environment, "log:info_to_stdout"] do
     user = User.setup_system_user
-    Health::DeliverScheduledDocumentsJob.perform_later(user)
+    Health::DeliverScheduledDocumentsJob.perform_later(user) if Health::DeliverScheduledDocumentsJob.any_to_run?
     Health::SignableDocument.process_unfetched_signed_documents
   end
 

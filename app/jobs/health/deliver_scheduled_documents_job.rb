@@ -8,6 +8,10 @@ module Health
   class DeliverScheduledDocumentsJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
+    def self.any_to_run?
+      Health::ScheduledDocuments::Base.active.any?(&:check_hour)
+    end
+
     def perform(user)
       scheduled_document_scope.each do |scheduled_document|
         next unless scheduled_document.check_hour
