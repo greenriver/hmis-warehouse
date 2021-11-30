@@ -47,7 +47,7 @@ jobs:
         image: atmoz/sftp
         volumes:
           - tmp:/home/user/sftp
-          - spec/support/sftp.conf:/etc/sftp/users.conf:ro
+          - /spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
     steps:
       - name: Set up dependencies
