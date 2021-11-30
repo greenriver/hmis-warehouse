@@ -8,10 +8,17 @@ module Reporting
   class Return < ReportingBase
     self.table_name = :warehouse_returns
     include ArelHelper
+    include NotifierConfig
 
     def populate!
+      setup_notifier('ReportingSetupJob')
       return unless source_data_scope(client_ids).exists?
-      return if Reporting::Return.advisory_lock_exists?(Reporting::Housed::ADVISORY_LOCK_KEY)
+
+      already_running = Reporting::Return.advisory_lock_exists?(Reporting::Housed::ADVISORY_LOCK_KEY)
+      if already_running
+        @notifier.ping('Skipping reporting database returns, already running')
+        return
+      end
 
       Reporting::Return.with_advisory_lock(Reporting::Housed::ADVISORY_LOCK_KEY) do
         stays
@@ -37,7 +44,8 @@ module Reporting
       # in batches because the number of service records is.
       # It is safe to batch by client because this only cares about the client level detail
       self.class.where.not(client_id: client_ids).delete_all
-      client_ids.each_slice(1_000) do |ids|
+      client_ids.each_slice(1_000).with_index do |ids, i|
+        @notifier.ping("Return: Starting batch #{i + 1} in batches of 1,000, of #{client_ids.count} total clients")
         batch_of_stays = []
         cache_client = GrdaWarehouse::Hud::Client.new
         client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
@@ -53,6 +61,7 @@ module Reporting
             day = row_to_hash(row)
             if current_client_id.blank? || current_client_id != day[:client_id]
               prior_day = day.dup
+              current_client_id = day[:client_id]
               length_of_stay = 0
             end
 
@@ -96,6 +105,7 @@ module Reporting
         transaction do
           self.class.where(client_id: ids).delete_all
           self.class.import(headers, batch_of_stays.map(&:values))
+          @notifier.ping("Return: Adding #{batch_of_stays.count} returns")
         end
       end
     end
