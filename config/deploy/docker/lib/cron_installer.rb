@@ -8,11 +8,9 @@ require 'time'
 # Run from rails root
 
 class CronInstaller
-  attr_accessor :cluster
   MAX_DESCRIPTION_LENGTH = 512
 
   def run!
-    self.cluster = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
     entry_number = 0
 
     ScheduledTask.clear!(target_group_name)
@@ -78,7 +76,7 @@ class CronInstaller
   end
 
   def _capacity_providers
-    @_capacity_providers ||= ecs.describe_clusters(clusters: [self.cluster]).clusters.first.capacity_providers
+    @_capacity_providers ||= ecs.describe_clusters(clusters: [ENV.fetch('CLUSTER_NAME')]).clusters.first.capacity_providers
   end
 
   def _spot_capacity_provider_name
