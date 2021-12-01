@@ -29,7 +29,8 @@ module HudApr::Generators::Shared::Fy2021
           calculation = income_options[:calculation]
           answer = @report.answer(question: table_name, cell: cell)
           adults = universe.members.
-            where(inclusion_clause)
+            where(inclusion_clause).
+            where(a_t[:income_total_at_start].not_eq(nil))
 
           case column[:amount_at_start]
           when :positive
@@ -54,6 +55,7 @@ module HudApr::Generators::Shared::Fy2021
           )
 
           members = adults.where(id: ids)
+          # binding.pry if table_name == 'Q19a2' && cell == 'G2'
           answer.add_members(members)
 
           if column[:column] == 'J'
