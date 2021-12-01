@@ -2,6 +2,7 @@
 
 require 'aws-sdk-cloudwatchevents'
 require 'aws-sdk-ecs'
+require_relative 'shared_logic'
 
 class ScheduledTask
   attr_accessor :cluster_name
@@ -12,6 +13,8 @@ class ScheduledTask
   attr_accessor :schedule_expression
   attr_accessor :target_group_name
   attr_accessor :task_definition_arn
+
+  include SharedLogic
 
   MAX_NAME_LENGTH = 64
 
@@ -119,6 +122,7 @@ class ScheduledTask
             # https://github.com/aws/containers-roadmap/issues/937
             # launch_type: "EC2",
             capacity_provider_strategy: _default_capacity_provider_strategy,
+            # placement_constraints: _placement_constraints,
             placement_strategy: _placement_strategy,
           },
         },
@@ -133,21 +137,6 @@ class ScheduledTask
   def _default_capacity_provider_strategy
     our_cluster = ecs.describe_clusters(clusters: [cluster_name]).clusters.first
     our_cluster.default_capacity_provider_strategy.map(&:to_h)
-  end
-
-  def _placement_strategy
-    [
-      {
-        # Distribute across zones first
-        "field": "attribute:ecs.availability-zone",
-        "type": "spread"
-      },
-      {
-        # Then try to maximize utilization (minimize number of EC2 instances)
-        "field": "memory",
-        "type": "binpack"
-      }
-    ]
   end
 
   def _container_overrides
