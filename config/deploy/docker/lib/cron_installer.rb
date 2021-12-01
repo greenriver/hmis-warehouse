@@ -17,7 +17,7 @@ class CronInstaller
 
     each_cron_entry do |cron_expression, command|
       capacity_provider_strategy = _capacity_provider_strategy(command)
-      command.delete(' # echo capacity_provider:spot')
+      command.delete('#capacity_provider:spot')
       description = command.join(' ').sub(/ --silent/, '').sub(/bundle exec /, '')[0, MAX_DESCRIPTION_LENGTH]
 
       params = {
