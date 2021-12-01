@@ -178,8 +178,7 @@ Populates and references:
 	select distinct rp.PopID, p1.PersonalID, p1.HouseholdID, '9.1.22'
 	from ref_RowPopulations rp
 	inner join tlsa_CountPops p1 on p1.PopID = rp.Pop1
-	inner join tlsa_CountPops p2 on p2.PopID = rp.Pop2 and (p2.PersonalID = p1.PersonalID or p1.PersonalID is NULL)
-		and (p2.HouseholdID = p1.HouseholdID or p1.HouseholdID is null)
+	inner join tlsa_CountPops p2 on p2.PopID = rp.Pop2 and p2.PersonalID = p1.PersonalID
 	where rp.RowMin >= 53 and rp.RowMax <> 64
 
 /*
@@ -331,7 +330,7 @@ Populates and references:
 				or (rv.Universe = 16 and hhid.LSAProjectType in (0,1,2,8))
 			)
 		where rv.RowID = 55 
-			and (rv.Universe = 10 or rp.ByProject is NULL)
+			and ((rv.Universe = 10 and rp.ByProject = 1) or rp.ByProject is NULL)
 		group by rv.Cohort, rv.Universe, ph.HHType, rp.PopID, rv.SystemPath
 			, case when rv.Universe = 10 then hhid.ProjectID else null end
 			, rv.RowID
