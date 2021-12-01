@@ -153,7 +153,7 @@ tasks = [
   },
 ]
 
-job_type :rake_spot, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent && echo capacity_provider:spot'
+job_type :rake_spot, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent # echo capacity_provider:spot'
 
 tasks.each do |task|
   next if task.key?(:trigger) && ! task[:trigger]
