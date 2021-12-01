@@ -104,7 +104,7 @@ module HudApr::Generators::Shared::Fy2021
           value = 0
           case method
           when :average
-            value = (stay_lengths.sum(0.0) / stay_lengths.count).round(4) if stay_lengths.any?
+            value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any?
           when :median
             if stay_lengths.any?
               sorted = stay_lengths.sort
