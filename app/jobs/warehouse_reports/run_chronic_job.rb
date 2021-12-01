@@ -64,8 +64,10 @@ module WarehouseReports
       data = @clients.map do |client|
         chronic = client.chronics.first
         data_sources = client.source_clients.map do |m|
+          next unless m.data_source
+
           m.data_source.short_name
-        end.uniq.join(', ')
+        end.compact.uniq.join(', ')
         source_disabilities = client.source_disabilities.reject do |m|
           [0, 8, 9, 99].include? m.DisabilityResponse
         end.map(&:disability_type_text).uniq.join('<br />').html_safe
