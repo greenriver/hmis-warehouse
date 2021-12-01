@@ -135,6 +135,7 @@ class ScheduledTask
     # instance_prefix = 'qa-w'
     # cloudwatchevents = Aws::CloudWatchEvents::Client.new(profile: cluster_name)
     # cloudwatchevents.list_rules(name_prefix: instance_prefix).rules.each do |r1|
+    #   t = cloudwatchevents.list_targets_by_rule(rule: r1.name)
     #   puts t.targets.first.ecs_parameters.capacity_provider_strategy
     # end
 
