@@ -366,6 +366,11 @@ class User < ApplicationRecord
       GrdaWarehouse::DataSource.visible_in_window_for_cohorts_to(self).joins(:projects).pluck(p_t[:id])
   end
 
+  # inverse of GrdaWarehouse::Hud::Project.viewable_by(user)
+  def viewable_project_ids
+    @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id)
+  end
+
   def user_care_coordinators
     Health::UserCareCoordinator.where(user_id: id)
   end

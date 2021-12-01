@@ -49,7 +49,13 @@ class WorkoffArbiter
     payload = {
       cluster: ENV.fetch('CLUSTER_NAME'),
       task_definition: _task_definition,
-      capacity_provider_strategy: _default_capacity_provider_strategy,
+      capacity_provider_strategy: [
+        {
+          capacity_provider: _on_demand_capacity_provider_name,
+          weight: 1,
+          base: 1,
+        },
+      ],
     }
 
     ecs.run_task(payload)
@@ -128,6 +134,20 @@ class WorkoffArbiter
     cluster_name = ENV.fetch('CLUSTER_NAME')
     our_cluster = ecs.describe_clusters(clusters: [cluster_name]).clusters.first
     our_cluster.default_capacity_provider_strategy.map(&:to_h)
+  end
+
+  # Abstraction that lets the cluster provision more/less EC2 instances based
+  # on the requirements of the containers we want to run
+  def _capacity_providers
+    @_capacity_providers ||= ecs.describe_clusters(clusters: [ENV.fetch('CLUSTER_NAME')]).clusters.first.capacity_providers
+  end
+
+  def _spot_capacity_provider_name
+    _capacity_providers.find { |cp| cp.match(/spt-v2/) }
+  end
+
+  def _on_demand_capacity_provider_name
+    _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
   end
 
   def _task_definition

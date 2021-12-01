@@ -406,20 +406,23 @@ module Health
       )
     end
 
-    # we aren't receiving SSN, use full name, case insensitive and birth date
     def matching_destination_client
       return unless birthdate.present? && first_name.present? && last_name.present?
 
-      GrdaWarehouse::Hud::Client.destination.
+      matches = GrdaWarehouse::Hud::Client.destination.
         where(
           c_t[:FirstName].lower.eq(first_name.downcase).
           and(c_t[:LastName].lower.eq(last_name.downcase)),
         ).
-        where(DOB: birthdate).first
+        where(DOB: birthdate)
+
+      # Use SSN when available
+      matches = matches.where(SSN: ssn) if ssn.present?
+
+      matches.first
     end
 
     def connect_destination_client source_client
-      # attempt to find a match based on exact match of DOB and SSN
       destination_client = matching_destination_client || create_destination_client(source_client)
       GrdaWarehouse::WarehouseClient.create(
         id_in_source: source_client.PersonalID,

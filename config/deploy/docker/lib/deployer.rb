@@ -84,6 +84,7 @@ class Deployer
 
     roll_out.run!
 
+    _add_latest_tags!
     _clean_up_old_local_images!
   end
 
@@ -212,11 +213,18 @@ class Deployer
         _tag_the_image!(authority: 'them')
       end
     end
-
-    _add_latest_tag!
   end
 
-  def _add_latest_tag!
+  def _add_latest_tags!
+    _add_latest_tag!('base')
+    _add_latest_tag!('web')
+    _add_latest_tag!('dj')
+  end
+
+  def _add_latest_tag!(variant)
+    self.variant = variant
+    _set_image_tag!
+
     puts "[INFO] Update latest tag for '#{image_tag}':"
     if image_tag_latest.nil?
       puts ">> Skipping, no latest tag set (this is the pre-cache image)."

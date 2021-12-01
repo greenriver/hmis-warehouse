@@ -70,36 +70,6 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
     end
   end
 
-  private def old_fix_time_format(string)
-    return unless string
-    # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
-    return string if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
-
-    # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
-    if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
-      month, day, year = string.split('-')
-      return "#{year}-#{month}-#{day}"
-      # Sometimes times come in mm/dd/yyyy hh:mm
-    elsif /\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
-      date, time = string.split(' ')
-      month, day, year = date.split('/')
-      return "#{year}-#{month}-#{day} #{time}"
-    end
-    # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
-    # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
-    # Since we're almost always dealing with dates that are in the past
-    # If the year is between 00 and next year, we'll add 2000,
-    # otherwise, we'll add 1900
-    @next_year ||= Date.current.next_year.strftime('%y').to_i
-    d = DateTime.parse(string, false) # false to not guess at century
-    if d.year <= @next_year
-      d = d.next_year(2000)
-    else
-      d = d.next_year(1900)
-    end
-    d.strftime('%Y-%m-%d %H%M%S')
-  end
-
   # describe 'performance' do
   #   it 'is reasonable fast' do
   #     n = 10_000
@@ -180,6 +150,7 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
       '5-1-2000 4:39' => '2000-05-01 04:39:00',
       '12-11-99 4:39' => '1999-12-11 04:39:00',
       '12-11-1999 4:39' => '1999-12-11 04:39:00',
+      '0201-12-23 00:12:00' => '2001-12-23 00:12:00',
       '' => '',
       time_with_zone => time_with_zone,
     }

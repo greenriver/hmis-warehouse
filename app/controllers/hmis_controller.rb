@@ -29,9 +29,12 @@ class HmisController < ApplicationController
     @data_source = @item.data_source
     return unless RailsDrivers.loaded.include?(:hmis_csv_importer)
 
-    @importer = HmisCsvImporter::Importer::ImporterLog.where(data_source_id: @item.data_source_id).order(created_at: :desc)&.first
-    return unless @importer
+    @importers = HmisCsvImporter::Importer::ImporterLog.where(data_source_id: @item.data_source_id).order(created_at: :desc)&.first(10)
+    return unless @importers.present?
 
+    @importer = @importers.max_by do |importer|
+      [@item.imported_item_type(importer.id), @importer&.created_at]
+    end
     year = @item.imported_item_type(@importer.id)
     @imported = @item.send("imported_items_#{year}").order(importer_log_id: :desc).first
     @csv = @item.send("loaded_items_#{year}").with_deleted.order(loader_id: :desc).first

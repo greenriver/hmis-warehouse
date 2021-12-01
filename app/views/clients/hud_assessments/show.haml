@@ -1,6 +1,8 @@
 - title = 'HUD Assessment'
 - content_for :title, title
-= render 'clients/breadcrumbs'
+= content_for :crumbs do
+  = link_to enrollment_details_client_path(@client) do
+    &laquo; Enrollment Details
 
 %h1= content_for(:title)
 .well

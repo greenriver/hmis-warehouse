@@ -296,7 +296,11 @@ module Cohorts
       @clients = client_source.joins(:hud_chronics).
         preload(:hud_chronics, :source_disabilities).
         where(filter_query).
-        has_homeless_service_between_dates(start_date: (@hud_filter.date - @hud_filter.last_service_after.days), end_date: @hud_filter.date)
+        has_homeless_service_between_dates(
+          start_date: (@hud_filter.date - @hud_filter.last_service_after.days),
+          end_date: @hud_filter.date,
+          include_extrapolated: GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days),
+        )
       @clients = @clients.text_search(@hud_filter.name, client_scope: GrdaWarehouse::Hud::Client.source) if @hud_filter.name&.present?
     end
 

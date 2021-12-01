@@ -1,16 +1,35 @@
 - if indicator
-  .c-indicator{class: ("c-indicator--constrained-width" if constrain_width)}
-    .c-indicator__title=indicator[:title]
+  .c-indicator.c-indicator--constrained-width
+    - data = {}
+    - data[:title] = title if defined?(title)
+    - data[:content] = description if defined?(description)
+    - data.merge!({ toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom })
+    .c-indicator__title.text-center
+      = indicator[:title]
+      - if data[:title].present?
+        %i.icon-info{ data: data }
     .c-indicator__content
-      .c-indicator__passed{class: indicator[:passed] ? "pass" : "fail"}
-        = checkmark_or_x(indicator[:passed])
+      .c-indicator__passed.ml-auto{ class: indicator[:passed] ? "pass" : "fail" }
+        = checkmark_or_x(indicator[:passed], size: :md, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'})
       - base_value_classname = "c-indicator__value"
       .c-indicator__values
-        - [:primary_value, :secondary_value].each do |key|
-          - if indicator[key]
-            %div{class: [base_value_classname, "#{base_value_classname}--#{key.to_s.gsub('_value', '')}"]}
-              %span.c-indicator__value-number= indicator.dig(key, :value)
-              %span.c-indicator__value-unit= indicator.dig(key, :unit)
+        - key = :primary
+        - value_key = "#{key}_value".to_sym
+        - if indicator[value_key]
+          %div{class: [base_value_classname, "#{base_value_classname}--#{key.to_s.gsub('_value', '')}"]}
+            %span.c-indicator__value-number
+              - if defined?(link)
+                = link_to(number_with_delimiter(indicator[value_key]), link, target: :_blank)
+              - else
+                = indicator[value_key]
+            %span.c-indicator__value-unit= indicator["#{key}_unit".to_sym]
         .c-indicator__change-icon= change_direction_icon(indicator[:direction])
+        - key = :secondary
+        - value_key = "#{key}_value".to_sym
+        - if indicator[value_key]
+          %div{class: [base_value_classname, "#{base_value_classname}--#{key.to_s.gsub('_value', '')}"]}
+            %span.c-indicator__value-number
+              = number_with_delimiter(indicator[value_key])
+            %span.c-indicator__value-unit= indicator["#{key}_unit".to_sym]
         - if indicator[:value_label].present?
           %span.c-indicator__label=sanitize(indicator[:value_label])
