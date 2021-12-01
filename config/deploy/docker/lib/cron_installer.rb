@@ -18,7 +18,7 @@ class CronInstaller
     each_cron_entry do |cron_expression, command|
       description = command.join(' ').sub(/ --silent/, '').sub(/bundle exec /, '')[0, MAX_DESCRIPTION_LENGTH]
       capacity_provider_strategy = _capacity_provider_strategy(command)
-      # command = command.gsub(' && echo capacity_provider:spot', '')
+      command = command.sub(' && echo capacity_provider:spot', '')
 
       params = {
         target_group_name: target_group_name,
