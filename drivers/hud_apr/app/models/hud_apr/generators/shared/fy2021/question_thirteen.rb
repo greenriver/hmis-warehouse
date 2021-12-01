@@ -71,7 +71,7 @@ module HudApr::Generators::Shared::Fy2021
         pops['Adults in HH with Children & Adults'] = sub_populations['With Children and Adults'].and(adult_clause)
         pops['Children in HH with Children & Adults'] = sub_populations['With Children and Adults'].and(child_clause)
         pops['With Only Children'] = sub_populations['With Only Children']
-        pops['Unknown Household Type'] = sub_populations['Unknown Household Type']
+        pops['Unknown Household Type'] = sub_populations['Unknown Household Type'].or(unknown_age_clause)
       end
     end
 

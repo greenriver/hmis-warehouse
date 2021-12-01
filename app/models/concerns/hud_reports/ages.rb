@@ -25,6 +25,10 @@ module HudReports::Ages
       a_t[:age].gteq(18)
     end
 
+    private def unknown_age_clause
+      a_t[:age].eq(nil).or(a_t[:age].lt(0))
+    end
+
     private def adults?(ages)
       ages.reject(&:blank?).any? do |age|
         age >= 18
