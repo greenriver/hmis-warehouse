@@ -16,7 +16,7 @@ class CronInstaller
     ScheduledTask.clear!(target_group_name)
 
     each_cron_entry do |cron_expression, command|
-      capacity_provider_strategy = _capacity_provider_strategy(command)
+      capacity_provider_strategy = _choose_capacity_provider_strategy(command)
       command.delete('#capacity_provider:spot')
       description = command.join(' ').sub(/ --silent/, '').sub(/bundle exec /, '')[0, MAX_DESCRIPTION_LENGTH]
 
@@ -49,7 +49,7 @@ class CronInstaller
     @role_arn ||= iam.get_role(role_name: 'ecsEventsRole').role.arn
   end
 
-  def _capacity_provider_strategy(command)
+  def _choose_capacity_provider_strategy(command)
     return _spot_capacity_provider_strategy if command.include?('#capacity_provider:spot')
 
      _on_demand_capacity_provider_strategy
