@@ -2734,44 +2734,6 @@ module GrdaWarehouse::Hud
       self.class.service_types
     end
 
-    # NOTE: for CAS sync
-    def self.ongoing_enrolled_project_details(client_ids)
-      {}.tap do |ids|
-        GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).
-          ongoing.
-          joins(:project).
-          pluck(:client_id, p_t[:id], GrdaWarehouse::ServiceHistoryEnrollment.project_type_column).
-          each do |c_id, p_id, p_type|
-            ids[c_id] ||= []
-            ids[c_id] << OpenStruct.new(project_id: p_id, project_type: p_type)
-          end
-      end
-    end
-
-    def enrolled_in_th(ongoing_enrolled_project_types)
-      return false unless ongoing_enrolled_project_types
-
-      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th] & ongoing_enrolled_project_types).present?
-    end
-
-    def enrolled_in_sh(ongoing_enrolled_project_types)
-      return false unless ongoing_enrolled_project_types
-
-      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:sh] & ongoing_enrolled_project_types).present?
-    end
-
-    def enrolled_in_so(ongoing_enrolled_project_types)
-      return false unless ongoing_enrolled_project_types
-
-      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so] & ongoing_enrolled_project_types).present?
-    end
-
-    def enrolled_in_es(ongoing_enrolled_project_types)
-      return false unless ongoing_enrolled_project_types
-
-      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es] & ongoing_enrolled_project_types).present?
-    end
-
     def total_days enrollments
       enrollments.map { |m| m[:days] }.sum
     end

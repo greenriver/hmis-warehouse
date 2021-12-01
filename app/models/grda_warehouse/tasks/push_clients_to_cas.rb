@@ -63,11 +63,11 @@ module GrdaWarehouse::Tasks
 
               project_client.calculated_last_homeless_night = max_dates[client.id]
               project_client.enrolled_project_ids = ongoing_enrolled_project_details[client.id]&.map(&:project_id)
-              enrollment_types = ongoing_enrolled_project_details[client.id]&.map(&:project_type)
-              project_client.enrolled_in_th = client.enrolled_in_th(enrollment_types)
-              project_client.enrolled_in_sh = client.enrolled_in_sh(enrollment_types)
-              project_client.enrolled_in_so = client.enrolled_in_so(enrollment_types)
-              project_client.enrolled_in_es = client.enrolled_in_es(enrollment_types)
+              enrollments = ongoing_enrolled_project_details[client.id]
+              project_client.enrolled_in_th = client.enrolled_in_th(enrollments)
+              project_client.enrolled_in_sh = client.enrolled_in_sh(enrollments)
+              project_client.enrolled_in_so = client.enrolled_in_so(enrollments)
+              project_client.enrolled_in_es = client.enrolled_in_es(enrollments)
               project_client.date_days_homeless_verified = Date.current
               project_client.needs_update = true
               to_update << project_client
