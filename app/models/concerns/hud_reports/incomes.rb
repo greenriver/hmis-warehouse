@@ -34,6 +34,7 @@ module HudReports::Incomes
       amounts = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.values.map(&:to_s)
       income&.attributes&.slice(*(sources + amounts)) || sources.map { |k| [k, 99] }.to_h.merge(amounts.map { |k| [k, nil] }.to_h)
     end
+
     private def earned_amount(universe_client, suffix)
       return unless universe_client["income_sources_at_#{suffix}"].present?
 
@@ -156,6 +157,16 @@ module HudReports::Incomes
       end
       query += measures.join(', ') + ')'
       Arel.sql(query)
+    end
+
+    private def income_clause(stage:, measure:, positive: true)
+      fn = positive ? '<' : '>='
+      case measure
+      when :earned
+        Arel.sql("0 #{fn} coalesce(income_sources_at_#{stage}->>'EarnedAmount', '0')::numeric")
+      when :other
+        Arel.sql("0 #{fn} income_total_at_#{stage} - coalesce(income_sources_at_#{stage}->>'EarnedAmount', '0')::numeric")
+      end
     end
 
     private def income_responses(suffix)

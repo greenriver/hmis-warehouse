@@ -33,9 +33,17 @@ module HudApr::Generators::Shared::Fy2021
 
           case column[:amount_at_start]
           when :positive
-            adults = adults.where(a_t[:income_total_at_start].gt(0))
+            if income_category == :total
+              adults = adults.where(a_t[:income_total_at_start].gt(0))
+            else
+              adults = adults.where(income_clause(stage: :start, measure: income_category, positive: true))
+            end
           when :zero
-            adults = adults.where(a_t[:income_total_at_start].eq(0))
+            if income_category == :total
+              adults = adults.where(a_t[:income_total_at_start].eq(0))
+            else
+              adults = adults.where(income_clause(stage: :start, measure: income_category, positive: false))
+            end
           end
 
           (ids, amounts) = ids_and_amounts(
@@ -298,6 +306,7 @@ module HudApr::Generators::Shared::Fy2021
           )
         when 'H'
           ids << member.id
+          amounts << income_difference
         when 'I'
           # Include if the income increased (same as E)
           if income_for_category?(
