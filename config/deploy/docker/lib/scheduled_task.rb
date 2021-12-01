@@ -128,6 +128,16 @@ class ScheduledTask
 
     cloudwatchevents.put_targets(payload)
 
+    # NOTE: the following can show which capacity provider the scheduled task will run on
+    # aws-vault exec openpath -- docker-compose run --rm console
+    #
+    # cluster_name = 'openpath'
+    # instance_prefix = 'qa-w'
+    # cloudwatchevents = Aws::CloudWatchEvents::Client.new(profile: cluster_name)
+    # cloudwatchevents.list_rules(name_prefix: instance_prefix).rules.each do |r1|
+    #   puts t.targets.first.ecs_parameters.capacity_provider_strategy
+    # end
+
     puts "... Added target to #{name}"
   end
 

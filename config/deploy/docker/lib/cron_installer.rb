@@ -50,7 +50,7 @@ class CronInstaller
   end
 
   def _capacity_provider_strategy(command)
-    return _spot_capacity_provider_strategy if command.include?('capacity_provider:spot')
+    return _spot_capacity_provider_strategy if command.include?('#capacity_provider:spot')
 
      _on_demand_capacity_provider_strategy
   end
