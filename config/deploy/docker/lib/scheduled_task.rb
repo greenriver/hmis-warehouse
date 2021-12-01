@@ -2,6 +2,7 @@
 
 require 'aws-sdk-cloudwatchevents'
 require 'aws-sdk-ecs'
+require_relative 'shared_logic'
 
 class ScheduledTask
   attr_accessor :cluster_name
@@ -12,6 +13,9 @@ class ScheduledTask
   attr_accessor :schedule_expression
   attr_accessor :target_group_name
   attr_accessor :task_definition_arn
+  attr_accessor :capacity_provider_strategy
+
+  include SharedLogic
 
   MAX_NAME_LENGTH = 64
 
@@ -118,7 +122,8 @@ class ScheduledTask
             # provider line and using launch_type only.
             # https://github.com/aws/containers-roadmap/issues/937
             # launch_type: "EC2",
-            capacity_provider_strategy: _default_capacity_provider_strategy,
+            capacity_provider_strategy: capacity_provider_strategy,
+            # placement_constraints: _placement_constraints,
             placement_strategy: _placement_strategy,
           },
         },
@@ -127,27 +132,18 @@ class ScheduledTask
 
     cloudwatchevents.put_targets(payload)
 
+    # NOTE: the following can show which capacity provider the scheduled task will run on
+    # aws-vault exec openpath -- docker-compose run --rm console
+    #
+    # cluster_name = 'openpath'
+    # instance_prefix = 'qa-w'
+    # cloudwatchevents = Aws::CloudWatchEvents::Client.new(profile: cluster_name)
+    # cloudwatchevents.list_rules(name_prefix: instance_prefix).rules.each do |r1|
+    #   t = cloudwatchevents.list_targets_by_rule(rule: r1.name)
+    #   puts t.targets.first.ecs_parameters.capacity_provider_strategy
+    # end
+
     puts "... Added target to #{name}"
-  end
-
-  def _default_capacity_provider_strategy
-    our_cluster = ecs.describe_clusters(clusters: [cluster_name]).clusters.first
-    our_cluster.default_capacity_provider_strategy.map(&:to_h)
-  end
-
-  def _placement_strategy
-    [
-      {
-        # Distribute across zones first
-        "field": "attribute:ecs.availability-zone",
-        "type": "spread"
-      },
-      {
-        # Then try to maximize utilization (minimize number of EC2 instances)
-        "field": "memory",
-        "type": "binpack"
-      }
-    ]
   end
 
   def _container_overrides
