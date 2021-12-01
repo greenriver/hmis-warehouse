@@ -8,9 +8,11 @@ require 'time'
 # Run from rails root
 
 class CronInstaller
+  attr_accessor :cluster
   MAX_DESCRIPTION_LENGTH = 512
 
   def run!
+    self.cluster = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
     entry_number = 0
 
     ScheduledTask.clear!(target_group_name)
