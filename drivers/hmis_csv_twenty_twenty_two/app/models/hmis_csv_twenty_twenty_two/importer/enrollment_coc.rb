@@ -32,10 +32,10 @@ module HmisCsvTwentyTwentyTwo::Importer
           {
             class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
           },
-          # {
-          #   class: HmisCsvImporter::HmisCsvValidation::Length,
-          #   arguments: { max: 32 },
-          # },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::Length,
+            arguments: { max: 32 },
+          },
         ],
         EnrollmentID: [
           class: HmisCsvImporter::HmisCsvValidation::NonBlank,
