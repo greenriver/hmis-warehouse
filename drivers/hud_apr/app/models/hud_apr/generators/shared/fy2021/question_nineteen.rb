@@ -55,7 +55,6 @@ module HudApr::Generators::Shared::Fy2021
           )
 
           members = adults.where(id: ids)
-          # binding.pry if table_name == 'Q19a2' && cell == 'G2'
           answer.add_members(members)
 
           if column[:column] == 'J'
@@ -158,6 +157,12 @@ module HudApr::Generators::Shared::Fy2021
 
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
+          elsif income_clause.is_a?(Array)
+            ids = Set.new
+            income_clause.each do |part|
+              ids += members.where.contains(part).pluck(:id)
+            end
+            members = members.where(id: ids.to_a)
           else
             # The final question doesn't require accessing the jsonb column
             members = members.where(income_clause)
@@ -212,6 +217,14 @@ module HudApr::Generators::Shared::Fy2021
     end
 
     private def q19b_income_sources
+      other_sources = [
+        'Unemployment Insurance',
+        'VA Non-Service Connected Disability Pension',
+        'General Assistance (GA)',
+        'Alimony and other spousal support',
+        'Other Source',
+      ]
+
       income_types(:exit).except(
         'Unemployment Insurance',
         'VA Non-Service Connected Disability Pension',
@@ -220,6 +233,7 @@ module HudApr::Generators::Shared::Fy2021
         'Adults with Income Information at Start and Annual Assessment/Exit',
       ).merge(
         {
+          'Other Source' => income_types(:exit).slice(*other_sources).values,
           'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
           'Unduplicated Total Adults' => Arel.sql('1=1'),
         },

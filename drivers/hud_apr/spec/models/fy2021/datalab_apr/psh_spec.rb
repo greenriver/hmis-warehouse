@@ -271,16 +271,6 @@ RSpec.describe 'Datalab 2021 APR - PSH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'psh',
       question: 'Q19b',
-      skip: [
-        'C12', # FIXME
-        'D12', # FIXME
-        'G12', # FIXME
-        'H12', # FIXME
-        'C13', # FIXME
-        'D13', # FIXME
-        'C14', # FIXME
-        'D14', # FIXME
-      ],
     )
   end
 
