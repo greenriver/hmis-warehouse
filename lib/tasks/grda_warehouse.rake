@@ -263,6 +263,9 @@ namespace :grda_warehouse do
       puts e.message
     end
     TextMessage::Message.send_pending! if GrdaWarehouse::Config.get(:send_sms_for_covid_reminders) && RailsDrivers.loaded.include?(:text_message)
+    GrdaWarehouse::CustomImports::Config.active.each do |config|
+      config.delay.import!
+    end
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
