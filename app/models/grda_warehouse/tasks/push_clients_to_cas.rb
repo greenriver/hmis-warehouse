@@ -68,6 +68,9 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_sh = client.enrolled_in_sh(enrollments)
               project_client.enrolled_in_so = client.enrolled_in_so(enrollments)
               project_client.enrolled_in_es = client.enrolled_in_es(enrollments)
+              project_client.enrolled_in_rrh = client.enrolled_in_rrh(enrollments)
+              project_client.enrolled_in_psh = client.enrolled_in_psh(enrollments)
+              project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
               project_client.date_days_homeless_verified = Date.current
               project_client.needs_update = true
               to_update << project_client

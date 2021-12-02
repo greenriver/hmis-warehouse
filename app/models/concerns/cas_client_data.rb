@@ -287,6 +287,36 @@ module CasClientData
       end
     end
 
+    def enrolled_in_rrh(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = [13]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes) &&
+        en.move_in_date.present? && en.move_in_date < Date.current
+      end.any?
+    end
+
+    def enrolled_in_psh(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = [3]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes) &&
+        en.move_in_date.present? && en.move_in_date < Date.current
+      end.any?
+    end
+
+    def enrolled_in_ph(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = [9, 10]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes) &&
+        en.move_in_date.present? && en.move_in_date < Date.current
+      end.any?
+    end
+
     def enrolled_in_th(ongoing_enrollments)
       return false unless ongoing_enrollments
 
