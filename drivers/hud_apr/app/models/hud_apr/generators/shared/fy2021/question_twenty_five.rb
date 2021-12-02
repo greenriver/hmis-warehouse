@@ -44,7 +44,7 @@ module HudApr::Generators::Shared::Fy2021
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(population_clause).where(response_clause)
+          members = universe.members.where(adult_clause).where(population_clause).where(response_clause)
           value = members.count
 
           answer.add_members(members)
