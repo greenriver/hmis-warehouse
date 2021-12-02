@@ -271,7 +271,8 @@ Populates and references:
 	inner join ref_RowPopulations rp on rp.PopID = pop.PopID 
 	inner join ref_PopHHTypes ph on ph.PopID = rp.PopID and (ph.HHType = hh.HHType or ph.HHType = 0)
 	inner join ref_RowValues rv on rv.RowID between rp.RowMin and rp.RowMax 
-			and (rp.ByPath is null or (rp.ByPath = 1 and rv.SystemPath <> -1 and rv.SystemPath = hh.SystemPath))
+			and ((rp.ByPath is null and rv.SystemPath = -1) 
+				or (rp.ByPath = 1 and rv.SystemPath <> -1 and rv.SystemPath = hh.SystemPath))
 	where rv.RowID between 1 and 16
 		and case rv.RowID 
 				when 1 then hh.ESDays
