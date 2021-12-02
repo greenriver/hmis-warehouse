@@ -354,7 +354,8 @@ module CasClientData
       end.any?
     end
 
-    # TODO: enrolled_in_rrh
-    # TODO: enrolled_in_psh
+    def cas_assessment_collected_at
+      rrh_assessment_collected_at
+    end
   end
 end

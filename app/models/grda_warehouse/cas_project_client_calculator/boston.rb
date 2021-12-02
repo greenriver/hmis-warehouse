@@ -54,6 +54,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :literally_homeless_last_three_years_cached,
         :cas_assessment_name,
         :max_current_total_monthly_income,
+        :cas_assessment_collected_at, # note this is really just assessment_collected_at
       ]
     end
     memoize :pathways_questions
@@ -201,6 +202,10 @@ module GrdaWarehouse::CasProjectClientCalculator
           order(InformationDate: :desc).
           pluck(:TotalMonthlyIncome).first
       end.compact.max || 0
+    end
+
+    private def cas_assessment_collected_at(client)
+      client.most_recent_pathways_or_rrh_assessment_for_destination&.AssessmentDate
     end
   end
 end
