@@ -367,9 +367,11 @@ module HudApr::Generators::Shared::Fy2021
         '366 to 730 days (1-2 Yrs)' => a_t[:approximate_time_to_move_in].between(366..730).
           and(a_t[:move_in_date].lteq(@report.end_date)),
         '731 days or more' => a_t[:approximate_time_to_move_in].gteq(731),
-        'Total (persons moved into housing)' => a_t[:move_in_date].lteq(@report.end_date),
-        'Not yet moved into housing' => a_t[:move_in_date].eq(nil).and(a_t[:date_to_street].not_eq(nil)),
-        'Data not collected' => a_t[:approximate_time_to_move_in].eq(nil),
+        'Total (persons moved into housing)' => a_t[:move_in_date].lteq(@report.end_date).
+          and(a_t[:date_to_street].lteq(a_t[:move_in_date])),
+        'Not yet moved into housing' => a_t[:move_in_date].eq(nil).or(a_t[:move_in_date].gt(@report.end_date)),
+        'Data not collected' => a_t[:move_in_date].lteq(@report.end_date).
+          and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:move_in_date]))),
         'Total persons' => Arel.sql('1=1'),
       }.freeze
     end
