@@ -91,6 +91,7 @@ RSpec.describe 'Datalab 2021 CAPER - TH', type: :model do
       question: 'Q6d',
       skip: [
         'D3', # FIXME
+        'E3', # FIXME
         'F3', # FIXME
         'G3', # FIXME
         'H3', # FIXME

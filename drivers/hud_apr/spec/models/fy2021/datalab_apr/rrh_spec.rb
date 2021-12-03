@@ -74,7 +74,9 @@ RSpec.describe 'Datalab 2021 APR - rrh', type: :model do
       question: 'Q6c',
       skip: [
         'B2', # FIXME
+        'B4', # FIXME
         'C2', # FIXME
+        'C4', # FIXME
         'B3', # FIXME
         'C3', # FIXME
         'B5', # FIXME
