@@ -20,8 +20,8 @@ module CustomImportsBostonContacts
       file
     end
 
-    def import!
-      return unless check_hour
+    def import!(force = false)
+      return unless check_hour || force
 
       start_import
       fetch_and_load
@@ -40,25 +40,28 @@ module CustomImportsBostonContacts
 
     private def header_lookup
       {
-        'Personal ID' => 'personal_id',
-        'Contact ID' => 'unique_id',
-        'Agency ID' => 'agency_id',
-        'Contact Type' => 'contact_type',
-        'Name' => 'contact_name',
-        'Phone1' => 'phone',
-        'Phone2' => 'phone_alternate',
-        'Email' => 'email',
-        'Note' => 'note',
-        'Last Updated Date' => 'contact_updated_at',
-        'Added Date' => 'contact_created_at',
-        'Private (Yes / No)' => 'private',
+        'Clients Personal ID' => 'personal_id',
+        'Clients Contact ID' => 'unique_id',
+        'Client Contacts Agency ID' => 'agency_id',
+        'Client Contacts Contact Type' => 'contact_type',
+        'Client Contacts Name' => 'contact_name',
+        'Client Contacts Phone1' => 'phone',
+        'Client Contacts Phone2' => 'phone_alternate',
+        'Client Contacts Email' => 'email',
+        'Client Contacts Note' => 'note',
+        'Client Contacts Last Updated Date' => 'contact_updated_at',
+        'Client Contacts Added Date' => 'contact_created_at',
+        'Client Contacts Private (Yes / No)' => 'private',
+        'Clients Last Name' => 'do_not_import',
+        'Clients First Name' => 'do_not_import',
+        'Client Contacts Contact ID' => 'do_not_import',
       }
     end
 
     def post_process
       update(status: 'matching')
       matched = 0
-      ClientContact.where(source_type: 'CustomImportsBostonContacts::Row').delete_all
+      GrdaWarehouse::ClientContact.where(source_type: 'CustomImportsBostonContacts::Row').delete_all
       rows.preload(client: :destination_client).find_in_batches do |batch|
         contact_batch = []
         batch.each do |row|

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'roo'
+require 'rubyXL'
 module GrdaWarehouse::CustomImports
   class ImportFile < GrdaWarehouseBase
     include NotifierConfig
@@ -56,14 +58,33 @@ module GrdaWarehouse::CustomImports
         file_name: file,
         target_path: target_path.to_s,
       )
+      content_type = MimeMagic.by_path(target_path) # Note, these need to be trusted files
+      contents = if content_type.to_s.in?(['text/plain', 'text/csv', 'application/csv'])
+        ::File.read(target_path)
+      else
+        CSV.generate do |csv|
+          workbook = ::RubyXL::Parser.parse(target_path)
+          workbook.worksheets[0].each do |row|
+            csv_row = [row.r]
+            row&.cells&.each do |cell|
+              val = cell&.value
+              csv_row << val
+            end
+            csv << csv_row
+          end
+        end
+      end
+      sheet = ::Roo::CSV.new(StringIO.new(contents))
+      sheet.parse(headers: true).drop(1)
+
       # store the file in the db for historic purposes
       update(
         file: file,
-        content: ::File.read(target_path),
+        content: contents,
         content_type: 'text/csv',
         status: 'loading',
       )
-      load_csv(target_path)
+      load_csv(sheet)
       FileUtils.remove_entry(tmp_dir)
     end
 
@@ -82,23 +103,26 @@ module GrdaWarehouse::CustomImports
       nil
     end
 
-    def load_csv(file_path)
-      require 'csv'
+    def load_csv(file)
       batch_size = 10_000
       loaded_rows = 0
-      ::File.open(file_path) do |file|
-        headers = file.first
-        file.lazy.each_slice(batch_size) do |lines|
-          csv_rows = CSV.parse(lines.join, headers: headers)
-          loaded_rows += csv_rows.count
-          rows.klass.import(clean_headers(csv_rows.headers), clean_rows(csv_rows))
-        end
+
+      headers = clean_headers(file.first)
+      file.drop(1).each_slice(batch_size) do |lines|
+        loaded_rows += lines.count
+        rows.klass.import(headers.reject { |h| h == 'do_not_import' }, clean_rows(headers, lines))
       end
+
       summary << "Loaded #{loaded_rows} rows"
     end
 
-    private def clean_rows(rows)
-      rows.map { |row| row.to_h.values + [id, data_source_id] }
+    private def clean_rows(headers, rows)
+      # remove any items where the header is nil
+      excluded = headers.each_index.select { |i| headers[i] == 'do_not_import' }
+      rows.map do |row|
+        row = row.delete_if.with_index { |_, i| excluded.include?(i) }
+        row + [id, data_source_id]
+      end
     end
   end
 end
