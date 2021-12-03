@@ -76,7 +76,9 @@ module HudApr::Generators::Shared::Fy2021
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          members = universe.members.where(hoh_clause).where(population_clause)
+          members = universe.members.where(hoh_clause.and(a_t[:household_type].not_eq('children_only'))).
+            where.not(a_t[:age].eq(nil).and(a_t[:household_type].eq('unknown'))). # Special case from Datalab test?
+            where(population_clause)
 
           ids = Set.new
           if response_clause.is_a?(Symbol)
