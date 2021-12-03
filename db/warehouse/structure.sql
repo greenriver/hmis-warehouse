@@ -4206,6 +4206,7 @@ CREATE TABLE public.client_contacts (
     state character varying,
     zip character varying,
     note character varying,
+    last_modified_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );

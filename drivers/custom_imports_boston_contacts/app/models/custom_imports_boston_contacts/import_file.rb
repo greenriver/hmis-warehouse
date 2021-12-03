@@ -75,6 +75,7 @@ module CustomImportsBostonContacts
             phone_alternate: row.phone_alternate,
             email: row.email,
             note: row.note,
+            last_modified_at: row.contact_updated_at,
           }
         end
         GrdaWarehouse::ClientContact.import(contact_batch)

@@ -169,10 +169,10 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def default_shelter_agency_contacts(client)
-      # TODO: this is being moved to custom pull from Clarity
+      client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
+    end
 
-      # client.most_recent_pathways_or_rrh_assessment_for_destination.
-      #   question_matching_requirement('c_casemanager_contacts')&.AssessmentAnswer
+    private def contact_info_for_rrh_assessment(client)
     end
 
     private def cas_assessment_name(client)
