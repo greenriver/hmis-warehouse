@@ -6,5 +6,6 @@ FactoryBot.define do
     username { 'user' }
     password { 'password' }
     file_path { '/sftp' }
+    scheduled_hour { 0 }
   end
 end
