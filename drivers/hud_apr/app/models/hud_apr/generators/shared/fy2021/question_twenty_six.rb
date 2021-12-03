@@ -183,9 +183,9 @@ module HudApr::Generators::Shared::Fy2021
             where(response_clause)
           case suffix
           when :exit
-            members = members.where(stayers_clause)
-          when :latest
             members = members.where(leavers_clause)
+          when :latest
+            members = members.where(stayers_clause)
           end
 
           value = members.count
