@@ -322,8 +322,8 @@ module HudApr::Generators::Shared::Fy2021
             where(
               a_t[:other_clients_over_25].eq(false).
                 and(
-                  hoh_clause.and(a_t[:age].between(0..24)).
-                  or(a_t[:age].between(12..24)),
+                  hoh_clause.and(a_t[:age].between(12..24)).
+                  or(a_t[:age].between(18..24)),
                 ),
             )
 
@@ -367,8 +367,8 @@ module HudApr::Generators::Shared::Fy2021
             where(
               a_t[:other_clients_over_25].eq(false).
                 and(
-                  hoh_clause.and(a_t[:age].between(0..24)).
-                    or(a_t[:age].between(12..24)),
+                  hoh_clause.and(a_t[:age].between(12..24)).
+                    or(a_t[:age].between(18..24)),
                 ),
             )
           youth = youth.where(stayers_clause) if suffix == :annual_assessment
@@ -424,8 +424,8 @@ module HudApr::Generators::Shared::Fy2021
             where(
               a_t[:other_clients_over_25].eq(false).
                 and(
-                  hoh_clause.and(a_t[:age].between(0..24)).
-                    or(a_t[:age].between(12..24)),
+                  hoh_clause.and(a_t[:age].between(12..24)).
+                    or(a_t[:age].between(18..24)),
                 ),
             ).
             where(leavers_clause).

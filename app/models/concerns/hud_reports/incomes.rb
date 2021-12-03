@@ -91,6 +91,7 @@ module HudReports::Incomes
 
     private def no_income?(universe_client, suffix)
       return false if universe_client["income_from_any_source_at_#{suffix}"] == 99 ||
+        universe_client["income_from_any_source_at_#{suffix}"] == 9 ||
         universe_client["income_from_any_source_at_#{suffix}"].nil? &&
         universe_client["income_sources_at_#{suffix}"].present?
 
