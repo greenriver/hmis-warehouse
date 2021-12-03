@@ -293,7 +293,12 @@ module HudApr::Generators::Shared::Fy2021
           and(a_t[:project_type].in([3, 13])).
           and(a_t[:head_of_household].eq(true)),
       ).pluck(:household_id)
-      psh_rrh_universe = universe.members.where(a_t[:household_id].in(psh_rrh_households))
+      psh_rrh_universe = universe.members.where(
+        a_t[:household_id].in(psh_rrh_households).
+          and(a_t[:first_date_in_program].lteq(pit_date)).
+          and(a_t[:last_date_in_program].gt(pit_date).
+            or(a_t[:last_date_in_program].eq(nil))),
+      )
 
       so_serv_ce_universe = universe.members.where(
         a_t[:first_date_in_program].lteq(pit_date).
