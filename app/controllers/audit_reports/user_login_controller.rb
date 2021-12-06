@@ -9,9 +9,11 @@ module AuditReports
     include WarehouseReportAuthorization
 
     def index
-      @users = users_scope.page(params[:page]).per(25)
+      @users = users_scope
       respond_to do |format|
-        format.html {}
+        format.html do
+          @users = @users.page(params[:page]).per(25)
+        end
         format.xlsx do
           date = Date.current.strftime('%Y-%m-%d')
           filename = "user-logins-#{date}.xlsx"

@@ -1,6 +1,6 @@
 :javascript
   class CocMap {
-    constructor({ elementId, shapes, metrics, colors, max_rate, max_count }) {
+    constructor({ elementId, shapes, state, metrics, colors, max_rate, max_count }) {
       this.initInfoBox = this.initInfoBox.bind(this);
       this.style = this.style.bind(this);
       this.updateInfo = this.updateInfo.bind(this);
@@ -11,6 +11,7 @@
       this.max_count = max_count;
       this.elementId = elementId;
       this.shapes = shapes;
+      this.state = state;
       this.colors = colors;
       this.metrics = metrics;
       this.showingData = false;
@@ -34,18 +35,18 @@
         .addTo(this.map);
 
       // Do not show basemap
-      // osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-      // osmAttrib = 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-      // osm = new L.TileLayer(osmUrl, {attribution: osmAttrib})
-      // @map.addLayer(osm)
+      // const osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      // const osmAttrib = 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+      // const osm = new L.TileLayer(osmUrl, {attribution: osmAttrib})
+      // this.map.addLayer(osm)
 
       const geoJSONOptions = {
         style: this.style,
         onEachFeature: this.onEachFeature,
       };
 
+      // L.geoJSON(this.state, geoJSONOptions).addTo(this.map);
       this.geojson = L.geoJSON(this.shapes, geoJSONOptions).addTo(this.map);
-
       this.map.fitBounds(this.geojson.getBounds());
 
       this.initInfoBox();
@@ -57,11 +58,10 @@
         let innerHTML = '';
         let hidden = true;
         if (props != null) {
-          const { id, name, cocnum, metric } = props;
-          const rate = this.metrics[cocnum].rate
-          const count = this.metrics[cocnum].count
-          const population = this.metrics[cocnum].overall_population
-          innerHTML = `<h4>${name} (${cocnum})</h4><div class="rate">${rate} per 10,000 people</div><div class="count">${count.toLocaleString()} clients of ${population.toLocaleString()} people</div>`;
+          const rate = this.metrics[props.cocnum]?.rate
+          const count = this.metrics[props.cocnum]?.count
+          const population = this.metrics[props.cocnum]?.overall_population
+          innerHTML = `<h4>${props.name} (${props.cocnum})</h4><div class="rate">${rate}% of overall homeless population</div><div class="count">${count?.toLocaleString()} of ${population?.toLocaleString()} people</div>`;
 
           hidden = false;
         }
@@ -92,10 +92,16 @@
     getColor(rate) {
       let division_size = this.max_rate / this.colors.length
       let division = Math.floor(rate / division_size)
-      if(division < this.colors.length) {
+      if(division == 0) {
+        if(rate > 0) {
+          return this.colors[1]
+        } else {
+          return this.colors[0]
+        }
+      } else if(division < this.colors.length) {
         return this.colors[division]
       } else {
-        return this.colors[this.colors.length - 1]
+        return this.colors[this.colors.length]
       }
     }
 
@@ -154,8 +160,8 @@
     updateMetrics(metrics) {
       this.metrics = metrics
       this.geojson.getLayers().forEach((l) => {
-        const coc_number = l.feature.properties.cocnum
-        l.feature.properties.metric = this.metrics[coc_number].rate
+        const place_name = l.feature.properties.cocnum
+        l.feature.properties.metric = this.metrics[place_name].rate
         this.geojson.resetStyle(l);
         return l.setStyle({
           fillColor: this.getColor(l.feature.properties.metric),

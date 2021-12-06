@@ -17,9 +17,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 35rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 .c-indicator__passed {
-  margin-right: space(8);
+  margin-left: auto;
+  margin-right: space(2);
   span {
     font-size: rem(35px);
   }
@@ -27,7 +31,7 @@
     color: $brand-success;
   }
   &.fail {
-    color: $brand-danger;
+    color: rgb(115, 72, 213);
   }
 }
 .c-indicator__values {
@@ -35,11 +39,14 @@
   align-items: flex-end;
 }
 .c-indicator__value {
-  margin-right: space(3);
+  margin-right: space(2);
+}
+.c-indicator__value--primary {
+  margin-right: space(6);
 }
 .c-indicator__change-icon {
-  margin-left: space(3);
-  margin-right: space(3);
+  margin-left: space(2);
+  margin-right: space(4);
   svg,
   .icon-svg {
     width: 2.5rem;

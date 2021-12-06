@@ -9,12 +9,47 @@ module GrdaWarehouse
     class County < GrdaWarehouseBase
       include SharedBehaviors
 
+      scope :county_by_name, ->(names) do
+        names.map!(&:downcase)
+        where(arel_table[:namelsad].lower.in(names))
+      end
+
       def self._full_geoid_prefix
         '0500000'
       end
 
       def self.simplification_distance_in_degrees
         0.0005
+      end
+
+      def name
+        namelsad
+      end
+
+      def self.zip_codes
+        ZipCode.joins(<<~SQL)
+          JOIN shape_counties ON (
+            ST_Area(
+              ST_Intersection(shape_zip_codes.geom, shape_counties.geom)
+            )
+            >=
+            (0.5 * ST_Area(shape_zip_codes.simplified_geom))
+          )
+        SQL
+      end
+
+      def zip_codes
+        ZipCode.joins(<<~SQL)
+          JOIN shape_counties ON (
+            shape_counties.id = #{id}
+            AND
+            ST_Area(
+              ST_Intersection(shape_zip_codes.geom, shape_counties.geom)
+            )
+            >=
+            (0.5 * ST_Area(shape_zip_codes.simplified_geom))
+          )
+        SQL
       end
     end
   end

@@ -103,7 +103,8 @@
           = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', as: :select_two, input_html: { multiple: true }
           = f.input :health_priority_age, label: 'Age above which should be automatically flagged as health prioritized'
           = f.input :domestic_violence_lookback_days, label: 'How long should a victim of domestic violence be considered a victim?', collection: GrdaWarehouse::Config.dv_days, as: :select_two
-          = f.input :ineligible_uses_extrapolated_days, label: 'Should calculations of ineligibility for CAS and Cohorts include extrapolated days?'
+          = f.input :ineligible_uses_extrapolated_days, label: 'Should calculations of ineligibility for CAS and Cohorts include extrapolated days?', hint: 'This also affects adding clients to cohorts, the most-recent days served on enrollment roll-ups.'
+          = f.input :cas_calculator, label: 'Which method should be used to set CAS values?', as: :select_two, collection: GrdaWarehouse::Config.available_cas_calculators
 
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
 = content_for :page_js do

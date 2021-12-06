@@ -43,6 +43,7 @@ Rails.application.routes.draw do
       resources :appointments, only: [:index], controller: '/health/appointments' do
         collection do
           get :upcoming
+          get :calendar
         end
       end
       resources :ed_ip_visits, only: [:index], controller: '/health/ed_ip_visits'

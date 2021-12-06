@@ -8,4 +8,4 @@
     - if current_user.can_edit_data_sources? && GrdaWarehouse::DataSource.stalled_imports?(current_user)
       %li.c-header-nav__item.c-header-nav__item--warning
         = link_to data_sources_path, class: 'c-header-nav__link' do
-          %i.icon-clock{ data: {toggle: :tooltip, title: 'Stalled Import!', placement: :bottom}}
+          %i.icon-clock-o{ data: {toggle: :tooltip, title: 'Stalled Import!', placement: :bottom}}

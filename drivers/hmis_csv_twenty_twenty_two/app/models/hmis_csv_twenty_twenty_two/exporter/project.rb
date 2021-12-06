@@ -28,6 +28,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def apply_overrides(row, data_source_id:)
+      # This should never happen, but does
+      row[:OrganizationID] = 'Unknown' unless row[:OrganizationID].present?
+
       override = housing_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
       row[:HousingType] = override if override.present?
 

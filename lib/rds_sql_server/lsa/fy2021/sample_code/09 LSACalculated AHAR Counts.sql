@@ -178,8 +178,7 @@ Populates and references:
 	select distinct rp.PopID, p1.PersonalID, p1.HouseholdID, '9.1.22'
 	from ref_RowPopulations rp
 	inner join tlsa_CountPops p1 on p1.PopID = rp.Pop1
-	inner join tlsa_CountPops p2 on p2.PopID = rp.Pop2 and (p2.PersonalID = p1.PersonalID or p1.PersonalID is NULL)
-		and (p2.HouseholdID = p1.HouseholdID or p1.HouseholdID is null)
+	inner join tlsa_CountPops p2 on p2.PopID = rp.Pop2 and p2.PersonalID = p1.PersonalID
 	where rp.RowMin >= 53 and rp.RowMax <> 64
 
 /*
@@ -260,12 +259,14 @@ Populates and references:
 	9.3 Counts of People and Households by Project and Household Characteristics
 
 */
+
+	delete from lsa_Calculated where ReportRow in (53,54)
 	
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID
 		, ReportRow, ReportID, Step)
 	select distinct case when rv.RowID = 53 then count(distinct n.PersonalID) 
 			else count(distinct hhid.HoHID + cast(hhid.ActiveHHType as varchar)) end
-		, rv.Cohort, rv.Universe, hhid.ActiveHHType, rp.PopID, rv.SystemPath
+		, rv.Cohort, rv.Universe, ph.HHType, rp.PopID, rv.SystemPath
 		, case when rv.Universe = 10 then hhid.ProjectID else null end
 		, rv.RowID, (select ReportID from lsa_Report), '9.3.1'
 	from ref_RowValues rv
@@ -291,19 +292,20 @@ Populates and references:
 				when 12 then n.PITApril
 				else n.PITJuly end = 1 
 		where rv.RowID in (53,54)
-		group by rv.RowID, rv.Cohort, rv.Universe, hhid.ActiveHHType, rp.PopID, rv.SystemPath
+		group by rv.RowID, rv.Cohort, rv.Universe, ph.HHType, rp.PopID, rv.SystemPath
 			, case when rv.Universe = 10 then hhid.ProjectID else null end
-
 
 /*
 	9.4 Counts of People by Project and Personal Characteristics
 */
 
+	delete from lsa_Calculated where ReportRow = 55
+
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID
 		, ReportRow, ReportID, Step)
 	select distinct count(distinct n.PersonalID) 
-		, rv.Cohort, rv.Universe, hhid.ActiveHHType, rp.PopID, rv.SystemPath
-		, case when rp.ByProject = 1 and rv.Universe = 10 then hhid.ProjectID else null end
+		, rv.Cohort, rv.Universe, ph.HHType, rp.PopID, rv.SystemPath
+		, case when rv.Universe = 10 then hhid.ProjectID else null end
 		, rv.RowID, (select ReportID from lsa_Report), '9.4.1'
 	from ref_RowValues rv
 	inner join ref_RowPopulations rp on rv.RowID between rp.RowMin and rp.RowMax 
@@ -327,10 +329,11 @@ Populates and references:
 				or (rv.Universe = 15 and hhid.LSAProjectType = 3)
 				or (rv.Universe = 16 and hhid.LSAProjectType in (0,1,2,8))
 			)
-		where rv.RowID = 55
-		group by rv.Cohort, rv.Universe, hhid.ActiveHHType, rp.PopID, rv.SystemPath
-		, case when rp.ByProject = 1 and rv.Universe = 10 then hhid.ProjectID else null end
-		, rv.RowID
+		where rv.RowID = 55 
+			and ((rv.Universe = 10 and rp.ByProject = 1) or rp.ByProject is NULL)
+		group by rv.Cohort, rv.Universe, ph.HHType, rp.PopID, rv.SystemPath
+			, case when rv.Universe = 10 then hhid.ProjectID else null end
+			, rv.RowID
 
 /*
 	9.5 Counts of Bednights
@@ -345,8 +348,12 @@ Populates and references:
 */
 
 	-- By ProjectID (Universe 10) - night by night ES
+
+	delete from lsa_Calculated where ReportRow in (56,57)
+
+
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID, ReportRow, ReportID, Step)
-	select count(distinct n.PersonalID + cast(bn.DateProvided as varchar)), 1, 10, hhid.ActiveHHType, pop.PopID, -1
+	select count(distinct n.PersonalID + cast(bn.DateProvided as varchar)), 1, 10, ph.HHType, pop.PopID, -1
 			, hhid.ProjectID
 			, case when pop.PopID in (0,10,11) then 56 else 57 end 
 			, (select ReportID from lsa_Report), '9.5.1'
@@ -358,16 +365,17 @@ Populates and references:
 		inner join tlsa_CountPops pop on (pop.HouseholdID = n.HouseholdID and pop.PopID in (10,11))
 			or (pop.PersonalID = n.PersonalID and pop.PopID in (50,53))
 			or (pop.PopID = 0)
+		inner join ref_PopHHTypes ph on ph.PopID = pop.PopID and (ph.HHType = 0 or ph.HHType = hhid.ActiveHHType)
 		inner join lsa_Report rpt on rpt.ReportStart <= bn.DateProvided and rpt.ReportEnd >= bn.DateProvided
 		where n.LSAProjectType = 1 and bn.RecordType = 200 and bn.DateDeleted is NULL and n.AHAR = 1
-		group by hhid.ActiveHHType, hhid.ProjectID, pop.PopID
+		group by ph.HHType, hhid.ProjectID, pop.PopID
 
 	-- By ProjectID (Universe 10) - entry-exit ES, SH, TH, RRH, and PSH 
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct n.PersonalID + cast(cal.theDate as nvarchar))
-		, 1, 10, hhid.ActiveHHType
+		, 1, 10, ph.HHType
 		, pop.PopID, -1 
 		, case when pop.PopID in (0,10,11) then 56 else 57 end 
 		, n.ProjectID
@@ -377,6 +385,7 @@ Populates and references:
 	inner join tlsa_CountPops pop on (pop.HouseholdID = n.HouseholdID and pop.PopID in (10,11))
 		or (pop.PersonalID = n.PersonalID and pop.PopID in (50,53))
 		or (pop.PopID = 0)
+	inner join ref_PopHHTypes ph on ph.PopID = pop.PopID and (ph.HHType = 0 or ph.HHType = hhid.ActiveHHType)
 	inner join lsa_Report rpt on rpt.ReportEnd >= 
 		case when n.LSAProjectType in (0,2,8) then n.EntryDate
 			else n.MoveInDate end
@@ -387,7 +396,7 @@ Populates and references:
 		and cal.theDate < coalesce(n.ExitDate, dateadd(dd, 1, rpt.ReportEnd))
 		and n.LSAProjectType in (0,2,3,8,13)
 	where n.AHAR = 1 
-	group by n.ProjectID, rpt.ReportID, hhid.ActiveHHType, pop.PopID
+	group by n.ProjectID, rpt.ReportID, ph.HHType, pop.PopID
 	
 	-- All ES (Universe 11) 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID, ReportRow, ReportID, Step)
@@ -395,7 +404,7 @@ Populates and references:
 		, case when es.PopID in (0,10,11) then 56 else 57 end 
 		, (select ReportID from lsa_Report), '9.5.3'
 	from 
-		(select distinct n.PersonalID + cast(bn.DateProvided as varchar) as bn, hhid.ActiveHHType as HHType, pop.PopID
+		(select distinct n.PersonalID + cast(bn.DateProvided as varchar) as bn, ph.HHType as HHType, pop.PopID
 			from hmis_Services bn
 			inner join tlsa_Enrollment n on n.EnrollmentID = bn.EnrollmentID
 				and (n.ExitDate is null or n.ExitDate > bn.DateProvided)
@@ -404,15 +413,17 @@ Populates and references:
 			inner join tlsa_CountPops pop on (pop.HouseholdID = n.HouseholdID and pop.PopID in (10,11))
 				or (pop.PersonalID = n.PersonalID and pop.PopID in (50,53))
 				or (pop.PopID = 0)
+			inner join ref_PopHHTypes ph on ph.PopID = pop.PopID and (ph.HHType = 0 or ph.HHType = hhid.ActiveHHType)
 			inner join lsa_Report rpt on rpt.ReportStart <= bn.DateProvided and rpt.ReportEnd >= bn.DateProvided
 			where hhid.LSAProjectType = 1 and bn.RecordType = 200 and bn.DateDeleted is NULL and n.AHAR = 1
 		union all
-		select distinct n.PersonalID + cast(cal.theDate as varchar), hhid.ActiveHHType, pop.PopID
+		select distinct n.PersonalID + cast(cal.theDate as varchar), ph.HHType, pop.PopID
 		from tlsa_Enrollment n 
 		inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 		inner join tlsa_CountPops pop on (pop.HouseholdID = n.HouseholdID and pop.PopID in (10,11))
 			or (pop.PersonalID = n.PersonalID and pop.PopID in (50,53))
 			or (pop.PopID = 0)
+		inner join ref_PopHHTypes ph on ph.PopID = pop.PopID and (ph.HHType = 0 or ph.HHType = hhid.ActiveHHType)
 		inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 		inner join ref_Calendar cal on cal.theDate >= n.EntryDate
 			and cal.theDate >= rpt.ReportStart
@@ -430,15 +441,16 @@ Populates and references:
 				when 8 then 12
 				when 2 then 13
 				when 13 then 14 else 15 end 
-		, hhid.ActiveHHType
+		, ph.HHType
 		, pop.PopID, -1
 		, case when pop.PopID in (0,10,11) then 56 else 57 end 
 		, rpt.ReportID, '9.5.4'
 	from tlsa_Enrollment n 
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
-		inner join tlsa_CountPops pop on (pop.HouseholdID = n.HouseholdID and pop.PopID in (10,11))
-			or (pop.PersonalID = n.PersonalID and pop.PopID in (50,53))
-			or (pop.PopID = 0)
+	inner join tlsa_CountPops pop on (pop.HouseholdID = n.HouseholdID and pop.PopID in (10,11))
+		or (pop.PersonalID = n.PersonalID and pop.PopID in (50,53))
+		or (pop.PopID = 0)
+	inner join ref_PopHHTypes ph on ph.PopID = pop.PopID and (ph.HHType = 0 or ph.HHType = hhid.ActiveHHType)
 	inner join lsa_Report rpt on rpt.ReportEnd >= 
 		case when n.LSAProjectType in (2,8) then n.EntryDate
 			else n.MoveInDate end
@@ -452,7 +464,7 @@ Populates and references:
 	group by case n.LSAProjectType 
 				when 8 then 12
 				when 2 then 13
-				when 13 then 14 else 15 end, rpt.ReportID, hhid.ActiveHHType, pop.PopID
+				when 13 then 14 else 15 end, rpt.ReportID, ph.HHType, pop.PopID
 
 	-- Unduplicated ES/SH/TH (Universe 16) 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID, ReportRow, ReportID, Step)
@@ -460,7 +472,7 @@ Populates and references:
 		, case when est.PopID in (0,10,11) then 56 else 57 end 
 		, (select ReportID from lsa_Report), '9.5.5'
 	from 
-		(select distinct n.PersonalID + cast(bn.DateProvided as varchar) as bn, hhid.ActiveHHType as HHType, pop.PopID
+		(select distinct n.PersonalID + cast(bn.DateProvided as varchar) as bn, ph.HHType as HHType, pop.PopID
 			from hmis_Services bn
 			inner join tlsa_Enrollment n on n.EnrollmentID = bn.EnrollmentID and n.EntryDate <= bn.DateProvided 
 				and (n.ExitDate is null or n.ExitDate > bn.DateProvided)
@@ -468,15 +480,17 @@ Populates and references:
 			inner join tlsa_CountPops pop on (pop.HouseholdID = n.HouseholdID and pop.PopID in (10,11))
 				or (pop.PersonalID = n.PersonalID and pop.PopID in (50,53))
 				or (pop.PopID = 0)
+			inner join ref_PopHHTypes ph on ph.PopID = pop.PopID and (ph.HHType = 0 or ph.HHType = hhid.ActiveHHType)
 			inner join lsa_Report rpt on rpt.ReportStart <= bn.DateProvided and rpt.ReportEnd >= bn.DateProvided
 			where hhid.LSAProjectType = 1 and bn.RecordType = 200 and bn.DateDeleted is NULL and n.AHAR = 1
 		union all
-		select distinct n.PersonalID + cast(cal.theDate as varchar), hhid.ActiveHHType, pop.PopID
+		select distinct n.PersonalID + cast(cal.theDate as varchar), ph.HHType, pop.PopID
 		from tlsa_Enrollment n 
 		inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 		inner join tlsa_CountPops pop on (pop.HouseholdID = n.HouseholdID and pop.PopID in (10,11))
 			or (pop.PersonalID = n.PersonalID and pop.PopID in (50,53))
 			or (pop.PopID = 0)
+		inner join ref_PopHHTypes ph on ph.PopID = pop.PopID and (ph.HHType = 0 or ph.HHType = hhid.ActiveHHType)
 		inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 		inner join ref_Calendar cal on cal.theDate >= n.EntryDate
 			and cal.theDate >= rpt.ReportStart

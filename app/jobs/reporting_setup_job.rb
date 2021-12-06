@@ -5,12 +5,18 @@
 ###
 
 class ReportingSetupJob < BaseJob
+  include ActionView::Helpers::DateHelper
+
   def perform
     setup_notifier('ReportingSetupJob')
+    started_at = Time.current
     @notifier.ping('Reporting database updating') if @send_notifications
     Reporting::Housed.new.populate!
+    elapsed = distance_of_time_in_words(started_at, Time.current)
+    @notifier.ping("Reporting database Housed completed in #{elapsed}, starting Return") if @send_notifications
     Reporting::Return.new.populate!
-    @notifier.ping('Reporting database updated') if @send_notifications
+    elapsed = distance_of_time_in_words(started_at, Time.current)
+    @notifier.ping("Reporting database updated in #{elapsed}") if @send_notifications
   end
 
   def max_attempts

@@ -1,0 +1,24 @@
+- if visits.present?
+  %table.table.table-sm.table-striped
+    %thead
+      %tr
+        %th Time
+        %th Appointment
+        %th Doctor
+        %th SA
+    %tbody
+      - visits.each do |visit|
+        %tr
+          %td= visit[:time]
+          %td.nobr
+            = visit[:type]
+            at
+            = visit[:department]
+            - notes = visit[:notes]
+            - if notes.present?
+              %br
+              %strong
+                Note:
+              = notes
+          %td= visit[:doctor]
+          %td= visit[:sa]

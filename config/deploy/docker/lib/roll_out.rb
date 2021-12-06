@@ -6,6 +6,7 @@ require_relative 'memory_analyzer'
 require 'aws-sdk-cloudwatchlogs'
 require 'aws-sdk-ec2'
 require_relative '../../../../app/jobs/workoff_arbiter'
+require_relative 'shared_logic'
 
 class RollOut
   attr_accessor :aws_profile
@@ -28,6 +29,8 @@ class RollOut
   attr_accessor :task_role
   attr_accessor :web_options
   attr_accessor :only_check_ram
+
+  include SharedLogic
 
   # FIXME: cpu shares as parameter
   # FIXME: log level as parameter
@@ -402,22 +405,6 @@ class RollOut
     _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
   end
 
-  # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html
-  def _placement_strategy
-    [
-      {
-        # Distribute across zones first
-        "field": "attribute:ecs.availability-zone",
-        "type": "spread"
-      },
-      {
-        # Then try to maximize utilization (minimize number of EC2 instances)
-        "field": "memory",
-        "type": "binpack"
-      }
-    ]
-  end
-
   def _run_task!
     _make_cloudwatch_group!
 
@@ -644,6 +631,7 @@ class RollOut
             base: 1,
           },
         ],
+        # placement_constraints: _placement_constraints,
         placement_strategy: _placement_strategy,
         deployment_configuration: {
           maximum_percent: maximum_percent,

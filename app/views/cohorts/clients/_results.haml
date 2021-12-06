@@ -4,7 +4,7 @@
     - show_removal_reason = @cohort.visible_columns(user: current_user).any?{ |c| c.column == 'previous_removal_reason' }
     .c-card__content.c-card__content--flush
       %p.p-4.pb-1.font-weight-bold= "Found #{@clients.count} matching clients"
-      %table.table.table-sm.small
+      %table.table.table-striped
         %thead
           %tr
             %th

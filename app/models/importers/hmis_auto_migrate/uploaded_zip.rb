@@ -71,7 +71,7 @@ module Importers::HmisAutoMigrate
         end
         FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
       else # for now, assume standard zip is the only other option
-        dest_file = zip_file.gsub('.zip', 'decrypted.zip')
+        dest_file = zip_file.gsub('.zip', '_decrypted.zip')
 
         Tempfile.create('expect', Rails.root.join(::File.dirname(zip_file)).to_s) do |expect_script|
           expect_content = <<~EXPECT

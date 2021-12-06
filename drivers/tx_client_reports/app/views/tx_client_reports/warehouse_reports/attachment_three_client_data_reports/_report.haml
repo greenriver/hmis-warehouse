@@ -1,0 +1,35 @@
+.overflow-scroll
+  .d-flex
+    .page-info!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+    .ml-auto!= pagy_bootstrap_nav(@pagy)
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Project Name
+          %th Date of First Service
+          %th Client Name
+          %th Street Address
+          %th Age
+          %th Genders
+          %th Ethnicity
+          %th Races
+          %th Disabled?
+          %th HH Size
+          %th Monthly Income
+          %th FHOH
+      %tbody
+        - @rows.each do |row|
+          %tr
+            %td= row[:program_name]
+            %td= row[:service_date]
+            %td= row[:client_name]
+            %td= row[:street_address]
+            %td= row[:age]
+            %td= row[:genders]
+            %td= HUD.ethnicity(row[:ethnicity])
+            %td= row[:races].map { |r| HUD.race(r) }.join(', ')
+            %td= checkmark(row[:disabled])
+            %td= row[:hh_size]
+            %td= number_to_currency(row[:income])
+            %td= checkmark(row[:female_hoh])

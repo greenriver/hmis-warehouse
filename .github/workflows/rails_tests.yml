@@ -18,7 +18,7 @@ jobs:
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
-    container: ruby:2.7.2-alpine
+    container: ruby:2.7.4-alpine3.13
 
     # Service containers to run with job
     services:
@@ -169,6 +169,11 @@ jobs:
           WAREHOUSE_DATABASE_PASS: postgres
           WAREHOUSE_DATABASE_USER: postgres
           WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
+          # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+          GROVER_NO_SANDBOX: true
+          CHROMIUM_PATH: /usr/bin/chromium-browser
         run: |
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
           bundle exec rspec --color --format p -P "{spec,drivers}/**/*_spec.rb"

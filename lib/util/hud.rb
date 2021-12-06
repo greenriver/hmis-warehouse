@@ -306,14 +306,22 @@ module HUD
   end
 
   # 1.6
+  def gender_none(id, reverse = false)
+    race_none(id, reverse)
+  end
+
   def race_none(id, reverse = false)
-    map = {
+    map = race_gender_none_options
+
+    _translate map, id, reverse
+  end
+
+  def race_gender_none_options
+    {
       8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 1.7

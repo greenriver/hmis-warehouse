@@ -54,33 +54,33 @@ class StyleGuidesController < ApplicationController
     grid_lines = []
     timeline_date_range.each do |d|
       entries << (rand(1..50) > 45 ? 0.5 : nil)
-      class_name = ""
+      class_name = ''
       class_name =
         if d == d.at_beginning_of_month
-          "--start-of-month"
+          '--start-of-month'
         elsif d == d.at_beginning_of_week
-          "--start-of-week"
+          '--start-of-week'
         end
       grid_lines << { value: d, class: "date-tick #{class_name}" }
     end
     @timeline_config = {
       data: {
-        x: "x",
+        x: 'x',
         columns: [
-          [ "x" ] + timeline_date_range.map{ |d| d },
-          [ "Entries" ] + entries,
+          ['x'] + timeline_date_range.map { |d| d },
+          ['Entries'] + entries,
         ],
-        type: "scatter",
+        type: 'scatter',
       },
       grid: {
         x: {
           front: false,
           show: true,
           lines: grid_lines,
-        }
-      }
+        },
+      },
     }.to_json
-    @appointments = ((Date.today.beginning_of_week(start_day = :sunday))..Date.today+2.weeks).map do |d|
+    @appointments = (Date.today.beginning_of_week(:sunday)..Date.today + 2.weeks).map do |d|
       details = nil
       if rand(1..50) > 45
         details = {
@@ -92,7 +92,7 @@ class StyleGuidesController < ApplicationController
       {
         date: d,
         scheduled: details.present?,
-        **(details || {})
+        **(details || {}),
       }
     end
     @form = OpenStruct.new
@@ -101,17 +101,17 @@ class StyleGuidesController < ApplicationController
   def reports
     @indicator_groups = [
       {
-        title: "Rare",
+        title: 'Rare',
         indicators: [[indicator], [indicator, indicator], [indicator]],
         description: lorem,
       },
       {
-        title: "Brief",
+        title: 'Brief',
         indicators: [[indicator, indicator], [indicator, indicator], [indicator, indicator]],
         description: lorem,
       },
       {
-        title: "Non-Recuring",
+        title: 'Non-Recuring',
         indicators: [[indicator], [indicator], [indicator]],
         description: lorem,
       },
@@ -119,7 +119,7 @@ class StyleGuidesController < ApplicationController
   end
 
   def public_report
-    render layout: "test_public_report"
+    render layout: 'test_public_report'
   end
 
   def modal
@@ -157,17 +157,12 @@ class StyleGuidesController < ApplicationController
     {
       title: lorem(sentence_count: 1),
       direction: directions[rand(0..2)],
-      value_label: "Change <br> over year",
-      primary_value: {
-        value: rand(1..100),
-        unit: "days",
-      },
-      secondary_value: {
-        value: rand(1..100),
-        unit: "%",
-      },
-      passed: Faker::Boolean.boolean
+      value_label: 'Change <br> over year',
+      primary_value: rand(1..100),
+      primary_unit: 'days',
+      secondary_value: rand(1..100),
+      secondary_unit: '%',
+      passed: Faker::Boolean.boolean,
     }
   end
-
 end

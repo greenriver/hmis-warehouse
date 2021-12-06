@@ -145,19 +145,23 @@ module ArelHelper
     #     end_date: '2020-12-31'.to_date,
     #   ),
     # )
+    # NOTE: group_on must all be in the same table
     def self.one_for_column(column, source_arel_table:, group_on:, direction: :desc, scope: nil)
       most_recent = source_arel_table.alias("most_recent_#{source_arel_table.name}_#{SecureRandom.alphanumeric}".downcase)
 
-      source = if scope
-        scope.arel
+      if scope
+        source = scope.arel
+        group_table = scope.arel_table
       else
-        source_arel_table.project(source_arel_table[:id])
+        source = source_arel_table.project(source_arel_table[:id])
+        group_table = source_arel_table
       end
 
       direction = :desc unless direction.in?([:asc, :desc])
+      group_columns = Array.wrap(group_on).map { |c| group_table[c] }
 
-      max_by_group = source.distinct_on(source_arel_table[group_on]).
-        order(source_arel_table[group_on], source_arel_table[column].send(direction))
+      max_by_group = source.distinct_on(group_columns).
+        order(*group_columns, source_arel_table[column].send(direction))
 
       join = source_arel_table.create_join(
         max_by_group.as(most_recent.name),
@@ -235,6 +239,10 @@ module ArelHelper
 
   def as_t
     GrdaWarehouse::Hud::Assessment.arel_table
+  end
+
+  def asq_t
+    GrdaWarehouse::Hud::AssessmentQuestion.arel_table
   end
 
   def ev_t
@@ -576,6 +584,10 @@ module ArelHelper
 
     def as_t
       GrdaWarehouse::Hud::Assessment.arel_table
+    end
+
+    def asq_t
+      GrdaWarehouse::Hud::AssessmentQuestion.arel_table
     end
 
     def ev_t

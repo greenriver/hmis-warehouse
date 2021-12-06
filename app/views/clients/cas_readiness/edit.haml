@@ -10,5 +10,7 @@
 
     %p
       The following information is used exclusively for matching clients to vacancies in CAS.  It is not used for federal reporting.
-
-  = render GrdaWarehouse::Config.get(:cas_flag_method).to_s
+  - if GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Boston'
+    = render 'boston'
+  - else
+    = render GrdaWarehouse::Config.get(:cas_flag_method).to_s

@@ -15,7 +15,6 @@ module PublicReports
     acts_as_paranoid
 
     MIN_THRESHOLD = 11
-    GEOMETRY = :place
 
     attr_accessor :map_max_rate, :map_max_count
 
@@ -103,7 +102,7 @@ module PublicReports
     end
 
     def generate_embed_code_for(section)
-      "<iframe width='500' height='400' src='#{generate_publish_url_for(section)}' frameborder='0' sandbox><a href='#{generate_publish_url_for(section)}'>#{instance_title} -- #{section.to_s.humanize}</a></iframe>"
+      "<iframe width='500' height='400' src='#{generate_publish_url_for(section)}' frameborder='0' sandbox='allow-scripts'><a href='#{generate_publish_url_for(section)}'>#{instance_title} -- #{section.to_s.humanize}</a></iframe>"
     end
 
     def sections
@@ -213,6 +212,29 @@ module PublicReports
         homeless_clients: homeless_clients,
         unsheltered_clients: unsheltered,
       }
+    end
+
+    def map_colors
+      @map_colors ||= {}.tap do |m_colors|
+        slight = 0.0001
+        max_rate = parsed_pre_calculated_data['map_max_rate']
+        colors = chart_color_shades(:map_primary_color)
+        m_colors[colors.first] = { description: '0%', range: (0..0) }
+        colors.drop(1).each.with_index do |color, i|
+          division_size = max_rate / colors.count
+          division_start = i * division_size
+          division_start = slight if division_start.zero?
+          division_end = (i + 1) * division_size
+          description = if i == colors.drop(2).count
+            "#{division_start.round}+"
+          elsif division_start == slight
+            "Any - #{division_end.round}%"
+          else
+            "#{division_start.round}% - #{division_end.round}%"
+          end
+          m_colors[color] = { description: description, range: (division_start..division_end) }
+        end
+      end
     end
 
     private def pit_chart
@@ -422,8 +444,10 @@ module PublicReports
         census_comparison_by_zip(scope)
       elsif map_by_place?
         census_comparison_by_place(scope)
+      elsif map_by_county?
+        census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
@@ -436,8 +460,10 @@ module PublicReports
         census_comparison_by_zip(scope)
       elsif map_by_place?
         census_comparison_by_place(scope)
+      elsif map_by_county?
+        census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
@@ -448,8 +474,10 @@ module PublicReports
         census_comparison_by_zip(scope)
       elsif map_by_place?
         census_comparison_by_place(scope)
+      elsif map_by_county?
+        census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
@@ -460,8 +488,10 @@ module PublicReports
         census_comparison_by_zip(scope)
       elsif map_by_place?
         census_comparison_by_place(scope)
+      elsif map_by_county?
+        census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
@@ -472,12 +502,14 @@ module PublicReports
         census_comparison_by_zip(scope)
       elsif map_by_place?
         census_comparison_by_place(scope)
+      elsif map_by_county?
+        census_comparison_by_county(scope)
       else
-        census_comparison(scope)
+        census_comparison_by_coc(scope)
       end
     end
 
-    private def census_comparison(scope)
+    private def census_comparison_by_coc(scope)
       self.map_max_rate ||= 0
       self.map_max_count ||= 0
       {}.tap do |charts|
@@ -486,20 +518,24 @@ module PublicReports
           end_date = date.end_of_quarter
           charts[date.iso8601] = {}
           coc_codes.each do |coc_code|
-            population_overall = population_by_coc[date.year][coc_code]
+            population_overall = if Rails.env.production?
+              population_by_coc[date.year][coc_code]
+            else
+              500
+            end
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
               ).in_coc(coc_code: coc_code).count
             else
-              max = [population_overall, 1].compact.max / 10_000
+              max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
             end
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
-            # rate per 10,000
+            # % of population
             rate = 0
-            rate = count / population_overall.to_f * 10_000.0 if population_overall.positive?
+            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
             charts[date.iso8601][coc_code] = {
               count: count,
               overall_population: population_overall.to_i,
@@ -521,20 +557,24 @@ module PublicReports
           end_date = date.end_of_quarter
           charts[date.iso8601] = {}
           zip_codes.each do |code|
-            population_overall = population_by_zip.try(:[], date.year).try(:[], code) || 0
+            population_overall = if Rails.env.production?
+              population_by_zip.try(:[], date.year).try(:[], code) || 0
+            else
+              500
+            end
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
               ).in_zip(zip_code: code).count
             else
-              max = [population_overall, 1].compact.max / 10_000
+              max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
             end
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
-            # rate per 10,000
+            # % of population
             rate = 0
-            rate = count / population_overall.to_f * 10_000.0 if population_overall.positive?
+            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
             charts[date.iso8601][code] = {
               count: count,
               overall_population: population_overall.to_i,
@@ -578,7 +618,51 @@ module PublicReports
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
             # % of population
             rate = 0
-            rate = count / population_overall.to_f * 100.0 if population_overall.positive?
+            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
+            charts[date.iso8601][code] = {
+              count: count,
+              overall_population: population_overall.to_i,
+              rate: rate.round(1),
+            }
+            self.map_max_rate = rate if rate > self.map_max_rate
+            self.map_max_count = count if count > self.map_max_count
+          end
+        end
+      end
+    end
+
+    private def census_comparison_by_county(scope)
+      self.map_max_rate ||= 0
+      self.map_max_count ||= 0
+      {}.tap do |charts|
+        quarter_dates.each do |date|
+          start_date = date.beginning_of_quarter
+          end_date = date.end_of_quarter
+          charts[date.iso8601] = {}
+          county_codes.each do |code|
+            # NOTE: this uses census data, switching to rate of clients in location to state
+            # population_overall = population_by_county.try(:[], date.year).try(:[], code) || 0
+            population_overall = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).count
+            else
+              500
+            end
+            count = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).in_county(county: code).count
+            else
+              max = [population_overall, 1].compact.max / 5
+              (0..max).to_a.sample
+            end
+            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            # % of population
+            rate = 0
+            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
             charts[date.iso8601][code] = {
               count: count,
               overall_population: population_overall.to_i,
@@ -882,6 +966,8 @@ module PublicReports
         GrdaWarehouse::Shape.geo_collection_hash(state_zip_shapes)
       elsif map_by_place?
         GrdaWarehouse::Shape.geo_collection_hash(state_place_shapes)
+      elsif map_by_county?
+        GrdaWarehouse::Shape.geo_collection_hash(state_county_shapes)
       else
         GrdaWarehouse::Shape.geo_collection_hash(state_coc_shapes)
       end
@@ -948,18 +1034,23 @@ module PublicReports
 
     # ZIP CODES
     def map_by_zip?
-      GEOMETRY == :zip
+      PublicReports::Setting.first.map_type == 'zip'
     end
 
     def map_by_place?
-      GEOMETRY == :place
+      PublicReports::Setting.first.map_type == 'place'
+    end
+
+    def map_by_county?
+      PublicReports::Setting.first.map_type == 'county'
     end
 
     def map_type
       return 'map_zip_js' if map_by_zip?
       return 'map_place_js' if map_by_place?
+      return 'map_county_js' if map_by_county?
 
-      'map_js'
+      'map_js' # CoC
     end
 
     private def zip_geometries
@@ -980,6 +1071,29 @@ module PublicReports
           charts[year] = {}
           zip_geometries.each do |geo|
             charts[year][geo.zcta5ce10] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
+          end
+        end
+      end
+    end
+
+    private def county_geometries
+      @county_geometries ||= GrdaWarehouse::Shape::County.where(namelsad: count_codes)
+    end
+
+    private def county_codes
+      @county_codes ||= state_county_shapes.map(&:namelsad)
+    end
+
+    private def state_county_shapes
+      @state_county_shapes ||= GrdaWarehouse::Shape::County.my_state
+    end
+
+    private def population_by_county
+      @population_by_county ||= {}.tap do |charts|
+        quarter_dates.map(&:year).uniq.each do |year|
+          charts[year] = {}
+          county_geometries.each do |geo|
+            charts[year][geo.name] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
           end
         end
       end

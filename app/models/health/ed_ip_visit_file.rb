@@ -60,7 +60,11 @@ module Health
             else
               model_row[column] = value
             end
+            # Create an encounter identifier, if one does not exist
+            model_row[:encounter_id] = default_encounter_id(model_row) if model_row[:encounter_id].nil?
           end
+          next if model_row[:encounter_id].blank?
+
           visits << model_row
         end
         Health::LoadedEdIpVisit.import!(visits)
@@ -85,9 +89,26 @@ module Health
           admit_date: loaded_visit.admit_date,
           encounter_major_class: loaded_visit.encounter_major_class,
           loaded_ed_ip_visit_id: loaded_visit.id,
+          encounter_id: loaded_visit.encounter_id,
         }
       end
-      Health::EdIpVisit.import(visits)
+      Health::EdIpVisit.import(
+        visits,
+        on_duplicate_key_ignore: true,
+      )
+    end
+
+    private def default_encounter_id(model_row)
+      # In the absence of better data, it was decided that one encounter per type per day was reasonable,
+      # so we can use that as a default encounter id:
+      encounter_id = "#{model_row[:medicaid_id]}_#{model_row[:admit_date]}_#{model_row[:visit_type]}"
+
+      # Encounter IDs must be unique in an INSERT or the import fails...
+      @encounter_ids ||= Set.new
+      return nil if @encounter_ids.include?(encounter_id)
+
+      @encounter_ids << encounter_id
+      encounter_id
     end
 
     private def check_header

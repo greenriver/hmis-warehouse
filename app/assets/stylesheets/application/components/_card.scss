@@ -3,7 +3,7 @@
 .c-card {
   overflow: auto;
 }
-.c-card-overflow-inherit {
+.c-card-overflow-inherit, .card.c-card-overflow-inherit {
   overflow: inherit;
 }
 
