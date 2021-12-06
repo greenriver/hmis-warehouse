@@ -25,7 +25,7 @@ begin
   keys = resp.to_h[:contents]&.map { |r| r[:key] }
 
   if keys.nil?
-    puts "No assets found. exiting. is #{prefix} the correct prefix?"
+    puts "No assets found. exiting. is #{prefix} the correct prefix? Is #{bucket} the correct bucket?"
     exit
   end
 
@@ -35,7 +35,7 @@ begin
              else
                key.sub(/#{prefix}/, '.')
              end
-    puts "#{key} -> #{target}"
+    puts "#{key} -> #{File.expand_path(target)}"
 
     if target.end_with?('/')
       FileUtils.mkdir_p(target)
@@ -58,7 +58,7 @@ begin
   end
 rescue Aws::S3::Errors::NoSuchBucket
   puts "[#{__FILE__}] Cannot find the bucket: #{bucket}"
-rescue Aws::S3::Errors::AccessDenied
+rescue Aws::S3::Errors::AccessDenied => e
   puts "[#{__FILE__}] Access denied to s3://#{bucket}/#{prefix}"
 rescue Aws::Errors::MissingRegionError
   puts "[#{__FILE__}] specify a region to sync!"

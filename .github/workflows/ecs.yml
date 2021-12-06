@@ -76,7 +76,8 @@ jobs:
         DOCKER_ASSETS_PATH: config/deploy/docker/assets
         SHA: ${{ github.sha }}
       run: |
-        export IMAGE_TAG="githash-${SHA::9}"
+        export GITHASH="${SHA::9}"
+        export IMAGE_TAG="githash-${GITHASH}"
         export RUBY_VERSION=`cat .ruby-version`
 
         echo $SHA > $DOCKER_ASSETS_PATH/REVISION
@@ -98,7 +99,7 @@ jobs:
 
         # the pre-cache image is like a stale version of the code. This builds the most recent things
         echo Building base
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base -t ${ECR_REPOSITORY}:latest--base .
+        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base --build-arg GITHASH=${GITHASH} -t ${ECR_REPOSITORY}:latest--base .
 
         # tag it so we can push it remotely
         echo Tagging base

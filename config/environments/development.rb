@@ -11,12 +11,14 @@ Rails.application.configure do
 
   config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
   config.action_cable.allowed_request_origins = [ /.+/ ]
+  config.assets.check_precompiled_asset = false
 
   # Do not eager load code on boot.
   config.eager_load = false
 
   # Show full error reports.
   config.consider_all_requests_local = true
+  config.assets.manifest = Rails.root.join('config/manifest.json')
 
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.

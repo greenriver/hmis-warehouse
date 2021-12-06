@@ -29,6 +29,7 @@ ENV RAILS_LOG_TO_STDOUT=true \
   LANG=en_US.UTF-8 \
   LANGUAGE=en_US.UTF-8
 
+ARG GITHASH
 ARG BUILDER
 
 LABEL "app"=open-path-cas
@@ -63,7 +64,7 @@ COPY locale ./locale
 
 RUN mkdir -p app/assets/stylesheets/theme/styles && \
   touch app/assets/stylesheets/theme/styles/_variables.scss && \
-  RAILS_ENV=production bundle exec rake assets:precompile && \
+  # RAILS_ENV=production bundle exec rake assets:precompile && \
   cp config/deploy/docker/assets/database.open-path-cas.yml config/database.yml && \
   rm -rf tmp/* && \
   rm .env && \
@@ -73,4 +74,8 @@ COPY config/deploy/docker/assets/REVISION ./
 
 COPY config/deploy/docker/assets/entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
+
+# Expose the GITHASH to entrypoint.sh for downloading precompiled assets.
+ENV GITHASH=${GITHASH}
+
 ENTRYPOINT ["entrypoint.sh"]

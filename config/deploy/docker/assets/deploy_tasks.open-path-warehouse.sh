@@ -13,6 +13,13 @@ sed -i.bak '/EXTENSION/d' db/warehouse/structure.sql
 # TODO: fix the bootstra_databases! method in roll_out.rb to handle a first install
 # ./bin/db_prep
 
+echo Compiling assets
+apk add python3 py3-pip
+pip3 install awscli
+bundle exec rake assets:clobber
+bundle exec rake assets:precompile
+aws s3 sync ./public/assets s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH
+
 echo Storing Themed Maintenance Page
 bundle exec rake maintenance:create
 
