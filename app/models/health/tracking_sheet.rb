@@ -183,7 +183,7 @@ module Health
         medicaid_ids = Health::Patient.where(id: patient_ids).pluck(:medicaid_id)
         ClaimsReporting::Calculators::PatientSdhRiskScore.new(medicaid_ids).to_map
       else
-        []
+        {}
       end
 
       @sdh_risk_score[patient.medicaid_id] || 'Unknown'
