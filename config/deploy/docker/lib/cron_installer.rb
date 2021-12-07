@@ -16,6 +16,8 @@ class CronInstaller
     ScheduledTask.clear!(target_group_name)
 
     each_cron_entry do |cron_expression, command|
+      capacity_provider_strategy = _choose_capacity_provider_strategy(command)
+      command.delete('#capacity_provider:spot')
       description = command.join(' ').sub(/ --silent/, '').sub(/bundle exec /, '')[0, MAX_DESCRIPTION_LENGTH]
 
       params = {
@@ -27,6 +29,7 @@ class CronInstaller
         role_arn: role_arn,
         task_definition_arn: task_definition_arn,
         command: command,
+        capacity_provider_strategy: capacity_provider_strategy,
       }
 
       scheduled_task = ScheduledTask.new(params)
@@ -44,6 +47,44 @@ class CronInstaller
 
   def role_arn
     @role_arn ||= iam.get_role(role_name: 'ecsEventsRole').role.arn
+  end
+
+  def _choose_capacity_provider_strategy(command)
+    return _spot_capacity_provider_strategy if command.include?('#capacity_provider:spot')
+
+     _on_demand_capacity_provider_strategy
+  end
+
+  def _spot_capacity_provider_strategy
+    [
+      {
+        capacity_provider: _spot_capacity_provider_name,
+        weight: 1,
+        base: 1,
+      },
+    ]
+  end
+
+  def _on_demand_capacity_provider_strategy
+    [
+      {
+        capacity_provider: _on_demand_capacity_provider_name,
+        weight: 1,
+        base: 1,
+      },
+    ]
+  end
+
+  def _capacity_providers
+    @_capacity_providers ||= ecs.describe_clusters(clusters: [ENV.fetch('CLUSTER_NAME')]).clusters.first.capacity_providers
+  end
+
+  def _spot_capacity_provider_name
+    _capacity_providers.find { |cp| cp.match(/spt-v2/) }
+  end
+
+  def _on_demand_capacity_provider_name
+    _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
   end
 
   def task_definition_arn
