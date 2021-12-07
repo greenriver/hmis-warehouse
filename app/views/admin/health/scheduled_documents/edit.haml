@@ -1,0 +1,8 @@
+%h1
+  Edit
+  = @scheduled_document.name
+
+= simple_form_for @scheduled_document, as: :scheduled_document, url: admin_health_scheduled_document_path(@scheduled_document) do |f|
+  = render 'form', f: f
+
+  = f.submit "Update Scheduled Document"

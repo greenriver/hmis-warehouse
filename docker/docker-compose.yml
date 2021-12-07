@@ -127,6 +127,13 @@ services:
       - 8025
       - 1025
 
+  sftp:
+    container_name: hmis-warehouse-sftp
+    image: atmoz/sftp
+    volumes:
+      - ./tmp:/home/user/sftp
+      - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
+
 volumes:
   bundle_alpine:
   node_modules_alpine:

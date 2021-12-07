@@ -43,6 +43,12 @@ jobs:
         ports:
           - 6379:6379
 
+      sftp:
+        image: atmoz/sftp
+        volumes:
+          - tmp:/home/user/sftp
+          - /spec/support/sftp.conf:/etc/sftp/users.conf:ro
+
     steps:
       - name: Set up dependencies
         env:

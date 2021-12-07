@@ -9,7 +9,7 @@ module Health
     include ArelHelper
     include Health::CareplanDates
 
-    def initialize patients
+    def initialize(patients)
       @patient_ids = patients.map(&:id)
     end
 
@@ -17,39 +17,39 @@ module Health
       @patient_ids
     end
 
-    def consented_date patient_id
+    def consented_date(patient_id)
       @consented_dates ||= Health::ParticipationForm.where(patient_id: patient_ids).
         group(:patient_id).
         maximum(:signature_on)
       @consented_dates[patient_id]&.to_date
     end
 
-    def ssm_completed_date patient_id
+    def ssm_completed_date(patient_id)
       @ssm_completed_dates ||= Health::SelfSufficiencyMatrixForm.where(patient_id: patient_ids).
         group(:patient_id).
         maximum(:completed_at)
       @ssm_completed_dates[patient_id]&.to_date
     end
 
-    def cha_completed_date patient_id
+    def cha_completed_date(patient_id)
       @cha_completed_dates ||= Health::ComprehensiveHealthAssessment.where(patient_id: patient_ids).
         group(:patient_id).
         maximum(:completed_at)
       @cha_completed_dates[patient_id]&.to_date
     end
 
-    def cha_reviewed_date patient_id
+    def cha_reviewed_date(patient_id)
       @cha_reviewed_dates ||= Health::ComprehensiveHealthAssessment.where(patient_id: patient_ids).
         group(:patient_id).
         maximum(:reviewed_at)
       @cha_reviewed_dates[patient_id]&.to_date
     end
 
-    def cha_reviewed? patient_id
+    def cha_reviewed?(patient_id)
       cha_reviewed_date(patient_id).present?
     end
 
-    def most_recent_face_to_face_qa_date patient_id
+    def most_recent_face_to_face_qa_date(patient_id)
       @most_recent_face_to_face_qa_dates ||= Health::QualifyingActivity.direct_contact.face_to_face.
         where(patient_id: patient_ids).
         group(:patient_id).
@@ -85,14 +85,14 @@ module Health
     #   @most_recent_qa_from_epic_case_management_notes[patient_id]&.to_date
     # end
 
-    def most_recent_qa_from_case_note patient_id
+    def most_recent_qa_from_case_note(patient_id)
       @most_recent_qa_from_case_note ||= Health::QualifyingActivity.
         where(
           source_type: [
-            "GrdaWarehouse::HmisForm",
-            "Health::SdhCaseManagementNote",
-            "Health::EpicQualifyingActivity",
-          ]
+            'GrdaWarehouse::HmisForm',
+            'Health::SdhCaseManagementNote',
+            'Health::EpicQualifyingActivity',
+          ],
         ).
         joins(:patient).
         merge(Health::Patient.where(id: patient_ids)).
@@ -101,19 +101,21 @@ module Health
       @most_recent_qa_from_case_note[patient_id]
     end
 
-    def cha_renewal_date patient_id
+    def cha_renewal_date(patient_id)
       reviewed_date = cha_reviewed_date(patient_id)
       return nil unless reviewed_date.present?
+
       reviewed_date + 1.years
     end
 
-    def care_plan_renewal_date patient_id
+    def care_plan_renewal_date(patient_id)
       signed_date = care_plan_provider_signed_date(patient_id)
       return nil unless signed_date.present?
+
       signed_date + 1.years
     end
 
-    def aco_name patient_id
+    def aco_name(patient_id)
       @aco_names ||= Health::AccountableCareOrganization.joins(patient_referrals: :patient).
         merge(Health::PatientReferral.current).
         merge(Health::Patient.where(id: patient_ids)).
@@ -121,10 +123,10 @@ module Health
       @aco_names[patient_id]
     end
 
-    def care_coordinator patient_id
+    def care_coordinator(patient_id)
       @patient_coordinator_lookup ||= Health::Patient.pluck(:id, :care_coordinator_id).to_h
       @care_coordinators ||= User.diet.where(id: @patient_coordinator_lookup.values).
-        distinct.map{ |m| [m.id, m.name] }.to_h
+        distinct.map { |m| [m.id, m.name] }.to_h
 
       @care_coordinators[@patient_coordinator_lookup[patient_id]]
     end
@@ -137,7 +139,7 @@ module Health
         result = patient_scope.
           with_housing_status.
           pluck(:id, :housing_status, :housing_status_timestamp).
-          map { |(id, status, timestamp)| [id, {status: status, timestamp: timestamp}] }.
+          map { |(id, status, timestamp)| [id, { status: status, timestamp: timestamp }] }.
           to_h
 
         patient_scope.
@@ -145,7 +147,7 @@ module Health
           merge(Health::SdhCaseManagementNote.with_housing_status).
           pluck(:id, h_sdhcmn_t[:housing_status].to_sql, h_sdhcmn_t[:date_of_contact].to_sql).
           each do |(id, status, timestamp)|
-            result[id] ||= {status: status, timestamp: timestamp}
+            result[id] ||= { status: status, timestamp: timestamp }
             result[id][:status] = status if result[id][:timestamp] < timestamp
           end
 
@@ -154,7 +156,7 @@ module Health
           merge(Health::EpicCaseNote.with_housing_status).
           pluck(:id, h_ecn_t[:homeless_status].to_sql, h_ecn_t[:contact_date].to_sql).
           each do |(id, status, timestamp)|
-            result[id] ||= {status: status, timestamp: timestamp}
+            result[id] ||= { status: status, timestamp: timestamp }
             result[id][:status] = status if result[id][:timestamp] < timestamp
           end
 
@@ -167,13 +169,24 @@ module Health
           pluck(:id, hmis_form_t[:housing_status].to_sql, hmis_form_t[:collected_at].to_sql).
           each do |(client_id, status, timestamp)|
             id = client_to_patient[client_id]
-            result[id] ||= {status: status, timestamp: timestamp}
+            result[id] ||= { status: status, timestamp: timestamp }
             result[id][:status] = status if result[id][:timestamp] < timestamp
           end
 
         result
       end
       @most_recent_housing_status[patient_id].try(:[], :status)
+    end
+
+    def sdh_risk_score(patient)
+      @sdh_risk_score ||= if RailsDrivers.loaded.include?(:claims_reporting)
+        medicaid_ids = Health::Patient.where(id: patient_ids).pluck(:medicaid_id)
+        ClaimsReporting::Calculators::PatientSdhRiskScore.new(medicaid_ids).to_map
+      else
+        {}
+      end
+
+      @sdh_risk_score[patient.medicaid_id] || 'Unknown'
     end
 
     def row patient
@@ -189,7 +202,7 @@ module Health
         # Limit SSM and CHA to warehouse versions only (per spec)
         'SSM_DATE' => ssm_completed_date(patient.id),
         'CHA_DATE' => cha_completed_date(patient.id),
-        'CHA_REVIEWED' =>  cha_reviewed?(patient.id) ? 'Yes' : 'No',
+        'CHA_REVIEWED' => cha_reviewed?(patient.id) ? 'Yes' : 'No',
         'CHA_RENEWAL_DATE' => cha_renewal_date(patient.id),
         'PCTP_PT_SIGN' => care_plan_patient_signed_date(patient.id),
         'CP_CARE_PLAN_SENT_PCP_DATE' => care_plan_sent_to_provider_date(patient.id),
@@ -201,6 +214,7 @@ module Health
         'DISABLED' => patient.client.currently_disabled? ? 'Y' : 'N',
         'HOUSING STATUS' => most_recent_housing_status(patient.id),
         'CAREPLAN SIGNED WITHIN 122 DAYS' => with_careplans_in_122_days?(patient, as: :text),
+        'SDH RISK SCORE' => sdh_risk_score(patient),
       }
     end
   end

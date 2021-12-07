@@ -48,6 +48,12 @@
       controllers: ['accountable_care_organizations'],
       visible: can_manage_accountable_care_organizations? ,
     },
+        {
+      title: 'Scheduled Documents',
+      path: admin_health_scheduled_documents_path,
+      controllers: ['scheduled_documents'],
+      visible: can_manage_accountable_care_organizations? ,
+    },
   ]
 
 - if GrdaWarehouse::Config.get(:healthcare_available)

@@ -1,6 +1,26 @@
 {
   "ignored_warnings": [
     {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "0a8413f58bac50c36a5c6154a71747e5b6dcc2c7c345f8388fd7d4f42e2350d3",
+      "check_name": "SendFile",
+      "message": "Model attribute used in file name",
+      "file": "app/models/health/scheduled_documents/enrollment_disenrollment.rb",
+      "line": 44,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "send_file(:file_name => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).zip_file_name, :data => Zip::OutputStream.write_buffer do\n zio.put_next_entry(Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).summary_file_name)\nzio.write(ApplicationController.render(:template => \"warehouse_reports/health/enrollments_disenrollments/summary.xlsx\", :assigns => ({ :report => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))) })))\nzio.put_next_entry(Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).report_file_name)\nzio.write(ApplicationController.render(:template => \"warehouse_reports/health/enrollments_disenrollments/report.xlsx\", :assigns => ({ :report => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))) })))\n end.string)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Health::ScheduledDocuments::EnrollmentDisenrollment",
+        "method": "deliver"
+      },
+      "user_input": "Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).report_file_name",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "0c076fd1676094a84d9b397a3d82e3fd0e934c358a743c3fee3b3935abfa2e4e",
@@ -107,7 +127,7 @@
       "check_name": "FileAccess",
       "message": "Parameter value used in file name",
       "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
-      "line": 68,
+      "line": 72,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
       "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
       "render_path": null,
@@ -881,7 +901,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 368,
+      "line": 376,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`",
       "render_path": null,
@@ -921,7 +941,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 156,
+      "line": 157,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1603,7 +1623,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 425,
+      "line": 429,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -1754,7 +1774,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 155,
+      "line": 156,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git ls-remote origin | grep #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1814,7 +1834,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 150,
+      "line": 151,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse HEAD > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -1825,6 +1845,47 @@
       },
       "user_input": "_assets_path",
       "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "b943aeb098e1d298b0a93b87df96a6d51af156941a6a8263d4dd96b2add2a5c4",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/admin/health/scheduled_documents/_form.haml",
+      "line": 23,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => scheduled_document_source.find(params[:id]), { :f => f })",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Admin::Health::ScheduledDocumentsController",
+          "method": "edit",
+          "line": 40,
+          "file": "app/controllers/admin/health/scheduled_documents_controller.rb",
+          "rendered": {
+            "name": "admin/health/scheduled_documents/edit",
+            "file": "app/views/admin/health/scheduled_documents/edit.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "admin/health/scheduled_documents/edit",
+          "line": 6,
+          "file": "app/views/admin/health/scheduled_documents/edit.haml",
+          "rendered": {
+            "name": "admin/health/scheduled_documents/_form",
+            "file": "app/views/admin/health/scheduled_documents/_form.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "admin/health/scheduled_documents/_form"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
       "note": ""
     },
     {
@@ -2557,6 +2618,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-11-21 19:47:53 +0000",
+  "updated": "2021-11-30 09:26:23 -0500",
   "brakeman_version": "5.0.4"
 }
