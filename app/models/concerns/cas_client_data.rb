@@ -322,8 +322,7 @@ module CasClientData
 
       project_type_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
       ongoing_enrollments.select do |en|
-        en.project_type.in?(project_type_codes) &&
-        en.move_in_date.present? && en.move_in_date < Date.current
+        en.project_type.in?(project_type_codes)
       end.any?
     end
 
