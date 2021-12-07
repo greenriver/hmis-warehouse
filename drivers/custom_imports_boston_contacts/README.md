@@ -1,3 +1,3 @@
 ## CustomImportsBostonContacts README
 
-This README file should be used to explain the functionality of the driver.
+Custom import routines for contacts provided from an external source HMIS.  Contacts are eventually exposed on client dashboards and in CAS.
