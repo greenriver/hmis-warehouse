@@ -25,13 +25,13 @@
           = "#{@client.processed_service_history&.days_homeless_last_three_years || 0} homeless"
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH after move-in date'}}
         .client__days-homeless
-          = "#{@client.sheltered_days_homeless_last_three_years || 0} sheltered"
-          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SH, or TH with no overlapping PH'}}
+          = "#{@client.sheltered_days_homeless_last_three_years} sheltered"
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SH, or TH with no overlapping PH after move-in date'}}
         .client__days-homeless
-          = "#{@client.unsheltered_days_homeless_last_three_years || 0} unsheltered"
-          %i.icon-info{data: {toggle: :tooltip, title: 'Days in SO with no overlapping sheltered dates or PH'}}
+          = "#{@client.unsheltered_days_homeless_last_three_years} unsheltered"
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days in SO with no overlapping sheltered dates ES, SH, TH, or PH after move-in date'}}
 
-        .client__days-literally-homeless
+        .client__days-literally-homeless.mt-2
           = "#{@client.processed_service_history&.literally_homeless_last_three_years || 0} literally homeless"
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, or SH with no overlapping TH or PH after move-in date'}}
 
