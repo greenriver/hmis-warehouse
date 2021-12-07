@@ -196,6 +196,7 @@ module GrdaWarehouse::Tasks
         dv_rrh_desired: :dv_rrh_desired,
         health_prioritized: :health_prioritized_for_cas?,
         assessment_name: :cas_assessment_name,
+        majority_sheltered: :majority_sheltered,
       }
     end
 
