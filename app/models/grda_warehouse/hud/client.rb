@@ -2541,6 +2541,34 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def sheltered_days_homeless_last_three_years
+      end_date = Date.current
+      start_date = end_date - 3.years
+      sheltered_homeless_dates(start_date: start_date, end_date: end_date).count
+    end
+
+    def sheltered_homeless_dates(start_date:, end_date:)
+      service_history_services.
+        homeless_sheltered.
+        where(date: start_date..end_date).
+        where.not(date: service_history_services.non_homeless.where(date: start_date..end_date).select(:date).distinct).
+        select(:date).
+        distinct
+    end
+
+    def unsheltered_days_homeless_last_three_years
+      end_date = Date.current
+      start_date = end_date - 3.years
+      service_history_services.
+        homeless_unsheltered.
+        where(date: start_date..end_date).
+        where.not(date: service_history_services.non_homeless.where(date: start_date..end_date).select(:date).distinct).
+        where.not(date: sheltered_homeless_dates(start_date: start_date, end_date: end_date)).
+        select(:date).
+        distinct.
+        count
+    end
+
     # TH or PH
     def self.dates_hud_non_chronic_residential_last_three_years_scope client_id:, on_date: Date.current
       end_date = on_date.to_date
