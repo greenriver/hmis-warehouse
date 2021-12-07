@@ -54,6 +54,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :literally_homeless_last_three_years_cached,
         :cas_assessment_name,
         :max_current_total_monthly_income,
+        :contact_info_for_rrh_assessment,
         :cas_assessment_collected_at, # note this is really just assessment_collected_at
       ]
     end
@@ -170,10 +171,11 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def default_shelter_agency_contacts(client)
-      # TODO: this is being moved to custom pull from Clarity
+      client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
+    end
 
-      # client.most_recent_pathways_or_rrh_assessment_for_destination.
-      #   question_matching_requirement('c_casemanager_contacts')&.AssessmentAnswer
+    private def contact_info_for_rrh_assessment(client)
+      client.client_contacts.case_managers.map(&:full_address).join("\n\n")
     end
 
     private def cas_assessment_name(client)

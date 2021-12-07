@@ -65,8 +65,8 @@ module GrdaWarehouse::CustomImports
       "Daily around: #{Time.strptime(import_hour.to_s, '%H').strftime('%l %P')}"
     end
 
-    def import!
-      import_type.constantize.new(config_id: id, data_source_id: data_source_id, status: 'queued').import!
+    def import!(force = false)
+      import_type.constantize.new(config_id: id, data_source_id: data_source_id, status: 'queued').import!(force)
       update(last_import_attempted_at: Time.current)
     end
   end

@@ -20,8 +20,8 @@ module CustomImportsBostonAssessmentLookups
       file
     end
 
-    def import!
-      return unless check_hour
+    def import!(force = false)
+      return unless check_hour || force
 
       start_import
       fetch_and_load
