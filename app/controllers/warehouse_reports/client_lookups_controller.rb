@@ -10,20 +10,21 @@ module WarehouseReports
     include ArelHelper
 
     def index
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id, enforce_one_year_range: false).update(report_params)
       respond_to do |format|
         format.html {}
         format.xlsx do
-          @start_date = report_params[:start_date].to_date
-          @end_date = report_params[:end_date].to_date
-          @project_ids = report_params[:project_ids].reject(&:blank?)
+          @start_date = @filter.start
+          @end_date = @filter.end
+          @project_ids = @filter.effective_project_ids
 
-          @clients = client_source.
-            joins(:service_history_enrollments).
-            preload(:source_clients).
-            merge(GrdaWarehouse::ServiceHistoryEnrollment.
-              open_between(start_date: @start_date, end_date: @end_date).
-              in_project(@project_ids)).
-            distinct
+          @rows = client_source.
+            joins(:warehouse_client_source, enrollments: :project).
+            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(@start_date .. @end_date)).
+            merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)).
+            distinct.
+            order(wc_t[:destination_id].asc, LastName: :asc, FirstName: :asc).
+            pluck(wc_t[:destination_id], :PersonalID, :FirstName, :LastName)
           render xlsx: 'report', filename: 'client_lookups.xlsx'
         end
       end
@@ -37,6 +38,8 @@ module WarehouseReports
           :start_date,
           :end_date,
           project_ids: [],
+          organization_ids: [],
+          data_source_ids: [],
         )
     end
 
@@ -49,7 +52,7 @@ module WarehouseReports
     helper_method :available_projects
 
     private def client_source
-      GrdaWarehouse::Hud::Client.destination
+      GrdaWarehouse::Hud::Client.source
     end
   end
 

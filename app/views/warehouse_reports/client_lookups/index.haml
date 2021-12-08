@@ -6,19 +6,24 @@
 
 = render '/warehouse_reports/breadcrumbs'
 
-= simple_form_for :report, url: warehouse_reports_client_lookups_path(format: :xlsx), html: {method: :get} do |f|
+= simple_form_for @filter, as: :report, url: warehouse_reports_client_lookups_path(format: :xlsx), html: {method: :get} do |f|
   - content_for :filters_col_full do
     .row
       .col-sm-3
         = f.input :start_date, as: :date_picker
       .col-sm-3
         = f.input :end_date, as: :date_picker
-      .col-sm-3
-        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, data: {'collection-path' => api_projects_path}}, include_blank: false
+    .row
+      .col-sm-4
+        = f.input :project_ids, label: 'Project', collection: [], as: :select_two, input_html: {multiple: true, data: {'collection-path' => api_projects_path}}, include_blank: false
+      .col-sm-4
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, placeholder: 'Any Organization', input_html: { multiple: true }, label: 'Organizations'
+      .col-sm-4
+        = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), placeholder: 'Any Data Source', input_html: { multiple: true}, label: 'Data Sources', as: :select_two
 
   - content_for :filter_actions do
     .row
       .col-sm-3
-        = f.button :submit, value: 'Download XLSX'
+        = f.submit 'Download XLSX', data: { disable_with: false }
 
   = render 'warehouse_reports/filters', f:f
