@@ -184,6 +184,7 @@ module GrdaWarehouse::Hud
     has_one :active_consent_form, class_name: 'GrdaWarehouse::ClientFile', primary_key: :consent_form_id, foreign_key: :id
 
     has_many :client_contacts, class_name: 'GrdaWarehouse::ClientContact'
+    has_many :generic_services, class_name: 'GrdaWarehouse::Generic::Service'
 
     # Delegations
     delegate :first_homeless_date, to: :processed_service_history, allow_nil: true

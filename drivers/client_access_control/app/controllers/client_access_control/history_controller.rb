@@ -123,6 +123,20 @@ module ClientAccessControl
             }
           end
         end
+      # TODO: this is a temporary permission until we determine what the permission should actually be
+      # this maps back to who can setup the import file
+      return unless current_user&.can_manage_config?
+
+      @client.generic_services.find_each do |service|
+        @dates[service.date] ||= []
+        @dates[service.date] << {
+          date: service.date,
+          record_type: 'service',
+          project_type: 7, # HUD project_types "Other"
+          project_name: service.category, # this is more generic than service.name
+          organization_name: nil,
+        }
+      end
     end
 
     def set_pdf_dates

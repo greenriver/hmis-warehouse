@@ -11,7 +11,7 @@ module CustomImportsBostonServices
 
     has_one :project, through: :enrollment
 
-    belongs_to :client, **GrdaWarehouse::Hud::Client.hud_assoc(:PersonalID, 'Client')
-    belongs_to :enrollment, **GrdaWarehouse::Hud::Enrollment.hud_assoc(:PersonalID, 'Enrollment'), optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:PersonalID, :data_source_id], foreign_key: [:personal_id, :data_source_id], optional: true
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:EnrollmentID, :data_source_id], foreign_key: [:enrollment_id, :data_source_id], optional: true
   end
 end
