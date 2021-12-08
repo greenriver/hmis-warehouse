@@ -1,0 +1,24 @@
+- title = "Clients in a Project for a Given Date Range"
+- content_for :title, title
+.row
+  .col-sm-8
+    %h1= title
+
+= render '/warehouse_reports/breadcrumbs'
+
+= simple_form_for :report, url: warehouse_reports_client_lookups_path(format: :xlsx), html: {method: :get} do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-3
+        = f.input :start_date, as: :date_picker
+      .col-sm-3
+        = f.input :end_date, as: :date_picker
+      .col-sm-3
+        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, data: {'collection-path' => api_projects_path}}, include_blank: false
+
+  - content_for :filter_actions do
+    .row
+      .col-sm-3
+        = f.button :submit, value: 'Download XLSX'
+
+  = render 'warehouse_reports/filters', f:f

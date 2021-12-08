@@ -1,0 +1,26 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Client Lookup") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+    'Warehouse ID',
+    'Personal ID',
+    'First Name',
+    'Last Name',
+    ],
+    style: title
+  )
+
+  @clients.each do |client|
+    client.source_clients.each do |source_client|
+      sheet.add_row(
+        [
+          client.id,
+          source_client.PersonalID,
+          source_client.FirstName,
+          source_client.LastName,
+        ],
+      )
+    end
+  end
+end

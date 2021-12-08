@@ -312,6 +312,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: true,
             health: false,
           },
+          {
+            url: 'warehouse_reports/client_lookups',
+            name: 'Client Lookup',
+            description: 'Mapping table to translate warehouse IDs to HUD personal IDs',
+            limitable: true,
+            health: false,
+          },
         ],
         'Data Quality' => [
           {

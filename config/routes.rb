@@ -179,6 +179,7 @@ Rails.application.routes.draw do
     resources :user_login, only: [:index]
   end
   namespace :warehouse_reports do
+    resources :client_lookups, only: [:index]
     resources :overlapping_coc_utilization, only: [:index] do
       collection do
         get :overlap
