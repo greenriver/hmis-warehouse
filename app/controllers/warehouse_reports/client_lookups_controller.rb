@@ -43,14 +43,6 @@ module WarehouseReports
         )
     end
 
-    private def report_columns
-    end
-
-    def available_projects
-      project_source.pluck(:ProjectName, :id).to_h
-    end
-    helper_method :available_projects
-
     private def client_source
       GrdaWarehouse::Hud::Client.source
     end

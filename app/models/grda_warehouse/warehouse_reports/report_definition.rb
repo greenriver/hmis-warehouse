@@ -314,8 +314,8 @@ module GrdaWarehouse::WarehouseReports
           },
           {
             url: 'warehouse_reports/client_lookups',
-            name: 'Client Lookup',
-            description: 'Mapping table to translate warehouse IDs to HUD personal IDs',
+            name: 'Client PersonalID Lookup',
+            description: 'Mapping table to translate warehouse IDs to HMIS Personal IDs',
             limitable: true,
             health: false,
           },
