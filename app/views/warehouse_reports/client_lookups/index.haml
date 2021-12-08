@@ -1,10 +1,11 @@
-- title = "Clients in a Project for a Given Date Range"
+- title = "Export Client Personal ID Lookup"
 - content_for :title, title
 .row
   .col-sm-8
     %h1= title
 
 = render '/warehouse_reports/breadcrumbs'
+%p Use the form below to export a lookup table for cross-walks with HMIS.  The exported file will include Warehouse ID, Personal ID (from HMIS), first name, and last name, for any client with an open enrollment within the date range and project set chosen.
 
 = simple_form_for @filter, as: :report, url: warehouse_reports_client_lookups_path(format: :xlsx), html: {method: :get} do |f|
   - content_for :filters_col_full do
