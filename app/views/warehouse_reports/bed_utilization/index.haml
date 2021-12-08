@@ -1,4 +1,4 @@
-- title = "Bed Utilization for #{@mo.organization_name rescue "[no organization]"}"
+- title = "Bed Utilization"
 .o-page
   .o-page__header
     - content_for :title, title
@@ -6,62 +6,69 @@
 
   = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
-  = simple_form_for @mo, as: :mo, url: warehouse_reports_bed_utilization_index_path, html: { method: :get } do |f|
-    - content_for :filters_col_l do
+  = simple_form_for @filter, as: :report, url: warehouse_reports_bed_utilization_index_path, html: { method: :get } do |f|
+    - content_for :filters_col_full do
+      .row
+        .col-sm-3
+          = f.input :start_date, as: :date_picker
+        .col-sm-3
+          = f.input :end_date, as: :date_picker
       .row
         .col-sm-6
-          = f.input :month, collection: @mo.months, label: 'Month', class: 'form-control', as: :select_two
+          = f.input :project_ids, label: 'Project', collection: [], as: :select_two, input_html: {multiple: true, data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
         .col-sm-6
-          = f.input :year, collection: @mo.years, label: 'Year', class: 'form-control', as: :select_two
+          = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, placeholder: 'Any Organization', input_html: { multiple: true }, label: 'Organizations'
 
-    - content_for :filters_col_r do
-      .row
-        .col-sm-6
-          = f.input :org, collection: @mo.organizations, label: 'Organization', class: 'form-control', as: :select_two
 
     - content_for :filter_actions do
       = f.button :submit, value: 'Update View'
 
     = render 'warehouse_reports/filters', f:f
 
-  - if @projects_with_counts
-    %table.table.table-sm.table-hover.bed-table
-      %thead
-        %tr
-          %th{ colspan: 2 }
-          %th.lightest-gray{ colspan: 4 }
-            Average Daily
-        %tr
-          %th Program Name
-          %th Project Type
-          %th Beds
-          %th Units
-          %th.lightest-gray Clients
-          %th.lightest-gray % Utilization
-      %tbody
-        - @projects_with_counts.each do |id, project|
-          - next if id == :totals
-          - next unless project
+  - if @projects_with_counts.present?
+    .d-flex
+      .ml-auto.mb-4
+        = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+          %i.icon.icon-download2
+          Download Excel
+    .card
+      %table.table.table-striped.mb-0
+        %thead
           %tr
-            %td
-              = link_to project.name, project_path(project.id)
-            %td
-              - project_type = project.project_type
-              - p_type = ::HUD.project_type_brief(project_type)
-              - p_class = "client__service_type_#{p_type}"
-              %span{class: "client__service_type_#{project_type}"}
-                .enrollment__project_type{class: p_class}
-                  %em.service-type__program-type= p_type
-            %td= project.beds
-            %td= project.units
-            %td= project.clients
-            %td= project.utilization
-        %tr
-          - project = @projects_with_counts[:totals]
-          %th
-          %th.text-right Organization-Wide
-          %th= project.beds
-          %th= project.units
-          %th= project.clients
-          %th= project.utilization
-
+            %th{ colspan: 2 }
+            %th{ colspan: 6 }
+              Average Daily
+          %tr
+            %th Project
+            %th Project Type
+            %th Beds
+            %th
+              Clients
+              %i.icon-info{data: { toggle: :tooltip, title: 'For PH projects, only clients who have moved in are included.' }}
+            %th % Bed Utilization
+            %th Units
+            %th
+              Households
+              %i.icon-info{data: { toggle: :tooltip, title: 'For PH projects, only clients who have moved in are included.' }}
+            %th % Unit Utilization
+        %tbody
+          - @projects_with_counts.each do |id, project|
+            - next unless project
+            %tr
+              %td
+                = link_to project.name, project_path(project.id)
+              %td
+                - project_type = project.project_type
+                - p_type = ::HUD.project_type_brief(project_type)
+                - p_class = "client__service_type_#{p_type}"
+                %span{class: "client__service_type_#{project_type}"}
+                  .enrollment__project_type{class: p_class}
+                    %em.service-type__program-type= p_type
+              %td= project.beds
+              %td= project.clients
+              %td= project.bed_utilization
+              %td= project.units
+              %td= project.households
+              %td= project.unit_utilization
+  - else
+    %p.none-found Please select a set of projects above.

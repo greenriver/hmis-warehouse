@@ -12,59 +12,71 @@ module WarehouseReports
     before_action :set_filter
 
     def index
-      if @mo.valid?
-        @projects_with_counts = {
-          totals: OpenStruct.new(
-            clients: 0,
-            beds: 0,
-            units: 0,
-            utilization: 0,
-          ),
-        }
-        @mo.organization.projects.each do |project|
-          @projects_with_counts[project.id] ||= OpenStruct.new(
-            id: project.id,
-            name: project.ProjectName,
-            project_type: project.compute_project_type,
-            clients: 0,
-            beds: 0,
-            units: 0,
-            utilization: 0,
-          )
-          @projects_with_counts[project.id][:clients] = client_counts_by_project_id[project.id] || 0
-          @projects_with_counts[project.id][:beds] = project.inventories.within_range(@mo).map do |inventory|
-            inventory.average_daily_inventory(
-              range: @mo,
-              field: :BedInventory,
-            )
-          end.sum
+      if @filter.valid? && @filter.effective_project_ids.reject(&:zero?).any?
+        @projects_with_counts = {}
 
-          @projects_with_counts[project.id][:units] = project.inventories.within_range(@mo).map do |inventory|
-            inventory.average_daily_inventory(
-              range: @mo,
-              field: :UnitInventory,
+        GrdaWarehouse::Hud::Project.where(id: @filter.effective_project_ids).
+          preload(:inventories).find_each do |project|
+            @projects_with_counts[project.id] ||= OpenStruct.new(
+              id: project.id,
+              name: project.ProjectName,
+              project_type: project.compute_project_type,
+              clients: average(client_count(project)).round,
+              beds: average_inventory_count(project, :BedInventory),
+              bed_utilization: 0,
+              households: average(household_count(project)).round,
+              units: average_inventory_count(project, :UnitInventory),
+              unit_utilization: 0,
             )
-          end.sum
-          if @projects_with_counts[project.id][:clients].positive? && @projects_with_counts[project.id][:beds].positive?
-            @projects_with_counts[project.id][:utilization] = begin
-              (@projects_with_counts[project.id][:clients].to_f / @projects_with_counts[project.id][:beds] * 100).round
-            rescue StandardError
-              0
-            end
+            clients = @projects_with_counts[project.id].clients
+            beds = @projects_with_counts[project.id].beds
+            @projects_with_counts[project.id][:bed_utilization] = (clients.to_f / beds * 100).round if clients.positive? && beds.positive?
+
+            households = @projects_with_counts[project.id].households
+            units = @projects_with_counts[project.id].units
+            @projects_with_counts[project.id][:unit_utilization] = (households.to_f / units * 100).round if households.positive? && units.positive?
           end
-          @projects_with_counts[:totals][:clients] += @projects_with_counts[project.id][:clients]
-          @projects_with_counts[:totals][:beds] += @projects_with_counts[project.id][:beds]
-          @projects_with_counts[:totals][:units] += @projects_with_counts[project.id][:units]
-        end
-        if @projects_with_counts[:totals][:clients].positive? && @projects_with_counts[:totals][:beds].positive?
-          @projects_with_counts[:totals][:utilization] = begin
-            (@projects_with_counts[:totals][:clients].to_f / @projects_with_counts[:totals][:beds] * 100).round
-          rescue StandardError
-            0
-          end
+      end
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "Bed Utilization #{Time.current.to_s.delete(',')}.xlsx"
+          render(xlsx: 'index', filename: filename)
         end
       end
-      respond_to :html
+    end
+
+    private def client_count(project)
+      query = GrdaWarehouse::ServiceHistoryService.
+        joins(:service_history_enrollment).
+        service_between(
+          start_date: @filter.start,
+          end_date: @filter.end,
+        ).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.where(project_id: project.id)).
+        select(nf('concat', [shs_t[:client_id], shs_t[:date]]).to_sql)
+      query = query.where(homeless: false) if project.ph? # limit PH to after move-in
+      query.distinct.count
+    end
+
+    private def household_count(project)
+      query = GrdaWarehouse::ServiceHistoryService.
+        joins(:service_history_enrollment).
+        service_between(start_date: @filter.start, end_date: @filter.end).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.where(project_id: project.id)).
+        select(nf('concat', [she_t[:head_of_household_id], shs_t[:date]]).to_sql)
+      query = query.where(homeless: false) if project.ph? # limit PH to after move-in
+      query.distinct.count
+    end
+
+    private def average_inventory_count(project, field)
+      project.inventories.map { |i| i.average_daily_inventory(range: @filter.as_date_range, field: field) }.sum
+    end
+
+    private def average(count)
+      return 0 unless count.positive?
+
+      count.to_f / @filter.range.count
     end
 
     def client_counts_by_project_id
@@ -72,37 +84,20 @@ module WarehouseReports
     end
 
     def set_filter
-      options = {}
-      if filter_params[:mo].present?
-        start_date = Date.parse "#{filter_params[:mo][:year]}-#{filter_params[:mo][:month]}-1"
-        # NOTE: we need to pro-rate the current month
-        end_date = [start_date.end_of_month, Date.yesterday].min
-        options = filter_params[:mo]
-        options[:start] = start_date
-        options[:end] = end_date
-      end
-      @mo = ::Filters::MonthAndOrganization.new options
-      @mo.user = current_user
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id).update(report_params)
     end
 
-    def filter_params
-      params.permit(
-        mo: [
-          :year,
-          :month,
-          :org,
-        ],
-      )
-    end
+    private def report_params
+      return nil unless params[:report].present?
 
-    def organization_scope
-      GrdaWarehouse::Hud::Organization.viewable_by(current_user)
-    end
-
-    def service_scope
-      GrdaWarehouse::ServiceHistoryService.where(date: @mo.range).
-        joins(service_history_enrollment: { project: :organization }).
-        merge(organization_scope)
+      params.require(:report).
+        permit(
+          :start_date,
+          :end_date,
+          project_ids: [],
+          organization_ids: [],
+          data_source_ids: [],
+        )
     end
   end
 end
