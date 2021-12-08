@@ -312,6 +312,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: true,
             health: false,
           },
+          {
+            url: 'warehouse_reports/client_lookups',
+            name: 'Client PersonalID Lookup',
+            description: 'Mapping table to translate warehouse IDs to HMIS Personal IDs',
+            limitable: true,
+            health: false,
+          },
         ],
         'Data Quality' => [
           {
