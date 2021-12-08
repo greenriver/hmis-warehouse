@@ -356,5 +356,11 @@ module CasClientData
     def cas_assessment_collected_at
       rrh_assessment_collected_at
     end
+
+    # NOTE: in the future, this might be calculated based on days in homeless sheltered locations
+    # vs days unsheltered
+    def majority_sheltered
+      nil
+    end
   end
 end
