@@ -2093,7 +2093,8 @@ CREATE TABLE public.assessment_answer_lookups (
     response_code character varying,
     response_text character varying,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    data_source_id integer
 );
 
 
@@ -5052,7 +5053,9 @@ CREATE TABLE public.custom_imports_b_services_rows (
     service_item character varying,
     service_program_usage character varying,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    reporting_period_started_on date,
+    reporting_period_ended_on date
 );
 
 
@@ -5954,7 +5957,9 @@ CREATE TABLE public.generic_services (
     source_type character varying,
     source_id bigint,
     date date,
-    title character varying
+    title character varying,
+    data_source_id integer,
+    category character varying
 );
 
 
@@ -46366,6 +46371,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211118175318'),
 ('20211119184203'),
 ('20211129122357'),
-('20211202160059');
+('20211202160059'),
+('20211208153720'),
+('20211208155347');
 
 

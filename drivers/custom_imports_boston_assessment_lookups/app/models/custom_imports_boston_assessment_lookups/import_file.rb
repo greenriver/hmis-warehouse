@@ -49,11 +49,12 @@ module CustomImportsBostonAssessmentLookups
     def post_process
       update(status: 'adding')
       GrdaWarehouse::AssessmentAnswerLookup.transaction do
-        GrdaWarehouse::AssessmentAnswerLookup.delete_all
+        GrdaWarehouse::AssessmentAnswerLookup.where(data_source_id: data_source_id).delete_all
         headers = [
           :assessment_question,
           :response_code,
           :response_text,
+          :data_source_id,
         ]
         GrdaWarehouse::AssessmentAnswerLookup.import(headers, rows.pluck(*headers))
       end
