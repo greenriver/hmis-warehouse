@@ -51,7 +51,7 @@ module Health
       return true if Rails.env.development?
 
       # Only allow imports during the specified hour where it hasn't started in the past 23 hours
-      return false unless last_run_at < 23.hours.ago
+      return false if last_run_at.present? && last_run_at > 23.hours.ago
       return false unless scheduled_hour == Time.current.hour
 
       true
