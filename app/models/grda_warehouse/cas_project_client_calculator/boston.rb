@@ -189,8 +189,8 @@ module GrdaWarehouse::CasProjectClientCalculator
       return 'IdentifiedClientAssessment' unless value.present?
 
       {
-        1 => 'PathwaysVersionThreePathways',
-        2 => 'PathwaysVersionThreeTransfer',
+        1 => 'IdentifiedPathwaysVersionThreePathways',
+        2 => 'IdentifiedPathwaysVersionThreeTransfer',
       }[value.to_i] || 'IdentifiedClientAssessment'
     end
 
