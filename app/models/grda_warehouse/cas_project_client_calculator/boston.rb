@@ -225,18 +225,18 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def assessment_score_for_cas(client)
       case cas_assessment_name(client)
-      when 'PathwaysVersionThreePathways'
+      when 'IdentifiedPathwaysVersionThreePathways'
         days_homeless_in_last_three_years_cached(client)
-      when 'PathwaysVersionThreeTransfer'
+      when 'IdentifiedPathwaysVersionThreeTransfer'
         assessment_score(client)
       end
     end
 
     private def tie_breaker_date(client)
       case cas_assessment_name(client)
-      when 'PathwaysVersionThreePathways'
+      when 'IdentifiedPathwaysVersionThreePathways'
         cas_assessment_collected_at(client)
-      when 'PathwaysVersionThreeTransfer'
+      when 'IdentifiedPathwaysVersionThreeTransfer'
         financial_assistance_end_date(client)
       end
     end
