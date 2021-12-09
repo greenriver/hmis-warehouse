@@ -361,16 +361,6 @@ module CasClientData
 
     # NOTE: in the future, this might be calculated based on days in homeless sheltered locations
     # vs days unsheltered
-    def majority_sheltered
-      nil
-    end
-
-    def tie_breaker_date
-      nil
-    end
-
-    def financial_assistance_end_date
-      nil
-    end
+    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date
   end
 end
