@@ -59,9 +59,10 @@ module GrdaWarehouse::CasProjectClientCalculator
         :majority_sheltered,
         :assessment_score_for_cas,
         :tie_breaker_date,
+        :financial_assistance_end_date,
       ]
     end
-    memoize :pathways_questions
+    # memoize :pathways_questions
 
     private def for_boolean(client, key)
       client.most_recent_pathways_or_rrh_assessment_for_destination.
