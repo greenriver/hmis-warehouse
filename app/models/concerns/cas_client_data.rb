@@ -53,6 +53,8 @@ module CasClientData
         cas_match_override: _('Override CAS Match Date'),
         vash_eligible: _('VASH Eligible'),
         health_prioritized: _('Health Priority'),
+        tie_breaker_date: _('Tie Breaker Date'),
+        financial_assistance_end_date: _('Financial Assistance End Date'),
       }
     end
 
@@ -359,8 +361,6 @@ module CasClientData
 
     # NOTE: in the future, this might be calculated based on days in homeless sheltered locations
     # vs days unsheltered
-    def majority_sheltered
-      nil
-    end
+    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date
   end
 end

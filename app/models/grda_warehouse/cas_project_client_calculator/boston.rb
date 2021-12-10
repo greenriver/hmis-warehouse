@@ -59,9 +59,10 @@ module GrdaWarehouse::CasProjectClientCalculator
         :majority_sheltered,
         :assessment_score_for_cas,
         :tie_breaker_date,
+        :financial_assistance_end_date,
       ]
     end
-    memoize :pathways_questions
+    # memoize :pathways_questions
 
     private def for_boolean(client, key)
       client.most_recent_pathways_or_rrh_assessment_for_destination.
@@ -189,8 +190,8 @@ module GrdaWarehouse::CasProjectClientCalculator
       return 'IdentifiedClientAssessment' unless value.present?
 
       {
-        1 => 'PathwaysVersionThreePathways',
-        2 => 'PathwaysVersionThreeTransfer',
+        1 => 'IdentifiedPathwaysVersionThreePathways',
+        2 => 'IdentifiedPathwaysVersionThreeTransfer',
       }[value.to_i] || 'IdentifiedClientAssessment'
     end
 
@@ -225,18 +226,18 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def assessment_score_for_cas(client)
       case cas_assessment_name(client)
-      when 'PathwaysVersionThreePathways'
+      when 'IdentifiedPathwaysVersionThreePathways'
         days_homeless_in_last_three_years_cached(client)
-      when 'PathwaysVersionThreeTransfer'
+      when 'IdentifiedPathwaysVersionThreeTransfer'
         assessment_score(client)
       end
     end
 
     private def tie_breaker_date(client)
       case cas_assessment_name(client)
-      when 'PathwaysVersionThreePathways'
+      when 'IdentifiedPathwaysVersionThreePathways'
         cas_assessment_collected_at(client)
-      when 'PathwaysVersionThreeTransfer'
+      when 'IdentifiedPathwaysVersionThreeTransfer'
         financial_assistance_end_date(client)
       end
     end

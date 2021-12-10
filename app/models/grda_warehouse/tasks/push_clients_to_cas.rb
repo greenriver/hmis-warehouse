@@ -197,6 +197,8 @@ module GrdaWarehouse::Tasks
         health_prioritized: :health_prioritized_for_cas?,
         assessment_name: :cas_assessment_name,
         majority_sheltered: :majority_sheltered,
+        tie_breaker_date: :tie_breaker_date,
+        financial_assistance_end_date: :financial_assistance_end_date,
       }
     end
 
@@ -262,9 +264,9 @@ module GrdaWarehouse::Tasks
       @title_override = GrdaWarehouse::Hud::Client.cas_columns
       @title_override.merge!(
         {
-          homephone: 'Home Phone',
-          cellphone: 'Cell Phone',
-          workphone: 'Work Phone',
+          home_phone: 'Home Phone',
+          cell_phone: 'Cell Phone',
+          work_phone: 'Work Phone',
           hivaids_status: 'HIV/AIDS Status',
           consent_form_signed_on: _('Housing Release Signature Date'),
           ssvf_eligible: 'SSVF Eligible',
