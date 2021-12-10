@@ -6,10 +6,30 @@ style = {
 }
 wb.add_worksheet name: 'Inventory Utilization' do |sheet|
   title = sheet.styles.add_style(**style)
-  sheet.add_row ['Start Date', @filter.start.to_s, 'End Date', @filter.end.to_s], style: title
-  sheet.add_row ['Project', 'Project Type', 'Beds', 'Clients', '% Bed Utilization', 'Units', 'Households',	'% Unit Utilization'], style: title
+  sheet.add_row(
+    [
+      'Start Date',
+      @filter.start.to_s,
+      'End Date',
+      @filter.end.to_s,
+    ],
+    style: title,
+  )
+  sheet.add_row(
+    [
+      'Project',
+      'Project Type',
+      'Beds',
+      'Clients',
+      '% Bed Utilization',
+      'Units',
+      'Households',
+      '% Unit Utilization',
+    ],
+    style: title,
+  )
 
-  @projects_with_counts.each do |_,project|
+  @report.report.each do |_,project|
     sheet.add_row(
       [
         project.name,

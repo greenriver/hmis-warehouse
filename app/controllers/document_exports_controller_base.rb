@@ -87,6 +87,7 @@ class DocumentExportsControllerBase < ApplicationController
       'HudPathReport::DocumentExports::HudPathReportExport',
       'HudSpmReport::DocumentExports::HudSpmReportExport',
       'HudDataQualityReport::DocumentExports::HudDataQualityReportExport',
+      'GrdaWarehouse::DocumentExports::BedUtilizationExport',
     ]
   end
 end
