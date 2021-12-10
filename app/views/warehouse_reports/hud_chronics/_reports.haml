@@ -1,5 +1,8 @@
 - @jobs.each do |job|
   - parameters = YAML.load(job.handler).job_data['arguments'].first
+  - # ignore jobs that are re-calculating the chronic list
+  - next unless parameters.is_a?(Hash)
+
   - parameters['filter'].delete('_aj_hash_with_indifferent_access')
   - report = GrdaWarehouse::WarehouseReports::ChronicReport.new(parameters: parameters)
   %tr{class: 'jIncompleteReport'}
