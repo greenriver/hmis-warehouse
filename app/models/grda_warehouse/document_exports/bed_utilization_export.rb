@@ -41,7 +41,7 @@ module GrdaWarehouse::DocumentExports
     end
 
     protected def report
-      @report ||= report_class.new(filter)
+      @report ||= report_class.new(filter: filter)
     end
 
     protected def view_assigns
