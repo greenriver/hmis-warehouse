@@ -17,7 +17,7 @@
   .col-6
     = f.input :username
   .col-6
-    = f.input :password
+    = f.input :password, as: :password, input_html: { value: @scheduled_document.password }
 .row
   .col
     = f.input :file_path

@@ -51,7 +51,7 @@ module Health
       return true if Rails.env.development?
 
       # Only allow imports during the specified hour where it hasn't started in the past 23 hours
-      return false unless last_run_at < 23.hours.ago
+      return false if last_run_at.present? && last_run_at > 23.hours.ago
       return false unless scheduled_hour == Time.current.hour
 
       true
@@ -69,7 +69,9 @@ module Health
     end
 
     def send_via_sftp(file_name:, data:)
-      Net::SFTP.start(hostname, username, password: password, port: (port.presence || 22)) do |sftp|
+      # append_all_supported_algorithms: true is weaker because allows Net::SFTP to use non-preferred encryption algorithms
+      # But can talk to more servers as a result.
+      Net::SFTP.start(hostname, username, password: password, port: (port.presence || 22), append_all_supported_algorithms: true) do |sftp|
         sftp.file.open(File.join(file_path, file_name), 'w') do |f|
           f.puts data
         end
