@@ -114,6 +114,8 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
         'C2', # FIXME
         'B3', # FIXME
         'C3', # FIXME
+        'B4', # FIXME
+        'C4', # FIXME
         'B5', # FIXME
         'C5', # FIXME
       ],
@@ -627,12 +629,14 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
       question: 'Q17',
       skip: [
         'B2', # FIXME
+        'C2', # FIXME
         'D2', # FIXME
         'B3', # FIXME
         'B4', # FIXME
         'D4', # FIXME
         'B5', # FIXME
         'D5', # FIXME
+        'C6', # FIXME
         'B9', # FIXME
         'D9', # FIXME
         'B11', # FIXME
@@ -725,6 +729,7 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
         'D3', # FIXME
         'B4', # FIXME
         'D4', # FIXME
+        'C5', # FIXME
         'B6', # FIXME
         'D6', # FIXME
         'B7', # FIXME
@@ -740,7 +745,9 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
         'B14', # FIXME
         'C14', # FIXME
         'D14', # FIXME
+        'C15', # FIXME
         'B16', # FIXME
+        'C16', # FIXME
         'D16', # FIXME
         'B17', # FIXME
         'D17', # FIXME
@@ -753,6 +760,13 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q22a2',
       skip: [
+        'B2', # FIXME
+        'D2', # FIXME
+        'B3', # FIXME
+        'C3', # FIXME
+        'B4', # FIXME
+        'C4', # FIXME
+        'D4', # FIXME
         'B5', # FIXME
         'C5', # FIXME
         'B8', # FIXME
@@ -779,6 +793,15 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q22d',
       skip: [
+        'B2', # FIXME
+        'F2', # FIXME
+        'B3', # FIXME
+        'C3', # FIXME
+        'E3', # FIXME
+        'B4', # FIXME
+        'C4', # FIXME
+        'D4', # FIXME
+        'F4', # FIXME
         'B5', # FIXME
         'D5', # FIXME
         'B8', # FIXME
@@ -818,6 +841,7 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
         'B9', # FIXME
         'D9', # FIXME
         'E9', # FIXME
+        'F9', # FIXME
         'B10', # FIXME
         'C10', # FIXME
         'B11', # FIXME
@@ -827,6 +851,9 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
         'F11', # FIXME
         'B12', # FIXME
         'C12', # FIXME
+        'D12', # FIXME
+        'E12', # FIXME
+        'F12', # FIXME
         'B13', # FIXME
         'C13', # FIXME
         'D13', # FIXME

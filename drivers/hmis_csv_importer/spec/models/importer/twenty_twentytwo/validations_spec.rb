@@ -204,7 +204,7 @@ RSpec.describe 'Validate import files', type: :model do
 
   it 'includes expected enrollment_cocs validations' do
     aggregate_failures 'validating' do
-      expect(HmisCsvImporter::HmisCsvValidation::InclusionInSet.where("source_type LIKE '%EnrollmentCoc'").count).to eq(2)
+      expect(HmisCsvImporter::HmisCsvValidation::InclusionInSet.where("source_type LIKE '%EnrollmentCoc'").count).to eq(1)
       expect(HmisCsvImporter::HmisCsvValidation::NonBlankValidation.where("source_type LIKE '%EnrollmentCoc'").count).to eq(2)
     end
   end
@@ -306,7 +306,7 @@ RSpec.describe 'Validate import files', type: :model do
 
   it 'includes expected inventory validations' do
     aggregate_failures 'validating' do
-      expect(HmisCsvImporter::HmisCsvValidation::InclusionInSet.where("source_type LIKE '%Inventory'").count).to eq(3)
+      expect(HmisCsvImporter::HmisCsvValidation::InclusionInSet.where("source_type LIKE '%Inventory'").count).to eq(2)
       expect(HmisCsvImporter::HmisCsvValidation::NonBlankValidation.where("source_type LIKE '%Inventory'").count).to eq(5)
     end
   end
@@ -366,7 +366,7 @@ RSpec.describe 'Validate import files', type: :model do
 
   it 'includes expected project_cocs validations' do
     aggregate_failures 'validating' do
-      expect(HmisCsvImporter::HmisCsvValidation::InclusionInSet.where("source_type LIKE '%ProjectCoc'").count).to eq(1)
+      expect(HmisCsvImporter::HmisCsvValidation::InclusionInSet.where("source_type LIKE '%ProjectCoc'").count).to eq(0)
       expect(HmisCsvImporter::HmisCsvValidation::ValidFormat.where("source_type LIKE '%ProjectCoc'").count).to eq(3)
       expect(HmisCsvImporter::HmisCsvValidation::NonBlankValidation.where("source_type LIKE '%ProjectCoc'").count).to eq(1)
     end

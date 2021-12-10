@@ -20,7 +20,6 @@ RSpec.describe HudDataQualityReport::Generators::Fy2020::QuestionThree, type: :m
   end
 
   it 'hoh denominator is correct' do
-    # Test data has a dummy CoC code, so all HoH enrollments are incorrect
-    expect(report_result.answer(question: 'Q3', cell: 'C5').summary).to eq('1.0000')
+    expect(report_result.answer(question: 'Q3', cell: 'C5').summary).to eq('0.0000')
   end
 end

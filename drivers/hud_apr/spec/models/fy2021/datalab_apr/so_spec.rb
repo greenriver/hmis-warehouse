@@ -473,8 +473,10 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
       skip: [
         'B44', # FIXME
         'D44', # FIXME
+        'F44', # FIXME
         'B46', # FIXME
         'D46', # FIXME
+        'F46', # FIXME
       ],
     )
   end

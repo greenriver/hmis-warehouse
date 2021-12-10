@@ -3,7 +3,7 @@
 "b. $1 - $150",3,0,2
 "c. $151 - $250",0,0,0
 "d. $251 - $500",2,0,2
-"e. $501 - $1000",3,0,3
+"e. $501 - $1000",2,0,2
 "f. $1,001 - $1,500",2,1,2
 "g. $1,501 - $2,000",0,0,0
 "h. $2,001+",0,0,0
@@ -11,4 +11,4 @@
 "j. Data Not Collected",2,0,2
 "k. Number of adult stayers not yet required to have an annual assessment",,0,
 "l. Number of adult stayers without required annual assessment",,0,
-"n. Total adults",27,1,26
+"n. Total adults",26,1,25

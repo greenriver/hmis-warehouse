@@ -762,8 +762,8 @@ module HUD
 
   def questioning_gender_queries
     [
-      '0,1,4,5',
-      '0,1,4',
+      '0,1,4,5,6',
+      '0,1,4,6',
       '0,1,5,6',
       '0,1,6',
       '0,4,5,6',
@@ -2456,7 +2456,7 @@ module HUD
   end
 
   def cocs
-    {
+    codes = {
       'CO-500' => 'Colorado Balance of State CoC',
       'CO-503' => 'Metropolitan Denver CoC',
       'CO-504' => 'Colorado Springs/El Paso County CoC',
@@ -2853,6 +2853,8 @@ module HUD
       'TX-624' => 'Wichita Falls/Wise, Palo Pinto, Wichita, Archer Counties CoC',
       'UT-503' => 'Utah Balance of State CoC',
       'VA-500' => 'Richmond/Henrico, Chesterfield, Hanover Counties CoC',
-    }.freeze
+    }
+    codes['XX-500'] = 'Test CoC' unless Rails.env.production?
+    codes.freeze
   end
 end

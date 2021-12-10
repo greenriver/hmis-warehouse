@@ -114,30 +114,30 @@ module HudApr::Generators::Shared::Fy2021
         # Number of NC
         {
           cell: 'B5',
-          clause: a_t[:dob_quality].eq(99),
+          clause: a_t[:dob].eq(nil).and(a_t[:dob_quality].not_in([8, 9])),
         },
         # Number of NC w/ no children
         {
           cell: 'C5',
-          clause: a_t[:dob_quality].eq(99).
+          clause: a_t[:dob].eq(nil).and(a_t[:dob_quality].not_in([8, 9])).
             and(a_t[:household_type].eq(:adults_only)),
         },
         # Number of NC w/ children
         {
           cell: 'D5',
-          clause: a_t[:dob_quality].eq(99).
+          clause: a_t[:dob].eq(nil).and(a_t[:dob_quality].not_in([8, 9])).
             and(a_t[:household_type].eq(:adults_and_children)),
         },
         # Number of NC w/ no adults
         {
           cell: 'E5',
-          clause: a_t[:dob_quality].eq(99).
+          clause: a_t[:dob].eq(nil).and(a_t[:dob_quality].not_in([8, 9])).
             and(a_t[:household_type].eq(:children_only)),
         },
         # Number of NC in unknown household type
         {
           cell: 'F5',
-          clause: a_t[:dob_quality].eq(99).
+          clause: a_t[:dob].eq(nil).and(a_t[:dob_quality].not_in([8, 9])).
             and(a_t[:household_type].eq(:unknown)),
         },
         # Total
@@ -293,7 +293,12 @@ module HudApr::Generators::Shared::Fy2021
           and(a_t[:project_type].in([3, 13])).
           and(a_t[:head_of_household].eq(true)),
       ).pluck(:household_id)
-      psh_rrh_universe = universe.members.where(a_t[:household_id].in(psh_rrh_households))
+      psh_rrh_universe = universe.members.where(
+        a_t[:household_id].in(psh_rrh_households).
+          and(a_t[:first_date_in_program].lteq(pit_date)).
+          and(a_t[:last_date_in_program].gt(pit_date).
+            or(a_t[:last_date_in_program].eq(nil))),
+      )
 
       so_serv_ce_universe = universe.members.where(
         a_t[:first_date_in_program].lteq(pit_date).

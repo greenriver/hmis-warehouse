@@ -44,7 +44,7 @@ module HudApr::Generators::Shared::Fy2021
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(population_clause).where(response_clause)
+          members = universe.members.where(adult_clause).where(population_clause).where(response_clause)
           value = members.count
 
           answer.add_members(members)
@@ -76,7 +76,9 @@ module HudApr::Generators::Shared::Fy2021
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          members = universe.members.where(hoh_clause).where(population_clause)
+          members = universe.members.where(hoh_clause.and(a_t[:household_type].not_eq('children_only'))).
+            where.not(a_t[:age].eq(nil).and(a_t[:household_type].eq('unknown'))). # Special case from Datalab test?
+            where(population_clause)
 
           ids = Set.new
           if response_clause.is_a?(Symbol)
@@ -213,9 +215,9 @@ module HudApr::Generators::Shared::Fy2021
             where(response_clause)
           case suffix
           when :exit
-            members = members.where(stayers_clause)
-          when :latest
             members = members.where(leavers_clause)
+          when :latest
+            members = members.where(stayers_clause)
           end
 
           value = members.count

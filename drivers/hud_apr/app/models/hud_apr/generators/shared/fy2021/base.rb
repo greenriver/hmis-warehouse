@@ -92,7 +92,7 @@ module HudApr::Generators::Shared::Fy2021
           disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
 
           health_and_dv = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= @report.end_date }.
+            select { |h| h.InformationDate <= @report.end_date && !h.DomesticViolenceVictim.nil? }.
             max_by(&:InformationDate)
 
           last_bed_night = enrollment.services.select do |s|
@@ -105,11 +105,12 @@ module HudApr::Generators::Shared::Fy2021
           end
 
           age = source_client.age_on(client_start_date)
-          household_type = if age.blank? || age.negative?
-            :unknown
-          else
-            household_types[get_hh_id(last_service_history_enrollment)]
-          end
+          household_type = household_types[get_hh_id(last_service_history_enrollment)]
+          # household_type = if age.blank? || age.negative?
+          #   :unknown
+          # else
+          #   household_types[get_hh_id(last_service_history_enrollment)]
+          # end
 
           household_calculation_date = if needs_ce_assessments?
             ce_latest_assessment.AssessmentDate

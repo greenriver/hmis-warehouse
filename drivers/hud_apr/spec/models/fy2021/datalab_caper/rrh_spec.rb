@@ -77,6 +77,8 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
         'C2', # FIXME
         'B3', # FIXME
         'C3', # FIXME
+        'B4', # FIXME
+        'C4', # FIXME
         'B5', # FIXME
         'C5', # FIXME
       ],

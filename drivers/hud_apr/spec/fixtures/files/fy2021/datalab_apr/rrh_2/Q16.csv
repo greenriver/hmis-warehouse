@@ -1,5 +1,5 @@
 "Income bracket","Income at start","Income at latest annual assessment for stayers","Income at exit for leavers"
-"a. no income",16,0,15
+"a. no income",15,0,14
 "b. $1 - $150",3,0,2
 "c. $151 - $250",0,1,0
 "d. $251 - $500",3,0,2
@@ -11,4 +11,4 @@
 "j. Data Not Collected",2,0,2
 "k. Number of adult stayers not yet required to have an annual assessment",,3,
 "l. Number of adult stayers without required annual assessment",,0,
-"n. Total adults",29,5,24
+"n. Total adults",28,5,23

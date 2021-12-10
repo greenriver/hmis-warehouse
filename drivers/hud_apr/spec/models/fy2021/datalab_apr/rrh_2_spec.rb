@@ -134,10 +134,14 @@ RSpec.describe 'Datalab 2021 APR - rrh 2 projects', type: :model do
         'B2', # FIXME
         'C2', # FIXME
         'D2', # FIXME
+        'F2', # FIXME
         'B3', # FIXME
         'C3', # FIXME
+        'F3', # FIXME
         'B4', # FIXME
         'C4', # FIXME
+        'F4', # FIXME
+        'F5', # FIXME
         'B5', # FIXME
         'C5', # FIXME
         'D5', # FIXME

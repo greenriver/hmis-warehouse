@@ -322,8 +322,8 @@ module HudApr::Generators::Shared::Fy2021
             where(
               a_t[:other_clients_over_25].eq(false).
                 and(
-                  hoh_clause.and(a_t[:age].between(0..24)).
-                  or(a_t[:age].between(12..24)),
+                  hoh_clause.and(a_t[:age].between(12..24)).
+                  or(a_t[:age].between(18..24)),
                 ),
             )
 
@@ -331,6 +331,12 @@ module HudApr::Generators::Shared::Fy2021
 
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
+          elsif income_clause.is_a?(Array)
+            ids = Set.new
+            income_clause.each do |part|
+              ids += members.where.contains(part).pluck(:id)
+            end
+            members = members.where(id: ids.to_a)
           else
             # The final question doesn't require accessing the jsonb column
             members = members.where(income_clause)
@@ -367,8 +373,8 @@ module HudApr::Generators::Shared::Fy2021
             where(
               a_t[:other_clients_over_25].eq(false).
                 and(
-                  hoh_clause.and(a_t[:age].between(0..24)).
-                    or(a_t[:age].between(12..24)),
+                  hoh_clause.and(a_t[:age].between(12..24)).
+                    or(a_t[:age].between(18..24)),
                 ),
             )
           youth = youth.where(stayers_clause) if suffix == :annual_assessment
@@ -399,6 +405,7 @@ module HudApr::Generators::Shared::Fy2021
         end
       end
     end
+
     private def q27i_youth_disabling_conditions
       table_name = 'Q27i'
       metadata = {
@@ -424,8 +431,8 @@ module HudApr::Generators::Shared::Fy2021
             where(
               a_t[:other_clients_over_25].eq(false).
                 and(
-                  hoh_clause.and(a_t[:age].between(0..24)).
-                    or(a_t[:age].between(12..24)),
+                  hoh_clause.and(a_t[:age].between(12..24)).
+                    or(a_t[:age].between(18..24)),
                 ),
             ).
             where(leavers_clause).
@@ -436,6 +443,12 @@ module HudApr::Generators::Shared::Fy2021
 
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
+          elsif income_clause.is_a?(Array)
+            ids = Set.new
+            income_clause.each do |part|
+              ids += members.where.contains(part).pluck(:id)
+            end
+            members = members.where(id: ids.to_a)
           else
             # The final question doesn't require accessing the jsonb column
             members = members.where(income_clause)
@@ -445,7 +458,7 @@ module HudApr::Generators::Shared::Fy2021
             disabled_count = members.where(disabilities_clause[:household]).
               where(a_t[:disabling_condition].eq(1)).count
             total_count = members.where(disabilities_clause[:household]).count
-            value = (disabled_count.to_f / total_count).round(4) if total_count.positive?
+            value = percentage((disabled_count.to_f / total_count).round(4)) if total_count.positive?
           else
             members = members.where(disabilities_clause)
             value = members.count
@@ -459,38 +472,38 @@ module HudApr::Generators::Shared::Fy2021
 
     private def q27i_disabilities
       {
-        'AO: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
+        'AO: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
           and(a_t[:household_type].eq(:adults_only)),
-        'AO: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
+        'AO: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
           and(a_t[:household_type].eq(:adults_only)),
-        'AO: Total Adults' => a_t[:household_type].eq(:adults_only),
+        'AO: Total Youths' => a_t[:household_type].eq(:adults_only),
         'AO: % with Disabling Condition by Source' => {
           calculation: :percent,
           household: a_t[:household_type].eq(:adults_only),
         },
-        'AC: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(a_t[:household_type].eq(:children_only)),
-        'AC: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(a_t[:household_type].eq(:children_only)),
-        'AC: Total Adults' => a_t[:household_type].eq(:children_only),
+        'AC: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
+          and(a_t[:household_type].eq(:adults_and_children)),
+        'AC: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
+          and(a_t[:household_type].eq(:adults_and_children)),
+        'AC: Total Youths' => a_t[:household_type].eq(:adults_and_children),
         'AC: % with Disabling Condition by Source' => {
-          calculation: :percent,
-          household: a_t[:household_type].eq(:children_only),
-        },
-        'CO: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(a_t[:household_type].eq(:adults_and_children)),
-        'CO: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(a_t[:household_type].eq(:adults_and_children)),
-        'CO: Total Adults' => a_t[:household_type].eq(:adults_and_children),
-        'CO: % with Disabling Condition by Source' => {
           calculation: :percent,
           household: a_t[:household_type].eq(:adults_and_children),
         },
-        'UK: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
+        'CO: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
+          and(a_t[:household_type].eq(:children_only)),
+        'CO: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
+          and(a_t[:household_type].eq(:children_only)),
+        'CO: Total Youths' => a_t[:household_type].eq(:children_only),
+        'CO: % with Disabling Condition by Source' => {
+          calculation: :percent,
+          household: a_t[:household_type].eq(:children_only),
+        },
+        'UK: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
           and(a_t[:household_type].eq(:unknown)),
-        'UK: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
+        'UK: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
           and(a_t[:household_type].eq(:unknown)),
-        'UK: Total Adults' => a_t[:household_type].eq(:unknown),
+        'UK: Total Youths' => a_t[:household_type].eq(:unknown),
         'UK: % with Disabling Condition by Source' => {
           calculation: :percent,
           household: a_t[:household_type].eq(:unknown),
@@ -499,15 +512,25 @@ module HudApr::Generators::Shared::Fy2021
     end
 
     private def q27i_income_sources
+      other_sources = [
+        'Unemployment Insurance',
+        'VA Non-Service Connected Disability Pension',
+        'General Assistance (GA)',
+        'Alimony and other spousal support',
+        'Other Source',
+      ]
+
       income_types(:exit).except(
         'Unemployment Insurance',
         'VA Non-Service Connected Disability Pension',
         'General Assistance (GA)',
         'Alimony and other spousal support',
+        'Adults with Income Information at Start and Annual Assessment/Exit',
       ).merge(
         {
+          'Other Source' => income_types(:exit).slice(*other_sources).values,
           'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
-          'Unduplicated Total Adults' => Arel.sql('1=1'),
+          'Unduplicated Total Youth' => Arel.sql('1=1'),
         },
       )
     end

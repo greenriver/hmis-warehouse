@@ -2,16 +2,16 @@
 "a. MEDICAID",1,0,1
 "b. MEDICARE",1,0,1
 "c. State Children's Health Insurance",2,0,2
-"d. Veteran's Administration (VA) Medical Services",1,1,0
+"d. Veteran's Administration (VA) Medical Services",1,0,0
 "e. Employer-provided health insurance",1,0,1
 "f. Health insurance obtained through COBRA",1,0,1
 "g. Private pay health insurance",2,0,2
 "h. State Health Insurance for Adults",3,0,3
-"i. Indian Health Services Program",0,0,0
-"j. Other",0,0,0
-"k. No health insurance",21,0,21
+"i. Indian Health Services Program",1,0,1
+"j. Other",1,0,1
+"k. No health insurance",20,0,20
 "l. Client doesn't know/Client refused",2,0,2
-"m. Data not collected",3,1,2
-"n. Number of adult stayers not yet required to have an annual assessment",,0,
-"o. 1 source of health insurance",10,1,9
-"p. More than 1 source of health insurance",1,0,1
+"m. Data not collected",3,0,2
+"n. Number of adult stayers not yet required to have an annual assessment",,2,
+"o. 1 source of health insurance",10,0,9
+"p. More than 1 source of health insurance",2,0,2
