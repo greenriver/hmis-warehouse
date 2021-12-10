@@ -432,7 +432,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['2', 'C7']], # NOTE: we'd like D7, but it's calculated
+          cells: [['2', 'B7']],
           title: 'Returned to Homelessness Within 6 months',
           history_source: :m2_history,
           questions: [

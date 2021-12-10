@@ -72,16 +72,18 @@ module PerformanceMeasurement::ResultCalculation
       (sorted[mid] + sorted[mid - 1]) / 2
     end
 
-    def client_count(field, period, project_id: nil)
-      column = "#{period}_#{field}"
-      return clients.where(column => true).count if project_id.blank?
+    def client_count(fields, period, project_id: nil)
+      fields = Array.wrap(fields)
+      columns = fields.map { |field| "#{period}_#{field}" }
+      column_query = columns.map { |column| [column, true] }.to_h
+      return clients.where(column_query).count if project_id.blank?
 
       @client_counts ||= {}
-      @client_counts[column] ||= clients.joins(:client_projects).
+      @client_counts[columns] ||= clients.joins(:client_projects).
         merge(PerformanceMeasurement::ClientProject.where.not(project_id: nil)).
         group(:project_id).
-        where(column => true).distinct.count
-      @client_counts[column][project_id] || 0
+        where(column_query).distinct.count
+      @client_counts[columns][project_id] || 0
     end
 
     def client_sum(field, period, project_id: nil)
@@ -423,8 +425,8 @@ module PerformanceMeasurement::ResultCalculation
       returned_in_range(1..180, __method__, project_id: project_id)
     end
 
-    def returned_in_twenty_two_years(project_id: nil)
-      returned_in_range(1..180, __method__, project_id: project_id)
+    def returned_in_two_years(project_id: nil)
+      returned_in_range(1..730, __method__, project_id: project_id)
     end
 
     def returned_in_range(range, meth, project_id: nil)
@@ -472,8 +474,8 @@ module PerformanceMeasurement::ResultCalculation
     def increased_income(income_field, status_field, meth, project_id: nil)
       reporting_denominator = client_count(status_field, :reporting)
       comparison_denominator = client_count(status_field, :comparison)
-      reporting_numerator = client_count(income_field, :reporting)
-      comparison_numerator = client_count(income_field, :comparison)
+      reporting_numerator = client_count([income_field, status_field], :reporting)
+      comparison_numerator = client_count([income_field, status_field], :comparison)
 
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
@@ -528,7 +530,7 @@ module PerformanceMeasurement::ResultCalculation
         :es_sh_th_rrh_positive_destinations,
         :moved_in_positive_destinations,
         :returned_in_six_months,
-        :returned_in_twenty_two_years,
+        :returned_in_two_years,
         :stayers_with_increased_income,
         :leavers_with_increased_income,
       ]

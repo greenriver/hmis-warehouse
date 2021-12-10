@@ -5,18 +5,16 @@
   margin: 0 auto;
 }
 .c-indicator--constrained-width {
-  min-width: 300px;
-  max-width: 500px;
+  min-width: 200px;
+  max-width: 400px;
   margin: 0 auto;
 }
 .c-indicator__title {
+  font-size: rem(16px);
   font-weight: bold;
   margin-bottom: space(3);
 }
 .c-indicator__content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   width: 35rem;
   margin-left: auto;
   margin-right: auto;
@@ -25,7 +23,7 @@
   margin-left: auto;
   margin-right: space(2);
   span {
-    font-size: rem(35px);
+    font-size: rem(30px);
   }
   &.pass {
     color: $brand-success;
@@ -35,8 +33,7 @@
   }
 }
 .c-indicator__values {
-  display: flex;
-  align-items: flex-end;
+
 }
 .c-indicator__value {
   margin-right: space(2);
@@ -48,13 +45,13 @@
   margin-left: space(2);
   margin-right: space(4);
   svg,
-  .icon-svg {
-    width: 2.5rem;
-    height: 2.5rem;
+  .icon-svg svg {
+    width: 2rem;
+    height: 2rem;
   }
 }
 .c-indicator__value-number {
-  font-size: rem(40px);
+  font-size: rem(20px);
   font-weight: bold;
   line-height: 1;
 }
@@ -75,4 +72,10 @@
 .c-indicator__label {
   font-size: rem(15px);
   line-height: 16px;
+}
+.indicator .system {
+  align-items: left;
+}
+.indicator .project {
+  align-items: right;
 }
