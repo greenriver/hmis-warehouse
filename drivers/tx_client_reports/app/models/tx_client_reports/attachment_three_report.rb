@@ -27,7 +27,7 @@ module TxClientReports
 
       client_scope.map do |client|
         enrollment = enrollments[client.id]
-        program_name = enrollment.project.ProjectName
+        project = enrollment.project
         hoh_income = enrollment.
           service_history_enrollment_for_head_of_household&.
           enrollment&.
@@ -35,7 +35,8 @@ module TxClientReports
           TotalMonthlyIncome
 
         {
-          program_name: program_name,
+          project_id: project.id,
+          project_name: project.ProjectName,
           service_date: enrollment.first_date_in_program,
           fort_worth_resident: nil, # leave blank
           service_location: nil, # leave blank

@@ -21,9 +21,9 @@
       %tbody
         - @rows.each do |row|
           %tr
-            %td= row[:program_name]
+            %td= link_to_if can_view_projects?, row[:project_name], project_path(row[:project_id])
             %td= row[:service_date]
-            %td= row[:client_name]
+            %td= link_to row[:client_name], appropriate_client_path(row[:client_id])
             %td= row[:street_address]
             %td= row[:age]
             %td= row[:genders]

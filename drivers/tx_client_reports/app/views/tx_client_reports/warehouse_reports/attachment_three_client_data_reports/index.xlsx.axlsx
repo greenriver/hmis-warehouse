@@ -32,7 +32,7 @@ wb.add_worksheet(name: 'Att III') do |sheet|
   @rows.each_with_index do |row, index|
     sheet_row = [
       row[:client_id],
-      row[:program_name],
+      row[:project_name],
       index + 1,
       row[:service_date],
       row[:fort_worth_resident],
