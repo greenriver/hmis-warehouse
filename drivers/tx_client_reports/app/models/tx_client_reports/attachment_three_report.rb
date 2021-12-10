@@ -40,6 +40,7 @@ module TxClientReports
           fort_worth_resident: nil, # leave blank
           service_location: nil, # leave blank
           client_name: client.name,
+          client_id: client.id,
           street_address: enrollment.project.project_cocs&.first&.Address1, # Shelter address
           age: enrollment.age, # Age at project entry to keep report stable
           genders: client.gender,
