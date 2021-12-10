@@ -1,0 +1,7 @@
+- title = "Bed Utilization"
+.o-page
+  .o-page__header
+    - content_for :title, title
+    %h1.o-page__title= content_for :title
+
+= render 'warehouse_reports/bed_utilization/table'
