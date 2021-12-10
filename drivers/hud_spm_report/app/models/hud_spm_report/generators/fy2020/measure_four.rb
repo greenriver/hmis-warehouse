@@ -43,9 +43,36 @@ module HudSpmReport::Generators::Fy2020
     end
 
     ROWS = {
-      2 => 'Universe: Number of adults who exited (system leavers)',
-      3 => 'Number of adults who exited with increased earned income',
-      4 => 'Percentage of adults who increased earned income',
+      '4.1' => {
+        2 => 'Universe: Number of adults (system stayers)',
+        3 => 'Number of adults with increased earned income',
+        4 => 'Percentage of adults who increased earned income',
+      },
+      '4.2' => {
+        2 => 'Universe: Number of adults (system stayers)',
+        3 => 'Number of adults with increased non-employment cash income',
+        4 => 'Percentage of adults who increased non-employment cash income',
+      },
+      '4.3' => {
+        2 => 'Universe: Number of adults (system stayers)',
+        3 => 'Number of adults with increased total income',
+        4 => 'Percentage of adults who increased total income',
+      },
+      '4.4' => {
+        2 => 'Universe: Number of adults who exited (system leavers)',
+        3 => 'Number of adults who exited with increased earned income',
+        4 => 'Percentage of adults who increased earned income',
+      },
+      '4.5' => {
+        2 => 'Universe: Number of adults who exited (system leavers)',
+        3 => 'Number of adults who exited with increased non-employment cash income',
+        4 => 'Percentage of adults who increased non-employment cash income',
+      },
+      '4.6' => {
+        2 => 'Universe: Number of adults who exited (system leavers)',
+        3 => 'Number of adults who exited with increased total income',
+        4 => 'Percentage of adults who increased total income',
+      },
     }.freeze
 
     private def spmc_t
@@ -77,7 +104,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def run_4_x(table_name, stayer, income_change_clause)
-      prepare_table(table_name, ROWS, CHANGE_TABLE_COLS)
+      prepare_table(table_name, ROWS[table_name], CHANGE_TABLE_COLS)
 
       universe_members = universe.members.where(t[:m4_stayer].eq(stayer))
       with_increased_income = universe_members.where(income_change_clause)

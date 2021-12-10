@@ -423,8 +423,8 @@ module PerformanceMeasurement::ResultCalculation
       returned_in_range(1..180, __method__, project_id: project_id)
     end
 
-    def returned_in_twenty_two_years(project_id: nil)
-      returned_in_range(1..180, __method__, project_id: project_id)
+    def returned_in_two_years(project_id: nil)
+      returned_in_range(1..730, __method__, project_id: project_id)
     end
 
     def returned_in_range(range, meth, project_id: nil)
@@ -528,7 +528,7 @@ module PerformanceMeasurement::ResultCalculation
         :es_sh_th_rrh_positive_destinations,
         :moved_in_positive_destinations,
         :returned_in_six_months,
-        :returned_in_twenty_two_years,
+        :returned_in_two_years,
         :stayers_with_increased_income,
         :leavers_with_increased_income,
       ]
