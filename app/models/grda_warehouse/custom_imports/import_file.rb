@@ -65,7 +65,7 @@ module GrdaWarehouse::CustomImports
         CSV.generate do |csv|
           workbook = ::RubyXL::Parser.parse(target_path)
           workbook.worksheets[0].each do |row|
-            csv_row = [row.r]
+            csv_row = []
             row&.cells&.each do |cell|
               val = cell&.value
               csv_row << val

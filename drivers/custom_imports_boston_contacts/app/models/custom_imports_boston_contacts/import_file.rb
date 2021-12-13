@@ -40,7 +40,6 @@ module CustomImportsBostonContacts
 
     private def header_lookup
       {
-        '' => 'row_number',
         'Personal ID' => 'personal_id',
         'Last Name' => 'do_not_import',
         'First Name' => 'do_not_import',
