@@ -959,6 +959,8 @@ module GrdaWarehouse::Hud
     def consent_confirmed?
       if release_duration == 'Use Expiration Date'
         consent_form_signed_on.present? && consent_form_valid?
+      elsif GrdaWarehouse::Config.get(:auto_confirm_consent)
+        client_files.consent_forms.signed.exists?
       else
         client_files.consent_forms.signed.confirmed.exists?
       end
