@@ -253,10 +253,9 @@ module GrdaWarehouse::CasProjectClientCalculator
         question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer || 0
       sheltered = warehouse_sheltered + extra_sheltered
       unsheltered = warehouse_unsheltered + extra_unsheltered
-      # If they are equivalent, we don't know if they spent more time sheltered or unsheltered
-      return nil if sheltered == unsheltered
+      # If they are equivalent, count as sheltered
 
-      sheltered > unsheltered
+      sheltered >= unsheltered
     end
   end
 end
