@@ -40,21 +40,21 @@ module CustomImportsBostonContacts
 
     private def header_lookup
       {
-        'Clients Personal ID' => 'personal_id',
-        'Clients Contact ID' => 'unique_id',
-        'Client Contacts Agency ID' => 'agency_id',
-        'Client Contacts Contact Type' => 'contact_type',
-        'Client Contacts Name' => 'contact_name',
-        'Client Contacts Phone1' => 'phone',
-        'Client Contacts Phone2' => 'phone_alternate',
-        'Client Contacts Email' => 'email',
-        'Client Contacts Note' => 'note',
-        'Client Contacts Last Updated Date' => 'contact_updated_at',
-        'Client Contacts Added Date' => 'contact_created_at',
-        'Client Contacts Private (Yes / No)' => 'private',
-        'Clients Last Name' => 'do_not_import',
-        'Clients First Name' => 'do_not_import',
-        'Client Contacts Contact ID' => 'do_not_import',
+        '' => 'row_number',
+        'Personal ID' => 'personal_id',
+        'Last Name' => 'do_not_import',
+        'First Name' => 'do_not_import',
+        'Agency ID' => 'agency_id',
+        'Contact ID' => 'unique_id',
+        'Contact Type' => 'contact_type',
+        'Name' => 'contact_name',
+        'Phone1' => 'phone',
+        'Phone2' => 'phone_alternate',
+        'Email' => 'email',
+        'Private (Yes / No)' => 'private',
+        'Note' => 'note',
+        'Last Updated Date' => 'contact_updated_at',
+        'Added Date' => 'contact_created_at',
       }
     end
 
