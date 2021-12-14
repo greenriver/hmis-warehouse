@@ -55,5 +55,31 @@ module GrdaWarehouse
       @full_address << "Address: #{address_or_note}" if address_or_note.present?
       @full_address.compact.join("\n")
     end
+
+    def self.as_contacts(_force = false)
+      contact_columns = {
+        source_id: :id,
+        category: :contact_type,
+        email: :email,
+        collected_on: :last_modified_at,
+      }.invert
+
+      patient_ids = Health::Patient.bh_cp.pluck(:client_id, :id).to_h
+
+      joins(:client).
+        merge(GrdaWarehouse::Hud::Client.
+          full_housing_release_on_file.
+          where(id: Health::Patient.bh_cp.pluck(:client_id))).
+        map do |row|
+          contact = row.slice(*contact_columns.keys)
+          contact.transform_keys! { |k| contact_columns[k.to_sym] }
+          contact.merge(
+            name: row.name,
+            phone: row.phone_numbers,
+            patient_id: patient_ids[row.client_id],
+            source_type: 'GrdaWarehouse::ClientContact',
+          )
+        end
+    end
   end
 end

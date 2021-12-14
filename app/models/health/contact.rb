@@ -33,6 +33,7 @@ module Health
     private def contact_sources
       [
         Health::Team::Member,
+        GrdaWarehouse::ClientContact,
       ]
     end
   end
