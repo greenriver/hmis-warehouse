@@ -26,10 +26,11 @@ class WarehouseReport::BedUtilization < OpenStruct
 
     @report = {}.tap do |report_data|
       GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids).
-        preload(:inventories).find_each do |project|
+        preload(:inventories, :organization).find_each do |project|
           report_data[project.id] ||= OpenStruct.new(
             id: project.id,
             name: project.ProjectName,
+            organization_name: project.organization.OrganizationName,
             project_type: project.compute_project_type,
             clients: average(client_count(project)).round,
             beds: average_inventory_count(project, :BedInventory),
