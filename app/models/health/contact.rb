@@ -22,7 +22,7 @@ module Health
     def self.sync!(force = false)
       contact_sources.each do |klass|
         import!(
-          klass.as_contacts(force),
+          klass.as_health_contacts(force),
           on_duplicate_key_update: {
             conflict_target: [:client_id, :source_id, :source_type],
           },

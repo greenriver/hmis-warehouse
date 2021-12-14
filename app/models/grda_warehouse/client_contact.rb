@@ -56,7 +56,7 @@ module GrdaWarehouse
       @full_address.compact.join("\n")
     end
 
-    def self.as_contacts(_force = false)
+    def self.as_health_contacts(_force = false)
       contact_columns = {
         source_id: :id,
         category: :contact_type,

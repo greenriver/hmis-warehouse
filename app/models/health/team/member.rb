@@ -126,7 +126,7 @@ module Health
       errors.add(:email, 'address must match a provider organization domain (e.g. @tuftsmedical.org — can\'t be @gmail.com or other generic domain)') unless Health::Agency.email_valid?(email)
     end
 
-    def self.as_contacts(_force = false)
+    def self.as_health_contacts(_force = false)
       contact_columns = {
         patient_id: :patient_id,
         source_id: :id,
