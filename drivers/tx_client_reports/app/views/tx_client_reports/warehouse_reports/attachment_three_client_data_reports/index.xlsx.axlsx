@@ -2,6 +2,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Att III') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center, wrap_text: true })
   headers = [
+    'Warehouse ID',
     'Project Name',
     'Item',
     'Date of First Service',
@@ -30,7 +31,8 @@ wb.add_worksheet(name: 'Att III') do |sheet|
 
   @rows.each_with_index do |row, index|
     sheet_row = [
-      row[:program_name],
+      row[:client_id],
+      row[:project_name],
       index + 1,
       row[:service_date],
       row[:fort_worth_resident],

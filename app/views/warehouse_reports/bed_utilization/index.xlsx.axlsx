@@ -2,41 +2,45 @@ wb = xlsx_package.workbook
 style = {
   sz: 12,
   b: true,
-  alignment: { horizontal: :center }
+  alignment: { horizontal: :center },
 }
-wb.add_worksheet name: 'Organization and Time' do |sheet|
-  org = GrdaWarehouse::Hud::Organization.find @mo.org
-  title = sheet.styles.add_style **style
-  sheet.add_row [ 'Organization Name', 'OrganizationID', 'Data Source', 'Year', 'Month' ], style: title
-  sheet.add_row [ org.name, org.OrganizationID, org.data_source.name, @mo.year, @mo.month ]
-end
-wb.add_worksheet name: 'Bed Utilization' do |sheet|
-  title = sheet.styles.add_style **style
-  headers = [
-    'Program Name', 'Project Type', 'ProjectID', 'Capacity',
-    'Persons (avg)', '% Capacity (avg)',
-    'Persons (1st)', '% Capacity (1st)',
-    'Persons (15th)', '% Capacity (15th)',
-    'Persons (last)', '% Capacity (last)'
-  ]
-  sheet.add_row headers, style: title
-  @projects_with_counts.each do |_,projects|
-    values = []
-    project = projects.first
-    project_type = project[GrdaWarehouse::Hud::Project.project_type_column]
-    projects_by_date = projects.index_by(&:date)
-    values << project.name
-    values << ::HUD.project_type_brief(project_type)
-    values << project.ProjectID
-    values << relevant_inventories( project.inventories, @mo.range.end ).map(&:BedInventory)&.sum
-    i = avg_info project, projects_by_date, @mo.range
-    values << i[:persons]
-    values << i[:percent_capacity]
-    [ :first, :ides, :last ].each do |k|
-      i = info project, projects_by_date, @mo.send(k)
-      values << i[:persons]
-      values << i[:percent_capacity]
-    end
-    sheet.add_row values
+wb.add_worksheet name: 'Inventory Utilization' do |sheet|
+  title = sheet.styles.add_style(**style)
+  sheet.add_row(
+    [
+      'Start Date',
+      @filter.start.to_s,
+      'End Date',
+      @filter.end.to_s,
+    ],
+    style: title,
+  )
+  sheet.add_row(
+    [
+      'Project',
+      'Project Type',
+      'Beds',
+      'Clients',
+      '% Bed Utilization',
+      'Units',
+      'Households',
+      '% Unit Utilization',
+    ],
+    style: title,
+  )
+
+  @report.report.each do |_,project|
+    sheet.add_row(
+      [
+        project.name,
+        ::HUD.project_type_brief(project.project_type),
+        project.beds,
+        project.clients,
+        project.bed_utilization,
+        project.units,
+        project.households,
+        project.unit_utilization,
+      ],
+    )
   end
 end

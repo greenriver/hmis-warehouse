@@ -1,0 +1,7 @@
+%h1 New Scheduled Document
+
+= simple_form_for @scheduled_document, as: :scheduled_document, url: admin_health_scheduled_documents_path do |f|
+  = f.hidden_field :type, value: @scheduled_document.class.name
+  = render 'form', f: f
+
+  = f.submit "Create Scheduled Document"

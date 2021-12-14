@@ -63,11 +63,14 @@ module GrdaWarehouse::Tasks
 
               project_client.calculated_last_homeless_night = max_dates[client.id]
               project_client.enrolled_project_ids = ongoing_enrolled_project_details[client.id]&.map(&:project_id)
-              enrollment_types = ongoing_enrolled_project_details[client.id]&.map(&:project_type)
-              project_client.enrolled_in_th = client.enrolled_in_th(enrollment_types)
-              project_client.enrolled_in_sh = client.enrolled_in_sh(enrollment_types)
-              project_client.enrolled_in_so = client.enrolled_in_so(enrollment_types)
-              project_client.enrolled_in_es = client.enrolled_in_es(enrollment_types)
+              enrollments = ongoing_enrolled_project_details[client.id]
+              project_client.enrolled_in_th = client.enrolled_in_th(enrollments)
+              project_client.enrolled_in_sh = client.enrolled_in_sh(enrollments)
+              project_client.enrolled_in_so = client.enrolled_in_so(enrollments)
+              project_client.enrolled_in_es = client.enrolled_in_es(enrollments)
+              project_client.enrolled_in_rrh = client.enrolled_in_rrh(enrollments)
+              project_client.enrolled_in_psh = client.enrolled_in_psh(enrollments)
+              project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
               project_client.date_days_homeless_verified = Date.current
               project_client.needs_update = true
               to_update << project_client
@@ -174,7 +177,7 @@ module GrdaWarehouse::Tasks
         rrh_desired: :rrh_desired,
         youth_rrh_desired: :youth_rrh_desired,
         rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
-        rrh_assessment_collected_at: :rrh_assessment_collected_at,
+        rrh_assessment_collected_at: :cas_assessment_collected_at,
         requires_wheelchair_accessibility: :requires_wheelchair_accessibility,
         required_number_of_bedrooms: :required_number_of_bedrooms,
         required_minimum_occupancy: :required_minimum_occupancy,
@@ -193,6 +196,9 @@ module GrdaWarehouse::Tasks
         dv_rrh_desired: :dv_rrh_desired,
         health_prioritized: :health_prioritized_for_cas?,
         assessment_name: :cas_assessment_name,
+        majority_sheltered: :majority_sheltered,
+        tie_breaker_date: :tie_breaker_date,
+        financial_assistance_end_date: :financial_assistance_end_date,
       }
     end
 
@@ -258,9 +264,9 @@ module GrdaWarehouse::Tasks
       @title_override = GrdaWarehouse::Hud::Client.cas_columns
       @title_override.merge!(
         {
-          homephone: 'Home Phone',
-          cellphone: 'Cell Phone',
-          workphone: 'Work Phone',
+          home_phone: 'Home Phone',
+          cell_phone: 'Cell Phone',
+          work_phone: 'Work Phone',
           hivaids_status: 'HIV/AIDS Status',
           consent_form_signed_on: _('Housing Release Signature Date'),
           ssvf_eligible: 'SSVF Eligible',

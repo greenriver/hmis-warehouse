@@ -1,0 +1,42 @@
+- if @report.report.present?
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th{ colspan: 2 }= @report.filter.date_range_words
+          %th{ colspan: 6 }
+            Average Daily...
+        %tr
+          %th Project
+          %th Project Type
+          %th Beds
+          %th
+            Clients
+            %i.icon-info{data: { toggle: :tooltip, title: 'For PH projects, only clients who have moved in are included.' }}
+          %th % Bed Utilization
+          %th Units
+          %th
+            Households
+            %i.icon-info{data: { toggle: :tooltip, title: 'For PH projects, only clients who have moved in are included.' }}
+          %th % Unit Utilization
+      %tbody
+        - @report.report.each do |id, project|
+          - next unless project
+          %tr
+            %td
+              = link_to project.name, project_path(project.id)
+            %td
+              - project_type = project.project_type
+              - p_type = ::HUD.project_type_brief(project_type)
+              - p_class = "client__service_type_#{p_type}"
+              %span{class: "client__service_type_#{project_type}"}
+                .enrollment__project_type{class: p_class}
+                  %em.service-type__program-type= p_type
+            %td= project.beds
+            %td= project.clients
+            %td= project.bed_utilization
+            %td= project.units
+            %td= project.households
+            %td= project.unit_utilization
+- else
+  %p.none-found Please select a set of projects above.

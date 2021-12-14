@@ -177,7 +177,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/health/health_file.rb'
     - 'app/models/health/tasks/check_patient_eligibility.rb'
     - 'app/models/health/team/member.rb'
-    - 'app/models/health/tracking_sheet.rb'
     - 'app/models/health_base.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/q5.rb'
@@ -746,7 +745,6 @@ Layout/HashAlignment:
     - 'app/models/health/claim.rb'
     - 'app/models/health/eligibility_inquiry.rb'
     - 'app/models/health/tasks/notify_care_coordinators_of_patient_eligibility_problems.rb'
-    - 'app/models/health/tracking_sheet.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
     - 'app/models/report_generators/data_quality/fy2017/q2.rb'
@@ -1116,7 +1114,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
-    - 'app/models/health/tracking_sheet.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
@@ -1338,7 +1335,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/team/member.rb'
-    - 'app/models/health/tracking_sheet.rb'
     - 'app/models/health_base.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
@@ -2742,7 +2738,6 @@ Style/StringLiterals:
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/team/member.rb'
-    - 'app/models/health/tracking_sheet.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/health/user_care_coordinator.rb'
     - 'app/models/report_generators/data_quality/fy2017/q3.rb'
@@ -2852,7 +2847,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tracing/search.rb'
-    - 'app/models/health/tracking_sheet.rb'
     - 'app/models/health_base.rb'
     - 'app/models/importers/hmis_auto_detect/s3.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
@@ -2973,7 +2967,6 @@ Style/TrailingUnderscoreVariable:
 Style/TrivialAccessors:
   Exclude:
     - 'app/models/health/base.rb'
-    - 'app/models/health/tracking_sheet.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.

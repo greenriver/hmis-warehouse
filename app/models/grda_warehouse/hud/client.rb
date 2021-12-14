@@ -183,6 +183,9 @@ module GrdaWarehouse::Hud
 
     has_one :active_consent_form, class_name: 'GrdaWarehouse::ClientFile', primary_key: :consent_form_id, foreign_key: :id
 
+    has_many :client_contacts, class_name: 'GrdaWarehouse::ClientContact'
+    has_many :generic_services, class_name: 'GrdaWarehouse::Generic::Service'
+
     # Delegations
     delegate :first_homeless_date, to: :processed_service_history, allow_nil: true
     delegate :last_homeless_date, to: :processed_service_history, allow_nil: true
@@ -956,6 +959,8 @@ module GrdaWarehouse::Hud
     def consent_confirmed?
       if release_duration == 'Use Expiration Date'
         consent_form_signed_on.present? && consent_form_valid?
+      elsif GrdaWarehouse::Config.get(:auto_confirm_consent)
+        client_files.consent_forms.signed.exists?
       else
         client_files.consent_forms.signed.confirmed.exists?
       end
@@ -2541,6 +2546,34 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def sheltered_days_homeless_last_three_years
+      end_date = Date.current
+      start_date = end_date - 3.years
+      sheltered_homeless_dates(start_date: start_date, end_date: end_date).count
+    end
+
+    def sheltered_homeless_dates(start_date:, end_date:)
+      service_history_services.
+        homeless_sheltered.
+        where(date: start_date..end_date).
+        where.not(date: service_history_services.non_homeless.where(date: start_date..end_date).select(:date).distinct).
+        select(:date).
+        distinct
+    end
+
+    def unsheltered_days_homeless_last_three_years
+      end_date = Date.current
+      start_date = end_date - 3.years
+      service_history_services.
+        homeless_unsheltered.
+        where(date: start_date..end_date).
+        where.not(date: service_history_services.non_homeless.where(date: start_date..end_date).select(:date).distinct).
+        where.not(date: sheltered_homeless_dates(start_date: start_date, end_date: end_date)).
+        select(:date).
+        distinct.
+        count
+    end
+
     # TH or PH
     def self.dates_hud_non_chronic_residential_last_three_years_scope client_id:, on_date: Date.current
       end_date = on_date.to_date
@@ -2732,44 +2765,6 @@ module GrdaWarehouse::Hud
 
     def service_types
       self.class.service_types
-    end
-
-    # NOTE: for CAS sync
-    def self.ongoing_enrolled_project_details(client_ids)
-      {}.tap do |ids|
-        GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).
-          ongoing.
-          joins(:project).
-          pluck(:client_id, p_t[:id], GrdaWarehouse::ServiceHistoryEnrollment.project_type_column).
-          each do |c_id, p_id, p_type|
-            ids[c_id] ||= []
-            ids[c_id] << OpenStruct.new(project_id: p_id, project_type: p_type)
-          end
-      end
-    end
-
-    def enrolled_in_th(ongoing_enrolled_project_types)
-      return false unless ongoing_enrolled_project_types
-
-      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th] & ongoing_enrolled_project_types).present?
-    end
-
-    def enrolled_in_sh(ongoing_enrolled_project_types)
-      return false unless ongoing_enrolled_project_types
-
-      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:sh] & ongoing_enrolled_project_types).present?
-    end
-
-    def enrolled_in_so(ongoing_enrolled_project_types)
-      return false unless ongoing_enrolled_project_types
-
-      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so] & ongoing_enrolled_project_types).present?
-    end
-
-    def enrolled_in_es(ongoing_enrolled_project_types)
-      return false unless ongoing_enrolled_project_types
-
-      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es] & ongoing_enrolled_project_types).present?
     end
 
     def total_days enrollments

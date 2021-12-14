@@ -51,5 +51,16 @@ module GrdaWarehouse::Hud
 
       matching_question.AssessmentAnswer.to_s == answer
     end
+
+    def results_matching_requirement(question, answer = nil)
+      matching_question = assessment_results.
+        detect do |q|
+          q.AssessmentResultType.to_s == question
+        end
+      return nil if matching_question.blank?
+      return matching_question unless answer.present?
+
+      matching_question.AssessmentResult.to_s == answer
+    end
   end
 end

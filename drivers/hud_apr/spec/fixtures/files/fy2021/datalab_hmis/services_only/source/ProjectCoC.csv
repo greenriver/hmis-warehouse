@@ -1,2 +1,2 @@
-"ProjectCoCID","ProjectID","COCCode","Geocode","Address1","Address2","City","State","ZIP","GeographyType","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
-"47736830","1009","XX-500","391062","123 Anywhere Ave.","","Anytown","OH","12345",2,2021-09-02 00:00:00,2021-09-02 00:00:00,"0",,"0D04D8AC43334E06AFBA1FF16031263A"
+"ProjectCoCID","ProjectID","CoCCode","Geocode","Address1","Address2","City","State","ZIP","GeographyType","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"47736830","1009","XX-500","391062","123 Anywhere Ave.","","Anytown","OH","12345",2,2021-09-02 00:00:00,2021-09-02 00:00:00,"0",,"585C7645F7C097704C1B8BC701165B75"

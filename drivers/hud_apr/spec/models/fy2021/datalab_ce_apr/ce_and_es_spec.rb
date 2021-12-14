@@ -35,6 +35,7 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
       skip: [
         'B1', # FIXME
         'B3', # FIXME
+        'B4', # FIXME
       ],
     )
   end
@@ -74,13 +75,17 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
       skip: [
         'C2', # FIXME
         'D2', # FIXME
+        'F2', # FIXME
         'B3', # FIXME
         'D3', # FIXME
+        'F3', # FIXME
         'B4', # FIXME
         'C4', # FIXME
+        'F4', # FIXME
         'B6', # FIXME
         'C6', # FIXME
         'D6', # FIXME
+        'F6', # FIXME
       ],
     )
   end
@@ -92,6 +97,7 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
       skip: [
         'C2', # FIXME
         'D2', # FIXME
+        'F2', # FIXME
       ],
     )
   end
@@ -103,10 +109,12 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
       skip: [
         'C3', # FIXME
         'D3', # FIXME
+        'F3', # FIXME
         'C4', # FIXME
         'D4', # FIXME
         'C5', # FIXME
         'D5', # FIXME
+        'F5', # FIXME
       ],
     )
   end
@@ -120,6 +128,7 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
         'C3', # FIXME
         'D3', # FIXME
         'E3', # FIXME
+        'F3', # FIXME
         'C4', # FIXME
       ],
     )
@@ -139,10 +148,12 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
       skip: [
         'C2', # FIXME
         'D2', # FIXME
+        'F2', # FIXME
         'C9', # FIXME
         'D9', # FIXME
         'C16', # FIXME
         'D16', # FIXME
+        'F16', # FIXME
         'C18', # FIXME
         'D18', # FIXME
         'B21', # FIXME
@@ -150,6 +161,7 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
         'E21', # FIXME
         'C22', # FIXME
         'D22', # FIXME
+        'F22', # FIXME
         'B23', # FIXME rounding difference
         'C23', # FIXME
         'D23', # FIXME

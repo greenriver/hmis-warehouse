@@ -41,7 +41,7 @@ module DataSources
     end
 
     def update
-      @config = config_source.update(config_params.merge(user_id: current_user.id, data_source_id: @data_source.id))
+      @config = @config.update(config_params.merge(user_id: current_user.id, data_source_id: @data_source.id))
       respond_with(@config, location: data_source_custom_imports_path(@data_source))
     end
 

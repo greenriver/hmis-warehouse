@@ -54,9 +54,15 @@ module GrdaWarehouse::CasProjectClientCalculator
         :literally_homeless_last_three_years_cached,
         :cas_assessment_name,
         :max_current_total_monthly_income,
+        :contact_info_for_rrh_assessment,
+        :cas_assessment_collected_at, # note this is really just assessment_collected_at
+        :majority_sheltered,
+        :assessment_score_for_cas,
+        :tie_breaker_date,
+        :financial_assistance_end_date,
       ]
     end
-    memoize :pathways_questions
+    # memoize :pathways_questions
 
     private def for_boolean(client, key)
       client.most_recent_pathways_or_rrh_assessment_for_destination.
@@ -169,10 +175,11 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def default_shelter_agency_contacts(client)
-      # TODO: this is being moved to custom pull from Clarity
+      client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
+    end
 
-      # client.most_recent_pathways_or_rrh_assessment_for_destination.
-      #   question_matching_requirement('c_casemanager_contacts')&.AssessmentAnswer
+    private def contact_info_for_rrh_assessment(client)
+      client.client_contacts.case_managers.map(&:full_address).join("\n\n")
     end
 
     private def cas_assessment_name(client)
@@ -183,8 +190,8 @@ module GrdaWarehouse::CasProjectClientCalculator
       return 'IdentifiedClientAssessment' unless value.present?
 
       {
-        1 => 'PathwaysVersionThreePathways',
-        2 => 'PathwaysVersionThreeTransfer',
+        1 => 'IdentifiedPathwaysVersionThreePathways',
+        2 => 'IdentifiedPathwaysVersionThreeTransfer',
       }[value.to_i] || 'IdentifiedClientAssessment'
     end
 
@@ -201,6 +208,54 @@ module GrdaWarehouse::CasProjectClientCalculator
           order(InformationDate: :desc).
           pluck(:TotalMonthlyIncome).first
       end.compact.max || 0
+    end
+
+    private def cas_assessment_collected_at(client)
+      client.most_recent_pathways_or_rrh_assessment_for_destination&.AssessmentDate
+    end
+
+    private def assessment_score(client)
+      client.most_recent_pathways_or_rrh_assessment_for_destination&.
+        results_matching_requirement('total')&.AssessmentResult
+    end
+
+    private def financial_assistance_end_date(client)
+      client.most_recent_pathways_or_rrh_assessment_for_destination.
+        question_matching_requirement('c_latest_date_financial_assistance_eligibility_rrh')&.AssessmentAnswer
+    end
+
+    private def assessment_score_for_cas(client)
+      case cas_assessment_name(client)
+      when 'IdentifiedPathwaysVersionThreePathways'
+        days_homeless_in_last_three_years_cached(client)
+      when 'IdentifiedPathwaysVersionThreeTransfer'
+        assessment_score(client)
+      end
+    end
+
+    private def tie_breaker_date(client)
+      case cas_assessment_name(client)
+      when 'IdentifiedPathwaysVersionThreePathways'
+        cas_assessment_collected_at(client)
+      when 'IdentifiedPathwaysVersionThreeTransfer'
+        financial_assistance_end_date(client)
+      end
+    end
+
+    private def majority_sheltered(client)
+      warehouse_sheltered = client.most_recent_pathways_or_rrh_assessment_for_destination.
+        question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer || 0
+      extra_sheltered = client.most_recent_pathways_or_rrh_assessment_for_destination.
+        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer || 0
+      warehouse_unsheltered = client.most_recent_pathways_or_rrh_assessment_for_destination.
+        question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer || 0
+      extra_unsheltered = client.most_recent_pathways_or_rrh_assessment_for_destination.
+        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer || 0
+      sheltered = warehouse_sheltered + extra_sheltered
+      unsheltered = warehouse_unsheltered + extra_unsheltered
+      # If they are equivalent, count as sheltered
+
+      sheltered >= unsheltered
     end
   end
 end

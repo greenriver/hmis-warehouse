@@ -2093,7 +2093,8 @@ CREATE TABLE public.assessment_answer_lookups (
     response_code character varying,
     response_text character varying,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    data_source_id integer
 );
 
 
@@ -4185,6 +4186,53 @@ ALTER SEQUENCE public.clh_locations_id_seq OWNED BY public.clh_locations.id;
 
 
 --
+-- Name: client_contacts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_contacts (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    source_type character varying NOT NULL,
+    source_id bigint NOT NULL,
+    first_name character varying,
+    last_name character varying,
+    full_name character varying,
+    contact_type character varying,
+    phone character varying,
+    phone_alternate character varying,
+    email character varying,
+    address character varying,
+    address2 character varying,
+    city character varying,
+    state character varying,
+    zip character varying,
+    note character varying,
+    last_modified_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: client_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_contacts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_contacts_id_seq OWNED BY public.client_contacts.id;
+
+
+--
 -- Name: client_matches; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4941,6 +4989,51 @@ ALTER SEQUENCE public.custom_imports_b_al_rows_id_seq OWNED BY public.custom_imp
 
 
 --
+-- Name: custom_imports_b_contacts_rows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.custom_imports_b_contacts_rows (
+    id bigint NOT NULL,
+    import_file_id bigint,
+    data_source_id bigint,
+    row_number integer NOT NULL,
+    personal_id character varying NOT NULL,
+    unique_id character varying,
+    agency_id character varying NOT NULL,
+    contact_name character varying,
+    contact_type character varying,
+    phone character varying,
+    phone_alternate character varying,
+    email character varying,
+    note character varying,
+    private character varying,
+    contact_created_at timestamp without time zone,
+    contact_updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: custom_imports_b_contacts_rows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.custom_imports_b_contacts_rows_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: custom_imports_b_contacts_rows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.custom_imports_b_contacts_rows_id_seq OWNED BY public.custom_imports_b_contacts_rows.id;
+
+
+--
 -- Name: custom_imports_b_services_rows; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4960,7 +5053,9 @@ CREATE TABLE public.custom_imports_b_services_rows (
     service_item character varying,
     service_program_usage character varying,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    reporting_period_started_on date,
+    reporting_period_ended_on date
 );
 
 
@@ -5862,7 +5957,9 @@ CREATE TABLE public.generic_services (
     source_type character varying,
     source_id bigint,
     date date,
-    title character varying
+    title character varying,
+    data_source_id integer,
+    category character varying
 );
 
 
@@ -18777,6 +18874,13 @@ ALTER TABLE ONLY public.clh_locations ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: client_contacts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_contacts ALTER COLUMN id SET DEFAULT nextval('public.client_contacts_id_seq'::regclass);
+
+
+--
 -- Name: client_matches id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -18865,6 +18969,13 @@ ALTER TABLE ONLY public.contacts ALTER COLUMN id SET DEFAULT nextval('public.con
 --
 
 ALTER TABLE ONLY public.custom_imports_b_al_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_al_rows_id_seq'::regclass);
+
+
+--
+-- Name: custom_imports_b_contacts_rows id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_contacts_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_contacts_rows_id_seq'::regclass);
 
 
 --
@@ -21337,6 +21448,14 @@ ALTER TABLE ONLY public.clh_locations
 
 
 --
+-- Name: client_contacts client_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_contacts
+    ADD CONSTRAINT client_contacts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: client_matches client_matches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21438,6 +21557,14 @@ ALTER TABLE ONLY public.contacts
 
 ALTER TABLE ONLY public.custom_imports_b_al_rows
     ADD CONSTRAINT custom_imports_b_al_rows_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_imports_b_contacts_rows custom_imports_b_contacts_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_contacts_rows
+    ADD CONSTRAINT custom_imports_b_contacts_rows_pkey PRIMARY KEY (id);
 
 
 --
@@ -37648,6 +37775,20 @@ CREATE INDEX index_clh_locations_on_source_type_and_source_id ON public.clh_loca
 
 
 --
+-- Name: index_client_contacts_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_contacts_on_client_id ON public.client_contacts USING btree (client_id);
+
+
+--
+-- Name: index_client_contacts_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_contacts_on_source_type_and_source_id ON public.client_contacts USING btree (source_type, source_id);
+
+
+--
 -- Name: index_client_matches_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -37841,6 +37982,34 @@ CREATE INDEX index_custom_imports_b_al_rows_on_import_file_id ON public.custom_i
 --
 
 CREATE INDEX index_custom_imports_b_al_rows_on_updated_at ON public.custom_imports_b_al_rows USING btree (updated_at);
+
+
+--
+-- Name: index_custom_imports_b_contacts_rows_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_contacts_rows_on_created_at ON public.custom_imports_b_contacts_rows USING btree (created_at);
+
+
+--
+-- Name: index_custom_imports_b_contacts_rows_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_contacts_rows_on_data_source_id ON public.custom_imports_b_contacts_rows USING btree (data_source_id);
+
+
+--
+-- Name: index_custom_imports_b_contacts_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_contacts_rows_on_import_file_id ON public.custom_imports_b_contacts_rows USING btree (import_file_id);
+
+
+--
+-- Name: index_custom_imports_b_contacts_rows_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_contacts_rows_on_updated_at ON public.custom_imports_b_contacts_rows USING btree (updated_at);
 
 
 --
@@ -46201,6 +46370,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211117181217'),
 ('20211118175318'),
 ('20211119184203'),
-('20211129122357');
+('20211129122357'),
+('20211202160059'),
+('20211208153720'),
+('20211208155347');
 
 

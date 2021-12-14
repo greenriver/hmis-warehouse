@@ -179,6 +179,7 @@ Rails.application.routes.draw do
     resources :user_login, only: [:index]
   end
   namespace :warehouse_reports do
+    resources :client_lookups, only: [:index]
     resources :overlapping_coc_utilization, only: [:index] do
       collection do
         get :overlap
@@ -775,6 +776,7 @@ Rails.application.routes.draw do
         post :update, on: :collection
       end
       resources :accountable_care_organizations, only: [:index, :create, :edit, :update, :new]
+      resources :scheduled_documents
       resources :patient_referrals, only: [:edit, :update] do
         patch :reject
         collection do

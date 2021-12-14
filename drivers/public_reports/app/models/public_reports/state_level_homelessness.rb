@@ -813,7 +813,7 @@ module PublicReports
           ).joins(:client)
           child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date))
           homeless_chart_breakdowns(
-            section_title: 'Persons in Households Without Children',
+            section_title: 'Persons in Child-Only Households',
             charts: charts,
             setup: setup,
             scope: child_only_scope,

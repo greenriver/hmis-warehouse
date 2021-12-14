@@ -1,7 +1,7 @@
 " ","Total","a. Without children","b. With children and adults","c. Unknown household type"
 "a. Chronically homeless veteran",1,1,0,0
 "b. Non-chronically homeless veteran",11,10,1,0
-"c. Not a veteran",11,6,5,0
+"c. Not a veteran",11,6,4,1
 "d. Client Doesn't Know/Client Refused",0,0,0,0
 "e. Data Not Collected",1,1,0,0
-"f. Total",24,18,6,0
+"f. Total",24,18,5,1

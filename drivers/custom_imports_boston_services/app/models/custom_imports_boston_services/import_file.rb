@@ -20,8 +20,8 @@ module CustomImportsBostonServices
       file
     end
 
-    def import!
-      return unless check_hour
+    def import!(force = false)
+      return unless check_hour || force
 
       start_import
       fetch_and_load
@@ -50,36 +50,47 @@ module CustomImportsBostonServices
         'Service Category' => 'service_category',
         'Service Item Name' => 'service_item',
         'Service Program Usage' => 'service_program_usage',
+        'Service Reporting Period Start Date' => 'reporting_period_started_on',
+        'Service Reporting Period End Date' => 'reporting_period_ended_on',
       }
     end
 
     def post_process
       update(status: 'matching')
       matched = 0
-      rows.preload(:enrollment, client: :destination_client).find_in_batches do |batch|
-        service_batch = []
-        # event_batch = []
-        batch.each do |row|
-          next unless row.client
+      first_row = rows.first
+      period_started_on = first_row.reporting_period_started_on
+      period_ended_on = first_row.reporting_period_ended_on
+      CustomImportsBostonServices::Row.transaction do
+        GrdaWarehouse::Generic::Service.where(data_source_id: data_source_id, date: period_started_on..period_ended_on).delete_all
+        rows.preload(:enrollment, client: :destination_client).find_in_batches do |batch|
+          service_batch = []
+          # event_batch = []
+          batch.each do |row|
+            next unless row.client
 
-          matched += 1
-          service_batch << {
-            source_id: row.id,
-            source_type: row.class.name,
-            date: row.date,
-            client_id: row.client.destination_client.id,
-          }
-          # if enrollment.blank?
-          #   # custom service for client
-          # else
-          #   # synthetic referral Event on enrollment
-          # end
+            matched += 1
+            service_batch << {
+              source_id: row.id,
+              source_type: row.class.name,
+              date: row.date,
+              client_id: row.client.destination_client.id,
+              data_source_id: data_source_id,
+              title: row.service_name,
+              category: row.service_category,
+            }
+            # if enrollment.blank?
+            #   # custom service for client
+            # else
+            #   # synthetic referral Event on enrollment
+            # end
+          end
+          GrdaWarehouse::Generic::Service.import(
+            service_batch,
+            conflict_target: [:source_id, :source_type],
+            columns: [:date, :client_id, :data_source_id],
+          )
         end
-        GrdaWarehouse::Generic::Service.import(
-          service_batch,
-          conflict_target: [:source_id, :source_type],
-          columns: [:date, :client_id],
-        )
         summary << "Matched #{matched} services"
         update(status: 'complete', completed_at: Time.current)
       end

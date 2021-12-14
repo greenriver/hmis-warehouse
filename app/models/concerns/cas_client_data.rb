@@ -53,6 +53,8 @@ module CasClientData
         cas_match_override: _('Override CAS Match Date'),
         vash_eligible: _('VASH Eligible'),
         health_prioritized: _('Health Priority'),
+        tie_breaker_date: _('Tie Breaker Date'),
+        financial_assistance_end_date: _('Financial Assistance End Date'),
       }
     end
 
@@ -273,5 +275,92 @@ module CasClientData
     private def cas_assessment_name
       'IdentifiedClientAssessment'
     end
+
+    def self.ongoing_enrolled_project_details(client_ids)
+      {}.tap do |ids|
+        GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).
+          ongoing.
+          joins(:project).
+          pluck(:client_id, p_t[:id], GrdaWarehouse::ServiceHistoryEnrollment.project_type_column, :move_in_date).
+          each do |c_id, p_id, p_type, move_in_date|
+            ids[c_id] ||= []
+            ids[c_id] << OpenStruct.new(project_id: p_id, project_type: p_type, move_in_date: move_in_date)
+          end
+      end
+    end
+
+    def enrolled_in_rrh(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = [13]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes) &&
+        en.move_in_date.present? && en.move_in_date < Date.current
+      end.any?
+    end
+
+    def enrolled_in_psh(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = [3]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes) &&
+        en.move_in_date.present? && en.move_in_date < Date.current
+      end.any?
+    end
+
+    def enrolled_in_ph(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = [9, 10]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes) &&
+        en.move_in_date.present? && en.move_in_date < Date.current
+      end.any?
+    end
+
+    def enrolled_in_th(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes)
+      end.any?
+    end
+
+    def enrolled_in_sh(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:sh]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes)
+      end.any?
+    end
+
+    def enrolled_in_so(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes)
+      end.any?
+    end
+
+    def enrolled_in_es(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes)
+      end.any?
+    end
+
+    def cas_assessment_collected_at
+      rrh_assessment_collected_at
+    end
+
+    # NOTE: in the future, this might be calculated based on days in homeless sheltered locations
+    # vs days unsheltered
+    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date
   end
 end

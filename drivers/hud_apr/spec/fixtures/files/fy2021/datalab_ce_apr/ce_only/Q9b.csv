@@ -1,4 +1,4 @@
 " ","Total","a. Without children","b. With children and adults","c. With only children","d. Unknown household type"
 "Placed on Prioritization List (Prioritized)","1","1","0","0","0"
-"Not Placed on Prioritization List","10","8","1","1","0"
-"Percent of Assessed PrioritizedOf the total HH Assessed report the percent of those placed on the prioritization list","0.0909","0.1111","0.0000","0.0000",""
+"Not Placed on Prioritization List","10","8","0","1","1"
+"Percent of Assessed PrioritizedOf the total HH Assessed report the percent of those placed on the prioritization list","0.0909","0.1111","","0.0000","0.0000"

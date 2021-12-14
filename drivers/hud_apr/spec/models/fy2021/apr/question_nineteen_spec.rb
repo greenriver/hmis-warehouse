@@ -26,7 +26,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionNineteen, type: :model d
     end
 
     it 'counts start and annual assessment population' do
-      expect(report_result.answer(question: 'Q19a1', cell: 'H2').summary).to eq(2)
+      expect(report_result.answer(question: 'Q19a1', cell: 'H2').summary).to eq(1)
     end
   end
 

@@ -447,6 +447,7 @@ RSpec.describe 'Datalab 2021 CAPER - Entry-Exit ES', type: :model do
         'B9', # FIXME
         'D9', # FIXME
         'E9', # FIXME
+        'F9', # FIXME
         'B11', # FIXME
         'C11', # FIXME
         'D11', # FIXME

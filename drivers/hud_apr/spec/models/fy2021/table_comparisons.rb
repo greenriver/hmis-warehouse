@@ -44,10 +44,12 @@ def compare_results(goal: nil, file_path:, question:, skip: [])
         next if cell_name.in?(skip)
 
         column_index = COLUMN_LABELS.find_index(column_name)
-        expected = normalize(goal[row_number - 1].try(:[], column_index))
-        actual = normalize(report_result.answer(question: question, cell: cell_name).summary)
+        raw_expected = goal[row_number - 1].try(:[], column_index)
+        expected = normalize(raw_expected)
+        raw_actual = report_result.answer(question: question, cell: cell_name).summary
+        actual = normalize(raw_actual)
 
-        expect(actual).to eq(expected), "#{cell_name}: expected '#{expected}', got '#{actual}'"
+        expect(actual).to eq(expected), "#{cell_name}: expected '#{expected}' (#{raw_expected}), got '#{actual}' (#{raw_actual})"
       end
     end
   end
@@ -55,9 +57,11 @@ end
 
 def normalize(value)
   value = value&.to_s&.strip
-  value = '0' if normalize_zero?(value) # Treat all zeros as '0'
-  value = '0' if value.blank? # Treat 0 and blank as the same for comparison
+  return '0' if value.blank? # Treat 0 and blank as the same for comparison
+
   value = value[1..] if money?(value) # Remove dollar signs
+  value = value.to_f.to_s if float?(value)
+  value = '0' if normalize_zero?(value) # Treat all zeros as '0'
 
   value
 end
@@ -68,4 +72,8 @@ end
 
 def money?(value)
   /^\$-?[0-9\.]+$/.match?(value)
+end
+
+def float?(value)
+  /^[0-9]+\.[0-9]+$/.match?(value)
 end

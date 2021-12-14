@@ -29,13 +29,22 @@ module HudApr::Generators::Shared::Fy2021
           calculation = income_options[:calculation]
           answer = @report.answer(question: table_name, cell: cell)
           adults = universe.members.
-            where(inclusion_clause)
+            where(inclusion_clause).
+            where(a_t[:income_total_at_start].not_eq(nil))
 
           case column[:amount_at_start]
           when :positive
-            adults = adults.where(a_t[:income_total_at_start].gt(0))
+            if income_category == :total
+              adults = adults.where(a_t[:income_total_at_start].gt(0))
+            else
+              adults = adults.where(income_clause(stage: :start, measure: income_category, positive: true))
+            end
           when :zero
-            adults = adults.where(a_t[:income_total_at_start].eq(0))
+            if income_category == :total
+              adults = adults.where(a_t[:income_total_at_start].eq(0))
+            else
+              adults = adults.where(income_clause(stage: :start, measure: income_category, positive: false))
+            end
           end
 
           (ids, amounts) = ids_and_amounts(
@@ -148,6 +157,12 @@ module HudApr::Generators::Shared::Fy2021
 
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
+          elsif income_clause.is_a?(Array)
+            ids = Set.new
+            income_clause.each do |part|
+              ids += members.where.contains(part).pluck(:id)
+            end
+            members = members.where(id: ids.to_a)
           else
             # The final question doesn't require accessing the jsonb column
             members = members.where(income_clause)
@@ -202,6 +217,14 @@ module HudApr::Generators::Shared::Fy2021
     end
 
     private def q19b_income_sources
+      other_sources = [
+        'Unemployment Insurance',
+        'VA Non-Service Connected Disability Pension',
+        'General Assistance (GA)',
+        'Alimony and other spousal support',
+        'Other Source',
+      ]
+
       income_types(:exit).except(
         'Unemployment Insurance',
         'VA Non-Service Connected Disability Pension',
@@ -210,6 +233,7 @@ module HudApr::Generators::Shared::Fy2021
         'Adults with Income Information at Start and Annual Assessment/Exit',
       ).merge(
         {
+          'Other Source' => income_types(:exit).slice(*other_sources).values,
           'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
           'Unduplicated Total Adults' => Arel.sql('1=1'),
         },
@@ -298,6 +322,7 @@ module HudApr::Generators::Shared::Fy2021
           )
         when 'H'
           ids << member.id
+          amounts << income_difference
         when 'I'
           # Include if the income increased (same as E)
           if income_for_category?(
