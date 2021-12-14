@@ -130,6 +130,7 @@ Rails.application.routes.draw do
           get :print
         end
       end
+      resources :contacts, only: [:index], controller: '/health/contacts'
     end
   end
 

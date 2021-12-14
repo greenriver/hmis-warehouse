@@ -64,6 +64,8 @@ module Health
     # has_many :team_members, class_name: 'Health::Team::Member', through: :team
     has_many :team_members, class_name: 'Health::Team::Member'
 
+    has_many :consolidated_contacts, class_name: 'Health::Contact'
+
     # has_many :goals, class_name: 'Health::Goal::Base', through: :careplans
     has_many :goals, class_name: 'Health::Goal::Base'
     # NOTE: not sure if this is the right order but it seems they should have some kind of order
@@ -754,6 +756,10 @@ module Health
         [recent_cha&.phone.presence, recent_cha&.updated_at.to_i],
         [note&.client_phone_number.presence, note&.updated_at.to_i],
       ].sort_by(&:last).map(&:first).compact.reverse.first
+    end
+
+    def most_recent_contact
+      consolidated_contacts.order(collected_on: :desc).first
     end
 
     def phone_message_ok
