@@ -244,13 +244,13 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def majority_sheltered(client)
       warehouse_sheltered = client.most_recent_pathways_or_rrh_assessment_for_destination.
-        question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer || 0
+        question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
       extra_sheltered = client.most_recent_pathways_or_rrh_assessment_for_destination.
-        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer || 0
+        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
       warehouse_unsheltered = client.most_recent_pathways_or_rrh_assessment_for_destination.
-        question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer || 0
+        question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
       extra_unsheltered = client.most_recent_pathways_or_rrh_assessment_for_destination.
-        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer || 0
+        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
       sheltered = warehouse_sheltered + extra_sheltered
       unsheltered = warehouse_unsheltered + extra_unsheltered
       # If they are equivalent, count as sheltered
