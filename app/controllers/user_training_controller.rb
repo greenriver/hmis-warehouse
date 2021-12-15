@@ -10,13 +10,11 @@ class UserTrainingController < ApplicationController
   def test_log_url_in_error_notifications
     if request[:remote_ip] = '54.85.171.61'
       setup_notifier('TestingLogURLInNotification')
-      @notifier.ping('test @notifier.ping')
-      @notifier.post(text: 'test @notifier.post')
-      begin
-        foo = testExceptionNotifierNotifyException
-      rescue => e
-        ExceptionNotifier.notify_exception(e)
-      end
+      @notifier.ping('test @notifier.ping normal')
+      @notifier.ping('test @notifier.ping w/logurl', insert_log_url: true)
+      @notifier.post(text: 'test @notifier.post normal')
+      @notifier.post(text: 'test @notifier.post w/logurl', insert_log_url: true)
+      raise 'Test error please ignore'
     else
       render :plain => 'Nope ' + request[:remote_ip]
     end
