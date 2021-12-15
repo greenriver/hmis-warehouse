@@ -5,8 +5,6 @@
 ###
 
 class UserTrainingController < ApplicationController
-  include NotifierConfig
-
   def index
     config = Talentlms::Config.first
     if config.nil? || !current_user.training_required? || current_user.training_completed?
