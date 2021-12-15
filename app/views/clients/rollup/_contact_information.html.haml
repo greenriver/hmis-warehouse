@@ -5,7 +5,7 @@
 - assessment = @client.most_recent_pathways_assessment
 - client_contacts = @client.client_contacts.newest_first
 - # Show contacts from Pathways assessment only if full release on file
-- if (home_phones + cell_phones + emails + work_phones).present? || (assessment&.contains_contact_info? && @client.consent_confirmed?) || client_contacts.any? && @client.consent_confirmed?
+- if (home_phones + cell_phones + emails + work_phones).present? || (assessment&.contains_contact_info? && @client.consent_confirmed?) || client_contacts.any? && @client.full_or_partial_release?
   %table.table
     %tbody
       %tr
