@@ -81,7 +81,7 @@ class ApplicationNotifier < Slack::Notifier
 
     if @redis.nil? || message.is_a?(Hash) || options.present?
       # fallback on hard cases or if Redis is not available
-      super
+      super(message, options)
     else
       rate_limit(message)
     end
