@@ -14,7 +14,7 @@ module GrdaWarehouse
     end
 
     scope :case_managers, -> do
-      where(contact_type: ['Case Manager', 'Secondary Case Manager', 'Rapid Re-Housing Case Manager'])
+      where(contact_type: ['Case Manager', 'Secondary Case Manager', 'Rapid Re-Housing Case Manager', 'Housing Navigator'])
     end
 
     scope :newest_first, -> do
