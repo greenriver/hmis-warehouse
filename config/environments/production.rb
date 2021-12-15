@@ -1,3 +1,5 @@
+require "#{Rails.root}/lib/util/exception_notifier.rb"
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
   deliver_method = ENV.fetch('MAIL_DELIVERY_METHOD') { 'smtp' }.to_sym
@@ -118,13 +120,9 @@ Rails.application.configure do
     config.middleware.use(ExceptionNotification::Rack,
       :slack => {
         :webhook_url => slack_config['webhook_url'],
-        # :pre_callback => proc { |opts, _notifier, _backtrace, _message, message_opts|
-        #   log_stream_url = ENV.fetch('LOG_STREAM_URL', nil)
-        #   unless log_stream_url.nil?
-        #     opts[:data] = {} unless :data.in?(opts)
-        #     opts[:data][:log_url] = ENV['LOG_STREAM_URL']
-        #   end
-        # },
+        :pre_callback => proc { |opts, _notifier, _backtrace, _message, message_opts|
+          ExceptionNotifierLib.insert_log_url!(message_opts)
+        },
         :channel => slack_config['channel'],
         :additional_parameters => {
           :mrkdwn => true,

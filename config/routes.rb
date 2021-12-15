@@ -35,10 +35,6 @@ Rails.application.routes.draw do
   end
 
   get '/user_training', to: 'user_training#index'
-  # temporary route to test CW link
-  if Rails.env.staging?
-    get '/test_log_url_in_error_notifications_d5ZM84PWPFh9Gw61Ih/MaJj8A42GKIVCZ038vAckN30', to: 'user_training#test_log_url_in_error_notifications'
-  end
 
   def healthcare_routes(window:)
     namespace :health do

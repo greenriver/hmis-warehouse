@@ -23,6 +23,12 @@
 # them as needed and if a service to do so is available. Logs
 # any network/services errors and recovers as well as it can.
 class ApplicationNotifier < Slack::Notifier
+  attr_accessor :insert_log_url
+
+  def insert_log_url
+    return @insert_log_url.nil? ? false : !!@insert_log_url
+  end
+
   # use the same redis instance we use for caching
   def self.redis
     Redis.new Rails.application.config_for(:cache_store).merge(
@@ -71,17 +77,12 @@ class ApplicationNotifier < Slack::Notifier
 
   # Send a message to Slack if possible
   # Rate limits messages in a queue if Redis is available
-  def ping(message, options = {}, insert_log_url = false)
+  def ping(message, options = {})
     return unless @endpoint&.host
-
-    if insert_log_url
-      log_stream_url = ENV.fetch('LOG_STREAM_URL', nil)
-      message += "\nLog url: #{log_stream_url}" unless log_stream_url.nil?
-    end
 
     if @redis.nil? || message.is_a?(Hash) || options.present?
       # fallback on hard cases or if Redis is not available
-      super(message, options)
+      super
     else
       rate_limit(message)
     end
@@ -94,13 +95,13 @@ class ApplicationNotifier < Slack::Notifier
     Rails.logger.error('ApplicationNotifier#ping: ' + e.message)
   end
 
-  def post(payload={}, insert_log_url = false)
+  def post(payload={})
     if insert_log_url
       log_stream_url = ENV.fetch('LOG_STREAM_URL', nil)
-      payload[:text] += "\nLog url: #{log_stream_url}" unless log_stream_url.nil?
+      payload[:text] += "\n```log_url: #{log_stream_url}```" unless log_stream_url.nil?
     end
 
-    super(payload)
+    super
   end
 
   # Send any rate_limit'd messages.
