@@ -100,7 +100,7 @@ class ApplicationNotifier < Slack::Notifier
       payload[:text] += "\nLog url: #{log_stream_url}" unless log_stream_url.nil?
     end
 
-    super
+    super(payload)
   end
 
   # Send any rate_limit'd messages.
