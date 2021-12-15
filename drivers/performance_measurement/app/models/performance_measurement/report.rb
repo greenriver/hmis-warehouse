@@ -377,7 +377,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1a', 'C2']],
+          cells: [['1a', 'C3']],
           title: 'Length of Time Homeless in ES, SH, TH',
           history_source: :m1_history,
           questions: [
@@ -388,7 +388,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1b', 'C2']],
+          cells: [['1b', 'C3']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
           history_source: :m1_history,
           questions: [
