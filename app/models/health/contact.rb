@@ -30,7 +30,7 @@ module Health
       end
     end
 
-    private def self.contact_sources
+    def self.contact_sources
       [
         Health::Team::Member,
         GrdaWarehouse::ClientContact,
