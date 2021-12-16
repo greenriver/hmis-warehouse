@@ -64,22 +64,27 @@ module GrdaWarehouse
         collected_on: :last_modified_at,
       }.invert
 
+      contacts = []
       patient_ids = Health::Patient.bh_cp.pluck(:client_id, :id).to_h
 
       joins(:client).
         merge(GrdaWarehouse::Hud::Client.
           full_housing_release_on_file.
           where(id: Health::Patient.bh_cp.pluck(:client_id))).
-        map do |row|
-          contact = row.slice(*contact_columns.keys)
-          contact.transform_keys! { |k| contact_columns[k.to_sym] }
-          contact.merge(
-            name: row.name,
-            phone: row.phone_numbers,
-            patient_id: patient_ids[row.client_id],
-            source_type: 'GrdaWarehouse::ClientContact',
-          )
+        find_in_batches do |batch|
+          contacts += batch.map do |row|
+            contact = row.slice(*contact_columns.keys)
+            contact.transform_keys! { |k| contact_columns[k.to_sym] }
+            contact.merge(
+              name: row.name,
+              phone: row.phone_numbers,
+              patient_id: patient_ids[row.client_id],
+              source_type: 'GrdaWarehouse::ClientContact',
+            )
+          end
         end
+
+      contacts
     end
   end
 end

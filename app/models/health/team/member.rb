@@ -134,17 +134,22 @@ module Health
         description: :title,
         phone: :phone,
         email: :email,
-        collected_on: :date_of_last_contact,
+        collected_on: :last_contact,
       }.invert
 
-      Health::Team::Member.all.map do |row|
-        contact = row.slice(*contact_columns.keys)
-        contact.transform_keys! { |k| contact_columns[k.to_sym] }
-        contact.merge(
-          name: row.full_name,
-          category: row.type.split('::').last,
-        )
+      contacts = []
+      Health::Team::Member.find_in_batches do |batch|
+        contacts += batch.map do |row|
+          contact = row.slice(*contact_columns.keys)
+          contact.transform_keys! { |k| contact_columns[k.to_sym] }
+          contact.merge(
+            name: row.full_name,
+            category: row.type.split('::').last,
+          )
+        end
       end
+
+      contacts
     end
   end
 end
