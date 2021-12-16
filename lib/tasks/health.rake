@@ -12,6 +12,7 @@ namespace :health do
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
     Health::Tasks::CalculateValidUnpayableQas.new.run!
     Health::StatusDate.new.maintain
+    Health::ProcessConsolidatedContactsJob.perform_later
   end
 
   task hourly: [:environment, "log:info_to_stdout"] do

@@ -1,0 +1,32 @@
+- title = 'Consolidated Contacts'
+= content_for(:title, title)
+
+= content_for :crumbs do
+  = link_to client_health_patient_index_path(@patient.client) do
+    &laquo;
+    = @patient.client.full_name
+
+.row
+  .col
+    %h1= "#{title} for #{@patient.client.full_name}"
+
+.row
+  .col
+    %table.table.table-sm
+      %thead
+        %tr
+          %th Name
+          %th Category
+          %th Description
+          %th Phone
+          %th Email
+          %th Collection Date
+      %tbody
+        - @patient.consolidated_contacts.order(name: :asc).each do |contact|
+          %tr
+            %td= contact.name
+            %td= contact.category
+            %td= contact.description
+            %td= contact.phone
+            %td= contact.email
+            %td= contact.collected_on
