@@ -29,7 +29,7 @@
             Work Phone:
             %strong
               = work_phones.join(', ')
-    - if client_contacts.any? && @client.consent_confirmed?
+    - if client_contacts.any? && @client.full_or_partial_release?
       .p-4
         %h4 Contacts
         - client_contacts.each do |contact|
