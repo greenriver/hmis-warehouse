@@ -314,40 +314,6 @@ RSpec.describe 'Datalab 2021 APR - th', type: :model do
     compare_results(
       file_path: result_file_prefix + 'th',
       question: 'Q22e',
-      skip: [
-        'B4', # FIXME
-        'E4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'B7', # FIXME
-        'C7', # FIXME
-        'D7', # FIXME
-        'B8', # FIXME
-        'C8', # FIXME
-        'D8', # FIXME
-        'B9', # FIXME
-        'D9', # FIXME
-        'E9', # FIXME
-        'F9', # FIXME
-        'B11', # FIXME
-        'C11', # FIXME
-        'D11', # FIXME
-        'E11', # FIXME
-        'F11', # FIXME
-        'B12', # FIXME
-        'C12', # FIXME
-        'D12', # FIXME
-        'E12', # FIXME
-        'F12', # FIXME
-        'B13', # FIXME
-        'C13', # FIXME
-        'D13', # FIXME
-        'E13', # FIXME
-        'F13', # FIXME
-      ],
     )
   end
 
