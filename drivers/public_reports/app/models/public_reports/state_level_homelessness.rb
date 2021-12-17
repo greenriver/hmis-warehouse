@@ -228,7 +228,11 @@ module PublicReports
       @map_colors ||= {}.tap do |m_colors|
         slight = 0.0001
         max_rate = parsed_pre_calculated_data['map_max_rate']
-        colors = chart_color_shades(:map_primary_color)
+        # colors = chart_color_shades(:map_primary_color)
+        colors = ['#FFFFFF']
+        5.times do |i|
+          colors << settings["color_#{i}"]
+        end
         m_colors[colors.first] = { description: '0%', range: (0..0) }
         colors.drop(1).each.with_index do |color, i|
           division_size = max_rate / colors.count
