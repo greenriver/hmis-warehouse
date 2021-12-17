@@ -1,6 +1,6 @@
 - section_header = data.keys.first
+- chronic = false unless defined?(chronic)
 %h4= section_header
-
 - groups = ['Sheltered', 'Unsheltered']
 - category = :location_type
 
@@ -21,19 +21,20 @@
             .w-30.d-flex
               .total-for-type.mb-auto.mt-auto.jTotalCount{data: { dates: dates.to_json }}
                 = dates[active_date]['total']
-      .w-50.d-flex
-        .chronic-chart.w-30
-          .meter
-            .background
-              - 10.times.with_index do |i|
-                .fas.fa-male.light{style: "left: #{i * 20}px;"}
-            .foreground.jChronicPercentMeter{style: "width: #{chronic_percent}%"}
-              - 10.times.with_index do |i|
-                .fas.fa-male{style: "left: #{i * 20}px;"}
+      - if chronic
+        .w-50.d-flex
+          .chronic-chart.w-30
+            .meter
+              .background
+                - 10.times.with_index do |i|
+                  .fas.fa-male.light{style: "left: #{i * 20}px;"}
+              .foreground.jChronicPercentMeter{style: "width: #{chronic_percent}%"}
+                - 10.times.with_index do |i|
+                  .fas.fa-male{style: "left: #{i * 20}px;"}
 
-        .chronic-legend.mb-auto.mt-auto.w-70
-          %span.jChronicPercent
-            = chronic_percent
-          %span.jChronicSymbol %
-          .label
-            Chronically Homeless
+          .chronic-legend.mb-auto.mt-auto.w-70
+            %span.jChronicPercent
+              = chronic_percent
+            %span.jChronicSymbol %
+            .label
+              Chronically Homeless

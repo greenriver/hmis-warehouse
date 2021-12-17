@@ -24,11 +24,14 @@
 - map_type = @report.map_type
 = render map_type
 
+.d-flex
+  %p.ml-auto.mr-auto.note Please note: the map above shows the number of individuals and families receiving homelessness services based on the #{@report.map_type_human} of the providers' principal site during the selected period.
+
 :javascript
   (function() {
-    const state = #{@report.state_shape.to_json.html_safe}
-    const shapes = #{@report.map_shapes.to_json.html_safe}
-    const data = #{data.to_json.html_safe}
+    const state = #{Oj.dump(@report.state_shape, mode: :compat).html_safe}
+    const shapes = #{Oj.dump(@report.map_shapes, mode: :compat).html_safe}
+    const data = #{Oj.dump(data, mode: :compat).html_safe}
     const comparison_colors = #{@report.map_colors.keys.to_json.html_safe}
 
     let selected_date = $('.jQuarters').data('dates')[$('.jQuarters').val()];

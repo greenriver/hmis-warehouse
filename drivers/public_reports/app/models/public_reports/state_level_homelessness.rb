@@ -112,7 +112,8 @@ module PublicReports
         :map,
         :who,
         :raw,
-      ].freeze
+      ].
+        freeze
     end
 
     def populations
@@ -147,11 +148,12 @@ module PublicReports
         homeless_breakdowns: homeless_breakdowns,
         map_max_rate: map_max_rate,
         map_max_count: map_max_count,
-      }.to_json
+      }.
+        to_json
     end
 
     def parsed_pre_calculated_data
-      @parsed_pre_calculated_data ||= JSON.parse(precalculated_data)
+      @parsed_pre_calculated_data ||= Oj.load(precalculated_data)
     end
 
     private def pre_calculate_data
@@ -527,7 +529,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).in_coc(coc_code: coc_code).count
+              ).
+                in_coc(coc_code: coc_code).count
             else
               max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
@@ -566,7 +569,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).in_zip(zip_code: code).count
+              ).
+                in_zip(zip_code: code).count
             else
               max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
@@ -602,7 +606,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).count
+              ).
+                count
             else
               500
             end
@@ -610,7 +615,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).in_place(place: code).count
+              ).
+                in_place(place: code).count
             else
               max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
@@ -646,7 +652,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).count
+              ).
+                count
             else
               500
             end
@@ -654,7 +661,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).in_county(county: code).count
+              ).
+                in_county(county: code).count
             else
               max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
@@ -750,7 +758,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
           adult_only_scope = scope.where(household_id: adult_only_household_ids(start_date, end_date))
 
           homeless_chart_breakdowns(
@@ -781,7 +790,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
           adult_and_child_scope = scope.where(household_id: adult_and_child_household_ids(start_date, end_date))
 
           homeless_chart_breakdowns(
@@ -810,7 +820,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
           child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date))
           homeless_chart_breakdowns(
             section_title: 'Persons in Child-Only Households',
@@ -842,7 +853,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
 
           homeless_chart_breakdowns(
             section_title: 'Gender',
@@ -875,7 +887,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
           homeless_chart_breakdowns(
             section_title: 'Race',
             charts: charts,
@@ -1051,6 +1064,14 @@ module PublicReports
       return 'map_county_js' if map_by_county?
 
       'map_js' # CoC
+    end
+
+    def map_type_human
+      return 'ZIP code' if map_by_zip?
+      return 'town' if map_by_place?
+      return 'county' if map_by_county?
+
+      'Continuum of Care'
     end
 
     private def zip_geometries
