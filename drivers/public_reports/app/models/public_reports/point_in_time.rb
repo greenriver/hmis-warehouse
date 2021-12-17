@@ -25,6 +25,10 @@ module PublicReports
       public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
+    private def controller_class
+      PublicReports::WarehouseReports::PointInTimeController
+    end
+
     def run_and_save!
       start_report
       pre_calculate_data

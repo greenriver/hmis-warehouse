@@ -34,7 +34,11 @@ module PublicReports
       public_reports_warehouse_reports_state_level_homelessness_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
-    def publish!(content)
+    private def controller_class
+      PublicReports::WarehouseReports::StateLevelHomelessnessController
+    end
+
+    def publish!
       unless published?
         # This should:
         # 1. Take the contents of html and push it up to S3
@@ -43,7 +47,7 @@ module PublicReports
         self.class.transaction do
           unpublish_similar
           update(
-            html: content,
+            html: as_html,
             published_url: generate_publish_url, # NOTE this isn't used in this report
             embed_code: generate_embed_code, # NOTE this isn't used in this report
             state: :published,
@@ -112,7 +116,8 @@ module PublicReports
         :map,
         :who,
         :raw,
-      ].freeze
+      ].
+        freeze
     end
 
     def populations
@@ -147,11 +152,12 @@ module PublicReports
         homeless_breakdowns: homeless_breakdowns,
         map_max_rate: map_max_rate,
         map_max_count: map_max_count,
-      }.to_json
+      }.
+        to_json
     end
 
     def parsed_pre_calculated_data
-      @parsed_pre_calculated_data ||= JSON.parse(precalculated_data)
+      @parsed_pre_calculated_data ||= Oj.load(precalculated_data)
     end
 
     private def pre_calculate_data
@@ -218,7 +224,11 @@ module PublicReports
       @map_colors ||= {}.tap do |m_colors|
         slight = 0.0001
         max_rate = parsed_pre_calculated_data['map_max_rate']
-        colors = chart_color_shades(:map_primary_color)
+        # colors = chart_color_shades(:map_primary_color)
+        colors = ['#FFFFFF']
+        5.times do |i|
+          colors << settings["color_#{i}"]
+        end
         m_colors[colors.first] = { description: '0%', range: (0..0) }
         colors.drop(1).each.with_index do |color, i|
           division_size = max_rate / colors.count
@@ -527,7 +537,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).in_coc(coc_code: coc_code).count
+              ).
+                in_coc(coc_code: coc_code).count
             else
               max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
@@ -566,7 +577,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).in_zip(zip_code: code).count
+              ).
+                in_zip(zip_code: code).count
             else
               max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
@@ -602,7 +614,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).count
+              ).
+                count
             else
               500
             end
@@ -610,7 +623,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).in_place(place: code).count
+              ).
+                in_place(place: code).count
             else
               max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
@@ -646,7 +660,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).count
+              ).
+                count
             else
               500
             end
@@ -654,7 +669,8 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
-              ).in_county(county: code).count
+              ).
+                in_county(county: code).count
             else
               max = [population_overall, 1].compact.max / 5
               (0..max).to_a.sample
@@ -750,7 +766,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
           adult_only_scope = scope.where(household_id: adult_only_household_ids(start_date, end_date))
 
           homeless_chart_breakdowns(
@@ -781,7 +798,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
           adult_and_child_scope = scope.where(household_id: adult_and_child_household_ids(start_date, end_date))
 
           homeless_chart_breakdowns(
@@ -810,7 +828,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
           child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date))
           homeless_chart_breakdowns(
             section_title: 'Persons in Child-Only Households',
@@ -842,7 +861,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
 
           homeless_chart_breakdowns(
             section_title: 'Gender',
@@ -875,7 +895,8 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
             service_scope: shs_scope,
-          ).joins(:client)
+          ).
+            joins(:client)
           homeless_chart_breakdowns(
             section_title: 'Race',
             charts: charts,
@@ -973,6 +994,13 @@ module PublicReports
       end
     end
 
+    def map_shape_json
+      cache_key = "map-shape-json-#{PublicReports::Setting.first.map_type}-#{ENV['RELEVANT_COC_STATE']}"
+      Rails.cache.fetch(cache_key, expires_in: 4.hours) do
+        Oj.dump(map_shapes, mode: :compat).html_safe
+      end
+    end
+
     private def get_us_census_population(race_code: 'All', year:)
       race_var = \
         case race_code
@@ -1006,6 +1034,13 @@ module PublicReports
 
     def state_shape
       GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::State.my_state)
+    end
+
+    def state_shape_json
+      cache_key = "state-shape-json-#{ENV['RELEVANT_COC_STATE']}"
+      Rails.cache.fetch(cache_key, expires_in: 4.hours) do
+        Oj.dump(state_shape, mode: :compat).html_safe
+      end
     end
 
     # COC CODES
@@ -1051,6 +1086,14 @@ module PublicReports
       return 'map_county_js' if map_by_county?
 
       'map_js' # CoC
+    end
+
+    def map_type_human
+      return 'ZIP code' if map_by_zip?
+      return 'town' if map_by_place?
+      return 'county' if map_by_county?
+
+      'Continuum of Care'
     end
 
     private def zip_geometries

@@ -24,13 +24,13 @@
       Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.
       = render 'glossary_button'
 .jHomelessBreakdownSection.household_type
-  = render 'homeless_row', data: data['adult_only']
-  = render 'homeless_row', data: data['adult_and_child']
-  = render 'homeless_row', data: data['child_only']
+  = render 'homeless_row', data: data['adult_only'], chronic: true
+  = render 'homeless_row', data: data['adult_and_child'], chronic: true
+  = render 'homeless_row', data: data['child_only'], chronic: true
 .jHomelessBreakdownSection.gender
-  = render 'homeless_row', data: data['gender']
+  = render 'homeless_row', data: data['gender'], chronic: false
 .jHomelessBreakdownSection.race
-  = render 'homeless_row', data: data['race']
+  = render 'homeless_row', data: data['race'], chronic: false
 
 :javascript
   $('.jQuarters').on('change', function(e) {

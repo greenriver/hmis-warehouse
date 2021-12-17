@@ -72,7 +72,7 @@ module PublicReports
       updated_at
     end
 
-    def publish!(content)
+    def publish!
       # This should:
       # 1. Take the contents of html and push it up to S3
       # 2. Populate the published_url field
@@ -81,7 +81,7 @@ module PublicReports
         self.class.transaction do
           unpublish_similar
           update(
-            html: content,
+            html: as_html,
             published_url: generate_publish_url,
             embed_code: generate_embed_code,
             state: :published,
@@ -89,6 +89,16 @@ module PublicReports
         end
       end
       push_to_s3
+    end
+
+    def as_html
+      return controller_class.render(view_template, layout: 'raw_public_report', assigns: { report: self }) unless view_template.is_a?(Array)
+
+      view_template.map do |template|
+        string = html_section_start(template)
+        string << controller_class.render(template, layout: 'raw_public_report', assigns: { report: self })
+        string << html_section_end(template)
+      end.join
     end
 
     def view_template
