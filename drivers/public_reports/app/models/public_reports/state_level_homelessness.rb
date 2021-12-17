@@ -986,6 +986,13 @@ module PublicReports
       end
     end
 
+    def map_shape_json
+      cache_key = "map-shape-json-#{PublicReports::Setting.first.map_type}-#{ENV['RELEVANT_COC_STATE']}"
+      Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
+        Oj.dump(map_shapes, mode: :compat).html_safe
+      end
+    end
+
     private def get_us_census_population(race_code: 'All', year:)
       race_var = \
         case race_code
@@ -1019,6 +1026,13 @@ module PublicReports
 
     def state_shape
       GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::State.my_state)
+    end
+
+    def state_shape_json
+      cache_key = "state-shape-json-#{ENV['RELEVANT_COC_STATE']}"
+      Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
+        Oj.dump(state_shape, mode: :compat).html_safe
+      end
     end
 
     # COC CODES
