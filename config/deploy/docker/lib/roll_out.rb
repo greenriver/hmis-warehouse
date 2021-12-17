@@ -232,9 +232,9 @@ class RollOut
 
     # Keep production web containers on on-demand providers
     capacity_provider_name = if target_group_name.match?(/production|prd/)
-      _spot_capacity_provider_name
-    else
       _on_demand_capacity_provider_name
+    else
+      _spot_capacity_provider_name
     end
     _start_service!(
       capacity_provider: capacity_provider_name,
