@@ -90,10 +90,6 @@ module PublicReports
       sections
     end
 
-    private def controller_name
-      'public_reports/warehouse_reports/state_level_homelessness'
-    end
-
     def generate_publish_url_for(section)
       publish_url = if ENV['S3_PUBLIC_URL'].present?
         "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
