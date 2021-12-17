@@ -34,7 +34,11 @@ module PublicReports
       public_reports_warehouse_reports_state_level_homelessness_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
-    def publish!(content)
+    private def controller_class
+      PublicReports::WarehouseReports::StateLevelHomelessnessController
+    end
+
+    def publish!
       unless published?
         # This should:
         # 1. Take the contents of html and push it up to S3
@@ -43,7 +47,7 @@ module PublicReports
         self.class.transaction do
           unpublish_similar
           update(
-            html: content,
+            html: as_html,
             published_url: generate_publish_url, # NOTE this isn't used in this report
             embed_code: generate_embed_code, # NOTE this isn't used in this report
             state: :published,
@@ -84,6 +88,10 @@ module PublicReports
 
     def view_template
       sections
+    end
+
+    private def controller_name
+      'public_reports/warehouse_reports/state_level_homelessness'
     end
 
     def generate_publish_url_for(section)
@@ -988,7 +996,7 @@ module PublicReports
 
     def map_shape_json
       cache_key = "map-shape-json-#{PublicReports::Setting.first.map_type}-#{ENV['RELEVANT_COC_STATE']}"
-      Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
+      Rails.cache.fetch(cache_key, expires_in: 4.hours) do
         Oj.dump(map_shapes, mode: :compat).html_safe
       end
     end
@@ -1030,7 +1038,7 @@ module PublicReports
 
     def state_shape_json
       cache_key = "state-shape-json-#{ENV['RELEVANT_COC_STATE']}"
-      Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
+      Rails.cache.fetch(cache_key, expires_in: 4.hours) do
         Oj.dump(state_shape, mode: :compat).html_safe
       end
     end
