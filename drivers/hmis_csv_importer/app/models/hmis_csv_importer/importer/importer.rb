@@ -778,6 +778,8 @@ module HmisCsvImporter::Importer
       # queue up a rebuild to keep things as in sync as possible
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+      # These need to be updated any time the enrollment changes
+      GrdaWarehouse::ChEnrollment.maintain!
     end
 
     private def db_transaction(&block)
