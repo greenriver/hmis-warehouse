@@ -17,6 +17,10 @@ module GrdaWarehouse
       joins(:enrollment).where(arel_table[:processed_as].not_eq(e_t[:processed_as]))
     end
 
+    scope :chronically_homeless, -> do
+      where(chronically_homeless_at_entry: true)
+    end
+
     def self.maintain!
       # remove any where the enrollment is no longer in the system
       detached.destroy_all

@@ -198,7 +198,7 @@ module
         id: 'chronic_status',
         label: 'Chronically Homeless',
         value: @filter.chronic_status ? 'Chronically Homeless' : nil,
-        hint: 'Chronic status is calcualted twice monthly, choosing this will include clients who were chronic on the most-recent calculation within the chosen range.',
+        hint: 'Chronically Homeless at Entry as defined in the HUD HMIS Glossary.',
       )
       section
     end
