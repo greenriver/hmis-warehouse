@@ -24,6 +24,10 @@ module PublicReports
       public_reports_warehouse_reports_pit_by_month_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
+    private def controller_class
+      PublicReports::WarehouseReports::PitByMonthController
+    end
+
     def run_and_save!
       start_report
       pre_calculate_data

@@ -39,6 +39,8 @@
         .ho-patient__detail
           %span Email
           = mail_to @patient.current_email
+      -#%h5 Contacts
+      -#= render 'contact'
     .ho-patient__content
       %h4
         Demographics

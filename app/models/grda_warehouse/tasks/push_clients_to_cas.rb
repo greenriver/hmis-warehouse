@@ -35,7 +35,7 @@ module GrdaWarehouse::Tasks
         update_columns = (Cas::ProjectClient.column_names - ['id']).map(&:to_sym)
         Cas::ProjectClient.transaction do
           Cas::ProjectClient.update_all(sync_with_cas: false)
-          @client_ids.each_slice(1_000) do |client_id_batch|
+          @client_ids.each_slice(150) do |client_id_batch|
             to_update = []
             project_clients = Cas::ProjectClient.
               where(data_source_id: data_source.id, id_in_data_source: client_id_batch).

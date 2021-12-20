@@ -3,12 +3,13 @@
     %table.table.table-striped.mb-0
       %thead
         %tr
-          %th{ colspan: 2 }= @report.filter.date_range_words
+          %th{ colspan: 3 }= @report.filter.date_range_words
           %th{ colspan: 6 }
             Average Daily...
         %tr
           %th Project
           %th Project Type
+          %th Organization
           %th Beds
           %th
             Clients
@@ -23,8 +24,7 @@
         - @report.report.each do |id, project|
           - next unless project
           %tr
-            %td
-              = link_to project.name, project_path(project.id)
+            %td= link_to project.name, project_path(project.id)
             %td
               - project_type = project.project_type
               - p_type = ::HUD.project_type_brief(project_type)
@@ -32,6 +32,7 @@
               %span{class: "client__service_type_#{project_type}"}
                 .enrollment__project_type{class: p_class}
                   %em.service-type__program-type= p_type
+            %td= project.organization_name
             %td= project.beds
             %td= project.clients
             %td= project.bed_utilization

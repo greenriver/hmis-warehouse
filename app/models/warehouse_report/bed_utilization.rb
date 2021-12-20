@@ -26,10 +26,11 @@ class WarehouseReport::BedUtilization < OpenStruct
 
     @report = {}.tap do |report_data|
       GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids).
-        preload(:inventories).find_each do |project|
+        preload(:inventories, :organization).find_each do |project|
           report_data[project.id] ||= OpenStruct.new(
             id: project.id,
             name: project.ProjectName,
+            organization_name: project.organization.OrganizationName,
             project_type: project.compute_project_type,
             clients: average(client_count(project)).round,
             beds: average_inventory_count(project, :BedInventory),
@@ -51,12 +52,12 @@ class WarehouseReport::BedUtilization < OpenStruct
 
   private def client_count(project)
     query = GrdaWarehouse::ServiceHistoryService.
-      joins(:service_history_enrollment).
+      joins(service_history_enrollment: :project).
       service_between(
         start_date: filter.start,
         end_date: filter.end,
       ).
-      merge(GrdaWarehouse::ServiceHistoryEnrollment.where(project_id: project.id)).
+      merge(GrdaWarehouse::Hud::Project.where(id: project.id)).
       select(nf('concat', [shs_t[:client_id], shs_t[:date]]).to_sql)
     query = query.where(homeless: false) if project.ph? # limit PH to after move-in
     query.distinct.count
@@ -64,9 +65,9 @@ class WarehouseReport::BedUtilization < OpenStruct
 
   private def household_count(project)
     query = GrdaWarehouse::ServiceHistoryService.
-      joins(:service_history_enrollment).
+      joins(service_history_enrollment: :project).
       service_between(start_date: filter.start, end_date: filter.end).
-      merge(GrdaWarehouse::ServiceHistoryEnrollment.where(project_id: project.id)).
+      merge(GrdaWarehouse::Hud::Project.where(id: project.id)).
       select(nf('concat', [she_t[:head_of_household_id], shs_t[:date]]).to_sql)
     query = query.where(homeless: false) if project.ph? # limit PH to after move-in
     query.distinct.count

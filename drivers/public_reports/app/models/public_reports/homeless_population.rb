@@ -28,7 +28,11 @@ module PublicReports
       public_reports_warehouse_reports_homeless_populations_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
-    def publish!(content)
+    private def controller_class
+      PublicReports::WarehouseReports::HomelessPopulationsController
+    end
+
+    def publish!
       unless published?
         # This should:
         # 1. Take the contents of html and push it up to S3
@@ -37,7 +41,7 @@ module PublicReports
         self.class.transaction do
           unpublish_similar
           update(
-            html: content,
+            html: as_html,
             published_url: generate_publish_url, # NOTE this isn't used in this report
             embed_code: generate_embed_code, # NOTE this isn't used in this report
             state: :published,

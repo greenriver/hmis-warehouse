@@ -179,11 +179,12 @@ gem 'aws-sdk-ses', '~> 1'
 gem 'aws-sdk-iam', '~> 1'
 gem 'aws-sdk-sns', require: false
 gem 'json'
+gem 'oj'
 gem 'amazing_print'
 
 gem 'auto-session-timeout'
 
-#Translations
+# Translations
 gem 'gettext_i18n_rails'
 gem 'fast_gettext'
 gem 'gettext', '>=3.0.2'
