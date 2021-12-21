@@ -108,6 +108,9 @@ jobs:
         echo Building web
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.web -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web .
 
+        echo Building deploy
+        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.deploy -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy .
+
         if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
         then
           echo Building dj
@@ -116,9 +119,10 @@ jobs:
           echo Not building dj
         fi
 
-        echo Pushing base and web
+        echo Pushing base/web/deploy
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
         if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
         then
           echo pushing dj
@@ -130,9 +134,11 @@ jobs:
         echo $IMAGE_TAG--base > image-tag.txt
         echo $IMAGE_TAG--web >> image-tag.txt
         echo $IMAGE_TAG--dj >> image-tag.txt
+        echo $IMAGE_TAG--deploy >> image-tag.txt
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base"
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web"
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj"
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy"
 
     - name: Show image tag
       uses: actions/upload-artifact@v1

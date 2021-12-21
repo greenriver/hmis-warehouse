@@ -159,7 +159,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--dj',
+      image: image_base + '--deploy',
       name: name,
       command: ['bin/deploy_tasks.sh'],
     )
