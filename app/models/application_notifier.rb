@@ -26,7 +26,7 @@ class ApplicationNotifier < Slack::Notifier
   attr_accessor :insert_log_url
 
   def insert_log_url
-    return @insert_log_url.nil? ? false : !!@insert_log_url
+    !!@insert_log_url # coerce bool
   end
 
   # use the same redis instance we use for caching
@@ -98,7 +98,11 @@ class ApplicationNotifier < Slack::Notifier
   def post(payload={})
     if insert_log_url
       log_stream_url = ENV.fetch('LOG_STREAM_URL', nil)
-      payload[:text] += "\n```log_url: #{log_stream_url}```" unless log_stream_url.nil?
+      if payload.key?(:text) && log_stream_url.present?
+        payload[:text] += "\n```log_url: #{log_stream_url}```"
+      else
+        Rails.logger.warn "ApplicationNotifier#post tried to insert_log_url but there was no :text in payload"
+      end
     end
 
     super

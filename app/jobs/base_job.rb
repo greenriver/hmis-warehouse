@@ -78,9 +78,8 @@ class BaseJob < ApplicationJob
     msg = [
       "*#{self.class.name}* `FAILED` with the following error:",
       "```\n #{exception.inspect} \n```",
-    ]
+    ].join("\n")
 
-    msg = msg.join("\n")
     attachment = "```\n #{Rails.backtrace_cleaner.clean(exception.backtrace).join("\n")} \n```"
     begin
       @notifier.insert_log_url = true
