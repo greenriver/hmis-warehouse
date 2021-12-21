@@ -16,6 +16,7 @@ sed -i.bak '/EXTENSION/d' db/warehouse/structure.sql
 echo Compiling and pushing assets
 bundle exec rake assets:clobber
 bundle exec rake assets:precompile
+echo "Syncing to s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH"
 aws s3 sync ./public/assets s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH
 
 echo Storing Themed Maintenance Page

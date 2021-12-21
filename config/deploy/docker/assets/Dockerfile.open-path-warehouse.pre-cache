@@ -102,7 +102,6 @@ RUN apk add --no-cache \
   && bundle install \
   && find /usr/local/bundle -name "*.o" -exec rm {} \; \
   && find /usr/local/bundle -name "*.c" -exec rm {} \; \
-#   && RAILS_ENV=production bundle exec rake assets:precompile \
   && cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml \
   && rm -rf tmp/* \
   && mkdir tmp/pids \

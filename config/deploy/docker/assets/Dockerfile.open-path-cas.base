@@ -64,7 +64,6 @@ COPY locale ./locale
 
 RUN mkdir -p app/assets/stylesheets/theme/styles && \
   touch app/assets/stylesheets/theme/styles/_variables.scss && \
-  # RAILS_ENV=production bundle exec rake assets:precompile && \
   cp config/deploy/docker/assets/database.open-path-cas.yml config/database.yml && \
   rm -rf tmp/* && \
   rm .env && \

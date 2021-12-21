@@ -58,7 +58,7 @@ begin
   end
 rescue Aws::S3::Errors::NoSuchBucket
   puts "[#{__FILE__}] Cannot find the bucket: #{bucket}"
-rescue Aws::S3::Errors::AccessDenied => e
+rescue Aws::S3::Errors::AccessDenied
   puts "[#{__FILE__}] Access denied to s3://#{bucket}/#{prefix}"
 rescue Aws::Errors::MissingRegionError
   puts "[#{__FILE__}] specify a region to sync!"
