@@ -477,11 +477,12 @@ module HudApr::Generators::Shared::Fy2021
       @report.answer(question: table_name).update(metadata: metadata)
 
       adults_and_hohs = universe.members.where(
-        a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
-          and(a_t[:age].gteq(18).
-            or(a_t[:head_of_household].eq(true).
-              and(a_t[:age].lt(18).
-                or(a_t[:age].eq(nil))))),
+        a_t[:project_type].in([1, 4, 8, 2, 3, 9, 10, 13]).
+          and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
+            and(a_t[:age].gteq(18).
+              or(a_t[:head_of_household].eq(true).
+                and(a_t[:age].lt(18).
+                  or(a_t[:age].eq(nil)))))),
       )
 
       es_sh_so_clients = es_sh_so(table_name, adults_and_hohs)

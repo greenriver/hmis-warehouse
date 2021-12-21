@@ -49,7 +49,7 @@ module HudApr::Generators::Shared::Fy2021
           project.computed_project_type,
           if project.computed_project_type == 1 then project.TrackingMethod else 0 end,
           if project.computed_project_type == 6 then project.ResidentialAffiliation else 0 end,
-          if project.computed_project_type == 6 && project.ResidentialAffiliation == 1 then project.residential_affiliations.map(&:ProjectID).join(', ') else ' ' end,
+          if project.computed_project_type == 6 && project.ResidentialAffiliation == 1 then project.residential_affiliations.map(&:ResProjectID).join(', ') else ' ' end,
           project.project_cocs.map(&:effective_coc_code).join(', '),
           project.project_cocs.map(&:effective_geocode).join(', '),
           if project.VictimServicesProvider.present? then project.VictimServicesProvider else 0 end,
