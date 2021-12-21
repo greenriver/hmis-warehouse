@@ -416,7 +416,7 @@ module HudApr::Generators::Shared::Fy2021
       members = stayers_with_anniversary.where(
         a_t[:income_date_at_annual_assessment].eq(nil).
           or(a_t[:annual_assessment_in_window].eq(false)).
-          or(a_t[:income_from_any_source_at_annual_assessment].in([8, 9])).
+          or(a_t[:income_from_any_source_at_annual_assessment].in([8, 9, 99])).
           or(a_t[:income_from_any_source_at_annual_assessment].eq(nil)).
           or(a_t[:income_from_any_source_at_annual_assessment].eq(0).
             and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql))).
