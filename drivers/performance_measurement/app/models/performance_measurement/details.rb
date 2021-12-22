@@ -55,7 +55,7 @@ module PerformanceMeasurement::Details
         count_of_homeless_clients: {
           category: 'Rare',
           column: :both,
-          title: 'Number of Homeless People',
+          title: 'Number of Homeless People at PIT Count',
           goal_description: 'The CoC will reduce total homelessness by X% annually (as reported during a single Point in Time)',
           calculation_description: 'The difference (as a percentage) between the total number of sheltered and unsheltered homeless reported in the most recent annual PIT Count and the total sheltered and unsheltered homeless reported in the previous year’s PIT Count',
         },

@@ -4,6 +4,8 @@
 - if my_projects.present?
   .well
     - my_projects.each do |project_id, result|
+      - next unless result.hud_project
+
       %h3= result.hud_project.name_and_type
       .d-flex.mb-6
         .w-50= render 'warehouse_reports/indicator', indicator: result
@@ -28,6 +30,8 @@
 - if other_projects.present?
   .well
     - other_projects.each do |project_id, result|
+      - next unless result.hud_project
+
       %h3= result.hud_project.name_and_type
       .d-flex.mb-6
         .w-50= render 'warehouse_reports/indicator', indicator: result
