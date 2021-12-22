@@ -199,6 +199,11 @@ module GrdaWarehouse::Tasks
         majority_sheltered: :majority_sheltered,
         tie_breaker_date: :tie_breaker_date,
         financial_assistance_end_date: :financial_assistance_end_date,
+        strengths: :strengths,
+        challenges: :challenges,
+        foster_care: :foster_care,
+        open_case: :open_case,
+        housing_for_formerly_homeless: :housing_for_formerly_homeless,
       }
     end
 
@@ -255,6 +260,8 @@ module GrdaWarehouse::Tasks
         value.map do |id|
           GrdaWarehouse::Cohort.find(id).name
         end&.to_sentence
+      elsif value.is_a?(Array)
+        value.join(', ')
       else
         value
       end

@@ -1,0 +1,29 @@
+- check_wrapper_class = {class: 'form-group--tight'}
+= simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id)  do |f|
+  .row
+    %section.o-section-card.col-lg-8.col-xl-6
+      %h3 Characteristics from Pathways Assessment
+      .c-card.c-card--flush.c-card--padded.flex-wrap
+        %p Please note, this list includes additional characteristics that may come from other sources as it is a comprehensive list of everything sent to CAS for this client.
+        - GrdaWarehouse::Tasks::PushClientsToCas.new.attributes_for_display(current_user, @client).each do |title, value|
+          .d-flex.mb-2
+            .title.text-bold= "#{title}:"
+            .ml-2= value
+
+  .row
+    .col-lg-8.col-xl-6
+      = render 'disability_verification', f: f
+
+  .row
+    .col-lg-8.col-xl-6
+      = render 'veteran', f: f
+
+  %section.o-section-card.row
+    .col-lg-8.col-xl-6
+      %h3 Sync with CAS?
+      .c-card.c-card--block.c-card--padded.c-card--flush
+        = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f
+
+  .row.mt-8
+    .col-sm-6
+      = f.submit value: 'Update CAS Info', class: 'btn btn-primary'
