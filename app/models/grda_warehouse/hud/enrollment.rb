@@ -95,9 +95,6 @@ module GrdaWarehouse::Hud
 
     # Cached chronically homeless at entry
     has_one :ch_enrollment, class_name: 'GrdaWarehouse::ChEnrollment'
-    scope :ch_needs_update, -> do
-      where.not(id: GrdaWarehouse::ChEnrollment.select(:enrollment_id))
-    end
 
     scope :residential, -> do
       joins(:project).merge(Project.residential)
