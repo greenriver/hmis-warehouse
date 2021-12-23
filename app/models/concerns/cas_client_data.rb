@@ -372,6 +372,6 @@ module CasClientData
     end
 
     # The following do not currently get persisted onto Client, but are calculated live
-    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless
+    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless, :hivaids_status
   end
 end

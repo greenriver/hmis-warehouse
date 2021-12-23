@@ -94,7 +94,10 @@ module GrdaWarehouse::CasProjectClientCalculator
 
       relevant_section = client.most_recent_tc_hat_for_destination.
         section_starts_with(section_title)
-      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.split('|')&.reject(&:blank?)
+      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.
+        downcase&.
+        split('|')&.
+        reject(&:blank?)
     end
 
     private def challenges(client)
@@ -103,7 +106,10 @@ module GrdaWarehouse::CasProjectClientCalculator
 
       relevant_section = client.most_recent_tc_hat_for_destination.
         section_starts_with(section_title)
-      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.split('|')&.reject(&:blank?)
+      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.
+        downcase&.
+        split('|')&.
+        reject(&:blank?)
     end
 
     private def housing_for_formerly_homeless(client)

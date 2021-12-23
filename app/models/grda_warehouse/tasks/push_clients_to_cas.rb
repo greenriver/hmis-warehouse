@@ -260,6 +260,8 @@ module GrdaWarehouse::Tasks
         value.map do |id|
           GrdaWarehouse::Cohort.find(id).name
         end&.to_sentence
+      elsif key.in?([:strengths, :challenges])
+        value&.join(', ')&.titleize
       elsif value.is_a?(Array)
         value.join(', ')
       else
