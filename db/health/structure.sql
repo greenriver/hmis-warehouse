@@ -6619,6 +6619,20 @@ CREATE INDEX index_encounter_reports_on_user_id ON public.encounter_reports USIN
 
 
 --
+-- Name: index_epic_case_notes_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_epic_case_notes_on_patient_id ON public.epic_case_notes USING btree (patient_id);
+
+
+--
+-- Name: index_epic_goals_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_epic_goals_on_patient_id ON public.epic_goals USING btree (patient_id);
+
+
+--
 -- Name: index_epic_housing_statuses_on_collected_on; Type: INDEX; Schema: public; Owner: -
 --
 
