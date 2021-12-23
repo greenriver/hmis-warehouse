@@ -19,7 +19,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       when *boolean_lookups.keys
         assessment_value = for_boolean(client, column)
         return assessment_value unless assessment_value.nil?
-      when *pathways_questions
+      when *tc_hat_questions
         assessment_value = send(column, client)
         return assessment_value unless assessment_value.nil?
       end
@@ -44,7 +44,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       }
     end
 
-    private def pathways_questions
+    private def tc_hat_questions
       [
         :family_member,
         :lifetime_sex_offender,
@@ -55,6 +55,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         :housing_for_formerly_homeless,
         :neighborhood_ids_for_cas,
         :cas_assessment_collected_at, # note this is really just assessment_collected_at
+        :days_homeless_in_last_three_years_cached,
+        :literally_homeless_last_three_years_cached,
       ]
     end
 
@@ -115,6 +117,20 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def cas_assessment_collected_at(client)
       client.most_recent_tc_hat_for_destination&.collected_at
+    end
+
+    private def days_homeless_in_last_three_years_cached(client)
+      days = 0
+      days += client.tc_hat_additional_days_homeless
+
+      days + (client.processed_service_history&.days_homeless_last_three_years || 0)
+    end
+
+    private def literally_homeless_last_three_years_cached(client)
+      days = 0
+      days += client.tc_hat_additional_days_homeless
+
+      days + (client.processed_service_history&.literally_homeless_last_three_years || 0)
     end
   end
 end

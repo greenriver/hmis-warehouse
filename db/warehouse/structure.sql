@@ -524,7 +524,8 @@ CREATE TABLE public."Client" (
     "Questioning" integer,
     "GenderNone" integer,
     "NativeHIPacific" integer,
-    "NoSingleGender" integer
+    "NoSingleGender" integer,
+    tc_hat_additional_days_homeless integer DEFAULT 0
 );
 
 
@@ -4072,6 +4073,39 @@ CREATE SEQUENCE public.censuses_id_seq
 --
 
 ALTER SEQUENCE public.censuses_id_seq OWNED BY public.censuses.id;
+
+
+--
+-- Name: ch_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ch_enrollments (
+    id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    processed_as character varying,
+    chronically_homeless_at_entry boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: ch_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ch_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ch_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ch_enrollments_id_seq OWNED BY public.ch_enrollments.id;
 
 
 --
@@ -13402,7 +13436,14 @@ CREATE TABLE public.hud_report_spm_clients (
     m6_head_of_household boolean DEFAULT false NOT NULL,
     m6_reporting_age integer,
     m7_head_of_household boolean DEFAULT false NOT NULL,
-    m7_reporting_age integer
+    m7_reporting_age integer,
+    m7b_history jsonb,
+    m2_project_id integer,
+    m3_project_id integer,
+    m4_project_id integer,
+    m5_project_id integer,
+    m7a1_project_id integer,
+    m7b_project_id integer
 );
 
 
@@ -14680,7 +14721,39 @@ CREATE TABLE public.pm_clients (
     comparison_served_on_pit_date_sheltered boolean DEFAULT false NOT NULL,
     reporting_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL,
     comparison_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL,
-    comparison_days_homeless_es_sh_th_ph integer
+    comparison_days_homeless_es_sh_th_ph integer,
+    reporting_days_in_es_bed integer,
+    reporting_days_in_es_bed_details jsonb,
+    reporting_days_in_es_bed_in_period integer,
+    reporting_days_in_es_bed_details_in_period jsonb,
+    reporting_days_in_sh_bed integer,
+    reporting_days_in_sh_bed_details jsonb,
+    reporting_days_in_sh_bed_in_period integer,
+    reporting_days_in_sh_bed_details_in_period jsonb,
+    reporting_days_in_so_bed integer,
+    reporting_days_in_so_bed_details jsonb,
+    reporting_days_in_so_bed_in_period integer,
+    reporting_days_in_so_bed_details_in_period jsonb,
+    reporting_days_in_th_bed integer,
+    reporting_days_in_th_bed_details jsonb,
+    reporting_days_in_th_bed_in_period integer,
+    reporting_days_in_th_bed_details_in_period jsonb,
+    comparison_days_in_es_bed integer,
+    comparison_days_in_es_bed_details jsonb,
+    comparison_days_in_es_bed_in_period integer,
+    comparison_days_in_es_bed_details_in_period jsonb,
+    comparison_days_in_sh_bed integer,
+    comparison_days_in_sh_bed_details jsonb,
+    comparison_days_in_sh_bed_in_period integer,
+    comparison_days_in_sh_bed_details_in_period jsonb,
+    comparison_days_in_so_bed integer,
+    comparison_days_in_so_bed_details jsonb,
+    comparison_days_in_so_bed_in_period integer,
+    comparison_days_in_so_bed_details_in_period jsonb,
+    comparison_days_in_th_bed integer,
+    comparison_days_in_th_bed_details jsonb,
+    comparison_days_in_th_bed_in_period integer,
+    comparison_days_in_th_bed_details_in_period jsonb
 );
 
 
@@ -18853,6 +18926,13 @@ ALTER TABLE ONLY public.censuses_averaged_by_year ALTER COLUMN id SET DEFAULT ne
 
 
 --
+-- Name: ch_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ch_enrollments ALTER COLUMN id SET DEFAULT nextval('public.ch_enrollments_id_seq'::regclass);
+
+
+--
 -- Name: children id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21421,6 +21501,14 @@ ALTER TABLE ONLY public.censuses_averaged_by_year
 
 ALTER TABLE ONLY public.censuses
     ADD CONSTRAINT censuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ch_enrollments ch_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ch_enrollments
+    ADD CONSTRAINT ch_enrollments_pkey PRIMARY KEY (id);
 
 
 --
@@ -37740,6 +37828,13 @@ CREATE INDEX "index_censuses_on_date_and_ProjectType" ON public.censuses USING b
 
 
 --
+-- Name: index_ch_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ch_enrollments_on_enrollment_id ON public.ch_enrollments USING btree (enrollment_id);
+
+
+--
 -- Name: index_children_on_family_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43641,6 +43736,13 @@ CREATE INDEX organization_export_id ON public."Organization" USING btree ("Expor
 
 
 --
+-- Name: pm_clients_c_id_p_id_r_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pm_clients_c_id_p_id_r_id ON public.pm_client_projects USING btree (client_id, project_id, report_id);
+
+
+--
 -- Name: ppfc_ppfp_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46373,6 +46475,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211129122357'),
 ('20211202160059'),
 ('20211208153720'),
-('20211208155347');
+('20211208155347'),
+('20211218202811'),
+('20211220163817'),
+('20211220204231'),
+('20211221151552'),
+('20211223134654');
 
 
