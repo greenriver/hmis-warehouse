@@ -111,6 +111,11 @@ module Importing
         GrdaWarehouse::Tasks::CensusImport.new.run!
         @notifier.ping('Census imported') if @send_notifications
 
+        # Pre-calculate Chronically Homeless at Entry
+        @notifier.ping('Pre-calculating Chronically Homeless at Entry') if @send_notifications
+        GrdaWarehouse::ChEnrollment.maintain!
+        @notifier.ping('Done Pre-calculating Chronically Homeless at Entry') if @send_notifications
+
         # Only run the chronic calculator on the 1st and 15th
         # but run it for the past 2 of each
         if @start_time.to_date.day.in?([1, 15])
