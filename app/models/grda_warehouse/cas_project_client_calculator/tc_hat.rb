@@ -79,7 +79,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def neighborhood_ids_for_cas(client)
-      section_title = 'PAGE #1'
+      section_title = 'Section F'
       question_title = 'Housing Location Preference'
 
       relevant_section = client.most_recent_tc_hat_for_destination.
