@@ -118,15 +118,15 @@ Rails.application.configure do
   config.action_controller.perform_caching = true
   if slack_config.present?
     config.middleware.use(ExceptionNotification::Rack,
-      :slack => {
-        :webhook_url => slack_config['webhook_url'],
-        :pre_callback => proc { |opts, _notifier, _backtrace, _message, message_opts|
+      slack: {
+        webhook_url: slack_config['webhook_url'],
+        channel: slack_config['channel'],
+        pre_callback: proc { |opts, _notifier, _backtrace, _message, message_opts|
           ExceptionNotifierLib.insert_log_url!(message_opts)
         },
-        :channel => slack_config['channel'],
-        :additional_parameters => {
-          :mrkdwn => true,
-          :icon_url => slack_config['icon_url']
+        additional_parameters: {
+          mrkdwn: true,
+          icon_url: slack_config['icon_url']
         }
       }
     )
