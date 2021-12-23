@@ -281,6 +281,13 @@ module Filter::FilterScopes
         )
     end
 
+    private def filter_for_chronic_at_entry(scope)
+      return scope unless @filter.chronic_status
+
+      scope.joins(enrollment: :ch_enrollment).
+        merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
+    end
+
     private def filter_for_chronic_status(scope)
       return scope unless @filter.chronic_status
 
