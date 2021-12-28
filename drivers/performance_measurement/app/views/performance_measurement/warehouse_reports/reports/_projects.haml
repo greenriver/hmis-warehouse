@@ -3,12 +3,14 @@
 - my_projects = @report.my_projects(current_user, @key)
 - if my_projects.present?
   .well
+    %h3 My Projects
+    %hr
     - my_projects.each do |project_id, result|
       - next unless result.hud_project
 
       %h3= result.hud_project.name_and_type
       .d-flex.mb-6
-        .w-50= render 'warehouse_reports/indicator', indicator: result
+        .w-50= render 'warehouse_reports/indicator', indicator: result, link: performance_measurement_warehouse_reports_report_clients_path(report_id: @report.id, key: @key, project_id: project_id)
         .w-50
           - class_name = "jProjectLevelPerformance_#{project_id}"
           %div{class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
@@ -29,6 +31,8 @@
 - other_projects = @report.other_projects(current_user, @key)
 - if other_projects.present?
   .well
+    %h3 Other Projects
+    %hr
     - other_projects.each do |project_id, result|
       - next unless result.hud_project
 

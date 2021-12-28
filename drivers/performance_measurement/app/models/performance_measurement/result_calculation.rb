@@ -129,9 +129,7 @@ module PerformanceMeasurement::ResultCalculation
       @client_data.dig(column, project_id) || []
     end
 
-    def count_of_sheltered_homeless_clients(project: nil)
-      field = :served_on_pit_date_sheltered
-
+    def count_of_sheltered_homeless_clients(field, project: nil)
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
@@ -154,10 +152,9 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     # NOTE: SPM does not include SO, so this needs to be done based on SHS
-    def count_of_homeless_clients(project: nil)
+    def count_of_homeless_clients(field, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
 
-      field = :served_on_pit_date
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
@@ -180,10 +177,9 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     # NOTE: SPM does not include SO, so this needs to be done based on SHS
-    def count_of_unsheltered_homeless_clients(project: nil)
+    def count_of_unsheltered_homeless_clients(field, project: nil)
       return unless project.blank? || project.hud_project&.so?
 
-      field = :served_on_pit_date_unsheltered
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
@@ -205,8 +201,7 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def first_time_homeless_clients(project: nil)
-      field = :first_time
+    def first_time_homeless_clients(field, project: nil)
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
@@ -228,10 +223,9 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def length_of_homeless_stay_average(project: nil)
+    def length_of_homeless_stay_average(field, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
 
-      field = :days_homeless_es_sh_th
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
@@ -257,10 +251,9 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def length_of_homeless_stay_median(project: nil)
+    def length_of_homeless_stay_median(field, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
 
-      field = :days_homeless_es_sh_th
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
       comparison_days = client_data(field, :comparison, project_id: project&.project_id)
 
@@ -285,10 +278,9 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def time_to_move_in_average(project: nil)
+    def time_to_move_in_average(field, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.ph?
 
-      field = :days_homeless_es_sh_th_ph
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
@@ -314,10 +306,9 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def time_to_move_in_median(project: nil)
+    def time_to_move_in_median(field, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.ph?
 
-      field = :days_homeless_es_sh_th_ph
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
       comparison_days = client_data(field, :comparison, project_id: project&.project_id)
 
@@ -342,10 +333,9 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def so_positive_destinations(project: nil)
+    def so_positive_destinations(field, project: nil)
       return unless project.blank? || project.hud_project&.so?
 
-      field = :so_destination
       reporting_destinations = client_data(field, :reporting, project_id: project&.project_id)
       comparison_destinations = client_data(field, :comparison, project_id: project&.project_id)
       reporting_denominator = reporting_destinations.select(&:positive?).count
@@ -378,8 +368,7 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def es_sh_th_rrh_positive_destinations(project: nil)
-      field = :es_sh_th_rrh_destination
+    def es_sh_th_rrh_positive_destinations(field, project: nil)
       reporting_destinations = client_data(field, :reporting, project_id: project&.project_id)
       comparison_destinations = client_data(field, :comparison, project_id: project&.project_id)
       reporting_denominator = reporting_destinations.select(&:positive?).count
@@ -412,8 +401,7 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def moved_in_positive_destinations(project: nil)
-      field = :moved_in_destination
+    def moved_in_positive_destinations(field, project: nil)
       reporting_destinations = client_data(field, :reporting, project_id: project&.project_id)
       comparison_destinations = client_data(field, :comparison, project_id: project&.project_id)
       reporting_denominator = reporting_destinations.select(&:positive?).count
@@ -446,16 +434,15 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def returned_in_six_months(project: nil)
-      returned_in_range(1..180, __method__, project: project)
+    def returned_in_six_months(field, project: nil)
+      returned_in_range(field, 1..180, __method__, project: project)
     end
 
-    def returned_in_two_years(project: nil)
-      returned_in_range(1..730, __method__, project: project)
+    def returned_in_two_years(field, project: nil)
+      returned_in_range(field, 1..730, __method__, project: project)
     end
 
-    def returned_in_range(range, meth, project: nil)
-      field = :days_to_return
+    def returned_in_range(field, range, meth, project: nil)
       reporting_returns = client_data(field, :reporting, project_id: project&.project_id)
       comparison_returns = client_data(field, :comparison, project_id: project&.project_id)
       reporting_denominator = reporting_returns.select(&:positive?).count
@@ -540,12 +527,12 @@ module PerformanceMeasurement::ResultCalculation
     #   )
     # end
 
-    def stayers_with_increased_income(project: nil)
-      increased_income(:increased_income, :income_stayer, __method__, project: project)
+    def stayers_with_increased_income(field, project: nil)
+      increased_income(field, :income_stayer, __method__, project: project)
     end
 
-    def leavers_with_increased_income(project: nil)
-      increased_income(:increased_income, :income_leaver, __method__, project: project)
+    def leavers_with_increased_income(field, project: nil)
+      increased_income(field, :income_leaver, __method__, project: project)
     end
 
     def increased_income(income_field, status_field, meth, project: nil)
@@ -581,10 +568,10 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def save_results
-      results = result_methods.map { |method| send(method) }
+      results = result_methods.map { |method, field| send(method, field) }
       projects.preload(:hud_project).each do |project|
-        result_methods.each do |method|
-          results << send(method, project: project)
+        result_methods.each do |method, field|
+          results << send(method, field, project: project)
         end
       end
       PerformanceMeasurement::Result.transaction do
@@ -594,23 +581,23 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     private def result_methods
-      [
-        :count_of_sheltered_homeless_clients,
-        :count_of_homeless_clients,
-        :count_of_unsheltered_homeless_clients,
-        :first_time_homeless_clients,
-        :length_of_homeless_stay_average,
-        :length_of_homeless_stay_median,
-        :time_to_move_in_average,
-        :time_to_move_in_median,
-        :so_positive_destinations,
-        :es_sh_th_rrh_positive_destinations,
-        :moved_in_positive_destinations,
-        :returned_in_six_months,
-        :returned_in_two_years,
-        :stayers_with_increased_income,
-        :leavers_with_increased_income,
-      ]
+      {
+        count_of_sheltered_homeless_clients: :served_on_pit_date_sheltered,
+        count_of_homeless_clients: :served_on_pit_date,
+        count_of_unsheltered_homeless_clients: :served_on_pit_date_unsheltered,
+        first_time_homeless_clients: :first_time,
+        length_of_homeless_stay_average: :days_homeless_es_sh_th,
+        length_of_homeless_stay_median: :days_homeless_es_sh_th,
+        time_to_move_in_average: :days_homeless_es_sh_th_ph,
+        time_to_move_in_median: :days_homeless_es_sh_th_ph,
+        so_positive_destinations: :so_destination,
+        es_sh_th_rrh_positive_destinations: :es_sh_th_rrh_destination,
+        moved_in_positive_destinations: :moved_in_destination,
+        returned_in_six_months: :days_to_return,
+        returned_in_two_years: :days_to_return,
+        stayers_with_increased_income: :increased_income,
+        leavers_with_increased_income: :increased_income,
+      }
     end
   end
 end

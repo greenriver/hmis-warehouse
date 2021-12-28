@@ -11,7 +11,8 @@ module PerformanceMeasurement::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_access_some_version_of_clients!, only: [:details]
+    before_action :require_can_access_some_version_of_clients!, only: [:details, :clients]
+    before_action :require_my_project!, only: [:clients]
     before_action :set_report, only: [:show, :destroy]
 
     def index
@@ -57,6 +58,11 @@ module PerformanceMeasurement::WarehouseReports
       @key = params[:key].to_sym
     end
 
+    def clients
+      @report = report_class.find(params[:report_id].to_i)
+      @key = params[:key].to_sym
+    end
+
     def details_params
       params.permit(
         :key,
@@ -97,5 +103,21 @@ module PerformanceMeasurement::WarehouseReports
     private def flash_interpolation_options
       { resource_name: @report.title }
     end
+
+    private def require_my_project!
+      @report = report_class.find(params[:report_id].to_i)
+      @key = params[:key].to_sym
+      @project = @report.my_projects(current_user, @key)[params[:project_id].to_i]
+
+      not_authorized! unless @project.present?
+    end
+
+    def formatted_cell(cell)
+      return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
+      return view_context.yes_no(cell) if cell.in?([true, false])
+
+      cell
+    end
+    helper_method :formatted_cell
   end
 end

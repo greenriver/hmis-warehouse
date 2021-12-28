@@ -175,8 +175,7 @@ module PerformanceMeasurement
           cells.each do |cell|
             spm_clients = answer_clients(spec[:report], *cell)
             spm_clients.each do |spm_client|
-              report_client = report_clients[spm_client[:client_id]] || Client.new(report_id: id)
-              report_client[:client_id] = spm_client[:client_id]
+              report_client = report_clients[spm_client[:client_id]] || Client.new(report_id: id, client_id: spm_client[:client_id])
               report_client[:dob] = spm_client[:dob]
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
@@ -202,7 +201,7 @@ module PerformanceMeasurement
           filter.update(spec[:options])
           data = parts[:data].call(filter)
           data.each_key do |client_id|
-            report_client = report_clients[client_id] || Client.new(report_id: id)
+            report_client = report_clients[client_id] || Client.new(report_id: id, client_id: client_id)
             report_client[:dob] = parts[:value_calculation].call(:dob, client_id, data)
             report_client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(:value, client_id, data)
             parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id|
