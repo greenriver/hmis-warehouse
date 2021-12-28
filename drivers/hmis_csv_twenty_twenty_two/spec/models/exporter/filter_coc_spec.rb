@@ -40,7 +40,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
 
     it 'filters EnrollmentCoC.csv' do
       csv = CSV.read(File.join(exporter.file_path, 'EnrollmentCoC.csv'), headers: true)
-      expect(csv.count).to eq 0
+      expect(csv.count).to eq 1
     end
   end
 
