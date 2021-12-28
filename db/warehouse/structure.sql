@@ -4075,6 +4075,39 @@ ALTER SEQUENCE public.censuses_id_seq OWNED BY public.censuses.id;
 
 
 --
+-- Name: ch_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ch_enrollments (
+    id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    processed_as character varying,
+    chronically_homeless_at_entry boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: ch_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ch_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ch_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ch_enrollments_id_seq OWNED BY public.ch_enrollments.id;
+
+
+--
 -- Name: children; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18853,6 +18886,13 @@ ALTER TABLE ONLY public.censuses_averaged_by_year ALTER COLUMN id SET DEFAULT ne
 
 
 --
+-- Name: ch_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ch_enrollments ALTER COLUMN id SET DEFAULT nextval('public.ch_enrollments_id_seq'::regclass);
+
+
+--
 -- Name: children id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21421,6 +21461,14 @@ ALTER TABLE ONLY public.censuses_averaged_by_year
 
 ALTER TABLE ONLY public.censuses
     ADD CONSTRAINT censuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ch_enrollments ch_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ch_enrollments
+    ADD CONSTRAINT ch_enrollments_pkey PRIMARY KEY (id);
 
 
 --
@@ -37740,6 +37788,13 @@ CREATE INDEX "index_censuses_on_date_and_ProjectType" ON public.censuses USING b
 
 
 --
+-- Name: index_ch_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ch_enrollments_on_enrollment_id ON public.ch_enrollments USING btree (enrollment_id);
+
+
+--
 -- Name: index_children_on_family_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46373,6 +46428,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211129122357'),
 ('20211202160059'),
 ('20211208153720'),
-('20211208155347');
+('20211208155347'),
+('20211218202811');
 
 

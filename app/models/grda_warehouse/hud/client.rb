@@ -946,6 +946,14 @@ module GrdaWarehouse::Hud
       housing_release_status&.starts_with?(self.class.full_release_string) || false
     end
 
+    def partial_release?
+      housing_release_status&.starts_with?(self.class.partial_release_string) || false
+    end
+
+    def full_or_partial_release?
+      release_valid? || partial_release?
+    end
+
     def consent_form_valid?
       if release_duration.in?(['One Year', 'Two Years'])
         release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago

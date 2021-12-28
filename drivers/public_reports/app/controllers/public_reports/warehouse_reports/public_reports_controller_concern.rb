@@ -43,16 +43,8 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
         @report.update(version_slug: version_slug)
         respond_with(@report, location: path_to_report)
       elsif params.dig(:public_report, :published_url).present?
-        html = if @report.view_template.is_a?(Array)
-          @report.view_template.map do |template|
-            string = @report.html_section_start(template)
-            string << render_to_string(template, layout: 'raw_public_report')
-            string << @report.html_section_end(template)
-          end.join
-        else
-          render_to_string(@report.view_template, layout: 'raw_public_report')
-        end
-        @report.publish!(html)
+        @report.delay.publish!
+        flash[:notice] = 'Report publishing queued, please check the public link in a few minutes.'
         respond_with(@report, location: path_to_report)
       else
         redirect_to(action: :edit)

@@ -35,9 +35,9 @@
         %h4 Colors for #{category.to_s.titleize}
         - @config.num_colors_per_category.each do |i|
           = f.input "#{category}_color_#{i}", input_html: { value: @config["#{category}_color_#{i}"], class: 'colorpicker'}
-      %h4 Generic Colors [deprecated]
-      - @config.num_colors.each do |i|
-        = f.input "color_#{i}", input_html: { value: @config.color(i), class: 'colorpicker'}
+      %h4 Map Colors
+      - 5.times do |i|
+        = f.input "color_#{i}", label: "Map Color #{i}", input_html: { value: @config.color(i), class: 'colorpicker'}
 
   - content_for :filter_actions do
     = f.submit 'Update Configuration', class: ['btn', 'btn-primary']
