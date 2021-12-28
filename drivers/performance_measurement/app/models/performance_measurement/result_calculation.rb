@@ -86,6 +86,18 @@ module PerformanceMeasurement::ResultCalculation
       @client_counts[columns][project_id] || 0
     end
 
+    def client_count_present(field, period, project_id: nil)
+      column = "#{period}_#{field}"
+      return clients.where.not(column => nil).count if project_id.blank?
+
+      @client_counts ||= {}
+      @client_counts[column] ||= clients.joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where.not(project_id: nil)).
+        group(:project_id).
+        where.not(column => nil).distinct.count
+      @client_counts[column][project_id] || 0
+    end
+
     def client_sum(field, period, project_id: nil)
       column = "#{period}_#{field}"
       return clients.where.not(column => nil).sum(column) if project_id.blank?
@@ -220,11 +232,10 @@ module PerformanceMeasurement::ResultCalculation
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
 
       field = :days_homeless_es_sh_th
-      reporting_count = client_count(field, :reporting, project_id: project&.project_id)
-      comparison_count = client_count(field, :comparison, project_id: project&.project_id)
+      reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
+      comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
       comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
-
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
@@ -278,8 +289,8 @@ module PerformanceMeasurement::ResultCalculation
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.ph?
 
       field = :days_homeless_es_sh_th_ph
-      reporting_count = client_count(field, :reporting, project_id: project&.project_id)
-      comparison_count = client_count(field, :comparison, project_id: project&.project_id)
+      reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
+      comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
       comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
       reporting_average = average(reporting_days, reporting_count)
