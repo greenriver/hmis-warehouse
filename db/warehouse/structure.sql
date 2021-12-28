@@ -524,7 +524,8 @@ CREATE TABLE public."Client" (
     "Questioning" integer,
     "GenderNone" integer,
     "NativeHIPacific" integer,
-    "NoSingleGender" integer
+    "NoSingleGender" integer,
+    tc_hat_additional_days_homeless integer DEFAULT 0
 );
 
 
@@ -46478,6 +46479,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211218202811'),
 ('20211220163817'),
 ('20211220204231'),
-('20211221151552');
+('20211221151552'),
+('20211223134654');
 
 
