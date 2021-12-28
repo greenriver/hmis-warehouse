@@ -20,7 +20,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     # HouseholdID is required, but often not provided, send some sane defaults
     # Also unique the HouseholdID to a data source
     def apply_overrides(row, data_source_id:)
-      row[:ProjectID] = project_id_from_enrollment_id(row[:EnrollmentID], data_source_id) if row[:ProjectID].blank?
+      row[:ProjectID] = project_id_from_enrollment_id(row[:EnrollmentID], data_source_id) # Force all EnrollmentCoC projects to be the same as their enrollment
       id_of_enrollment = enrollment_export_id(row[:EnrollmentID], row[:PersonalID], data_source_id)
 
       if row[:HouseholdID].blank?
