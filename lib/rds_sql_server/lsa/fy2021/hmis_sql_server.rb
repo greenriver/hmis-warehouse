@@ -43,7 +43,7 @@ module HmisSqlServer
 
     def clean_row_for_import(row:, headers:)
       # replace blanks with nil
-      row.map(&:presence)
+      row.map!(&:presence)
 
       # ensure we always have DateCreated and DateUpdated
       useful_date = useful_date(row: row, headers: headers)

@@ -524,6 +524,20 @@ class RollOut
         puts "[INFO] Looks like the deployment tasks ran to completion (#{self.deployment_id}) #{target_group_name}"
         complete = true
       else
+        # Confirm the log stream is setup
+        resp = nil
+        while resp.nil?
+          begin
+            resp = cwl.get_log_events({
+              log_group_name: target_group_name,
+              log_stream_name: log_stream_name,
+              start_from_head: true,
+            })
+          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
+            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found #{target_group_name}"
+            sleep 30
+          end
+        end
         puts "[WARN] Looks like the deployment task isn't done. #{target_group_name}"
         puts "[WARN] We expected: #{self.deployment_id}"
         puts "[WARN] We got: #{response.dig('registered_deployment_id')}"
@@ -540,19 +554,15 @@ class RollOut
           puts "[WARN] exiting #{target_group_name}"
           exit
         elsif response.downcase.match(/v/)
-          begin
-            resp = cwl.get_log_events({
-              log_group_name: target_group_name,
-              log_stream_name: log_stream_name,
-              start_from_head: true,
-            })
-            resp.events.each do |event|
-              puts "[TASK] #{event.message} #{target_group_name}"
-            end
-          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
-            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found #{target_group_name}"
-            sleep 30
+          resp = cwl.get_log_events({
+            log_group_name: target_group_name,
+            log_stream_name: log_stream_name,
+            start_from_head: true,
+          })
+          resp.events.each do |event|
+            puts "[TASK] #{event.message} #{target_group_name}"
           end
+          sleep 30
         else
           puts "[INFO] Waiting 30 seconds since we didn't understand your response #{target_group_name}"
           sleep 30
