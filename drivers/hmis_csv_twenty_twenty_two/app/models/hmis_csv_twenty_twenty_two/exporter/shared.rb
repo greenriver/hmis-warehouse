@@ -23,9 +23,13 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
         alias_attribute(column.to_s.underscore.to_sym, column)
       end
     end
+
+    def for_cocs(_coc_codes)
+      current_scope
+    end
   end
 
-  def export_to_path(export_scope:, path:, export:)
+  def export_to_path(export_scope:, path:, export:, coc_codes: nil)
     reset_lookups
     headers = self.class.hud_csv_headers(version: '2022')
     export_path = File.join(path, self.class.hud_csv_file_name)
@@ -33,6 +37,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
     CSV.open(export_path, 'wb', force_quotes: true) do |csv|
       csv << clean_headers(headers)
       export_scope = export_scope.with_deleted if paranoid? && export.include_deleted
+      export_scope = export_scope.for_cocs(coc_codes) if coc_codes.present?
 
       columns = columns_to_pluck
 
@@ -156,7 +161,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
     end
   end
 
-  def export_enrollment_related!(enrollment_scope:, project_scope:, path:, export:) # rubocop:disable Lint/UnusedMethodArgument
+  def export_enrollment_related!(enrollment_scope:, project_scope:, path:, export:, coc_codes:) # rubocop:disable Lint/UnusedMethodArgument
     case export.period_type
     when 3
       export_scope = self.class.where(enrollment_exists_for_model(enrollment_scope))
@@ -185,10 +190,11 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
       export_scope: export_scope,
       path: path,
       export: export,
+      coc_codes: coc_codes,
     )
   end
 
-  def export_project_related!(project_scope:, path:, export:)
+  def export_project_related!(project_scope:, path:, export:, coc_codes:)
     case export.period_type
     when 3
       export_scope = self.class.where(project_exits_for_model(project_scope))
@@ -199,6 +205,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
       export_scope: export_scope,
       path: path,
       export: export,
+      coc_codes: coc_codes,
     )
   end
 
@@ -292,24 +299,20 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
   def client_export_id(personal_id, data_source_id)
     # lookup by warehouse client connection
     if is_a? GrdaWarehouse::Hud::Client
-      @dest_client_lookup ||= begin
-        GrdaWarehouse::WarehouseClient.
-          pluck(:source_id, :destination_id, :data_source_id).
-          map do |source_id, destination_id, ds_id|
-          [[source_id.to_s, ds_id], destination_id.to_s]
-        end.to_h
-      end
+      @dest_client_lookup ||= GrdaWarehouse::WarehouseClient.
+        pluck(:source_id, :destination_id, :data_source_id).
+        map do |source_id, destination_id, ds_id|
+        [[source_id.to_s, ds_id], destination_id.to_s]
+      end.to_h
       return @dest_client_lookup[[personal_id, data_source_id]]
     else
       # lookup by personal id
-      @client_lookup ||= begin
-        GrdaWarehouse::Hud::Client.source.
-          joins(:warehouse_client_source).
-          pluck(:PersonalID, Arel.sql(wc_t[:destination_id].to_sql), Arel.sql(wc_t[:data_source_id].to_sql)).
-          map do |source_id, destination_id, ds_id|
-            [[source_id.to_s, ds_id], destination_id.to_s]
-          end.to_h
-      end
+      @client_lookup ||= GrdaWarehouse::Hud::Client.source.
+        joins(:warehouse_client_source).
+        pluck(:PersonalID, Arel.sql(wc_t[:destination_id].to_sql), Arel.sql(wc_t[:data_source_id].to_sql)).
+        map do |source_id, destination_id, ds_id|
+          [[source_id.to_s, ds_id], destination_id.to_s]
+        end.to_h
     end
     @client_lookup[[personal_id, data_source_id]]
   end
