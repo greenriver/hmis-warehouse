@@ -524,7 +524,8 @@ CREATE TABLE public."Client" (
     "Questioning" integer,
     "GenderNone" integer,
     "NativeHIPacific" integer,
-    "NoSingleGender" integer
+    "NoSingleGender" integer,
+    tc_hat_additional_days_homeless integer DEFAULT 0
 );
 
 
@@ -13435,7 +13436,14 @@ CREATE TABLE public.hud_report_spm_clients (
     m6_head_of_household boolean DEFAULT false NOT NULL,
     m6_reporting_age integer,
     m7_head_of_household boolean DEFAULT false NOT NULL,
-    m7_reporting_age integer
+    m7_reporting_age integer,
+    m7b_history jsonb,
+    m2_project_id integer,
+    m3_project_id integer,
+    m4_project_id integer,
+    m5_project_id integer,
+    m7a1_project_id integer,
+    m7b_project_id integer
 );
 
 
@@ -14713,7 +14721,39 @@ CREATE TABLE public.pm_clients (
     comparison_served_on_pit_date_sheltered boolean DEFAULT false NOT NULL,
     reporting_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL,
     comparison_served_on_pit_date_unsheltered boolean DEFAULT false NOT NULL,
-    comparison_days_homeless_es_sh_th_ph integer
+    comparison_days_homeless_es_sh_th_ph integer,
+    reporting_days_in_es_bed integer,
+    reporting_days_in_es_bed_details jsonb,
+    reporting_days_in_es_bed_in_period integer,
+    reporting_days_in_es_bed_details_in_period jsonb,
+    reporting_days_in_sh_bed integer,
+    reporting_days_in_sh_bed_details jsonb,
+    reporting_days_in_sh_bed_in_period integer,
+    reporting_days_in_sh_bed_details_in_period jsonb,
+    reporting_days_in_so_bed integer,
+    reporting_days_in_so_bed_details jsonb,
+    reporting_days_in_so_bed_in_period integer,
+    reporting_days_in_so_bed_details_in_period jsonb,
+    reporting_days_in_th_bed integer,
+    reporting_days_in_th_bed_details jsonb,
+    reporting_days_in_th_bed_in_period integer,
+    reporting_days_in_th_bed_details_in_period jsonb,
+    comparison_days_in_es_bed integer,
+    comparison_days_in_es_bed_details jsonb,
+    comparison_days_in_es_bed_in_period integer,
+    comparison_days_in_es_bed_details_in_period jsonb,
+    comparison_days_in_sh_bed integer,
+    comparison_days_in_sh_bed_details jsonb,
+    comparison_days_in_sh_bed_in_period integer,
+    comparison_days_in_sh_bed_details_in_period jsonb,
+    comparison_days_in_so_bed integer,
+    comparison_days_in_so_bed_details jsonb,
+    comparison_days_in_so_bed_in_period integer,
+    comparison_days_in_so_bed_details_in_period jsonb,
+    comparison_days_in_th_bed integer,
+    comparison_days_in_th_bed_details jsonb,
+    comparison_days_in_th_bed_in_period integer,
+    comparison_days_in_th_bed_details_in_period jsonb
 );
 
 
@@ -43696,6 +43736,13 @@ CREATE INDEX organization_export_id ON public."Organization" USING btree ("Expor
 
 
 --
+-- Name: pm_clients_c_id_p_id_r_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pm_clients_c_id_p_id_r_id ON public.pm_client_projects USING btree (client_id, project_id, report_id);
+
+
+--
 -- Name: ppfc_ppfp_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46429,6 +46476,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211202160059'),
 ('20211208153720'),
 ('20211208155347'),
-('20211218202811');
+('20211218202811'),
+('20211220163817'),
+('20211220204231'),
+('20211221151552'),
+('20211223134654');
 
 
