@@ -54,9 +54,7 @@ module PerformanceMeasurement::Details
       field = result_methods[key]
       return [] unless field
 
-      column = "#{period}_#{field}"
-      # NOTE: this is imperfect, especially for income question
-      clients.where.not(column => nil, column => false)
+      clients.joins(:client_projects).merge(ClientProject.where(period: period, for_question: field))
     end
     memoize :clients_for_question
 

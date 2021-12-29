@@ -43736,6 +43736,13 @@ CREATE INDEX organization_export_id ON public."Organization" USING btree ("Expor
 
 
 --
+-- Name: pm_clients_c_id_fq_r_id_p; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pm_clients_c_id_fq_r_id_p ON public.pm_client_projects USING btree (client_id, for_question, report_id, period);
+
+
+--
 -- Name: pm_clients_c_id_p_id_r_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46480,6 +46487,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211220163817'),
 ('20211220204231'),
 ('20211221151552'),
-('20211223134654');
+('20211223134654'),
+('20211229164804');
 
 

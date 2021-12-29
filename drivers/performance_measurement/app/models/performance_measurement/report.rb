@@ -177,12 +177,10 @@ module PerformanceMeasurement
             spm_clients.each do |spm_client|
               report_client = report_clients[spm_client[:client_id]] || Client.new(report_id: id, client_id: spm_client[:client_id])
               report_client[:dob] = spm_client[:dob]
+              project_id = spm_client[parts[:project_source]]
+              involved_projects << project_id
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
-                project_id = spm_client[parts[:project_source]]
-                next if project_id.blank? # Measure 1 doesn't get drill-downs and has no specific project involved
-
-                involved_projects << project_id
                 project_clients << {
                   report_id: id,
                   client_id: spm_client[:client_id],
@@ -191,6 +189,18 @@ module PerformanceMeasurement
                   period: variant_name,
                 }
               end
+              # Save an aggregate connection when necessary
+              if parts[:questions].count > 1
+                for_question = parts[:questions].map { |q| q[:name] }.join('__')
+                project_clients << {
+                  report_id: id,
+                  client_id: spm_client[:client_id],
+                  project_id: project_id,
+                  for_question: for_question, # allows limiting for a specific response
+                  period: variant_name,
+                }
+              end
+
               report_client["#{variant_name}_spm_id"] = spec[:report].id
               report_clients[spm_client[:client_id]] = report_client
             end

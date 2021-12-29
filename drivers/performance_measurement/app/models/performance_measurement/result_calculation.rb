@@ -14,8 +14,10 @@ module PerformanceMeasurement::ResultCalculation
         percent_changed(reporting_value, comparison_value) < goal(field)
       when :days_homeless_es_sh_th, :days_homeless_es_sh_th_ph, :days_to_return
         reporting_value < goal(field)
-      when :so_destination, :es_sh_th_rrh_destination, :moved_in_destination, :increased_income
+      when :so_destination, :es_sh_th_rrh_destination, :moved_in_destination, :increased_income, :increased_income__income_stayer, :increased_income__income_leaver
         reporting_value > goal(field)
+      else
+        raise "#{field} is undefined for passed?"
       end
     end
 
@@ -26,7 +28,7 @@ module PerformanceMeasurement::ResultCalculation
         0 # FIXME
       when :days_homeless_es_sh_th, :days_homeless_es_sh_th_ph
         365 # FIXME
-      when :so_destination, :es_sh_th_rrh_destination, :moved_in_destination, :days_to_return, :increased_income
+      when :so_destination, :es_sh_th_rrh_destination, :moved_in_destination, :days_to_return, :increased_income, :increased_income__income_stayer, :increased_income__income_leaver
         0 # FIXME (percent change)
       else
         1 # FIXME
@@ -72,56 +74,52 @@ module PerformanceMeasurement::ResultCalculation
       (sorted[mid] + sorted[mid - 1]) / 2
     end
 
-    def client_count(fields, period, project_id: nil)
-      fields = Array.wrap(fields)
-      columns = fields.map { |field| "#{period}_#{field}" }
-      column_query = columns.map { |column| [column, true] }.to_h
-      return clients.where(column_query).count if project_id.blank?
+    def client_count(field, period, project_id: nil)
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).count if project_id.blank?
 
       @client_counts ||= {}
-      @client_counts[columns] ||= clients.joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where.not(project_id: nil)).
+      @client_counts[[field, period]] ||= clients.joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
         group(:project_id).
-        where(column_query).distinct.count
-      @client_counts[columns][project_id] || 0
+        distinct.count
+      @client_counts[[field, period]][project_id] || 0
     end
 
     def client_count_present(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      return clients.where.not(column => nil).count if project_id.blank?
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).count if project_id.blank?
 
-      @client_counts ||= {}
-      @client_counts[column] ||= clients.joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where.not(project_id: nil)).
+      @client_count_present ||= {}
+      @client_count_present[column] ||= clients.joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
         group(:project_id).
-        where.not(column => nil).distinct.count
-      @client_counts[column][project_id] || 0
+        distinct.count
+      @client_count_present[column][project_id] || 0
     end
 
     def client_sum(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      return clients.where.not(column => nil).sum(column) if project_id.blank?
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).sum(column) if project_id.blank?
 
       @client_sums ||= {}
       @client_sums[column] ||= clients.joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where.not(project_id: nil)).
+        merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
         group(:project_id).
-        where.not(column => nil).distinct.sum(column)
+        distinct.sum(column)
       @client_sums[column][project_id] || 0
     end
 
     def client_data(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      return clients.where.not(column => nil).pluck(column) if project_id.blank?
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).pluck(column) if project_id.blank?
 
       @client_data ||= {}
       existing = @client_data.dig(column)
       return existing.dig(project_id) || [] if existing.present?
 
-      clients.
-        joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where.not(project_id: nil)).
-        where.not(column => nil).distinct.pluck(:project_id, column).each do |p_id, value|
+      clients.joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
+        distinct.pluck(:project_id, column).each do |p_id, value|
           @client_data[column] ||= {}
           @client_data[column][p_id] ||= []
           @client_data[column][p_id] << value
@@ -538,8 +536,8 @@ module PerformanceMeasurement::ResultCalculation
     def increased_income(income_field, status_field, meth, project: nil)
       reporting_denominator = client_count(status_field, :reporting)
       comparison_denominator = client_count(status_field, :comparison)
-      reporting_numerator = client_count([income_field, status_field], :reporting)
-      comparison_numerator = client_count([income_field, status_field], :comparison)
+      reporting_numerator = client_count(income_field, :reporting)
+      comparison_numerator = client_count(income_field, :comparison)
 
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
@@ -593,10 +591,10 @@ module PerformanceMeasurement::ResultCalculation
         so_positive_destinations: :so_destination,
         es_sh_th_rrh_positive_destinations: :es_sh_th_rrh_destination,
         moved_in_positive_destinations: :moved_in_destination,
-        returned_in_six_months: :days_to_return,
-        returned_in_two_years: :days_to_return,
-        stayers_with_increased_income: :increased_income,
-        leavers_with_increased_income: :increased_income,
+        # returned_in_six_months: :days_to_return,
+        # returned_in_two_years: :days_to_return,
+        stayers_with_increased_income: :increased_income__income_stayer,
+        leavers_with_increased_income: :increased_income__income_leaver,
       }
     end
   end
