@@ -200,6 +200,11 @@ module PerformanceMeasurement
                   period: variant_name,
                 }
               end
+              if parts.key?(:client_project_rows)
+                parts[:client_project_rows].each do |cpr|
+                  project_clients << cpr.call(spm_client, project_id, variant_name)
+                end
+              end
 
               report_client["#{variant_name}_spm_id"] = spec[:report].id
               report_clients[spm_client[:client_id]] = report_client
@@ -239,7 +244,7 @@ module PerformanceMeasurement
         },
       )
       Project.import!([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] }, batch_size: 5_000)
-      ClientProject.import!(project_clients.to_a, batch_size: 5_000)
+      ClientProject.import!(project_clients.to_a.compact, batch_size: 5_000)
       universe.add_universe_members(report_clients)
     end
 
@@ -518,6 +523,30 @@ module PerformanceMeasurement
               value_calculation: ->(spm_client) { spm_client[:m7a1_destination] },
             },
           ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7a1_destination].present?
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :so_destination,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7a1_destination].present? && spm_client[:m7a1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :so_destination_positive,
+                period: variant_name,
+              }
+            },
+          ],
         },
         {
           cells: [['7b.1', 'C2']],
@@ -530,6 +559,30 @@ module PerformanceMeasurement
               value_calculation: ->(spm_client) { spm_client[:m7b1_destination] },
             },
           ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7b1_destination].present?
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :es_sh_th_rrh_destination,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7b1_destination].present? && spm_client[:m7b1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :es_sh_th_rrh_destination_positive,
+                period: variant_name,
+              }
+            },
+          ],
         },
         {
           cells: [['7b.2', 'C2']],
@@ -540,6 +593,30 @@ module PerformanceMeasurement
             {
               name: :moved_in_destination, # NOTE: destination 0 == stayer in the SPM
               value_calculation: ->(spm_client) { spm_client[:m7b2_destination] },
+            },
+          ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7b2_destination].present?
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :moved_in_destination,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7b2_destination].present? && spm_client[:m7b2_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :moved_in_destination_positive,
+                period: variant_name,
+              }
             },
           ],
         },
@@ -556,6 +633,42 @@ module PerformanceMeasurement
             {
               name: :destination,
               value_calculation: ->(spm_client) { spm_client[:m2_exit_to_destination] },
+            },
+          ],
+          # This needs to introspect on the number of days to re-entry and save off extra client_project records
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 180)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :returned_in_six_months,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 730)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :returned_in_two_years,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].positive?
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :returned_ever,
+                period: variant_name,
+              }
             },
           ],
         },

@@ -10,11 +10,26 @@ module PerformanceMeasurement::ResultCalculation
   included do
     def passed?(field, reporting_value, comparison_value)
       case field
-      when :served_on_pit_date, :first_time, :served_on_pit_date_sheltered, :served_on_pit_date_unsheltered
+      when :served_on_pit_date,
+        :first_time,
+        :served_on_pit_date_sheltered,
+        :served_on_pit_date_unsheltered
         percent_changed(reporting_value, comparison_value) < goal(field)
-      when :days_homeless_es_sh_th, :days_homeless_es_sh_th_ph, :days_to_return
+      when :days_homeless_es_sh_th,
+        :days_homeless_es_sh_th_ph,
+        :days_to_return,
+        :returned_in_six_months,
+        :returned_in_two_years
         reporting_value < goal(field)
-      when :so_destination, :es_sh_th_rrh_destination, :moved_in_destination, :increased_income, :increased_income__income_stayer, :increased_income__income_leaver
+      when :so_destination,
+        :so_destination_positive,
+        :es_sh_th_rrh_destination,
+        :es_sh_th_rrh_destination_positive,
+        :moved_in_destination,
+        :moved_in_destination_positive,
+        :increased_income,
+        :increased_income__income_stayer,
+        :increased_income__income_leaver
         reporting_value > goal(field)
       else
         raise "#{field} is undefined for passed?"
@@ -24,11 +39,26 @@ module PerformanceMeasurement::ResultCalculation
     def goal(field)
       # TODO: what are the goals?
       case field
-      when :served_on_pit_date, :first_time, :served_on_pit_date_sheltered, :served_on_pit_date_unsheltered
+      when :served_on_pit_date,
+        :first_time,
+        :served_on_pit_date_sheltered,
+        :served_on_pit_date_unsheltered
         0 # FIXME
-      when :days_homeless_es_sh_th, :days_homeless_es_sh_th_ph
+      when :days_homeless_es_sh_th,
+        :days_homeless_es_sh_th_ph
         365 # FIXME
-      when :so_destination, :es_sh_th_rrh_destination, :moved_in_destination, :days_to_return, :increased_income, :increased_income__income_stayer, :increased_income__income_leaver
+      when :so_destination,
+        :so_destination_positive,
+        :es_sh_th_rrh_destination,
+        :es_sh_th_rrh_destination_positive,
+        :moved_in_destination,
+        :moved_in_destination_positive,
+        :days_to_return,
+        :returned_in_six_months,
+        :returned_in_two_years,
+        :increased_income,
+        :increased_income__income_stayer,
+        :increased_income__income_leaver
         0 # FIXME (percent change)
       else
         1 # FIXME
@@ -109,22 +139,41 @@ module PerformanceMeasurement::ResultCalculation
       @client_sums[column][project_id] || 0
     end
 
+    def client_ids(field, period, project_id: nil)
+      key = [period, field]
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).pluck(:id) if project_id.blank?
+
+      @client_ids ||= {}
+      existing = @client_ids.dig(key)
+      return existing.dig(project_id) || [] if existing.present?
+
+      clients.joins(:client_projects).
+        merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
+        distinct.pluck(:project_id, :id).each do |p_id, value|
+          @client_ids[key] ||= {}
+          @client_ids[key][p_id] ||= []
+          @client_ids[key][p_id] << value
+        end
+      @client_ids.dig(key, project_id) || []
+    end
+
     def client_data(field, period, project_id: nil)
-      column = "#{period}_#{field}"
+      key = [period, field]
+      column = key.join('_')
       return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).pluck(column) if project_id.blank?
 
       @client_data ||= {}
-      existing = @client_data.dig(column)
+      existing = @client_data.dig(key)
       return existing.dig(project_id) || [] if existing.present?
 
       clients.joins(:client_projects).
         merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
         distinct.pluck(:project_id, column).each do |p_id, value|
-          @client_data[column] ||= {}
-          @client_data[column][p_id] ||= []
-          @client_data[column][p_id] << value
+          @client_data[key] ||= {}
+          @client_data[key][p_id] ||= []
+          @client_data[key][p_id] << value
         end
-      @client_data.dig(column, project_id) || []
+      @client_data.dig(key, project_id) || []
     end
 
     def count_of_sheltered_homeless_clients(field, project: nil)
@@ -221,7 +270,7 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def length_of_homeless_stay_average(field, project: nil)
+    def length_of_homeless_time_homeless_average(field, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
@@ -249,7 +298,7 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def length_of_homeless_stay_median(field, project: nil)
+    def length_of_homeless_time_homeless_median(field, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
@@ -334,18 +383,16 @@ module PerformanceMeasurement::ResultCalculation
     def so_positive_destinations(field, project: nil)
       return unless project.blank? || project.hud_project&.so?
 
-      reporting_destinations = client_data(field, :reporting, project_id: project&.project_id)
-      comparison_destinations = client_data(field, :comparison, project_id: project&.project_id)
-      reporting_denominator = reporting_destinations.select(&:positive?).count
-      reporting_numerator = reporting_destinations.select do |d|
-        d.in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
-      end.count
+      reporting_destinations = client_ids(:so_destination, :reporting, project_id: project&.project_id)
+      reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
+      comparison_destinations = client_ids(:so_destination, :comparison, project_id: project&.project_id)
+      comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
+      reporting_denominator = reporting_destinations.count
+      reporting_numerator = reporting_destinations_in_range.count
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
-      comparison_denominator = comparison_destinations.select(&:positive?).count
-      comparison_numerator = comparison_destinations.select do |d|
-        d.in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
-      end.count
+      comparison_denominator = comparison_destinations.count
+      comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       PerformanceMeasurement::Result.new(
@@ -367,18 +414,16 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def es_sh_th_rrh_positive_destinations(field, project: nil)
-      reporting_destinations = client_data(field, :reporting, project_id: project&.project_id)
-      comparison_destinations = client_data(field, :comparison, project_id: project&.project_id)
-      reporting_denominator = reporting_destinations.select(&:positive?).count
-      reporting_numerator = reporting_destinations.select do |d|
-        d.in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
-      end.count
+      reporting_destinations = client_ids(:es_sh_th_rrh_destination, :reporting, project_id: project&.project_id)
+      reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
+      comparison_destinations = client_ids(:es_sh_th_rrh_destination, :comparison, project_id: project&.project_id)
+      comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
+      reporting_denominator = reporting_destinations.count
+      reporting_numerator = reporting_destinations_in_range.count
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
-      comparison_denominator = comparison_destinations.select(&:positive?).count
-      comparison_numerator = comparison_destinations.select do |d|
-        d.in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
-      end.count
+      comparison_denominator = comparison_destinations.count
+      comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       PerformanceMeasurement::Result.new(
@@ -400,18 +445,16 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def moved_in_positive_destinations(field, project: nil)
-      reporting_destinations = client_data(field, :reporting, project_id: project&.project_id)
-      comparison_destinations = client_data(field, :comparison, project_id: project&.project_id)
-      reporting_denominator = reporting_destinations.select(&:positive?).count
-      reporting_numerator = reporting_destinations.select do |d|
-        d.in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS_OR_STAYER)
-      end.count
+      reporting_destinations = client_ids(:moved_in_destination, :reporting, project_id: project&.project_id)
+      reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
+      comparison_destinations = client_ids(:moved_in_destination, :comparison, project_id: project&.project_id)
+      comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
+      reporting_denominator = reporting_destinations.count
+      reporting_numerator = reporting_destinations_in_range.count
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
-      comparison_denominator = comparison_destinations.select(&:positive?).count
-      comparison_numerator = comparison_destinations.select do |d|
-        d.in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS_OR_STAYER)
-      end.count
+      comparison_denominator = comparison_destinations.count
+      comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       PerformanceMeasurement::Result.new(
@@ -433,26 +476,24 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def returned_in_six_months(field, project: nil)
-      returned_in_range(field, 1..180, __method__, project: project)
+      returned_in_range(field, __method__, project: project)
     end
 
     def returned_in_two_years(field, project: nil)
-      returned_in_range(field, 1..730, __method__, project: project)
+      returned_in_range(field, __method__, project: project)
     end
 
-    def returned_in_range(field, range, meth, project: nil)
-      reporting_returns = client_data(field, :reporting, project_id: project&.project_id)
-      comparison_returns = client_data(field, :comparison, project_id: project&.project_id)
-      reporting_denominator = reporting_returns.select(&:positive?).count
-      reporting_numerator = reporting_returns.select do |d|
-        d.between?(range.first, range.last)
-      end.count
+    def returned_in_range(field, meth, project: nil)
+      reporting_returns = client_ids(:returned_ever, :reporting, project_id: project&.project_id)
+      reporting_returns_in_range = client_ids(field, :reporting, project_id: project&.project_id)
+      comparison_returns = client_ids(:returned_ever, :comparison, project_id: project&.project_id)
+      comparison_returns_in_range = client_ids(field, :comparison, project_id: project&.project_id)
+      reporting_denominator = reporting_returns.count
+      reporting_numerator = reporting_returns_in_range.count
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
-      comparison_denominator = comparison_returns.select(&:positive?).count
-      comparison_numerator = comparison_returns.select do |d|
-        d.between?(range.first, range.last)
-      end.count
+      comparison_denominator = comparison_returns.count
+      comparison_numerator = comparison_returns_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       PerformanceMeasurement::Result.new(
@@ -483,8 +524,8 @@ module PerformanceMeasurement::ResultCalculation
 
     # def average_bed_utilization_for_project(project_type, meth, project:)
     #   field = "days_in_#{project_type}_bed_details_in_period"
-    #   reporting_days = client_data(field, :reporting, project_id: project.id)
-    #   comparison_days = client_data(field, :comparison, project_id: project.id)
+    #   reporting_days = client_ids(field, :reporting, project_id: project.id)
+    #   comparison_days = client_ids(field, :comparison, project_id: project.id)
     #   reporting_denominator = reporting_days
     #   reporting_numerator = reporting_days.map do |days|
     #     if days[project_id].
@@ -493,8 +534,8 @@ module PerformanceMeasurement::ResultCalculation
 
     # def average_bed_utilization(project_type, meth)
     #   field = "days_in_#{project_type}_bed_in_period"
-    #   reporting_days = client_data(field, :reporting)
-    #   comparison_days = client_data(field, :comparison)
+    #   reporting_days = client_ids(field, :reporting)
+    #   comparison_days = client_ids(field, :comparison)
     #   reporting_denominator = reporting_returns.select(&:positive?).count
     #   reporting_numerator = reporting_returns.select do |d|
     #     d.between?(range.first, range.last)
@@ -584,17 +625,19 @@ module PerformanceMeasurement::ResultCalculation
         count_of_homeless_clients: :served_on_pit_date,
         count_of_unsheltered_homeless_clients: :served_on_pit_date_unsheltered,
         first_time_homeless_clients: :first_time,
-        length_of_homeless_stay_average: :days_homeless_es_sh_th,
-        length_of_homeless_stay_median: :days_homeless_es_sh_th,
+        length_of_homeless_time_homeless_average: :days_homeless_es_sh_th,
+        length_of_homeless_time_homeless_median: :days_homeless_es_sh_th,
         time_to_move_in_average: :days_homeless_es_sh_th_ph,
         time_to_move_in_median: :days_homeless_es_sh_th_ph,
-        so_positive_destinations: :so_destination,
-        es_sh_th_rrh_positive_destinations: :es_sh_th_rrh_destination,
-        moved_in_positive_destinations: :moved_in_destination,
-        # returned_in_six_months: :days_to_return,
-        # returned_in_two_years: :days_to_return,
+        so_positive_destinations: :so_destination_positive,
+        es_sh_th_rrh_positive_destinations: :es_sh_th_rrh_destination_positive,
+        moved_in_positive_destinations: :moved_in_destination_positive,
+        returned_in_six_months: :returned_in_six_months,
+        returned_in_two_years: :returned_in_two_years,
         stayers_with_increased_income: :increased_income__income_stayer,
         leavers_with_increased_income: :increased_income__income_leaver,
+        # length_of_homeless_time_homeless_average # Need to include multiple fields days_in_#{p_type}_bed where p_type is so, es, sh, th
+        # length_of_homeless_time_homeless_median # Need to include multiple fields days_in_#{p_type}_bed where p_type is so, es, sh, th
       }
     end
   end
