@@ -28,6 +28,10 @@ module PerformanceMeasurement::Details
       detail_hash[key][:calculation_description]
     end
 
+    def detail_column_for(key)
+      detail_hash[key][:column]
+    end
+
     def my_projects(user, key)
       project_details(key).select do |project_id, _|
         user.viewable_project_ids.include?(project_id)

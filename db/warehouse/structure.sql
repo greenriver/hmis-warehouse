@@ -14753,7 +14753,15 @@ CREATE TABLE public.pm_clients (
     comparison_days_in_th_bed integer,
     comparison_days_in_th_bed_details jsonb,
     comparison_days_in_th_bed_in_period integer,
-    comparison_days_in_th_bed_details_in_period jsonb
+    comparison_days_in_th_bed_details_in_period jsonb,
+    reporting_days_in_homeless_bed integer,
+    reporting_days_in_homeless_bed_details jsonb,
+    reporting_days_in_homeless_bed_in_period integer,
+    reporting_days_in_homeless_bed_details_in_period jsonb,
+    comparison_days_in_homeless_bed integer,
+    comparison_days_in_homeless_bed_details jsonb,
+    comparison_days_in_homeless_bed_in_period integer,
+    comparison_days_in_homeless_bed_details_in_period jsonb
 );
 
 
@@ -46488,6 +46496,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211220204231'),
 ('20211221151552'),
 ('20211223134654'),
-('20211229164804');
+('20211229164804'),
+('20211230201245');
 
 

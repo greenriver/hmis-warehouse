@@ -16,7 +16,8 @@
   .w-50= render 'warehouse_reports/indicator', indicator: result
   .w-50
     .jSystemLevelChart{ data: { chart: result.data_for_system_level_bar.to_json }}
-= render 'projects'
+- if @report.detail_column_for(@key) != :system
+  = render 'projects'
 = content_for :page_js do
   :javascript
     $(document).ready(function(){
