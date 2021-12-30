@@ -55,6 +55,11 @@ module CasClientData
         health_prioritized: _('Health Priority'),
         tie_breaker_date: _('Tie Breaker Date'),
         financial_assistance_end_date: _('Financial Assistance End Date'),
+        strengths: _('Strengths'),
+        challenges: _('Challenges'),
+        foster_care: _('Foster care as youth'),
+        open_case: _('Current open case'),
+        housing_for_formerly_homeless: _('Prefers housing for formerly homeless'),
       }
     end
 
@@ -76,6 +81,7 @@ module CasClientData
         :interested_in_set_asides,
         :rrh_desired,
         :youth_rrh_desired,
+        :tc_hat_additional_days_homeless,
         neighborhood_interests: [],
       ]
     end
@@ -85,6 +91,12 @@ module CasClientData
         compact.
         select { |a| a.AssessmentDate.present? }.
         max_by(&:AssessmentDate)
+    end
+
+    def most_recent_tc_hat_for_destination
+      @most_recent_tc_hat_for_destination ||= source_clients.map(&:most_recent_tc_hat).
+        compact.
+        max_by(&:collected_at)
     end
 
     def active_in_cas?
@@ -359,8 +371,7 @@ module CasClientData
       rrh_assessment_collected_at
     end
 
-    # NOTE: in the future, this might be calculated based on days in homeless sheltered locations
-    # vs days unsheltered
-    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date
+    # The following do not currently get persisted onto Client, but are calculated live
+    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless, :hivaids_status
   end
 end

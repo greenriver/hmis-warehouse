@@ -24,7 +24,7 @@ module Health
         import!(
           klass.as_health_contacts(force),
           on_duplicate_key_update: {
-            conflict_target: [:client_id, :source_id, :source_type],
+            conflict_target: [:patient_id, :source_id, :source_type],
           },
         )
       end
