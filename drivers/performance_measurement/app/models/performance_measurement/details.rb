@@ -204,7 +204,7 @@ module PerformanceMeasurement::Details
         },
         time_to_move_in_average: {
           category: 'Brief',
-          column: :both,
+          column: :system,
           title: 'Time to Move-in (Average Days)',
           goal_description: 'Persons in the CoC will have an average combined length of time homeless of no more than X days.',
           calculation_description: '1b. Average number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as appliable).',
@@ -215,7 +215,7 @@ module PerformanceMeasurement::Details
         },
         time_to_move_in_median: {
           category: 'Brief',
-          column: :both,
+          column: :system,
           title: 'Time to Move-in (Median Days)',
           goal_description: 'Persons in the CoC will have a median combined length of time homeless of no more than X days.',
           calculation_description: '1b. Median number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as appliable).',
