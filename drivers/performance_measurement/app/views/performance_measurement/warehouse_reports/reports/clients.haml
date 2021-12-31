@@ -2,7 +2,7 @@
 - content_for :title, title
 %h1= content_for :title
 %p= @report.filter.date_range_words
-- if @report.clients_for_question(@key, :reporting).blank?
+- if @report.clients_for_question(@key, :reporting, project_id: params[:project_id]).blank?
   %p.none-found
     No records found.
 - else
@@ -12,13 +12,13 @@
         %thead.thead-dark
           %tr
             %th
-            - @report.detail_headers.each_value do |header|
+            - @report.detail_headers(key: @key).each_value do |header|
               %th= header
         %tbody.thead-dark
-          - @report.clients_for_question(@key, :reporting).each.with_index do |client, i|
+          - @report.clients_for_question(@key, :reporting, project_id: params[:project_id]).each.with_index do |client, i|
             %tr
               %th= i + 1
-              - @report.detail_headers.each_key do |k|
+              - @report.detail_headers(key: @key).each_key do |k|
                 %td{style: 'max-width: 600px;'}
                   - if k.to_s == 'client_id'
                     = link_to from_source_client_path(client[k]) do

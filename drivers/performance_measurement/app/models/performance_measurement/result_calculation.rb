@@ -477,6 +477,8 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def es_sh_th_rrh_positive_destinations(field, project: nil)
+      return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.rrh?
+
       reporting_destinations = client_ids(:es_sh_th_rrh_destination, :reporting, project_id: project&.project_id)
       reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
       comparison_destinations = client_ids(:es_sh_th_rrh_destination, :comparison, project_id: project&.project_id)
@@ -508,6 +510,8 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def moved_in_positive_destinations(field, project: nil)
+      return unless project.blank? || project.hud_project&.ph?
+
       reporting_destinations = client_ids(:moved_in_destination, :reporting, project_id: project&.project_id)
       reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
       comparison_destinations = client_ids(:moved_in_destination, :comparison, project_id: project&.project_id)
@@ -683,25 +687,7 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     private def result_methods
-      {
-        count_of_sheltered_homeless_clients: :served_on_pit_date_sheltered,
-        count_of_homeless_clients: :served_on_pit_date,
-        count_of_unsheltered_homeless_clients: :served_on_pit_date_unsheltered,
-        first_time_homeless_clients: :first_time,
-        length_of_homeless_time_homeless_average: :days_homeless_es_sh_th,
-        length_of_homeless_time_homeless_median: :days_homeless_es_sh_th,
-        time_to_move_in_average: :days_homeless_es_sh_th_ph,
-        time_to_move_in_median: :days_homeless_es_sh_th_ph,
-        so_positive_destinations: :so_destination_positive,
-        es_sh_th_rrh_positive_destinations: :es_sh_th_rrh_destination_positive,
-        moved_in_positive_destinations: :moved_in_destination_positive,
-        returned_in_six_months: :returned_in_six_months,
-        returned_in_two_years: :returned_in_two_years,
-        stayers_with_increased_income: :increased_income__income_stayer,
-        leavers_with_increased_income: :increased_income__income_leaver,
-        length_of_homeless_stay_average: :days_in_homeless_bed,
-        length_of_homeless_stay_median: :days_in_homeless_bed,
-      }
+      detail_hash.map { |k, row| [k, row[:calculation_column]] }.to_h.freeze
     end
   end
 end
