@@ -23997,6 +23997,13 @@ CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
 
 
 --
+-- Name: fq_r_id_p; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX fq_r_id_p ON public.pm_client_projects USING btree (for_question, report_id, period);
+
+
+--
 -- Name: funder_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39523,10 +39530,10 @@ CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performan
 
 
 --
--- Name: index_pm_client_projects_on_client_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_pm_client_projects_on_client_id_and_report_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_pm_client_projects_on_client_id ON public.pm_client_projects USING btree (client_id);
+CREATE INDEX index_pm_client_projects_on_client_id_and_report_id ON public.pm_client_projects USING btree (client_id, report_id);
 
 
 --
@@ -39551,20 +39558,6 @@ CREATE INDEX index_pm_client_projects_on_project_id_and_report_id ON public.pm_c
 
 
 --
--- Name: index_pm_client_projects_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pm_client_projects_on_report_id ON public.pm_client_projects USING btree (report_id);
-
-
---
--- Name: index_pm_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pm_clients_on_client_id ON public.pm_clients USING btree (client_id);
-
-
---
 -- Name: index_pm_clients_on_client_id_and_report_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39576,13 +39569,6 @@ CREATE INDEX index_pm_clients_on_client_id_and_report_id ON public.pm_clients US
 --
 
 CREATE INDEX index_pm_clients_on_deleted_at ON public.pm_clients USING btree (deleted_at);
-
-
---
--- Name: index_pm_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pm_clients_on_report_id ON public.pm_clients USING btree (report_id);
 
 
 --
@@ -46497,6 +46483,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211221151552'),
 ('20211223134654'),
 ('20211229164804'),
-('20211230201245');
+('20211230201245'),
+('20220101180956');
 
 

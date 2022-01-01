@@ -21,14 +21,20 @@
       - group.each do |row|
         - key = row.first
         - indicator = @report.result_for(key)
-        - column = row.last[:column]
-        - options = { indicator: indicator, link: performance_measurement_warehouse_reports_report_details_path(@report, key: key), title: @report.detail_goal_description_for(indicator.field.to_sym), description: @report.detail_calculation_description_for(indicator.field.to_sym) }
-        %tr.indicators
-          - if column == :both
-            %td.both{colspan: 2}= render 'warehouse_reports/indicator', **options
-          - elsif column == :system
-            %td.system= render 'warehouse_reports/indicator', **options
-            %td
-          - elsif column == :project
-            %td
-            %td.project= render 'warehouse_reports/indicator', **options
+        - if indicator
+          - column = row.last[:column]
+          - options = { indicator: indicator, link: performance_measurement_warehouse_reports_report_details_path(@report, key: key), title: @report.detail_goal_description_for(indicator.field.to_sym), description: @report.detail_calculation_description_for(indicator.field.to_sym) }
+          %tr.indicators
+            - if column == :both
+              %td.both{colspan: 2}= render 'warehouse_reports/indicator', **options
+            - elsif column == :system
+              %td.system= render 'warehouse_reports/indicator', **options
+              %td
+            - elsif column == :project
+              %td
+              %td.project= render 'warehouse_reports/indicator', **options
+        - else
+          %tr.indicators
+            %td.both{colspan: 2}
+              Error displaying:
+              = key

@@ -44,6 +44,7 @@ module PerformanceMeasurement
       start
       begin
         create_universe
+        add_capacities
         save_results
       rescue Exception => e
         update(failed_at: Time.current)
@@ -162,6 +163,27 @@ module PerformanceMeasurement
       clients.delete_all
       report_clients = {}
       add_clients(report_clients)
+    end
+
+    private def add_capacities
+      variants.each do |period, _|
+        range = if period == :reporting
+          filter.as_date_range
+        else
+          filter.comparison_as_date_range
+        end
+        projects.preload(hud_project: :inventories).each do |project|
+          next unless project.project_id
+
+          average_capacity = project.hud_project.inventories.within_range(range).map do |inventory|
+            inventory.average_daily_inventory(
+              range: range,
+              field: :BedInventory,
+            )
+          end.sum
+          project.update("#{period}_ave_bed_capacity_per_night" => average_capacity)
+        end
+      end
     end
 
     private def add_clients(report_clients)
@@ -531,7 +553,7 @@ module PerformanceMeasurement
       # Re-enable the following if you don't want to have to run SPMs during development
       # if Rails.env.development?
       #   variants.values.reverse.each.with_index do |spec, i|
-      #     spec[:report] = HudReports::ReportInstance.automated.order(id: :desc).first(2)[i]
+      #     spec[:report] = HudReports::ReportInstance.automated.complete.order(id: :desc).first(2)[i]
       #   end
       # else
       generator = HudSpmReport::Generators::Fy2020::Generator

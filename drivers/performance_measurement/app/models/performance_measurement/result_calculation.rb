@@ -23,7 +23,10 @@ module PerformanceMeasurement::ResultCalculation
         :days_in_homeless_bed_details,
         :days_in_homeless_bed,
         :days_in_homeless_bed_in_period,
-        :days_in_homeless_bed_details_in_period
+        :days_in_homeless_bed_details_in_period,
+        :days_in_es_bed_in_period,
+        :days_in_sh_bed_in_period,
+        :days_in_th_bed_in_period
         reporting_value < goal(field)
       when :so_destination,
         :so_destination_positive,
@@ -68,6 +71,10 @@ module PerformanceMeasurement::ResultCalculation
         :days_in_homeless_bed_in_period,
         :days_in_homeless_bed_details_in_period
         0 # FIXME (percent change)
+      when :days_in_es_bed_in_period,
+        :days_in_sh_bed_in_period,
+        :days_in_th_bed_in_period
+        100
       else
         1 # FIXME
       end
@@ -145,6 +152,17 @@ module PerformanceMeasurement::ResultCalculation
         group(:project_id).
         distinct.sum(column)
       @client_sums[column][project_id] || 0
+    end
+
+    def inventory_sum(field, period, project_id: nil, project_type:)
+      column = "#{period}_#{field}"
+      project_scope = projects.joins(:hud_project).merge(GrdaWarehouse::Hud::Project.send(project_type))
+      return project_scope.sum(column) if project_id.blank?
+
+      @inventory_sum ||= {}
+      @inventory_sum[column] ||= {}
+      @inventory_sum[column][project_type] ||= project_scope.group(:project_id).sum(column)
+      @inventory_sum[column][project_type][project_id] || 0
     end
 
     def client_ids(field, period, project_id: nil)
@@ -581,57 +599,56 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    # def es_average_bed_utilization(project: nil)
-    #   if project&.project_id.blank?
-    #     average_bed_utilization(:es, __method__)
-    #   else
-    #     average_bed_utilization_for_project(:es, __method__, project: project)
-    #   end
-    # end
+    def es_average_bed_utilization(field, project: nil)
+      return unless project.blank? || project.hud_project&.es?
 
-    # def average_bed_utilization_for_project(project_type, meth, project:)
-    #   field = "days_in_#{project_type}_bed_details_in_period"
-    #   reporting_days = client_ids(field, :reporting, project_id: project.id)
-    #   comparison_days = client_ids(field, :comparison, project_id: project.id)
-    #   reporting_denominator = reporting_days
-    #   reporting_numerator = reporting_days.map do |days|
-    #     if days[project_id].
-    #   end
-    # end
+      average_bed_utilization(field, __method__, project_type: :es, project: project)
+    end
 
-    # def average_bed_utilization(project_type, meth)
-    #   field = "days_in_#{project_type}_bed_in_period"
-    #   reporting_days = client_ids(field, :reporting)
-    #   comparison_days = client_ids(field, :comparison)
-    #   reporting_denominator = reporting_returns.select(&:positive?).count
-    #   reporting_numerator = reporting_returns.select do |d|
-    #     d.between?(range.first, range.last)
-    #   end.count
-    #   reporting_percent = percent_of(reporting_numerator, reporting_denominator)
+    def sh_average_bed_utilization(field, project: nil)
+      return unless project.blank? || project.hud_project&.sh?
 
-    #   comparison_denominator = comparison_returns.select(&:positive?).count
-    #   comparison_numerator = comparison_returns.select do |d|
-    #     d.between?(range.first, range.last)
-    #   end.count
-    #   comparison_percent = percent_of(comparison_numerator, comparison_denominator)
+      average_bed_utilization(field, __method__, project_type: :sh, project: project)
+    end
 
-    #   PerformanceMeasurement::Result.new(
-    #     report_id: id,
-    #     field: meth,
-    #     title: detail_title_for(meth.to_sym),
-    #     passed: passed?(field, reporting_percent, nil),
-    #     direction: direction(field, reporting_percent, comparison_percent),
-    #     primary_value: reporting_numerator,
-    #     primary_unit: 'clients',
-    #     secondary_value: reporting_percent,
-    #     secondary_unit: '%',
-    #     value_label: 'Change over year',
-    #     comparison_primary_value: comparison_numerator,
-    #     system_level: project&.project_id.blank?,
-    #     project_id: project&.project_id,
-    #     goal: goal(field),
-    #   )
-    # end
+    def th_average_bed_utilization(field, project: nil)
+      return unless project.blank? || project.hud_project&.th?
+
+      average_bed_utilization(field, __method__, project_type: :th, project: project)
+    end
+
+    def average_bed_utilization(field, meth, project_type:, project: nil)
+      day_count = filter.range.count
+      reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
+      reporting_inventory = inventory_sum(:ave_bed_capacity_per_night, :reporting, project_id: project&.project_id, project_type: project_type)
+      comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
+      comparison_inventory = inventory_sum(:ave_bed_capacity_per_night, :reporting, project_id: project&.project_id, project_type: project_type)
+
+      reporting_denominator = reporting_inventory
+      reporting_numerator = reporting_days / day_count.to_f
+      reporting_percent = percent_of(reporting_numerator, reporting_denominator)
+
+      comparison_denominator = comparison_inventory
+      comparison_numerator = comparison_days / day_count.to_f
+      comparison_percent = percent_of(comparison_numerator, comparison_denominator)
+
+      PerformanceMeasurement::Result.new(
+        report_id: id,
+        field: meth,
+        title: detail_title_for(meth.to_sym),
+        passed: passed?(field, reporting_percent, nil),
+        direction: direction(field, reporting_percent, comparison_percent),
+        primary_value: reporting_percent,
+        primary_unit: '%',
+        secondary_value: nil,
+        secondary_unit: nil,
+        value_label: 'Change over year',
+        comparison_primary_value: comparison_percent,
+        system_level: project&.project_id.blank?,
+        project_id: project&.project_id,
+        goal: goal(field),
+      )
+    end
 
     def stayers_with_increased_income(field, project: nil)
       increased_income(field, :income_stayer, __method__, project: project)

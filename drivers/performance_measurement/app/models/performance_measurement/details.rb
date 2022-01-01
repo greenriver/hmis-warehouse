@@ -111,13 +111,46 @@ module PerformanceMeasurement::Details
         },
         first_time_homeless_clients: {
           category: 'Rare',
-          column: :system,
+          column: :both,
           title: 'Number of First-Time Homeless People',
           goal_description: 'The CoC will reduce total counts of persons experiencing homelessness for the first time in HMIS by X% annually',
           calculation_description: 'The difference (as a percentage) between the number of persons who entered during the reporting period with no prior enrollments in  HMIS (via the CoC’s ES, SH, TH, and PH projects) and the previous reporting period’s count.',
           calculation_column: :first_time,
           detail_columns: [
             'first_time',
+          ],
+        },
+        es_average_bed_utilization: {
+          category: 'Rare',
+          column: :both,
+          title: 'Average Bed Utilization in ES',
+          goal_description: 'The CoC will maintain enough beds to meet demand.',
+          calculation_description: 'The average of the number of persons occupying a bed each night divided by the system’s total bed capacity for Emergency Shelter during the reporting range.',
+          calculation_column: :days_in_es_bed_in_period,
+          detail_columns: [
+            'days_in_es_bed_in_period',
+          ],
+        },
+        sh_average_bed_utilization: {
+          category: 'Rare',
+          column: :both,
+          title: 'Average Bed Utilization in SH',
+          goal_description: 'The CoC will maintain enough beds to meet demand.',
+          calculation_description: 'The average of the number of persons occupying a bed each night divided by the system’s total bed capacity for Safe Haven during the reporting range.',
+          calculation_column: :days_in_sh_bed_in_period,
+          detail_columns: [
+            'days_in_sh_bed_in_period',
+          ],
+        },
+        th_average_bed_utilization: {
+          category: 'Rare',
+          column: :both,
+          title: 'Average Bed Utilization in TH',
+          goal_description: 'The CoC will maintain enough beds to meet demand.',
+          calculation_description: 'The average of the number of persons occupying a bed each night divided by the system’s total bed capacity for Transitional Housing during the reporting range.',
+          calculation_column: :days_in_th_bed_in_period,
+          detail_columns: [
+            'days_in_th_bed_in_period',
           ],
         },
         length_of_homeless_time_homeless_average: {

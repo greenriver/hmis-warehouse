@@ -1,8 +1,10 @@
 - title = "#{@report.detail_category_for(@key)} | #{@report.detail_title_for(@key)}"
 - content_for :title, title
+- project_id = params[:project_id]
 %h1= content_for :title
+%h2= link_to_if can_view_projects?, @report.result_for(@key, project_id: project_id).hud_project.name_and_type, project_path(project_id)
 %p= @report.filter.date_range_words
-- if @report.clients_for_question(@key, :reporting, project_id: params[:project_id]).blank?
+- if @report.clients_for_question(@key, :reporting, project_id: project_id).blank?
   %p.none-found
     No records found.
 - else
@@ -15,13 +17,13 @@
             - @report.detail_headers(key: @key).each_value do |header|
               %th= header
         %tbody.thead-dark
-          - @report.clients_for_question(@key, :reporting, project_id: params[:project_id]).each.with_index do |client, i|
+          - @report.clients_for_question(@key, :reporting, project_id: project_id).each.with_index do |client, i|
             %tr
               %th= i + 1
               - @report.detail_headers(key: @key).each_key do |k|
                 %td{style: 'max-width: 600px;'}
                   - if k.to_s == 'client_id'
-                    = link_to from_source_client_path(client[k]) do
+                    = link_to appropriate_client_path(client[k]) do
                       = client[k]
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info

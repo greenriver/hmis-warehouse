@@ -506,9 +506,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def es_nbn_length_of_stay_for(client_id, enrollment_id)
-      @es_nbn_length_of_stay_for ||= begin
-        services_scope.joins(service_history_enrollment: :project).merge(GrdaWarehouse::Hud::Project.night_by_night).distinct.group(:client_id, :service_history_enrollment_id).count(:date)
-      end
+      @es_nbn_length_of_stay_for ||= services_scope.joins(service_history_enrollment: :project).merge(GrdaWarehouse::Hud::Project.night_by_night).distinct.group(:client_id, :service_history_enrollment_id).count(:date)
       @es_nbn_length_of_stay_for[client_id, enrollment_id]
     end
 
@@ -1044,7 +1042,7 @@ module HudSpmReport::Generators::Fy2020
             exit: p_exit,
             reentries: reentries,
           }
-          spm_client["#{m_code}_project_id"] = p_exit[:project_id]
+          spm_client["#{m_code}_project_id"] = p_exit[:project_id] unless m_code.to_s == 'm6'
 
           max_enrollment = reentries.max_by { |en| en[:first_date_in_program] }
           spm_client[reporting_age_col] = age_for_report(dob: spm_client.dob, entry_date: max_enrollment[:first_date_in_program], age: max_enrollment[:age]) if max_enrollment.present?
@@ -1338,23 +1336,21 @@ module HudSpmReport::Generators::Fy2020
     def hoh_destinations(project_types)
       # PERF: batch this... right now it loads ALL enrollments with service during the report range
       @hoh_destinations ||= {}
-      @hoh_destinations[project_types] ||= begin
-        GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          hud_project_type(project_types).
-          open_between(start_date: @report.start_date - 2.years, end_date: @report.end_date).
-          with_service_between(start_date: @report.start_date - 2.years, end_date: @report.end_date).
-          joins(:client).
-          where(she_t[:head_of_household].eq(true)).
-          distinct.
-          pluck(
-            :head_of_household_id,
-            :destination,
-            she_household_column,
-          ).
-          map do |(hoh_id, destination, household_id)|
-            [[hoh_id, household_id], destination]
-          end.to_h
-      end
+      @hoh_destinations[project_types] ||= GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        hud_project_type(project_types).
+        open_between(start_date: @report.start_date - 2.years, end_date: @report.end_date).
+        with_service_between(start_date: @report.start_date - 2.years, end_date: @report.end_date).
+        joins(:client).
+        where(she_t[:head_of_household].eq(true)).
+        distinct.
+        pluck(
+          :head_of_household_id,
+          :destination,
+          she_household_column,
+        ).
+        map do |(hoh_id, destination, household_id)|
+          [[hoh_id, household_id], destination]
+        end.to_h
     end
 
     def hoh_destination_for(project_types, client_id, household_id)
@@ -1731,36 +1727,34 @@ module HudSpmReport::Generators::Fy2020
 
     private def hoh_client_ids(project_types)
       @hoh_to_client_id ||= {}
-      @hoh_to_client_id[project_types] ||= begin
-        GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          hud_project_type(project_types).
-          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          with_service_between(start_date: @report.start_date - 1.day, end_date: @report_end).
-          joins(:client).
-          where(she_t[:head_of_household].eq(true)).
-          distinct.
-          pluck(
-            :head_of_household_id,
-            :client_id,
-            :enrollment_group_id,
-            she_household_column,
-            :first_date_in_program,
-            :destination,
-          ).map do |(hoh_id, client_id, enrollment_id, household_id, entry_date, destination)|
+      @hoh_to_client_id[project_types] ||= GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        hud_project_type(project_types).
+        open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+        with_service_between(start_date: @report.start_date - 1.day, end_date: @report_end).
+        joins(:client).
+        where(she_t[:head_of_household].eq(true)).
+        distinct.
+        pluck(
+          :head_of_household_id,
+          :client_id,
+          :enrollment_group_id,
+          she_household_column,
+          :first_date_in_program,
+          :destination,
+        ).map do |(hoh_id, client_id, enrollment_id, household_id, entry_date, destination)|
+          [
             [
-              [
-                hoh_id,
-                household_id,
-                entry_date,
-              ],
-              {
-                client_id: client_id,
-                enrollment_id: enrollment_id,
-                destination: destination,
-              },
-            ]
-          end.to_h
-      end
+              hoh_id,
+              household_id,
+              entry_date,
+            ],
+            {
+              client_id: client_id,
+              enrollment_id: enrollment_id,
+              destination: destination,
+            },
+          ]
+        end.to_h
     end
 
     private def hoh_for_children_without_living_situation(project_types, client_id, enrollment_id)
