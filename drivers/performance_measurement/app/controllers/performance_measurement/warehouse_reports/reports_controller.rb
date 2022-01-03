@@ -14,6 +14,7 @@ module PerformanceMeasurement::WarehouseReports
     before_action :require_can_access_some_version_of_clients!, only: [:details, :clients]
     before_action :require_my_project!, only: [:clients]
     before_action :set_report, only: [:show, :destroy]
+    before_action :set_pdf_export, only: [:show]
 
     def index
       @reports = report_scope.ordered.
@@ -61,6 +62,13 @@ module PerformanceMeasurement::WarehouseReports
     def clients
       @report = report_class.find(params[:report_id].to_i)
       @key = params[:key].to_sym
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{@report.detail_title_for(@key).tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def details_params
@@ -110,6 +118,10 @@ module PerformanceMeasurement::WarehouseReports
       @project = @report.my_projects(current_user, @key)[params[:project_id].to_i]
 
       not_authorized! unless @project.present?
+    end
+
+    private def set_pdf_export
+      @pdf_export = PerformanceMeasurement::DocumentExports::ReportExport.new
     end
 
     def formatted_cell(cell)

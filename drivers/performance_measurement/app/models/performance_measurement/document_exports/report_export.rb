@@ -25,9 +25,9 @@ module PerformanceMeasurement::DocumentExports
 
     def perform
       with_status_progression do
-        template_file = 'performance_management/warehouse_reports/report/index_pdf'
+        template_file = 'performance_measurement/warehouse_reports/reports/show_pdf'
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_management'),
+          html: view.render(file: template_file, layout: 'layouts/performance_report'),
           file_name: "#{_('Performance Management Dashboard')} #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io

@@ -1,12 +1,8 @@
-= render 'breadcrumbs'
-= render 'beta_warning'
-
 - title = _("CoC Performance Measurement Dashboard")
 - content_for :title, title
-.d-flex
-  %h1= content_for :title
-  .ml-auto
-    = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
+
+%h1= content_for :title
+
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
   = @report.filter.describe_filter_as_html

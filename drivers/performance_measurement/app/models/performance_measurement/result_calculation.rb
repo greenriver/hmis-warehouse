@@ -9,7 +9,7 @@ module PerformanceMeasurement::ResultCalculation
 
   included do
     def passed?(field, reporting_value, comparison_value)
-      case field
+      case field.to_sym
       when :served_on_pit_date,
         :first_time,
         :served_on_pit_date_sheltered,

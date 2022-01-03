@@ -3,7 +3,12 @@
 - project_id = params[:project_id]
 %h1= content_for :title
 %h2= link_to_if can_view_projects?, @report.result_for(@key, project_id: project_id).hud_project.name_and_type, project_path(project_id)
-%p= @report.filter.date_range_words
+.d-flex.mb-4
+  %p.mr-auto= @report.filter.date_range_words
+  %div
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon.icon-download2
+      Download Excel
 - if @report.clients_for_question(@key, :reporting, project_id: project_id).blank?
   %p.none-found
     No records found.
