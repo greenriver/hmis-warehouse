@@ -31,6 +31,8 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     def show
+      # Used for testing PDF generation
+      # render 'show_pdf', layout: 'layouts/performance_report'
     end
 
     def create

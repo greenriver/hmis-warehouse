@@ -1,0 +1,62 @@
+= wicked_pdf_stylesheet_link_tag 'dashboard_pdf', media: 'all'
+= wicked_pdf_javascript_include_tag 'pdf'
+= wicked_pdf_javascript_include_tag 'application'
+%link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
+.d-flex
+  .ml-4
+    Legend
+  .ml-4
+    .c-indicator__secondary-value.d-flex
+      .ml-2 Decrease
+      .c-indicator__change-icon= change_direction_icon(:down)
+  .ml-4
+    .c-indicator__secondary-value.d-flex
+      .ml-2 Increase
+      .c-indicator__change-icon= change_direction_icon(:up)
+  .ml-4
+    .c-indicator__secondary-value.d-flex
+      .ml-2 No Change
+      .c-indicator__change-icon= change_direction_icon(:none)
+  .ml-4
+    .d-flex
+      .ml-2 Goal met
+      .c-indicator__passed.ml-2.pass= checkmark_or_x(true, size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
+  .ml-4
+    .d-flex
+      .ml-2 Goal not met
+      .c-indicator__passed.ml-2.fail= checkmark_or_x(false, size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
+  .ml-auto
+    page
+    %strong
+      %span.pageNumber
+      of
+      %span.totalPages
+= svg 'symbol-defs'
+:css
+  p {
+    font-size: 16px !important;
+  }
+  .icon-info {
+    display: none;
+  }
+  a {
+    color: #333 !important;
+    text-decoration: none !important;
+  }
+  .perf-overview-breakdown {
+    page-break-inside: avoid;
+  }
+  h2 {
+    font-size: 20px !important;
+  }
+  .well header {
+    margin-bottom: 2em;
+  }
+  .well.well {
+    background: inherit;
+    border: none;
+    box-shadow: none;
+  }
+  .filter-summary {
+    page-break-inside: avoid;
+  }

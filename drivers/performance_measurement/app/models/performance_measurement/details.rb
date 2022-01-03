@@ -20,6 +20,14 @@ module PerformanceMeasurement::Details
       detail_hash[key][:category]
     end
 
+    def highlight_id(category)
+      {
+        'rare' => 1,
+        'brief' => 2,
+        'non-recurring' => 3,
+      }[category.downcase]
+    end
+
     def detail_goal_description_for(key)
       detail_hash[key][:goal_description]
     end

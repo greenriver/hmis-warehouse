@@ -1,34 +1,4 @@
-- title = "#{@report.detail_category_for(@key)} | #{@report.detail_title_for(@key)}"
+- category = @report.detail_category_for(@key)
+- title = "#{category} | #{@report.detail_title_for(@key)}"
 - content_for :title, title
-%h1= content_for :title
-%p= @report.filter.date_range_words
-.d-flex.mb-2
-  .goal
-    %h3 Goal
-    %p= @report.detail_goal_description_for(@key)
-  .calculation.ml-2
-    %h3 Calculation
-    %p= @report.detail_calculation_description_for(@key)
-
-%h2 System Level
-- result = @report.result_for(@key)
-.d-flex
-  .w-50= render 'warehouse_reports/indicator', indicator: result
-  .w-50
-    .jSystemLevelChart{ data: { chart: result.data_for_system_level_bar.to_json }}
-- if @report.detail_column_for(@key) != :system
-  = render 'projects'
-= content_for :page_js do
-  :javascript
-    $(document).ready(function(){
-      var chart = bb.generate({
-        data: $('.jSystemLevelChart').data('chart'),
-        axis: {
-          x: { type: 'category' },
-          y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
-        },
-        size: { height: 150 },
-        legend: { show: false },
-        bindto: '.jSystemLevelChart'
-      });
-    });
+= render 'details', key: @key

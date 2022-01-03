@@ -15,7 +15,7 @@
   %tbody
     - @report.summary_table.each.with_index do |(title, group), i|
       %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
-        %th.level.w-20{rowspan: group.count + 1}
+        %th.level.w-20{rowspan: group.count + 1, class: "c-table__row--highlight-#{i + 1}"}
           .h2= title
       - group.each do |row|
         - key = row.first
@@ -37,3 +37,10 @@
             %td.both{colspan: 2}
               Error displaying:
               = key
+- @report.summary_table.each.with_index do |(title, group), i|
+  - group.each do |row|
+    - key = row.first
+    - indicator = @report.result_for(key)
+    - if indicator
+      .page-break-after
+        = render 'performance_measurement/warehouse_reports/reports/details', key: key
