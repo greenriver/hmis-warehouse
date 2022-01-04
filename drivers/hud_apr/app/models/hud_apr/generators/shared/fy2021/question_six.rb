@@ -295,14 +295,16 @@ module HudApr::Generators::Shared::Fy2021
 
       # relationship to head of household
       answer = @report.answer(question: table_name, cell: 'B4')
-      households_with_multiple_hohs = universe.members.
-        where(a_t[:relationship_to_hoh].eq(1)).
-        group(a_t[:household_id]).
-        count.
-        select { |_, v| v > 1 }.
-        keys
-      households_with_no_hoh = universe.members.pluck(:household_id) -
-        universe.members.where(a_t[:relationship_to_hoh].eq(1)).pluck(:household_id)
+      households_with_multiple_hohs = []
+      households_with_no_hoh = []
+
+      universe.members.preload(:universe_membership).find_each do |member|
+        apr_client = member.universe_membership
+        count_of_heads = apr_client.household_members.select { |household_member| household_member['relationship_to_hoh'] == 1 }.count
+        households_with_multiple_hohs << apr_client.household_id if count_of_heads > 1
+        households_with_no_hoh << apr_client.household_id if count_of_heads.zero?
+      end
+
       members = universe.members.where(
         a_t[:relationship_to_hoh].not_in((1..5).to_a).
           or(a_t[:household_id].in(households_with_multiple_hohs)).
