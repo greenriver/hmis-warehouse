@@ -1,0 +1,13 @@
+%section.o-section-card
+  %header
+    %h3 Days Homeless
+  .c-card.c-card--flush.c-card--padded.c-card--block
+    = f.input :tc_hat_additional_days_homeless, label: 'Additional days homeless', hint: 'These will be added to the number of days homeless that appers elsewhere in the warehouse. The additional days are only applied for CAS matching.'
+    %p
+      %strong Prior to adding the above days:
+    .d-flex.mb-2
+      .title.text-bold Days homeless in the last three years
+      .ml-2= @client.processed_service_history&.days_homeless_last_three_years
+    .d-flex.mb-2
+      .title.text-bold Days literally homeless in the last three years
+      .ml-2= @client.processed_service_history&.literally_homeless_last_three_years
