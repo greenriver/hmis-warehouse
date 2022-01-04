@@ -43,7 +43,6 @@ module WarehouseReports::Project
         page(params[:page]).per(50)
     end
 
-    # TODO: rewrite this so we aren't using errors as flow control
     def create
       errors = []
       @generate = generate_param == 1
@@ -52,18 +51,11 @@ module WarehouseReports::Project
       @range = ::Filters::DateRange.new(date_range_params)
       @range.validate
       begin
-        @project_ids = begin
-          project_params
-        rescue StandardError
-          []
-        end
+        @project_ids = project_params
         # filter by viewability
         @project_ids = project_scope.where(id: @project_ids).pluck(:id)
-        @project_group_ids = begin
-          project_group_params
-        rescue StandardError
-          []
-        end
+        @project_group_ids = project_group_params
+
         raise ActionController::ParameterMissing, 'Parameters missing' if @project_ids.empty? && @project_group_ids.empty?
       rescue ActionController::ParameterMissing
         errors << 'At least one project or project group must be selected'
@@ -87,12 +79,18 @@ module WarehouseReports::Project
             start: @range.start,
             end: @range.end,
             requestor_id: current_user.id,
+            notify_contacts: @email,
           )
-        else
-          report_scope.
+        elsif @email
+          report = report_scope.
             where(id_column => id).
             order(id: :desc).first_or_initialize
+          if report.persisted?
+            report.update(notify_contacts: @email)
+            report.send_notifications
+          end
         end
+
         # Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
       end
     end
@@ -132,10 +130,14 @@ module WarehouseReports::Project
     end
 
     def project_params
+      return [] unless params[:project].present?
+
       params.require(:project).keys.map(&:to_i)
     end
 
     def project_group_params
+      return [] unless params[:project_group].present?
+
       params.require(:project_group).keys.map(&:to_i)
     end
 
@@ -203,7 +205,7 @@ module WarehouseReports::Project
     end
 
     def related_report
-      url = url_for(action: :show, only_path: true).sub(%r{^/}, '')
+      url = url_for(action: :show, only_path: true).sub(/^\//, '')
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
 
