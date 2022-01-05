@@ -2,37 +2,60 @@
 = wicked_pdf_javascript_include_tag 'pdf'
 = wicked_pdf_javascript_include_tag 'application'
 %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
-.d-flex.mt-auto{style: 'font-size: 0.8rem;'}
-  .ml-4
-    Legend
-  .ml-4
-    .c-indicator__secondary-value.d-flex
-      .ml-2 Decrease
-      .c-indicator__change-icon= change_direction_icon(:down)
-  .ml-4
-    .c-indicator__secondary-value.d-flex
-      .ml-2 Increase
-      .c-indicator__change-icon= change_direction_icon(:up)
-  .ml-4
-    .c-indicator__secondary-value.d-flex
-      .ml-2 No Change
-      .c-indicator__change-icon= change_direction_icon(:none)
-  .ml-4
-    .d-flex
-      .ml-2 Goal met
-      .c-indicator__passed.ml-2.pass= checkmark_or_x(true, size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
-  .ml-4
-    .d-flex
-      .ml-2 Goal not met
-      .c-indicator__passed.ml-2.fail= checkmark_or_x(false, size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
-  .ml-auto
-    page
-    %strong
-      %span.pageNumber
-      of
-      %span.totalPages
+.footer
+  .d-flex
+    .ml-2
+      %strong
+        %div Legend
+    .ml-2
+      .c-indicator__secondary-value.d-flex
+        %div Decrease
+        .c-indicator__change-icon= change_direction_icon(:down)
+    .ml-2
+      .c-indicator__secondary-value.d-flex
+        %div Increase
+        .c-indicator__change-icon= change_direction_icon(:up)
+    .ml-2
+      .c-indicator__secondary-value.d-flex
+        %div No Change
+        .c-indicator__change-icon= change_direction_icon(:none)
+    .ml-2
+      .d-flex
+        %div Goal met
+        .c-indicator__passed.ml-2.pass= checkmark_or_x(true, size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
+    .ml-2
+      .d-flex
+        %div Goal not met
+        .c-indicator__passed.ml-2.fail= checkmark_or_x(false, size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
+    .ml-auto
+      page
+      %strong
+        %span.pageNumber
+        of
+        %span.totalPages
 = svg 'symbol-defs'
 :css
+  .d-flex {
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-shrink: 1;
+  }
+  .d-flex .ml-2 {
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-shrink: 1;
+  }
+  .footer {
+    font-size: 10px;
+    position: absolute;
+    top: 9.6in;
+    width: 7in;
+    left: 0.25in;
+  }
+  .footer .icon-svg--sm svg, .footer .icon-svg svg {
+    height: 1rem;
+    width: 1rem;
+  }
   p {
     font-size: 16px !important;
   }
