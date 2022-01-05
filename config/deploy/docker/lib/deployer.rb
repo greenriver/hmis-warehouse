@@ -19,6 +19,7 @@ class Deployer
   TEST_PORT   = 9999
   WAIT_TIME   = 2
 
+  attr_accessor :version
   attr_accessor :image_tag
   attr_accessor :image_tag_latest
 
@@ -64,6 +65,7 @@ class Deployer
     self.registry_id       = registry_id
     self.repo_name         = repo_name
     self.variant           = 'web'
+    self.version           = `git rev-parse --short=9 HEAD`.chomp
 
     Dir.chdir(_root)
   end
@@ -291,7 +293,6 @@ class Deployer
       self.image_tag = ENV['IMAGE_TAG'] + "--#{variant}"
       self.image_tag_latest = "latest-" + ENV['IMAGE_TAG'] + "--#{variant}"
     else
-      version = `git rev-parse --short=9 HEAD`.chomp
       self.image_tag = "githash-#{version}--#{variant}"
       self.image_tag_latest = "latest-#{target_group_name}--#{variant}"
     end
