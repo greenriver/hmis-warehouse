@@ -194,5 +194,6 @@ jobs:
           HEALTH_DATABASE_DB: health_db
           REPORTING_DATABASE_DB: reporting_db
         run: |
-          bundle exec rspec --color --format p -P "{spec,drivers}/**/*_spec.rb"
+          #bundle exec rspec --color --format p -P "{spec,drivers}/**/*_spec.rb"
+          bundle exec rspec --fail-fast=10 --color --format p -P "{spec,drivers}/**/*_spec.rb"
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
