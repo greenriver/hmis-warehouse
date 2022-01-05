@@ -25,10 +25,9 @@ if ENV['DATABASE_CAS_DB'].present?
 else
 
   class CasBase
-    self.abstract_class = true
-
     def self.db_exists?
       false
     end
   end
+
 end
