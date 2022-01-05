@@ -74,8 +74,6 @@ class ApplicationController < ActionController::Base
     request.env['exception_notifier.exception_data'] = { 'server' => request.env['SERVER_NAME'] }
   end
 
-  force_ssl if Rails.configuration.force_ssl
-
   # To permit merge(link_params) when creating a new link from existing parameters
   def link_params
     params.permit!.merge(only_path: true, script_name: nil)
