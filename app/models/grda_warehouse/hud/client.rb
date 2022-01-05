@@ -2241,7 +2241,7 @@ module GrdaWarehouse::Hud
         # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|
-          m.warehouse_client_source.update_attributes!(
+          m.warehouse_client_source.update!(
             destination_id: self.id, # rubocop:disable Style/RedundantSelf
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,
@@ -2251,7 +2251,7 @@ module GrdaWarehouse::Hud
         end
         # if we are a source, move us
         if other_client.warehouse_client_source
-          other_client.warehouse_client_source.update_attributes!(
+          other_client.warehouse_client_source.update!(
             destination_id: self.id, # rubocop:disable Style/RedundantSelf
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,
