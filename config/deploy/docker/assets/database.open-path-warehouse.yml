@@ -39,11 +39,10 @@ default: &default
     password: <%= ENV['REPORTING_DATABASE_PASS'] %>
     username: <%= ENV['REPORTING_DATABASE_USER'] %>
     migrations_paths: db/reporting/migrate
-
-<%= ENV.fetch('RAILS_ENV') { 'unknown' } %>_cas:
-  <<: *default
-  adapter: <%= ENV['DATABASE_ADAPTER'] %>
-  database: <%= ENV['DATABASE_CAS_DB'] %>
-  host: <%= ENV['DATABASE_HOST'] %>
-  password: <%= ENV['DATABASE_PASS'] %>
-  username: <%= ENV['DATABASE_USER'] %>
+  cas:
+    <<: *default
+    adapter: <%= ENV['DATABASE_ADAPTER'] %>
+    database: <%= ENV['DATABASE_CAS_DB'] %>
+    host: <%= ENV['DATABASE_HOST'] %>
+    password: <%= ENV['DATABASE_PASS'] %>
+    username: <%= ENV['DATABASE_USER'] %>
