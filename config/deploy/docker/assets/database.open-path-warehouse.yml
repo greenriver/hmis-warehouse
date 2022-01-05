@@ -46,3 +46,4 @@ default: &default
     host: <%= ENV['DATABASE_HOST'] %>
     password: <%= ENV['DATABASE_PASS'] %>
     username: <%= ENV['DATABASE_USER'] %>
+    migrations_paths: db/cas/migrate
