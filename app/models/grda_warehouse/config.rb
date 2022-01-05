@@ -125,6 +125,7 @@ module GrdaWarehouse
     def self.available_cas_calculators
       {
         'Boston Pathways' => 'GrdaWarehouse::CasProjectClientCalculator::Boston',
+        'Tarrant HAT' => 'GrdaWarehouse::CasProjectClientCalculator::TcHat',
         'Default' => 'GrdaWarehouse::CasProjectClientCalculator::Default',
       }
     end
