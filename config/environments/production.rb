@@ -1,3 +1,5 @@
+require "#{Rails.root}/lib/util/exception_notifier.rb"
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
   deliver_method = ENV.fetch('MAIL_DELIVERY_METHOD') { 'smtp' }.to_sym
@@ -116,12 +118,15 @@ Rails.application.configure do
   config.action_controller.perform_caching = true
   if slack_config.present?
     config.middleware.use(ExceptionNotification::Rack,
-      :slack => {
-        :webhook_url => slack_config['webhook_url'],
-        :channel => slack_config['channel'],
-        :additional_parameters => {
-          :mrkdwn => true,
-          :icon_url => slack_config['icon_url']
+      slack: {
+        webhook_url: slack_config['webhook_url'],
+        channel: slack_config['channel'],
+        pre_callback: proc { |opts, _notifier, _backtrace, _message, message_opts|
+          ExceptionNotifierLib.insert_log_url!(message_opts)
+        },
+        additional_parameters: {
+          mrkdwn: true,
+          icon_url: slack_config['icon_url']
         }
       }
     )
