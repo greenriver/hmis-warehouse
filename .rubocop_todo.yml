@@ -493,7 +493,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/health/team/provider.rb'
     - 'app/models/health/team/representative.rb'
     - 'app/models/import.rb'
-    - 'app/models/pdf_generator.rb'
     - 'app/models/program.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
