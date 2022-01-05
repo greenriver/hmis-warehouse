@@ -88,7 +88,7 @@ module PerformanceMeasurement
     end
 
     def self.url
-      'performance_measurement/warehouse_reports/report'
+      'performance_measurement/warehouse_reports/reports'
     end
 
     def url
