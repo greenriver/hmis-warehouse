@@ -14885,7 +14885,8 @@ CREATE TABLE public.project_data_quality (
     processing_errors text,
     project_group_id integer,
     support json,
-    requestor_id integer
+    requestor_id integer,
+    notify_contacts boolean DEFAULT false
 );
 
 
@@ -46484,6 +46485,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211223134654'),
 ('20211229164804'),
 ('20211230201245'),
-('20220101180956');
+('20220101180956'),
+('20220102193048');
 
 

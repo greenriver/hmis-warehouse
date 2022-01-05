@@ -2547,7 +2547,6 @@ Style/RegexpLiteral:
   Exclude:
     - 'app/controllers/concerns/warehouse_report_authorization.rb'
     - 'app/controllers/warehouse_reports/health/completed_contact_tracing_controller.rb'
-    - 'app/controllers/warehouse_reports/project/data_qualities_controller.rb'
     - 'app/models/eto_api/base.rb'
     - 'app/models/grda_warehouse/us_census_api/is_a_database_view.rb'
     - 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
