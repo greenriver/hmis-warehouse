@@ -1,12 +1,8 @@
-= render 'breadcrumbs'
-= render 'beta_warning'
-
 - title = _("CoC Performance Measurement Dashboard")
 - content_for :title, title
-.d-flex
-  %h1= content_for :title
-  .ml-auto
-    = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
+
+%h1= content_for :title
+
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
   = @report.filter.describe_filter_as_html
@@ -14,13 +10,16 @@
 %table.table.c-table--indicator
   %thead
     %th.blank{style: "width: 15%"}
-    %th{style: "width: #{85.0/2}%"} System-Level
-    %th{style: "width: #{85.0/2}%"} Project-Level
+    %th{style: "width: #{85.0/2}%"}
+      %div{ style: 'background: #ececec;' } System-Level
+    %th{style: "width: #{85.0/2}%"}
+      %div{ style: 'background: #ececec;' } Project-Level
   %tbody
     - @report.summary_table.each.with_index do |(title, group), i|
-      %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
-        %th.level.w-20{rowspan: group.count + 1}
-          .h2= title
+      %tr.c-table__row
+        %th.level.w-20{rowspan: group.count + 1, class: "performance-measurement--highlight-light-#{i + 1}"}
+          %div{ class: "performance-measurement--highlight-light-#{i + 1}" }
+            .h2= title
       - group.each do |row|
         - key = row.first
         - indicator = @report.result_for(key)
@@ -41,3 +40,29 @@
             %td.both{colspan: 2}
               Error displaying:
               = key
+- @report.summary_table.each.with_index do |(title, group), i|
+  - group.each do |row|
+    - key = row.first
+    - indicator = @report.result_for(key)
+    - if indicator
+      .page-break-after
+        = render 'performance_measurement/warehouse_reports/reports/details', key: key
+:css
+  .performance-measurement--highlight-light-1 {
+    background-color: #decbe4 !important;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 4em;
+  }
+  .performance-measurement--highlight-light-2 {
+    background-color: #cbd5e8 !important;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 4em;
+  }
+  .performance-measurement--highlight-light-3 {
+    background-color: #e6f5c9 !important;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 4em;
+  }

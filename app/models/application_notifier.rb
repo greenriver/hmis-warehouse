@@ -23,6 +23,12 @@
 # them as needed and if a service to do so is available. Logs
 # any network/services errors and recovers as well as it can.
 class ApplicationNotifier < Slack::Notifier
+  attr_accessor :insert_log_url
+
+  def insert_log_url
+    !!@insert_log_url # coerce bool
+  end
+
   # use the same redis instance we use for caching
   def self.redis
     Redis.new Rails.application.config_for(:cache_store).merge(
@@ -87,6 +93,19 @@ class ApplicationNotifier < Slack::Notifier
     Rails.logger.error('ApplicationNotifier#ping: ' + e.message)
   rescue Slack::Notifier::APIError => e
     Rails.logger.error('ApplicationNotifier#ping: ' + e.message)
+  end
+
+  def post(payload={})
+    if insert_log_url
+      log_stream_url = ENV.fetch('LOG_STREAM_URL', nil)
+      if payload.key?(:text) && log_stream_url.present?
+        payload[:text] += "\n```log_url: #{log_stream_url}```"
+      else
+        Rails.logger.warn "ApplicationNotifier#post tried to insert_log_url but there was no :text in payload"
+      end
+    end
+
+    super
   end
 
   # Send any rate_limit'd messages.

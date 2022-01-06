@@ -14753,7 +14753,15 @@ CREATE TABLE public.pm_clients (
     comparison_days_in_th_bed integer,
     comparison_days_in_th_bed_details jsonb,
     comparison_days_in_th_bed_in_period integer,
-    comparison_days_in_th_bed_details_in_period jsonb
+    comparison_days_in_th_bed_details_in_period jsonb,
+    reporting_days_in_homeless_bed integer,
+    reporting_days_in_homeless_bed_details jsonb,
+    reporting_days_in_homeless_bed_in_period integer,
+    reporting_days_in_homeless_bed_details_in_period jsonb,
+    comparison_days_in_homeless_bed integer,
+    comparison_days_in_homeless_bed_details jsonb,
+    comparison_days_in_homeless_bed_in_period integer,
+    comparison_days_in_homeless_bed_details_in_period jsonb
 );
 
 
@@ -14877,7 +14885,8 @@ CREATE TABLE public.project_data_quality (
     processing_errors text,
     project_group_id integer,
     support json,
-    requestor_id integer
+    requestor_id integer,
+    notify_contacts boolean DEFAULT false
 );
 
 
@@ -23986,6 +23995,13 @@ CREATE INDEX exit_export_id ON public."Exit" USING btree ("ExportID");
 --
 
 CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
+
+
+--
+-- Name: fq_r_id_p; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX fq_r_id_p ON public.pm_client_projects USING btree (for_question, report_id, period);
 
 
 --
@@ -39515,10 +39531,10 @@ CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performan
 
 
 --
--- Name: index_pm_client_projects_on_client_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_pm_client_projects_on_client_id_and_report_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_pm_client_projects_on_client_id ON public.pm_client_projects USING btree (client_id);
+CREATE INDEX index_pm_client_projects_on_client_id_and_report_id ON public.pm_client_projects USING btree (client_id, report_id);
 
 
 --
@@ -39543,20 +39559,6 @@ CREATE INDEX index_pm_client_projects_on_project_id_and_report_id ON public.pm_c
 
 
 --
--- Name: index_pm_client_projects_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pm_client_projects_on_report_id ON public.pm_client_projects USING btree (report_id);
-
-
---
--- Name: index_pm_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pm_clients_on_client_id ON public.pm_clients USING btree (client_id);
-
-
---
 -- Name: index_pm_clients_on_client_id_and_report_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39568,13 +39570,6 @@ CREATE INDEX index_pm_clients_on_client_id_and_report_id ON public.pm_clients US
 --
 
 CREATE INDEX index_pm_clients_on_deleted_at ON public.pm_clients USING btree (deleted_at);
-
-
---
--- Name: index_pm_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pm_clients_on_report_id ON public.pm_clients USING btree (report_id);
 
 
 --
@@ -43736,6 +43731,13 @@ CREATE INDEX organization_export_id ON public."Organization" USING btree ("Expor
 
 
 --
+-- Name: pm_clients_c_id_fq_r_id_p; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pm_clients_c_id_fq_r_id_p ON public.pm_client_projects USING btree (client_id, for_question, report_id, period);
+
+
+--
 -- Name: pm_clients_c_id_p_id_r_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46480,6 +46482,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211220163817'),
 ('20211220204231'),
 ('20211221151552'),
-('20211223134654');
+('20211223134654'),
+('20211229164804'),
+('20211230201245'),
+('20220101180956'),
+('20220102193048');
 
 

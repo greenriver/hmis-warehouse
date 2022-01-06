@@ -1,0 +1,13 @@
+project_id = params[:project_id]
+wb = xlsx_package.workbook
+wb.add_worksheet(name: @report.detail_title_for(@key).slice(0, 30).gsub(':', ' ')) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.add_row(@report.detail_headers(key: @key).values, style: title)
+  @report.clients_for_question(@key, :reporting, project_id: project_id).each.each do |client|
+    row = []
+    @report.detail_headers(key: @key).each_key do |k|
+      row << client[k]
+    end
+    sheet.add_row(row)
+  end
+end

@@ -7,7 +7,5 @@ HEALTHCHECK --start-period=15s --interval=5m --timeout=10s \
 
 EXPOSE 443
 
-ENV NEEDS_PRECOMPILE=true
-
 # Start the main process.
 CMD [ "puma", "-b", "ssl://0.0.0.0:443?key=/app/config/key.pem&cert=/app/config/cert.pem&verify_mode=none" ]
