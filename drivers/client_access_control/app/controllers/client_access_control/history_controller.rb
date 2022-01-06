@@ -57,7 +57,7 @@ module ClientAccessControl
       @project_type_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:project_type] }.transform_values(&:count)
       file_name = 'service_history.pdf'
 
-      template_file = 'client_access_control/history/pdf'
+      template_file = File.join(Rails.root, "drivers/client_access_control/app/views/client_access_control/history/pdf.haml")
       pdf = nil
       PdfGenerator.new.perform(
         html: render(file: template_file, layout: false),
