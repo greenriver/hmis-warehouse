@@ -139,6 +139,7 @@ module HomelessSummaryReport
       scope = filter_for_projects(scope)
       scope = filter_for_funders(scope)
       scope = filter_for_ca_homeless(scope)
+      scope = filter_for_ce_cls_homeless(scope)
       # force re-calculation of filter
       @filter = nil
       filter
