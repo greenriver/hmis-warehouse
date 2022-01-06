@@ -35,7 +35,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       advisory_lock_key = 'project_data_quality_reports'
       if advisory_lock_exists?(advisory_lock_key)
         Rails.logger.info 'Exiting, project data quality reports already running'
-        exit
+        return
       end
 
       # FIXME: figure out how to send notifications on failure in class methods
