@@ -22,7 +22,7 @@ namespace :maintenance do
 
     if bucket.blank? || prefix.blank?
       puts 'ENV[ASSETS_BUCKET_NAME] and ENV[ASSETS_PREFIX] must be specified'
-      exit
+      next
     end
 
     key = File.join(prefix, destination)

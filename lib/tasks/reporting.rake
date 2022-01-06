@@ -29,7 +29,7 @@ namespace :reporting do
     GrdaWarehouse::LsaRdsStateLog.create(state: state)
 
     lsa_report_ids = Report.where(Report.arel_table[:type].matches('%::Lsa::%')).pluck(:id)
-    exit if ReportResult.incomplete.updated_today.where(report_id: lsa_report_ids).exists?
+    next if ReportResult.incomplete.updated_today.where(report_id: lsa_report_ids).exists?
 
     Rds.new.stop!
   end
