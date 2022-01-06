@@ -17,7 +17,7 @@
 .d-flex
   .w-50= render 'warehouse_reports/indicator', indicator: result
   .w-50
-    .jSystemLevelChart{ data: { chart: result.data_for_system_level_bar.to_json }}
+    %div{ class: "jSystemLevelChart_#{key}", data: { chart: result.data_for_system_level_bar.to_json }}
 - if @report.detail_column_for(key) != :system
   = render 'performance_measurement/warehouse_reports/reports/projects', key: key, category: category
 
