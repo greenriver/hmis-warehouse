@@ -37,7 +37,8 @@ gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 
 # Once the deprecation fixing PR is merged upstream, we can require this gem like normal
-gem 'active_record_distinct_on', git: 'https://github.com/greenriver/active_record_distinct_on.git', branch: 'v-1-1-0-with-deprecation-fix'
+#gem 'active_record_distinct_on', git: 'https://github.com/greenriver/active_record_distinct_on.git', branch: 'v-1-1-0-with-deprecation-fix'
+gem 'active_record_distinct_on'
 gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'

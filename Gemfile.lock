@@ -1,12 +1,4 @@
 GIT
-  remote: https://github.com/greenriver/active_record_distinct_on.git
-  revision: 4d6b527b1e8ffcc732849b3f9ce08fa877f841bc
-  branch: v-1-1-0-with-deprecation-fix
-  specs:
-    active_record_distinct_on (1.1.0)
-      activerecord (>= 5.2, < 6.2)
-
-GIT
   remote: https://github.com/greenriver/carrierwave-aws.git
   revision: 35a5361e4567661dbb71c12489359d06d7b80981
   branch: gr-1.4.0-without-deprecations
@@ -65,6 +57,8 @@ GEM
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
     active_median (0.3.3)
       activesupport (>= 5.2)
+    active_record_distinct_on (1.2.0)
+      activerecord (>= 5.2, < 6.2)
     active_record_extended (2.0.3)
       activerecord (>= 5.1, < 6.2)
       ar_outer_joins (~> 0.2)
@@ -885,7 +879,7 @@ PLATFORMS
 
 DEPENDENCIES
   active_median
-  active_record_distinct_on!
+  active_record_distinct_on
   active_record_extended
   active_record_query_trace
   activerecord-import
