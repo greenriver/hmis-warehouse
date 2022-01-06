@@ -1630,6 +1630,45 @@ ALTER SEQUENCE public.comprehensive_health_assessments_id_seq OWNED BY public.co
 
 
 --
+-- Name: contacts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.contacts (
+    id bigint NOT NULL,
+    patient_id bigint,
+    source_type character varying,
+    source_id bigint,
+    name character varying,
+    category character varying,
+    description character varying,
+    phone character varying,
+    email character varying,
+    collected_on date,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.contacts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.contacts_id_seq OWNED BY public.contacts.id;
+
+
+--
 -- Name: cp_member_files; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1871,7 +1910,8 @@ CREATE TABLE public.ed_ip_visits (
     medicaid_id character varying,
     admit_date date,
     encounter_major_class character varying,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    encounter_id character varying
 );
 
 
@@ -3138,7 +3178,8 @@ CREATE TABLE public.loaded_ed_ip_visits (
     member_record_number character varying,
     patient_identifier character varying,
     patient_url character varying,
-    admitted_inpatient character varying
+    admitted_inpatient character varying,
+    encounter_id character varying
 );
 
 
@@ -3776,6 +3817,50 @@ CREATE SEQUENCE public.rosters_id_seq
 --
 
 ALTER SEQUENCE public.rosters_id_seq OWNED BY public.rosters.id;
+
+
+--
+-- Name: scheduled_documents; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.scheduled_documents (
+    id bigint NOT NULL,
+    type character varying,
+    name character varying,
+    protocol character varying,
+    hostname character varying,
+    port character varying,
+    username character varying,
+    encrypted_password character varying,
+    encrypted_password_iv character varying,
+    file_path character varying,
+    last_run_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    acos integer[] DEFAULT '{}'::integer[],
+    scheduled_day integer,
+    active boolean DEFAULT true,
+    scheduled_hour integer
+);
+
+
+--
+-- Name: scheduled_documents_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.scheduled_documents_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: scheduled_documents_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.scheduled_documents_id_seq OWNED BY public.scheduled_documents.id;
 
 
 --
@@ -4910,6 +4995,13 @@ ALTER TABLE ONLY public.comprehensive_health_assessments ALTER COLUMN id SET DEF
 
 
 --
+-- Name: contacts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contacts ALTER COLUMN id SET DEFAULT nextval('public.contacts_id_seq'::regclass);
+
+
+--
 -- Name: cp_member_files id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5215,6 +5307,13 @@ ALTER TABLE ONLY public.release_forms ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.rosters ALTER COLUMN id SET DEFAULT nextval('public.rosters_id_seq'::regclass);
+
+
+--
+-- Name: scheduled_documents id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scheduled_documents ALTER COLUMN id SET DEFAULT nextval('public.scheduled_documents_id_seq'::regclass);
 
 
 --
@@ -5605,6 +5704,14 @@ ALTER TABLE ONLY public.comprehensive_health_assessments
 
 
 --
+-- Name: contacts contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contacts
+    ADD CONSTRAINT contacts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cp_member_files cp_member_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5954,6 +6061,14 @@ ALTER TABLE ONLY public.release_forms
 
 ALTER TABLE ONLY public.rosters
     ADD CONSTRAINT rosters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: scheduled_documents scheduled_documents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scheduled_documents
+    ADD CONSTRAINT scheduled_documents_pkey PRIMARY KEY (id);
 
 
 --
@@ -6392,6 +6507,27 @@ CREATE INDEX index_comprehensive_health_assessments_on_user_id ON public.compreh
 
 
 --
+-- Name: index_contacts_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_contacts_on_patient_id ON public.contacts USING btree (patient_id);
+
+
+--
+-- Name: index_contacts_on_patient_id_and_source_id_and_source_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_contacts_on_patient_id_and_source_id_and_source_type ON public.contacts USING btree (patient_id, source_id, source_type);
+
+
+--
+-- Name: index_contacts_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_contacts_on_source_type_and_source_id ON public.contacts USING btree (source_type, source_id);
+
+
+--
 -- Name: index_disenrollment_reasons_on_reason_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6441,6 +6577,13 @@ CREATE INDEX index_ed_ip_visit_files_on_user_id ON public.ed_ip_visit_files USIN
 
 
 --
+-- Name: index_ed_ip_visits_on_encounter_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ed_ip_visits_on_encounter_id ON public.ed_ip_visits USING btree (encounter_id);
+
+
+--
 -- Name: index_ed_ip_visits_on_loaded_ed_ip_visit_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6473,20 +6616,6 @@ CREATE INDEX index_encounter_records_on_encounter_report_id ON public.encounter_
 --
 
 CREATE INDEX index_encounter_reports_on_user_id ON public.encounter_reports USING btree (user_id);
-
-
---
--- Name: index_epic_case_notes_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_epic_case_notes_on_patient_id ON public.epic_case_notes USING btree (patient_id);
-
-
---
--- Name: index_epic_goals_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_epic_goals_on_patient_id ON public.epic_goals USING btree (patient_id);
 
 
 --
@@ -6980,6 +7109,13 @@ CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING bt
 
 
 --
+-- Name: med_claim_member_procedure_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX med_claim_member_procedure_index ON public.claims_reporting_medical_claims USING btree (member_id, procedure_code);
+
+
+--
 -- Name: patients_client_id_constraint; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7348,6 +7484,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210607182656'),
 ('20210726193142'),
 ('20210806150431'),
+('20210928134057'),
 ('20211005200728'),
 ('20211006152632'),
 ('20211006152946'),
@@ -7355,6 +7492,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211006154441'),
 ('20211006204046'),
 ('20211029203229'),
-('20211029203304');
+('20211029203304'),
+('20211115191038'),
+('20211122200024'),
+('20211123203704'),
+('20211129192820'),
+('20211130194653'),
+('20211209205303');
 
 
