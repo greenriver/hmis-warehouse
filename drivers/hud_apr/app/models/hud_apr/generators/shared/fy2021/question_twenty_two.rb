@@ -349,29 +349,42 @@ module HudApr::Generators::Shared::Fy2021
     end
 
     private def q22e_lengths
+      move_in_projects = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
+        or(a_t[:project_type].in(move_in_projects).and(a_t[:move_in_date].lteq(@report.end_date)))
       {
         '7 days or less' => a_t[:approximate_time_to_move_in].between(0..7).
-          and(a_t[:move_in_date].lteq(@report.end_date)),
+          and(move_in_for_psh),
         '8 to 14 days' => a_t[:approximate_time_to_move_in].between(8..14).
-          and(a_t[:move_in_date].lteq(@report.end_date)),
+          and(move_in_for_psh),
         '15 to 21 days' => a_t[:approximate_time_to_move_in].between(15..21).
-          and(a_t[:move_in_date].lteq(@report.end_date)),
+          and(move_in_for_psh),
         '22 to 30 days' => a_t[:approximate_time_to_move_in].between(22..30).
-          and(a_t[:move_in_date].lteq(@report.end_date)),
+          and(move_in_for_psh),
         '31 to 60 days' => a_t[:approximate_time_to_move_in].between(31..60).
-          and(a_t[:move_in_date].lteq(@report.end_date)),
+          and(move_in_for_psh),
         '61 to 180 days' => a_t[:approximate_time_to_move_in].between(61..180).
-          and(a_t[:move_in_date].lteq(@report.end_date)),
+          and(move_in_for_psh),
         '181 to 365 days' => a_t[:approximate_time_to_move_in].between(181..365).
-          and(a_t[:move_in_date].lteq(@report.end_date)),
+          and(move_in_for_psh),
         '366 to 730 days (1-2 Yrs)' => a_t[:approximate_time_to_move_in].between(366..730).
-          and(a_t[:move_in_date].lteq(@report.end_date)),
-        '731 days or more' => a_t[:approximate_time_to_move_in].gteq(731),
-        'Total (persons moved into housing)' => a_t[:move_in_date].lteq(@report.end_date).
-          and(a_t[:date_to_street].lteq(a_t[:move_in_date])),
-        'Not yet moved into housing' => a_t[:move_in_date].eq(nil).or(a_t[:move_in_date].gt(@report.end_date)),
-        'Data not collected' => a_t[:move_in_date].lteq(@report.end_date).
-          and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:move_in_date]))),
+          and(move_in_for_psh),
+        '731 days or more' => a_t[:approximate_time_to_move_in].gteq(731).
+          and(move_in_for_psh),
+        'Total (persons moved into housing)' => a_t[:approximate_time_to_move_in].not_eq(nil).
+          and(a_t[:project_type].not_in(move_in_projects).
+            or(a_t[:project_type].in(move_in_projects).
+              and(a_t[:move_in_date].lteq(@report.end_date).and(a_t[:date_to_street].lteq(a_t[:move_in_date]))))),
+        'Not yet moved into housing' => a_t[:project_type].not_in(move_in_projects).
+          and(a_t[:date_to_street].not_eq(nil).
+            and(a_t[:approximate_time_to_move_in].eq(nil))).
+          or(a_t[:project_type].in(move_in_projects).
+            and(a_t[:move_in_date].eq(nil).or(a_t[:move_in_date].gt(@report.end_date)))),
+        'Data not collected' => a_t[:project_type].not_in(move_in_projects).
+          and(a_t[:date_to_street].eq(nil)).
+          or(a_t[:project_type].in(move_in_projects).
+            and(a_t[:move_in_date].lteq(@report.end_date).
+              and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:move_in_date]))))),
         'Total persons' => Arel.sql('1=1'),
       }.freeze
     end

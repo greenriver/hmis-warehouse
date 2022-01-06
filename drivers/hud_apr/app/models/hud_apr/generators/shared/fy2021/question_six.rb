@@ -295,14 +295,16 @@ module HudApr::Generators::Shared::Fy2021
 
       # relationship to head of household
       answer = @report.answer(question: table_name, cell: 'B4')
-      households_with_multiple_hohs = universe.members.
-        where(a_t[:relationship_to_hoh].eq(1)).
-        group(a_t[:household_id]).
-        count.
-        select { |_, v| v > 1 }.
-        keys
-      households_with_no_hoh = universe.members.pluck(:household_id) -
-        universe.members.where(a_t[:relationship_to_hoh].eq(1)).pluck(:household_id)
+      households_with_multiple_hohs = []
+      households_with_no_hoh = []
+
+      universe.members.preload(:universe_membership).find_each do |member|
+        apr_client = member.universe_membership
+        count_of_heads = apr_client.household_members.select { |household_member| household_member['relationship_to_hoh'] == 1 }.count
+        households_with_multiple_hohs << apr_client.household_id if count_of_heads > 1
+        households_with_no_hoh << apr_client.household_id if count_of_heads.zero?
+      end
+
       members = universe.members.where(
         a_t[:relationship_to_hoh].not_in((1..5).to_a).
           or(a_t[:household_id].in(households_with_multiple_hohs)).
@@ -416,7 +418,7 @@ module HudApr::Generators::Shared::Fy2021
       members = stayers_with_anniversary.where(
         a_t[:income_date_at_annual_assessment].eq(nil).
           or(a_t[:annual_assessment_in_window].eq(false)).
-          or(a_t[:income_from_any_source_at_annual_assessment].in([8, 9])).
+          or(a_t[:income_from_any_source_at_annual_assessment].in([8, 9, 99])).
           or(a_t[:income_from_any_source_at_annual_assessment].eq(nil)).
           or(a_t[:income_from_any_source_at_annual_assessment].eq(0).
             and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql))).
@@ -477,11 +479,12 @@ module HudApr::Generators::Shared::Fy2021
       @report.answer(question: table_name).update(metadata: metadata)
 
       adults_and_hohs = universe.members.where(
-        a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
-          and(a_t[:age].gteq(18).
-            or(a_t[:head_of_household].eq(true).
-              and(a_t[:age].lt(18).
-                or(a_t[:age].eq(nil))))),
+        a_t[:project_type].in([1, 4, 8, 2, 3, 9, 10, 13]).
+          and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
+            and(a_t[:age].gteq(18).
+              or(a_t[:head_of_household].eq(true).
+                and(a_t[:age].lt(18).
+                  or(a_t[:age].eq(nil)))))),
       )
 
       es_sh_so_clients = es_sh_so(table_name, adults_and_hohs)
@@ -567,30 +570,34 @@ module HudApr::Generators::Shared::Fy2021
         # missing time in housing
         {
           cell: 'D3',
-          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
             or(a_t[:prior_living_situation].eq(nil)).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # date homeless missing
         {
           cell: 'E3',
-          clause: a_t[:date_homeless].eq(nil),
+          clause: residence_restriction.and(a_t[:date_homeless].eq(nil)),
           include_in_percent: true,
         },
         # times homeless dk/r/missing
         {
           cell: 'F3',
-          clause: a_t[:times_homeless].in([8, 9]).
+          clause: residence_restriction.and(
+            a_t[:times_homeless].in([8, 9]).
             or(a_t[:times_homeless].eq(nil)),
+          ),
           include_in_percent: true,
         },
         # months homeless dk/r/missing
         {
           cell: 'G3',
-          clause: a_t[:months_homeless].in([8, 9]).
+          clause: residence_restriction.and(
+            a_t[:months_homeless].in([8, 9]).
             or(a_t[:months_homeless].eq(nil)),
+          ),
           include_in_percent: true,
         },
       ]
@@ -615,18 +622,6 @@ module HudApr::Generators::Shared::Fy2021
 
     private def ph(table_name, adults_and_hohs)
       ph = adults_and_hohs.where(a_t[:project_type].in([3, 9, 10, 13]))
-      residence_restriction = a_t[:prior_living_situation].in([16, 1, 18]).
-        or(
-          a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-          and(a_t[:prior_length_of_stay].in([10, 11, 2, 3])).
-          and(a_t[:came_from_street_last_night].eq(1)),
-        ).
-        or(
-          a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
-            or(a_t[:prior_living_situation].eq(nil)).
-          and(a_t[:prior_length_of_stay].in([10, 11])).
-          and(a_t[:came_from_street_last_night].eq(1)),
-        )
       ph_buckets = [
         # count
         {
@@ -695,6 +690,21 @@ module HudApr::Generators::Shared::Fy2021
       answer.update(summary: percentage(members.count / ph.count.to_f))
 
       members
+    end
+
+    private def residence_restriction
+      @residence_restriction ||= a_t[:prior_living_situation].in([16, 1, 18]).
+        or(
+          a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
+            and(a_t[:prior_length_of_stay].in([10, 11, 2, 3])).
+            and(a_t[:came_from_street_last_night].eq(1)),
+        ).
+        or(
+          a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
+            or(a_t[:prior_living_situation].eq(nil)).
+            and(a_t[:prior_length_of_stay].in([10, 11])).
+            and(a_t[:came_from_street_last_night].eq(1)),
+        )
     end
 
     private def q6e_timeliness
@@ -834,6 +844,7 @@ module HudApr::Generators::Shared::Fy2021
 
       es_so_members = adults_and_hohs.where(
         a_t[:project_type].eq(4).
+          and(a_t[:date_of_engagement].lt(@report.end_date)).
           or(a_t[:project_type].eq(1).
             and(a_t[:project_tracking_method].eq(3))),
       )
@@ -871,16 +882,16 @@ module HudApr::Generators::Shared::Fy2021
         a_t[:project_type].eq(1).
           and(a_t[:project_tracking_method].eq(3)),
       )
-      answer.add_members(es_so_members)
-      answer.update(summary: es_so_members.count)
+      answer.add_members(es_members)
+      answer.update(summary: es_members.count)
 
       # Inactive ES
       answer = @report.answer(question: table_name, cell: 'C3')
       inactive_es_members = es_members.where(
         datediff(report_client_universe, 'day', hr_ri_t[:end_date], a_t[:date_of_last_bed_night]).gt(90),
       )
-      answer.add_members(inactive_es_so_members)
-      answer.update(summary: inactive_es_so_members.count)
+      answer.add_members(inactive_es_members)
+      answer.update(summary: inactive_es_members.count)
 
       # percent inactive ES
       answer = @report.answer(question: table_name, cell: 'D3')
