@@ -56,6 +56,7 @@ module Filters
     attribute :currently_fleeing, Array, default: []
     attribute :chronic_status, Boolean, default: false
     attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
+    attribute :ce_cls_as_homeless, Boolean, default: false
     attribute :limit_to_vispdat, Symbol, default: :all_clients
     attribute :times_homeless_in_last_three_years, Array, default: []
     attribute :rrh_move_in, Boolean, default: false
@@ -135,6 +136,7 @@ module Filters
       self.first_time_homeless = filters.dig(:first_time_homeless).in?(['1', 'true', true]) unless filters.dig(:first_time_homeless).nil?
       self.returned_to_homelessness_from_permanent_destination = filters.dig(:returned_to_homelessness_from_permanent_destination).in?(['1', 'true', true]) unless filters.dig(:returned_to_homelessness_from_permanent_destination).nil?
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true]) unless filters.dig(:coordinated_assessment_living_situation_homeless).nil?
+      self.ce_cls_as_homeless = filters.dig(:ce_cls_as_homeless).in?(['1', 'true', true]) unless filters.dig(:ce_cls_as_homeless).nil?
       vispdat_limit = filters.dig(:limit_to_vispdat)&.to_sym
       self.limit_to_vispdat = vispdat_limit if vispdat_limit.present? && available_vispdat_limits.values.include?(vispdat_limit)
       self.ph = filters.dig(:ph).in?(['1', 'true', true]) unless filters.dig(:ph).nil?
@@ -184,6 +186,7 @@ module Filters
           first_time_homeless: first_time_homeless,
           returned_to_homelessness_from_permanent_destination: returned_to_homelessness_from_permanent_destination,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
+          ce_cls_as_homeless: ce_cls_as_homeless,
           limit_to_vispdat: limit_to_vispdat,
           enforce_one_year_range: enforce_one_year_range,
           times_homeless_in_last_three_years: times_homeless_in_last_three_years,
@@ -213,6 +216,7 @@ module Filters
         :first_time_homeless,
         :returned_to_homelessness_from_permanent_destination,
         :coordinated_assessment_living_situation_homeless,
+        :ce_cls_as_homeless,
         :coc_code,
         :limit_to_vispdat,
         :enforce_one_year_range,
@@ -280,6 +284,7 @@ module Filters
         opts['Fist Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
         opts['Returned to Homelessness from Permanent Destination'] = 'Yes' if returned_to_homelessness_from_permanent_destination
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
+        opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
       end
