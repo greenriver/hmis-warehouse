@@ -711,13 +711,13 @@ module Health
           user: form.staff,
         }
       end
-      case_notes += sdh_case_management_notes.order(completed_on: :desc).map do |form|
+      case_notes += sdh_case_management_notes.order(date_of_contact: :desc).map do |form|
         {
           type: :warehouse,
           id: form.id,
           title: form.topics.join(', ').html_safe,
           sub_title: form.title || 'No Title',
-          date: form.completed_on&.to_date,
+          date: form.date_of_contact&.to_date || form.collected_at&.to_date,
           user: form.user&.name,
         }
       end
