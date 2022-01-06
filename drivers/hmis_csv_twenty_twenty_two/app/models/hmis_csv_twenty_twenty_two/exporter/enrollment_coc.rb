@@ -13,10 +13,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
     # enrollment has been deleted
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
 
-    scope :for_cocs, ->(coc_codes) do
-      where(CoCCode: coc_codes)
-    end
-
     # HouseholdID is required, but often not provided, send some sane defaults
     # Also unique the HouseholdID to a data source
     def apply_overrides(row, data_source_id:)

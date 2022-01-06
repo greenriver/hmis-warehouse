@@ -11,11 +11,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :project_cocs, optional: true
 
-    scope :for_cocs, ->(coc_codes) do
-      where(hud_coc_code: nil, CoCCode: coc_codes).
-        or(where(hud_coc_code: coc_codes))
-    end
-
     def apply_overrides(row, data_source_id:)
       override = coc_code_override_for(project_coc_id: row[:ProjectCoCID].to_i, data_source_id: data_source_id)
       row[:CoCCode] = override if override

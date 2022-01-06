@@ -24,7 +24,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
       end
     end
 
-    def for_cocs(_coc_codes)
+    def in_coc(*)
       current_scope
     end
   end
@@ -37,7 +37,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
     CSV.open(export_path, 'wb', force_quotes: true) do |csv|
       csv << clean_headers(headers)
       export_scope = export_scope.with_deleted if paranoid? && export.include_deleted
-      export_scope = export_scope.for_cocs(coc_codes) if coc_codes.present?
+      export_scope = export_scope.in_coc(coc_code: coc_codes) if coc_codes.present?
 
       columns = columns_to_pluck
 
