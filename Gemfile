@@ -10,17 +10,12 @@ gem 'nokogiri', '>= 1.11.0.rc4' # >= 1.11.0.rc4 due to CVE-2020-26247
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-#gem 'composite_primary_keys', '=12.0.10'
 gem 'composite_primary_keys', '=13.0.0'
 gem 'pg'
-# version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'order_as_specified'
 
-# locking active record extended here temporarily since upgrading it to 2.0.0 gives
-# NoMethodError: undefined method `relation' for "DATE_TRUNC('month', date_of_activity)":Arel::Nodes::SqlLiteral
-# on .count for active record queries of Arel
 gem 'active_record_extended'
 gem 'active_median'
 
@@ -36,8 +31,6 @@ gem 'rgeo'
 gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 
-# Once the deprecation fixing PR is merged upstream, we can require this gem like normal
-#gem 'active_record_distinct_on', git: 'https://github.com/greenriver/active_record_distinct_on.git', branch: 'v-1-1-0-with-deprecation-fix'
 gem 'active_record_distinct_on'
 gem 'charlock_holmes', require: false
 gem 'bootsnap'
