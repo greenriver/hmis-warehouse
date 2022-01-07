@@ -38,6 +38,12 @@ module
           hint: "Including Coordinated Assessment enrollments where the prior living situation is homeless (#{HUD.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
         )
         section.add_control(
+          id: 'ce_cls_as_homeless',
+          label: 'Including CA Current Living Situation Homeless',
+          value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
+          hint: "Including Coordinated Assessment enrollments where the client has at least two homeless current living situations (#{HUD.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
+        )
+        section.add_control(
           id: 'reporting_period',
           required: true,
           value: @filter.date_range_words,
