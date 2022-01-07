@@ -717,7 +717,7 @@ module Health
           id: form.id,
           title: form.topics.join(', ').html_safe,
           sub_title: form.title || 'No Title',
-          date: form.date_of_contact&.to_date || form.collected_at&.to_date,
+          date: form.date_of_contact&.to_date || form.completed_on&.to_date,
           user: form.user&.name,
         }
       end
