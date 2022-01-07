@@ -44,6 +44,7 @@ module PerformanceMeasurement
       start
       begin
         create_universe
+        add_capacities
         save_results
       rescue Exception => e
         update(failed_at: Time.current)
@@ -87,7 +88,7 @@ module PerformanceMeasurement
     end
 
     def self.url
-      'performance_measurement/warehouse_reports/report'
+      'performance_measurement/warehouse_reports/reports'
     end
 
     def url
@@ -164,6 +165,27 @@ module PerformanceMeasurement
       add_clients(report_clients)
     end
 
+    private def add_capacities
+      variants.each do |period, _|
+        range = if period == :reporting
+          filter.as_date_range
+        else
+          filter.comparison_as_date_range
+        end
+        projects.preload(hud_project: :inventories).each do |project|
+          next unless project.project_id
+
+          average_capacity = project.hud_project.inventories.within_range(range).map do |inventory|
+            inventory.average_daily_inventory(
+              range: range,
+              field: :BedInventory,
+            )
+          end.sum
+          project.update("#{period}_ave_bed_capacity_per_night" => average_capacity)
+        end
+      end
+    end
+
     private def add_clients(report_clients)
       # Run CoC-wide SPMs for year prior to selected date and period 2 years prior
       # add records for each client to indicate which projects they were enrolled in within the report window
@@ -175,31 +197,37 @@ module PerformanceMeasurement
           cells.each do |cell|
             spm_clients = answer_clients(spec[:report], *cell)
             spm_clients.each do |spm_client|
-              report_client = report_clients[spm_client[:client_id]] || Client.new(report_id: id)
-              report_client[:client_id] = spm_client[:client_id]
+              report_client = report_clients[spm_client[:client_id]] || Client.new(report_id: id, client_id: spm_client[:client_id])
               report_client[:dob] = spm_client[:dob]
+              project_id = spm_client[parts[:project_source]]
+              involved_projects << project_id
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
-
-                # note history columns are arranged {enrollments: [{project_id: 1}, {project_id: 2}]}
-                enrollments = if spm_client[parts[:history_source]].is_a?(Hash)
-                  spm_client[parts[:history_source]].values
-                else
-                  spm_client[parts[:history_source]]
-                end
-                enrollments.flatten.each do |row|
-                  next if row['project_id'].blank?
-
-                  involved_projects << row['project_id']
-                  project_clients << {
-                    report_id: id,
-                    client_id: spm_client[:client_id],
-                    project_id: row['project_id'],
-                    for_question: question[:name], # allows limiting for a specific response
-                    period: variant_name,
-                  }
+                project_clients << {
+                  report_id: id,
+                  client_id: spm_client[:client_id],
+                  project_id: project_id,
+                  for_question: question[:name], # allows limiting for a specific response
+                  period: variant_name,
+                }
+              end
+              # Save an aggregate connection when necessary
+              if parts[:questions].count > 1
+                for_question = parts[:questions].map { |q| q[:name] }.join('__')
+                project_clients << {
+                  report_id: id,
+                  client_id: spm_client[:client_id],
+                  project_id: project_id,
+                  for_question: for_question, # allows limiting for a specific response
+                  period: variant_name,
+                }
+              end
+              if parts.key?(:client_project_rows)
+                parts[:client_project_rows].each do |cpr|
+                  project_clients << cpr.call(spm_client, project_id, variant_name)
                 end
               end
+
               report_client["#{variant_name}_spm_id"] = spec[:report].id
               report_clients[spm_client[:client_id]] = report_client
             end
@@ -210,7 +238,7 @@ module PerformanceMeasurement
           filter.update(spec[:options])
           data = parts[:data].call(filter)
           data.each_key do |client_id|
-            report_client = report_clients[client_id] || Client.new(report_id: id)
+            report_client = report_clients[client_id] || Client.new(report_id: id, client_id: client_id)
             report_client[:dob] = parts[:value_calculation].call(:dob, client_id, data)
             report_client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(:value, client_id, data)
             parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id|
@@ -238,7 +266,7 @@ module PerformanceMeasurement
         },
       )
       Project.import!([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] }, batch_size: 5_000)
-      ClientProject.import!(project_clients.first.keys, project_clients.map(&:values), batch_size: 5_000)
+      ClientProject.import!(project_clients.to_a.compact, batch_size: 5_000)
       universe.add_universe_members(report_clients)
     end
 
@@ -250,8 +278,8 @@ module PerformanceMeasurement
       report.answer(question: table, cell: cell).universe_members.preload(:universe_membership).map(&:universe_membership)
     end
 
-    private def extra_calculations
-      [
+    private def extra_calculations # rubocop:disable Metrics/AbcSize
+      extras = [
         {
           key: :served_on_pit_date,
           data: ->(filter) {
@@ -296,7 +324,214 @@ module PerformanceMeasurement
             details[calculation]
           },
         },
+        {
+          key: :days_in_homeless_bed_details,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              scope = report_scope.joins(:service_history_services, :project, :client).
+                in_project_type([1, 2, 4, 8]).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.group(:client_id, p_t[:id]).
+                count(shs_t[:date]).
+                each do |(client_id, project_id), days|
+                  days_by_client_id[client_id] ||= { value: [], project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] << { project_id => days }
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        },
+        {
+          key: :days_in_homeless_bed,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              scope = report_scope.joins(:service_history_services, :project, :client).
+                in_project_type([1, 2, 4, 8]).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.group(:client_id, p_t[:id]).
+                count(shs_t[:date]).
+                each do |(client_id, project_id), days|
+                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] += days
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        },
+        {
+          key: :days_in_homeless_bed_in_period,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              scope = report_scope.joins(:service_history_services, :project, :client).
+                merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
+                in_project_type([1, 2, 4, 8]).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.group(:client_id, p_t[:id]).
+                count(shs_t[:date]).
+                each do |(client_id, project_id), days|
+                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] += days
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        },
+        {
+          key: :days_in_homeless_bed_details_in_period,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              scope = report_scope.joins(:service_history_services, :project, :client).
+                merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
+                in_project_type([1, 2, 4, 8]).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.group(:client_id, p_t[:id]).
+                count(shs_t[:date]).
+                each do |(client_id, project_id), days|
+                  days_by_client_id[client_id] ||= { value: [], project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] << { project_id => days }
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        },
       ]
+      [:es, :sh, :so, :th].each do |p_type|
+        extras << {
+          key: "days_in_#{p_type}_bed_details".to_sym,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              scope = report_scope.joins(:service_history_services, :project, :client).
+                send(p_type).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.group(:client_id, p_t[:id]).
+                count(shs_t[:date]).
+                each do |(client_id, project_id), days|
+                  days_by_client_id[client_id] ||= { value: [], project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] << { project_id => days }
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        }
+        extras << {
+          key: "days_in_#{p_type}_bed".to_sym,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              scope = report_scope.joins(:service_history_services, :project, :client).
+                send(p_type).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.group(:client_id, p_t[:id]).
+                count(shs_t[:date]).
+                each do |(client_id, project_id), days|
+                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] += days
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        }
+        extras << {
+          key: "days_in_#{p_type}_bed_in_period".to_sym,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              scope = report_scope.joins(:service_history_services, :project, :client).
+                merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
+                send(p_type).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.group(:client_id, p_t[:id]).
+                count(shs_t[:date]).
+                each do |(client_id, project_id), days|
+                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] += days
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        }
+        extras << {
+          key: "days_in_#{p_type}_bed_details_in_period".to_sym,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              scope = report_scope.joins(:service_history_services, :project, :client).
+                merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
+                send(p_type).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.group(:client_id, p_t[:id]).
+                count(shs_t[:date]).
+                each do |(client_id, project_id), days|
+                  days_by_client_id[client_id] ||= { value: [], project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] << { project_id => days }
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        }
+      end
+      extras
     end
 
     private def run_spm
@@ -318,13 +553,14 @@ module PerformanceMeasurement
       # Re-enable the following if you don't want to have to run SPMs during development
       # if Rails.env.development?
       #   variants.values.reverse.each.with_index do |spec, i|
-      #     spec[:report] = HudReports::ReportInstance.order(id: :desc).first(2)[i]
+      #     spec[:report] = HudReports::ReportInstance.automated.complete.order(id: :desc).first(2)[i]
       #   end
       # else
       generator = HudSpmReport::Generators::Fy2020::Generator
       variants.each do |_, spec|
         processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
         processed_filter.update(options.deep_merge(spec[:options]))
+        processed_filter.comparison_pattern = :no_comparison_period
         report = HudReports::ReportInstance.from_filter(
           processed_filter,
           generator.title,
@@ -332,8 +568,8 @@ module PerformanceMeasurement
         )
         generator.new(report).run!(email: false, manual: false)
         spec[:report] = report
+        # end
       end
-      # end
       # return @variants with reports for each question
       variants
     end
@@ -358,6 +594,7 @@ module PerformanceMeasurement
           cells: [['3.2', 'C2']],
           title: 'Sheltered Clients',
           history_source: :m3_history,
+          project_source: :m3_project_id,
           questions: [
             {
               name: :served_on_pit_date_sheltered,
@@ -369,6 +606,7 @@ module PerformanceMeasurement
           cells: [['5.1', 'C4']],
           title: 'First Time',
           history_source: :m5_history,
+          project_source: :m5_project_id,
           questions: [
             {
               name: :first_time,
@@ -377,7 +615,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1a', 'C2']],
+          cells: [['1a', 'C3']],
           title: 'Length of Time Homeless in ES, SH, TH',
           history_source: :m1_history,
           questions: [
@@ -388,7 +626,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1b', 'C2']],
+          cells: [['1b', 'C3']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
           history_source: :m1_history,
           questions: [
@@ -402,32 +640,107 @@ module PerformanceMeasurement
           cells: [['7a.1', 'C2']],
           title: 'Exits from SO',
           history_source: :m7_history,
+          project_source: :m7a1_project_id,
           questions: [
             {
               name: :so_destination,
               value_calculation: ->(spm_client) { spm_client[:m7a1_destination] },
             },
           ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7a1_destination].present?
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :so_destination,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7a1_destination].present? && spm_client[:m7a1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :so_destination_positive,
+                period: variant_name,
+              }
+            },
+          ],
         },
         {
           cells: [['7b.1', 'C2']],
           title: 'Exits from ES, SH, TH, RRH, PH with No Move-in',
-          history_source: :m7_history,
+          history_source: :m7b_history,
+          project_source: :m7b_project_id,
           questions: [
             {
               name: :es_sh_th_rrh_destination,
               value_calculation: ->(spm_client) { spm_client[:m7b1_destination] },
             },
           ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7b1_destination].present?
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :es_sh_th_rrh_destination,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7b1_destination].present? && spm_client[:m7b1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :es_sh_th_rrh_destination_positive,
+                period: variant_name,
+              }
+            },
+          ],
         },
         {
           cells: [['7b.2', 'C2']],
           title: 'RRH, PH with Move-in or Permanent Exit',
-          history_source: :m7_history,
+          history_source: :m7b_history,
+          project_source: :m7b_project_id,
           questions: [
             {
               name: :moved_in_destination, # NOTE: destination 0 == stayer in the SPM
               value_calculation: ->(spm_client) { spm_client[:m7b2_destination] },
+            },
+          ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7b2_destination].present?
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :moved_in_destination,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m7b2_destination].present? && spm_client[:m7b2_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :moved_in_destination_positive,
+                period: variant_name,
+              }
             },
           ],
         },
@@ -435,6 +748,7 @@ module PerformanceMeasurement
           cells: [['2', 'B7']],
           title: 'Returned to Homelessness Within 6 months',
           history_source: :m2_history,
+          project_source: :m2_project_id,
           questions: [
             {
               name: :days_to_return,
@@ -445,11 +759,48 @@ module PerformanceMeasurement
               value_calculation: ->(spm_client) { spm_client[:m2_exit_to_destination] },
             },
           ],
+          # This needs to introspect on the number of days to re-entry and save off extra client_project records
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 180)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :returned_in_six_months,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 730)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :returned_in_two_years,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].positive?
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :returned_ever,
+                period: variant_name,
+              }
+            },
+          ],
         },
         {
           cells: [['4.3', 'C2']],
           title: 'Stayers with Increased Income',
           history_source: :m4_history,
+          project_source: :m4_project_id,
           questions: [
             {
               name: :income_stayer,
@@ -465,6 +816,7 @@ module PerformanceMeasurement
           cells: [['4.6', 'C2']],
           title: 'Leavers with Increased Income',
           history_source: :m4_history,
+          project_source: :m4_project_id,
           questions: [
             {
               name: :income_leaver,

@@ -79,8 +79,10 @@ class BaseJob < ApplicationJob
       "*#{self.class.name}* `FAILED` with the following error:",
       "```\n #{exception.inspect} \n```",
     ].join("\n")
+
     attachment = "```\n #{Rails.backtrace_cleaner.clean(exception.backtrace).join("\n")} \n```"
     begin
+      @notifier.insert_log_url = true
       @notifier.post(text: msg, attachments: { text: attachment })
     rescue Exception # rubocop:disable Lint/SuppressedException
     end

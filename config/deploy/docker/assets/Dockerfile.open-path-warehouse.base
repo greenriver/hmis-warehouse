@@ -44,7 +44,7 @@ COPY config/deploy/docker/assets/REVISION ./
 ##################
 
 FROM open-path-warehouse:latest--pre-cache
-
+ARG GITHASH
 ARG BUILDER
 
 #############################################
@@ -66,10 +66,12 @@ RUN chmod +x /usr/bin/entrypoint.sh \
   && bundle install \
   && find /usr/local/bundle -name "*.o" -exec rm {} \; \
   && find /usr/local/bundle -name "*.c" -exec rm {} \; \
-  && RAILS_ENV=production bundle exec rake assets:precompile \
   && cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml \
   && rm -rf tmp/* \
   && rm .env \
   && mkdir tmp/pids
+
+# Expose the GITHASH to entrypoint.sh for downloading precompiled assets.
+ENV GITHASH=${GITHASH}
 
 ENTRYPOINT ["entrypoint.sh"]

@@ -27,9 +27,11 @@
   }
   &.pass {
     color: $brand-success;
+    fill: $brand-success;
   }
   &.fail {
     color: rgb(115, 72, 213);
+    fill: rgb(115, 72, 213);
   }
 }
 .c-indicator__values {

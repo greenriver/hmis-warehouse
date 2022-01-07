@@ -1,0 +1,68 @@
+- title = _("CoC Performance Measurement Dashboard")
+- content_for :title, title
+
+%h1= content_for :title
+
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+.well.report-listing.warehouse-reports__completed
+  = @report.filter.describe_filter_as_html
+
+%table.table.c-table--indicator
+  %thead
+    %th.blank{style: "width: 15%"}
+    %th{style: "width: #{85.0/2}%"}
+      %div{ style: 'background: #ececec;' } System-Level
+    %th{style: "width: #{85.0/2}%"}
+      %div{ style: 'background: #ececec;' } Project-Level
+  %tbody
+    - @report.summary_table.each.with_index do |(title, group), i|
+      %tr.c-table__row
+        %th.level.w-20{rowspan: group.count + 1, class: "performance-measurement--highlight-light-#{i + 1}"}
+          %div{ class: "performance-measurement--highlight-light-#{i + 1}" }
+            .h2= title
+      - group.each do |row|
+        - key = row.first
+        - indicator = @report.result_for(key)
+        - if indicator
+          - column = row.last[:column]
+          - options = { indicator: indicator, link: performance_measurement_warehouse_reports_report_details_path(@report, key: key), title: @report.detail_goal_description_for(indicator.field.to_sym), description: @report.detail_calculation_description_for(indicator.field.to_sym) }
+          %tr.indicators
+            - if column == :both
+              %td.both{colspan: 2}= render 'warehouse_reports/indicator', **options
+            - elsif column == :system
+              %td.system= render 'warehouse_reports/indicator', **options
+              %td
+            - elsif column == :project
+              %td
+              %td.project= render 'warehouse_reports/indicator', **options
+        - else
+          %tr.indicators
+            %td.both{colspan: 2}
+              Error displaying:
+              = key
+- @report.summary_table.each.with_index do |(title, group), i|
+  - group.each do |row|
+    - key = row.first
+    - indicator = @report.result_for(key)
+    - if indicator
+      .page-break-after
+        = render 'performance_measurement/warehouse_reports/reports/details', key: key
+:css
+  .performance-measurement--highlight-light-1 {
+    background-color: #decbe4 !important;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 4em;
+  }
+  .performance-measurement--highlight-light-2 {
+    background-color: #cbd5e8 !important;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 4em;
+  }
+  .performance-measurement--highlight-light-3 {
+    background-color: #e6f5c9 !important;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 4em;
+  }

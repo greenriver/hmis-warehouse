@@ -16,8 +16,9 @@ module HudReports
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
-    scope :manual, -> { where manual: true }
-    scope :automated, -> { where manual: false }
+    scope :manual, -> { where(manual: true) }
+    scope :automated, -> { where(manual: false) }
+    scope :complete, -> { where.not(completed_at: nil) }
 
     def self.from_filter(filter, report_name, build_for_questions:)
       new(

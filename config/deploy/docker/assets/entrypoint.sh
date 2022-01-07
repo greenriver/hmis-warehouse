@@ -31,14 +31,12 @@ echo Setting PGPass
 echo "$DATABASE_HOST:*:*:$DATABASE_USER:$DATABASE_PASS" > /root/.pgpass
 chmod 600 /root/.pgpass
 
-if [ "$NEEDS_PRECOMPILE" = "true" ]
-then
-  echo Precompiling
-  bundle exec rake assets:precompile
-  echo Done precompiling
-else
-  echo No Precompiling
-fi
+echo Pulling down assets from S3
+bundle exec rake assets:clobber && mkdir -p ./public/assets
+cd ./public/assets
+# Pull down the compiled assets. Using ASSETS_PREFIX from .env and GITHASH from Docker args.
+ASSETS_PREFIX="${ASSETS_PREFIX}/${GITHASH}" ASSETS_BUCKET_NAME=openpath-precompiled-assets UPDATE_ONLY=true ../../bin/sync_app_assets.rb
+cd ../..
 
 #cat /app/.env
 

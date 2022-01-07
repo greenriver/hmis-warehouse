@@ -1,5 +1,8 @@
+require "#{Rails.root}/lib/util/exception_notifier.rb"
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
+  slack_config = Rails.application.config_for(:exception_notifier)['slack']
 
   # Don't force ssl for docker development
   config.force_ssl = false
@@ -127,4 +130,20 @@ Rails.application.configure do
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''
+
+  if slack_config.present?
+    config.middleware.use(ExceptionNotification::Rack,
+      :slack => {
+        :webhook_url => slack_config['webhook_url'],
+        :channel => slack_config['channel'],
+        :pre_callback => proc { |opts, _notifier, _backtrace, _message, message_opts|
+          ExceptionNotifierLib.insert_log_url!(message_opts)
+        },
+        :additional_parameters => {
+          :mrkdwn => true,
+          :icon_url => slack_config['icon_url']
+        }
+      }
+    )
+  end
 end

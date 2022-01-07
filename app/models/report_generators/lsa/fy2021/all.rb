@@ -164,6 +164,7 @@ module ReportGenerators::Lsa::Fy2021
         start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
         projects: @project_ids,
+        coc_codes: @coc_code,
         period_type: 3,
         directive: 2,
         hash_status: 1,

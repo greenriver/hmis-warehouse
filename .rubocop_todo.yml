@@ -61,7 +61,6 @@ Layout/CaseIndentation:
 # Cop supports --auto-correct.
 Layout/ClosingParenthesisIndentation:
   Exclude:
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -116,7 +115,6 @@ Layout/CommentIndentation:
 # SupportedStylesAlignWith: start_of_line, def
 Layout/DefEndAlignment:
   Exclude:
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/health/aco_performance.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
@@ -160,7 +158,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/grda_warehouse/health_emergency/ama_restriction.rb'
     - 'app/models/grda_warehouse/health_emergency/test.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/hud_chronically_homeless.rb'
@@ -207,7 +204,6 @@ Layout/EmptyLineAfterGuardClause:
 # Configuration parameters: EmptyLineBetweenMethodDefs, EmptyLineBetweenClassDefs, EmptyLineBetweenModuleDefs, AllowAdjacentOneLineDefs, NumberOfEmptyLines.
 Layout/EmptyLineBetweenDefs:
   Exclude:
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
@@ -257,7 +253,6 @@ Layout/EmptyLines:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/enrollment_coc.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/hmis/client_attribute_defined_text.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
@@ -498,7 +493,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/health/team/provider.rb'
     - 'app/models/health/team/representative.rb'
     - 'app/models/import.rb'
-    - 'app/models/pdf_generator.rb'
     - 'app/models/program.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
@@ -786,7 +780,6 @@ Layout/IndentationConsistency:
     - 'app/models/concerns/performance_dashboard/overview/entering/lot_homeless.rb'
     - 'app/models/concerns/performance_dashboard/overview/exiting/lot_homeless.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
@@ -807,7 +800,6 @@ Layout/IndentationConsistency:
 Layout/IndentationWidth:
   Exclude:
     - 'app/models/consent_limit.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/us_census_api/importer.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
@@ -881,7 +873,6 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/grades/missing.rb'
     - 'app/models/grda_warehouse/health_emergency/uploaded_test.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/report/enrollment.rb'
     - 'app/models/grda_warehouse/shape/coc.rb'
@@ -1084,7 +1075,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/public_file.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
@@ -1184,7 +1174,6 @@ Layout/SpaceInLambdaLiteral:
     - 'app/models/grda_warehouse/health_emergency/ama_restriction.rb'
     - 'app/models/grda_warehouse/health_emergency/test.rb'
     - 'app/models/grda_warehouse/health_emergency/vaccination.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/report/enrollment.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
     - 'app/models/grda_warehouse/warehouse_reports/base.rb'
@@ -1241,7 +1230,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/client.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud/with_deleted/client.rb'
     - 'app/models/grda_warehouse/hud/with_deleted/enrollment.rb'
     - 'app/models/grda_warehouse/hud/with_deleted/organization.rb'
@@ -1517,7 +1505,6 @@ Lint/AssignmentInCondition:
     - 'app/models/glacier/chunker.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/geography.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project_coc.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/public_file.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
@@ -1612,7 +1599,6 @@ Lint/SafeNavigationChain:
 # AllowedMethods: present?, blank?, presence, try, try!
 Lint/SafeNavigationConsistency:
   Exclude:
-    - 'app/models/grda_warehouse/hmis_form.rb'
 
 # Offense count: 1
 Lint/SelfAssignment:
@@ -1627,7 +1613,6 @@ Lint/ShadowingOuterLocalVariable:
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project_coc.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
     - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -1677,7 +1662,6 @@ Lint/UnusedBlockArgument:
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
@@ -1824,7 +1808,6 @@ Metrics/PerceivedComplexity:
 # Offense count: 8
 Naming/AccessorMethodName:
   Exclude:
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
@@ -1881,7 +1864,6 @@ Naming/MethodName:
 # AllowedNames: at, by, db, id, in, io, ip, of, on, os, pp, to
 Naming/MethodParameterName:
   Exclude:
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
@@ -1910,7 +1892,6 @@ Naming/MethodParameterName:
 Naming/PredicateName:
   Exclude:
     - 'spec/**/*'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/reports/ahar/fy2016/by_data_source.rb'
     - 'app/models/reports/ahar/fy2016/by_project.rb'
@@ -2149,7 +2130,6 @@ Style/IfUnlessModifier:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/enrollment.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
@@ -2219,7 +2199,6 @@ Style/LineEndConcatenation:
 # Configuration parameters: IgnoredMethods.
 Style/MethodCallWithoutArgsParentheses:
   Exclude:
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/project.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
@@ -2403,7 +2382,6 @@ Style/NumericLiterals:
 Style/NumericPredicate:
   Exclude:
     - 'spec/**/*'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
@@ -2513,7 +2491,6 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/export/hmis_six_one_one/export.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/export.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/affiliation.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/enrollment.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/exit.rb'
@@ -2570,7 +2547,6 @@ Style/RegexpLiteral:
   Exclude:
     - 'app/controllers/concerns/warehouse_report_authorization.rb'
     - 'app/controllers/warehouse_reports/health/completed_contact_tracing_controller.rb'
-    - 'app/controllers/warehouse_reports/project/data_qualities_controller.rb'
     - 'app/models/eto_api/base.rb'
     - 'app/models/grda_warehouse/us_census_api/is_a_database_view.rb'
     - 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
@@ -2676,7 +2652,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
     - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/public_file.rb'
     - 'app/models/grda_warehouse/report/demographic.rb'
     - 'app/models/grda_warehouse/shape.rb'
@@ -2807,7 +2782,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/grades/missing.rb'
     - 'app/models/grda_warehouse/grades/utilization.rb'
     - 'app/models/grda_warehouse/hmis_client.rb'
-    - 'app/models/grda_warehouse/hmis_form.rb'
     - 'app/models/grda_warehouse/hud/service.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'

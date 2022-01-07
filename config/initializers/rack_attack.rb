@@ -36,7 +36,7 @@ class Rack::Attack
   end
 
   def self.warden_user_present?(request)
-    request.env['warden'].user.present?
+    request.env['warden']&.user.present?
   end
 
   # track any remote ip that exceeds our basic request rate limits

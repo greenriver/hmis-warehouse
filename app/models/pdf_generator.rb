@@ -5,9 +5,8 @@
 ###
 
 class PdfGenerator
-
-  def perform(html:, file_name: 'output')
-    pdf_data = render_pdf(html)
+  def perform(html:, file_name: 'output', options: {})
+    pdf_data = render_pdf(html, options: options)
     Dir.mktmpdir do |dir|
       safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
       file_path = "#{dir}/#{safe_name}.pdf"
@@ -17,13 +16,13 @@ class PdfGenerator
     true
   end
 
-  def render_pdf(html)
+  def render_pdf(html, options: {})
     grover_options = {
       display_url: root_url,
-      displayHeaderFooter: true,
-      headerTemplate: '<h2>Header</h2>',
-      footerTemplate: '<h6 class="text-center">Footer</h6>',
-      timeout: 50_000,
+      display_header_footer: false,
+      # header_template: '<h2>Header</h2>',
+      # footer_template: '<h6 class="text-center"><span class="pageNumber"></span> of <span class="totalPages"></span></h6>',
+      timeout: 150_000,
       format: 'Letter',
       emulate_media: 'print',
       margin: {
@@ -36,7 +35,7 @@ class PdfGenerator
         # headless: false,
         # devtools: true
       },
-    }
+    }.deep_merge(options)
     Grover.new(html, grover_options).to_pdf
   end
 

@@ -20,11 +20,12 @@ module Health
     belongs_to :source, polymorphic: true
 
     def self.sync!(force = false)
+      cleanup
       contact_sources.each do |klass|
         import!(
           klass.as_health_contacts(force),
           on_duplicate_key_update: {
-            conflict_target: [:client_id, :source_id, :source_type],
+            conflict_target: [:patient_id, :source_id, :source_type],
           },
         )
       end
@@ -35,6 +36,14 @@ module Health
         Health::Team::Member,
         GrdaWarehouse::ClientContact,
       ]
+    end
+
+    def self.cleanup
+      find_in_batches do |batch|
+        batch.each do |contact|
+          contact.destroy if contact.source.nil?
+        end
+      end
     end
   end
 end

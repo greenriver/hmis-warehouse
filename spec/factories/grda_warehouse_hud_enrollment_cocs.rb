@@ -4,6 +4,7 @@ FactoryBot.define do
     sequence(:EnrollmentID, 1)
     sequence(:ProjectID, 100)
     sequence(:PersonalID, 10)
+    sequence(:CoCCode) { |n| "XX-00#{n}" }
     association :data_source, factory: :source_data_source
   end
 end

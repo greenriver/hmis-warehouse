@@ -29,8 +29,8 @@ module GrdaWarehouse
 
     def phone_numbers
       [
-        phone,
-        phone_alternate,
+        phone.presence,
+        phone_alternate.presence,
       ].compact.join(', ')
     end
 
