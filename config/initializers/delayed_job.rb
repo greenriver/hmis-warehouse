@@ -3,7 +3,7 @@ Rails.logger.debug "Running initializer in #{__FILE__}"
 Delayed::Worker.destroy_failed_jobs = false
 Delayed::Worker.sleep_delay = 5
 Delayed::Worker.max_attempts = 3
-Delayed::Worker.max_run_time = 10.hours
+Delayed::Worker.max_run_time = 30.hours
 if ENV['RAILS_LOG_TO_STDOUT'] == 'true'
   Delayed::Worker.logger = Logger.new(STDOUT)
 else

@@ -20,7 +20,7 @@ class Rack::Attack
   end
 
   def self.rapid_paths(request)
-    request.path.include?('rollup') || request.path.include?('cohort') || asset_paths(request)
+    request.path.include?('rollup') || request.path.include?('cohort') || request.path.include?('core_demographics') || asset_paths(request)
   end
 
   def self.asset_paths(request)
