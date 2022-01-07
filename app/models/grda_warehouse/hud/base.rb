@@ -7,5 +7,9 @@
 module GrdaWarehouse::Hud
   class Base < GrdaWarehouseBase
     self.abstract_class = true
+
+    scope :in_coc, ->(*) do
+      current_scope
+    end
   end
 end

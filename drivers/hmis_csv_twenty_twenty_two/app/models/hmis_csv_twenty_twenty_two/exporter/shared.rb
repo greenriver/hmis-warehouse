@@ -23,10 +23,6 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
         alias_attribute(column.to_s.underscore.to_sym, column)
       end
     end
-
-    def in_coc(*)
-      current_scope
-    end
   end
 
   def export_to_path(export_scope:, path:, export:, coc_codes: nil)
