@@ -58,6 +58,7 @@ gem 'carrierwave-aws', git: "https://github.com/greenriver/carrierwave-aws.git",
 
 gem 'ruby-filemagic'
 gem 'mini_magick'
+gem 'mimemagic'
 # there are no obvious breaking changes but
 # since there are no tests for this
 # it should be tested manually
