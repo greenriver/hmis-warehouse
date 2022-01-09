@@ -58,7 +58,7 @@ module GrdaWarehouse::CustomImports
         file_name: file,
         target_path: target_path.to_s,
       )
-      content_type = MimeMagic.by_path(target_path) # Note, these need to be trusted files
+      content_type = ::MimeMagic.by_path(target_path) # Note, these need to be trusted files
       contents = if content_type.to_s.in?(['text/plain', 'text/csv', 'application/csv'])
         ::File.read(target_path)
       else

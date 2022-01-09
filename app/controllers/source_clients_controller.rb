@@ -63,7 +63,7 @@ class SourceClientsController < ApplicationController
     image = @client.image_for_source_client(max_age)
     # NOTE: The test environment is really unhappy when there's no image
     if image && ! Rails.env.test?
-      send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
+      send_data image, type: ::MimeMagic.by_magic(image), disposition: 'inline'
     else
       head(:forbidden)
       nil
