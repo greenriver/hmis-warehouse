@@ -3,7 +3,6 @@ require "#{Rails.root}/lib/util/exception_notifier.rb"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
   deliver_method = ENV.fetch('MAIL_DELIVERY_METHOD') { 'smtp' }.to_sym
-  slack_config = Rails.application.config_for(:exception_notifier)['slack']
 
   # Code is not reloaded between requests.
   config.cache_classes = true
@@ -118,6 +117,7 @@ Rails.application.configure do
   config.cache_store = :redis_cache_store, redis_config
 
   config.action_controller.perform_caching = true
+  slack_config = Rails.application.config_for(:exception_notifier)[:slack]
   if slack_config.present?
     config.middleware.use(ExceptionNotification::Rack,
       slack: {
