@@ -31,10 +31,15 @@ module CoreDemographicsReport::DocumentExports
     def perform
       with_status_progression do
         template_file = File.join(Rails.root, 'drivers/core_demographics_report/app/views/core_demographics_report/warehouse_reports/core/index_pdf.haml')
-        raise 'FIXME this now creates a PDF but the content is plain haml'
+        layout = 'layouts/performance_report.html'
 
-        PdfGenerator.new.perform( # rubocop:disable Lint/UnreachableCode
-          html: controller_class.render(file: template_file, layout: 'layouts/performance_report'),
+        html = controller_class.render(
+          file: template_file,
+          layout: layout,
+          assigns: view_assigns,
+        )
+        PdfGenerator.new.perform(
+          html: html,
           file_name: "Core Demographics #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -50,9 +55,12 @@ module CoreDemographicsReport::DocumentExports
       CoreDemographicsReport::WarehouseReports::CoreController
     end
 
+    private def view_context
+      controller_class.view_paths
+    end
+
     protected def view
-      context = controller_class.view_paths
-      view = CoreDemographicsExportTemplate.new(context, view_assigns, controller_class.new)
+      view = CoreDemographicsExportTemplate.new(view_context, view_assigns, controller_class.new)
       view.current_user = user
       view
     end
