@@ -313,7 +313,7 @@ module Health
     end
 
     scope :with_housing_status, -> do
-      where.not(housing_status: [nil, ''], housing_status_timestamp: nil)
+      where.not(housing_status: [nil, '']).where.not(housing_status_timestamp: nil)
     end
 
     scope :enrolled_before, ->(date) do
