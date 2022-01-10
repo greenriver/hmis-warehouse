@@ -213,7 +213,7 @@ class RollOut
       image: image_base + '--web',
       environment: environment,
       ports: [{
-        "container_port" => 443,
+        "container_port" => 3000,
         "host_port" => 0,
         "protocol" => "tcp"
       }],
