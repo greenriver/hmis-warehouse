@@ -25,6 +25,9 @@ RUN mkdir -p /app \
     /app/shape_files/CoC /app/shape_files/zip_codes.census.2018 \
     /app/shape_files/block_groups /app/shape_files/states /app/shape_files/counties
 
+RUN addgroup -g 1001 app \
+  && adduser -u 1001 -G app -h /app -D app
+
 WORKDIR /app
 
 COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
@@ -71,7 +74,7 @@ ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native \
 # allow tls connection to database with verification
 COPY config/deploy/docker/assets/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
-COPY --from=code /app /app/
+COPY --from=code --chown=app:app /app /app/
 
 # wkhtmltopdf line
 # https://beuke.org/docker-alpine-wkhtmltopdf/

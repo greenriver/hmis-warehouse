@@ -59,7 +59,7 @@ LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=2.7.4
 
 COPY config/deploy/docker/assets/entrypoint.sh /usr/bin/
-COPY --from=code /app /app/
+COPY --from=code --chown=app:app /app /app/
 
 RUN chmod +x /usr/bin/entrypoint.sh \
   && bundle config without development test doc \
@@ -70,6 +70,9 @@ RUN chmod +x /usr/bin/entrypoint.sh \
   && rm -rf tmp/* \
   && rm .env \
   && mkdir tmp/pids
+RUN chown -R app:app tmp
+
+USER app
 
 # Expose the GITHASH to entrypoint.sh for downloading precompiled assets.
 ENV GITHASH=${GITHASH}
