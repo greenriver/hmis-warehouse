@@ -36,7 +36,9 @@ module HudReports::HudPdfExportConcern
           rg.title,
           rg,
         ]
-      end.to_h.freeze
+      end.
+        to_h.
+        freeze
     end
 
     private def possible_titles
@@ -52,9 +54,10 @@ module HudReports::HudPdfExportConcern
 
     def perform
       with_status_progression do
-        template_file = 'hud_reports/download'
+        # 6.1 Remove deprecated support to passing relative paths to render file:.
+        template_file = File.join(Rails.root, 'views/hud_reports/download.haml')
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/hud_report_export'),
+          html: controller_class.render(file: template_file, layout: 'layouts/hud_report_export'),
           file_name: "#{report_generator_class.file_prefix}-#{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -68,7 +71,7 @@ module HudReports::HudPdfExportConcern
 
     protected def view
       context = controller_class.view_paths
-      view = PdfExportTemplateBase.new(context, view_assigns)
+      view = PdfExportTemplateBase.new(context, view_assigns, controller_class.new)
       view.current_user = user
       view
     end
