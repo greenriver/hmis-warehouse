@@ -57,7 +57,7 @@ COPY lib ./lib
 COPY config ./config
 COPY spec ./spec
 COPY db ./db
-COPY --chown app:app app ./app
+COPY --chown=app:app app ./app
 COPY vendor ./vendor
 COPY locale ./locale
 
