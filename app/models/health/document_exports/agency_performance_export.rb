@@ -36,8 +36,19 @@ module Health::DocumentExports
     def perform
       with_status_progression do
         template_file = 'warehouse_reports/health/agency_performance/index_pdf'
+        layout = 'layouts/healthcare_report'
+
+        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
+        renderer = controller_class.renderer.new(
+          'warden' => PdfGenerator.warden_proxy(user),
+        )
+        html = renderer.render(
+          template_file,
+          layout: layout,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/healthcare_report'),
+          html: html,
           file_name: "Partner Dashboard #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -53,11 +64,8 @@ module Health::DocumentExports
       Health::AgencyPerformance
     end
 
-    protected def view
-      context = WarehouseReports::Health::AgencyPerformanceController.view_paths
-      view = AgencyPerformanceExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
+    private def controller_class
+      WarehouseReports::Health::AgencyPerformanceController
     end
 
     class AgencyPerformanceExportTemplate < PdfExportTemplateBase

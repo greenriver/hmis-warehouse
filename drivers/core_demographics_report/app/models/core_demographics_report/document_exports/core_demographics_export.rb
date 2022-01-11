@@ -30,11 +30,15 @@ module CoreDemographicsReport::DocumentExports
 
     def perform
       with_status_progression do
-        template_file = File.join(Rails.root, 'drivers/core_demographics_report/app/views/core_demographics_report/warehouse_reports/core/index_pdf.haml')
-        layout = 'layouts/performance_report.html'
+        template_file = 'core_demographics_report/warehouse_reports/core/index_pdf'
+        layout = 'layouts/performance_report'
 
-        html = controller_class.render(
-          file: template_file,
+        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
+        renderer = controller_class.renderer.new(
+          'warden' => PdfGenerator.warden_proxy(user),
+        )
+        html = renderer.render(
+          template_file,
           layout: layout,
           assigns: view_assigns,
         )
@@ -55,24 +59,10 @@ module CoreDemographicsReport::DocumentExports
       CoreDemographicsReport::WarehouseReports::CoreController
     end
 
-    private def view_context
-      controller_class.view_paths
-    end
-
-    protected def view
-      view = CoreDemographicsExportTemplate.new(view_context, view_assigns, controller_class.new)
-      view.current_user = user
-      view
-    end
-
     class CoreDemographicsExportTemplate < PdfExportTemplateBase
       def show_client_details?
         @show_client_details ||= current_user.can_access_some_version_of_clients?
       end
-
-      # def details_performance_dashboards_overview_index_path(*args)
-      #   '#'
-      # end
     end
   end
 end

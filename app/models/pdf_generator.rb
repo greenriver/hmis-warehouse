@@ -35,11 +35,18 @@ class PdfGenerator
         # headless: false,
         # devtools: true
       },
-    }.deep_merge(options)
+    }.
+      deep_merge(options)
     Grover.new(html, grover_options).to_pdf
   end
 
   def root_url
     Rails.application.routes.url_helpers.root_url(host: ENV['FQDN'])
+  end
+
+  def self.warden_proxy(user)
+    Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
+      i.set_user(user, scope: :user, store: false, run_callbacks: false)
+    end
   end
 end

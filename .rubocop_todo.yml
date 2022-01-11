@@ -1692,8 +1692,6 @@ Lint/UnusedBlockArgument:
 Lint/UnusedMethodArgument:
   Exclude:
     - 'lib/rds_sql_server/hmis_sql_server.rb'
-    - 'app/models/grda_warehouse/document_exports/client_performance_export.rb'
-    - 'app/models/grda_warehouse/document_exports/household_performance_export.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/enrollment.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/exit.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/income_benefit.rb'

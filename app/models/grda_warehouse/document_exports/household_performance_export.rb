@@ -9,8 +9,19 @@ module GrdaWarehouse::DocumentExports
     def perform
       with_status_progression do
         template_file = 'performance_dashboards/overview/index_pdf'
+        layout = 'layouts/performance_report'
+
+        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
+        renderer = controller_class.renderer.new(
+          'warden' => PdfGenerator.warden_proxy(user),
+        )
+        html = renderer.render(
+          template_file,
+          layout: layout,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "Household Performance #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -26,11 +37,8 @@ module GrdaWarehouse::DocumentExports
       PerformanceDashboards::Household
     end
 
-    protected def view
-      context = PerformanceDashboards::HouseholdController.view_paths
-      view = HouseholdPerformanceExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
+    private def controller_class
+      PerformanceDashboards::HouseholdController
     end
 
     class HouseholdPerformanceExportTemplate < PdfExportTemplateBase
