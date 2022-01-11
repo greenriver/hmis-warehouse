@@ -74,7 +74,7 @@ ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native \
 # allow tls connection to database with verification
 COPY config/deploy/docker/assets/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
-COPY --from=code --chown=app:app /app /app/
+COPY --from=code /app /app/
 
 # wkhtmltopdf line
 # https://beuke.org/docker-alpine-wkhtmltopdf/
