@@ -33,13 +33,11 @@ module CoreDemographicsReport::DocumentExports
         template_file = 'core_demographics_report/warehouse_reports/core/index_pdf'
         layout = 'layouts/performance_report'
 
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        renderer = controller_class.renderer.new(
-          'warden' => PdfGenerator.warden_proxy(user),
-        )
-        html = renderer.render(
-          template_file,
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
           layout: layout,
+          user: user,
           assigns: view_assigns,
         )
         PdfGenerator.new.perform(
@@ -57,12 +55,6 @@ module CoreDemographicsReport::DocumentExports
 
     private def controller_class
       CoreDemographicsReport::WarehouseReports::CoreController
-    end
-
-    class CoreDemographicsExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
     end
   end
 end

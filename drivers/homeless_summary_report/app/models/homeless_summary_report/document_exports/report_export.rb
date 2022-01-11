@@ -26,8 +26,17 @@ module HomelessSummaryReport::DocumentExports
     def perform
       with_status_progression do
         template_file = 'homeless_summary_report/warehouse_reports/report/index_pdf'
+        layout = 'layouts/homeless_summary_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/homeless_summary_report'),
+          html: html,
           file_name: "#{_('Homeless Summary Report')} #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -39,17 +48,8 @@ module HomelessSummaryReport::DocumentExports
       HomelessSummaryReport::Report
     end
 
-    protected def view
-      context = HomelessSummaryReport::WarehouseReports::ReportsController.view_paths
-      view = ReportExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class ReportExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
+    private def controller_class
+      HomelessSummaryReport::WarehouseReports::ReportsController
     end
   end
 end

@@ -11,13 +11,11 @@ module GrdaWarehouse::DocumentExports
         template_file = 'performance_dashboards/project_type/index_pdf'
         layout = 'layouts/performance_report'
 
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        renderer = controller_class.renderer.new(
-          'warden' => PdfGenerator.warden_proxy(user),
-        )
-        html = renderer.render(
-          template_file,
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
           layout: layout,
+          user: user,
           assigns: view_assigns,
         )
         PdfGenerator.new.perform(

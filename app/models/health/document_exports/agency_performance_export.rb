@@ -38,13 +38,11 @@ module Health::DocumentExports
         template_file = 'warehouse_reports/health/agency_performance/index_pdf'
         layout = 'layouts/healthcare_report'
 
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        renderer = controller_class.renderer.new(
-          'warden' => PdfGenerator.warden_proxy(user),
-        )
-        html = renderer.render(
-          template_file,
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
           layout: layout,
+          user: user,
           assigns: view_assigns,
         )
         PdfGenerator.new.perform(

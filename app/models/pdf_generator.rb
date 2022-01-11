@@ -49,4 +49,16 @@ class PdfGenerator
       i.set_user(user, scope: :user, store: false, run_callbacks: false)
     end
   end
+
+  def self.html(controller:, template:, layout:, user:, assigns:)
+    ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
+    renderer = controller.renderer.new(
+      'warden' => warden_proxy(user),
+    )
+    renderer.render(
+      template,
+      layout: layout,
+      assigns: assigns,
+    )
+  end
 end

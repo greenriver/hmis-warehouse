@@ -26,8 +26,17 @@ module PriorLivingSituation::DocumentExports
     def perform
       with_status_progression do
         template_file = 'prior_living_situation/warehouse_reports/prior_living_situation/index_pdf'
+        layout = 'layouts/performance_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "Prior Living Situation #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -39,17 +48,8 @@ module PriorLivingSituation::DocumentExports
       PriorLivingSituation::PriorLivingSituationReport
     end
 
-    protected def view
-      context = PriorLivingSituation::WarehouseReports::PriorLivingSituationController.view_paths
-      view = PriorLivingSituationExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class PriorLivingSituationExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
+    private def controller_class
+      PriorLivingSituation::WarehouseReports::PriorLivingSituationController
     end
   end
 end

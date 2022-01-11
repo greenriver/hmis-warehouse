@@ -14,13 +14,11 @@ module GrdaWarehouse::DocumentExports
       with_status_progression do
         template_file = 'warehouse_reports/bed_utilization/index_pdf'
         layout = 'layouts/performance_report'
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        renderer = controller_class.renderer.new(
-          'warden' => PdfGenerator.warden_proxy(user),
-        )
-        html = renderer.render(
-          template_file,
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
           layout: layout,
+          user: user,
           assigns: view_assigns,
         )
         PdfGenerator.new.perform(
@@ -42,9 +40,6 @@ module GrdaWarehouse::DocumentExports
 
     private def controller_class
       ::WarehouseReports::BedUtilizationController
-    end
-
-    class BedUtilizationExportTemplate < PdfExportTemplateBase
     end
 
     protected def report

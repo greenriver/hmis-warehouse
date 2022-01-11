@@ -22,7 +22,8 @@ module ClientAccessControl
       @date_range = (@start.beginning_of_month..@end.end_of_month)
       @months = @date_range.map do |date|
         [date.year, date.month]
-      end.uniq
+      end.
+        uniq
     end
 
     def queue
@@ -57,10 +58,25 @@ module ClientAccessControl
       @project_type_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:project_type] }.transform_values(&:count)
       file_name = 'service_history.pdf'
 
-      template_file = File.join(Rails.root, "drivers/client_access_control/app/views/client_access_control/history/pdf.haml")
+      template_file = 'client_access_control/history/pdf'
+      layout = false
       pdf = nil
+      html = PdfGenerator.html(
+        controller: ClientAccessControl::HistoryController,
+        template: template_file,
+        layout: layout,
+        user: @user,
+        assigns: {
+          organization_counts: @organization_counts,
+          project_type_counts: @project_type_counts,
+          user: @user,
+          dates: @dates,
+          client: @client,
+          ordered_dates: @dates.keys.sort,
+        },
+      )
       PdfGenerator.new.perform(
-        html: render(file: template_file, layout: false),
+        html: html,
         file_name: file_name,
       ) do |io|
         pdf = io.read
