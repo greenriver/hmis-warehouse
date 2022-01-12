@@ -541,7 +541,8 @@ module Health
     end
 
     def maintain_valid_unpayable
-      self.valid_unpayable = compute_valid_unpayable?
+      self.valid_unpayable_reason = compute_valid_unpayable
+      self.valid_unpayable = !valid_unpayable_reason.nil?
       save(validate: false)
     end
 
@@ -551,37 +552,49 @@ module Health
     end
 
     def compute_valid_unpayable?
+      compute_valid_unpayable != nil
+    end
+
+    # Returns the reason the QA is valid unpayable, or nil
+    # :outside_enrollment -
+    # :call_not_reached -
+    # :outreach_past_cutoff -
+    # :limit_outreaches_per_month_exceeded -
+    # :limit_months_outreach_exceeded -
+    # :limit_activities_per_month_without_careplan_exceeded -
+    # :activity_outside_of_engagement_without_careplan -
+    # :limit_months_without_careplan_exceeded -
+    def compute_valid_unpayable
       computed_procedure_valid = compute_procedure_valid?
 
-      # Only valid procedures
-      return false unless computed_procedure_valid
+      # Only valid procedures can be valid unpayable
+      return nil unless computed_procedure_valid
 
       # Unpayable if it is a valid procedure, but it didn't occur during an enrollment
-      return true if computed_procedure_valid && ! occurred_during_any_enrollment?
+      return :outside_enrollment if computed_procedure_valid && ! occurred_during_any_enrollment?
 
       # Unpayable if this was a phone/video call where the client wasn't reached
-      return true if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
+      return :call_not_reached if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
 
       # Signing a care plan is payable regardless of engagement status
       return false if activity == 'pctp_signed'
 
       # Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
       if outreach?
-        return true if date_of_activity > patient.outreach_cutoff_date
-        return true unless patient.contributed_dates.include?(date_of_activity)
-        return true unless first_outreach_of_month_for_patient?
-        return true if number_of_outreach_activity_months > 3
+        return :outreach_past_cutoff if date_of_activity > patient.outreach_cutoff_date
+        return :outside_enrollment unless patient.contributed_dates.include?(date_of_activity)
+        return :limit_outreaches_per_month_exceeded unless first_outreach_of_month_for_patient?
+        return :limit_months_outreach_exceeded if number_of_outreach_activity_months > 3
       else
         # Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
         unless patient_has_signed_careplan?
-          return true unless first_non_outreach_of_month_for_patient?
-          return true if patient.engagement_date.blank?
-          return true if date_of_activity > patient.engagement_date
-          return true if number_of_non_outreach_activity_months > 5
+          return :limit_activities_per_month_without_careplan_exceeded unless first_non_outreach_of_month_for_patient?
+          return :activity_outside_of_engagement_without_careplan if patient.engagement_date.blank? || date_of_activity > patient.engagement_date
+          return :limit_months_without_careplan_exceeded if number_of_non_outreach_activity_months > 5
         end
       end
 
-      false
+      nil
     end
 
     def validity_class
