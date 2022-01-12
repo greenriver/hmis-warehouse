@@ -3642,7 +3642,7 @@ CREATE TABLE public.qualifying_activities (
     valid_unpayable boolean DEFAULT false NOT NULL,
     procedure_valid boolean DEFAULT false NOT NULL,
     ignored boolean DEFAULT false,
-    valid_unpayable_reason character varying
+    valid_unpayable_reasons character varying[]
 );
 
 
