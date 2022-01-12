@@ -225,7 +225,7 @@ class RollOut
     lb = [{
       target_group_arn: target_group_arn,
       container_name: name,
-      container_port: 443,
+      container_port: 3000,
     }]
 
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
