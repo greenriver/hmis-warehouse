@@ -20,7 +20,7 @@ echo "Syncing to s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH"
 aws s3 sync ./public/assets s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH
 
 echo Storing Themed Maintenance Page
-# bundle exec rake maintenance:create
+bundle exec rake maintenance:create
 
 echo Migrating with individual rake tasks
 
