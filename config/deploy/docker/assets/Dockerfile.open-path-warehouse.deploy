@@ -1,4 +1,7 @@
 FROM open-path-warehouse:latest--base
 
+USER root
 RUN apk add py3-pip
+USER app
+
 RUN pip3 install awscli
