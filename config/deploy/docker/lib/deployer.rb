@@ -286,6 +286,10 @@ class Deployer
     @_ruby_version ||= File.read('.ruby-version').chomp
   end
 
+  def _pre_cache_version
+    @_pre_cache_version ||= File.read('.pre-cache-version').chomp
+  end
+
   def _set_image_tag!
     if variant == 'pre-cache'
       self.image_tag = "#{_ruby_version}--pre-cache"
