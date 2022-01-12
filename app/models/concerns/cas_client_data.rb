@@ -60,7 +60,7 @@ module CasClientData
         foster_care: _('Foster care as youth'),
         open_case: _('Current open case'),
         housing_for_formerly_homeless: _('Prefers housing for formerly homeless'),
-        drug_test: _('Can pass a drug test'),
+        drug_test: _('Able to pass a drug test'),
         heavy_drug_use: _('History of heavy drug use'),
         sober: _('Clean/sober for at least one year'),
         willing_case_management: _('Willing to engage with housing case management'),
