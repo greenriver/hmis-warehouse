@@ -607,27 +607,34 @@ module Health
     end
 
     def describe_validity_reasons
-      return unless valid_unpayable?
-
-      return valid_unpayable_reasons.map do |reason|
-        case reason&.to_sym
-        when :outside_enrollment
-          _('patient did not have an active enrollment on the date of the activity')
-        when :call_not_reached
-          _('phone or video calls are not payable if the patient was not reached')
-        when :outreach_past_cutoff
-          _('outreach activities are not payable after the outreach period')
-        when :limit_outreaches_per_month_exceeded
-          _('too many outreach activities in the month')
-        when :limit_months_outreach_exceeded
-          _('too many months with outreach activities')
-        when :limit_activities_per_month_without_careplan_exceeded
-          _('too many non-outreach activities in the month')
-        when :activity_outside_of_engagement_without_careplan
-          _('engagement period has ended, and there is no signed careplan')
-        when :limit_months_without_careplan_exceeded
-          _('too many months with non-outreach activities and no signed careplan')
+      if valid_unpayable?
+        return valid_unpayable_reasons.map do |reason|
+          case reason&.to_sym
+          when :outside_enrollment
+            _('patient did not have an active enrollment on the date of the activity')
+          when :call_not_reached
+            _('phone or video calls are not payable if the patient was not reached')
+          when :outreach_past_cutoff
+            _('outreach activities are not payable after the outreach period')
+          when :limit_outreaches_per_month_exceeded
+            _('too many outreach activities in the month')
+          when :limit_months_outreach_exceeded
+            _('too many months with outreach activities')
+          when :limit_activities_per_month_without_careplan_exceeded
+            _('too many non-outreach activities in the month')
+          when :activity_outside_of_engagement_without_careplan
+            _('engagement period has ended, and there is no signed careplan')
+          when :limit_months_without_careplan_exceeded
+            _('too many months with non-outreach activities and no signed careplan')
+          end
         end
+      elsif ! procedure_valid?
+        reasons = []
+        reasons << _('the date of the activity is missing') unless date_of_activity.present?
+        reasons << _('no activity was specified') unless activity.present?
+        reasons << _('no mode of contact') unless mode_of_contact.present?
+        reasons << _('no indication if the client was reached') unless reached_client.present?
+        reasons << _('invalid procedure code') if reasons.blank?
       end
     end
 
