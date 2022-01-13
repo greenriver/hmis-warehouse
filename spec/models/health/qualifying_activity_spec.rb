@@ -11,7 +11,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       qualifying_activity.calculate_payability!
 
       expect(pre_enrollment_activity.naturally_payable).to be true
-      expect(pre_enrollment_activity.compute_valid_unpayable).to contain_exactly(:outside_enrollment, :outside_enrollment)
+      expect(pre_enrollment_activity.compute_valid_unpayable).to contain_exactly(:outside_enrollment)
       expect(qualifying_activity.naturally_payable).to be true
     end
   end
@@ -25,7 +25,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       qualifying_activity.calculate_payability!
 
       expect(pre_enrollment_activity.naturally_payable).to be true
-      expect(pre_enrollment_activity.compute_valid_unpayable).to contain_exactly(:outside_enrollment, :outside_enrollment)
+      expect(pre_enrollment_activity.compute_valid_unpayable).to contain_exactly(:outside_enrollment)
       expect(qualifying_activity.naturally_payable).to be true
     end
   end
@@ -113,7 +113,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       Timecop.travel(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(payable_outreach.compute_valid_unpayable?).to be false
-        expect(unpayable_outreach.compute_valid_unpayable).to contain_exactly(:outside_enrollment, :outside_enrollment)
+        expect(unpayable_outreach.compute_valid_unpayable).to contain_exactly(:outside_enrollment)
       end
     end
 

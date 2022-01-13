@@ -595,7 +595,7 @@ module Health
         end
       end
 
-      reasons
+      reasons.uniq
     end
 
     def validity_class
