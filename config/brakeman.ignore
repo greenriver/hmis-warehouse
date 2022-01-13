@@ -261,37 +261,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "194ffcfbbfb5dad65d6c2cd5fc8e010479f66a6251142ec091dc5436f8205abe",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/views/imports/show.haml",
-      "line": 1,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => import_scope.find(params.require(:id)), {})",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "ImportsController",
-          "method": "show",
-          "line": 29,
-          "file": "app/controllers/imports_controller.rb",
-          "rendered": {
-            "name": "imports/show",
-            "file": "app/views/imports/show.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "imports/show"
-      },
-      "user_input": "params.require(:id)",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "19b0be47dc59be902eb1e0500e9fba29ccf43752f0eb56a2180a222af552ceb0",
@@ -499,26 +468,6 @@
         "template": "account_two_factors/show"
       },
       "user_input": "current_user.generate_otp_backup_codes!.join(\"<br />\")",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "39fbe5b21264364680753579cfb9bbfa2a05b5af5e3646dbe3bdcd6c65579db5",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/controllers/data_quality_reports_controller.rb",
-      "line": 27,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => report_scope.where(:project_id => params[:project_id].to_i).find(params[:id].to_i).model_name.element.to_sym, {})",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "DataQualityReportsController",
-        "method": "show"
-      },
-      "user_input": "params[:id]",
       "confidence": "Weak",
       "note": ""
     },
@@ -764,37 +713,6 @@
       "note": "Injection from internal sources"
     },
     {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "6012356b03eb94bac6208d03adf39acd1db517d644ec8c52e503b7efef462571",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/views/health/goals/edit.haml",
-      "line": 4,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => ::Health::Goal::Hpc.find(params[:id].to_i), { :readonly => false })",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Health::GoalsController",
-          "method": "edit",
-          "line": 34,
-          "file": "app/controllers/concerns/health_goal.rb",
-          "rendered": {
-            "name": "health/goals/edit",
-            "file": "app/views/health/goals/edit.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/goals/edit"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "615f7900b129c22f4d71c443ead85e0694fc30435dfdc15e52ec03a94d2a3057",
@@ -855,26 +773,6 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "6939d235d9f32e7a2694b926a5cf73222ec7b924323cb268a68c11d2a20ea082",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 381,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}-#{_pre_cache_version}--pre-cache`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "_pre_cache_image_exists?"
-      },
-      "user_input": "repo_name",
-      "confidence": "Medium",
-      "note": "This is all internal code."
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "6c494e98b87c08b7dd22f8718f9fe58a980cffd1cb7c492ae79486f8f534914f",
@@ -901,7 +799,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 157,
+      "line": 159,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1417,6 +1315,26 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "8a29ddebc189081add6710e179967e490ad042f12df9fdfaac8211e87e8d97db",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/deploy/docker/lib/deployer.rb",
+      "line": 381,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`docker image ls -f 'reference=#{repo_name}' | grep \"#{_ruby_version}-#{_pre_cache_version}--pre-cache\"`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Deployer",
+        "method": "_pre_cache_image_exists?"
+      },
+      "user_input": "repo_name",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "90ff2d536c66b271d5f9e428f8f430887e06ca4bf3031ede5a3846d9f7c12294",
@@ -1734,7 +1652,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 156,
+      "line": 158,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git ls-remote origin | grep #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1754,7 +1672,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 919,
+      "line": 920,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -1794,7 +1712,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 151,
+      "line": 153,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse HEAD > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -1805,47 +1723,6 @@
       },
       "user_input": "_assets_path",
       "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "b943aeb098e1d298b0a93b87df96a6d51af156941a6a8263d4dd96b2add2a5c4",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/views/admin/health/scheduled_documents/_form.haml",
-      "line": 25,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => scheduled_document_source.find(params[:id]), { :f => f })",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Admin::Health::ScheduledDocumentsController",
-          "method": "edit",
-          "line": 40,
-          "file": "app/controllers/admin/health/scheduled_documents_controller.rb",
-          "rendered": {
-            "name": "admin/health/scheduled_documents/edit",
-            "file": "app/views/admin/health/scheduled_documents/edit.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "admin/health/scheduled_documents/edit",
-          "line": 6,
-          "file": "app/views/admin/health/scheduled_documents/edit.haml",
-          "rendered": {
-            "name": "admin/health/scheduled_documents/_form",
-            "file": "app/views/admin/health/scheduled_documents/_form.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "admin/health/scheduled_documents/_form"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
       "note": ""
     },
     {
@@ -1926,25 +1803,6 @@
       },
       "user_input": "Talentlms::Facade.new.course_url(current_user, Talentlms::Config.first.courseid, (clients_url or root_url), logout_talentlms_url)",
       "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "c0005570a238c0588abb23ceeeca1435585d73471894496817a57ba389867107",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/views/dashboards/base/section.html.haml",
-      "line": 2,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => (\"dashboards/base/\" + params[:partial]), {})",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "dashboards/base/section"
-      },
-      "user_input": "params[:partial]",
-      "confidence": "Weak",
       "note": ""
     },
     {
@@ -2178,47 +2036,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "d49a5a59466bec717d9e77ab489b4ff1143141484211fd10b9919e04d8192423",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/_need_map.haml",
-      "line": 25,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => report_scope.find(params[:id].to_i).map_type, {})",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "PublicReports::WarehouseReports::StateLevelHomelessnessController",
-          "method": "map",
-          "line": 22,
-          "file": "drivers/public_reports/app/controllers/public_reports/warehouse_reports/state_level_homelessness_controller.rb",
-          "rendered": {
-            "name": "public_reports/warehouse_reports/state_level_homelessness/map",
-            "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/map.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "public_reports/warehouse_reports/state_level_homelessness/map",
-          "line": 6,
-          "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/map.haml",
-          "rendered": {
-            "name": "public_reports/warehouse_reports/state_level_homelessness/_need_map",
-            "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/_need_map.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "public_reports/warehouse_reports/state_level_homelessness/_need_map"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "d4bbc6a863c585c27cc2ff014bdd8c031677fc6f2054e782a5b49dd14e7998d8",
@@ -2245,7 +2062,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 810,
+      "line": 815,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -2559,25 +2376,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "fde02e1709a167801d237e080ec6ee9c281c0a4aaaef4e81a09c70c01613e32d",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/views/clients/rollup.haml",
-      "line": 2,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => (\"clients/rollup/\" + params[:partial]), {})",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "clients/rollup"
-      },
-      "user_input": "params[:partial]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "fe7de455d82a4e3fef770c1272e861fb8f1d73042b2f82f1b417753f2d17bec7",
@@ -2598,6 +2396,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-01-01 19:03:22 -0500",
+  "updated": "2022-01-13 15:36:20 +0000",
   "brakeman_version": "5.0.4"
 }
