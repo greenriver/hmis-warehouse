@@ -63,7 +63,7 @@ jobs:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
       run: |
         export RUBY_VERSION=`cat .ruby-version`
-        export PRE_CACHE_VERSION="2"
+        export PRE_CACHE_VERSION=`cat .pre-cache-version`
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
 
         if git log -1 | fgrep '[gh:rebuild]' ;

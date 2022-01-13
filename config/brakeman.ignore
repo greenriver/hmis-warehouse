@@ -861,9 +861,9 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 376,
+      "line": 381,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`",
+      "code": "`docker image ls -f 'reference=#{repo_name}' | grep "#{_ruby_version}-#{_pre_cache_version}--pre-cache"`",
       "render_path": null,
       "location": {
         "type": "method",
