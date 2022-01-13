@@ -1,6 +1,8 @@
 Rails.logger.debug "Running initializer in #{__FILE__}"
 
 def find_log_stream_name
+  log_stream = nil
+  next_token = nil
   Timeout::timeout(15) do
     log_group = ENV.fetch('TARGET_GROUP_NAME', nil)
 
@@ -19,8 +21,6 @@ def find_log_stream_name
     end
 
     logs ||= Aws::CloudWatchLogs::Client.new
-    log_stream = nil
-    next_token = nil
     for i in 1..25 do # Limit to 25 requests so we're not endlessly searching.
       begin
         response = logs.describe_log_streams({
@@ -47,6 +47,7 @@ def find_log_stream_name
 
   if log_stream.nil?
     Rails.logger.error 'Log stream not found within 25 requests.'
+    return nil
   end
 end
 
