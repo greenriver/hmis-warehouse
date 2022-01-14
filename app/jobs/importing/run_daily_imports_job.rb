@@ -196,6 +196,8 @@ module Importing
     end
 
     def generate_logging_info
+      return if GrdaWarehouse::Config.get(:multi_coc_installation)
+
       # take snapshots of client enrollments
       GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
 
