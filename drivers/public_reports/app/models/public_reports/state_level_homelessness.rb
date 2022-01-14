@@ -710,7 +710,7 @@ module PublicReports
       chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
       chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
       setup.each do |title, client_scope|
-        chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).select(:client_id)).count
+        chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).pluck(:client_id)).count
         sheltered_count = scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count
         sheltered_count = enforce_min_threshold(sheltered_count)
         unsheltered_count = scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
