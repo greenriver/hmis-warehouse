@@ -8,6 +8,7 @@ module GrdaWarehouse
   module Shape
     class County < GrdaWarehouseBase
       include SharedBehaviors
+      include StateScopes
 
       scope :county_by_name, ->(names) do
         names.map!(&:downcase)

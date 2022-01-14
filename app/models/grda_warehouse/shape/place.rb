@@ -8,13 +8,14 @@ module GrdaWarehouse
   module Shape
     class Place < GrdaWarehouseBase
       include SharedBehaviors
+      include StateScopes
 
       def name
         read_attribute(:name)
       end
 
       def self._full_geoid_prefix
-        "1600000"
+        '1600000'
       end
 
       def self.simplification_distance_in_degrees

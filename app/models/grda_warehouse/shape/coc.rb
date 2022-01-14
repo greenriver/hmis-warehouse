@@ -8,34 +8,33 @@ module GrdaWarehouse
   module Shape
     class CoC < GrdaWarehouseBase
       include SharedBehaviors
+      include StateScopes
 
       scope :my_state, -> { where(st: ENV['RELEVANT_COC_STATE']) }
       scope :not_my_state, -> { where.not(st: ENV['RELEVANT_COC_STATE']) }
 
       def candidate_block_groups
-        BlockGroup
-        .joins(Arel.sql(<<~SQL))
+        BlockGroup.joins(Arel.sql(<<~SQL))
           join shape_cocs ON (
             ST_Intersects(
               shape_cocs.simplified_geom,
               shape_block_groups.simplified_geom
             )
             AND
-            shape_cocs.id = #{self.id}
+            shape_cocs.id = #{id}
           )
         SQL
       end
 
       def candidate_counties
-        County
-        .joins(Arel.sql(<<~SQL))
+        County.joins(Arel.sql(<<~SQL))
           join shape_cocs ON (
             ST_Intersects(
               shape_cocs.simplified_geom,
               shape_counties.simplified_geom
             )
             AND
-            shape_cocs.id = #{self.id}
+            shape_cocs.id = #{id}
           )
         SQL
       end

@@ -8,6 +8,7 @@ module GrdaWarehouse
   module Shape
     class BlockGroup < GrdaWarehouseBase
       include SharedBehaviors
+      include StateScopes
 
       scope :my_state, -> { where(statefp: my_fips_state_code) }
 

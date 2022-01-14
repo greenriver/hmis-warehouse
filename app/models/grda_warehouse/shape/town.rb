@@ -8,6 +8,7 @@ module GrdaWarehouse
   module Shape
     class Town < GrdaWarehouseBase
       include SharedBehaviors
+      include StateScopes
 
       def name
         read_attribute(:town)
