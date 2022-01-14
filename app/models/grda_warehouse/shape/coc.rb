@@ -8,7 +8,6 @@ module GrdaWarehouse
   module Shape
     class CoC < GrdaWarehouseBase
       include SharedBehaviors
-      include StateScopes
 
       scope :my_state, -> { where(st: ENV['RELEVANT_COC_STATE']) }
       scope :not_my_state, -> { where.not(st: ENV['RELEVANT_COC_STATE']) }

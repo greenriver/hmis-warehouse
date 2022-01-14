@@ -10,8 +10,6 @@ module GrdaWarehouse
       include SharedBehaviors
       include StateScopes
 
-      scope :my_state, -> { where(statefp: my_fips_state_code) }
-
       def self._full_geoid_prefix
         '1500000'
       end
