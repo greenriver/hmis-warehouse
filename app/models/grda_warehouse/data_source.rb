@@ -122,7 +122,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def self.source_data_source_ids
-    GrdaWarehouse::DataSource.source.pluck(:id)
+    Rails.cache.fetch(__method__, expires_in: 1.hours) do
+      GrdaWarehouse::DataSource.source.pluck(:id)
+    end
   end
 
   def self.destination_data_source_ids
