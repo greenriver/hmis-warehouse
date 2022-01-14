@@ -126,15 +126,21 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def self.destination_data_source_ids
-    GrdaWarehouse::DataSource.destination.pluck(:id)
+    Rails.cache.fetch(__method__, expires_in: 1.hours) do
+      GrdaWarehouse::DataSource.destination.pluck(:id)
+    end
   end
 
   def self.authoritative_data_source_ids
-    GrdaWarehouse::DataSource.authoritative.pluck(:id)
+    Rails.cache.fetch(__method__, expires_in: 1.hours) do
+      GrdaWarehouse::DataSource.authoritative.pluck(:id)
+    end
   end
 
   def self.window_data_source_ids
-    GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
+    Rails.cache.fetch(__method__, expires_in: 1.hours) do
+      GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
+    end
   end
 
   def self.can_see_all_data_sources?(user)

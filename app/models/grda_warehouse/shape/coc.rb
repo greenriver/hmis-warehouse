@@ -17,8 +17,8 @@ module GrdaWarehouse
         .joins(Arel.sql(<<~SQL))
           join shape_cocs ON (
             ST_Intersects(
-              shape_cocs.geom,
-              shape_block_groups.geom
+              shape_cocs.simplified_geom,
+              shape_block_groups.simplified_geom
             )
             AND
             shape_cocs.id = #{self.id}
@@ -31,8 +31,8 @@ module GrdaWarehouse
         .joins(Arel.sql(<<~SQL))
           join shape_cocs ON (
             ST_Intersects(
-              shape_cocs.geom,
-              shape_counties.geom
+              shape_cocs.simplified_geom,
+              shape_counties.simplified_geom
             )
             AND
             shape_cocs.id = #{self.id}

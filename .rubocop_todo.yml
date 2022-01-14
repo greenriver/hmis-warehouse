@@ -127,7 +127,6 @@ Layout/DefEndAlignment:
 # SupportedStyles: leading, trailing
 Layout/DotPosition:
   Exclude:
-    - 'app/models/grda_warehouse/shape/coc.rb'
     - 'app/models/grda_warehouse/us_census_api/finder.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
 
@@ -874,7 +873,6 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/grda_warehouse/health_emergency/uploaded_test.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/report/enrollment.rb'
-    - 'app/models/grda_warehouse/shape/coc.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
@@ -2508,7 +2506,6 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/project_coc.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/service.rb'
     - 'app/models/grda_warehouse/report/base.rb'
-    - 'app/models/grda_warehouse/shape/coc.rb'
     - 'app/models/grda_warehouse/shape/shared_behaviors.rb'
     - 'app/models/grda_warehouse/us_census_api/census_group.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'

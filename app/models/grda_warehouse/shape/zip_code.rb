@@ -43,7 +43,7 @@ module GrdaWarehouse
             shape_zip_codes.id = #{id}
             AND
             ST_Area(
-              ST_Intersection(shape_zip_codes.geom, shape_counties.geom)
+              ST_Intersection(shape_zip_codes.simplified_geom, shape_counties.simplified_geom)
             )
             >=
             (0.5 * ST_Area(shape_zip_codes.simplified_geom))
@@ -55,7 +55,7 @@ module GrdaWarehouse
         joins(<<~SQL)
           JOIN shape_counties ON (
             ST_Area(
-              ST_Intersection(shape_zip_codes.geom, shape_counties.geom)
+              ST_Intersection(shape_zip_codes.simplified_geom, shape_counties.simplified_geom)
             )
             >=
             (0.5 * ST_Area(shape_zip_codes.simplified_geom))

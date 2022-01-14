@@ -147,7 +147,7 @@ module PublicReports
         household_type: household_type,
         race_chart: race_chart,
         need_map: need_map,
-        homeless_breakdowns: homeless_breakdowns,
+        homeless_breakdowns: homeless_breakdowns, # FIXME: relatively slow, lots of 30second queries (see query plan)
         map_max_rate: map_max_rate,
         map_max_count: map_max_count,
       }.
@@ -374,17 +374,19 @@ module PublicReports
 
     private def race_chart
       {}.tap do |charts|
+        client_cache = GrdaWarehouse::Hud::Client.new
+        # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
+        races = ::HUD.races(multi_racial: true)
         quarter_dates.each do |date|
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
           client_ids = Set.new
-          client_cache = GrdaWarehouse::Hud::Client.new
           data = {}
           census_data = {}
           # Add census info
-          ::HUD.races(multi_racial: true).each do |race_code, label|
+          races.each do |race_code, label|
             census_data[label] = 0
-            data[::HUD.race(race_code, multi_racial: true)] ||= Set.new
+            data[races[race_code]] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year) || 0
             race_pop = get_us_census_population(race_code: race_code, year: year) || 0
@@ -395,13 +397,12 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
           )
-          all_destination_ids = scope.distinct.pluck(:client_id)
           scope.joins(:client).preload(:client).
             order(first_date_in_program: :desc). # Use the newest start
             find_each do |enrollment|
               client = enrollment.client
-              race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
-              data[::HUD.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
+              race_code = client_cache.race_string(destination_id: client.id)
+              data[races[race_code]] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
           total_count = data.map { |_, ids| ids.count }.sum
@@ -522,9 +523,10 @@ module PublicReports
       self.map_max_count ||= 0
       {}.tap do |charts|
         quarter_dates.each do |date|
+          iso_date = date.iso8601
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
-          charts[date.iso8601] = {}
+          charts[iso_date] = {}
           coc_codes.each do |coc_code|
             population_overall = if Rails.env.production?
               population_by_coc[date.year][coc_code]
@@ -545,7 +547,7 @@ module PublicReports
             # % of population
             rate = 0
             rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
-            charts[date.iso8601][coc_code] = {
+            charts[iso_date][coc_code] = {
               count: count,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
@@ -562,9 +564,10 @@ module PublicReports
       self.map_max_count ||= 0
       {}.tap do |charts|
         quarter_dates.each do |date|
+          iso_date = date.iso8601
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
-          charts[date.iso8601] = {}
+          charts[iso_date] = {}
           zip_codes.each do |code|
             population_overall = if Rails.env.production?
               population_by_zip.try(:[], date.year).try(:[], code) || 0
@@ -585,7 +588,7 @@ module PublicReports
             # % of population
             rate = 0
             rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
-            charts[date.iso8601][code] = {
+            charts[iso_date][code] = {
               count: count,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
@@ -602,9 +605,10 @@ module PublicReports
       self.map_max_count ||= 0
       {}.tap do |charts|
         quarter_dates.each do |date|
+          iso_date = date.iso8601
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
-          charts[date.iso8601] = {}
+          charts[iso_date] = {}
           place_codes.each do |code|
             # NOTE: this uses census data, switching to rate of clients in location to state
             # population_overall = population_by_place.try(:[], date.year).try(:[], code) || 0
@@ -631,7 +635,7 @@ module PublicReports
             # % of population
             rate = 0
             rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
-            charts[date.iso8601][code] = {
+            charts[iso_date][code] = {
               count: count,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
@@ -648,9 +652,10 @@ module PublicReports
       self.map_max_count ||= 0
       {}.tap do |charts|
         quarter_dates.each do |date|
+          iso_date = date.iso8601
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
-          charts[date.iso8601] = {}
+          charts[iso_date] = {}
           county_codes.each do |code|
             # NOTE: this uses census data, switching to rate of clients in location to state
             # population_overall = population_by_county.try(:[], date.year).try(:[], code) || 0
@@ -677,7 +682,7 @@ module PublicReports
             # % of population
             rate = 0
             rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
-            charts[date.iso8601][code] = {
+            charts[iso_date][code] = {
               count: count,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
@@ -700,6 +705,7 @@ module PublicReports
     end
 
     private def homeless_chart_breakdowns(section_title:, charts:, setup:, scope:, date:)
+      iso_date = date.iso8601
       ch_t = GrdaWarehouse::HudChronic.arel_table
       chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
       chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
@@ -723,14 +729,13 @@ module PublicReports
 
         intermediate_chronic_count += chronic_count
         intermediate_total_count += total_count
-
-        charts[section_title]['chronic_counts'][date.iso8601] = intermediate_chronic_count
-        charts[section_title]['chronic_counts'][date.iso8601] = enforce_min_threshold(charts[section_title]['chronic_counts'][date.iso8601])
-        charts[section_title]['total_counts'][date.iso8601] = intermediate_total_count
-        charts[section_title]['chronic_percents'][date.iso8601] ||= 0
-        charts[section_title]['chronic_percents'][date.iso8601] = (intermediate_chronic_count.to_f / intermediate_total_count * 100).round if intermediate_total_count.positive?
+        charts[section_title]['chronic_counts'][iso_date] = intermediate_chronic_count
+        charts[section_title]['chronic_counts'][iso_date] = enforce_min_threshold(charts[section_title]['chronic_counts'][iso_date])
+        charts[section_title]['total_counts'][iso_date] = intermediate_total_count
+        charts[section_title]['chronic_percents'][iso_date] ||= 0
+        charts[section_title]['chronic_percents'][iso_date] = (intermediate_chronic_count.to_f / intermediate_total_count * 100).round if intermediate_total_count.positive?
         charts[section_title]['sub_sections'][title] ||= {}
-        charts[section_title]['sub_sections'][title][date.iso8601] = {
+        charts[section_title]['sub_sections'][title][iso_date] = {
           total: total_string,
           data: [
             ['Sheltered', sheltered_count],

@@ -2010,7 +2010,8 @@ module GrdaWarehouse::Hud
         @race_black_af_american.to_a +
         @race_native_hi_other_pacific.to_a +
         @race_white.to_a
-        multi.select { |m| multi.count(m) > 1 }.to_set
+
+        multi.duplicates.to_set
       end
 
       return 'MultiRacial' if @multiracial.include?(destination_id)
