@@ -707,7 +707,7 @@ module PublicReports
     private def homeless_chart_breakdowns(section_title:, charts:, setup:, scope:, date:)
       iso_date = date.iso8601
       ch_t = GrdaWarehouse::HudChronic.arel_table
-      chronic_date = GrdaWarsehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
+      chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
       chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
       setup.each do |title, client_scope|
         chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).pluck(:client_id)).count

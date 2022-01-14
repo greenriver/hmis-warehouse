@@ -14,6 +14,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   validates :short_name, presence: true
 
   after_create :maintain_system_group
+  after_create :clear_ds_id_cache
 
   CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
 
@@ -431,6 +432,15 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     else
       AccessGroup.delayed_system_group_maintenance(group: :data_sources)
     end
+  end
+
+  private def clear_ds_id_cache
+    [
+      :source_data_source_ids,
+      :destination_data_source_ids,
+      :authoritative_data_source_ids,
+      :window_data_source_ids,
+    ].each { |key| Rails.cache.delete(key) }
   end
 
   class << self
