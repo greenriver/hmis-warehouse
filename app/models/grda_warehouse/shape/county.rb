@@ -35,7 +35,7 @@ module GrdaWarehouse
         SQL
       end
 
-      def self.spacial_zip_codes
+      def self.spatial_zip_codes
         ZipCode.joins(<<~SQL)
           JOIN shape_counties ON (
             ST_Area(
@@ -57,7 +57,7 @@ module GrdaWarehouse
         SQL
       end
 
-      def spacial_zip_codes
+      def spatial_zip_codes
         ZipCode.joins(<<~SQL)
           JOIN shape_counties ON (
             shape_counties.id = #{id}

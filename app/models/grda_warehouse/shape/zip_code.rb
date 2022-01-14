@@ -29,7 +29,7 @@ module GrdaWarehouse
           SQL
       end
 
-      scope :spacial_in_state, ->(st_geoid) do
+      scope :spatial_in_state, ->(st_geoid) do
         where(shape_states: { geoid: st_geoid }).
           joins(Arel.sql(<<~SQL))
             join shape_states ON (
@@ -48,7 +48,7 @@ module GrdaWarehouse
 
       def self.calculate_states
         State.pluck(:geoid).each do |geoid|
-          missing_assigned_state.spacial_in_state(geoid).each do |zip|
+          missing_assigned_state.spatial_in_state(geoid).each do |zip|
             zip.update(st_geoid: geoid)
           end
         end
@@ -56,7 +56,7 @@ module GrdaWarehouse
 
       def self.calculate_counties
         missing_assigned_county.each do |zip|
-          zip.update(county_name_lower: zip.spacial_county.first&.namelsad&.downcase)
+          zip.update(county_name_lower: zip.spatial_county.first&.namelsad&.downcase)
         end
       end
 
@@ -76,7 +76,7 @@ module GrdaWarehouse
         SQL
       end
 
-      def spacial_county
+      def spatial_county
         County.joins(<<~SQL)
           JOIN shape_zip_codes ON (
             shape_zip_codes.id = #{id}
@@ -90,7 +90,7 @@ module GrdaWarehouse
         SQL
       end
 
-      def self.spacial_counties
+      def self.spatial_counties
         joins(<<~SQL)
           JOIN shape_counties ON (
             ST_Area(
