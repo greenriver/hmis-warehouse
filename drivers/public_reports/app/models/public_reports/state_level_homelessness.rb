@@ -135,6 +135,35 @@ module PublicReports
       }
     end
 
+    def appropriate_format(data, key)
+      case key
+      when 'homeless_households', 'homeless_clients'
+        value = data[key]
+        return 0 if value.zero?
+        return number_with_delimiter(value) if value > 100
+
+        under_threshold
+      when 'unsheltered_percent'
+        unsheltered_count = data['unsheltered_clients'].to_f || 0.0
+        sheltered_count = data['homeless_clients'] || 0
+        percent = if unsheltered_count.zero? || sheltered_count.zero?
+          0
+        elsif unsheltered_count > 100 && sheltered_count > 100
+          ((unsheltered_count / sheltered_count) * 100).round
+        else
+          ((unsheltered_count / sheltered_count) * 100).round(10)
+        end
+        "#{percent}%"
+      else
+        # Default case is simply to return a formatted number
+        number_with_delimiter(data[key])
+      end
+    end
+
+    private def under_threshold
+      'Under 100'
+    end
+
     private def chart_data
       {
         # count: percent_change_in_count,
