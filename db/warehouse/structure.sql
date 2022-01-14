@@ -17322,7 +17322,9 @@ CREATE TABLE public.shape_zip_codes (
     intptlon10 character varying(12),
     geom public.geometry(MultiPolygon,4326),
     simplified_geom public.geometry(MultiPolygon,4326),
-    full_geoid character varying
+    full_geoid character varying,
+    st_geoid character varying,
+    county_name_lower character varying
 );
 
 
@@ -40546,6 +40548,13 @@ CREATE INDEX index_shape_towns_on_simplified_geom ON public.shape_towns USING gi
 
 
 --
+-- Name: index_shape_zip_codes_on_county_name_lower; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_zip_codes_on_county_name_lower ON public.shape_zip_codes USING btree (county_name_lower);
+
+
+--
 -- Name: index_shape_zip_codes_on_full_geoid; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40564,6 +40573,13 @@ CREATE INDEX index_shape_zip_codes_on_geom ON public.shape_zip_codes USING gist 
 --
 
 CREATE INDEX index_shape_zip_codes_on_simplified_geom ON public.shape_zip_codes USING gist (simplified_geom);
+
+
+--
+-- Name: index_shape_zip_codes_on_st_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_zip_codes_on_st_geoid ON public.shape_zip_codes USING btree (st_geoid);
 
 
 --

@@ -283,6 +283,11 @@ def install_shapes
   end
 end
 
+def maintain_zip_code_shapes
+  GrdaWarehouse::Shape::ZipCode.calculate_states
+  GrdaWarehouse::Shape::ZipCode.calculate_counties
+end
+
 # These tables are partitioned and need to have triggers and functions that
 # schema loading doesn't include.  This will ensure that they exist on each deploy
 def ensure_db_triggers_and_functions
@@ -300,5 +305,6 @@ maintain_data_sources()
 GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
 maintain_health_seeds()
 # install_shapes() # run manually as needed
+maintain_zip_code_shapes()
 maintain_lookups()
 maintain_system_groups()

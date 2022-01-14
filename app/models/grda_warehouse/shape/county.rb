@@ -29,6 +29,14 @@ module GrdaWarehouse
       def self.zip_codes
         ZipCode.joins(<<~SQL)
           JOIN shape_counties ON (
+            LOWER(shape_counties.namelsad) = shape_zip_codes.county_name_lower
+          )
+        SQL
+      end
+
+      def self.spacial_zip_codes
+        ZipCode.joins(<<~SQL)
+          JOIN shape_counties ON (
             ST_Area(
               ST_Intersection(shape_zip_codes.simplified_geom, shape_counties.simplified_geom)
             )
@@ -39,6 +47,16 @@ module GrdaWarehouse
       end
 
       def zip_codes
+        ZipCode.joins(<<~SQL)
+          JOIN shape_counties ON (
+            shape_counties.id = #{id}
+            AND
+            LOWER(shape_counties.namelsad) = shape_zip_codes.county_name_lower
+          )
+        SQL
+      end
+
+      def spacial_zip_codes
         ZipCode.joins(<<~SQL)
           JOIN shape_counties ON (
             shape_counties.id = #{id}
