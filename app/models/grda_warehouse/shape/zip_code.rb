@@ -56,7 +56,7 @@ module GrdaWarehouse
 
       def self.calculate_counties
         missing_assigned_county.each do |zip|
-          zip.update(county_name_lower: zip.spacial_county.first.namelsad&.downcase)
+          zip.update(county_name_lower: zip.spacial_county.first&.namelsad&.downcase)
         end
       end
 
