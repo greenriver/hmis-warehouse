@@ -39,7 +39,12 @@ module GrdaWarehouse
               raise "dataset we didn't account for found"
             end
 
-        vars = JSON.parse(Curl.get(lookup_url).body)['variables']
+        vars = []
+        begin
+          vars = JSON.parse(Curl.get(lookup_url).body)['variables']
+        rescue JSON::ParserError => e
+          Rails.logger.error e.message
+        end
 
         records = []
         vars.each do |name, values|
@@ -71,7 +76,12 @@ module GrdaWarehouse
               raise "dataset we didn't account for found"
             end
 
-        groups = JSON.parse(Curl.get(lookup_url).body)['groups']
+        groups = []
+        begin
+          groups = JSON.parse(Curl.get(lookup_url).body)['groups']
+        rescue JSON::ParserError => e
+          Rails.logger.error e.message
+        end
 
         records = []
         groups.each do |values|
