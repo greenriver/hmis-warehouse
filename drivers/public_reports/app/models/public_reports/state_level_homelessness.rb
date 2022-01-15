@@ -171,7 +171,7 @@ module PublicReports
         if total < 1_000
           sheltered = sheltered.round(-1)
           unsheltered = unsheltered.round(-1)
-          diff = 100 - (sheltered + unsheltered)
+          diff = (sheltered + unsheltered) - 100
           if sheltered > unsheltered
             sheltered -= diff
           else
@@ -193,7 +193,7 @@ module PublicReports
           adult = adult.round(-1)
           both = both.round(-1)
           child = child.round(-1)
-          diff = 100 - (adult + both + child)
+          diff = (adult + both + child) - 100
           max = [adult, both, child].max
           if adult == max
             adult -= diff
