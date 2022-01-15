@@ -22,10 +22,16 @@ module GrdaWarehouse
     end
 
     def self.maintain!
-      # remove any where the enrollment is no longer in the system
-      detached.destroy_all
+      delete_missing!
       add_new!
       update_existing!
+    end
+
+    def self.delete_missing!
+      ch_enrollment_ids = pluck(:enrollment_id)
+      enrollment_ids = GrdaWarehouse::Hud::Enrollment.pluck(:id)
+      missing = ch_enrollment_ids - enrollment_ids
+      where(enrollment_id: missing).destroy_all if missing.any?
     end
 
     def self.add_new!
