@@ -154,6 +154,56 @@ module PublicReports
           ((unsheltered_count / sheltered_count) * 100).round(10)
         end
         "#{percent}%"
+      when 'pit_chart', 'inflow_outflow'
+        return data if data.zero?
+        return data if data > 100
+
+        100
+      when 'location'
+        # return percentages for each instead of raw counts
+        (sheltered, unsheltered) = data
+        total = sheltered + unsheltered
+        return [0, 0] if total.zero? || (total < 100 && data.any? { |m| m < 11 })
+
+        sheltered = ((sheltered.to_f / total) * 100).round
+        unsheltered = ((unsheltered.to_f / total) * 100).round
+        # if the total is < 1,000, return numbers rounded to the nearest 10%, ensuring that the parts total 100
+        if total < 1_000
+          sheltered = sheltered.round(-1)
+          unsheltered = unsheltered.round(-1)
+          diff = 100 - (sheltered + unsheltered)
+          if sheltered > unsheltered
+            sheltered -= diff
+          else
+            unsheltered -= diff
+          end
+        end
+        [sheltered, unsheltered]
+      when 'household_type'
+        # return percentages for each instead of raw counts
+        (adult, both, child) = data
+        total = adult + both + child
+        return [0, 0, 0] if total.zero? || (total < 100 && data.any? { |m| m < 11 })
+
+        adult = ((adult.to_f / total) * 100).round
+        both = ((both.to_f / total) * 100).round
+        child = ((child.to_f / total) * 100).round
+        # if the total is < 1,000, return numbers rounded to the nearest 10%, ensuring that the parts total 100
+        if total < 1_000
+          adult = adult.round(-1)
+          both = both.round(-1)
+          child = child.round(-1)
+          diff = 100 - (adult + both + child)
+          max = [adult, both, child].max
+          if adult == max
+            adult -= diff
+          elsif both == max
+            both -= diff
+          else
+            child -= diff
+          end
+        end
+        [adult, both, child]
       else
         # Default case is simply to return a formatted number
         number_with_delimiter(data[key])
@@ -279,7 +329,7 @@ module PublicReports
       y = ['People served in ES, SO, SH, or TH']
       pit_counts.each do |date, count|
         x << date
-        y << count
+        y << appropriate_format(count, 'pit_chart')
       end
       [x, y].to_json
     end
@@ -290,8 +340,8 @@ module PublicReports
       outs = ['People exiting ES, SO, SH, or TH to a permanent destination']
       inflow_out_flow_counts.each do |date, in_count, out_count|
         x << date
-        ins << in_count
-        outs << out_count
+        ins << appropriate_format(in_count, 'inflow_outflow')
+        outs << appropriate_format(out_count, 'inflow_outflow')
       end
       [x, ins, outs].to_json
     end
@@ -361,20 +411,24 @@ module PublicReports
             start_date: start_date,
             end_date: end_date,
           )
-          sheltered = scope.homeless_sheltered.select(:client_id).distinct
+          sheltered = scope.homeless_sheltered.select(:client_id).distinct.count
+          unsheltered = scope.homeless_unsheltered.select(:client_id).distinct.count
+          (sheltered, unsheltered) = appropriate_format([sheltered, unsheltered], 'location')
 
-          unsheltered = scope.homeless_unsheltered.select(:client_id).distinct
           charts[:all_homeless][date.iso8601] = {
             data: [
-              ['Sheltered', sheltered.count],
-              ['Unsheltered', unsheltered.count],
+              ['Sheltered', sheltered],
+              ['Unsheltered', unsheltered],
             ],
             total: total_for(scope, nil),
           }
+          sheltered = scope.homeless_sheltered.veteran.select(:client_id).distinct.count
+          unsheltered = scope.homeless_unsheltered.veteran.select(:client_id).distinct.count
+          (sheltered, unsheltered) = appropriate_format([sheltered, unsheltered], 'location')
           charts[:homeless_veterans][date.iso8601] = {
             data: [
-              ['Sheltered', sheltered.veteran.count],
-              ['Unsheltered', unsheltered.veteran.count],
+              ['Sheltered', sheltered],
+              ['Unsheltered', unsheltered],
             ],
             total: total_for(scope.veteran, :veterans),
           }
@@ -388,14 +442,24 @@ module PublicReports
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
 
-          total = adult_only_household_ids(start_date, end_date).count + adult_and_child_household_ids(start_date, end_date).count + child_only_household_ids(start_date, end_date).count
+          adult = adult_only_household_ids(start_date, end_date).count
+          both = adult_and_child_household_ids(start_date, end_date).count
+          child = child_only_household_ids(start_date, end_date).count
+          total = adult + both + child
+          (adult, both, child) = appropriate_format([adult, both, child], 'household_type')
+          word = 'Household'
+          total = if total < 100
+            "less than #{pluralize(100, word)}"
+          else
+            pluralize(number_with_delimiter(total), word)
+          end
           charts[date.iso8601] = {
             data: [
-              ['Adult Only', adult_only_household_ids(start_date, end_date).count],
-              ['Adults with Children', adult_and_child_household_ids(start_date, end_date).count],
-              ['Children-Only Households', child_only_household_ids(start_date, end_date).count],
+              ['Adult Only', adult],
+              ['Adults with Children', both],
+              ['Children-Only Households', child],
             ],
-            total: pluralize(number_with_delimiter(total), 'Household'),
+            total: total,
           }
         end
       end
@@ -1011,7 +1075,9 @@ module PublicReports
         'Person'
       end
 
-      pluralize(number_with_delimiter(count), word)
+      return pluralize(number_with_delimiter(count), word) if count > 100
+
+      "less than #{pluralize(100, word)}"
     end
 
     def map_shapes
