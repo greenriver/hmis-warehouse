@@ -35,9 +35,12 @@ module GrdaWarehouse
     end
 
     def self.add_new!
+      ch_enrollment_ids = pluck(:enrollment_id)
+      enrollment_ids = GrdaWarehouse::Hud::Enrollment.processed.pluck(:id)
+      to_add = enrollment_ids - ch_enrollment_ids
       GrdaWarehouse::Hud::Enrollment.processed.
         preload(:project).
-        where.not(id: all.select(:enrollment_id)).find_in_batches do |enrollments|
+        where(id: to_add).find_in_batches do |enrollments|
           batch = []
           enrollments.each do |enrollment|
             batch << {
