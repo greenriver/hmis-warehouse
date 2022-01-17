@@ -135,7 +135,7 @@ module PublicReports
       }
     end
 
-    def enforce_min_threshold(data, key)
+    def enforce_min_threshold(data, key) # rubocop:disable Metrics/CyclomaticComplexity
       case key
       when 'homeless_households', 'homeless_clients'
         value = data[key]
@@ -219,10 +219,26 @@ module PublicReports
         end
       when 'homeless_row'
         data.each do |_, chart_data|
-          next unless chart_data['data'].map(&:last).any? { |count| count  < MIN_THRESHOLD }
+          next unless chart_data['data'].map(&:last).any? { |count| count < MIN_THRESHOLD }
 
           chart_data['data'].each do |row|
             row[1] = 0
+          end
+        end
+      when 'chronic_percents'
+        (chronic_count, total_count) = data
+        return 0 unless total_count.positive?
+
+        percent = (chronic_count.to_f / total_count * 100).round
+        return percent if total_count > 1_000
+
+        percent.round(-1)
+      when 'race'
+        # Collapse any where the count of the bucket is < 100 into the None
+        data.each do |k, ids|
+          if ids.count < 100
+            data['None'] += ids
+            data[k] = Set.new
           end
         end
       else
@@ -528,11 +544,12 @@ module PublicReports
               client_ids << client.id
             end
           total_count = data.map { |_, ids| ids.count }.sum
+          data = enforce_min_threshold(data, 'race')
           # Format:
           # [["Black or African American",38, 53],["White",53, 76],["Native Hawaiian or Other Pacific Islander",1, 12],["Multi-Racial",4, 10],["Asian",1, 5],["American Indian or Alaska Native",1, 1]]
           combined_data = data.map do |race, ids|
             label = if race == 'None'
-              'Unknown'
+              'Other or Unknown'
             else
               race
             end
@@ -832,7 +849,7 @@ module PublicReports
         merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
 
       setup.each do |title, client_scope|
-        chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).pluck(:client_id)).count
+        chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
         sheltered_count = scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count
         unsheltered_count = scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
         charts[section_title] ||= {
@@ -841,19 +858,20 @@ module PublicReports
           'total_counts' => {},
           'chronic_percents' => {},
         }
-        intermediate_chronic_count ||= 0
+        # intermediate_chronic_count ||= 0
         intermediate_total_count ||= 0
 
         total_string = total_for(scope.merge(client_scope), nil)
         total_count = scope.merge(client_scope).distinct.select(:client_id).count
 
-        intermediate_chronic_count += chronic_count
+        # intermediate_chronic_count += chronic_count
         intermediate_total_count += total_count
-        charts[section_title]['chronic_counts'][iso_date] = intermediate_chronic_count
+        # charts[section_title]['chronic_counts'][iso_date] = intermediate_chronic_count
         charts[section_title]['chronic_counts'][iso_date] = charts[section_title]['chronic_counts'][iso_date]
         charts[section_title]['total_counts'][iso_date] = intermediate_total_count
-        charts[section_title]['chronic_percents'][iso_date] ||= 0
-        charts[section_title]['chronic_percents'][iso_date] = (intermediate_chronic_count.to_f / intermediate_total_count * 100).round if intermediate_total_count.positive?
+        charts[section_title]['chronic_percents'][iso_date] ||= {}
+        charts[section_title]['chronic_percents'][iso_date][title] ||= 0
+        charts[section_title]['chronic_percents'][iso_date][title] = enforce_min_threshold([chronic_count, total_count], 'chronic_percents')
         charts[section_title]['sub_sections'][title] ||= {}
         charts[section_title]['sub_sections'][title][iso_date] = {
           total: total_string,
@@ -862,17 +880,14 @@ module PublicReports
             ['Unsheltered', unsheltered_count],
           ],
           categories: [title],
-          chronic_percent: 0,
         }
-        charts[section_title]['sub_sections'][title][iso_date][:chronic_percent] = (chronic_count.to_f / total_count * 100).round if total_count.positive?
       end
     end
 
     private def adult_only_household_breakdowns
-      # FIXME: these need to take the quarter range into account.
       setup = {
-        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 18..24),
-        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 24..105),
+        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(18..24)),
+        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 24..105)),
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -902,9 +917,9 @@ module PublicReports
 
     private def adult_and_child_household_breakdowns
       setup = {
-        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 0..17),
-        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 18..24),
-        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 24..105),
+        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 0..17)),
+        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 18..24)),
+        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 24..105)),
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -934,7 +949,7 @@ module PublicReports
 
     private def child_only_household_breakdowns
       setup = {
-        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 0..17),
+        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 0..17)),
       }
       {}.tap do |charts|
         quarter_dates.each do |date|

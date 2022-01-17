@@ -1,5 +1,4 @@
 - section_header = data.keys.first
-- chronic = false unless defined?(chronic)
 %h4= section_header
 - groups = ['Sheltered', 'Unsheltered']
 - category = :location_type
@@ -7,19 +6,19 @@
 - data.each do |_, section|
   - active_date = section['chronic_percents'].keys.last
   - chronic_dates = section['chronic_percents']
-  .jHomelessBreakdownRow{data: { chronics: chronic_dates.to_json }}
-
-    - section['sub_sections'].each do |title, dates|
+  - section['sub_sections'].each do |title, dates|
+    .jHomelessBreakdownRow{data: { chronics: chronic_dates.to_json}}
+      - total = dates[active_date]['total']
+      - chronic_percent = chronic_dates[active_date][title]
       .w-100.d-flex
-        - total = dates[active_date]['total']
-        - chronic_percent = dates[active_date]['chronic_percent']
         .w-50.d-flex
           - chart_class = "household_type_#{section_header.downcase.parameterize.underscore}_#{title.downcase.parameterize.underscore}"
           .w-30.breakdown-type.mb-auto.mt-auto=title
           .w-30
             - js_data = @report.enforce_min_threshold(dates, 'homeless_row')
             .chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
-            = render 'bar_js', data: js_data, chart_class: chart_class, active_date: active_date, groups: groups, category: category
+            - unless total == 'less than 100 People'
+              = render 'bar_js', data: js_data, chart_class: chart_class, active_date: active_date, groups: groups, category: category
           .w-30.d-flex
             .total-for-type.mb-auto.mt-auto.jTotalCount{data: { dates: dates.to_json }}
               = total
@@ -34,7 +33,7 @@
                   .fas.fa-male{style: "left: #{i * 20}px;"}
 
           .chronic-legend.mb-auto.mt-auto.w-70
-            %span.jChronicPercent
+            %span.jChronicPercent{ data: { category: title }}
               = chronic_percent
             %span.jChronicSymbol %
             .label
