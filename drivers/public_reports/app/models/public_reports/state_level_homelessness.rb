@@ -204,6 +204,19 @@ module PublicReports
           end
         end
         [adult, both, child]
+      when 'need_map'
+        # Convert all rates to the upper limit of the range of map_colors the rate falls into
+        # ensure overall population is at least 100
+        # {"homeless_map"=>{"2018-01-01"=>{"ROCKPORT"=>{"count"=>62, "overall_population"=>500, "rate"=>12.4}, "COLRAIN"=>{"count"=>95, "overall_population"=>500, "rate"=>19.0}...
+        data.each do |_, date_data|
+          date_data.each do |_, count_data|
+            count_data.each do |_, c_data|
+              c_data[:overall_population] = 100 if c_data[:overall_population].positive? && c_data[:overall_population] < 100
+              top_of_range = map_colors.values.detect { |bucket| bucket[:range].cover?(c_data[:rate]) }.try(:[], :range)&.last
+              c_data[:rate] = top_of_range || 0 unless top_of_range == 100
+            end
+          end
+        end
       else
         # Default case is simply to return a formatted number
         number_with_delimiter(data[key])
@@ -225,7 +238,7 @@ module PublicReports
         location_chart: location_chart,
         household_type: household_type,
         race_chart: race_chart,
-        need_map: need_map,
+        need_map: appropriate_format(need_map, 'need_map'),
         homeless_breakdowns: homeless_breakdowns,
         map_max_rate: map_max_rate,
         map_max_count: map_max_count,
@@ -234,7 +247,7 @@ module PublicReports
     end
 
     def parsed_pre_calculated_data
-      @parsed_pre_calculated_data ||= Oj.load(precalculated_data)
+      @parsed_pre_calculated_data ||= Oj.load(precalculated_data) if precalculated_data.present?
     end
 
     private def pre_calculate_data
@@ -299,28 +312,36 @@ module PublicReports
 
     def map_colors
       @map_colors ||= {}.tap do |m_colors|
-        slight = 0.0001
-        max_rate = parsed_pre_calculated_data['map_max_rate']
+        # slight = 0.000001
+        # ten_percent = 9.999999
+        # max_rate = parsed_pre_calculated_data.try(:[], 'map_max_rate') || map_max_rate
         # colors = chart_color_shades(:map_primary_color)
         colors = ['#FFFFFF']
         5.times do |i|
           colors << settings["color_#{i}"]
         end
-        m_colors[colors.first] = { description: '0%', range: (0..0) }
-        colors.drop(1).each.with_index do |color, i|
-          division_size = max_rate / colors.count
-          division_start = i * division_size
-          division_start = slight if division_start.zero?
-          division_end = (i + 1) * division_size
-          description = if i == colors.drop(2).count
-            "#{division_start.round}+"
-          elsif division_start == slight
-            "Any - #{division_end.round}%"
-          else
-            "#{division_start.round}% - #{division_end.round}%"
-          end
-          m_colors[color] = { description: description, range: (division_start..division_end) }
-        end
+
+        m_colors[colors[0]] = { description: '0%', range: (0..0), low: 0, high: 0 }
+        m_colors[colors[1]] = { description: 'Any - 10%', range: (0.000001..10.0), low: 0.000001, high: 10.0 }
+        m_colors[colors[2]] = { description: '11% - 15%', range: (10.000001..15.0), low: 10.000001, high: 15.0 }
+        m_colors[colors[3]] = { description: '15% - 20%', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
+        m_colors[colors[4]] = { description: '20% - 25%', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
+        m_colors[colors[5]] = { description: '25%+', range: (25.000001..100.0), low: 25.000001, high: 100.0 }
+        # m_colors[colors.first] = { description: '0%', range: (0..0) }
+        # m_colors[colors.second] = { description: 'Any - 10%', range: (slight..ten_percent) }
+        # colors.drop(2).each.with_index do |color, i|
+        #   division_size = (max_rate - ten_percent) / colors.count
+        #   division_start = ten_percent + (i * division_size)
+        #   division_start = ten_percent + slight if division_start.zero?
+        #   if i == colors.drop(3).count
+        #     division_end = Float::INFINITY
+        #     description = "#{division_start.round}+"
+        #   else
+        #     division_end = (i + 2) * division_size
+        #     description = "#{division_start.round}% - #{division_end.round}%"
+        #   end
+        #   m_colors[color] = { description: description, range: (division_start..division_end) }
+        # end
       end
     end
 

@@ -32,7 +32,7 @@
     const state = #{@report.state_shape_json}
     const shapes = #{@report.map_shape_json}
     const data = #{Oj.dump(data, mode: :compat).html_safe}
-    const comparison_colors = #{@report.map_colors.keys.to_json.html_safe}
+    const comparison_colors = #{@report.map_colors.to_json.html_safe}
 
     let selected_date = $('.jQuarters').data('dates')[$('.jQuarters').val()];
     let comparison_data = data.homeless_map

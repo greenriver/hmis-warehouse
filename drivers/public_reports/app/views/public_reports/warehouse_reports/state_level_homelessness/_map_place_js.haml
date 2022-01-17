@@ -91,18 +91,11 @@
     }
 
     getColor(rate) {
-      let division_size = this.max_rate / this.colors.length
-      let division = Math.floor(rate / division_size)
-      if(division == 0) {
-        if(rate > 0) {
-          return this.colors[1]
-        } else {
-          return this.colors[0]
+      for(let color in this.colors) {
+        if(this.colors[color].low <= rate && this.colors[color].high >= rate) {
+          console.log(color, rate, this.colors[color].low, this.colors[color].high)
+          return color;
         }
-      } else if(division < this.colors.length) {
-        return this.colors[division]
-      } else {
-        return this.colors[this.colors.length]
       }
     }
 
