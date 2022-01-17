@@ -1,17 +1,17 @@
 .d-flex
   .summary-count.w-50
-    .count= @report.appropriate_format(data['summary'], 'homeless_households')
+    .count= @report.enforce_min_threshold(data['summary'], 'homeless_households')
     %h3.title
       Homeless Households
       = render 'glossary_button'
   .summary-count.w-50
-    .count= @report.appropriate_format(data['summary'], 'homeless_clients')
+    .count= @report.enforce_min_threshold(data['summary'], 'homeless_clients')
     %h3.title
       Total Homeless People in #{data['summary']['year']}
       = render 'glossary_button'
 .d-flex
   .summary-count.w-50
-    .count= @report.appropriate_format(data['summary'], 'unsheltered_percent')
+    .count= @report.enforce_min_threshold(data['summary'], 'unsheltered_percent')
     %h3.title
       Unsheltered
       = render 'glossary_button'

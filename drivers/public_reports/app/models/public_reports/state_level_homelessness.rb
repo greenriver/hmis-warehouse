@@ -135,7 +135,7 @@ module PublicReports
       }
     end
 
-    def appropriate_format(data, key)
+    def enforce_min_threshold(data, key)
       case key
       when 'homeless_households', 'homeless_clients'
         value = data[key]
@@ -217,6 +217,14 @@ module PublicReports
             end
           end
         end
+      when 'homeless_row'
+        data.each do |_, chart_data|
+          next unless chart_data['data'].map(&:last).any? { |count| count  < MIN_THRESHOLD }
+
+          chart_data['data'].each do |row|
+            row[1] = 0
+          end
+        end
       else
         # Default case is simply to return a formatted number
         number_with_delimiter(data[key])
@@ -238,7 +246,7 @@ module PublicReports
         location_chart: location_chart,
         household_type: household_type,
         race_chart: race_chart,
-        need_map: appropriate_format(need_map, 'need_map'),
+        need_map: enforce_min_threshold(need_map, 'need_map'),
         homeless_breakdowns: homeless_breakdowns,
         map_max_rate: map_max_rate,
         map_max_count: map_max_count,
@@ -350,7 +358,7 @@ module PublicReports
       y = ['People served in ES, SO, SH, or TH']
       pit_counts.each do |date, count|
         x << date
-        y << appropriate_format(count, 'pit_chart')
+        y << enforce_min_threshold(count, 'pit_chart')
       end
       [x, y].to_json
     end
@@ -361,8 +369,8 @@ module PublicReports
       outs = ['People exiting ES, SO, SH, or TH to a permanent destination']
       inflow_out_flow_counts.each do |date, in_count, out_count|
         x << date
-        ins << appropriate_format(in_count, 'inflow_outflow')
-        outs << appropriate_format(out_count, 'inflow_outflow')
+        ins << enforce_min_threshold(in_count, 'inflow_outflow')
+        outs << enforce_min_threshold(out_count, 'inflow_outflow')
       end
       [x, ins, outs].to_json
     end
@@ -434,7 +442,7 @@ module PublicReports
           )
           sheltered = scope.homeless_sheltered.select(:client_id).distinct.count
           unsheltered = scope.homeless_unsheltered.select(:client_id).distinct.count
-          (sheltered, unsheltered) = appropriate_format([sheltered, unsheltered], 'location')
+          (sheltered, unsheltered) = enforce_min_threshold([sheltered, unsheltered], 'location')
 
           charts[:all_homeless][date.iso8601] = {
             data: [
@@ -445,7 +453,7 @@ module PublicReports
           }
           sheltered = scope.homeless_sheltered.veteran.select(:client_id).distinct.count
           unsheltered = scope.homeless_unsheltered.veteran.select(:client_id).distinct.count
-          (sheltered, unsheltered) = appropriate_format([sheltered, unsheltered], 'location')
+          (sheltered, unsheltered) = enforce_min_threshold([sheltered, unsheltered], 'location')
           charts[:homeless_veterans][date.iso8601] = {
             data: [
               ['Sheltered', sheltered],
@@ -467,7 +475,7 @@ module PublicReports
           both = adult_and_child_household_ids(start_date, end_date).count
           child = child_only_household_ids(start_date, end_date).count
           total = adult + both + child
-          (adult, both, child) = appropriate_format([adult, both, child], 'household_type')
+          (adult, both, child) = enforce_min_threshold([adult, both, child], 'household_type')
           word = 'Household'
           total = if total < 100
             "less than #{pluralize(100, word)}"
@@ -820,15 +828,13 @@ module PublicReports
 
     private def homeless_chart_breakdowns(section_title:, charts:, setup:, scope:, date:)
       iso_date = date.iso8601
-      ch_t = GrdaWarehouse::HudChronic.arel_table
-      chronic_date = GrdaWarehouse::HudChronic.where(ch_t[:date].lteq(end_date)).maximum(:date)
-      chronic_scope = GrdaWarehouse::HudChronic.where(date: chronic_date)
+      chronic_scope = scope.joins(enrollment: :ch_enrollment).
+        merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
+
       setup.each do |title, client_scope|
         chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).pluck(:client_id)).count
         sheltered_count = scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count
-        sheltered_count = enforce_min_threshold(sheltered_count)
         unsheltered_count = scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
-        unsheltered_count = enforce_min_threshold(unsheltered_count)
         charts[section_title] ||= {
           'sub_sections' => {},
           'chronic_counts' => {},
@@ -844,7 +850,7 @@ module PublicReports
         intermediate_chronic_count += chronic_count
         intermediate_total_count += total_count
         charts[section_title]['chronic_counts'][iso_date] = intermediate_chronic_count
-        charts[section_title]['chronic_counts'][iso_date] = enforce_min_threshold(charts[section_title]['chronic_counts'][iso_date])
+        charts[section_title]['chronic_counts'][iso_date] = charts[section_title]['chronic_counts'][iso_date]
         charts[section_title]['total_counts'][iso_date] = intermediate_total_count
         charts[section_title]['chronic_percents'][iso_date] ||= 0
         charts[section_title]['chronic_percents'][iso_date] = (intermediate_chronic_count.to_f / intermediate_total_count * 100).round if intermediate_total_count.positive?
@@ -856,18 +862,14 @@ module PublicReports
             ['Unsheltered', unsheltered_count],
           ],
           categories: [title],
+          chronic_percent: 0,
         }
+        charts[section_title]['sub_sections'][title][iso_date][:chronic_percent] = (chronic_count.to_f / total_count * 100).round if total_count.positive?
       end
     end
 
-    private def enforce_min_threshold(count)
-      return 0 if count.blank? || count.zero?
-      return MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
-
-      count
-    end
-
     private def adult_only_household_breakdowns
+      # FIXME: these need to take the quarter range into account.
       setup = {
         'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 18..24),
         'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.where(age: 24..105),
