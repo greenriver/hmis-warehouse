@@ -238,7 +238,7 @@ class RollOut
     end
     _start_service!(
       capacity_provider: capacity_provider_name,
-      name: name,
+      name: name + '-2', # version bump for change from port 443 -> 3000
       load_balancers: lb,
       desired_count: web_options['container_count'] || 1,
       minimum_healthy_percent: minimum,
