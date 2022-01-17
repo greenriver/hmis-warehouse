@@ -39,6 +39,8 @@ module PerformanceMeasurement::WarehouseReports
       @report = report_class.new(
         user_id: current_user.id,
       )
+      # Not sure why, but set_filter isn't working quite right
+      @filter.set_from_params(filter_params[:filters])
       @report.filter = @filter
       @report.save
       ::WarehouseReports::GenericReportJob.perform_later(
