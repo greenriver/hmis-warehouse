@@ -18,7 +18,7 @@ echo Sourcing environment
 . .env
 
 echo Setting Timezone
-echo $(cat /usr/share/zoneinfo/$TIMEZONE) > /etc/localtime
+\cp /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 echo $TIMEZONE > /etc/timezone
 
 echo Syncing the assets from s3
