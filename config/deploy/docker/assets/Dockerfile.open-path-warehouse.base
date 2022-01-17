@@ -72,8 +72,9 @@ RUN chmod +x /usr/bin/entrypoint.sh \
   && mkdir tmp/pids
 
 RUN chown -R app:app tmp
-RUN touch /etc/timezone /etc/localtime
-RUN chown app:app /etc/timezone /etc/localtime
+RUN touch /etc/timezone
+RUN ln -sf /app/etc-localtime /etc/localtime
+RUN chown app:app /etc/timezone
 
 USER app
 
