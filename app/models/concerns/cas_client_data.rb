@@ -60,6 +60,12 @@ module CasClientData
         foster_care: _('Foster care as youth'),
         open_case: _('Current open case'),
         housing_for_formerly_homeless: _('Prefers housing for formerly homeless'),
+        drug_test: _('Able to pass a drug test'),
+        heavy_drug_use: _('History of heavy drug use'),
+        sober: _('Clean/sober for at least one year'),
+        willing_case_management: _('Willing to engage with housing case management'),
+        employed_three_months: _('Employed for 3 or more months'),
+        living_wage: _('Earning a living wage ($13 or more)'),
       }
     end
 
@@ -372,6 +378,6 @@ module CasClientData
     end
 
     # The following do not currently get persisted onto Client, but are calculated live
-    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless, :hivaids_status
+    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless, :hivaids_status, :drug_test, :heavy_drug_use, :sober, :willing_case_management, :employed_three_months, :living_wage
   end
 end
