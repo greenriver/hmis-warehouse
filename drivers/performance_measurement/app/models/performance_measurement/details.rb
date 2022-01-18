@@ -9,7 +9,13 @@ module PerformanceMeasurement::Details
 
   included do
     def summary_table
-      detail_hash.group_by { |_, data| data[:category] }
+      @summary_table ||= {}.tap do |st|
+        detail_hash.each do |key, data|
+          st[data[:category]] ||= {}
+          st[data[:category]][data[:sub_category]] ||= {}
+          st[data[:category]][data[:sub_category]][key] = data
+        end
+      end
     end
 
     def detail_title_for(key)
@@ -81,6 +87,7 @@ module PerformanceMeasurement::Details
       @detail_hash ||= {
         count_of_homeless_clients: {
           category: 'Rare',
+          sub_category: 'People',
           column: :both,
           title: 'Number of Homeless People at PIT Count',
           goal_description: 'The CoC will reduce total homelessness by X% annually (as reported during a single Point in Time)',
@@ -94,6 +101,7 @@ module PerformanceMeasurement::Details
         },
         count_of_sheltered_homeless_clients: {
           category: 'Rare',
+          sub_category: 'People',
           column: :both,
           title: 'Number of Sheltered Homeless People',
           goal_description: 'The CoC will reduce total counts of sheltered homeless in HMIS by X% annually',
@@ -107,6 +115,7 @@ module PerformanceMeasurement::Details
         },
         count_of_unsheltered_homeless_clients: {
           category: 'Rare',
+          sub_category: 'People',
           column: :both,
           title: 'Number of Unsheltered Homeless People',
           goal_description: 'The CoC will reduce total counts of unsheltered homeless in HMIS by X% annually',
@@ -120,6 +129,7 @@ module PerformanceMeasurement::Details
         },
         first_time_homeless_clients: {
           category: 'Rare',
+          sub_category: 'People',
           column: :both,
           title: 'Number of First-Time Homeless People',
           goal_description: 'The CoC will reduce total counts of persons experiencing homelessness for the first time in HMIS by X% annually',
@@ -129,8 +139,23 @@ module PerformanceMeasurement::Details
             'first_time',
           ],
         },
+        overall_average_bed_utilization: {
+          category: 'Rare',
+          sub_category: 'Capacity',
+          column: :system,
+          title: 'Average Bed Utilization Overall',
+          goal_description: 'The CoC will maintain enough beds to meet demand.',
+          calculation_description: 'The average of the number of persons occupying a bed each night divided by the system’s total bed capacity during the reporting range.',
+          calculation_column: :days_in_th_bed_in_period,
+          detail_columns: [
+            'days_in_es_bed_in_period',
+            'days_in_sh_bed_in_period',
+            'days_in_th_bed_in_period',
+          ],
+        },
         es_average_bed_utilization: {
           category: 'Rare',
+          sub_category: 'Capacity',
           column: :both,
           title: 'Average Bed Utilization in ES',
           goal_description: 'The CoC will maintain enough beds to meet demand.',
@@ -142,6 +167,7 @@ module PerformanceMeasurement::Details
         },
         sh_average_bed_utilization: {
           category: 'Rare',
+          sub_category: 'Capacity',
           column: :both,
           title: 'Average Bed Utilization in SH',
           goal_description: 'The CoC will maintain enough beds to meet demand.',
@@ -153,6 +179,7 @@ module PerformanceMeasurement::Details
         },
         th_average_bed_utilization: {
           category: 'Rare',
+          sub_category: 'Capacity',
           column: :both,
           title: 'Average Bed Utilization in TH',
           goal_description: 'The CoC will maintain enough beds to meet demand.',
@@ -164,6 +191,7 @@ module PerformanceMeasurement::Details
         },
         length_of_homeless_time_homeless_average: {
           category: 'Brief',
+          sub_category: 'Time',
           column: :system,
           title: 'Length of Time Homeless (Average Days)',
           goal_description: 'Persons in the CoC will have an average combined length of time homeless of no more than X days.',
@@ -175,6 +203,7 @@ module PerformanceMeasurement::Details
         },
         length_of_homeless_time_homeless_median: {
           category: 'Brief',
+          sub_category: 'Time',
           column: :system,
           title: 'Length of Time Homeless (Median Days)',
           goal_description: 'Persons in the CoC will have a median combined length of time homeless of no more than X days.',
@@ -186,6 +215,7 @@ module PerformanceMeasurement::Details
         },
         length_of_homeless_stay_average: {
           category: 'Brief',
+          sub_category: 'Time',
           column: :project,
           title: 'Length of Homeless Stay (Average Days)',
           goal_description: 'Persons in the CoC will have an average combined length of time homeless of no more than X days.',
@@ -216,6 +246,7 @@ module PerformanceMeasurement::Details
         },
         length_of_homeless_stay_median: {
           category: 'Brief',
+          sub_category: 'Time',
           column: :project,
           title: 'Length of Homeless Stay (Median Days)',
           goal_description: 'Persons in the CoC will have a median combined length of time homeless of no more than X days.',
@@ -246,6 +277,7 @@ module PerformanceMeasurement::Details
         },
         time_to_move_in_average: {
           category: 'Brief',
+          sub_category: 'Time to Move-in',
           column: :system,
           title: 'Time to Move-in (Average Days)',
           goal_description: 'Persons in the CoC will have an average combined length of time homeless of no more than X days.',
@@ -257,6 +289,7 @@ module PerformanceMeasurement::Details
         },
         time_to_move_in_median: {
           category: 'Brief',
+          sub_category: 'Time to Move-in',
           column: :system,
           title: 'Time to Move-in (Median Days)',
           goal_description: 'Persons in the CoC will have a median combined length of time homeless of no more than X days.',
@@ -268,6 +301,7 @@ module PerformanceMeasurement::Details
         },
         so_positive_destinations: {
           category: 'Non-Recurring',
+          sub_category: 'Destination',
           column: :both,
           title: 'Number of People Exiting SO to a Positive Destination',
           goal_description: 'At least X% of persons in SO will exit to a “positive” destination (as defined by HUD)',
@@ -279,6 +313,7 @@ module PerformanceMeasurement::Details
         },
         es_sh_th_rrh_positive_destinations: {
           category: 'Non-Recurring',
+          sub_category: 'Destination',
           column: :both,
           title: 'Number of People Exits from ES, SH, TH, RRH to a Positive Destination, or PH with No Move-in',
           goal_description: 'At least X% of persons housed in ES, SH, TH, and RRH projects will move into permanent housing at exit',
@@ -290,6 +325,7 @@ module PerformanceMeasurement::Details
         },
         moved_in_positive_destinations: {
           category: 'Non-Recurring',
+          sub_category: 'Destination',
           column: :both,
           title: 'Number of People in RRH or PH with Move-in or Permanent Exit',
           goal_description: 'At least X% of persons remain housed in PH projects or exit to a permanent housing destination',
@@ -301,6 +337,7 @@ module PerformanceMeasurement::Details
         },
         returned_in_six_months: {
           category: 'Non-Recurring',
+          sub_category: 'Recidivism',
           column: :both,
           title: 'Number of People Who Returned to Homelessness Within Six Months',
           goal_description: 'The CoC will have no more than X% of adults who exited to permanent housing return to ES, SH, TH, or SO within six months of exit',
@@ -312,6 +349,7 @@ module PerformanceMeasurement::Details
         },
         returned_in_two_years: {
           category: 'Non-Recurring',
+          sub_category: 'Recidivism',
           column: :both,
           title: 'Number of People Who Returned to Homelessness Within Two Years',
           goal_description: 'The CoC will have no more than X% of adults who exited to permanent housing return to ES, SH, TH, or Outreach within two years of exit',
@@ -323,6 +361,7 @@ module PerformanceMeasurement::Details
         },
         stayers_with_increased_income: {
           category: 'Non-Recurring',
+          sub_category: 'Income',
           column: :both,
           title: 'Stayer With Increased Income',
           goal_description: 'CoC-funded projects will increase the percentage of adult leavers who increase total income by X% annually',
@@ -335,6 +374,7 @@ module PerformanceMeasurement::Details
         },
         leavers_with_increased_income: {
           category: 'Non-Recurring',
+          sub_category: 'Income',
           column: :both,
           title: 'Leaver With Increased Income',
           goal_description: 'CoC-funded projects will increase the percentage of adult stayers who increase total income by X% annually',

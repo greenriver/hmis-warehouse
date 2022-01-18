@@ -39,8 +39,6 @@ module PerformanceMeasurement::WarehouseReports
       @report = report_class.new(
         user_id: current_user.id,
       )
-      # Not sure why, but set_filter isn't working quite right
-      @filter.set_from_params(filter_params[:filters])
       @report.filter = @filter
       @report.save
       ::WarehouseReports::GenericReportJob.perform_later(
@@ -99,11 +97,14 @@ module PerformanceMeasurement::WarehouseReports
       default_options = {
         sub_population: :clients,
         coc_codes: site_coc_codes,
+        enforce_one_year_range: false,
       }
       return { filters: default_options } unless params[:filters].present?
 
       filters = params.permit(filters: @filter.known_params)
-      filters[:coc_codes] ||= site_coc_codes
+      filters[:filters][:coc_codes] ||= site_coc_codes
+      filters[:filters][:start] = filters[:filters][:end].to_date - 1.years + 1.days
+      filters[:filters][:enforce_one_year_range] = false
       filters
     end
     helper_method :filter_params
