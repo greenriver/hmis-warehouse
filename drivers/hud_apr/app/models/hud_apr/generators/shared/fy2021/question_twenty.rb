@@ -88,8 +88,8 @@ module HudApr::Generators::Shared::Fy2021
           members = universe.members.where(adult_clause)
           case suffix
           when :annual_assessment
-            members = members.where(stayers_clause).
-              where(a_t[:annual_assessment_expected].eq(true))
+            members = members.where(stayers_clause)
+            members = members.where(a_t[:annual_assessment_expected].eq(true)) unless rows[row_index].in?([5, 6]) # Rows 5, 6 include assessment not required
           when :exit
             # non-HoH clients are limited to those who exited on or after the HoH
             # For leavers, report only heads of households who left plus other adult household members who left at the same time as the head of household. Do not include household members who left prior to the head of household even though that person is otherwise considered a “leaver” in other report questions.
@@ -131,9 +131,8 @@ module HudApr::Generators::Shared::Fy2021
         '1 + Source(s)' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].eq(1).
           and(benefit_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql)),
         "Client Doesn't Know/Client Refused" => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].in([8, 9]),
-        # This needs to also include to those who have non_cash_benefits_from_any_source_at_ == 0 but also have 1s or 99s in the sources
-        # and those who have non_cash_benefits_from_any_source_at_ == 1 but don't have any 1s in the sources
-        'Data Not Collected/Not stayed long enough for Annual Assessment' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].not_in([0, 1, 8, 9]),
+        # Special case implemented in code above
+        'Data Not Collected/Not stayed long enough for Annual Assessment' => nil,
         'Total' => Arel.sql('1=1'),
       }
     end

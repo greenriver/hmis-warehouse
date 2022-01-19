@@ -1,7 +1,7 @@
 @import '../helpers';
 
 // .c-chart
-.c-chart--horizontal-bar {
+.c-chart--horizontal-bar, .c-chart--vertical-bar {
   .bb-chart-text .bb-text {
     font-weight: bold;
     font-size: 16px;
@@ -22,5 +22,12 @@
     font-size: 12px;
     line-height: 18px;
     margin-bottom: 4px;
+  }
+}
+.performance-measurement {
+  .c-chart--vertical-bar {
+    .bb-chart-text .bb-text {
+      fill: white !important;
+    }
   }
 }

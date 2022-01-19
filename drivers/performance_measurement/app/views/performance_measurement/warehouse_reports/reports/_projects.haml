@@ -1,6 +1,9 @@
-.p-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
+- result = @report.result_for(key)
+- all_projects_class_name = "jAppProjectChart_#{key}"
+.p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
   %h2 Project Level
-
+%h4 Project Comparsison #{@report.filter.date_range_words}
+.c-chart--vertical-bar{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar.to_json }}
 - my_projects = @report.my_projects(current_user, key)
 - if my_projects.present?
   .well.no-break
@@ -15,7 +18,7 @@
           .w-50= render 'warehouse_reports/indicator', indicator: result, link: performance_measurement_warehouse_reports_report_clients_path(report_id: @report.id, key: key, project_id: project_id)
           .w-50
             - class_name = "jProjectLevelPerformance_#{key}_#{project_id}"
-            %div{class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
+            .c-chart--vertical-bar{class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
             = content_for :page_js do
               :javascript
                 $(document).ready(function(){
@@ -59,3 +62,59 @@
                     bindto: '.#{class_name}'
                   });
                 });
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function(){
+      var all_project_data = $('.#{all_projects_class_name}').data('chart');
+      var all_project_height = 35 * all_project_data.columns[0].length;
+      var max = Math.max(...all_project_data.columns[1].slice(1));
+      var all_project_chart = bb.generate({
+        data: all_project_data,
+        size: { height: all_project_height },
+        legend: { show: false },
+        bindto: '.#{all_projects_class_name}',
+        legend: {
+          show: false,
+        },
+        axis: {
+          width: 150,
+          rotated: true,
+          y: {
+            max: max,
+            outer: false,
+            tick: {
+              rotate: -35,
+              autorotate: true,
+              format: function (x) { return d3.format(",.2r")(x); }
+            },
+          },
+          x: {
+            type: 'category',
+            outer: false,
+            tick: {
+              rotate: -35,
+              autorotate: true,
+              fit: true,
+              culling: false,
+              width: 300,
+            },
+          },
+        },
+        grid: {
+          y: {
+            show: true,
+          },
+        },
+        bar: {
+          width: 20,
+          padding: 5,
+        },
+        padding: {
+          left: 300,
+          top: 0,
+          bottom: 40,
+        },
+      });
+
+    });

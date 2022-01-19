@@ -22,7 +22,7 @@ module PerformanceMeasurement
     end
 
     scope :system_level, -> do
-      where(system_level: tru)
+      where(system_level: true)
     end
 
     def data_for_system_level_bar
@@ -33,7 +33,41 @@ module PerformanceMeasurement
           [primary_unit, comparison_primary_value, primary_value],
         ],
         type: 'bar',
+        labels: {
+          colors: 'white',
+          centered: true,
+        },
       }
+    end
+
+    def data_for_projects_bar(period: :reporting)
+      value_column = if period == :reporting
+        :primary_value
+      else
+        :comparison_primary_value
+      end
+      chart = {
+        x: 'x',
+        type: 'bar',
+        labels: {
+          colors: 'white',
+          centered: true,
+        },
+      }
+      projects = ['x']
+      counts = [primary_unit]
+      self.class.joins(:hud_project).
+        preload(:hud_project).
+        for_field(field).
+        where(report_id: report_id).find_each do |result|
+          projects << "#{result.hud_project.name_and_type} (#{result.hud_project.id})"
+          counts << result[value_column].round
+        end
+      chart[:columns] = [
+        projects,
+        counts,
+      ]
+      chart
     end
   end
 end

@@ -7,7 +7,8 @@
 module DocumentExportJobBehavior
   extend ActiveSupport::Concern
 
-  def perform(export_id: nil)
+  def perform(opts)
+    export_id = opts[:export_id]
     export = load_export(export_id)
     if export
       export.perform

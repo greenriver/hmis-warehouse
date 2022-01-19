@@ -158,7 +158,7 @@ module Filter::FilterScopes
 
       # Make this backwards compatible with a pre-set set of project_types.
       p_types = @project_types.presence || @filter.project_type_ids
-      p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless
+      p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless || @filter.ce_cls_as_homeless
 
       return scope if p_types.empty?
 
@@ -355,6 +355,17 @@ module Filter::FilterScopes
         and(e_t[:LivingSituation].in(HUD.homeless_situations(as: :prior))).
         or(she_t[:computed_project_type].in(@project_types)),
       )
+    end
+
+    private def filter_for_ce_cls_homeless(scope)
+      return scope unless @filter.ce_cls_as_homeless
+
+      client_ids_with_two_homeless_cls = scope.ca.joins(enrollment: :current_living_situations).
+        merge(GrdaWarehouse::Hud::CurrentLivingSituation.homeless.between(start_date: @filter.start_date, end_date: @filter.end_date)).group(she_t[:client_id]).
+        having(nf('COUNT', [she_t[:client_id]]).gt(1)).
+        select(:client_id)
+      scope.where(client_id: client_ids_with_two_homeless_cls).
+        or(scope.where(computed_project_type: @project_types))
     end
 
     private def filter_for_times_homeless(scope)
