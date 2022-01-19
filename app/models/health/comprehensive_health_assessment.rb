@@ -76,15 +76,24 @@ module Health
     ZERO_BASED = [
       'C_Q1', 'C_Q2', 'C_Q3',
       'D_Q1', 'D_Q2', 'D_Q3', 'D_Q4',
-      'E_Q1A', 'E_Q2A',
-      'F_Q1A', 'F_Q2', 'F_Q3', 'F_Q4', 'F_Q5',
-      'G_Q1AP', 'G_Q2A', 'G_Q3', 'G_Q4A', 'G_Q4B', 'G_Q5', 'G_Q6A', 'G_Q6B',
+      'E_Q1A', 'E_Q1B', 'E_Q1C', 'E_Q1D', 'E_Q1E', 'E_Q1F', 'E_Q1G', 'E_Q1H', 'E_Q1I',
+      'E_Q2A', 'E_Q2B', 'E_Q2C',
+      'F_Q1A', 'F_Q1B', 'F_Q1C', 'F_Q1D', 'F_Q1E', 'F_Q1F',
+      'F_Q2', 'F_Q3', 'F_Q4', 'F_Q5',
+      'G_Q1AP', 'G_Q1BP', 'G_Q1CP', 'G_Q1DP', 'G_Q1EP', 'G_Q1FP', 'G_Q1GP', 'G_QHP',
+      'G_Q1AC', 'G_Q1BC', 'G_Q1CC', 'G_Q1DC', 'G_Q1EC', 'G_Q1FC', 'G_Q1GC', 'G_Q1HC',
+      'G_Q2A', 'G_Q2B', 'G_Q2C', 'G_Q2D', 'G_Q2E', 'G_Q2F',
+      'G_Q3', 'G_Q4A', 'G_Q4B', 'G_Q5', 'G_Q6A', 'G_Q6B',
       'H_Q1',
-      'I_Q1A',
-      'J_Q1', 'J_Q2', 'J_Q3A', 'J_Q4', 'J_Q5', 'J_Q6A', 'J_Q6B', 'J_Q6C', 'J_Q6D', 'J_Q6E', 'J_Q7A', 'J_Q8', 'J_Q9A', 'J_Q9B',
-      'K_Q1A',
+      'I_Q1A', 'I_Q1B', 'I_Q1C', 'I_Q1D', 'I_Q1E', 'I_Q1F', 'I_Q1G', 'I_Q1H', 'I_Q1I', 'I_Q1J', 'I_Q1K', 'I_Q1L', 'I_Q1M', 'I_Q1N',
+      'I_Q2A2', 'I_Q2B2', 'I_Q2C2', 'I_Q2D2', 'I_Q2E2', 'I_Q2F2',
+      'J_Q1', 'J_Q2',
+      'J_Q3A', 'J_Q3B', 'J_Q3C', 'J_Q3D', 'J_Q3E', 'J_Q3F', 'J_Q3G', 'J_Q3H', 'J_Q3I', 'J_Q3J', 'J_Q3K', 'J_Q3L',
+      'J_Q4', 'J_Q5', 'J_Q6A', 'J_Q6B', 'J_Q6C', 'J_Q6D', 'J_Q6E', 'J_Q7A', 'J_Q7B', 'J_Q8', 'J_Q9A', 'J_Q9B',
+      'K_Q1A', 'K_Q1B', 'K_Q1C', 'K_Q1D',
+      'L_Q1S1F', 'L_Q1S2F', 'L_Q1S3F', 'L_Q1S4F', 'L_Q1S5F', 'L_Q1S6F', 'L_Q1S7F', 'L_Q1S8F', 'L_Q1S9F', 'L_Q1S10F', 'L_Q1S11F', 'L_Q1S12F',
       'L_Q2',
-      'M_Q1A',
+      'M_Q1A', 'M_Q1B', 'M_Q1C', 'M_Q1D', 'M_Q1E', 'M_Q1F', 'M_Q1G', 'M_Q1H',
       'N_Q1',
       'O_Q1'
     ].freeze
@@ -1038,5 +1047,252 @@ module Health
 
     # allow keys, but some keys need to allow multiple checkbox selections (b_q2 & b_q4)
     PERMITTED_PARAMS = QUESTION_ANSWER_OPTIONS.keys - [:b_q2, :b_q4, :r_q8] + [{ b_q2: [] }, { b_q4: [] }, { r_q8: [] }]
+
+    # Interchange representation
+    def as_interchange # rubocop:disable Metrics/AbcSize
+      result = {
+        'iA0a' => '5',
+        'iA0b' => '09',
+        'iA0c' => '840',
+        'iA0d' => nil,
+        'iA1a' => nil,
+        'iA1b' => nil,
+        'iA1c' => nil,
+        'iA1d' => nil,
+        'iA2' => encoded_answer(:a_q2),
+        'iA3' => format_age(answer(:a_q3), answer(:a_q8)),
+        'iA4' => encoded_answer(:a_q4),
+        'iA5a' => nil,
+        'iA5b' => nil,
+        'iA5c' => nil,
+        'iA6a' => answer(:a_q6),
+        'iA8' => encoded_answer(:a_q67),
+        'iA9' => format_date(answer(:a_q8)),
+        'iA10' => answer(:a_q10).delete('-'),
+        'iA11b' => encoded_answer(:a_q11),
+        'iA12a' => encoded_answer(:a_q12),
+        'iA99' => patient_id,
+        'iB1' => format_primary(answer(:a_q9)),
+        'iB1a' => answer(:a_q9),
+        'iB2' => format_date(answer(:b_q1)),
+        'iB3a' => detect_answer(:b_q2, 'CHA B_Q2_A1'),
+        'iB3b' => detect_answer(:b_q2, 'CHA B_Q2_A2'),
+        'iB3c' => detect_answer(:b_q2, 'CHA B_Q2_A3'),
+        'iB3d' => detect_answer(:b_q2, 'CHA B_Q2_A4'),
+        'iB3e' => detect_answer(:b_q2, 'CHA B_Q2_A5'),
+        'iB3f' => detect_answer(:b_q2, 'CHA B_Q2_A6'),
+        'iB4' => encoded_answer(:b_q3),
+        'iB5a' => detect_answer(:b_q4, 'CHA B_Q4_A1'),
+        'iB5b' => detect_answer(:b_q4, 'CHA B_Q4_A2'),
+        'iB5c' => detect_answer(:b_q4, 'CHA B_Q4_A3'),
+        'iB5d' => detect_answer(:b_q4, 'CHA B_Q4_A4'),
+        'iB5e' => detect_answer(:b_q4, 'CHA B_Q4_A5'),
+        'iC1' => encoded_answer(:c_q1),
+        'iC2a' => encoded_answer(:c_q2),
+        'iC5' => encoded_answer(:c_q3, [0, 1, 2, 8]),
+        'iD1' => encoded_answer(:d_q1),
+        'iD2' => encoded_answer(:d_q2),
+        'iD3a' => encoded_answer(:d_q3),
+        'iD4a' => encoded_answer(:d_q4),
+        'iE1a' => encoded_answer(:e_q1a),
+        'iE1b' => encoded_answer(:e_q1b),
+        'iE1c' => encoded_answer(:e_q1c),
+        'iE1d' => encoded_answer(:e_q1d),
+        'iE1e' => encoded_answer(:e_q1e),
+        'iE1f' => encoded_answer(:e_q1f),
+        'iE1g' => encoded_answer(:e_q1g),
+        'iE1i' => encoded_answer(:e_q1h),
+        'iE1j' => encoded_answer(:e_q1i),
+        'iE2a' => encoded_answer(:e_q2a, [0, 1, 2, 3, 8]),
+        'iE2b' => encoded_answer(:e_q2b, [0, 1, 2, 3, 8]),
+        'iE2c' => encoded_answer(:e_q2c, [0, 1, 2, 3, 8]),
+        'iF1a' => encoded_answer(:f_q1a, [0, 1, 2, 3, 4, 8]),
+        'iF1b' => encoded_answer(:f_q1b, [0, 1, 2, 3, 4, 8]),
+        'iF1c' => encoded_answer(:f_q1c, [0, 1, 2, 3, 4, 8]),
+        'iF1d' => encoded_answer(:f_q2),
+        'iF1e' => encoded_answer(:f_q1d, [0, 1, 2, 3, 4, 8]),
+        'iF1f' => encoded_answer(:f_q1e, [0, 1, 2, 3, 4, 8]),
+        'iF1g' => encoded_answer(:f_q1f, [0, 1, 2, 3, 4, 8]),
+        'iF2' => encoded_answer(:f_q3),
+        'iF3' => encoded_answer(:f_q4),
+        'iF4' => encoded_answer(:f_q5),
+        'iF8a' => encoded_answer(:n_q1),
+        'iG1aa' => encoded_answer(:g_q1ap, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1ab' => encoded_answer(:g_q1ac, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1ba' => encoded_answer(:g_q1bp, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1bb' => encoded_answer(:g_q1bc, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1ca' => encoded_answer(:g_q1cp, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1cb' => encoded_answer(:g_q1cc, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1da' => encoded_answer(:g_q1dp, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1db' => encoded_answer(:g_q1dc, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1ea' => encoded_answer(:g_q1ep, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1eb' => encoded_answer(:g_q1ec, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1fa' => encoded_answer(:g_q1fp, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1fb' => encoded_answer(:g_q1fc, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1ga' => encoded_answer(:g_q1gp, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1gb' => encoded_answer(:g_q1gc, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1ha' => encoded_answer(:g_q1hp, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG1hb' => encoded_answer(:g_q1hc, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG2a' => encoded_answer(:g_q2a, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG2b' => encoded_answer(:g_q2b, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG2c' => encoded_answer(:g_q2c, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG2d' => encoded_answer(:g_q2d, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG2e' => encoded_answer(:g_q2e, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG2f' => encoded_answer(:g_q2f, [0, 1, 2, 3, 4, 5, 6, 8]),
+        'iG3' => encoded_answer(:g_q3),
+        'iG6a' => encoded_answer(:g_q4a),
+        'iG6b' => encoded_answer(:g_q4b),
+        'iG8a' => encoded_answer(:g_q5),
+        'iG9a' => encoded_answer(:g_q6a),
+        'iG9b' => encoded_answer(:g_q6b),
+        'iH1' => encoded_answer(:h_q1),
+        'iI1a' => encoded_answer(:i_q1a),
+        'iI1b' => encoded_answer(:i_q1b),
+        'iI1c' => encoded_answer(:i_q1c),
+        'iI1d' => encoded_answer(:i_q1d),
+        'iI1j' => encoded_answer(:i_q1e),
+        'iI1k' => encoded_answer(:i_q1f),
+        'iI1l' => encoded_answer(:i_q1g),
+        'iI1m' => encoded_answer(:i_q1h),
+        'iI1n' => encoded_answer(:i_q1i),
+        'iI1o' => encoded_answer(:i_q1k),
+        'iI1p' => encoded_answer(:i_q1l),
+        'iI1s' => encoded_answer(:i_q1m),
+        'iI1t' => encoded_answer(:i_q1n),
+        'iI1w' => encoded_answer(:i_q1j),
+      }
+
+      # There are iCODES only for 6, even though we can collect more
+      ('a'..'f').each do |diagnosis|
+        result.merge!(
+          {
+            "iI2#{diagnosis}a" => encoded_answer("i_q2#{diagnosis}2".to_sym),
+            "iI2#{diagnosis}ba" => nil,
+            "iI2#{diagnosis}bb" => answer("i_q2#{diagnosis}3".to_sym),
+            "iI2#{diagnosis}bx" => nil,
+            "iI2#{diagnosis}c" => answer("i_q2#{diagnosis}1".to_sym),
+          },
+        )
+      end
+
+      result.merge!(
+        {
+          'iJ1' => encoded_answer(:j_q1),
+          'iJ2c' => encoded_answer(:j_q3a),
+          'iJ2d' => encoded_answer(:j_q3b),
+          'iJ2e' => encoded_answer(:j_q3c),
+          'iJ2g' => encoded_answer(:j_q3d),
+          'iJ2h' => encoded_answer(:j_q3e),
+          'iJ2i' => encoded_answer(:j_q3f),
+          'iJ2k' => encoded_answer(:j_q3h),
+          'iJ2l' => encoded_answer(:j_q3i),
+          'iJ2m' => encoded_answer(:j_q3g),
+          'iJ2n' => encoded_answer(:j_q3j),
+          'iJ2o' => encoded_answer(:j_q3k),
+          'iJ2p' => encoded_answer(:j_q3l),
+          'iJ3' => encoded_answer(:j_q4),
+          'iJ4' => encoded_answer(:j_q5),
+          'iJ5a' => encoded_answer(:j_q6a),
+          'iJ5b' => encoded_answer(:j_q6b),
+          'iJ5c' => encoded_answer(:j_q6c),
+          'iJ5d' => encoded_answer(:j_q6d),
+          'iJ5e' => encoded_answer(:j_q6e),
+          'iJ6a' => encoded_answer(:j_q7a),
+          'iJ6b' => encoded_answer(:j_q7b),
+          'iJ7' => encoded_answer(:j_q8, [0, 1, 2, 3, 8]),
+          'iJ8a' => encoded_answer(:j_q9a),
+          'iJ8b' => encoded_answer(:j_q9b),
+          'iJ12' => encoded_answer(:j_q2),
+          'iK1ax' => nil,
+          'iK1bx' => nil,
+          'iK2a' => encoded_answer(:k_q1a),
+          'iK2b' => encoded_answer(:k_q1c),
+          'iK2c' => encoded_answer(:k_q1b),
+          'iK2h' => encoded_answer(:k_q1d),
+        },
+      )
+
+      (1..12).each do |medication|
+        result.merge!(
+          {
+            "iM1a#{medication}" => answer("l_q1s#{medication}a".to_sym),
+            "iM1b#{medication}" => answer("l_q1s#{medication}b".to_sym),
+            "iM1c#{medication}" => answer("l_q1s#{medication}c".to_sym),
+            "iM1d#{medication}" => answer("l_q1s#{medication}d".to_sym),
+            "iM1e#{medication}" => answer("l_q1s#{medication}e".to_sym),
+            "iM1f#{medication}" => encoded_answer("l_q1s#{medication}f".to_sym),
+            "iM1ga#{medication}" => answer("l_q1s#{medication}g".to_sym), # Don't know the code system, report under all
+            "iM1gb#{medication}" => answer("l_q1s#{medication}g".to_sym),
+            "iM1gc#{medication}" => answer("l_q1s#{medication}g".to_sym),
+            "iM1gx#{medication}" => nil,
+          },
+        )
+      end
+
+      result.merge!(
+        {
+          'iM2' => encoded_answer(:l_q2),
+          'iN1a' => encoded_answer(:m_q1f),
+          'iN1b' => encoded_answer(:m_q1h),
+          'iN1c' => encoded_answer(:m_q1g),
+          'iN1d' => encoded_answer(:m_q1a),
+          'iN1e' => encoded_answer(:m_q1c),
+          'iN1f' => encoded_answer(:m_q1e),
+          'iN1g' => encoded_answer(:m_q1d),
+          'iN1h' => encoded_answer(:m_q1b),
+          'iN5a' => answer(:m_q2a),
+          'iN5b' => answer(:m_q2b),
+          'iN5c' => answer(:m_q2c),
+          'iQ4' => encoded_answer(:o_q1),
+          'iT1' => format_date(answer(:p_q1)),
+          'iT2' => encoded_answer(:p_q2),
+          'iU1' => nil,
+          'iU2' => format_date(answer(:q_q2)),
+        },
+      )
+
+      result
+    end
+
+    def encoded_answer(key, values = nil)
+      adjusted = nil
+      raw = answer(key)
+      return nil unless raw.present?
+
+      offset = ZERO_BASED.include?(key.to_s.upcase) ? 0 : 1
+      QUESTION_ANSWER_OPTIONS[key].each.with_index do |(_, value), index|
+        adjusted = index + offset if raw == value
+      end
+      return adjusted unless values.present?
+
+      values[adjusted]
+    end
+
+    def detect_answer(answer_key, value_key)
+      answer(answer_key).include?(_(value_key)) ? 1 : 0
+    end
+
+    def format_age(birth_date, reference_date)
+      return nil unless birth_date.present? && reference_date.present?
+
+      age = ((reference_date.to_date - birth_date.to_date) / 365.25).floor
+      return nil if age > 130 || age.negative?
+
+      age
+    rescue Date::Error
+      nil
+    end
+
+    def format_date(date)
+      return nil unless date.present?
+
+      date.to_date.strftime('%Y%m%d')
+    rescue Date::Error
+      return nil
+    end
+
+    def format_primary(text)
+      text.truncate(20, separator: ' ', omission: '')
+    end
   end
 end
