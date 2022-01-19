@@ -32,6 +32,12 @@ module GrdaWarehouse::CasProjectClientCalculator
         lifetime_sex_offender: 'is the client a lifetime sex',
         foster_care: 'in foster care as a youth',
         open_case: 'current open case',
+        drug_test: 'pass a drug test',
+        heavy_drug_use: 'heavy drug use',
+        sober: 'sober for at least one year',
+        willing_case_management: 'engage with housing case management',
+        employed_three_months: 'employed for 3 months',
+        living_wage: 'an hour or more',
       }.freeze
     end
     memoize :boolean_lookups
@@ -41,6 +47,12 @@ module GrdaWarehouse::CasProjectClientCalculator
         lifetime_sex_offender: 'Section B',
         foster_care: 'Section E',
         open_case: 'Section E',
+        drug_test: 'Section C',
+        heavy_drug_use: 'Section C',
+        sober: 'Section C',
+        willing_case_management: 'Section C',
+        employed_three_months: 'Section C',
+        living_wage: 'Section C',
       }
     end
 
@@ -57,6 +69,12 @@ module GrdaWarehouse::CasProjectClientCalculator
         :cas_assessment_collected_at, # note this is really just assessment_collected_at
         :days_homeless_in_last_three_years_cached,
         :literally_homeless_last_three_years_cached,
+        :drug_test,
+        :heavy_drug_use,
+        :sober,
+        :willing_case_management,
+        :employed_three_months,
+        :living_wage,
       ]
     end
 

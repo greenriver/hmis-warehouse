@@ -328,7 +328,6 @@ module PerformanceMeasurement::Details
           calculation_description: 'Number of adult stayers in CoC-funded projects with increased total income / Number of adult system stayers in CoC-funded projects',
           calculation_column: :increased_income__income_stayer,
           detail_columns: [
-            'stayer',
             'income_stayer',
             'increased_income',
           ],
@@ -341,7 +340,6 @@ module PerformanceMeasurement::Details
           calculation_description: 'Number of adult leavers from CoC-funded projects with increased total income / Number of adult system leavers from CoC-funded projects',
           calculation_column: :increased_income__income_leaver,
           detail_columns: [
-            'leaver',
             'income_leaver',
             'increased_income',
           ],

@@ -286,9 +286,13 @@ class Deployer
     @_ruby_version ||= File.read('.ruby-version').chomp
   end
 
+  def _pre_cache_version
+    @_pre_cache_version ||= File.read('.pre-cache-version').chomp
+  end
+
   def _set_image_tag!
     if variant == 'pre-cache'
-      self.image_tag = "#{_ruby_version}--pre-cache"
+      self.image_tag = "#{_ruby_version}-#{_pre_cache_version}--pre-cache"
     elsif ENV['IMAGE_TAG']
       self.image_tag = ENV['IMAGE_TAG'] + "--#{variant}"
       self.image_tag_latest = "latest-" + ENV['IMAGE_TAG'] + "--#{variant}"
@@ -374,7 +378,7 @@ class Deployer
   end
 
   def _pre_cache_image_exists?
-    result = `docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`
+    result = `docker image ls -f 'reference=#{repo_name}' | grep "#{_ruby_version}-#{_pre_cache_version}--pre-cache"`
 
     !result.match?(/^\s*$/)
   end
