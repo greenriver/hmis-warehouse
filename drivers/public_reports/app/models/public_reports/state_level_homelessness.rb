@@ -151,7 +151,7 @@ module PublicReports
         elsif unsheltered_count > 100 && sheltered_count > 100
           ((unsheltered_count / sheltered_count) * 100).round
         else
-          ((unsheltered_count / sheltered_count) * 100).round(10)
+          ((unsheltered_count / sheltered_count) * 100).round(-1)
         end
         "#{percent}%"
       when 'pit_chart', 'inflow_outflow'
