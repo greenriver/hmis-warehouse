@@ -41,16 +41,6 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6a',
-      skip: [
-        'C3', # FIXME
-        'D3', # FIXME
-        'C6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-        'C7', # FIXME
-        'E7', # FIXME
-        'F7', # FIXME
-      ],
     )
   end
 
@@ -58,13 +48,6 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6b',
-      skip: [
-        'C2', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-      ],
     )
   end
 
@@ -72,16 +55,6 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6c',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-      ],
     )
   end
 
@@ -89,9 +62,6 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q6d',
-      skip: [
-        'E2', # FIXME
-      ],
     )
   end
 
@@ -107,11 +77,9 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
       file_path: result_file_prefix + 'so',
       question: 'Q6f',
       skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
+        'B2', # FIXME pending AAQ response
+        'C2',
+        'D2',
       ],
     )
   end

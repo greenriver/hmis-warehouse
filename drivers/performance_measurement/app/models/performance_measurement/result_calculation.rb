@@ -659,10 +659,10 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def increased_income(income_field, status_field, meth, project: nil)
-      reporting_denominator = client_count(status_field, :reporting)
-      comparison_denominator = client_count(status_field, :comparison)
-      reporting_numerator = client_count(income_field, :reporting)
-      comparison_numerator = client_count(income_field, :comparison)
+      reporting_denominator = client_count(status_field, :reporting, project_id: project&.project_id)
+      comparison_denominator = client_count(status_field, :comparison, project_id: project&.project_id)
+      reporting_numerator = client_count(income_field, :reporting, project_id: project&.project_id)
+      comparison_numerator = client_count(income_field, :comparison, project_id: project&.project_id)
 
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)

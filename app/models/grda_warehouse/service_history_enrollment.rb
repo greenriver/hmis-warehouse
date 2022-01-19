@@ -26,7 +26,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   has_many :other_household_service_history_enrollments, -> { where(head_of_household: false) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :household_id], foreign_key: [:data_source_id, :project_id, :household_id], autosave: false
 
   # make a scope for every project type and a type? method for instances
-  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k, v|
+  GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.each do |k, v|
     next unless k.is_a?(Symbol)
 
     scope k, -> { where project_type_column => v }

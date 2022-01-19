@@ -23,10 +23,6 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
         alias_attribute(column.to_s.underscore.to_sym, column)
       end
     end
-
-    def for_cocs(_coc_codes)
-      current_scope
-    end
   end
 
   def export_to_path(export_scope:, path:, export:, coc_codes: nil)
@@ -37,7 +33,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
     CSV.open(export_path, 'wb', force_quotes: true) do |csv|
       csv << clean_headers(headers)
       export_scope = export_scope.with_deleted if paranoid? && export.include_deleted
-      export_scope = export_scope.for_cocs(coc_codes) if coc_codes.present?
+      export_scope = export_scope.in_coc(coc_code: coc_codes) if coc_codes.present?
 
       columns = columns_to_pluck
 

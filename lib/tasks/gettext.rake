@@ -49,7 +49,8 @@ namespace :gettext do
     file = "config/cha_translations.yml"
     if !File.exists?( file )
       puts "You are missing #{file}"
-      exit
+      next
+
     end
     puts "Reading #{file}"
     chas = YAML::load_file( file ).symbolize_keys

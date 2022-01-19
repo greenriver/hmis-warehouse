@@ -1,4 +1,4 @@
 %h2 A Client Anomaly Was Identified
 
 %p
-  = link_to "Client ##{@client.id}", client_anomalies_url(client_id: @client)
+  = link_to "Client ##{@client.id}", client_anomalies_url(client_id: @client, anchor: :new)
