@@ -639,6 +639,8 @@ module Health
         reasons << _('no mode of contact') unless mode_of_contact.present?
         reasons << _('no indication if the client was reached') unless reached_client.present?
         reasons << _('invalid procedure code') if reasons.blank?
+
+        reasons
       end
     end
 
