@@ -18,6 +18,9 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
+RUN addgroup -g 1001 app \
+  && adduser -u 1001 -G app -h /app -D app
+
 RUN gem install bundler --version=1.17.3 && \
   mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var
 
