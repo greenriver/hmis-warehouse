@@ -1,0 +1,14 @@
+= simple_form_for @filter, as: :filters, url: access_logs_warehouse_reports_reports_path(format: :csv), method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-3
+        = f.input :start, as: :date_picker
+      .col-sm-3
+        = f.input :end, as: :date_picker
+      .col-sm-6
+        = f.input :user_id, as: :select_two, collection: User.all, label: 'User', include_blank: 'All', selected: nil
+
+  - content_for :filter_actions do
+    = f.submit 'Download CSV', class: ['btn', 'btn-primary'], data: { disable_with: false }
+
+  = render 'warehouse_reports/filters', f:f
