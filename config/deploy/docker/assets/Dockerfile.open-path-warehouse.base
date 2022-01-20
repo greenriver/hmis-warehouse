@@ -38,8 +38,6 @@ COPY drivers ./drivers
 COPY locale ./locale
 
 COPY config/deploy/docker/assets/REVISION ./
-# Make node_modules directory and fetch the packages
-RUN yarn
 
 ##################
 ## Actual Build ##
@@ -71,9 +69,11 @@ RUN chmod +x /usr/bin/entrypoint.sh \
   && cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml \
   && rm -rf tmp/* \
   && rm .env \
-  && mkdir tmp/pids
+  && mkdir tmp/pids \
+  && yarn
 
 RUN chown -R app:app tmp
+RUN chown -R app:app node_modules
 RUN touch /etc/timezone
 RUN ln -sf /app/etc-localtime /etc/localtime
 RUN chown app:app /etc/timezone
