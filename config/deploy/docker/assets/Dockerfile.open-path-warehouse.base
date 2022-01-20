@@ -69,7 +69,8 @@ RUN chmod +x /usr/bin/entrypoint.sh \
   && cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml \
   && rm -rf tmp/* \
   && rm .env \
-  && mkdir tmp/pids
+  && mkdir tmp/pids \
+  && yarn
 
 RUN chown -R app:app tmp
 RUN touch /etc/timezone
