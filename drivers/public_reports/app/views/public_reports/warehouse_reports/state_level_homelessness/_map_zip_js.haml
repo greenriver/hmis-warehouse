@@ -95,7 +95,6 @@
     getColor(rate) {
       for(let color in this.colors) {
         if(this.colors[color].low <= rate && this.colors[color].high >= rate) {
-          console.log(color, rate, this.colors[color].low, this.colors[color].high)
           return color;
         }
       }
