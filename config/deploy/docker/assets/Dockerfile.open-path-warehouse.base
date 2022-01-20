@@ -76,6 +76,9 @@ RUN touch /etc/timezone
 RUN ln -sf /app/etc-localtime /etc/localtime
 RUN chown app:app /etc/timezone
 
+RUN touch config/database.yml
+RUN chown app:app config/database.yml
+
 USER app
 
 # Expose the GITHASH to entrypoint.sh for downloading precompiled assets.
