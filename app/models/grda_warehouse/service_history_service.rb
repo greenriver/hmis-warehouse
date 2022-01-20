@@ -64,6 +64,10 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     where(age: range)
   end
 
+  scope :unknown_age, -> do
+    where(age: nil).or(where(age: 105..Float::INFINITY)).or(where(age: -Float::INFINITY..-1))
+  end
+
   def self.project_type_column
     :project_type
   end

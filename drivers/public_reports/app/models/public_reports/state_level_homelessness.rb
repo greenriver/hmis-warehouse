@@ -858,17 +858,12 @@ module PublicReports
           'total_counts' => {},
           'chronic_percents' => {},
         }
-        # intermediate_chronic_count ||= 0
-        intermediate_total_count ||= 0
 
-        total_string = total_for(scope.merge(client_scope), nil)
         total_count = scope.merge(client_scope).distinct.select(:client_id).count
 
         # intermediate_chronic_count += chronic_count
-        intermediate_total_count += total_count
         # charts[section_title]['chronic_counts'][iso_date] = intermediate_chronic_count
         charts[section_title]['chronic_counts'][iso_date] = charts[section_title]['chronic_counts'][iso_date]
-        charts[section_title]['total_counts'][iso_date] = intermediate_total_count
         charts[section_title]['chronic_percents'][iso_date] ||= {}
         charts[section_title]['chronic_percents'][iso_date][title] ||= 0
         charts[section_title]['chronic_percents'][iso_date][title] = enforce_min_threshold([chronic_count, total_count], 'chronic_percents')
@@ -887,7 +882,8 @@ module PublicReports
     private def adult_only_household_breakdowns
       setup = {
         'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(18..24)),
-        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 24..105)),
+        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(24..105)),
+        'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -896,6 +892,10 @@ module PublicReports
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
+          quarter_setup = {}
+          setup.each do |k, v|
+            quarter_setup[k] = v.merge(shs_scope)
+          end
           scope = homeless_scope.with_service_between(
             start_date: start_date,
             end_date: end_date,
@@ -907,7 +907,7 @@ module PublicReports
           homeless_chart_breakdowns(
             section_title: 'Persons in Households Without Children',
             charts: charts,
-            setup: setup,
+            setup: quarter_setup,
             scope: adult_only_scope,
             date: date,
           )
@@ -917,9 +917,10 @@ module PublicReports
 
     private def adult_and_child_household_breakdowns
       setup = {
-        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 0..17)),
-        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 18..24)),
-        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 24..105)),
+        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(0..17)),
+        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(18..24)),
+        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(24..105)),
+        'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -928,6 +929,10 @@ module PublicReports
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
+          quarter_setup = {}
+          setup.each do |k, v|
+            quarter_setup[k] = v.merge(shs_scope)
+          end
           scope = homeless_scope.with_service_between(
             start_date: start_date,
             end_date: end_date,
@@ -939,7 +944,7 @@ module PublicReports
           homeless_chart_breakdowns(
             section_title: 'Persons in households with at least one child and one adult',
             charts: charts,
-            setup: setup,
+            setup: quarter_setup,
             scope: adult_and_child_scope,
             date: date,
           )
@@ -949,7 +954,7 @@ module PublicReports
 
     private def child_only_household_breakdowns
       setup = {
-        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(age: 0..17)),
+        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(0..17)),
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -958,6 +963,10 @@ module PublicReports
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
+          quarter_setup = {}
+          setup.each do |k, v|
+            quarter_setup[k] = v.merge(shs_scope)
+          end
           scope = homeless_scope.with_service_between(
             start_date: start_date,
             end_date: end_date,
@@ -968,7 +977,7 @@ module PublicReports
           homeless_chart_breakdowns(
             section_title: 'Persons in Child-Only Households',
             charts: charts,
-            setup: setup,
+            setup: quarter_setup,
             scope: child_only_scope,
             date: date,
           )
@@ -981,8 +990,8 @@ module PublicReports
         'Female' => GrdaWarehouse::Hud::Client.gender_female,
         'Male' => GrdaWarehouse::Hud::Client.gender_male,
         'Transgender' => GrdaWarehouse::Hud::Client.gender_transgender,
-        'No Single Gender' => GrdaWarehouse::Hud::Client.no_single_gender,
-        'Unknown' => GrdaWarehouse::Hud::Client.gender_unknown,
+        'No Single Gender' => GrdaWarehouse::Hud::Client.no_single_gender.or(GrdaWarehouse::Hud::Client.questioning),
+        'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown,
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -1016,7 +1025,7 @@ module PublicReports
         'Black or African American' => GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican']),
         'Native Hawaiian or Pacific Islander' => GrdaWarehouse::Hud::Client.with_races(['NativeHIPacific']),
         'White' => GrdaWarehouse::Hud::Client.with_races(['White']),
-        'Multi-Racial' => GrdaWarehouse::Hud::Client.multi_racial,
+        'Other or Unknown' => GrdaWarehouse::Hud::Client.with_race_none,
       }
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -1113,7 +1122,7 @@ module PublicReports
         'Person'
       end
 
-      return pluralize(number_with_delimiter(count), word) if count > 100
+      return pluralize(number_with_delimiter(count), word) if count > 100 || count.zero?
 
       "less than #{pluralize(100, word)}"
     end

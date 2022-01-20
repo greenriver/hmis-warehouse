@@ -10,7 +10,7 @@
     .jHomelessBreakdownRow{data: { chronics: chronic_dates.to_json}}
       - total = dates[active_date]['total']
       - chronic_percent = chronic_dates[active_date][title]
-      .w-100.d-flex
+      .w-100.mb-4.d-flex
         .w-50.d-flex
           - chart_class = "household_type_#{section_header.downcase.parameterize.underscore}_#{title.downcase.parameterize.underscore}"
           .w-30.breakdown-type.mb-auto.mt-auto=title

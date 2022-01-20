@@ -30,7 +30,7 @@
     = render 'household_type', data: data['household_type']
 
   - chart_class = "race-chart"
-  = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Unknown']
+  = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Other or Unknown']
 
   = render 'homeless_breakdowns', data: data['homeless_breakdowns']
   = render 'glossary_content'
