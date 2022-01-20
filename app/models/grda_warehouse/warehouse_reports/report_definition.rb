@@ -556,6 +556,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: false,
             health: false,
           },
+          {
+            url: 'access_logs/warehouse_reports/reports',
+            name: 'User Access Logs',
+            description: 'Download access logs for offline analysis',
+            limitable: false,
+            health: false,
+          },
         ],
         'Health: General' => [
           {
