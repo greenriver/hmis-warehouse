@@ -136,3 +136,6 @@ config/claims_reporting/*
 
 # Never commit any fixpoints
 **/fixpoints/*.yml
+
+# Pre-cache version file
+!.pre-cache-version
