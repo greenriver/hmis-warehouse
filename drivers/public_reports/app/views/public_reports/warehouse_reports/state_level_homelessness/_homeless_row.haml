@@ -1,6 +1,6 @@
 - section_header = data.keys.first
 %h4= section_header
-- groups = ['Sheltered', 'Unsheltered']
+- groups = ['Sheltered', 'Unsheltered', 'Redacted']
 - category = :location_type
 
 - data.each do |_, section|
@@ -17,8 +17,7 @@
           .w-30
             - js_data = @report.enforce_min_threshold(dates, 'homeless_row')
             .chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
-            - unless total == 'less than 100 People'
-              = render 'bar_js', data: js_data, chart_class: chart_class, active_date: active_date, groups: groups, category: category
+            = render 'bar_js', data: js_data, chart_class: chart_class, active_date: active_date, groups: groups, category: category
           .w-30.d-flex
             .total-for-type.mb-auto.mt-auto.jTotalCount{data: { dates: dates.to_json }}
               = total

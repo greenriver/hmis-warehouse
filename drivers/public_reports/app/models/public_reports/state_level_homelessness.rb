@@ -211,7 +211,7 @@ module PublicReports
         data.each do |_, date_data|
           date_data.each do |_, count_data|
             count_data.each do |_, c_data|
-              c_data[:overall_population] = 100 if c_data[:overall_population].positive? && c_data[:overall_population] < 100
+              c_data[:count] = 'less than 100' if c_data[:count].positive? && c_data[:count] < 100
               top_of_range = map_colors.values.detect { |bucket| bucket[:range].cover?(c_data[:rate]) }.try(:[], :range)&.last
               c_data[:rate] = top_of_range || 0 unless top_of_range == 100
             end
@@ -224,6 +224,7 @@ module PublicReports
           chart_data['data'].each do |row|
             row[1] = 0
           end
+          chart_data['data'] << ['Redacted', 100]
         end
       when 'chronic_percents'
         (chronic_count, total_count) = data
@@ -681,7 +682,6 @@ module PublicReports
               max = [population_overall, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            overall_homeless_population = 101 if overall_homeless_population.positive? && overall_homeless_population < 101
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -733,7 +733,6 @@ module PublicReports
               max = [population_overall, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            overall_homeless_population = 101 if overall_homeless_population.positive? && overall_homeless_population < 101
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -749,8 +748,8 @@ module PublicReports
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
             charts[iso_date][code] = {
-              count: count,
-              overall_population: overall_homeless_population.to_i,
+              count: overall_homeless_population,
+              overall_population: population_overall.to_i,
               rate: rate.round(1),
             }
             self.map_max_rate = rate if rate > self.map_max_rate
@@ -789,7 +788,6 @@ module PublicReports
               max = [population_overall, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            overall_homeless_population = 101 if overall_homeless_population.positive? && overall_homeless_population < 101
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -805,8 +803,8 @@ module PublicReports
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
             charts[iso_date][code] = {
-              count: count,
-              overall_population: overall_homeless_population.to_i,
+              count: overall_homeless_population,
+              overall_population: population_overall.to_i,
               rate: rate.round(1),
             }
             self.map_max_rate = rate if rate > self.map_max_rate
@@ -840,7 +838,6 @@ module PublicReports
               max = [population_overall, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            overall_homeless_population = 101 if overall_homeless_population.positive? && overall_homeless_population < 101
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -856,8 +853,8 @@ module PublicReports
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
             charts[iso_date][code] = {
-              count: count,
-              overall_population: overall_homeless_population.to_i,
+              count: overall_homeless_population,
+              overall_population: population_overall.to_i,
               rate: rate.round(1),
             }
             self.map_max_rate = rate if rate > self.map_max_rate
