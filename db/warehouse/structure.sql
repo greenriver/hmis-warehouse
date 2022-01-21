@@ -17322,7 +17322,9 @@ CREATE TABLE public.shape_zip_codes (
     intptlon10 character varying(12),
     geom public.geometry(MultiPolygon,4326),
     simplified_geom public.geometry(MultiPolygon,4326),
-    full_geoid character varying
+    full_geoid character varying,
+    st_geoid character varying,
+    county_name_lower character varying
 );
 
 
@@ -40546,6 +40548,13 @@ CREATE INDEX index_shape_towns_on_simplified_geom ON public.shape_towns USING gi
 
 
 --
+-- Name: index_shape_zip_codes_on_county_name_lower; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_zip_codes_on_county_name_lower ON public.shape_zip_codes USING btree (county_name_lower);
+
+
+--
 -- Name: index_shape_zip_codes_on_full_geoid; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40564,6 +40573,13 @@ CREATE INDEX index_shape_zip_codes_on_geom ON public.shape_zip_codes USING gist 
 --
 
 CREATE INDEX index_shape_zip_codes_on_simplified_geom ON public.shape_zip_codes USING gist (simplified_geom);
+
+
+--
+-- Name: index_shape_zip_codes_on_st_geoid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_zip_codes_on_st_geoid ON public.shape_zip_codes USING btree (st_geoid);
 
 
 --
@@ -43773,6 +43789,13 @@ CREATE INDEX project_coc_export_id ON public."ProjectCoC" USING btree ("ExportID
 
 
 --
+-- Name: project_cocs_city_lower; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX project_cocs_city_lower ON public."ProjectCoC" USING btree (lower(("City")::text));
+
+
+--
 -- Name: project_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43840,6 +43863,13 @@ CREATE INDEX services_export_id ON public."Services" USING btree ("ExportID");
 --
 
 CREATE INDEX sh_date_ds_id_org_id_proj_id_proj_type ON public.warehouse_client_service_history USING btree (date, data_source_id, organization_id, project_id, project_type);
+
+
+--
+-- Name: shape_counties_namelsad_lower; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX shape_counties_namelsad_lower ON public.shape_counties USING btree (lower((namelsad)::text));
 
 
 --
@@ -46486,6 +46516,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211229164804'),
 ('20211230201245'),
 ('20220101180956'),
-('20220102193048');
+('20220102193048'),
+('20220114140723');
 
 

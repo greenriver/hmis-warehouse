@@ -18,15 +18,11 @@ echo Sourcing environment
 . .env
 
 echo Setting Timezone
-cp /usr/share/zoneinfo/$TIMEZONE /etc/localtime
+cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
 
 echo Syncing the assets from s3
 ./bin/sync_app_assets.rb
-
-echo Setting PGPass
-echo "$DATABASE_HOST:*:*:$DATABASE_USER:$DATABASE_PASS" > /root/.pgpass
-chmod 600 /root/.pgpass
 
 echo Pulling down assets from S3
 bundle exec rake assets:clobber && mkdir -p ./public/assets

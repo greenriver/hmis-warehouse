@@ -34,7 +34,7 @@ module GrdaWarehouse
         {}
       end
 
-      def population(args={})
+      def population(args = {})
         args[:geometry] = self
         UsCensusApi::Finder.new(args).best_value
       end
@@ -53,7 +53,7 @@ module GrdaWarehouse
         end
 
         def _full_geoid_prefix
-          raise "Please set the full geoid prefix in #{self.name} and try again"
+          raise "Please set the full geoid prefix in #{name} and try again"
         end
 
         # Often just geoid, but some datasets call it geoid10
@@ -70,9 +70,6 @@ module GrdaWarehouse
         scope :efficient, -> { select(column_names - ['geom', 'simplified_geom']) }
 
         has_many :census_values, foreign_key: :full_geoid, primary_key: :full_geoid, class_name: 'GrdaWarehouse::UsCensusApi::CensusValue'
-
-        scope :my_state, -> { where(statefp: my_fips_state_code) }
-        scope :not_my_state, -> { where.not(statefp: my_fips_state_code) }
       end
     end
   end
