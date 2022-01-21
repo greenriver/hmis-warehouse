@@ -48,7 +48,8 @@
     $.each(charts, function(i){
       var chart = charts[i].chart;
       var dates = charts[i].dates;
-      chart.load({ columns: dates[selected_date]['data'] });
+      // FIXME not removing Redacted if it was there before (maybe we need to force a full refresh?)
+      chart.load({ columns: dates[selected_date]['data'], unload: ['Redacted'] });
       // only valid for donut charts
       // NOTE: this is a hack because setting it doesn't correctly refresh donut titles
       // chart.$.main.select(".bb-chart-arcs-title").text(dates[selected_date]['total'].split(' ').join(' \n'));
