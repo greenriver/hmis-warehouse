@@ -25,29 +25,29 @@ module Reporting
       end
     end
 
-    def source_data(ids)
-      GrdaWarehouse::ServiceHistoryService.where(service_history_enrollment_id: ids).
+    def service_data(enrollment_ids)
+      GrdaWarehouse::ServiceHistoryService.where(service_history_enrollment_id: enrollment_ids).
         order(client_id: :asc, service_history_enrollment_id: :asc, date: :asc).
         where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current))
     end
 
-    private def source_data_scope(ids)
+    private def service_data_scope(c_ids)
       GrdaWarehouse::ServiceHistoryService.
         joins(service_history_enrollment: [:project, :organization, :client]).
         homeless.
-        where(client_id: ids).
+        where(client_id: c_ids).
         where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current))
     end
 
-    def enrollment_data(ids)
+    def enrollment_data(c_ids)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.homeless.
         joins(:project, :organization, :client).
-        where(client_id: ids).
+        where(client_id: c_ids).
         open_between(start_date: Reporting::MonthlyReports::Base.lookback_start, end_date: Date.current).
         with_service_between(
           start_date: Reporting::MonthlyReports::Base.lookback_start,
           end_date: Date.current,
-          service_scope: source_data_scope(ids),
+          service_scope: service_data_scope(c_ids),
         )
     end
 
@@ -74,7 +74,7 @@ module Reporting
           enrollments[row.first] = row_to_hash(row, enrollment_columns.keys)
         end
         # create an array with a record for each enrollment that includes the first and last date seen
-        source_data(enrollments.keys).pluck_in_batches(shs_columns.values, batch_size: 400_000) do |batch|
+        service_data(enrollments.keys).pluck_in_batches(shs_columns.values, batch_size: 400_000) do |batch|
           batch.each do |row|
             day = row_to_hash(row, shs_columns.keys)
             day.merge!(enrollments[day[:service_history_enrollment_id]])
