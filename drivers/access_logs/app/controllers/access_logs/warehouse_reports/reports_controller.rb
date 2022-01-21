@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module AccessLogs
-  class WarehouseReports::ReportsController < ApplicationController
+module AccessLogs::WarehouseReports
+  class ReportsController < ApplicationController
     include WarehouseReportAuthorization
     include BaseFilters
 
