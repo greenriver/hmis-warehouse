@@ -668,7 +668,7 @@ module PublicReports
           charts[iso_date] = {}
           coc_codes.each do |coc_code|
             population_overall = if Rails.env.production?
-              population_by_coc[date.year][coc_code]
+              population_by_coc.try(:[], coc_code).try(:[], code) || 0
             else
               500
             end
@@ -681,6 +681,7 @@ module PublicReports
               max = [population_overall, 1].compact.max / 3
               (0..max).to_a.sample
             end
+            overall_homeless_population = 101 if overall_homeless_population.positive? && overall_homeless_population < 101
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -732,6 +733,7 @@ module PublicReports
               max = [population_overall, 1].compact.max / 3
               (0..max).to_a.sample
             end
+            overall_homeless_population = 101 if overall_homeless_population.positive? && overall_homeless_population < 101
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -768,9 +770,8 @@ module PublicReports
           end_date = date.end_of_quarter
           charts[iso_date] = {}
           place_codes.each do |code|
-            # NOTE: this uses census data, switching to rate of clients in location to state
-            # population_overall = population_by_place.try(:[], date.year).try(:[], code) || 0
             population_overall = if Rails.env.production?
+              population_by_place.try(:[], date.year).try(:[], code) || 0
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
@@ -788,6 +789,7 @@ module PublicReports
               max = [population_overall, 1].compact.max / 3
               (0..max).to_a.sample
             end
+            overall_homeless_population = 101 if overall_homeless_population.positive? && overall_homeless_population < 101
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -824,14 +826,8 @@ module PublicReports
           end_date = date.end_of_quarter
           charts[iso_date] = {}
           county_codes.each do |code|
-            # NOTE: this uses census data, switching to rate of clients in location to state
-            # population_overall = population_by_county.try(:[], date.year).try(:[], code) || 0
             population_overall = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-              ).
-                count
+              population_by_county.try(:[], date.year).try(:[], code) || 0
             else
               500
             end
@@ -844,6 +840,7 @@ module PublicReports
               max = [population_overall, 1].compact.max / 3
               (0..max).to_a.sample
             end
+            overall_homeless_population = 101 if overall_homeless_population.positive? && overall_homeless_population < 101
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
