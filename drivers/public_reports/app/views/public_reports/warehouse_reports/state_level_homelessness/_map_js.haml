@@ -58,10 +58,13 @@
         let innerHTML = '';
         let hidden = true;
         if (props != null) {
+          const { id, name, place, metric } = props;
           const rate = this.metrics[props.cocnum]?.rate
           const count = this.metrics[props.cocnum]?.count
           const population = this.metrics[props.cocnum]?.overall_population
-          innerHTML = `<h4>${name}</h4><div class="rate">${rate}% of overall homeless population (${population?.toLocaleString()} people)</div>`;
+          let color = this.colors[this.getColor(rate)]
+
+          innerHTML = `<h4>${name}</h4><div class="rate">${color.description} of ${count?.toLocaleString()} homeless people<br>population ${population?.toLocaleString()}</div>`;
 
           hidden = false;
         }

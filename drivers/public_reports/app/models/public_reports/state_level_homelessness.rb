@@ -672,6 +672,15 @@ module PublicReports
             else
               500
             end
+            overall_homeless_population = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).count
+            else
+              max = [population_overall, 1].compact.max / 3
+              (0..max).to_a.sample
+            end
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -679,15 +688,16 @@ module PublicReports
               ).
                 in_coc(coc_code: coc_code).count
             else
-              max = [population_overall, 1].compact.max / 5
+              max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
+
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
             # % of population
             rate = 0
-            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
+            rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
             charts[iso_date][coc_code] = {
-              count: count,
+              count: overall_homeless_population,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
             }
@@ -713,6 +723,15 @@ module PublicReports
             else
               500
             end
+            overall_homeless_population = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).count
+            else
+              max = [population_overall, 1].compact.max / 3
+              (0..max).to_a.sample
+            end
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -720,16 +739,16 @@ module PublicReports
               ).
                 in_zip(zip_code: code).count
             else
-              max = [population_overall, 1].compact.max / 5
+              max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
             # % of population
             rate = 0
-            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
+            rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
             charts[iso_date][code] = {
               count: count,
-              overall_population: population_overall.to_i,
+              overall_population: overall_homeless_population.to_i,
               rate: rate.round(1),
             }
             self.map_max_rate = rate if rate > self.map_max_rate
@@ -760,6 +779,15 @@ module PublicReports
             else
               500
             end
+            overall_homeless_population = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).count
+            else
+              max = [population_overall, 1].compact.max / 3
+              (0..max).to_a.sample
+            end
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -767,16 +795,16 @@ module PublicReports
               ).
                 in_place(place: code).count
             else
-              max = [population_overall, 1].compact.max / 5
+              max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
             # % of population
             rate = 0
-            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
+            rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
             charts[iso_date][code] = {
               count: count,
-              overall_population: population_overall.to_i,
+              overall_population: overall_homeless_population.to_i,
               rate: rate.round(1),
             }
             self.map_max_rate = rate if rate > self.map_max_rate
@@ -807,6 +835,15 @@ module PublicReports
             else
               500
             end
+            overall_homeless_population = if Rails.env.production?
+              scope.with_service_between(
+                start_date: start_date,
+                end_date: end_date,
+              ).count
+            else
+              max = [population_overall, 1].compact.max / 3
+              (0..max).to_a.sample
+            end
             count = if Rails.env.production?
               scope.with_service_between(
                 start_date: start_date,
@@ -814,16 +851,16 @@ module PublicReports
               ).
                 in_county(county: code).count
             else
-              max = [population_overall, 1].compact.max / 5
+              max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
             count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
             # % of population
             rate = 0
-            rate = count / population_overall.to_f * 100.0 if population_overall&.positive?
+            rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
             charts[iso_date][code] = {
               count: count,
-              overall_population: population_overall.to_i,
+              overall_population: overall_homeless_population.to_i,
               rate: rate.round(1),
             }
             self.map_max_rate = rate if rate > self.map_max_rate
@@ -859,6 +896,7 @@ module PublicReports
           'chronic_percents' => {},
         }
 
+        total_string = total_for(scope.merge(client_scope), nil)
         total_count = scope.merge(client_scope).distinct.select(:client_id).count
 
         # intermediate_chronic_count += chronic_count
