@@ -1300,7 +1300,7 @@ module PublicReports
     end
 
     private def county_geometries
-      @county_geometries ||= GrdaWarehouse::Shape::County.where(namelsad: count_codes)
+      @county_geometries ||= GrdaWarehouse::Shape::County.where(namelsad: county_codes)
     end
 
     private def county_codes
