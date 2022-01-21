@@ -56,13 +56,23 @@ module PerformanceMeasurement
       }
       projects = ['x']
       counts = [primary_unit]
+      project_intermediate = []
       self.class.joins(:hud_project).
         preload(:hud_project).
         for_field(field).
         where(report_id: report_id).find_each do |result|
-          projects << "#{result.hud_project.name_and_type} (#{result.hud_project.id})"
-          counts << result[value_column].round
+          count = result[value_column].round
+          if count.positive?
+            project_intermediate << [
+              "#{result.hud_project.name_and_type} (#{result.hud_project.id})",
+              count,
+            ]
+          end
         end
+      project_intermediate.sort_by(&:first).each do |project, count|
+        projects << project
+        counts << count
+      end
       chart[:columns] = [
         projects,
         counts,

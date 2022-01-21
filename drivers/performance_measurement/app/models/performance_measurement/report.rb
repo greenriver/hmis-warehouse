@@ -72,7 +72,7 @@ module PerformanceMeasurement
       @filter ||= begin
         f = ::Filters::FilterBase.new(user_id: user_id)
         f.update((options || {}).merge(comparison_pattern: :prior_year).with_indifferent_access)
-        f.update(start: f.end - 1.years)
+        f.update(start: f.end - 1.years + 1.days)
         f
       end
     end

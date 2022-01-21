@@ -80,10 +80,10 @@ module PerformanceMeasurement::ResultCalculation
       end
     end
 
-    def direction(field, reporting_value, comparison_value)
+    def direction(_field, reporting_value, comparison_value)
       if reporting_value == comparison_value
         :none
-      elsif passed?(field, reporting_value, comparison_value)
+      elsif reporting_value < comparison_value
         :down
       else
         :up
@@ -286,7 +286,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: percent_of(reporting_count - comparison_count, comparison_count),
+        secondary_value: percent_changed(reporting_count, comparison_count),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_count,
@@ -314,7 +314,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_average, comparison_average),
         primary_value: reporting_average,
         primary_unit: 'days',
-        secondary_value: percent_of(reporting_average - comparison_average, comparison_average),
+        secondary_value: percent_changed(reporting_average, comparison_average),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_average,
@@ -341,7 +341,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_median, comparison_median),
         primary_value: reporting_median,
         primary_unit: 'days',
-        secondary_value: percent_of(reporting_median - comparison_median, comparison_median),
+        secondary_value: percent_changed(reporting_median, comparison_median),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_median,
@@ -369,7 +369,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_average, comparison_average),
         primary_value: reporting_average,
         primary_unit: 'days',
-        secondary_value: percent_of(reporting_average - comparison_average, comparison_average),
+        secondary_value: percent_changed(reporting_average, comparison_average),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_average,
@@ -396,7 +396,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_median, comparison_median),
         primary_value: reporting_median,
         primary_unit: 'days',
-        secondary_value: percent_of(reporting_median - comparison_median, comparison_median),
+        secondary_value: percent_changed(reporting_median, comparison_median),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_median,
@@ -424,7 +424,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_average, comparison_average),
         primary_value: reporting_average,
         primary_unit: 'days',
-        secondary_value: percent_of(reporting_average - comparison_average, comparison_average),
+        secondary_value: percent_changed(reporting_average, comparison_average),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_average,
@@ -451,7 +451,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_median, comparison_median),
         primary_value: reporting_median,
         primary_unit: 'days',
-        secondary_value: percent_of(reporting_median - comparison_median, comparison_median),
+        secondary_value: percent_changed(reporting_median, comparison_median),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_median,
@@ -484,7 +484,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
-        secondary_value: reporting_percent,
+        secondary_value: percent_changed(reporting_denominator, comparison_denominator),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_numerator,
@@ -517,7 +517,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
-        secondary_value: reporting_percent,
+        secondary_value: percent_changed(reporting_denominator, comparison_denominator),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_numerator,
@@ -550,7 +550,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
-        secondary_value: reporting_percent,
+        secondary_value: percent_changed(reporting_denominator, comparison_denominator),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_numerator,
@@ -589,7 +589,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
-        secondary_value: reporting_percent,
+        secondary_value: percent_changed(reporting_denominator, comparison_denominator),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_numerator,
@@ -622,7 +622,7 @@ module PerformanceMeasurement::ResultCalculation
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
       reporting_inventory = inventory_sum(:ave_bed_capacity_per_night, :reporting, project_id: project&.project_id, project_type: project_type)
       comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
-      comparison_inventory = inventory_sum(:ave_bed_capacity_per_night, :reporting, project_id: project&.project_id, project_type: project_type)
+      comparison_inventory = inventory_sum(:ave_bed_capacity_per_night, :comparison, project_id: project&.project_id, project_type: project_type)
 
       reporting_denominator = reporting_inventory
       reporting_numerator = reporting_days / day_count.to_f
@@ -641,6 +641,62 @@ module PerformanceMeasurement::ResultCalculation
         primary_value: reporting_percent,
         primary_unit: '%',
         secondary_value: nil,
+        secondary_unit: nil,
+        value_label: 'Change over year',
+        comparison_primary_value: percent_changed(reporting_denominator, comparison_denominator),
+        system_level: project&.project_id.blank?,
+        project_id: project&.project_id,
+        goal: goal(field),
+      )
+    end
+
+    def overall_average_bed_utilization(field, project: nil)
+      return unless project.blank?
+
+      day_count = filter.range.count
+      a_t = PerformanceMeasurement::Client.arel_table
+      bed_columns = [
+        :days_in_es_bed_in_period,
+        :days_in_sh_bed_in_period,
+        :days_in_th_bed_in_period,
+      ]
+      columns = bed_columns.map { |f| cl(a_t["reporting_#{f}"], 0).to_sql }
+      (reporting_days, comparison_days) = [:reporting, :comparison].map do |period|
+        clients.joins(:client_projects).
+          merge(
+            PerformanceMeasurement::ClientProject.
+              where(period: period, for_question: bed_columns),
+          ).sum(Arel.sql(columns.join(' + ')))
+      end
+
+      reporting_inventory = 0
+      comparison_inventory = 0
+      [
+        :es,
+        :sh,
+        :th,
+      ].each do |project_type|
+        reporting_inventory += inventory_sum(:ave_bed_capacity_per_night, :reporting, project_type: project_type)
+        comparison_inventory += inventory_sum(:ave_bed_capacity_per_night, :comparison, project_type: project_type)
+      end
+
+      reporting_denominator = reporting_inventory
+      reporting_numerator = reporting_days / day_count.to_f
+      reporting_percent = percent_of(reporting_numerator, reporting_denominator)
+
+      comparison_denominator = comparison_inventory
+      comparison_numerator = comparison_days / day_count.to_f
+      comparison_percent = percent_of(comparison_numerator, comparison_denominator)
+
+      PerformanceMeasurement::Result.new(
+        report_id: id,
+        field: __method__,
+        title: detail_title_for(__method__.to_sym),
+        passed: passed?(field, reporting_percent, nil),
+        direction: direction(field, reporting_percent, comparison_percent),
+        primary_value: reporting_percent,
+        primary_unit: '%',
+        secondary_value: percent_changed(reporting_denominator, comparison_denominator),
         secondary_unit: nil,
         value_label: 'Change over year',
         comparison_primary_value: comparison_percent,
@@ -675,7 +731,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(income_field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
-        secondary_value: reporting_percent,
+        secondary_value: percent_changed(reporting_denominator, comparison_denominator),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_numerator,
