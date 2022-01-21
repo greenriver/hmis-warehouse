@@ -135,6 +135,7 @@ module PublicReports
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
       # scope = filter_for_range(scope) # all future queries limit this by date further, adding it here just makes it slower
+      scope = filter_for_user_access(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_project_type(scope)
       scope = filter_for_data_sources(scope)

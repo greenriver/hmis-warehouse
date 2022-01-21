@@ -105,6 +105,7 @@ module PublicReports
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.first_date
       scope = scope.where(first_date_in_program: date.beginning_of_month..date.end_of_month)
+      scope = filter_for_user_access(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_project_type(scope)
       scope = filter_for_data_sources(scope)
@@ -119,6 +120,7 @@ module PublicReports
       @filter = filter_object
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
+      scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_project_type(scope)
