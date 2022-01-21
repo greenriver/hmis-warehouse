@@ -8,8 +8,7 @@ module GrdaWarehouse
   module Shape
     class BlockGroup < GrdaWarehouseBase
       include SharedBehaviors
-
-      scope :my_state, -> { where(statefp: my_fips_state_code) }
+      include StateScopes
 
       def self._full_geoid_prefix
         '1500000'

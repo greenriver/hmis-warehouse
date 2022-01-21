@@ -1,8 +1,6 @@
 :javascript
   (function(){
-    var controller;
     var dates = #{data.to_json.to_s.html_safe};
-    var active_date = $(".#{chart_class}").data('activeDate');
     var categories = #{data[active_date]['categories'].to_json.to_s.html_safe};
     var options = {
       data: {

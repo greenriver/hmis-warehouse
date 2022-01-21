@@ -44,11 +44,11 @@ module Reporting
       # in batches because the number of service records is.
       # It is safe to batch by client because this only cares about the client level detail
       self.class.where.not(client_id: client_ids).delete_all
+      cache_client = GrdaWarehouse::Hud::Client.new
+      client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_ids)
       client_ids.each_slice(1_000).with_index do |ids, i|
         @notifier.ping("Return: Starting batch #{i + 1} in batches of 1,000, of #{client_ids.count} total clients")
         batch_of_stays = []
-        cache_client = GrdaWarehouse::Hud::Client.new
-        client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
         prior_day = nil
         day = nil
         start_date = nil
