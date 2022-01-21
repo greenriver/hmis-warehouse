@@ -163,9 +163,19 @@
   }
 }
 
+.qa-invalid_text
+{
+  color: $brand-danger;
+}
+
 .qa-valid-unpayable
 {
   border-left: 4px solid $cob-sg-blue-005;
+}
+
+.qa-valid-unpayable-text
+{
+  color: $cob-sg-blue-005;
 }
 
 .qa-ignored
