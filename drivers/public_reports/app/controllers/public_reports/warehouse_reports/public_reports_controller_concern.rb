@@ -94,12 +94,20 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
     end
 
     private def default_filter_options
-      {
-        filters: {
-          start: 4.years.ago.beginning_of_year.to_date,
-          end: 1.years.ago.end_of_year.to_date,
-        },
-      }
+      if last_report.present?
+        last_report.filter_object.for_params
+      else
+        {
+          filters: {
+            start: 4.years.ago.beginning_of_year.to_date,
+            end: 1.years.ago.end_of_year.to_date,
+          },
+        }
+      end
+    end
+
+    private def last_report
+      @last_report ||= report_scope.order(id: :desc).first
     end
 
     private def set_report

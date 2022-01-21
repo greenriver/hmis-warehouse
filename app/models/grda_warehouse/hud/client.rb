@@ -496,6 +496,14 @@ module GrdaWarehouse::Hud
       where(Arel.sql('1').in(races.map { |race| c_t[race] }))
     end
 
+    # a scope where no race was chosen
+    # potentially this should include RaceNone: [8, 9, 99], but if all others are 0 or 99, then
+    # we really don't know the race
+    scope :with_race_none, -> do
+      not_race = [0, 99]
+      where(AmIndAKNative: not_race, Asian: not_race, BlackAfAmerican: not_race, NativeHIPacific: not_race, White: not_race)
+    end
+
     scope :ethnicity_non_hispanic_non_latino, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
@@ -537,23 +545,27 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_female, -> do
-      where(Female: 1).where.not(NoSingleGender: 1)
+      where(Female: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
     end
 
     scope :gender_male, -> do
-      where(Male: 1).where.not(NoSingleGender: 1)
+      where(Male: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
     end
 
     scope :gender_mtf, -> do
-      gender_transgender.gender_female
+      gender_transgender.where(Female: 1)
     end
 
     scope :gender_ftm, -> do
-      gender_transgender.gender_male
+      gender_transgender.where(Male: 1)
     end
 
     scope :no_single_gender, -> do
       where(NoSingleGender: 1)
+    end
+
+    scope :questioning, -> do
+      where(Questioning: 1)
     end
 
     scope :gender_transgender, -> do
@@ -2010,7 +2022,8 @@ module GrdaWarehouse::Hud
         @race_black_af_american.to_a +
         @race_native_hi_other_pacific.to_a +
         @race_white.to_a
-        multi.select { |m| multi.count(m) > 1 }.to_set
+
+        multi.duplicates.to_set
       end
 
       return 'MultiRacial' if @multiracial.include?(destination_id)

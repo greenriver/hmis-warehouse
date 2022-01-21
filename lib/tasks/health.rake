@@ -205,7 +205,12 @@ namespace :health do
         puts "https://#{ENV['FQDN']}/clients/#{careplan.patient.client_id}/health/careplans/#{careplan.id}/edit"
       end
     end
+  end
 
+  desc "Export CHAs in interchange format"
+  task :export_chas, [:filename] => [:environment, 'log:info_to_stdout'] do  |task, args|
+    job = Health::ChaTools::Export.setup(filename: args[:filename])
+    Kiba.run(job)
   end
 
   # DB related, provides health:db:migrate etc.
@@ -282,7 +287,5 @@ namespace :health do
         csv << []
       end
     end
-
   end
-
 end

@@ -35,40 +35,11 @@
           %strong
             Days remaining to engage patient:
           = @patient.days_to_engage
-  - if @qualifying_activities.present?
-    %table.table.table-sm
-      %thead
-        %tr
-          %th Date of activity
-          %th Claim submitted?
-          %th Activity
-          %th Mode of contact
-          %th Client reached
-          %th Follow-up
-          %th Owner
-          %th Procedure Code
-          %th Modifiers
-          - if can_unsubmit_submitted_claims?
-            %th Un-submit
-          %th Reconciled
-      %tbody
-        - @qualifying_activities.each do |qa|
-          %tr{class: qa.validity_class}
-            %td= qa.date_of_activity.to_date
-            %td= qa.claim_submitted_on&.to_date
-            %td= qa.title_for_activity
-            %td= qa.title_for_mode_of_contact
-            %td= qa.title_for_client_reached
-            %td= qa.follow_up
-            %td= qa.user_full_name
-            %td.qa__procedure-code= qa.procedure_code
-            %td= qa.modifiers.join('>')
-            - if can_unsubmit_submitted_claims?
-              %td
-                = link_to polymorphic_path(health_path_generator + [:qualifying_activity], {id: qa.id}), method: :delete, data: {confirm: "Are you sure you want to un-submit the claim for this QA?"}, class: 'btn btn-sm btn-icon-only btn-danger' do
-                  %i.icon-cross
-            %td
-              = yes_no(qa.patient&.best_medical_claim_for_qualifying_activity(qa)&.present?)
-
-  - else
-    %p.no-data None on file.
+  .row.mt-4
+    .col
+      - if @qualifying_activities.present?
+        .o-card-grid
+          - @qualifying_activities.each do |qa|
+            = render 'card', qa: qa
+      - else
+        %p.no-data None on file.

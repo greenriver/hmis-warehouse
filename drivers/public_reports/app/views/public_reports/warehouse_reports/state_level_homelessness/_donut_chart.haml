@@ -19,7 +19,11 @@
         },
         donut: {
           label: {
-            format: d => d
+            format: function(v, id, i, j) {
+              if (v > 8) {
+                return v + '%';
+              }
+            }
           },
           title: donut_title
         },

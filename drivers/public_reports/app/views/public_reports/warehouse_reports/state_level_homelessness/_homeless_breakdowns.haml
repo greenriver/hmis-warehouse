@@ -1,4 +1,4 @@
-.d-flex
+.d-flex.mt-4
   .w-30
     %label.ml-auto.mb-2{ for: 'breakdown-group-trigger' }
       Choose grouping
@@ -24,20 +24,21 @@
       Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.
       = render 'glossary_button'
 .jHomelessBreakdownSection.household_type
-  = render 'homeless_row', data: data['adult_only'], chronic: true
-  = render 'homeless_row', data: data['adult_and_child'], chronic: true
-  = render 'homeless_row', data: data['child_only'], chronic: true
+  = render 'homeless_row', data: data['adult_only']
+  = render 'homeless_row', data: data['adult_and_child']
+  = render 'homeless_row', data: data['child_only']
 .jHomelessBreakdownSection.gender
-  = render 'homeless_row', data: data['gender'], chronic: false
+  = render 'homeless_row', data: data['gender']
 .jHomelessBreakdownSection.race
-  = render 'homeless_row', data: data['race'], chronic: false
+  = render 'homeless_row', data: data['race']
 
 :javascript
   $('.jQuarters').on('change', function(e) {
     var index = $(this).val();
     var selected_date = $(this).data('dates')[index];
     $('.jHomelessBreakdownRow').each(function(e){
-      var chronic_percent = $(this).data('chronics')[selected_date];
+      var title = $(this).find('.jChronicPercent').data('category');
+      var chronic_percent = $(this).data('chronics')[selected_date][title];
       $(this).find('.jChronicPercent').text(chronic_percent);
       $(this).find('.jChronicPercentMeter').css('width', chronic_percent + '%');
     })
