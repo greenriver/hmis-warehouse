@@ -1,0 +1,9 @@
+.row
+  .col-sm-4
+    %dl
+      %dd End Date
+      %dt= filter.end
+  .col-sm-8
+    %dl
+      %dd CoC
+      %dt= filter.coc_codes.map { |code| HUD.coc_name(code) }.to_sentence

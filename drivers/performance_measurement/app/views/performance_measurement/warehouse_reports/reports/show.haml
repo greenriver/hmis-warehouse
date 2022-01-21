@@ -9,9 +9,10 @@
     = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
-  = @report.filter.describe_filter_as_html
+  %h3 Chosen Universe
+  = render 'filter_attributes', filter: @report.filter
 
-.well.p-0
+.well.p-0.hide
   %table.table.table-striped.mb-0
     %thead
       %th Category
