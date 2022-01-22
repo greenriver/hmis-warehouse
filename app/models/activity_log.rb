@@ -73,6 +73,7 @@ class ActivityLog < ApplicationRecord
     data.map do |row|
       # Strip anything after the ?
       row[:path]&.gsub!(/\?.*/, '')
+      row[:referrer]&.gsub!(/\?.*/, '')
       row[:created_at] = row[:created_at].to_s(:db)
       cleanup_report_paths(row, report_replacements)
     end
