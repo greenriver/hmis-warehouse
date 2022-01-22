@@ -72,7 +72,7 @@ module PerformanceMeasurement
       @filter ||= begin
         f = ::Filters::FilterBase.new(user_id: user_id)
         f.update((options || {}).merge(comparison_pattern: :prior_year).with_indifferent_access)
-        f.update(start: f.end - 1.years)
+        f.update(start: f.end - 1.years + 1.days)
         f
       end
     end
@@ -208,17 +208,6 @@ module PerformanceMeasurement
                   client_id: spm_client[:client_id],
                   project_id: project_id,
                   for_question: question[:name], # allows limiting for a specific response
-                  period: variant_name,
-                }
-              end
-              # Save an aggregate connection when necessary
-              if parts[:questions].count > 1
-                for_question = parts[:questions].map { |q| q[:name] }.join('__')
-                project_clients << {
-                  report_id: id,
-                  client_id: spm_client[:client_id],
-                  project_id: project_id,
-                  for_question: for_question, # allows limiting for a specific response
                   period: variant_name,
                 }
               end
@@ -811,6 +800,19 @@ module PerformanceMeasurement
               value_calculation: ->(spm_client) { (spm_client[:m4_latest_income].presence || 0) > (spm_client[:m4_earliest_income].presence || 0) },
             },
           ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m4_stayer] && (spm_client[:m4_latest_income].presence || 0) > (spm_client[:m4_earliest_income].presence || 0)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :increased_income__income_stayer,
+                period: variant_name,
+              }
+            },
+          ],
         },
         {
           cells: [['4.6', 'C2']],
@@ -825,6 +827,19 @@ module PerformanceMeasurement
             {
               name: :increased_income,
               value_calculation: ->(spm_client) { (spm_client[:m4_latest_income].presence || 0) > (spm_client[:m4_earliest_income].presence || 0) },
+            },
+          ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless ! spm_client[:m4_stayer] && (spm_client[:m4_latest_income].presence || 0) > (spm_client[:m4_earliest_income].presence || 0)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :increased_income__income_leaver,
+                period: variant_name,
+              }
             },
           ],
         },

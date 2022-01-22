@@ -7,6 +7,7 @@
 class SyncSyntheticDataJob < BaseJob
   include NotifierConfig
   attr_accessor :send_notifications
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   def initialize
     setup_notifier('Synthetic Data')

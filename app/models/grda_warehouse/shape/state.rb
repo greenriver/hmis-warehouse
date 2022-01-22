@@ -11,6 +11,7 @@ module GrdaWarehouse
   module Shape
     class State < GrdaWarehouseBase
       include SharedBehaviors
+      include StateScopes
 
       def self._full_geoid_prefix
         '0400000'

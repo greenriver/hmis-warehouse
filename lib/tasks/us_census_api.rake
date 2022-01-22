@@ -1,5 +1,12 @@
 namespace :us_census_api do
   desc "Uses the census API to pull down all the variables we need into a usable form and then do some post-processing if needed"
+  # NOTE: you can check the status of the data in the database with
+  #  bin/rake us_census_api:summary
+  # If for whatever reason it isn't adding a particular year, you may need to
+  # call it with a single year specified, and if that fails, add FORCE to rebuild
+  # it caches which years it has tried and assumes they are complete, FORCE will
+  # overwrite no matter what
+  # FORCE=true US_CENSUS_API_YEARS=2015 bin/rake us_census_api:all
   task :all, [] => [:shapes, :vars, :import, :coc_agg, :summary, :test]
 
   task :setup, [] => [:environment] do
@@ -14,7 +21,7 @@ namespace :us_census_api do
     }.split(":")
 
     @state_code = ENV.fetch('RELEVANT_COC_STATE')
-    @years = ENV.fetch('US_CENSUS_API_YEARS') { 2012.upto(Date.today.year - 1).map(&:to_s).join(',') }.split(/,/).map(&:to_i)
+    @years = ENV.fetch('US_CENSUS_API_YEARS') { 2012.upto(Date.today.year - 2).map(&:to_s).join(',') }.split(/,/).map(&:to_i)
     @datasets = ENV.fetch('US_CENSUS_API_DATASETS') { 'acs5' }.split(/,/).filter { |d| d.match(/acs5|sf1/) }
   end
 

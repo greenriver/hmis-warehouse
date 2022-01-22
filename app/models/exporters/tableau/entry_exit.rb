@@ -84,7 +84,7 @@ module Exporters::Tableau::EntryExit
 
     export_scope = model.in_project_type(project_types).entry.
       open_between(start_date: start_date, end_date: end_date).
-      with_service_between(start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
+      # with_service_between(start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
       joins(enrollment: :client).
       includes(enrollment: [:exit, project: :project_cocs]).
       references(enrollment: [:exit, project: :project_cocs]).
@@ -99,7 +99,7 @@ module Exporters::Tableau::EntryExit
     export_scope
   end
 
-  def export(model, columns, export_scope, start_date, end_date, csv) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/ParameterLists, Lint/UnusedMethodArgument
+  def export(model, columns, export_scope, start_date, end_date, csv) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Lint/UnusedMethodArgument
     # Fetch a client id list for batch processing
     client_ids = export_scope.distinct.pluck(:client_id)
 
@@ -307,12 +307,12 @@ module Exporters::Tableau::EntryExit
               else
                 next_enrollment = newer_residential_enrollments.first
                 next_entry_date = next_enrollment['entry_exit_entry_date'].to_date
-                if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(next_enrollment['prog_type'].to_i) # rubocop:disable Metrics/BlockNesting
-                  (next_entry_date - exit_date).to_i if next_entry_date > exit_date + 14.days # rubocop:disable Metrics/BlockNesting
-                elsif  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(next_enrollment['prog_type'].to_i) # rubocop:disable Metrics/BlockNesting
-                  if next_entry_date > exit_date + 14.days # rubocop:disable Metrics/BlockNesting
+                if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(next_enrollment['prog_type'].to_i)
+                  (next_entry_date - exit_date).to_i if next_entry_date > exit_date + 14.days
+                elsif  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(next_enrollment['prog_type'].to_i)
+                  if next_entry_date > exit_date + 14.days
                     # there are no other TH or PH (this is the only newer enrollment)
-                    if newer_residential_enrollments.size == 1 # rubocop:disable Metrics/BlockNesting
+                    if newer_residential_enrollments.size == 1
                       (next_entry_date - exit_date).to_i
                     else
                       max_other_ph_th_exit_dates = newer_residential_enrollments.drop(1).select do |enrollment|
@@ -320,7 +320,7 @@ module Exporters::Tableau::EntryExit
                       end.map do |enrollment|
                         enrollment['entry_exit_exit_date']&.to_date
                       end.compact.max
-                      (next_entry_date - exit_date).to_i if max_other_ph_th_exit_dates.present? && next_entry_date > max_other_ph_th_exit_dates + 14.days # rubocop:disable Metrics/BlockNesting
+                      (next_entry_date - exit_date).to_i if max_other_ph_th_exit_dates.present? && next_entry_date > max_other_ph_th_exit_dates + 14.days
                     end
                   end
                 else # Not TH or PH

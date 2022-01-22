@@ -22,7 +22,23 @@ module HudReports::Incomes
 
   included do
     private def annual_assessment(enrollment)
-      enrollment.income_benefits_annual_update.select do |i|
+      enrollment_date = enrollment.EntryDate
+
+      begin
+        anniversary_date = Date.new(report_end_date.year, enrollment_date.month, enrollment_date.day)
+      rescue Date::Error
+        # If a client was enrolled on 2/29 of a leap year, non-leap years will throw invalid date
+        # Make the anniversary fall on the last day of Feb to be consistent with Date.new(...) + 1.year
+        if enrollment_date.month == 2 && enrollment_date.day == 29 # rubocop:disable Style/GuardClause
+          anniversary_date = Date.new(report_end_date.year, 2, 28)
+        else
+          return nil
+        end
+      end
+
+      enrollment.income_benefits_annual_update.
+        where(InformationDate: anniversary_date - 30.days .. anniversary_date + 30.days).
+        select do |i|
         i.InformationDate <= report_end_date
       end.max_by(&:InformationDate)
     end

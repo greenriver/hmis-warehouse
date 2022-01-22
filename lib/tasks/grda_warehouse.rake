@@ -309,7 +309,8 @@ namespace :grda_warehouse do
   desc 'Remove data based on import'
   task :remove_import_data, [:import_id] => [:environment, 'log:info_to_stdout'] do |task, args|
     import_id = args.import_id.to_i
-    exit unless import_id.present? && import_id.to_s == args.import_id
+    next unless import_id.present? && import_id.to_s == args.import_id
+
     GrdaWarehouse::ImportRemover.new(import_id).run!
   end
 
@@ -350,7 +351,7 @@ namespace :grda_warehouse do
 
   desc 'Send Health Emergency Notifications'
   task :send_health_emergency_notifications, [] => [:environment, 'log:info_to_stdout'] do |task, args|
-    exit unless GrdaWarehouse::Config.get(:health_emergency)
+    next unless GrdaWarehouse::Config.get(:health_emergency)
 
     WarehouseReports::HealthEmergencyBatchNotifierJob.perform_now
   end

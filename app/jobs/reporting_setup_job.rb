@@ -6,6 +6,7 @@
 
 class ReportingSetupJob < BaseJob
   include ActionView::Helpers::DateHelper
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   def perform
     setup_notifier('ReportingSetupJob')

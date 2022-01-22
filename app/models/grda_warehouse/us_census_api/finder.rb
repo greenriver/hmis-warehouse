@@ -24,7 +24,7 @@ module GrdaWarehouse
 
         # fall back to last year we have data for if we're not too far from it.
         this_year = Date.today.year
-        if self.year > max_year && (this_year - self.year < 2)
+        if self.year > max_year && (this_year - self.year < 5)
           Rails.logger.debug { "Using #{max_year} instead of #{self.year} for census values" }
           self.year = max_year
         end

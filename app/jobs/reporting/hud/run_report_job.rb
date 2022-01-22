@@ -6,6 +6,8 @@
 
 module Reporting::Hud
   class RunReportJob < BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
     def perform(class_name, report_id, email: true)
       report = HudReports::ReportInstance.find(report_id)
       report.start_report

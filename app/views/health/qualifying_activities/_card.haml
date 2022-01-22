@@ -1,0 +1,83 @@
+-# qa.validity_class
+-#%div{data: {toggle: :tooltip, title: qa.describe_validity_reasons.join(', ').humanize}}= qa.date_of_activity.to_date
+-#= qa.claim_submitted_on&.to_date
+-#= qa.title_for_activity
+-#= qa.title_for_mode_of_contact
+-#= qa.title_for_client_reached
+-#= qa.follow_up
+-#= qa.user_full_name
+-#%div.qa__procedure-code= qa.procedure_code
+-#= qa.modifiers.join('>')
+-#- if can_unsubmit_submitted_claims?
+-#  %td
+-#    = link_to polymorphic_path(health_path_generator + [:qualifying_activity], {id: qa.id}), method: :delete, data: {confirm: "Are you sure you want to un-submit the claim for this QA?"}, class: 'btn btn-sm btn-icon-only btn-danger' do
+-#      %i.icon-cross
+-#= yes_no(qa.patient&.best_medical_claim_for_qualifying_activity(qa)&.present?)
+
+- panel_id = "qa-#{qa.id}"
+- show_card = !qa.procedure_valid? || qa.valid_unpayable?
+- content_for :panel_collapse_heading, flush: true do
+  .d-flex.align-items-center
+    .d-flex.panel-title-wrapper.flex-wrap.align-items-center
+      %h4.panel-title.mr-4= "#{qa.title_for_activity} on #{qa.date_of_activity.to_date} by #{qa.user_full_name}"
+      .mb-4.mb-sm-0
+        = yield "panel_collapse_heading_content_under_title_#{panel_id}"
+    .ml-auto.d-flex.align-items-center
+      .mr-6
+        = yield "panel_collapse_heading_content_#{panel_id}"
+    - if qa.claim_submitted_on.present?
+      .text-success.mr-4
+        Submitted
+    - if show_card
+      %i.icon-arrow-circled-down.j-toggle-arrow
+    - else
+      %i.icon-arrow-circled-right.j-toggle-arrow
+- content_for :panel_collapse_content, flush: true do
+  %table.table-sm
+    %tbody
+      %tr
+        %td
+          %strong Client Reached:
+        %td
+          = qa.title_for_client_reached
+      - if qa.claim_submitted_on.present?
+        %tr
+          %td
+            %strong Claim Submitted:
+          %td
+            = qa.claim_submitted_on&.to_date
+            - if qa.patient&.best_medical_claim_for_qualifying_activity(qa)&.present?
+              = surround "(", ")" do
+                %i.o-color--positive.icon-checkmark
+                Reconciled
+      %tr
+        %td
+          %strong Procedure Code:
+        %td
+          = qa.procedure_code
+          = qa.modifiers.join('>')
+      %tr
+        %td
+          %strong Follow Up:
+        %td
+          = qa.follow_up
+      - if qa.describe_validity_reasons.present?
+        %tr
+          %td
+            %strong
+              - if qa.valid_unpayable?
+                .qa-valid-unpayable-text
+                  Valid, but unpayable:
+              -else
+                .text-danger
+                  Invalid:
+          %td
+            = qa.describe_validity_reasons.join(', ').humanize
+
+
+  - if can_unsubmit_submitted_claims? && qa.claim_submitted_on.present?
+    .text-right
+      = link_to polymorphic_path(health_path_generator + [:qualifying_activity], {id: qa.id}), method: :delete, data: {confirm: "Are you sure you want to un-submit the claim for this QA?"}, class: 'btn btn-sm btn-icon-only btn-danger' do
+        %i.icon-cross
+          Unsubmit
+= render 'common/panel_collapse', id: panel_id, wrapper_class: qa.validity_class, default_open: if show_card then 'yes' else 'no' end
