@@ -7,7 +7,7 @@
     = simple_form_for @project_group, url: project_group_path(@project_group) do |f|
       = render 'form', f: f
       .form-actions.d-flex
-        - unless @project_group.any_contacts?
+        - unless @group_ids.any?
           = link_to project_group_path(@project_group), method: :delete, class: 'btn btn-danger', data: { confirm: 'Are you sure?  Deleting this project group cannot be undone, you\'ll need to re-create it manually.'} do
             %i.icon-cross
             Delete Group
