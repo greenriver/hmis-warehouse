@@ -541,7 +541,7 @@ module Health
     end
 
     def maintain_valid_unpayable
-      self.valid_unpayable_reason = compute_valid_unpayable
+      self.valid_unpayable_reasons = compute_valid_unpayable
       self.valid_unpayable = compute_valid_unpayable?
       save(validate: false)
     end
