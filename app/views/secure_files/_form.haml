@@ -7,9 +7,8 @@
   .form-inputs
     = f.input :file, as: :file, label: false
     = f.input :name, label: "Briefly describe this file"
-    = f.input :recipient_id, collection: User.can_receive_secure_files?, label: "Who should have access to this file?", as: :select_two
+    = f.input :recipient_id, collection: User.active.can_receive_secure_files?, label: "Who should have access to this file?", as: :select_two
     = f.hidden_field :file_cache
     = f.hidden_field :import_type, value: :hmis_611
   .form-actions
     = f.button :submit, value: 'Upload'
-    
