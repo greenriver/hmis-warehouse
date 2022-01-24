@@ -2072,7 +2072,7 @@ module GrdaWarehouse::Hud
           lat_lon = enrollment.address_lat_lon # rubocop:disable Layout/IndentationWidth
           address = {
             year: enrollment.EntryDate.year,
-            client_id: enrollment.client.id,
+            client_id: enrollment.client&.id,
             label: seen_addresses[enrollment.address] ||= labels.shift,
             city: enrollment.LastPermanentCity,
             state: enrollment.LastPermanentState,

@@ -368,6 +368,7 @@ module ProjectScorecard
 
     private def percentage(value)
       return 0 if value.nan?
+      return 0 if value.infinite?
 
       (value * 100).to_i
     end
