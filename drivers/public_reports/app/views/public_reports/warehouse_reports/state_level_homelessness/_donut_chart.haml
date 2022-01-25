@@ -20,9 +20,7 @@
         donut: {
           label: {
             format: function(v, id, i, j) {
-              if (v > 8) {
-                return v + '%';
-              }
+              return v + '%';
             }
           },
           title: donut_title
@@ -35,9 +33,7 @@
         },
         labels: {
           format: function(v, id, i, j) {
-            if (v > 8) {
-              return v + '%';
-            }
+            return v + '%';
           }
         },
         legend: {

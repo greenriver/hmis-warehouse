@@ -299,8 +299,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     let(:qa) { create :valid_qa }
 
     it 'has a valid procedure code' do
-      qa.calculate_payability!
-      qa.maintain_procedure_valid
+      qa.maintain_cached_values
 
       expect(qa.naturally_payable).to be true
       expect(qa.procedure_valid?).to be true
@@ -312,8 +311,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     let(:qa) { create :pctp_signed_qa }
 
     it 'has a valid procedure code' do
-      qa.calculate_payability!
-      qa.maintain_procedure_valid
+      qa.maintain_cached_values
 
       expect(qa.naturally_payable).to be true
       expect(qa.procedure_valid?).to be true

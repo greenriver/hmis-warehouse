@@ -56,6 +56,12 @@ module HmisSqlServer
           row[field_index] = row[field_index].presence || useful_date.to_time
         end
       end
+      # ensure UserID is always less than 32 characters
+      k = 'UserID'
+      if headers.index(k).present?
+        field_index = headers.index(k)
+        row[field_index] = row[field_index][0..31]
+      end
       row
     end
   end

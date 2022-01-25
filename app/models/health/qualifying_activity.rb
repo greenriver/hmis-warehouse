@@ -539,7 +539,7 @@ module Health
     end
 
     def maintain_valid_unpayable
-      self.valid_unpayable_reason = compute_valid_unpayable
+      self.valid_unpayable_reasons = compute_valid_unpayable
       self.valid_unpayable = compute_valid_unpayable?
       save(validate: false)
     end
@@ -610,7 +610,7 @@ module Health
 
     def describe_validity_reasons
       if valid_unpayable?
-        return valid_unpayable_reasons.map do |reason|
+        return valid_unpayable_reasons&.map do |reason|
           case reason&.to_sym
           when :outside_enrollment
             _('patient did not have an active enrollment on the date of the activity')
@@ -629,7 +629,7 @@ module Health
           when :limit_months_without_careplan_exceeded
             _('too many months with non-outreach activities and no signed careplan')
           end
-        end
+        end || []
       elsif ! procedure_valid?
         reasons = []
         reasons << _('the date of the activity is missing') unless date_of_activity.present?

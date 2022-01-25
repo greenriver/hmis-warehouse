@@ -1033,14 +1033,14 @@ module GrdaWarehouse::WarehouseReports
             url: 'public_reports/warehouse_reports/point_in_time',
             name: 'Point-in-Time Report Generator',
             description: 'Use this to review and publish Point-in-Time charts for public consumption.',
-            limitable: false,
+            limitable: true,
             health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/pit_by_month',
             name: 'Point-in-Time by Month Report Generator',
             description: 'Use this to review and publish Point-in-Time by month charts for public consumption.',
-            limitable: false,
+            limitable: true,
             health: false,
           }
           r_list['Public'] << {
@@ -1054,35 +1054,35 @@ module GrdaWarehouse::WarehouseReports
             url: 'public_reports/warehouse_reports/number_housed',
             name: 'Number Housed Report Generator',
             description: 'Use this to review and publish the number of clients housed for public consumption.',
-            limitable: false,
+            limitable: true,
             health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_count',
             name: 'Number Homeless Report Generator',
             description: 'Use this to review and publish the number of homeless clients for public consumption.',
-            limitable: false,
+            limitable: true,
             health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_count_comparison',
             name: 'Percent Homeless Comparison Report Generator',
             description: 'Use this to review and publish the change of homeless clients for public consumption.',
-            limitable: false,
+            limitable: true,
             health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_populations',
             name: 'Homeless Populations Report Generator',
             description: 'Use this to review and publish the homeless population report for public consumption.',
-            limitable: false,
+            limitable: true,
             health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/state_level_homelessness',
             name: 'State-Level Homelessness Report Generator',
             description: 'Review and publish the state-level homelessness report for public consumption.',
-            limitable: false,
+            limitable: true,
             health: false,
           }
         end
