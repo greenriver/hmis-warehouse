@@ -49,7 +49,7 @@
             $.each(d, function(i, row) {
               var bg_color = color(row.id);
               var box = "<td class='name'><svg><rect style='fill:" + bg_color + "' width='10' height='10'></rect></svg>" + row.name + "</td>";
-              var value = "<td>" + row.value + "</td>";
+              var value = "<td>" + d3.format(",.2r")(row.value) + "</td>";
               html += '<tr>';
               html += box;
               html += value;
