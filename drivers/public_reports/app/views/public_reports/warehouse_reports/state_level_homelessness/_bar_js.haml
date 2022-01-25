@@ -17,12 +17,14 @@
         element: ".#{chart_class}"
       },
       color: {
-        pattern: #{@report.chart_color_pattern(category)}
+        // Note, we only have two categories + redacted currently, if this changes, we'll need to adjust
+        pattern: #{(@report.settings.color_pattern(category).first(2) + ['#cccccc']).to_json.html_safe}
       },
       axis: {
         rotated: true,
         x: {
           show: false,
+          categories: categories,
         },
         y: {
           show: false,
@@ -32,12 +34,32 @@
         height: 60,
       },
       tooltip: {
-        format: {
-          title: function(x) {
-            return categories[x];
-          },
-        },
         order: '',
+        contents: function(d, defaultTitleFormat, defaultValueFormat, color) {
+          var tooltip_title = this.internal.config.axis_x_categories;
+          var html = "<table class='bb-tooltip'>";
+          html += "<thead>";
+          html += "<tr><th colspan='2'>" + tooltip_title + "</th></tr>";
+          html += "</thead>";
+          html += "<tbody>";
+          var redacted = $.map(d, function(row, i) { return row.name }).includes('Redacted');
+          if (redacted) {
+            html += '<tr><td colspan="2">Unavailable</td></tr>';
+          } else {
+            $.each(d, function(i, row) {
+              var bg_color = color(row.id);
+              var box = "<td class='name'><svg><rect style='fill:" + bg_color + "' width='10' height='10'></rect></svg>" + row.name + "</td>";
+              var value = "<td>" + row.value + "</td>";
+              html += '<tr>';
+              html += box;
+              html += value;
+              html += '</tr>';
+            });
+          }
+          html += "</tbody>";
+          html += '</table>';
+          return html;
+        }
       },
       legend: {
         show: false,

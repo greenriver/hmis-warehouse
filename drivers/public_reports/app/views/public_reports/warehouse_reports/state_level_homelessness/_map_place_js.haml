@@ -63,7 +63,7 @@
           const count = this.metrics[name]?.count
           const population = this.metrics[name]?.overall_population
           let color = this.colors[this.getColor(rate)]
-          innerHTML = `<h4>${name}</h4><div class="rate">${color.description} of ${count?.toLocaleString()} homeless people<br>population ${population?.toLocaleString()}</div>`;
+          innerHTML = `<h4>${name}</h4><div class="rate">Selected population within location: ${color.description}<br>State-wide selected population:  ${count?.toLocaleString()}<br>Census population: ${population?.toLocaleString()}</div>`;
 
           hidden = false;
         }
