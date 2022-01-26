@@ -1,0 +1,24 @@
+- title = _('Performance Measurement Goal Configurator')
+- report = PerformanceMeasurement::Report.new(user: current_user)
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-5= title
+
+.card
+  %table.table.c-table--indicator.mb-0
+    %tbody
+      - report.goal_configurations.each.with_index do |(title, group), i|
+        - rowspan = group.keys.count + group.values.map(&:keys).flatten.count + 1
+        %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
+          %th.level.w-20{rowspan: rowspan}
+            %h2= title
+        - group.each do |sub_category, sub_group|
+          %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
+            %th.level{colspan: 2}
+              %h3.text-center= sub_category
+          - sub_group.each do |key, titles|
+            %tr
+              %td
+                = @goal[key]
+                = debug titles

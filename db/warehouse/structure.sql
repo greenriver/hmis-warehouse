@@ -3944,25 +3944,6 @@ CREATE TABLE public.census_values (
 
 
 --
--- Name: census_values_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.census_values_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: census_values_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.census_values_id_seq OWNED BY public.census_values.id;
-
-
---
 -- Name: census_variables; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3979,6 +3960,200 @@ CREATE TABLE public.census_variables (
     internal_name character varying,
     created_on date NOT NULL
 );
+
+
+--
+-- Name: shape_cocs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_cocs (
+    id bigint NOT NULL,
+    st character varying,
+    state_name character varying,
+    cocnum character varying,
+    cocname character varying,
+    ard numeric,
+    pprn numeric,
+    fprn numeric,
+    fprn_statu character varying,
+    es_c_hwac numeric,
+    es_c_hwoa_ numeric,
+    es_c_hwoc numeric,
+    es_vso_tot numeric,
+    th_c_hwac_ numeric,
+    th_c_hwoa numeric,
+    th_c_hwoc numeric,
+    th_c_vet numeric,
+    rrh_c_hwac numeric,
+    rrh_c_hwoa numeric,
+    rrh_c_hwoc numeric,
+    rrh_c_vet numeric,
+    psh_c_hwac numeric,
+    psh_c_hwoa numeric,
+    psh_c_hwoc numeric,
+    psh_c_vet numeric,
+    psh_c_ch numeric,
+    psh_u_hwac character varying,
+    psh_u_hwoa character varying,
+    psh_u_hwoc character varying,
+    psh_u_vet character varying,
+    psh_u_ch character varying,
+    sh_c_hwoa numeric,
+    sh_c_vet numeric,
+    sh_pers_hw numeric,
+    unsh_pers_ numeric,
+    sh_pers__1 numeric,
+    unsh_pers1 numeric,
+    sh_pers__2 numeric,
+    unsh_per_1 numeric,
+    sh_ch numeric,
+    unsh_ch numeric,
+    sh_youth_u numeric,
+    unsh_youth numeric,
+    sh_vets numeric,
+    unsh_vets numeric,
+    shape_leng numeric,
+    shape_area numeric,
+    geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
+    full_geoid character varying
+);
+
+
+--
+-- Name: shape_counties; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_counties (
+    id bigint NOT NULL,
+    statefp character varying,
+    countyfp character varying,
+    countyns character varying,
+    full_geoid character varying,
+    geoid character varying,
+    name character varying,
+    namelsad character varying,
+    lsad character varying,
+    classfp character varying,
+    mtfcc character varying,
+    csafp character varying,
+    cbsafp character varying,
+    metdivfp character varying,
+    funcstat character varying,
+    aland double precision,
+    awater double precision,
+    intptlat character varying,
+    intptlon character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_states; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_states (
+    id bigint NOT NULL,
+    region character varying,
+    division character varying,
+    statefp character varying,
+    statens character varying,
+    full_geoid character varying,
+    geoid character varying,
+    stusps character varying,
+    name character varying,
+    lsad character varying,
+    mtfcc character varying,
+    funcstat character varying,
+    aland double precision,
+    awater double precision,
+    intptlat character varying,
+    intptlon character varying,
+    simplified_geom public.geometry(MultiPolygon,4326),
+    geom public.geometry(MultiPolygon,4326)
+);
+
+
+--
+-- Name: shape_zip_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shape_zip_codes (
+    id bigint NOT NULL,
+    zcta5ce10 character varying(5),
+    geoid10 character varying(5),
+    classfp10 character varying(2),
+    mtfcc10 character varying(5),
+    funcstat10 character varying(1),
+    aland10 double precision,
+    awater10 double precision,
+    intptlat10 character varying(11),
+    intptlon10 character varying(12),
+    geom public.geometry(MultiPolygon,4326),
+    simplified_geom public.geometry(MultiPolygon,4326),
+    full_geoid character varying,
+    st_geoid character varying,
+    county_name_lower character varying
+);
+
+
+--
+-- Name: census_reviews; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.census_reviews AS
+ WITH locs AS (
+         SELECT shape_cocs.cocname AS name,
+            shape_cocs.full_geoid
+           FROM public.shape_cocs
+        UNION ALL
+         SELECT shape_zip_codes.zcta5ce10 AS name,
+            shape_zip_codes.full_geoid
+           FROM public.shape_zip_codes
+        UNION ALL
+         SELECT shape_counties.name,
+            shape_counties.full_geoid
+           FROM public.shape_counties
+        UNION ALL
+         SELECT shape_states.name,
+            shape_states.full_geoid
+           FROM public.shape_states
+        )
+ SELECT locs.name AS geometry_name,
+    vals.census_level,
+    vars.internal_name,
+    vals.value,
+    vars.year,
+    vars.dataset,
+    vars.name AS variable,
+    vars.census_group,
+    g.description AS group_description,
+    vals.id,
+    locs.full_geoid
+   FROM (((locs
+     LEFT JOIN public.census_values vals ON (((locs.full_geoid)::text = (vals.full_geoid)::text)))
+     LEFT JOIN public.census_variables vars ON (((vals.census_variable_id = vars.id) AND (vars.internal_name IS NOT NULL))))
+     LEFT JOIN public.census_groups g ON ((((vars.census_group)::text = (g.name)::text) AND (vars.year = g.year) AND ((vars.dataset)::text = (g.dataset)::text))));
+
+
+--
+-- Name: census_values_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.census_values_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: census_values_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.census_values_id_seq OWNED BY public.census_values.id;
 
 
 --
@@ -14525,6 +14700,47 @@ ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.i
 
 
 --
+-- Name: performance_measurement_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.performance_measurement_goals (
+    id bigint NOT NULL,
+    coc_code character varying NOT NULL,
+    people integer DEFAULT 3 NOT NULL,
+    capacity integer DEFAULT 90 NOT NULL,
+    time_time integer DEFAULT 90 NOT NULL,
+    time_stay integer DEFAULT 60 NOT NULL,
+    time_move_in integer DEFAULT 30 NOT NULL,
+    destination integer DEFAULT 85 NOT NULL,
+    recidivism_6_months integer DEFAULT 15 NOT NULL,
+    recidivism_24_months integer DEFAULT 25 NOT NULL,
+    income integer DEFAULT 3 NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: performance_measurement_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.performance_measurement_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: performance_measurement_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.performance_measurement_goals_id_seq OWNED BY public.performance_measurement_goals.id;
+
+
+--
 -- Name: performance_metrics_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -17051,64 +17267,6 @@ ALTER SEQUENCE public.shape_block_groups_id_seq OWNED BY public.shape_block_grou
 
 
 --
--- Name: shape_cocs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.shape_cocs (
-    id bigint NOT NULL,
-    st character varying,
-    state_name character varying,
-    cocnum character varying,
-    cocname character varying,
-    ard numeric,
-    pprn numeric,
-    fprn numeric,
-    fprn_statu character varying,
-    es_c_hwac numeric,
-    es_c_hwoa_ numeric,
-    es_c_hwoc numeric,
-    es_vso_tot numeric,
-    th_c_hwac_ numeric,
-    th_c_hwoa numeric,
-    th_c_hwoc numeric,
-    th_c_vet numeric,
-    rrh_c_hwac numeric,
-    rrh_c_hwoa numeric,
-    rrh_c_hwoc numeric,
-    rrh_c_vet numeric,
-    psh_c_hwac numeric,
-    psh_c_hwoa numeric,
-    psh_c_hwoc numeric,
-    psh_c_vet numeric,
-    psh_c_ch numeric,
-    psh_u_hwac character varying,
-    psh_u_hwoa character varying,
-    psh_u_hwoc character varying,
-    psh_u_vet character varying,
-    psh_u_ch character varying,
-    sh_c_hwoa numeric,
-    sh_c_vet numeric,
-    sh_pers_hw numeric,
-    unsh_pers_ numeric,
-    sh_pers__1 numeric,
-    unsh_pers1 numeric,
-    sh_pers__2 numeric,
-    unsh_per_1 numeric,
-    sh_ch numeric,
-    unsh_ch numeric,
-    sh_youth_u numeric,
-    unsh_youth numeric,
-    sh_vets numeric,
-    unsh_vets numeric,
-    shape_leng numeric,
-    shape_area numeric,
-    geom public.geometry(MultiPolygon,4326),
-    simplified_geom public.geometry(MultiPolygon,4326),
-    full_geoid character varying
-);
-
-
---
 -- Name: shape_cocs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -17125,35 +17283,6 @@ CREATE SEQUENCE public.shape_cocs_id_seq
 --
 
 ALTER SEQUENCE public.shape_cocs_id_seq OWNED BY public.shape_cocs.id;
-
-
---
--- Name: shape_counties; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.shape_counties (
-    id bigint NOT NULL,
-    statefp character varying,
-    countyfp character varying,
-    countyns character varying,
-    full_geoid character varying,
-    geoid character varying,
-    name character varying,
-    namelsad character varying,
-    lsad character varying,
-    classfp character varying,
-    mtfcc character varying,
-    csafp character varying,
-    cbsafp character varying,
-    metdivfp character varying,
-    funcstat character varying,
-    aland double precision,
-    awater double precision,
-    intptlat character varying,
-    intptlon character varying,
-    simplified_geom public.geometry(MultiPolygon,4326),
-    geom public.geometry(MultiPolygon,4326)
-);
 
 
 --
@@ -17223,32 +17352,6 @@ ALTER SEQUENCE public.shape_places_id_seq OWNED BY public.shape_places.id;
 
 
 --
--- Name: shape_states; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.shape_states (
-    id bigint NOT NULL,
-    region character varying,
-    division character varying,
-    statefp character varying,
-    statens character varying,
-    full_geoid character varying,
-    geoid character varying,
-    stusps character varying,
-    name character varying,
-    lsad character varying,
-    mtfcc character varying,
-    funcstat character varying,
-    aland double precision,
-    awater double precision,
-    intptlat character varying,
-    intptlon character varying,
-    simplified_geom public.geometry(MultiPolygon,4326),
-    geom public.geometry(MultiPolygon,4326)
-);
-
-
---
 -- Name: shape_states_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -17303,29 +17406,6 @@ CREATE SEQUENCE public.shape_towns_id_seq
 --
 
 ALTER SEQUENCE public.shape_towns_id_seq OWNED BY public.shape_towns.id;
-
-
---
--- Name: shape_zip_codes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.shape_zip_codes (
-    id bigint NOT NULL,
-    zcta5ce10 character varying(5),
-    geoid10 character varying(5),
-    classfp10 character varying(2),
-    mtfcc10 character varying(5),
-    funcstat10 character varying(1),
-    aland10 double precision,
-    awater10 double precision,
-    intptlat10 character varying(11),
-    intptlon10 character varying(12),
-    geom public.geometry(MultiPolygon,4326),
-    simplified_geom public.geometry(MultiPolygon,4326),
-    full_geoid character varying,
-    st_geoid character varying,
-    county_name_lower character varying
-);
 
 
 --
@@ -20330,6 +20410,13 @@ ALTER TABLE ONLY public.non_hmis_uploads ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: performance_measurement_goals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.performance_measurement_goals ALTER COLUMN id SET DEFAULT nextval('public.performance_measurement_goals_id_seq'::regclass);
+
+
+--
 -- Name: performance_metrics_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23104,6 +23191,14 @@ ALTER TABLE ONLY public.nightly_census_by_projects
 
 ALTER TABLE ONLY public.non_hmis_uploads
     ADD CONSTRAINT non_hmis_uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: performance_measurement_goals performance_measurement_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.performance_measurement_goals
+    ADD CONSTRAINT performance_measurement_goals_pkey PRIMARY KEY (id);
 
 
 --
@@ -46517,6 +46612,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211230201245'),
 ('20220101180956'),
 ('20220102193048'),
-('20220114140723');
+('20220114140723'),
+('20220126164546');
 
 
