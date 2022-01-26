@@ -1,24 +1,36 @@
-- title = _('Performance Measurement Goal Configurator')
+- title = _('Configure Performance Measurement Goal')
 - report = PerformanceMeasurement::Report.new(user: current_user)
 - content_for :title, title
 
-= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+= content_for :crumbs do
+  = link_to performance_measurement_warehouse_reports_goal_configs_path do
+    &laquo; #{_('Performance Measurement Goal Configurator')}
 %h1.mb-5= title
 
-.card
-  %table.table.c-table--indicator.mb-0
-    %tbody
-      - report.goal_configurations.each.with_index do |(title, group), i|
-        - rowspan = group.keys.count + group.values.map(&:keys).flatten.count + 1
-        %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
-          %th.level.w-20{rowspan: rowspan}
-            %h2= title
-        - group.each do |sub_category, sub_group|
+= simple_form_for @goal, url: performance_measurement_warehouse_reports_goal_config_path(@goal), as: :goal do |f|
+  = f.input :coc_code, required: true, label: 'CoC Code', collection: @goal.available_cocs, as: :select_two
+  .card
+    %table.table.c-table--indicator.mb-0
+      %tbody
+        - report.goal_configurations.each.with_index do |(title, group), i|
+          - rowspan = group.keys.count + group.values.map(&:keys).flatten.count + 1
           %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
-            %th.level{colspan: 2}
-              %h3.text-center= sub_category
-          - sub_group.each do |key, titles|
-            %tr
-              %td
-                = @goal[key]
-                = debug titles
+            %th.level.w-20{rowspan: rowspan}
+              %h2= title
+          - group.each do |sub_category, sub_group|
+            %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
+              %th.level{colspan: 2}
+                %h3.text-center= sub_category
+            - sub_group.each do |key, titles|
+              %tr
+                %td
+                  .d-flex
+                    .w-30= f.input key, label: 'Goal value'
+                  %p The above goal is used by the following questions:
+                  - titles.each do |title, description|
+                    .row.mb-4
+                      .col-sm-6
+                        %strong= title
+                      .col-sm-6= description % { goal: @goal[key] }
+  .d-flex
+    .ml-auto.mt-4= f.submit 'Update Goal'

@@ -6,7 +6,7 @@
       .mr-4
         = f.input :end, as: :date_picker, label: 'End date of period'
       .mr-auto
-        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), required: false, input_html: { multiple: true, class: ['select2-id-when-selected'], placeholder: 'Any CoC' }, label: 'CoC Codes', as: :select_two, placeholder: 'Any CoC'
+        = f.input :coc_code, collection: @filter.coc_code_options_for_select(user: current_user), required: false, input_html: { class: ['select2-id-when-selected'], placeholder: 'Please Choose' }, label: 'CoC Code', as: :select_two, placeholder: 'Please Choose', required: true
 
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary']

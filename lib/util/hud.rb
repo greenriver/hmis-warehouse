@@ -2857,4 +2857,10 @@ module HUD
     codes['XX-500'] = 'Test CoC' unless Rails.env.production?
     codes.freeze
   end
+
+  def cocs_in_state(state)
+    return cocs if state.blank?
+
+    cocs.select { |code, _| code.starts_with?(state) }
+  end
 end

@@ -10,33 +10,23 @@ module PerformanceMeasurement::ResultCalculation
   included do
     def passed?(field, reporting_value, comparison_value)
       case field.to_sym
-      when :served_on_pit_date,
-        :first_time,
-        :served_on_pit_date_sheltered,
-        :served_on_pit_date_unsheltered
-        percent_changed(reporting_value, comparison_value) < goal(field)
-      when :days_homeless_es_sh_th,
-        :days_homeless_es_sh_th_ph,
-        :days_to_return,
-        :returned_in_six_months,
-        :returned_in_two_years,
-        :days_in_homeless_bed_details,
-        :days_in_homeless_bed,
-        :days_in_homeless_bed_in_period,
-        :days_in_homeless_bed_details_in_period,
-        :days_in_es_bed_in_period,
-        :days_in_sh_bed_in_period,
-        :days_in_th_bed_in_period
+      # increase year over year
+      when
+        :income
+        percent_changed(reporting_value, comparison_value) > goal(field)
+      # decrease year over year
+      when :people
+        percent_changed(reporting_value, comparison_value) < - goal(field)
+      # less than goal
+      when :time_time,
+        :time_stay,
+        :time_move_in,
+        :recidivism_6_months,
+        :recidivism_24_months
         reporting_value < goal(field)
-      when :so_destination,
-        :so_destination_positive,
-        :es_sh_th_rrh_destination,
-        :es_sh_th_rrh_destination_positive,
-        :moved_in_destination,
-        :moved_in_destination_positive,
-        :increased_income,
-        :increased_income__income_stayer,
-        :increased_income__income_leaver
+      # greater than goal
+      when :capacity,
+        :destination
         reporting_value > goal(field)
       else
         raise "#{field} is undefined for passed?"
@@ -44,40 +34,7 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def goal(field)
-      # TODO: what are the goals?
-      case field
-      when :served_on_pit_date,
-        :first_time,
-        :served_on_pit_date_sheltered,
-        :served_on_pit_date_unsheltered
-        0 # FIXME
-      when :days_homeless_es_sh_th,
-        :days_homeless_es_sh_th_ph
-        365 # FIXME
-      when :so_destination,
-        :so_destination_positive,
-        :es_sh_th_rrh_destination,
-        :es_sh_th_rrh_destination_positive,
-        :moved_in_destination,
-        :moved_in_destination_positive,
-        :days_to_return,
-        :returned_in_six_months,
-        :returned_in_two_years,
-        :increased_income,
-        :increased_income__income_stayer,
-        :increased_income__income_leaver,
-        :days_in_homeless_bed_details,
-        :days_in_homeless_bed,
-        :days_in_homeless_bed_in_period,
-        :days_in_homeless_bed_details_in_period
-        0 # FIXME (percent change)
-      when :days_in_es_bed_in_period,
-        :days_in_sh_bed_in_period,
-        :days_in_th_bed_in_period
-        100
-      else
-        1 # FIXME
-      end
+      goal_config[field]
     end
 
     def direction(_field, reporting_value, comparison_value)
@@ -202,102 +159,126 @@ module PerformanceMeasurement::ResultCalculation
       @client_data.dig(key, project_id) || []
     end
 
-    def count_of_sheltered_homeless_clients(field, project: nil)
+    def count_of_sheltered_homeless_clients(detail, project: nil)
+      field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = percent_changed(reporting_count, comparison_count)
+      passed = passed?(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_count, comparison_count),
+        passed: passed,
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: percent_changed(reporting_count, comparison_count),
+        secondary_value: progress,
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_count,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
     # NOTE: SPM does not include SO, so this needs to be done based on SHS
-    def count_of_homeless_clients(field, project: nil)
+    def count_of_homeless_clients(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
+
+      field = detail[:calculation_column]
 
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = percent_changed(reporting_count, comparison_count)
+      passed = passed?(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_count, comparison_count),
+        passed: passed,
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: percent_changed(reporting_count, comparison_count),
+        secondary_value: progress,
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_count,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
     # NOTE: SPM does not include SO, so this needs to be done based on SHS
-    def count_of_unsheltered_homeless_clients(field, project: nil)
+    def count_of_unsheltered_homeless_clients(detail, project: nil)
       return unless project.blank? || project.hud_project&.so?
+
+      field = detail[:calculation_column]
 
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = percent_changed(reporting_count, comparison_count)
+      passed = passed?(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_count, comparison_count),
+        passed: passed,
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: percent_changed(reporting_count, comparison_count),
+        secondary_value: progress,
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_count,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def first_time_homeless_clients(field, project: nil)
+    def first_time_homeless_clients(detail, project: nil)
+      field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = percent_changed(reporting_count, comparison_count)
+      passed = passed?(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_count, comparison_count),
+        passed: passed,
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: percent_changed(reporting_count, comparison_count),
+        secondary_value: progress,
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_count,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def length_of_homeless_time_homeless_average(field, project: nil)
+    def length_of_homeless_time_homeless_average(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
+
+      field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
@@ -306,11 +287,14 @@ module PerformanceMeasurement::ResultCalculation
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_average
+      passed = passed?(detail[:goal_calculation], reporting_average, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_average, nil),
+        passed: passed,
         direction: direction(field, reporting_average, comparison_average),
         primary_value: reporting_average,
         primary_unit: 'days',
@@ -320,12 +304,15 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_average,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def length_of_homeless_time_homeless_median(field, project: nil)
+    def length_of_homeless_time_homeless_median(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
+
+      field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
       comparison_days = client_data(field, :comparison, project_id: project&.project_id)
@@ -333,11 +320,14 @@ module PerformanceMeasurement::ResultCalculation
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_median
+      passed = passed?(detail[:goal_calculation], reporting_median, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_median, nil),
+        passed: passed,
         direction: direction(field, reporting_median, comparison_median),
         primary_value: reporting_median,
         primary_unit: 'days',
@@ -347,12 +337,15 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_median,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def length_of_homeless_stay_average(field, project: nil)
+    def length_of_homeless_stay_average(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
+
+      field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
@@ -361,11 +354,14 @@ module PerformanceMeasurement::ResultCalculation
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_average
+      passed = passed?(detail[:goal_calculation], reporting_average, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_average, nil),
+        passed: passed,
         direction: direction(field, reporting_average, comparison_average),
         primary_value: reporting_average,
         primary_unit: 'days',
@@ -375,12 +371,15 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_average,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def length_of_homeless_stay_median(field, project: nil)
+    def length_of_homeless_stay_median(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
+
+      field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
       comparison_days = client_data(field, :comparison, project_id: project&.project_id)
@@ -388,11 +387,14 @@ module PerformanceMeasurement::ResultCalculation
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_median
+      passed = passed?(detail[:goal_calculation], reporting_median, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_median, nil),
+        passed: passed,
         direction: direction(field, reporting_median, comparison_median),
         primary_value: reporting_median,
         primary_unit: 'days',
@@ -402,13 +404,16 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_median,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def time_to_move_in_average(field, project: nil)
+    def time_to_move_in_average(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.ph?
 
+      field = detail[:calculation_column]
+
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
@@ -416,11 +421,14 @@ module PerformanceMeasurement::ResultCalculation
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_average
+      passed = passed?(detail[:goal_calculation], reporting_average, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_average, nil),
+        passed: passed,
         direction: direction(field, reporting_average, comparison_average),
         primary_value: reporting_average,
         primary_unit: 'days',
@@ -430,12 +438,15 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_average,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def time_to_move_in_median(field, project: nil)
+    def time_to_move_in_median(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.ph?
+
+      field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
       comparison_days = client_data(field, :comparison, project_id: project&.project_id)
@@ -443,11 +454,14 @@ module PerformanceMeasurement::ResultCalculation
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_median
+      passed = passed?(detail[:goal_calculation], reporting_median, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_median, nil),
+        passed: passed,
         direction: direction(field, reporting_median, comparison_median),
         primary_value: reporting_median,
         primary_unit: 'days',
@@ -457,12 +471,15 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_median,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def so_positive_destinations(field, project: nil)
+    def so_positive_destinations(detail, project: nil)
       return unless project.blank? || project.hud_project&.so?
+
+      field = detail[:calculation_column]
 
       reporting_destinations = client_ids(:so_destination, :reporting, project_id: project&.project_id)
       reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
@@ -476,11 +493,14 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_percent
+      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_percent, nil),
+        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
@@ -490,12 +510,15 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def es_sh_th_rrh_positive_destinations(field, project: nil)
+    def es_sh_th_rrh_positive_destinations(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.rrh?
+
+      field = detail[:calculation_column]
 
       reporting_destinations = client_ids(:es_sh_th_rrh_destination, :reporting, project_id: project&.project_id)
       reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
@@ -509,11 +532,14 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_percent
+      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_percent, nil),
+        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
@@ -523,12 +549,15 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def moved_in_positive_destinations(field, project: nil)
+    def moved_in_positive_destinations(detail, project: nil)
       return unless project.blank? || project.hud_project&.ph?
+
+      field = detail[:calculation_column]
 
       reporting_destinations = client_ids(:moved_in_destination, :reporting, project_id: project&.project_id)
       reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
@@ -542,11 +571,14 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_percent
+      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_percent, nil),
+        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
@@ -556,19 +588,21 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def returned_in_six_months(field, project: nil)
-      returned_in_range(field, __method__, project: project)
+    def returned_in_six_months(detail, project: nil)
+      returned_in_range(detail, __method__, project: project)
     end
 
-    def returned_in_two_years(field, project: nil)
-      returned_in_range(field, __method__, project: project)
+    def returned_in_two_years(detail, project: nil)
+      returned_in_range(detail, __method__, project: project)
     end
 
-    def returned_in_range(field, meth, project: nil)
+    def returned_in_range(detail, meth, project: nil)
+      field = detail[:calculation_column]
       reporting_returns = client_ids(:returned_ever, :reporting, project_id: project&.project_id)
       reporting_returns_in_range = client_ids(field, :reporting, project_id: project&.project_id)
       comparison_returns = client_ids(:returned_ever, :comparison, project_id: project&.project_id)
@@ -581,11 +615,14 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_returns_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_percent
+      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
         title: detail_title_for(meth.to_sym),
-        passed: passed?(field, reporting_percent, nil),
+        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
@@ -595,29 +632,31 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def es_average_bed_utilization(field, project: nil)
+    def es_average_bed_utilization(detail, project: nil)
       return unless project.blank? || project.hud_project&.es?
 
-      average_bed_utilization(field, __method__, project_type: :es, project: project)
+      average_bed_utilization(detail, __method__, project_type: :es, project: project)
     end
 
-    def sh_average_bed_utilization(field, project: nil)
+    def sh_average_bed_utilization(detail, project: nil)
       return unless project.blank? || project.hud_project&.sh?
 
-      average_bed_utilization(field, __method__, project_type: :sh, project: project)
+      average_bed_utilization(detail, __method__, project_type: :sh, project: project)
     end
 
-    def th_average_bed_utilization(field, project: nil)
+    def th_average_bed_utilization(detail, project: nil)
       return unless project.blank? || project.hud_project&.th?
 
-      average_bed_utilization(field, __method__, project_type: :th, project: project)
+      average_bed_utilization(detail, __method__, project_type: :th, project: project)
     end
 
-    def average_bed_utilization(field, meth, project_type:, project: nil)
+    def average_bed_utilization(detail, meth, project_type:, project: nil)
+      field = detail[:calculation_column]
       day_count = filter.range.count
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
       reporting_inventory = inventory_sum(:ave_bed_capacity_per_night, :reporting, project_id: project&.project_id, project_type: project_type)
@@ -632,11 +671,14 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_days / day_count.to_f
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_percent
+      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
         title: detail_title_for(meth.to_sym),
-        passed: passed?(field, reporting_percent, nil),
+        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_percent,
         primary_unit: '%',
@@ -646,12 +688,15 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: percent_changed(reporting_denominator, comparison_denominator),
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def overall_average_bed_utilization(field, project: nil)
+    def overall_average_bed_utilization(detail, project: nil)
       return unless project.blank?
+
+      field = detail[:calculation_column]
 
       day_count = filter.range.count
       a_t = PerformanceMeasurement::Client.arel_table
@@ -688,11 +733,14 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_days / day_count.to_f
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = reporting_percent
+      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed?(field, reporting_percent, nil),
+        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_percent,
         primary_unit: '%',
@@ -702,19 +750,21 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_percent,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal(field),
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
-    def stayers_with_increased_income(field, project: nil)
-      increased_income(field, :income_stayer, __method__, project: project)
+    def stayers_with_increased_income(detail, project: nil)
+      increased_income(detail, :income_stayer, __method__, project: project)
     end
 
-    def leavers_with_increased_income(field, project: nil)
-      increased_income(field, :income_leaver, __method__, project: project)
+    def leavers_with_increased_income(detail, project: nil)
+      increased_income(detail, :income_leaver, __method__, project: project)
     end
 
-    def increased_income(income_field, status_field, meth, project: nil)
+    def increased_income(detail, status_field, meth, project: nil)
+      income_field = detail[:calculation_column]
       reporting_denominator = client_count(status_field, :reporting, project_id: project&.project_id)
       comparison_denominator = client_count(status_field, :comparison, project_id: project&.project_id)
       reporting_numerator = client_count(income_field, :reporting, project_id: project&.project_id)
@@ -723,20 +773,25 @@ module PerformanceMeasurement::ResultCalculation
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
+      goal_value = goal(detail[:goal_calculation])
+      progress = percent_changed(reporting_denominator, comparison_denominator)
+      passed = passed?(detail[:goal_calculation], reporting_percent, comparison_percent)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
         title: detail_title_for(meth.to_sym),
-        passed: passed?(income_field, reporting_percent, comparison_percent),
+        passed: passed,
         direction: direction(income_field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
-        secondary_value: percent_changed(reporting_denominator, comparison_denominator),
+        secondary_value: progress,
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
+        goal: goal_value,
+        goal_progress: progress,
       )
     end
 
@@ -747,10 +802,10 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def save_results
-      results = result_methods.map { |method, field| send(method, field) }
+      results = result_methods.map { |method, row| send(method, row) }
       projects.preload(:hud_project).each do |project|
-        result_methods.each do |method, field|
-          results << send(method, field, project: project)
+        result_methods.each do |method, row|
+          results << send(method, row, project: project)
         end
       end
       PerformanceMeasurement::Result.transaction do
@@ -760,7 +815,7 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     private def result_methods
-      detail_hash.map { |k, row| [k, row[:calculation_column]] }.to_h.freeze
+      detail_hash.map { |k, row| [k, row] }.to_h.freeze
     end
   end
 end

@@ -24,6 +24,13 @@ module Filter::FilterScopes
         merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes))
     end
 
+    private def filter_for_coc(scope)
+      return scope unless @filter.coc_code.present?
+
+      scope.joins(project: :project_cocs).
+        merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_code))
+    end
+
     private def filter_for_household_type(scope)
       return scope unless @filter.household_type.present? && @filter.household_type != :all
 

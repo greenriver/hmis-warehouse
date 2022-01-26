@@ -32,7 +32,10 @@ module PerformanceMeasurement::Details
           gc[data[:category]] ||= {}
           gc[data[:category]][data[:sub_category]] ||= {}
           gc[data[:category]][data[:sub_category]][data[:goal_calculation]] ||= []
-          gc[data[:category]][data[:sub_category]][data[:goal_calculation]] << data[:title]
+          gc[data[:category]][data[:sub_category]][data[:goal_calculation]] << [
+            data[:title],
+            data[:goal_description],
+          ]
         end
       end
     end
@@ -46,7 +49,8 @@ module PerformanceMeasurement::Details
     end
 
     def detail_goal_description_for(key)
-      detail_hash[key][:goal_description]
+      detail = detail_hash[key]
+      format(detail[:goal_description], { goal: goal_config[detail[:goal_calculation]] })
     end
 
     def detail_calculation_description_for(key)

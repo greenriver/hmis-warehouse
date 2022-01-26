@@ -20,12 +20,18 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     def create
+      @goal = goal_source.create(coc_code: 'Un-Set')
+      respond_with(@goal, location: edit_performance_measurement_warehouse_reports_goal_config_path(@goal))
     end
 
     def update
+      @goal.update(goal_params)
+      respond_with(@goal, location: performance_measurement_warehouse_reports_goal_configs_path)
     end
 
     def destroy
+      @goal.destroy
+      respond_with(@goal, location: performance_measurement_warehouse_reports_goal_configs_path)
     end
 
     private def set_goal

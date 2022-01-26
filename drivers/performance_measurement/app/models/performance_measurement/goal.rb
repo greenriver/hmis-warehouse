@@ -37,8 +37,20 @@ module PerformanceMeasurement
       goals
     end
 
+    def available_cocs
+      ::HUD.cocs_in_state(ENV['RELEVANT_COC_STATE']).map do |code, name|
+        [
+          "#{name} (#{code})",
+          code,
+        ]
+      end
+    end
+
     def coc_name
-      ::HUD.coc_name(coc_code)
+      name = ::HUD.coc_name(coc_code)
+      return "#{name} (#{coc_code})" unless name == coc_code
+
+      coc_code
     end
 
     def default?

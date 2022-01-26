@@ -15058,7 +15058,8 @@ CREATE TABLE public.pm_results (
     comparison_primary_value integer,
     system_level boolean DEFAULT false NOT NULL,
     project_id integer,
-    goal double precision
+    goal double precision,
+    goal_progress double precision
 );
 
 
@@ -46613,6 +46614,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220101180956'),
 ('20220102193048'),
 ('20220114140723'),
-('20220126164546');
+('20220126164546'),
+('20220126182806');
 
 
