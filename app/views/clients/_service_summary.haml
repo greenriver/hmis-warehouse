@@ -6,7 +6,7 @@
 - if @client.service_history_enrollments.empty?
   = "There is no service record for #{@client.name}"
 - else
-  - if can_view_service_register_on_client? && RailsDrivers.loaded.include?(:service_scanning)
+  - if can_view_service_register_on_client? && RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
     = render 'service_scanning/scanner_ids/clients/last_seen_register'
 
   - if @client.date_of_last_service.present?
