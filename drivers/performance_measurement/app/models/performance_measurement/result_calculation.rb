@@ -214,7 +214,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: progress,
+        secondary_value: progress[:progress],
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_count,
@@ -243,7 +243,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: progress,
+        secondary_value: progress[:progress],
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_count,
@@ -268,7 +268,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: progress,
+        secondary_value: progress[:progress],
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_count,
@@ -292,7 +292,7 @@ module PerformanceMeasurement::ResultCalculation
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_average, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_average)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
@@ -323,7 +323,7 @@ module PerformanceMeasurement::ResultCalculation
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_median, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_median)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
@@ -355,7 +355,7 @@ module PerformanceMeasurement::ResultCalculation
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_average, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_average)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
@@ -386,7 +386,7 @@ module PerformanceMeasurement::ResultCalculation
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_median, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_median)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
@@ -418,7 +418,7 @@ module PerformanceMeasurement::ResultCalculation
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_average, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_average)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
@@ -449,7 +449,7 @@ module PerformanceMeasurement::ResultCalculation
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_median, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_median)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
@@ -486,7 +486,7 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
@@ -523,7 +523,7 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
@@ -560,7 +560,7 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
@@ -602,7 +602,7 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_returns_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
@@ -656,7 +656,7 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_days / day_count.to_f
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
@@ -716,7 +716,7 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_days / day_count.to_f
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
