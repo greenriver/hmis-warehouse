@@ -77,6 +77,7 @@
           = f.input :only_most_recent_import, label: 'Only allow importing of the most-recent HMIS version'
           = f.input :bypass_2fa_duration, label: 'Memorize MFA devices for', collection: GrdaWarehouse::Config.available_bypass_2fa_durations, as: :select_two
           = f.input :support_contact_email
+          = f.input :service_register_visible, label: 'Enable the Service Register?'
 
           -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zip codes', hint: 'comma separated.  eg. 02108, 02109'
 
