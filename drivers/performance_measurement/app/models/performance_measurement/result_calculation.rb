@@ -13,21 +13,21 @@ module PerformanceMeasurement::ResultCalculation
       # increase year over year
       when
         :income
-        percent_changed(reporting_value, comparison_value) > goal(field)
+        percent_changed(reporting_value, comparison_value) >= goal(field)
       # decrease year over year
       when :people
-        percent_changed(reporting_value, comparison_value) < - goal(field)
-      # less than goal
+        percent_changed(reporting_value, comparison_value) <= - goal(field)
+      # less than or equal to goal
       when :time_time,
         :time_stay,
         :time_move_in,
         :recidivism_6_months,
         :recidivism_24_months
-        reporting_value < goal(field)
-      # greater than goal
+        reporting_value <= goal(field)
+      # greater than or equal to goal
       when :capacity,
         :destination
-        reporting_value > goal(field)
+        reporting_value >= goal(field)
       else
         raise "#{field} is undefined for passed?"
       end
