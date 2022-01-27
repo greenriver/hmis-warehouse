@@ -8,29 +8,42 @@ module PerformanceMeasurement::ResultCalculation
   extend ActiveSupport::Concern
 
   included do
-    def passed?(field, reporting_value, comparison_value)
-      case field.to_sym
+    # accepts goal_method, reporting_value, and optional comparison_value
+    # returns { passed: boolean, goal: goal_value, progress: progress_value }
+    def calculate_processed(goal_method, reporting_value, comparison_value = nil)
+      goal_value = goal(goal_method)
+      progress = nil
+      passed = case goal_method.to_sym
       # increase year over year
       when
         :income
-        percent_changed(reporting_value, comparison_value) >= goal(field)
+        progress = percent_changed(reporting_value, comparison_value)
+        progress >= goal_value
       # decrease year over year
       when :people
-        percent_changed(reporting_value, comparison_value) <= - goal(field)
+        progress = percent_changed(reporting_value, comparison_value)
+        progress <= - goal_value
       # less than or equal to goal
       when :time_time,
         :time_stay,
         :time_move_in,
         :recidivism_6_months,
         :recidivism_24_months
-        reporting_value <= goal(field)
+        progress = reporting_value
+        progress <= goal_value
       # greater than or equal to goal
       when :capacity,
         :destination
-        reporting_value >= goal(field)
+        progress = reporting_value
+        progress >= goal_value
       else
-        raise "#{field} is undefined for passed?"
+        raise "#{goal_method} is undefined for calculate_processed"
       end
+      {
+        passed: passed,
+        goal: goal_value,
+        progress: progress,
+      }
     end
 
     def goal(field)
@@ -164,14 +177,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = percent_changed(reporting_count, comparison_count)
-      passed = passed?(detail[:goal_calculation], reporting_count, comparison_count)
+      progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
@@ -181,8 +191,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_count,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -195,14 +206,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = percent_changed(reporting_count, comparison_count)
-      passed = passed?(detail[:goal_calculation], reporting_count, comparison_count)
+      progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
@@ -212,8 +220,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_count,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -226,14 +235,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = percent_changed(reporting_count, comparison_count)
-      passed = passed?(detail[:goal_calculation], reporting_count, comparison_count)
+      progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
@@ -243,8 +249,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_count,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -253,14 +260,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = percent_changed(reporting_count, comparison_count)
-      passed = passed?(detail[:goal_calculation], reporting_count, comparison_count)
+      progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
@@ -270,8 +274,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_count,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -287,14 +292,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_average
-      passed = passed?(detail[:goal_calculation], reporting_average, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_average, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_average, comparison_average),
         primary_value: reporting_average,
         primary_unit: 'days',
@@ -304,8 +306,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_average,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -320,14 +323,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_median
-      passed = passed?(detail[:goal_calculation], reporting_median, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_median, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_median, comparison_median),
         primary_value: reporting_median,
         primary_unit: 'days',
@@ -337,8 +337,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_median,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -354,14 +355,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_average
-      passed = passed?(detail[:goal_calculation], reporting_average, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_average, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_average, comparison_average),
         primary_value: reporting_average,
         primary_unit: 'days',
@@ -371,8 +369,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_average,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -387,14 +386,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_median
-      passed = passed?(detail[:goal_calculation], reporting_median, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_median, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_median, comparison_median),
         primary_value: reporting_median,
         primary_unit: 'days',
@@ -404,8 +400,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_median,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -421,14 +418,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_average = average(reporting_days, reporting_count)
       comparison_average = average(comparison_days, comparison_count)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_average
-      passed = passed?(detail[:goal_calculation], reporting_average, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_average, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_average, comparison_average),
         primary_value: reporting_average,
         primary_unit: 'days',
@@ -438,8 +432,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_average,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -454,14 +449,11 @@ module PerformanceMeasurement::ResultCalculation
       reporting_median = median(reporting_days)
       comparison_median = median(comparison_days)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_median
-      passed = passed?(detail[:goal_calculation], reporting_median, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_median, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_median, comparison_median),
         primary_value: reporting_median,
         primary_unit: 'days',
@@ -471,8 +463,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_median,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -493,14 +486,11 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_percent
-      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
@@ -510,8 +500,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -532,14 +523,11 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_percent
-      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
@@ -549,8 +537,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -571,14 +560,11 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_destinations_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_percent
-      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
@@ -588,8 +574,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -615,14 +602,11 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_returns_in_range.count
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_percent
-      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
         title: detail_title_for(meth.to_sym),
-        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
@@ -632,8 +616,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -671,14 +656,11 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_days / day_count.to_f
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_percent
-      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
         title: detail_title_for(meth.to_sym),
-        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_percent,
         primary_unit: '%',
@@ -688,8 +670,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: percent_changed(reporting_denominator, comparison_denominator),
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -733,14 +716,11 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = comparison_days / day_count.to_f
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = reporting_percent
-      passed = passed?(detail[:goal_calculation], reporting_percent, nil)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent, nil)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        passed: passed,
         direction: direction(field, reporting_percent, comparison_percent),
         primary_value: reporting_percent,
         primary_unit: '%',
@@ -750,8 +730,9 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_percent,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
@@ -773,25 +754,23 @@ module PerformanceMeasurement::ResultCalculation
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
-      goal_value = goal(detail[:goal_calculation])
-      progress = percent_changed(reporting_denominator, comparison_denominator)
-      passed = passed?(detail[:goal_calculation], reporting_percent, comparison_percent)
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent, comparison_percent)
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
         title: detail_title_for(meth.to_sym),
-        passed: passed,
         direction: direction(income_field, reporting_percent, comparison_percent),
         primary_value: reporting_numerator,
         primary_unit: 'clients',
-        secondary_value: progress,
+        secondary_value: progress[:progress],
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_numerator,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
-        goal: goal_value,
-        goal_progress: progress,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
       )
     end
 
