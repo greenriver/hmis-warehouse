@@ -5103,7 +5103,8 @@ CREATE TABLE public.configs (
     show_client_last_seen_info_in_client_details boolean DEFAULT true,
     ineligible_uses_extrapolated_days boolean DEFAULT true NOT NULL,
     warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL,
-    cas_calculator character varying DEFAULT 'GrdaWarehouse::CasProjectClientCalculator::Default'::character varying NOT NULL
+    cas_calculator character varying DEFAULT 'GrdaWarehouse::CasProjectClientCalculator::Default'::character varying NOT NULL,
+    service_register_visible boolean DEFAULT false NOT NULL
 );
 
 
@@ -15059,7 +15060,11 @@ CREATE TABLE public.pm_results (
     system_level boolean DEFAULT false NOT NULL,
     project_id integer,
     goal double precision,
-    goal_progress double precision
+    goal_progress double precision,
+    reporting_numerator integer,
+    reporting_denominator integer,
+    comparison_numerator integer,
+    comparison_denominator integer
 );
 
 
@@ -46615,6 +46620,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220102193048'),
 ('20220114140723'),
 ('20220126164546'),
-('20220126182806');
+('20220126182806'),
+('20220127153246'),
+('20220127200317');
 
 
