@@ -185,7 +185,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(field, reporting_count, comparison_count),
         primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: progress,
+        secondary_value: progress[:progress],
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_count,
