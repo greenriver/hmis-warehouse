@@ -63,7 +63,7 @@ module PerformanceMeasurement::ResultCalculation
     def percent_changed(reporting_count, comparison_count)
       return 0 unless reporting_count.present? && comparison_count.present?
 
-      ((reporting_count - comparison_count) / comparison_count.to_f) * 100
+      percent_of(reporting_count - comparison_count, comparison_count)
     end
 
     def percent_of(numerator, denominator)
@@ -680,7 +680,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(reporting_percent, comparison_percent),
         primary_value: reporting_percent,
         primary_unit: '% utilization',
-        secondary_value: percent_of(reporting_percent, comparison_percent),
+        secondary_value: percent_changed(reporting_percent, comparison_percent),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_percent,
@@ -742,7 +742,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(reporting_percent, comparison_percent),
         primary_value: reporting_percent,
         primary_unit: '% utilization',
-        secondary_value: percent_of(reporting_percent, comparison_percent),
+        secondary_value: percent_changed(reporting_percent, comparison_percent),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_percent,
@@ -784,7 +784,7 @@ module PerformanceMeasurement::ResultCalculation
         direction: direction(reporting_percent, comparison_percent),
         primary_value: reporting_percent,
         primary_unit: '% of clients',
-        secondary_value: percent_of(reporting_percent, comparison_percent),
+        secondary_value: percent_changed(reporting_percent, comparison_percent),
         secondary_unit: '%',
         value_label: 'Change over year',
         comparison_primary_value: comparison_percent,
