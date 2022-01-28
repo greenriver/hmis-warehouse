@@ -31,7 +31,7 @@
       %li.o-menu__item
         = link_to cohorts_path, class: 'o-menu__link' do
           = _('Cohorts')
-    - if RailsDrivers.loaded.include?(:service_scanning) && can_use_service_register?
+    - if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible) && can_use_service_register?
       %li.o-menu__item
         = link_to service_scanning_services_path, class: 'o-menu__link' do
           = _('Scan Card Services')

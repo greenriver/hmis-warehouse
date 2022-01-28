@@ -97,7 +97,7 @@
         title: 'Scan Card IDs',
         permission: can_use_service_register?,
       },
-    }) if RailsDrivers.loaded.include?(:service_scanning)
+    }) if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
     health = {
       # BH CP Pages
       polymorphic_path(health_path_generator + [:patient, :index], client_id: @client) => {
