@@ -96,7 +96,8 @@ module WarehouseReports
     end
 
     def cas_flags
-      GrdaWarehouse::Hud::Client.cas_columns.reject { |m| m == :housing_release_status }
+      ignored = GrdaWarehouse::Hud::Client.ignored_for_batch_maintenance
+      GrdaWarehouse::Hud::Client.cas_columns.reject { |m| m.in?(ignored) }
     end
     helper_method :cas_flags
 

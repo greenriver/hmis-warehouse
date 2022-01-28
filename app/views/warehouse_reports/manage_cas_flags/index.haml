@@ -20,7 +20,7 @@
       %ul.dropdown-menu
         %li
           - cas_flags.each do |slug, label|
-            %a{href: "?cas_flag=#{slug}"}
+            %a.dropdown-item{href: "?cas_flag=#{slug}"}
               = label
 
   = simple_form_for :cas_flags, url: bulk_update_warehouse_reports_manage_cas_flags_path do |f|
@@ -38,10 +38,3 @@
       .col-sm-8
         %h3= "Flagged Clients (#{@clients&.size || 0})"
         = render 'client_table', clients: @clients
-
-
-
-
-
-
-
