@@ -8,7 +8,7 @@ module Health::ChaTools
       Kiba.parse do
         source Health::ChaTools::ChaSource
 
-        destination Kiba::Common::Destinations::CSV, filename: config[:filename]
+        destination Kiba::Common::Destinations::CSV, filename: config[:filename], csv_options: { force_quotes: true }
       end
     end
   end

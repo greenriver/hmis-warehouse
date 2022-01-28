@@ -607,13 +607,13 @@ module PublicReports
       scope = filter_for_age(homeless_scope)
 
       if map_by_zip?
-        census_comparison_by_zip(scope)
+        census_comparison_by_zip(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
       elsif map_by_place?
-        census_comparison_by_place(scope)
+        census_comparison_by_place(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
       elsif map_by_county?
-        census_comparison_by_county(scope)
+        census_comparison_by_county(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
       else
-        census_comparison_by_coc(scope)
+        census_comparison_by_coc(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
       end
     end
 
@@ -659,7 +659,7 @@ module PublicReports
       end
     end
 
-    private def census_comparison_by_coc(scope)
+    private def census_comparison_by_coc(scope, service_scope: :current_scope)
       self.map_max_rate ||= 0
       self.map_max_count ||= 0
       {}.tap do |charts|
@@ -678,6 +678,7 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
+                service_scope: service_scope,
               ).count
             else
               max = [population_overall, 1].compact.max / 3
@@ -687,6 +688,7 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
+                service_scope: service_scope,
               ).
                 in_coc(coc_code: coc_code).count
             else
@@ -710,7 +712,7 @@ module PublicReports
       end
     end
 
-    private def census_comparison_by_zip(scope)
+    private def census_comparison_by_zip(scope, service_scope: :current_scope)
       self.map_max_rate ||= 0
       self.map_max_count ||= 0
       {}.tap do |charts|
@@ -729,6 +731,7 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
+                service_scope: service_scope,
               ).count
             else
               max = [population_overall, 1].compact.max / 3
@@ -738,6 +741,7 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
+                service_scope: service_scope,
               ).
                 in_zip(zip_code: code).count
             else
@@ -760,7 +764,7 @@ module PublicReports
       end
     end
 
-    private def census_comparison_by_place(scope)
+    private def census_comparison_by_place(scope, service_scope: :current_scope)
       self.map_max_rate ||= 0
       self.map_max_count ||= 0
       {}.tap do |charts|
@@ -772,11 +776,6 @@ module PublicReports
           place_codes.each do |code|
             population_overall = if Rails.env.production?
               population_by_place.try(:[], date.year).try(:[], code) || 0
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-              ).
-                count
             else
               500
             end
@@ -784,6 +783,7 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
+                service_scope: service_scope,
               ).count
             else
               max = [population_overall, 1].compact.max / 3
@@ -793,6 +793,7 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
+                service_scope: service_scope,
               ).
                 in_place(place: code).count
             else
@@ -815,7 +816,7 @@ module PublicReports
       end
     end
 
-    private def census_comparison_by_county(scope)
+    private def census_comparison_by_county(scope, service_scope: :current_scope)
       self.map_max_rate ||= 0
       self.map_max_count ||= 0
       {}.tap do |charts|
@@ -834,6 +835,7 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
+                service_scope: service_scope,
               ).count
             else
               max = [population_overall, 1].compact.max / 3
@@ -843,6 +845,7 @@ module PublicReports
               scope.with_service_between(
                 start_date: start_date,
                 end_date: end_date,
+                service_scope: service_scope,
               ).
                 in_county(county: code).count
             else

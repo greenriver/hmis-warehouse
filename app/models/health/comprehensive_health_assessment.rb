@@ -1065,16 +1065,16 @@ module Health
         'iA5a' => nil,
         'iA5b' => nil,
         'iA5c' => nil,
-        'iA6a' => answer(:a_q6),
+        'iA6a' => format_answer(:a_q6, 14),
         'iA8' => encoded_answer(:a_q67),
-        'iA9' => format_date(answer(:a_q8)),
-        'iA10' => answer(:a_q10).delete('-'),
+        'iA9' => format_date(:a_q8),
+        'iA10' => answer(:a_q10)&.delete('-'),
         'iA11b' => encoded_answer(:a_q11),
         'iA12a' => encoded_answer(:a_q12),
         'iA99' => patient_id,
-        'iB1' => format_primary(answer(:a_q9)),
-        'iB1a' => answer(:a_q9),
-        'iB2' => format_date(answer(:b_q1)),
+        'iB1' => format_primary(:a_q9),
+        'iB1a' => format_answer(:a_q9, 200),
+        'iB2' => format_date(:b_q1),
         'iB3a' => detect_answer(:b_q2, 'CHA B_Q2_A1'),
         'iB3b' => detect_answer(:b_q2, 'CHA B_Q2_A2'),
         'iB3c' => detect_answer(:b_q2, 'CHA B_Q2_A3'),
@@ -1168,9 +1168,9 @@ module Health
           {
             "iI2#{diagnosis}a" => encoded_answer("i_q2#{diagnosis}2".to_sym),
             "iI2#{diagnosis}ba" => nil,
-            "iI2#{diagnosis}bb" => answer("i_q2#{diagnosis}3".to_sym),
+            "iI2#{diagnosis}bb" => format_answer("i_q2#{diagnosis}3".to_sym, 7),
             "iI2#{diagnosis}bx" => nil,
-            "iI2#{diagnosis}c" => answer("i_q2#{diagnosis}1".to_sym),
+            "iI2#{diagnosis}c" => format_answer("i_q2#{diagnosis}1".to_sym, 20),
           },
         )
       end
@@ -1215,15 +1215,15 @@ module Health
       (1..12).each do |medication|
         result.merge!(
           {
-            "iM1a#{medication}" => answer("l_q1s#{medication}a".to_sym),
-            "iM1b#{medication}" => answer("l_q1s#{medication}b".to_sym),
-            "iM1c#{medication}" => answer("l_q1s#{medication}c".to_sym),
-            "iM1d#{medication}" => answer("l_q1s#{medication}d".to_sym),
-            "iM1e#{medication}" => answer("l_q1s#{medication}e".to_sym),
+            "iM1a#{medication}" => format_answer("l_q1s#{medication}a".to_sym, 30),
+            "iM1b#{medication}" => format_answer("l_q1s#{medication}b".to_sym, 9),
+            "iM1c#{medication}" => format_answer("l_q1s#{medication}c".to_sym, 5),
+            "iM1d#{medication}" => format_answer("l_q1s#{medication}d".to_sym, 5),
+            "iM1e#{medication}" => format_answer("l_q1s#{medication}e".to_sym, 5),
             "iM1f#{medication}" => encoded_answer("l_q1s#{medication}f".to_sym),
-            "iM1ga#{medication}" => answer("l_q1s#{medication}g".to_sym), # Don't know the code system, report under all
-            "iM1gb#{medication}" => answer("l_q1s#{medication}g".to_sym),
-            "iM1gc#{medication}" => answer("l_q1s#{medication}g".to_sym),
+            "iM1ga#{medication}" => format_answer("l_q1s#{medication}g".to_sym, 12), # Don't know the code system, report under all
+            "iM1gb#{medication}" => format_answer("l_q1s#{medication}g".to_sym, 7),
+            "iM1gc#{medication}" => format_answer("l_q1s#{medication}g".to_sym, 10),
             "iM1gx#{medication}" => nil,
           },
         )
@@ -1244,10 +1244,10 @@ module Health
           'iN5b' => answer(:m_q2b),
           'iN5c' => answer(:m_q2c),
           'iQ4' => encoded_answer(:o_q1),
-          'iT1' => format_date(answer(:p_q1)),
+          'iT1' => format_date(:p_q1),
           'iT2' => encoded_answer(:p_q2),
           'iU1' => nil,
-          'iU2' => format_date(answer(:q_q2)),
+          'iU2' => format_date(:q_q2),
         },
       )
 
@@ -1269,6 +1269,8 @@ module Health
     end
 
     def detect_answer(answer_key, value_key)
+      return nil unless answer(answer_key)
+
       answer(answer_key).include?(_(value_key)) ? 1 : 0
     end
 
@@ -1283,7 +1285,8 @@ module Health
       nil
     end
 
-    def format_date(date)
+    def format_date(key)
+      date = answer(key)
       return nil unless date.present?
 
       date.to_date.strftime('%Y%m%d')
@@ -1291,8 +1294,13 @@ module Health
       return nil
     end
 
-    def format_primary(text)
-      text.truncate(20, separator: ' ', omission: '')
+    def format_answer(key, width)
+      answer(key)&.gsub(/$/, ' ')&.truncate(width)
+    end
+
+    def format_primary(key)
+      text = answer(key)&.gsub(/$/, ' ')
+      text&.truncate(20, separator: ' ', omission: '')
     end
   end
 end

@@ -6,4 +6,4 @@
   .col-sm-8
     %dl
       %dd CoC
-      %dt= filter.coc_codes.map { |code| HUD.coc_name(code) }.to_sentence
+      %dt #{HUD.coc_name(filter.coc_code)} (#{filter.coc_code})
