@@ -77,6 +77,14 @@ module PerformanceMeasurement
       end
     end
 
+    def coc_code
+      filter.coc_code
+    end
+
+    def goal_config
+      @goal_config ||= PerformanceMeasurement::Goal.for_coc(coc_code)
+    end
+
     private def reset_filter
       @filter = nil
       filter
@@ -117,8 +125,8 @@ module PerformanceMeasurement
           value: filter.start,
         )
         section.add_control(
-          id: 'coc_codes',
-          label: 'CoC Codes',
+          id: 'coc_code',
+          label: 'CoC Code',
           short_label: 'CoC',
           value: filter.chosen_coc_codes,
         )
@@ -147,7 +155,7 @@ module PerformanceMeasurement
       scope = report_scope_source
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope)
+      scope = filter_for_coc(scope)
       scope
     end
 
