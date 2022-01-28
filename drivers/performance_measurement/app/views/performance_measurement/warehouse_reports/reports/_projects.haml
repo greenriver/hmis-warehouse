@@ -19,6 +19,19 @@
           .w-50
             - class_name = "jProjectLevelPerformance_#{key}_#{project_id}"
             .c-chart--vertical-bar{class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
+            - label = @report.detail_denominator_label_for(key)
+            - if label.present?
+              .d-flex.text-center.ml-4
+                .w-50
+                  %strong= result.comparison_numerator
+                  of
+                  = label
+                  %strong= result.comparison_denominator
+                .w-50
+                  %strong= result.reporting_numerator
+                  of
+                  = label
+                  %strong= result.reporting_denominator
             = content_for :page_js do
               :javascript
                 $(document).ready(function(){

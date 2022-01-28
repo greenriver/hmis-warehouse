@@ -1,0 +1,30 @@
+- title = _('Performance Measurement Goal Configurator')
+- report = PerformanceMeasurement::Report.new(user: current_user)
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-5= title
+.row.mb-4
+  .col-sm-8
+    %p Goals can be adjusted on a per-CoC basis.  If a particular CoC does not have a goal configuration, the following will be used.
+  .col-sm-4.d-flex
+    .ml-auto
+      = link_to performance_measurement_warehouse_reports_goal_configs_path(), method: :post, class: 'btn btn-primary' do
+        %i.icon-plus
+        Add CoC Specific Goal
+.card
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th CoC
+        %th Updated
+        %th
+    %tbody
+      - @goals.each do |goal|
+        %tr
+          %td= link_to goal.coc_name, edit_performance_measurement_warehouse_reports_goal_config_path(goal)
+          %td= goal.updated_at
+          %td
+            - if goal.deleteable?
+              = link_to performance_measurement_warehouse_reports_goal_config_path(goal), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger' do
+                %i.icon-cross

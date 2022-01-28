@@ -979,6 +979,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: true,
           health: false,
         }
+        r_list['Performance'] << {
+          url: 'performance_measurement/warehouse_reports/goal_configs',
+          name: 'CoC Performance Measurement Goal Configurator',
+          description: 'Set per-CoC Performance Measurement Goals',
+          limitable: false,
+          health: false,
+        }
       end
       if RailsDrivers.loaded.include?(:homeless_summary_report)
         r_list['Operational'] << {
@@ -1188,6 +1195,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'performance_metrics/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:performance_metrics)
       cleanup << 'performance_measurement/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:performance_measurement)
+      cleanup << 'performance_measurement/warehouse_reports/goal_configs' unless RailsDrivers.loaded.include?(:performance_measurement)
       cleanup << 'homeless_summary_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:homeless_summary_report)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       unless RailsDrivers.loaded.include?(:public_reports)
