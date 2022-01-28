@@ -28,7 +28,7 @@
       .d-none--empty.mb-6.w-100<
         = render 'clients/required_documents'
 
-      - if RailsDrivers.loaded.include?(:service_scanning)
+      - if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
         .d-none--empty.mb-6.w-100<
-          - if can_view_clients?
+          - if can_view_clients? && can_view_service_register_on_client?
             = render 'service_scanning/scanner_ids/clients/register'

@@ -27,7 +27,7 @@
           - @project_type_counts.each do |type, count|
             %li
               #{type}: #{pluralize(count, 'days')}
-      - if RailsDrivers.loaded.include?(:service_scanning)
+      - if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
         - if @client.service_scanning_bed_nights_or_outreach?
           .history__counts-for-service_scanning
             %strong Total number of bed nights and outreach contacts recorded during the #{_('HMIS Blackout')}.
@@ -36,7 +36,7 @@
               %li Outreach: #{pluralize(@client.unique_service_scanning_outreach(include_extrapolated: true).count, 'days')}
 
   .history__dates
-    - if RailsDrivers.loaded.include?(:service_scanning)
+    - if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
       - if @client.service_scanning_bed_nights_or_outreach?
         %h3 #{_('HMIS Blackout')} Bed Nights and Outreach
         %table.history__dates-table
