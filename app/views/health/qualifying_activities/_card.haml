@@ -27,7 +27,7 @@
         = yield "panel_collapse_heading_content_#{panel_id}"
     - if qa.claim_submitted_on.present?
       .text-success.mr-4
-        Submitted
+        = "Submitted #{qa.claim_submitted_on.to_date}"
     - if show_card
       %i.icon-arrow-circled-down.j-toggle-arrow
     - else
@@ -40,6 +40,11 @@
           %strong Client Reached:
         %td
           = qa.title_for_client_reached
+      %tr
+        %td
+          %strong Follow Up:
+        %td
+          = qa.follow_up
       - if qa.claim_submitted_on.present?
         %tr
           %td
@@ -56,11 +61,6 @@
         %td
           = qa.procedure_code
           = qa.modifiers.join('>')
-      %tr
-        %td
-          %strong Follow Up:
-        %td
-          = qa.follow_up
       - if qa.describe_validity_reasons.present?
         %tr
           %td
