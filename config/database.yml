@@ -105,10 +105,12 @@ other_db: &other_db
     database: <%= ENV['REPORTING_DATABASE_DB'] %>
     migrations_paths: db/reporting/migrate
 
+  <% if ENV['DATABASE_CAS_DB'].present? %>
   cas:
     <<: *default_cas_db
     database: <%= ENV.fetch("CAS_DATABASE_DB") { ENV['DATABASE_CAS_DB'] } %>
     migrations_paths: db/cas/migrate
+  <% end %>
 
 ssl: &ssl
   sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
