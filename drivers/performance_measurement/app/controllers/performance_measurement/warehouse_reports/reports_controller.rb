@@ -17,6 +17,7 @@ module PerformanceMeasurement::WarehouseReports
     before_action :set_pdf_export, only: [:show]
 
     def index
+      PerformanceMeasurement::Goal.ensure_default
       @reports = report_scope.ordered.
         page(params[:page]).per(25)
       @report = report_class.new(user_id: current_user.id)
