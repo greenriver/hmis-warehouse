@@ -5,7 +5,6 @@
 ###
 
 if ENV['DATABASE_CAS_DB'].present?
-
   class CasBase < ActiveRecord::Base
     self.abstract_class = true
 
@@ -23,12 +22,21 @@ if ENV['DATABASE_CAS_DB'].present?
   end
 
 else
-
   class CasBase
     def self.db_exists?
       false
     end
     class << self
+      def has_many(*) # rubocop:disable Naming/PredicateName
+        []
+      end
+
+      def has_one(*) # rubocop:disable Naming/PredicateName
+      end
+
+      def belongs_to(*)
+      end
+
       def respond_to_missing?(name, include_private)
       end
 
