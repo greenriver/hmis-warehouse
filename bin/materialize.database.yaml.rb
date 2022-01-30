@@ -3,8 +3,10 @@ require 'yaml'
 require 'dotenv'
 
 Dotenv.load('.env', '.env.local')
-
-template = ERB.new(File.read('config/database.yml'))
+yml = File.read('config/database.yml')
+puts yml.inspect
+template = ERB.new(yml)
+puts template.to_s
 result = YAML.load(template.result(binding))
 File.write('config/database.yml', result.to_yaml)
 
