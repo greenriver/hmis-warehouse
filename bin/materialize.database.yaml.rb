@@ -10,4 +10,4 @@ template = ERB.new(yml)
 result = YAML.load(template.result(binding))
 File.write('config/database.yml', result.to_yaml)
 
-puts result.to_yaml
+# puts result.to_yaml
