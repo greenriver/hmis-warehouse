@@ -39,6 +39,7 @@ default: &default
     password: <%= ENV['REPORTING_DATABASE_PASS'] %>
     username: <%= ENV['REPORTING_DATABASE_USER'] %>
     migrations_paths: db/reporting/migrate
+  <% if ENV['DATABASE_CAS_DB'].present? %>
   cas:
     <<: *default
     adapter: <%= ENV['DATABASE_ADAPTER'] %>
@@ -47,3 +48,4 @@ default: &default
     password: <%= ENV['DATABASE_PASS'] %>
     username: <%= ENV['DATABASE_USER'] %>
     migrations_paths: db/cas/migrate
+  <% end %>
