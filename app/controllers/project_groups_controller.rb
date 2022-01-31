@@ -7,7 +7,7 @@
 class ProjectGroupsController < ApplicationController
   before_action :require_can_edit_project_groups!
   before_action :require_can_import_project_groups!, only: [:maintenance, :import]
-  before_action :set_project_group, only: [:edit, :update]
+  before_action :set_project_group, only: [:edit, :update, :destroy]
   before_action :set_access, only: [:edit, :update]
 
   def index
@@ -55,6 +55,8 @@ class ProjectGroupsController < ApplicationController
   end
 
   def destroy
+    @project_group.destroy
+    respond_with(@project_group, location: project_groups_path)
   end
 
   def maintenance
@@ -108,5 +110,9 @@ class ProjectGroupsController < ApplicationController
     project_group_source.
       editable_by(current_user).
       includes(:projects).order(name: :asc)
+  end
+
+  def flash_interpolation_options
+    { resource_name: 'Project Group' }
   end
 end

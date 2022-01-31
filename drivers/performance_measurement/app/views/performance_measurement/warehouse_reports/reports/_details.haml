@@ -20,6 +20,19 @@
     .w-50= render 'warehouse_reports/indicator', indicator: result
     .w-50
       .c-chart--vertical-bar{ class: system_class_name, data: { chart: result.data_for_system_level_bar.to_json }}
+      - label = @report.detail_denominator_label_for(key)
+      - if label.present?
+        .d-flex.text-center.ml-4
+          .w-50
+            %strong= result.comparison_numerator
+            of
+            = label
+            %strong= result.comparison_denominator
+          .w-50
+            %strong= result.reporting_numerator
+            of
+            = label
+            %strong= result.reporting_denominator
   - if @report.detail_column_for(key) != :system
     = render 'performance_measurement/warehouse_reports/reports/projects', key: key, category: category
 

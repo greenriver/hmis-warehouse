@@ -52,13 +52,13 @@ module PublicReports
 
     def default_colors
       [
-        '#00c73c',
-        '#fa7171',
-        '#2ad0ff',
-        '#7294ce',
-        '#e3e448',
-        '#cc7e6e',
-        '#fb6ccf',
+        '#003d79',
+        '#6373a0',
+        '#7e5479',
+        '#bb6253',
+        '#1c7eab',
+        '#535353',
+        '#9dbb53',
         '#c98dff',
         '#4aea99',
         '#bbbbbb',

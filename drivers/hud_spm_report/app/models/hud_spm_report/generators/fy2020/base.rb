@@ -593,6 +593,8 @@ module HudSpmReport::Generators::Fy2020
       filter # force @filter to be set
       m7_stays = filter_for_user_access(m7_stays)
       m7_stays = filter_for_cocs(m7_stays)
+      project_ids = filter.effective_project_ids
+      m7_stays = m7_stays.joins(:project).where(p_t[:id].in(project_ids)) if project_ids.any?
 
       m7a1_exits = add_filters m7_exits.
         hud_project_type(SO).
@@ -1405,6 +1407,8 @@ module HudSpmReport::Generators::Fy2020
         joins(:project).hud_project_type(ES_SH_TH_PH_SO).
         where(last_date_in_program: lookback_range)
       filter # force @filter to be set
+      project_ids = filter.effective_project_ids
+      exits = exits.joins(:project).where(p_t[:id].in(project_ids)) if project_ids.any?
       exits = filter_for_user_access(exits)
       exits = filter_for_cocs(exits)
       exits

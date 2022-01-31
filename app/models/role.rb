@@ -863,6 +863,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_view_service_register_on_client: {
+        description: 'Grants the ability to view services from the service register for a given client.',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_manage_auto_client_de_duplication: {
         description: 'Ability to see statistics around client de-duplication and set the threshold for probabilistic matching.',
         administrative: true,

@@ -56,6 +56,10 @@ module GrdaWarehouse
       AccessGroup.delayed_system_group_maintenance(group: :project_groups)
     end
 
+    def any_contacts?
+      contacts.any? || organization_contacts.any?
+    end
+
     def self.import_csv(file)
       parsed = csv(file)
       original = parsed.dup

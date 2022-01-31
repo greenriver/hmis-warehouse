@@ -6,12 +6,16 @@ wb.add_worksheet(name: 'Att III') do |sheet|
     'Project Name',
     'Item',
     'Date of First Service',
+    'Report Start Date',
+    'Entry Started after Report Start',
     'Fort Worth Resident?',
     'Service Location',
     'Name',
     'Street Address',
     'Age',
     'Gender',
+    'Race',
+    'Ethnicity',
     'Hispanic/Latin(a)(o)(x)',
     'Non-Hispanic/Non-Latin(a)(o)(x)',
     'American Indian, Alaska Native, or Indigenous',
@@ -26,6 +30,8 @@ wb.add_worksheet(name: 'Att III') do |sheet|
     'HoH Monthly Income',
     'FHOH (Yes)',
     'FHOH (No)',
+    'Veteran in Household?',
+    'Disability in Household?',
   ]
   sheet.add_row(headers, style: title)
 
@@ -35,12 +41,16 @@ wb.add_worksheet(name: 'Att III') do |sheet|
       row[:project_name],
       index + 1,
       row[:service_date],
+      row[:report_start],
+      ('X' if row[:entry_after_start]),
       row[:fort_worth_resident],
       row[:service_location],
       row[:client_name],
       row[:street_address],
       row[:age],
       row[:genders],
+      row[:race_description],
+      HUD.ethnicity(row[:ethnicity]),
       ('X' if row[:ethnicity] == 1),
       ('X' if row[:ethnicity] == 0),
       ('X' if row[:races].include?('AmIndAKNative')),
@@ -55,6 +65,8 @@ wb.add_worksheet(name: 'Att III') do |sheet|
       row[:income],
       ('X' if row[:female_hoh]),
       ('X' unless row[:female_hoh]),
+      ('X' if row[:any_veterans]),
+      ('X' if row[:disability_in_household]),
     ]
     sheet.add_row(sheet_row)
   end

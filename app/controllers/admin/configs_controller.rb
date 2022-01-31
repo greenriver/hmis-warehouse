@@ -89,6 +89,7 @@ module Admin
         :ineligible_uses_extrapolated_days,
         :warehouse_client_name_order,
         :cas_calculator,
+        :service_register_visible,
         client_details: [],
       )
     end
