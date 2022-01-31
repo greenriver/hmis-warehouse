@@ -1,0 +1,5 @@
+- @data.each do |(o_id, org_name), projects|
+  %h4= org_name
+  %ul
+    - projects.each do |name, id, selected|
+      %li{value: id}= name
