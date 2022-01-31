@@ -399,7 +399,7 @@ module Health
 
       modifiers = []
       case activity.to_sym
-      when :cha
+      when :cha, :discharge_follow_up
         if [:phone_call, :video_call].include?(mode_of_contact.to_sym)
           contact_modifier = self.class.modes_of_contact[:in_person].try(:[], :code)
         else
