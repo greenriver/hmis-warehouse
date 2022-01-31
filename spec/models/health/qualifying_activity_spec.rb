@@ -318,4 +318,28 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       expect(qa.procedure_code).to eq 'T2024>U4'
     end
   end
+
+  describe 'CHA QA' do
+    let(:qa) { create :cha_qa }
+    let(:phone_qa) { create :cha_qa, mode_of_contact: :phone_call }
+
+    it 'has a valid procedure code' do
+      qa.maintain_cached_values
+
+      expect(qa.naturally_payable).to be true
+      expect(qa.procedure_valid?).to be true
+      expect(qa.procedure_code).to eq 'G0506'
+      expect(qa.modifiers).to contain_exactly('U1')
+    end
+
+    it 'marks phone_calls as in person' do
+      TodoOrDie('Remove MH COVID flexibility', by: '2023-01-01')
+      phone_qa.maintain_cached_values
+
+      expect(phone_qa.naturally_payable).to be true
+      expect(phone_qa.procedure_valid?).to be true
+      expect(phone_qa.modifiers).to contain_exactly('U1', 'U2')
+      # expect(phone_qa.modifiers).to contain_exactly('U1', 'U3')
+    end
+  end
 end

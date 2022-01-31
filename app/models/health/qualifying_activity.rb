@@ -395,11 +395,26 @@ module Health
     end
 
     def modifiers
+      TodoOrDie('Remove MH COVID flexibility', by: '2023-01-01')
+
       modifiers = []
+      case activity.to_sym
+      when :cha
+        if [:phone_call, :video_call].include?(mode_of_contact.to_sym)
+          contact_modifier = self.class.modes_of_contact[:in_person].try(:[], :code)
+        else
+          contact_modifier = self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+        end
+      else
+        contact_modifier = self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+      end
+
       # attach modifiers from activity
       modifiers << self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
-      modifiers << self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+
+      modifiers << contact_modifier
       modifiers << self.class.client_reached[reached_client&.to_sym].try(:[], :code)
+
       return modifiers.reject(&:blank?).compact
     end
 

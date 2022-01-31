@@ -59,4 +59,17 @@ FactoryBot.define do
     user
     patient
   end
+
+  factory :cha_qa, class: 'Health::QualifyingActivity' do
+    user_full_name { 'First Last' }
+    follow_up { 'X' }
+    date_of_activity { Date.current }
+    mode_of_contact { :other }
+    mode_of_contact_other { 'X' }
+    reached_client { :yes }
+    activity { :cha }
+    association :source, factory: :qa_source
+    user
+    patient
+  end
 end
