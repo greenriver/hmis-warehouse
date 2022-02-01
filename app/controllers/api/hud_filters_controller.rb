@@ -42,14 +42,7 @@ module Api
     end
 
     def filter_params
-      params.
-        permit(
-          data_source_ids: [],
-          organization_ids: [],
-          project_type_codes: [],
-          project_group_ids: [],
-          project_ids: [],
-        )
+      params.permit(::Filters::HudFilterBase.new(user_id: current_user.id).known_params)
     end
   end
 end
