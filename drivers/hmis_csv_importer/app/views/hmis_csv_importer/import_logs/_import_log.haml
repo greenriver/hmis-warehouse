@@ -85,6 +85,7 @@
           %th Rows Updated
           %th Rows Unchanged
           %th Validation Flags
+          %th Error Flags
           %th Errors
       %tbody
         - @import.importer_log.summary.with_indifferent_access.sort_by{|f,_| f}.each do |filename,v|
@@ -95,7 +96,18 @@
             %td= number_with_delimiter(v['removed'])
             %td= number_with_delimiter(v['updated'])
             %td= number_with_delimiter(v['unchanged'])
-            %td= link_to_if v['total_flags']&.positive? || v['total_flags'].blank?, number_with_delimiter(v['total_flags'] || '0'), hmis_csv_importer_importer_validation_path(@import.importer_log, file: File.basename(filename, '.csv'))
+            %td
+              - if v['total_flags']&.zero?
+                0
+              - else
+                - validations = @import.importer_log.import_validations_count(filename, @import.files)
+                = link_to_if validations.positive?, number_with_delimiter(validations), hmis_csv_importer_importer_validation_path(@import.importer_log, file: File.basename(filename, '.csv'))
+            %td
+              - if v['total_flags']&.zero?
+                0
+              - else
+                - errors = @import.importer_log.import_validation_errors_count(filename, @import.files)
+                = link_to_if errors.positive?, number_with_delimiter(errors), hmis_csv_importer_importer_validation_error_path(@import.importer_log, file: File.basename(filename, '.csv'))
 
             %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_importer_importer_error_path(@import.importer_log, file: File.basename(filename, '.csv'))
 
