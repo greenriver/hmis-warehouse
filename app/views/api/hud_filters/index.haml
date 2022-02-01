@@ -1,9 +1,10 @@
 - if @data.blank?
-  %h3 0 Projects Included
+  %h3 No Projects Included
 - else
   %h3 #{pluralize(@data.count, 'Project')} Included
-  - @data.each do |(o_id, org_name), projects|
-    %h4= org_name
-    %ul.list-unstyled
-      - projects.each do |name, id, selected|
-        %li{value: id}= name
+  .scroll-box
+    - @data.each do |(o_id, org_name), projects|
+      %h4= org_name
+      %ul.list-unstyled
+        - projects.each do |name, id, selected|
+          %li{value: id}= name
