@@ -13,6 +13,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   connect() {
     this.element['filterProjects'] = this // allow access to this controller from other controllers
     this.prepNativeEvents()
+    this.update()
   }
 
   update() {
@@ -20,20 +21,19 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       project_ids: $(this.projectsTarget).val(),
       data_source_ids: $(this.dataSourcesTarget).val(),
       project_group_ids: $(this.projectGroupsTarget).val(),
-      project_type_ids: $(this.projectTypesTarget).val(),
+      project_type_codes: $(this.projectTypesTarget).val(),
     }
+    $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
     $.ajax({
       url: '/api/hud_filters',
       type: 'POST',
       data: data,
     }).done((ret) => {
-      console.debug('success')
+      // console.debug('success')
       $(this.calculatedProjectsTarget).html(ret)
     }).fail((ret) => {
       console.error(['Failed to fetch project list', ret])
     })
-    console.log(this.projectsTarget, )
-    console.log('should fetch new list')
   }
 
   prepNativeEvents() {
@@ -43,14 +43,6 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       this.dataSourcesTarget,
       this.projectGroupsTarget,
     ].forEach(el => {
-      $(el).on('select2:select', (e) => {
-        let event = new Event('change', { bubbles: true }) // fire a native event
-        e.target.dispatchEvent(event);
-      });
-      $(el).on('select2:unselect', (e) => {
-        let event = new Event('change', { bubbles: true }) // fire a native event
-        e.target.dispatchEvent(event);
-      });
       $(el).on('select2:close', (e) => {
         let event = new Event('change', { bubbles: true }) // fire a native event
         e.target.dispatchEvent(event);

@@ -1,5 +1,10 @@
-- @data.each do |(o_id, org_name), projects|
-  %h4= org_name
-  %ul
-    - projects.each do |name, id, selected|
-      %li{value: id}= name
+- if @data.blank?
+  %p.none-found
+    No projects included.
+- else
+  .well
+    - @data.each do |(o_id, org_name), projects|
+      %h4= org_name
+      %ul.list-unstyled
+        - projects.each do |name, id, selected|
+          %li{value: id}= name
