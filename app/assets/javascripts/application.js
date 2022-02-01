@@ -94,6 +94,7 @@
 //= require affix
 //= require list_search
 //= require stimulus_select
+//= require filter_projects
 //= require TableWithToggleRows
 //= require role_table
 //= require documentExport.js
