@@ -80,6 +80,7 @@ module Health
       local_params = params.require(:form).permit(
         :signature_on,
         :reviewed_by_supervisor,
+        :verbal_approval,
         health_file_attributes: [
           :id,
           :file,

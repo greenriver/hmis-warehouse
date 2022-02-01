@@ -1,4 +1,4 @@
 - content_for :modal_title, 'Participation Form'
 
 .participation-form
-  = render 'form'
+  = render 'form', form_url: client_health_participation_form_path(client_id: @client.id, id: @participation_form.id)
