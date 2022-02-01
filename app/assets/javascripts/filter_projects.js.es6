@@ -25,6 +25,9 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     }
     $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
     $.ajax({
+      // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
+      // but if these complete out of order, the project list gets funky.
+      async: false,
       url: '/api/hud_filters',
       type: 'POST',
       data: data,
