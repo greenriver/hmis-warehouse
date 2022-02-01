@@ -33,6 +33,7 @@
             %td
               = link_to group.name, edit_project_group_path(group)
             %td
+              FIXME: group.filter.as_params
               - if group.projects.count <= 10
                 = group.projects.map(&:ProjectName).join(', ')
               - else

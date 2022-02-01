@@ -25,7 +25,7 @@ class ProjectGroupsController < ApplicationController
     @project_group = project_group_source.new
     begin
       @project_group.assign_attributes(name: group_params[:name])
-      @project_group.project_ids = group_params[:projects]
+      @project_group.options = Filters::FilterBase.new(user_id: current_user.id, project_type_codes: []).update(filter_params).to_h
       @project_group.save
       @project_group.update_access(user_params[:users].reject(&:empty?).map(&:to_i))
     rescue Exception => e
@@ -78,16 +78,19 @@ class ProjectGroupsController < ApplicationController
     params.require(:import).permit(:file)
   end
 
+  def filter_params
+    params.require(:filters).permit(Filters::FilterBase.new(user_id: current_user.id).known_params)
+  end
+
   def group_params
-    params.require(:grda_warehouse_project_group).
+    params.require(:filters).
       permit(
         :name,
-        projects: [],
       )
   end
 
   def user_params
-    params.require(:grda_warehouse_project_group).
+    params.require(:filters).
       permit(
         users: [],
       )

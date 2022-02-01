@@ -4,7 +4,7 @@
 %h1= title
 .row
   .col-6
-    = simple_form_for @project_group, url: project_group_path(@project_group) do |f|
+    = simple_form_for @project_group, as: :filters, url: project_group_path(@project_group) do |f|
       = render 'form', f: f
       .form-actions.d-flex
         - unless @group_ids.any?
@@ -44,7 +44,7 @@
               %td
                 = email
 .mt-6
-  - if @reports.any?
+  - if @reports&.any?
     %h3 Project Data Quality Reports
     .card
       %table.table.table-striped.mb-0

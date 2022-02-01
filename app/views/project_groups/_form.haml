@@ -2,5 +2,13 @@
 
 .form-inputs
   = f.input :name
-  = f.input :projects, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Choose Projects', data: {'collection-path' => api_projects_path(selected_project_ids: @project_group.project_ids)}}, include_blank: false
-  = f.input :users, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, placeholder: 'Please choose'},  label: 'Users and groups'
+  .row
+    .col-sm-6
+      = f.input :project_ids, collection: @project_group.filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects' },label: 'Projects'
+    .col-sm-6
+      = f.input :organization_ids, collection: @project_group.filter.organization_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Organizations' }, label: 'Organization'
+  .row
+    .col-sm-6
+      = f.input :project_type_codes, collection: @project_group.filter.available_residential_project_types, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two
+    .col-sm-6
+      = f.input :data_source_ids, collection: @project_group.filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources' }, label: 'Data Sources'

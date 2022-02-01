@@ -3,7 +3,7 @@
 = render 'breadcrumbs'
 %h1= title
 
-= simple_form_for @project_group, url: project_groups_path() do |f|
+= simple_form_for @project_group, as: :filters, url: project_groups_path() do |f|
   = render 'form', f: f
   .form-actions
   = f.button :submit, class: 'btn btn-primary', value: 'Create Project Group'

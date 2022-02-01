@@ -15140,7 +15140,8 @@ CREATE TABLE public.project_groups (
     name character varying NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    options jsonb DEFAULT '{}'::jsonb
 );
 
 
@@ -46622,6 +46623,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220126164546'),
 ('20220126182806'),
 ('20220127153246'),
-('20220127200317');
+('20220127200317'),
+('20220201213104');
 
 

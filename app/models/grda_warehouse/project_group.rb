@@ -14,6 +14,10 @@ module GrdaWarehouse
 
     after_create :maintain_system_group
 
+    # Add filter object, store as json
+    # back-fill existing into project_ids on filter and update project_groups
+    # expose filter on view
+    # FIXME: maintain in hourly process + aftercommit hook
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
 
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
@@ -56,6 +60,26 @@ module GrdaWarehouse
       AccessGroup.delayed_system_group_maintenance(group: :project_groups)
     end
 
+    def filter
+      @filter ||= ::Filters::FilterBase.new(user_id: User.setup_system_user.id, project_type_codes: []).update(options)
+    end
+
+    private def save_filter!
+      update(options: filter.to_h)
+    end
+
+    def maintain_projects!
+      self.projects = GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)
+    end
+
+    # NOTE: this should only be run during the initial conversion to filters, or it will explicitly
+    # set project_ids where it might make more sense to use higher level ids
+    def convert_to_filter!
+      project_ids = projects.pluck(:id)
+      filter.update({ project_ids: project_ids })
+      save_filter!
+    end
+
     def any_contacts?
       contacts.any? || organization_contacts.any?
     end
@@ -95,6 +119,8 @@ module GrdaWarehouse
         incoming_projects = rows.map { |row| [row['ProjectID'].to_s, row['data_source_id'].to_s] }
         project_ids = all_projects.select { |key, _id| incoming_projects.include?(key) }.values
         transaction do
+          group.update(options: group.filter.update({ project_ids: project_ids }).to_h)
+          # NOTE: maybe the next two lines should just call maintain_projects!
           group.projects.delete_all
           group.projects = GrdaWarehouse::Hud::Project.where(id: project_ids)
         end
@@ -127,6 +153,42 @@ module GrdaWarehouse
         'ProjectID',
         'data_source_id',
       ]
+    end
+
+    def project_ids
+      filter.project_ids
+    end
+
+    def project_ids=(ids)
+      filter.update(project_ids: ids)
+      save_filter!
+    end
+
+    def organization_ids
+      filter.organization_ids
+    end
+
+    def organization_ids=(ids)
+      filter.update(organization_ids: ids)
+      save_filter!
+    end
+
+    def project_type_codes
+      filter.project_type_codes
+    end
+
+    def project_type_codes=(ids)
+      filter.update(project_type_codes: ids)
+      save_filter!
+    end
+
+    def data_source_ids
+      filter.data_source_ids
+    end
+
+    def data_source_ids=(ids)
+      filter.update(data_source_ids: ids)
+      save_filter!
     end
   end
 end
