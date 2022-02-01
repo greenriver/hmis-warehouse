@@ -1,6 +1,6 @@
 <% if @release_form.errors.any? %>
-  $('.release-form').html "<%=j render 'form' %>"
+  $('.release-form').html "<%=j render 'form', form_url: client_health_release_forms_path(@client.id) %>"
 <% else %>
   $('#ajax-modal').modal('hide')
-  window.location.reload()
+  window.location.replace('<%= client_health_patient_index_path(@client) %>')
 <% end %>

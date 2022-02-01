@@ -1,4 +1,4 @@
-= simple_form_for @release_form, url: form_url, as: :form, remote: request.xhr?, html: {multipart: true} do |f|
+= simple_form_for @release_form, url: form_url, as: :form, remote: true, html: {multipart: true} do |f|
 
   = f.error_notification
 
@@ -16,13 +16,16 @@
         = link_to @blank_release_form_url, class: 'btn btn-secondary' do
           %i.icon-download2
           Blank Release Form
-  .row
-    .col-sm-6.j-file-upload
-      - if @release_form.errors.messages[:file_location].present?
-        .alert.alert-danger
-          = render 'upload_fields', f: f
-      - else
+
+  - highlights = ''
+  - if @release_form.errors.messages[:file_location].present?
+    - highlights = 'alert alert-danger'
+  %div{class: highlights}
+    .row
+      .col-sm-6.j-file-upload
         = render 'upload_fields', f: f
+      .col-sm-6.my-auto
+        = f.input :verbal_approval, label: 'Patient gave verbal approval'
 
   .row
     .col-sm-8
