@@ -26,8 +26,8 @@
         .col-sm-6
           = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Project Groups', data: { 'filter-projects-target' => 'projectGroups', action: 'change->filter-projects#update' }}, label: 'Project Groups'
     .col-md-4
-      %h3{data: { 'filter-projects-target' => 'header' }} Included Projects
       .filter__selected-projects.project-list{ data: { 'filter-projects-target' => 'calculatedProjects' }}
+        %h3{data: { 'filter-projects-target' => 'header' }} Included Projects
         .rollup
           %p.well.rollup-container
   %h2 Limits

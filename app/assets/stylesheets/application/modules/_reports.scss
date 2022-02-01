@@ -74,6 +74,9 @@
 }
 
 .filter__selected-projects {
-  max-height: 400px;
+  min-height: 200px;
+  max-height: 300px;
   overflow: auto;
+  border-left: 2px solid $brand-primary-l;
+  padding-left: 2em;
 }
