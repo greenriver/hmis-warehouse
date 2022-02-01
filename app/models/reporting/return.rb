@@ -60,7 +60,9 @@ module Reporting
       cache_client = GrdaWarehouse::Hud::Client.new
       client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_ids)
       client_ids.each_slice(1_000).with_index do |ids, i|
-        @notifier.ping("Return: Starting batch #{i + 1} in batches of 1,000, of #{client_ids.count} total clients")
+        # Only send notifications for every 25,000 or if we are on the last batch
+        send_ping = (i % 25).zero? || ids.count < 1_000
+        @notifier.ping("Return: Starting batch #{i + 1} in batches of 1,000, of #{client_ids.count} total clients") if send_ping
         batch_of_stays = []
         prior_day = nil
         day = nil
@@ -125,7 +127,7 @@ module Reporting
         transaction do
           self.class.where(client_id: ids).delete_all
           self.class.import(headers, batch_of_stays.map(&:values))
-          @notifier.ping("Return: Adding #{batch_of_stays.count} returns")
+          @notifier.ping("Return: Adding #{batch_of_stays.count} returns") if send_ping
         end
       end
     end
