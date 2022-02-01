@@ -1,7 +1,8 @@
 - if @data.blank?
   %h3 No Projects Included
 - else
-  %h3 #{pluralize(@data.count, 'Project')} Included
+  - project_count = @data.values.flatten(1).map(&:first).count
+  %h3 #{pluralize(project_count, 'Project')} Included
   .scroll-box
     - @data.each do |(o_id, org_name), projects|
       %h4= org_name
