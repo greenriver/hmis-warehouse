@@ -272,7 +272,7 @@ module GrdaWarehouse::Hud
         return { address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
       rescue StandardError
         setup_notifier('NominatimWarning')
-        @notifier.ping('Error contacting the OSM Nominatim API') if @send_notifications
+        @notifier.ping("Error contacting the OSM Nominatim API. Looking up #{address}") if @send_notifications
       end
       return nil
     end
