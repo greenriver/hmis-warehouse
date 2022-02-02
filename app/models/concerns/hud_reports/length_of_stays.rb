@@ -70,6 +70,32 @@ module HudReports::LengthOfStays
       (end_date - enrollment.first_date_in_program).to_i
     end
 
+    # Given the reporting period, how many distinct bed nights does the client have?
+    # For entry/exit this is span, for night by night, this is service days.
+    private def bed_nights(enrollment)
+      if enrollment.project_tracking_method == 3
+        end_date = [
+          enrollment.last_date_in_program.try(:-, 1.day), # Don't count a bed night that falls on the exit day
+          report_end_date + 1.day,
+        ].compact.min
+
+        enrollment.
+          service_history_services.
+          service_between(start_date: enrollment.first_date_in_program, end_date: end_date).
+          where(service_type: 200).
+          select(:date).
+          distinct.
+          count
+      else
+        end_date = [
+          enrollment.last_date_in_program,
+          report_end_date + 1.day,
+        ].compact.min
+
+        (end_date - enrollment.first_date_in_program).to_i
+      end
+    end
+
     private def time_to_move_in(enrollment)
       move_in_date = appropriate_move_in_date(enrollment)
       return nil unless move_in_date.present?
@@ -104,23 +130,23 @@ module HudReports::LengthOfStays
 
     private def lengths
       {
-        '0 to 7 days' => a_t[:length_of_stay].between(0..7),
-        '8 to 14 days' => a_t[:length_of_stay].between(8..14),
-        '15 to 21 days' => a_t[:length_of_stay].between(15..21),
-        '22 to 30 days' => a_t[:length_of_stay].between(22..30),
-        '30 days or less' => a_t[:length_of_stay].lteq(30),
-        '31 to 60 days' => a_t[:length_of_stay].between(31..60),
-        '61 to 90 days' => a_t[:length_of_stay].between(61..90),
-        '61 to 180 days' => a_t[:length_of_stay].between(61..180),
-        '91 to 180 days' => a_t[:length_of_stay].between(91..180),
-        '181 to 365 days' => a_t[:length_of_stay].between(181..365),
-        '366 to 730 days (1-2 Yrs)' => a_t[:length_of_stay].between(366..730),
-        '731 to 1,095 days (2-3 Yrs)' => a_t[:length_of_stay].between(731..1_095),
-        '731 days or more' => a_t[:length_of_stay].gteq(731),
-        '1,096 to 1,460 days (3-4 Yrs)' => a_t[:length_of_stay].between(1_096..1_460),
-        '1,461 to 1,825 days (4-5 Yrs)' => a_t[:length_of_stay].between(1_461..1_825),
-        'More than 1,825 days (> 5 Yrs)' => a_t[:length_of_stay].gteq(1_825),
-        'Data Not Collected' => a_t[:length_of_stay].eq(nil),
+        '0 to 7 days' => a_t[:bed_nights].between(0..7),
+        '8 to 14 days' => a_t[:bed_nights].between(8..14),
+        '15 to 21 days' => a_t[:bed_nights].between(15..21),
+        '22 to 30 days' => a_t[:bed_nights].between(22..30),
+        '30 days or less' => a_t[:bed_nights].lteq(30),
+        '31 to 60 days' => a_t[:bed_nights].between(31..60),
+        '61 to 90 days' => a_t[:bed_nights].between(61..90),
+        '61 to 180 days' => a_t[:bed_nights].between(61..180),
+        '91 to 180 days' => a_t[:bed_nights].between(91..180),
+        '181 to 365 days' => a_t[:bed_nights].between(181..365),
+        '366 to 730 days (1-2 Yrs)' => a_t[:bed_nights].between(366..730),
+        '731 to 1,095 days (2-3 Yrs)' => a_t[:bed_nights].between(731..1_095),
+        '731 days or more' => a_t[:bed_nights].gteq(731),
+        '1,096 to 1,460 days (3-4 Yrs)' => a_t[:bed_nights].between(1_096..1_460),
+        '1,461 to 1,825 days (4-5 Yrs)' => a_t[:bed_nights].between(1_461..1_825),
+        'More than 1,825 days (> 5 Yrs)' => a_t[:bed_nights].gteq(1_825),
+        'Data Not Collected' => a_t[:bed_nights].eq(nil),
         'Total' => Arel.sql('1=1'),
       }.freeze
     end

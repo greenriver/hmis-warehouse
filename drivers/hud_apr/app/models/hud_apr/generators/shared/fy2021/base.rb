@@ -192,6 +192,7 @@ module HudApr::Generators::Shared::Fy2021
             last_date_in_program: last_service_history_enrollment.last_date_in_program,
             last_name: source_client.LastName,
             length_of_stay: stay_length(last_service_history_enrollment),
+            bed_nights: bed_nights(last_service_history_enrollment),
             mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
