@@ -26,18 +26,31 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
     where.not(id: consent_active.select(:id))
   end
 
+  NominatimApiPaused = Class.new(StandardError)
+
   def address_lat_lon
-    return nil unless last_permanent_zip.present?
+    address = last_permanent_zip
+    return unless address.present?
 
     begin
-      result = Rails.cache.fetch(['Nominatim', last_permanent_zip.to_s], expires_in: 6.weeks) do
+      result = Rails.cache.fetch(['Nominatim', address.to_s], expires_in: 6.weeks) do
+        raise(NominatimApiPaused, 'Nominatim Paused') if Rails.cache.read(['Nominatim', 'API PAUSE'])
+
         sleep(0.75)
-        Nominatim.search(last_permanent_zip).country_codes('us').first
+        begin
+          Nominatim.search(address).country_codes('us').first
+        rescue Faraday::ConnectionFailed
+          # we've probably been banned, let the API cool off
+          Rails.cache.write(['Nominatim', 'API PAUSE'], true, expires_in: 1.hours)
+          raise(NominatimApiPaused, 'Nominatim Paused')
+        end
       end
-      return { address: last_permanent_zip, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
+      return { address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
+    rescue NominatimApiPaused
+      # Ignore errors if we are paused
     rescue StandardError
       setup_notifier('NominatimWarning')
-      @notifier.ping("Error contacting the OSM Nominatim API. Looking up zip for hmis_client #{id}") if @send_notifications
+      @notifier.ping("Error contacting the OSM Nominatim API. Looking address for enrollment id: #{id}") if @send_notifications
     end
     return nil
   end

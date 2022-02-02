@@ -266,13 +266,27 @@ module GrdaWarehouse::Hud
       end
     end
 
+    NominatimApiPaused = Class.new(StandardError)
+
     def address_lat_lon
+      return unless address.present?
+
       begin
         result = Rails.cache.fetch(['Nominatim', address.to_s], expires_in: 6.weeks) do
+          raise(NominatimApiPaused, 'Nominatim Paused') if Rails.cache.read(['Nominatim', 'API PAUSE'])
+
           sleep(0.75)
-          Nominatim.search(address).country_codes('us').first
+          begin
+            Nominatim.search(address).country_codes('us').first
+          rescue Faraday::ConnectionFailed
+            # we've probably been banned, let the API cool off
+            Rails.cache.write(['Nominatim', 'API PAUSE'], true, expires_in: 1.hours)
+            raise(NominatimApiPaused, 'Nominatim Paused')
+          end
         end
         return { address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
+      rescue NominatimApiPaused
+        # Ignore errors if we are paused
       rescue StandardError
         setup_notifier('NominatimWarning')
         @notifier.ping("Error contacting the OSM Nominatim API. Looking address for enrollment id: #{id}") if @send_notifications
