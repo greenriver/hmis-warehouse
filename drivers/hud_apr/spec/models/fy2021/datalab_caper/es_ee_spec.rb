@@ -344,12 +344,6 @@ RSpec.describe 'Datalab 2021 CAPER - Entry-Exit ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_ee',
       question: 'Q26b',
-      skip: [ # Pending AAQ
-        'B3',
-        'C3',
-        'B5',
-        'C5',
-      ],
     )
   end
 end
