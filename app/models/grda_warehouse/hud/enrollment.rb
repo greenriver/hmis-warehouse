@@ -268,11 +268,14 @@ module GrdaWarehouse::Hud
 
     def address_lat_lon
       begin
-        result = Nominatim.search(address).country_codes('us').first
+        result = Rails.cache.fetch(['Nominatim', address.to_s], expires_in: 6.weeks) do
+          sleep(0.75)
+          Nominatim.search(address).country_codes('us').first
+        end
         return { address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
       rescue StandardError
         setup_notifier('NominatimWarning')
-        @notifier.ping("Error contacting the OSM Nominatim API. Looking up #{address}") if @send_notifications
+        @notifier.ping("Error contacting the OSM Nominatim API. Looking address for enrollment id: #{id}") if @send_notifications
       end
       return nil
     end

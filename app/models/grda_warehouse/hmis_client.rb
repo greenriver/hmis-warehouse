@@ -18,7 +18,7 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   scope :consent_active, -> do
     where(
       arel_table[:consent_confirmed_on].lteq(Date.current).
-      and(arel_table[:consent_expires_on].gteq(Date.current))
+      and(arel_table[:consent_expires_on].gteq(Date.current)),
     )
   end
 
@@ -28,14 +28,16 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
 
   def address_lat_lon
     return nil unless last_permanent_zip.present?
+
     begin
-      result = Nominatim.search(last_permanent_zip).country_codes('us').first
-      if result.present?
-        return {address: last_permanent_zip, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox}
+      result = Rails.cache.fetch(['Nominatim', last_permanent_zip.to_s], expires_in: 6.weeks) do
+        sleep(0.75)
+        Nominatim.search(last_permanent_zip).country_codes('us').first
       end
-    rescue
+      return { address: last_permanent_zip, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
+    rescue StandardError
       setup_notifier('NominatimWarning')
-      @notifier.ping("Error contacting the OSM Nominatim API. Looking up #{last_permanent_zip}") if @send_notifications
+      @notifier.ping("Error contacting the OSM Nominatim API. Looking up zip for hmis_client #{id}") if @send_notifications
     end
     return nil
   end
@@ -46,9 +48,10 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
 
   def self.maintain_client_consent
     return unless GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
+
     GrdaWarehouse::Hud::Client.revoke_expired_consent
     # all active consent gets a full release
-    self.consent_active.preload(:destination_client).find_each(&:maintain_client_consent)
+    consent_active.preload(:destination_client).find_each(&:maintain_client_consent)
   end
 
   def maintain_client_consent
@@ -76,8 +79,8 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
       [m['ID'], m['Text']]
     end.to_h
 
-    self.where(sexual_orientation: nil).find_each do |hmis_client|
-      value = JSON.parse(hmis_client.response).try(:[], 'CustomDemoData')&.select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+    where(sexual_orientation: nil).find_each do |hmis_client|
+      value = JSON.parse(hmis_client.response).try(:[], 'CustomDemoData')&.select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
       hmis_client.update(sexual_orientation: options[value.to_i])
     end
   end
