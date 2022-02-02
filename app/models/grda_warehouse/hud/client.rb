@@ -2065,7 +2065,7 @@ module GrdaWarehouse::Hud
     def previous_permanent_locations_for_display(user)
       labels = ('A'..'Z').to_a
       seen_addresses = {}
-      addresses_from_enrollments = source_enrollments.visible_to(user).
+      addresses_from_enrollments = source_enrollments.visible_to(user, client_ids: source_client_ids).
         any_address.
         order(EntryDate: :desc).
         preload(:client).map do |enrollment|

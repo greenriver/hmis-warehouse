@@ -10,7 +10,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
     included do
       scope :visible_to, ->(user, client_ids: nil) do
-        GrdaWarehouse::Config.arbiter_class.new.enrollments_visible_to(user, client_ids: client_ids)
+        merge(GrdaWarehouse::Config.arbiter_class.new.enrollments_visible_to(user, client_ids: client_ids))
       end
     end
   end
