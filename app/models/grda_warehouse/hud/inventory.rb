@@ -95,7 +95,7 @@ module GrdaWarehouse::Hud
               obj, meth = attr.split('.')
               i.send(obj).send(meth)
             # These items are numeric and should not be null, assume 0 if empty
-            elsif ['HMISParticipatingBeds', 'BedInventory', 'UnitInventory'].include? attr
+            elsif ['BedInventory', 'UnitInventory'].include? attr
               i.send(attr).presence || 0
             elsif attr == 'CoCCode' && i.coc_code_override.present?
               i.coc_code_override

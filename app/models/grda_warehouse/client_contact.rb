@@ -10,7 +10,7 @@ module GrdaWarehouse
     belongs_to :source, polymorphic: true
 
     scope :shelter_agency_contacts, -> do
-      where(contact_type: 'Shelter Worker')
+      where(contact_type: ['Shelter Worker', 'Housing Navigator'])
     end
 
     scope :case_managers, -> do
