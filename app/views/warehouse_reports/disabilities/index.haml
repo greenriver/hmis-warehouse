@@ -1,27 +1,24 @@
 - title = 'Enrolled Clients with Disabilities'
 - content_for :title, title
-%h1
-  = title
-  %br
-  %small
-    Clients who are currently enrolled in a project in the selected project types who have provided an affirmative answer to the selected disability types.
-%hr
+%h1= title
+%p Clients who are currently enrolled in a project in the selected project types who have provided an affirmative answer to the selected disability types.
 
 = render '/warehouse_reports/breadcrumbs', tab: 'operational'
 
 = render 'filter'
 
 .warehouse-reports__disabled
-  %table.table.table-hover
-    %thead
-      %tr
-        %th Run At
-        %th Report Link
-        %th Report Options
-        %th Limited?
-        %th Run By
-        %th Delete
-    %tbody.report-listing
-      = render 'reports'
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Run At
+          %th Report Link
+          %th Report Options
+          %th Limited?
+          %th Run By
+          %th Delete
+      %tbody.report-listing
+        = render 'reports'
 
 = link_to 'Refresh', running_warehouse_reports_disabilities_path, class: 'jReportBlock', remote: true, style: 'display:none', :'data-poll-every' => 30.seconds
