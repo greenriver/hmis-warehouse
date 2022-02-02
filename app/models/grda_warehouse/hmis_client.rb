@@ -35,7 +35,7 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
       end
     rescue
       setup_notifier('NominatimWarning')
-      @notifier.ping("Error contacting the OSM Nominatim API") if @send_notifications
+      @notifier.ping("Error contacting the OSM Nominatim API. Looking up #{last_permanent_zip}") if @send_notifications
     end
     return nil
   end
