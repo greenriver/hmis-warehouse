@@ -4,12 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
 # Classify members based on their medical/rx claim history
 class ClaimsReporting::MemberDiagnosisClassification < HealthBase
   def self.classify(roster: ClaimsReporting::MemberRoster.all)
