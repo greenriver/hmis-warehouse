@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require_relative './confidential_setup'
 require_relative './confidential_tests'

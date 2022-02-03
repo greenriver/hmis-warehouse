@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 BostonHmis::Application.routes.draw do
   resources :clients, only: [:index, :show, :new], controller: 'client_access_control/clients' do
     member do

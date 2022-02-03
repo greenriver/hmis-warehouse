@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module ElapsedTimeHelper
   def elapsed_time(total_seconds, decimal_places: 0)
     return unless total_seconds

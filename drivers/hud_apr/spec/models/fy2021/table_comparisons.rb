@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 COLUMN_LABELS = ('A'..'Z').to_a.freeze
 
 def goals(file_path:, question:)

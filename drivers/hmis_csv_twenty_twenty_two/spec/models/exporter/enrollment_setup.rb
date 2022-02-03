@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.shared_context '2022 enrollment setup', shared_context: :metadata do
   let!(:enrollments) { create_list :hud_enrollment, 5, data_source_id: data_source.id, EntryDate: 2.weeks.ago }
   let!(:clients) { create_list :hud_client, 5, data_source_id: data_source.id }

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 class BackgroundRender::CoreDemographicsReportJob < BackgroundRenderJob
 
   def render_html(partial:, filters:, user_id:)

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 class BackgroundRenderJob < BaseJob
   include CableReady::Broadcaster
   queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)

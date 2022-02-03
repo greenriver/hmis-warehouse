@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.shared_context '2022 coc code override tests', shared_context: :metadata do
   describe 'When exporting enrollment related item' do
     before(:all) do

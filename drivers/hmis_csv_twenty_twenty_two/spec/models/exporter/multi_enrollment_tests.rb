@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
   def involved_projects
     GrdaWarehouse::Hud::Project.where(id: involved_project_ids)
