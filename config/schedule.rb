@@ -30,11 +30,11 @@ export_schedule = if ENV['DAILY_EXPORT_SCHEDULE'].nil? || ENV['DAILY_EXPORT_SCHE
 file_cleaning_schedule = (Time.parse(daily_schedule) - 5.minutes).strftime('%I:%M %P')
 import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:%M %P')
 census_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
-database_backup_time = Time.parse(import_schedule) - 3.hours
+# database_backup_time = Time.parse(import_schedule) - 3.hours
 
 health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
 backup_glacier_trigger = ENV['GLACIER_NEEDS_BACKUP'] == 'true'
-glacier_files_backup_trigger = backup_glacier_trigger && ENV['GLACIER_FILESYSTEM_BACKUP'] == 'true'
+# glacier_files_backup_trigger = backup_glacier_trigger && ENV['GLACIER_FILESYSTEM_BACKUP'] == 'true'
 tasks = [
   {
     task: 'grda_warehouse:daily',
@@ -137,20 +137,20 @@ tasks = [
     trigger: health_trigger,
     interruptable: true,
   },
-  {
-    task: 'glacier:backup:database',
-    frequency: 1.month,
-    at: database_backup_time,
-    trigger: backup_glacier_trigger,
-    interruptable: false,
-  },
-  {
-    task: 'glacier:backup:files',
-    frequency: 1.month,
-    at: database_backup_time - 1.hours,
-    trigger: glacier_files_backup_trigger,
-    interruptable: false,
-  },
+  # {
+  #   task: 'glacier:backup:database',
+  #   frequency: 1.month,
+  #   at: database_backup_time,
+  #   trigger: backup_glacier_trigger,
+  #   interruptable: false,
+  # },
+  # {
+  #   task: 'glacier:backup:files',
+  #   frequency: 1.month,
+  #   at: database_backup_time - 1.hours,
+  #   trigger: glacier_files_backup_trigger,
+  #   interruptable: false,
+  # },
 ]
 
 job_type :rake_spot, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:spot'
