@@ -20,7 +20,7 @@ class SqlServerBase < ActiveRecord::Base
   # disconnect! complains if there's no host, oddly.
   if rds.host.present?
     # Only need to disconnect after the first connection
-    if @did_connect
+    if @did_connect && ! rds.static_rds?
       begin
         Timeout.timeout(15) do
           connection.disconnect!
