@@ -14,10 +14,6 @@ module GrdaWarehouse
 
     after_create :maintain_system_group
 
-    # Add filter object, store as json
-    # back-fill existing into project_ids on filter and update project_groups
-    # expose filter on view
-    # FIXME: maintain in hourly process + aftercommit hook
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
 
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
@@ -52,6 +48,17 @@ module GrdaWarehouse
         )
     end
 
+    # This is called in the Hourly scheduled task
+    # It will attempt to upgrade any un-upgraded project groups to the
+    # filter version and then will ensure project lists align with
+    # any recent changes (new projects being added that fall within the filter scope)
+    def self.maintain_project_lists!
+      find_each do |group|
+        group.convert_to_filter!
+        group.maintain_projects!
+      end
+    end
+
     def self.options_for_select(user:)
       viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end
@@ -61,7 +68,18 @@ module GrdaWarehouse
     end
 
     def filter
-      @filter ||= ::Filters::FilterBase.new(user_id: User.setup_system_user.id, project_type_codes: []).update(options)
+      @filter ||= ::Filters::HudFilterBase.new(user_id: User.setup_system_user.id).update(options)
+    end
+
+    # NOTE: we only care about Data Sources, Organizations, Projects, and Project Types
+    def describe_filter_as_html
+      keys = [
+        :project_type_numbers,
+        :project_ids,
+        :organization_ids,
+        :data_source_ids,
+      ]
+      filter.describe_filter_as_html(keys)
     end
 
     private def save_filter!
@@ -75,6 +93,8 @@ module GrdaWarehouse
     # NOTE: this should only be run during the initial conversion to filters, or it will explicitly
     # set project_ids where it might make more sense to use higher level ids
     def convert_to_filter!
+      return unless options == {}
+
       project_ids = projects.pluck(:id)
       filter.update({ project_ids: project_ids })
       save_filter!
@@ -173,12 +193,12 @@ module GrdaWarehouse
       save_filter!
     end
 
-    def project_type_codes
-      filter.project_type_codes
+    def project_type_numbers
+      filter.project_type_numbers
     end
 
-    def project_type_codes=(ids)
-      filter.update(project_type_codes: ids)
+    def project_type_numbers=(ids)
+      filter.update(project_type_numbers: ids)
       save_filter!
     end
 

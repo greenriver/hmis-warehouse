@@ -673,8 +673,8 @@ module Filters
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
-    def describe_filter_as_html
-      describe_filter.uniq.map do |(k, v)|
+    def describe_filter_as_html(keys = nil)
+      describe_filter(keys).uniq.map do |(k, v)|
         content_tag(:div, class: 'report-parameters__parameter') do
           label = content_tag(:label, k, class: 'label label-default parameter-label')
           if v.is_a?(Array)
@@ -688,9 +688,11 @@ module Filters
       end.join.html_safe
     end
 
-    def describe_filter
+    def describe_filter(keys = nil)
       [].tap do |descriptions|
         for_params[:filters].each_key do |key|
+          next if keys.present? && ! keys.include?(key)
+
           descriptions << describe(key)
         end
       end.compact

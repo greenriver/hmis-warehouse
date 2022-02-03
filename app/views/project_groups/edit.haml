@@ -19,17 +19,18 @@
       .well
         %dl
           %dt Project Types
-          %dd= @project_group.projects.map(&:human_readable_project_type).uniq.join(', ')
+          %dd.mb-4= @project_group.projects.map(&:human_readable_project_type).uniq.join(', ')
           %dt PIT Count
-          %dd= @project_group.projects.map(&:PITCount).compact.sum
+          %dd.mb-4= @project_group.projects.map(&:PITCount).compact.sum
           %dt Project Count
-          %dd= @project_group.projects.count
+          %dd.mb-4= @project_group.projects.count
           %dt Projects
           %dd= @project_group.projects.map(&:ProjectName).join(', ')
 
 - if @project_group.any_contacts?
   .mt-6
     %h3 Contacts
+    %p Contacts are inherited from included projects.
     .card
       %table.table.table-striped.mb-0
         %thead

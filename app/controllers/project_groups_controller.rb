@@ -25,9 +25,11 @@ class ProjectGroupsController < ApplicationController
     @project_group = project_group_source.new
     begin
       @project_group.assign_attributes(name: group_params[:name])
-      @project_group.options = Filters::FilterBase.new(user_id: current_user.id, project_type_codes: []).update(filter_params).to_h
+      @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
       @project_group.save
-      @project_group.update_access(user_params[:users].reject(&:empty?).map(&:to_i))
+      users = user_params[:users]&.reject(&:empty?)
+      @project_group.update_access(users.map(&:to_i)) if users.present?
+      @project_group.maintain_projects!
     rescue Exception => e
       flash[:error] = e.message
       render action: :new
@@ -43,9 +45,11 @@ class ProjectGroupsController < ApplicationController
   def update
     begin
       @project_group.assign_attributes(name: group_params[:name])
-      @project_group.project_ids = group_params[:projects]
+      @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
       @project_group.save
-      @project_group.update_access(user_params[:users].reject(&:empty?).map(&:to_i))
+      users = user_params[:users]&.reject(&:empty?)
+      @project_group.update_access(users.map(&:to_i)) if users.present?
+      @project_group.maintain_projects!
     rescue Exception => e
       flash[:error] = e.message
       render action: :edit
@@ -79,7 +83,7 @@ class ProjectGroupsController < ApplicationController
   end
 
   def filter_params
-    params.require(:filters).permit(Filters::FilterBase.new(user_id: current_user.id).known_params)
+    params.require(:filters).permit(::Filters::HudFilterBase.new(user_id: current_user.id).known_params)
   end
 
   def group_params
