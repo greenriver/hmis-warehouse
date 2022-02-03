@@ -21,7 +21,7 @@ module GrdaWarehouse
       # begin
         GrdaWarehouse::CohortClient.transaction do
           @destination_clients.each do |client|
-            client.update_attributes(@to_copy_clients[client.client_id])
+            client.update(@to_copy_clients[client.client_id])
             if copy_notes?
               original_cohort_client_id = @to_copy_cohort.cohort_clients.where(client_id: client.client_id).select(:id)
               notes = GrdaWarehouse::CohortClientNote.where(cohort_client_id: original_cohort_client_id)

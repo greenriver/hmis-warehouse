@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~>5.2.6'
+gem 'rails', '~> 6.1'
 gem 'rails_drivers'
 
 # bundle exec rake doc:rails generates the API under doc/api.
@@ -10,18 +10,13 @@ gem 'nokogiri', '>= 1.11.0.rc4' # >= 1.11.0.rc4 due to CVE-2020-26247
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-# gem 'composite_primary_keys', '~> 11'
-gem 'composite_primary_keys', '=11.3.1' #branch: 'active-record-5.2.4-compatability'
+gem 'composite_primary_keys', '=13.0.0'
 gem 'pg'
-# version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'order_as_specified'
 
-# locking active record extended here temporarily since upgrading it to 2.0.0 gives
-# NoMethodError: undefined method `relation' for "DATE_TRUNC('month', date_of_activity)":Arel::Nodes::SqlLiteral
-# on .count for active record queries of Arel
-gem 'active_record_extended', '~> 1.4.0'
+gem 'active_record_extended'
 gem 'active_median'
 
 # style-inliner https://github.com/premailer/premailer
@@ -56,9 +51,14 @@ gem 'encryptor'
 # File processing
 gem 'carrierwave', '~> 1'
 gem 'carrierwave-i18n'
-gem 'carrierwave-aws'
+
+# version 1.5 has the fix we need when we ever go to 1.5
+#gem 'carrierwave-aws', '~> 1.4'
+gem 'carrierwave-aws', git: "https://github.com/greenriver/carrierwave-aws.git", branch: "gr-1.4.0-without-deprecations"
+
 gem 'ruby-filemagic'
 gem 'mini_magick'
+gem 'mimemagic'
 # there are no obvious breaking changes but
 # since there are no tests for this
 # it should be tested manually
@@ -74,8 +74,9 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 
+gem 'omniauth', '~> 1.9.1'
 gem 'omniauth-oauth2'
-gem 'omniauth-rails_csrf_protection'
+gem 'omniauth-rails_csrf_protection', '~> 0.1'
 
 gem 'pretender'
 gem 'rqrcode-rails3'
@@ -83,6 +84,7 @@ gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
 
 gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
+gem 'geocoder'
 
 gem 'paper_trail'
 gem 'validate_url'
@@ -96,8 +98,7 @@ gem 'logstop'
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
 gem 'delayed_job'
-#locking temporarily to protect the delayed job monkey patch
-gem 'delayed_job_active_record'#, '4.1.4'
+gem 'delayed_job_active_record'
 gem 'uglifier'
 gem 'daemons'
 
@@ -161,7 +162,7 @@ gem 'puma', '~> 4.3.9'
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
-gem 'redis-rails'
+gem 'redis-actionpack'
 
 # AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'
@@ -210,7 +211,7 @@ group :development, :test do
   gem 'byebug'
   gem 'pry-rails'
   gem 'bundler-audit', require: false
-  gem 'brakeman', require: false
+  gem 'brakeman', '~> 5.0.4', require: false
   gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
   gem 'guard-rspec', require: false
@@ -259,7 +260,6 @@ group :test do
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
-  gem 'after_commit_exception_notification'
   gem 'rails-controller-testing'
   # gem 'simplecov'
   # gem 'simplecov-console'

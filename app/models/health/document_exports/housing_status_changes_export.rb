@@ -32,8 +32,17 @@ module Health::DocumentExports
     def perform
       with_status_progression do
         template_file = 'warehouse_reports/health/housing_status_changes/index_pdf'
+        layout = 'layouts/healthcare_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/healthcare_report'),
+          html: html,
           file_name: "Housing Status Changes #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -49,17 +58,8 @@ module Health::DocumentExports
       WarehouseReport::Health::HousingStatusChanges
     end
 
-    protected def view
-      context = WarehouseReports::Health::HousingStatusChangesController.view_paths
-      view = HousingStatusChangesExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class HousingStatusChangesExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        false
-      end
+    private def controller_class
+      WarehouseReports::Health::HousingStatusChangesController
     end
   end
 end

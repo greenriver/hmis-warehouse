@@ -130,7 +130,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :with_housing_status, -> do
-    where.not(housing_status: [nil, ''], collected_at: nil)
+    where.not(housing_status: [nil, '']).where.not(collected_at: nil)
   end
 
   scope :within_range, -> (range) do

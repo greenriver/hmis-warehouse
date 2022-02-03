@@ -147,7 +147,7 @@ module GrdaWarehouse
     end
 
     def housed_scope
-      @client_search_scope.where.not(housed_date: nil, destination: [nil, ''])
+      @client_search_scope.where.not(housed_date: nil).where.not(destination: [nil, ''])
     end
 
     # should we show the inactive option for the last `client_search`

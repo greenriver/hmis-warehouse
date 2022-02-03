@@ -35,7 +35,7 @@ module HealthTeamMember
 
   def update
     @member = Health::Team::Member.find(params[:id])
-    @member.update_attributes(team_member_params)
+    @member.update(team_member_params)
     respond_with(@member, location: after_path) unless request.xhr?
   end
 

@@ -14,7 +14,7 @@ module HudPathReport::DocumentExports
     end
 
     private def controller_class
-      HudApr::PathsController
+      HudPathReport::PathsController
     end
 
     private def possible_generator_classes
