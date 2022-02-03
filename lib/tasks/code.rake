@@ -8,7 +8,7 @@ namespace :code do
       add_copyright_to_file(path)
     end
 
-    puts "Modified #{@modified} #{'record'.pluralize()}"
+    puts "Modified #{@modified} #{'record'.pluralize(@modified)}"
   end
 
   def current_text
