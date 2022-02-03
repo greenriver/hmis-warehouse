@@ -1,10 +1,10 @@
+# frozen_string_literal: true
 ###
 # Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
 require 'memoist'
 
 # Calculator for various Quality Measures in the MassHealth Community Partners (CP) Program
