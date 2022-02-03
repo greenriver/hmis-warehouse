@@ -8,6 +8,8 @@ class TestJob < BaseJob
   SLEEP_TIME = 5
 
   def perform(length_in_seconds: 10, memory_bloat_per_second: 10_000_000)
+    setup_notifier('TestJob')
+    @notifier.ping('Testing!') if @send_notifications
     a = Time.now
 
     bloater = {}

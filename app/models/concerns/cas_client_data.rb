@@ -69,6 +69,28 @@ module CasClientData
       }
     end
 
+    # NOTE: these should be kept in-sync with the attr_accessors at the bottom
+    def self.ignored_for_batch_maintenance
+      [
+        :majority_sheltered,
+        :tie_breaker_date,
+        :financial_assistance_end_date,
+        :strengths,
+        :challenges,
+        :foster_care,
+        :open_case,
+        :housing_for_formerly_homeless,
+        :hivaids_status,
+        :drug_test,
+        :heavy_drug_use,
+        :sober,
+        :willing_case_management,
+        :employed_three_months,
+        :living_wage,
+        :housing_release_status,
+      ]
+    end
+
     def self.manual_cas_columns
       cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override, :health_prioritized, :tie_breaker_date).
         keys

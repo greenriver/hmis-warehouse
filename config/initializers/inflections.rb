@@ -1,5 +1,3 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
-
 # Be sure to restart your server when you modify this file.
 
 # Add new inflection rules using the following format. Inflections
@@ -25,5 +23,4 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym 'CoC'
   inflect.acronym 'DHCD'
   inflect.acronym 'LGBTQ'
-  # inflect.acronym 'ACO'
 end

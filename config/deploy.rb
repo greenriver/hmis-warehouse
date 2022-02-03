@@ -155,21 +155,21 @@ namespace :deploy do
   after :migrating, :warehouse_migrations do
     on roles(:db)  do
       within release_path do
-        execute :rake, "warehouse:db:migrate RAILS_ENV=#{fetch(:rails_env)}"
+        execute :rake, "db:migrate:warehouse RAILS_ENV=#{fetch(:rails_env)}"
       end
     end
   end
   after :migrating, :health_migrations do
     on roles(:db)  do
       within release_path do
-        execute :rake, "health:db:migrate RAILS_ENV=#{fetch(:rails_env)}"
+        execute :rake, "db:migrate:health RAILS_ENV=#{fetch(:rails_env)}"
       end
     end
   end
   after :migrating, :reporting_migrations do
     on roles(:db)  do
       within release_path do
-        execute :rake, "reporting:db:migrate RAILS_ENV=#{fetch(:rails_env)}"
+        execute :rake, "db:migrate:reporting RAILS_ENV=#{fetch(:rails_env)}"
       end
     end
   end

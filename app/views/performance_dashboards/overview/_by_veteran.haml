@@ -2,7 +2,6 @@
 - sub_keys = @report.veteran_bucket_titles.invert
 - options = {veteran: :true}
 - chart_class_slug = 'by-veteran'
-
 - columns = [@report.enrolled_by_veteran_data_for_chart[:columns]]
 - if @report.include_comparison?
   - columns << @comparison.enrolled_by_veteran_data_for_chart[:columns]
@@ -20,5 +19,3 @@
   - columns << @comparison.exiting_by_veteran_data_for_chart[:columns]
 - categories = @report.exiting_by_veteran_data_for_chart[:categories]
 = render 'performance_dashboards/overview/breakdown/exiting', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_class_slug: chart_class_slug
-
-

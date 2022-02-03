@@ -1,6 +1,11 @@
-default: &default
+# please wake me up when this is a feature
+# https://github.com/rails/rails/pull/38721
+# for now, since rails strip all erb from yaml before loading config
+# https://github.com/rails/rails/issues/38924#issuecomment-612881746
+# i have to unroll some parts so that it's simple enough for rails to figure out that I want to use multi-db
+
+default_app_db: &default_app_db
   adapter: <%= ENV['DATABASE_ADAPTER'] %>
-  host: <%= ENV['DATABASE_HOST'] %>
   pool: 5
   timeout: 5000
   <% if ENV['DATABASE_PORT'] %>
@@ -16,28 +21,145 @@ default: &default
   host: <%= ENV['DATABASE_HOST'] %>
   <% end %>
 
-<%= ENV['RAILS_ENV'] %>:
-  <<: *default
-  database: <%= ENV['DATABASE_APP_DB'] %>
-  <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
-  sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
-  sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
+default_warehouse_db: &default_warehouse_db
+  adapter: <%= ENV['WAREHOUSE_DATABASE_ADAPTER'] %>
+  pool: 5
+  timeout: 5000
+  <% if ENV['WAREHOUSE_DATABASE_PORT'] %>
+  port: <%= ENV['WAREHOUSE_DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV['WAREHOUSE_DATABASE_USER'] %>
+  username: <%= ENV['WAREHOUSE_DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['WAREHOUSE_DATABASE_PASS'] %>
+  password: <%= ENV['WAREHOUSE_DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['WAREHOUSE_DATABASE_HOST'] %>
+  host: <%= ENV['WAREHOUSE_DATABASE_HOST'] %>
   <% end %>
 
-<%= ENV['RAILS_ENV'] %>_cas:
-  <<: *default
-  database: <%= ENV['DATABASE_CAS_DB'] %>
-  <% if ENV['DATABASE_CAS_PORT'] %>
-  port: <%= ENV['DATABASE_CAS_PORT'] %>
+default_health_db: &default_health_db
+  adapter: <%= ENV['HEALTH_DATABASE_ADAPTER'] %>
+  pool: 5
+  timeout: 5000
+  <% if ENV['HEALTH_DATABASE_PORT'] %>
+  port: <%= ENV['HEALTH_DATABASE_PORT'] %>
   <% end %>
-  <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
+  <% if ENV['HEALTH_DATABASE_USER'] %>
+  username: <%= ENV['HEALTH_DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['HEALTH_DATABASE_PASS'] %>
+  password: <%= ENV['HEALTH_DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['HEALTH_DATABASE_HOST'] %>
+  host: <%= ENV['HEALTH_DATABASE_HOST'] %>
+  <% end %>
+
+default_reporting_db: &default_reporting_db
+  adapter: <%= ENV['REPORTING_DATABASE_ADAPTER'] %>
+  pool: 5
+  timeout: 5000
+  <% if ENV['REPORTING_DATABASE_PORT'] %>
+  port: <%= ENV['REPORTING_DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV['REPORTING_DATABASE_USER'] %>
+  username: <%= ENV['REPORTING_DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['REPORTING_DATABASE_PASS'] %>
+  password: <%= ENV['REPORTING_DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['REPORTING_DATABASE_HOST'] %>
+  host: <%= ENV['REPORTING_DATABASE_HOST'] %>
+  <% end %>
+
+default_cas_db: &default_cas_db
+  adapter: <%= ENV['CAS_DATABASE_ADAPTER'] %>
+  pool: 5
+  timeout: 5000
+  <% if ENV['CAS_DATABASE_PORT'] %>
+  port: <%= ENV['CAS_DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV['CAS_DATABASE_USER'] %>
+  username: <%= ENV['CAS_DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['CAS_DATABASE_PASS'] %>
+  password: <%= ENV['CAS_DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['CAS_DATABASE_HOST'] %>
+  host: <%= ENV['CAS_DATABASE_HOST'] %>
+  <% end %>
+
+other_db: &other_db
+  warehouse:
+    <<: *default_warehouse_db
+    database: <%= ENV['WAREHOUSE_DATABASE_DB'] %>
+    migrations_paths: db/warehouse/migrate
+
+  health:
+    <<: *default_health_db
+    database: <%= ENV['HEALTH_DATABASE_DB'] %>
+    migrations_paths: db/health/migrate
+
+  reporting:
+    <<: *default_reporting_db
+    database: <%= ENV['REPORTING_DATABASE_DB'] %>
+    migrations_paths: db/reporting/migrate
+
+  <% if ENV['DATABASE_CAS_DB'].present? %>
+  cas:
+    <<: *default_cas_db
+    database: <%= ENV.fetch("CAS_DATABASE_DB") { ENV['DATABASE_CAS_DB'] } %>
+    migrations_paths: db/cas/migrate
+  <% end %>
+
+ssl: &ssl
   sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
   sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
-  <% end %>
+
+development:
+  primary:
+    database: <%= ENV['DATABASE_APP_DB'] %>
+    <<: *default_app_db
+  <<: *other_db
+
+staging:
+  primary:
+    database: <%= ENV['DATABASE_APP_DB'] %>
+    <<: *default_app_db
+    <<: *ssl
+  <<: *other_db
+
+production:
+  primary:
+    database: <%= ENV['DATABASE_APP_DB'] %>
+    <<: *default_app_db
+    <<: *ssl
+  <<: *other_db
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
-  database: <%= ENV['DATABASE_APP_DB_TEST'] %>
+  primary:
+    <<: *default_app_db
+    database: <%= ENV['DATABASE_APP_DB_TEST'] %>
+
+  warehouse:
+    <<: *default_warehouse_db
+    database: <%= ENV['WAREHOUSE_DATABASE_DB_TEST'] %>
+    migrations_paths: db/warehouse/migrate
+
+  health:
+    <<: *default_health_db
+    database: <%= ENV['HEALTH_DATABASE_DB_TEST'] %>
+    migrations_paths: db/health/migrate
+
+  reporting:
+    <<: *default_reporting_db
+    database: <%= ENV['REPORTING_DATABASE_DB_TEST'] %>
+    migrations_paths: db/reporting/migrate
+
+  cas:
+    <<: *default_cas_db
+    database: <%= ENV['CAS_DATABASE_DB_TEST'] %>
+    migrations_paths: db/cas/migrate

@@ -19,26 +19,32 @@ end
 
 Dir.chdir APP_ROOT do
   puts "\n== Preparing Database =="
-  run_or_exit 'bundle exec rake db:create'
-  run_or_exit 'bundle exec rake db:structure:conditional_load'
-  run_or_exit 'bundle exec rake db:migrate'
+  run_or_exit 'bundle exec rake db:create:primary'
+  run_or_exit 'bundle exec rake db:schema:conditional_load'
+  run_or_exit 'bundle exec rake db:migrate:primary'
 
   puts "\n== Preparing Warehouse =="
-  run_or_exit 'bundle exec rake warehouse:db:create'
+  run_or_exit 'bundle exec rake db:create:warehouse'
 
   # DB has objects that can't be tracked with schema.rb: types, materialized views, and triggers
-  run_or_exit 'bundle exec rake warehouse:db:structure:conditional_load'
-  run_or_exit 'bundle exec rake warehouse:db:migrate'
+  if ENV['RAILS_ENV'] == 'test'
+    run_or_exit 'bundle exec rake warehouse:db:schema:conditional_load'
+  else
+    # FIXME: db:structure:load is deprecated and will be removed in Rails 6.2.
+    run_or_exit 'bundle exec rake warehouse:db:structure:conditional_load'
+  end
+
+  run_or_exit 'bundle exec rake db:migrate:warehouse'
 
   puts "\n== Preparing Health Database =="
-  run_or_exit 'bundle exec rake health:db:create'
-  run_or_exit 'bundle exec rake health:db:structure:conditional_load'
-  run_or_exit 'bundle exec rake health:db:migrate'
+  run_or_exit 'bundle exec rake db:create:health'
+  run_or_exit 'bundle exec rake health:db:schema:conditional_load'
+  run_or_exit 'bundle exec rake db:migrate:health'
 
   puts "\n== Preparing Reporting Database =="
-  run_or_exit 'bundle exec rake reporting:db:create'
-  run_or_exit 'bundle exec rake reporting:db:structure:conditional_load'
-  run_or_exit 'bundle exec rake reporting:db:migrate'
+  run_or_exit 'bundle exec rake db:create:reporting'
+  run_or_exit 'bundle exec rake reporting:db:schema:conditional_load'
+  run_or_exit 'bundle exec rake db:migrate:reporting'
   # Force a rebuild of this table
   run_or_exit 'bundle exec rails runner "GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!"'
 

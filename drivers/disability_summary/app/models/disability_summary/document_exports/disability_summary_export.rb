@@ -26,8 +26,17 @@ module DisabilitySummary::DocumentExports
     def perform
       with_status_progression do
         template_file = 'disability_summary/warehouse_reports/disability_summary/index_pdf'
+        layout = 'layouts/performance_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "Disability Summary #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -39,17 +48,8 @@ module DisabilitySummary::DocumentExports
       DisabilitySummary::DisabilitySummaryReport
     end
 
-    protected def view
-      context = DisabilitySummary::WarehouseReports::DisabilitySummaryController.view_paths
-      view = DisabilitySummaryExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class DisabilitySummaryExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
+    private def controller_class
+      DisabilitySummary::WarehouseReports::DisabilitySummaryController
     end
   end
 end

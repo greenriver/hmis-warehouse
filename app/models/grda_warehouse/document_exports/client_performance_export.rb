@@ -9,8 +9,17 @@ module GrdaWarehouse::DocumentExports
     def perform
       with_status_progression do
         template_file = 'performance_dashboards/overview/index_pdf'
+        layout = 'layouts/performance_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "Client Performance #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -26,25 +35,8 @@ module GrdaWarehouse::DocumentExports
       PerformanceDashboards::Overview
     end
 
-    protected def view
-      context = PerformanceDashboards::OverviewController.view_paths
-      view = ClientPerformanceExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class ClientPerformanceExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
-
-      def details_performance_dashboards_overview_index_path(*args)
-        '#'
-      end
-
-      def breakdown # rubocop:disable Style/TrivialAccessors
-        @breakdown
-      end
+    private def controller_class
+      PerformanceDashboards::OverviewController
     end
   end
 end

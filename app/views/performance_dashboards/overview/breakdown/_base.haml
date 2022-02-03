@@ -4,6 +4,7 @@
     entering: "Entering",
     exiting: "Exiting",
   }.fetch(key)
+  breakdown = @breakdown if @pdf
   key_title = "#{key_title} #{@report.performance_type.pluralize}"
   (_, breakdown_title) = @report.available_breakdowns.detect { |id, _| id == breakdown }
 
@@ -66,7 +67,6 @@
       .mb-1.gray.font-weight-normal.text-right
         Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}:
         = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, detail_params), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
-
 
 .well.mb-6.pt-2
   .chart-legend-prs1{id: legend_id}

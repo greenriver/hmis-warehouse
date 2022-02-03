@@ -238,7 +238,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       insert = Arel::Nodes::InsertStatement.new
       insert.relation = she_t
       insert.columns = day.keys.map { |k| she_t[k] }
-      insert.values = Arel::Nodes::Values.new(day.values, insert.columns)
+      insert.values = Arel::Nodes::ValuesList.new([day.values])
       insert
     end
 

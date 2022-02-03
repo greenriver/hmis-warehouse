@@ -5,7 +5,7 @@ set -eo pipefail
 echo Migrating with individual rake tasks
 
 echo Migrating app database
-bundle exec rake db:migrate
+bundle exec rake db:migrate:primary
 
 echo bundle exec rake gettext:sync_to_po_and_db
 bundle exec rake gettext:sync_to_po_and_db
@@ -24,9 +24,6 @@ bundle exec rake cas_seeds:ensure_all_match_prioritization_schemes_exist
 
 echo bundle exec rake cas_seeds:stalled_reasons
 bundle exec rake cas_seeds:stalled_reasons
-
-echo bundle exec rake cas_seeds:create_mitigation_reasons
-bundle exec rake cas_seeds:create_mitigation_reasons
 
 echo installing cron
 ./bin/cron_installer.rb

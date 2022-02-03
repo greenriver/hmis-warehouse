@@ -4,30 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class ReportingBase < ActiveRecord::Base
+class ReportingBase < ApplicationRecord
   include ArelHelper
-  establish_connection DB_REPORTING
+
   self.abstract_class = true
 
-
-  def self.setup_config
-    new_config = {
-      'db' => ['db/reporting'],
-      'db/migrate' => ['db/reporting/migrate'],
-      'db/seeds' => ['db/reporting/seeds'],
-      'config/database' => ['config/database_reporting.yml'],
-    }
-    # set config variables for custom database
-    new_config.each do |path, value|
-      Rails.application.config.paths[path] = value
-    end
-    db_config = Rails.application.config.paths['config/database'].to_a.first
-    ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env]
-  end
+  connects_to database: { writing: :reporting, reading: :reporting }
 
   def self.needs_migration?
-    # integers from file list
-    (ActiveRecord::MigrationContext.new('db/reporting/migrate').migrations.collect(&:version) - Reporting::SchemaMigration.pluck(:version).map(&:to_i)).any?
+    ActiveRecord::MigrationContext.new('db/reporting/migrate', Reporting::SchemaMigration).needs_migration?
   end
-
 end

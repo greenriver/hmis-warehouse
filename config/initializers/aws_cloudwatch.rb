@@ -22,8 +22,8 @@ def find_log_stream_name
 
     logs ||= Aws::CloudWatchLogs::Client.new
     for i in 1..200 do # Limit to 200 requests so we're not endlessly searching.
-      sleep(10) if i % 25 == 0
       begin
+        sleep(10) if i % 25 == 0
         response = logs.describe_log_streams({
           log_group_name: log_group,
           order_by: 'LastEventTime',

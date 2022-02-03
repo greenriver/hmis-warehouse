@@ -27,6 +27,11 @@ class PerformanceDashboards::BaseController < ApplicationController
   helper_method :show_client_details?
 
   def breakdown
+    # This is needed when generating the PDF
+    if @report.blank?
+      set_filter
+      set_report
+    end
     @breakdown ||= params[:breakdown]&.to_sym || @report.available_breakdowns.keys.first
   end
   helper_method :breakdown
