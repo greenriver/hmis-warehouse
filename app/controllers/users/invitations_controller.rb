@@ -70,6 +70,7 @@ class Users::InvitationsController < Devise::InvitationsController
       :notify_on_vispdat_completed,
       :notify_on_client_added,
       :notify_on_anomaly_identified,
+      :expired_at,
       role_ids: [],
       access_group_ids: [],
       coc_codes: [],
