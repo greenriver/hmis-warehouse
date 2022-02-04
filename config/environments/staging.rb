@@ -3,7 +3,6 @@ require "#{Rails.root}/lib/util/exception_notifier.rb"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
   deliver_method = ENV.fetch('MAIL_DELIVERY_METHOD') { 'smtp' }.to_sym
-  slack_config = Rails.application.config_for(:exception_notifier)['slack']
 
   # Code is not reloaded between requests.
   config.cache_classes = true
@@ -114,20 +113,22 @@ Rails.application.configure do
 
   cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
   cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
+  redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace})
+  config.cache_store = :redis_cache_store, redis_config
 
   config.action_controller.perform_caching = true
+  slack_config = Rails.application.config_for(:exception_notifier)[:slack]
   if slack_config.present?
     config.middleware.use(ExceptionNotification::Rack,
       slack: {
-        webhook_url: slack_config['webhook_url'],
-        channel: slack_config['channel'],
+        webhook_url: slack_config[:webhook_url],
+        channel: slack_config[:channel],
         pre_callback: proc { |opts, _notifier, _backtrace, _message, message_opts|
           ExceptionNotifierLib.insert_log_url!(message_opts)
         },
         additional_parameters: {
           mrkdwn: true,
-          icon_url: slack_config['icon_url']
+          icon_url: slack_config[:icon_url]
         }
       }
     )

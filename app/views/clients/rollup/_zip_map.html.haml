@@ -1,4 +1,3 @@
--# %img{ src: "//maps.googleapis.com/maps/api/staticmap?#{params.map(&:to_query).join('&')}", style: 'display:block;margin: 0 auto;' }
 :ruby
   addresses = @client.previous_permanent_locations_for_display(current_user).select{|m| m[:lat].present?}
   markers = addresses.map{ |m| {lat_lon: [m[:lat], m[:lon]], label: m[:label]} }.uniq

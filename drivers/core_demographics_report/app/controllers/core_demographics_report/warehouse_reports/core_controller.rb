@@ -16,7 +16,7 @@ module CoreDemographicsReport::WarehouseReports
     before_action :set_report
     before_action :set_pdf_export
 
-    background_render_action :render_section, ::BackgroundRender::CoreDemographicsReportJob do
+    background_render_action(:render_section, ::BackgroundRender::CoreDemographicsReportJob) do
       {
         partial: params.require(:partial).underscore,
         filters: @filter.for_params[:filters].to_json,

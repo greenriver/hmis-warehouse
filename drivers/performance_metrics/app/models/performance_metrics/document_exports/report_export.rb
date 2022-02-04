@@ -26,8 +26,17 @@ module PerformanceMetrics::DocumentExports
     def perform
       with_status_progression do
         template_file = 'performance_metrics/warehouse_reports/report/index_pdf'
+        layout = 'layouts/performance_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "#{_('Performance Metrics')} #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -39,17 +48,8 @@ module PerformanceMetrics::DocumentExports
       PerformanceMetrics::Report
     end
 
-    protected def view
-      context = PerformanceMetrics::WarehouseReports::ReportsController.view_paths
-      view = ReportExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class ReportExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
+    private def controller_class
+      PerformanceMetrics::WarehouseReports::ReportsController
     end
   end
 end

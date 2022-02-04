@@ -32,6 +32,10 @@ on:
 
 name: Build and Upload Container Image to ECR
 
+concurrency:
+  group: ${{ github.ref }}-ecs
+  cancel-in-progress: true
+
 jobs:
   deploy:
     name: Deploy

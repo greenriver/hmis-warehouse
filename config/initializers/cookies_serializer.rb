@@ -1,5 +1,3 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
-
 # Be sure to restart your server when you modify this file.
 
 # Specify a serializer for the signed and encrypted cookie jars.

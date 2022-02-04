@@ -31,8 +31,17 @@ module IncomeBenefitsReport::DocumentExports
     def perform
       with_status_progression do
         template_file = 'income_benefits_report/warehouse_reports/report/index_pdf'
+        layout = 'layouts/performance_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "Income Benefits #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -44,17 +53,8 @@ module IncomeBenefitsReport::DocumentExports
       IncomeBenefitsReport::Core
     end
 
-    protected def view
-      context = IncomeBenefitsReport::WarehouseReports::CoreController.view_paths
-      view = IncomeBenefitsExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class IncomeBenefitsExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
+    private def controller_class
+      IncomeBenefitsReport::WarehouseReports::CoreController
     end
   end
 end

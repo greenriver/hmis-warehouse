@@ -33,5 +33,17 @@ module HmisCsvImporter::Importer
         'processing...'
       end
     end
+
+    def import_validations_count(filename, files)
+      validation_classes = HmisCsvImporter::HmisCsvValidation::Base.validation_classes.map(&:to_s)
+      loader_class = files.to_h.invert[filename]
+      import_validations.where(source_type: loader_class, type: validation_classes).count
+    end
+
+    def import_validation_errors_count(filename, files)
+      error_classes = HmisCsvImporter::HmisCsvValidation::Base.error_classes.map(&:to_s)
+      loader_class = files.to_h.invert[filename]
+      import_validations.where(source_type: loader_class, type: error_classes).count
+    end
   end
 end

@@ -6,6 +6,7 @@
       $(document).on("ajax:success", function (e, data, status, xhr) {
         var cards = $('.client-match[data-id='+data.id+']');
         var rows = cards.closest('.merge-row');
+        $('.tooltip').tooltip('hide');
         cards.fadeOut(100, function() {
           cards.remove();
           rows.each(function() {

@@ -26,9 +26,18 @@ module PerformanceMeasurement::DocumentExports
     def perform
       with_status_progression do
         template_file = 'performance_measurement/warehouse_reports/reports/show_pdf'
+        layout = 'layouts/performance_report'
         # https://stackoverflow.com/questions/55865582/set-dynamic-header-and-footer-data-on-pdf-generation-from-rails-grover-gem
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "#{_('Performance Management Dashboard')} #{DateTime.current.to_s(:db)}",
           options: {
             print_background: true,
@@ -49,17 +58,8 @@ module PerformanceMeasurement::DocumentExports
       PerformanceMeasurement::Report
     end
 
-    protected def view
-      context = PerformanceMeasurement::WarehouseReports::ReportsController.view_paths
-      view = ReportExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class ReportExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
+    private def controller_class
+      PerformanceMeasurement::WarehouseReports::ReportsController
     end
   end
 end

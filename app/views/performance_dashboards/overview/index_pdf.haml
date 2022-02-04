@@ -4,13 +4,13 @@
   = render 'performance_dashboards/active_filters_three_col'
 %section.mb-5= render 'performance_dashboards/overview/hero_counts'
 %section.mb-5
-  .pdf-breakdown= render "performance_dashboards/overview/by_#{breakdown}"
+  .pdf-breakdown= render "performance_dashboards/overview/by_#{@breakdown}"
 = content_for :page_js do
   :javascript
     $(function() {
       'use strict';
       var opts = {};
-      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{breakdown}-chart', opts);
-      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{breakdown}-chart', opts);
-      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{breakdown}-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{@breakdown}-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{@breakdown}-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{@breakdown}-chart', opts);
     });

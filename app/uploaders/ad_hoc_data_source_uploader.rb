@@ -69,7 +69,7 @@ class AdHocDataSourceUploader < CarrierWave::Uploader::Base
   # normal content_type handling uses this
   # this is mostly to provide user feedback if they send
   # a content_type value with the upload
-  def content_type_whitelist
+  def content_type_allowlist
     WHITELIST + ['application/octet-stream']
   end
 
@@ -80,6 +80,10 @@ class AdHocDataSourceUploader < CarrierWave::Uploader::Base
   # this should be very restrictive and is what we use to
   # decided what processing we are willing to try running
   def whitelist_mime_type_pattern
+    Regexp.union WHITELIST
+  end
+  # not sure how this works internally, so adding this duplicate method for now...
+  def allowlist_mine_type_pattern
     Regexp.union WHITELIST
   end
 

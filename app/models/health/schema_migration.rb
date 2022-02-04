@@ -6,6 +6,8 @@
 
 module Health
   class SchemaMigration < HealthBase
-
+    def self.all_versions
+      order(:version).pluck(:version)
+    end
   end
 end

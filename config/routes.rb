@@ -723,6 +723,9 @@ Rails.application.routes.draw do
     resources :projects, only: [:none] do
       post :index, on: :collection
     end
+    resources :hud_filters, only: [:none] do
+      post :index, on: :collection
+    end
     resources :clients, only: [:show]
   end
 

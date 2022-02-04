@@ -27,6 +27,14 @@
   display: flex;
   align-items: flex-start;
   // background-color: #f9f9f9;
+  // Replace removed form-control-focus mixin
+  &:focus {
+    color: #495057;
+    background-color: white;
+    border-color: #89b4c3;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(69, 118, 135, 0.25);
+  }
 }
 
 .select2-container .select2-selection--multiple {
@@ -77,6 +85,14 @@
   min-height: rem(40px);
   margin: rem(5px);
   width: calc(100% - 10px);
+  // Replace removed form-control-focus mixin
+  &:focus {
+    color: #495057;
+    background-color: white;
+    border-color: #89b4c3;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(69, 118, 135, 0.25);
+  }
 }
 
 .select2-container--default .select2-selection--single .select2-selection__arrow {

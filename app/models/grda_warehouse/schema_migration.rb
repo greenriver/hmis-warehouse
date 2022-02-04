@@ -6,6 +6,8 @@
 
 module GrdaWarehouse
   class SchemaMigration < GrdaWarehouseBase
-
+    def self.all_versions
+      order(:version).pluck(:version)
+    end
   end
 end
