@@ -10,7 +10,7 @@ class SecureFilesController < ApplicationController
 
   def index
     @secure_file = file_source.new
-    @secure_files = file_scope.diet_select
+    @secure_files = file_scope.order(created_at: :desc).diet_select
   end
 
   def show
