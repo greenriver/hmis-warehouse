@@ -6,6 +6,7 @@
 
 class AccessGroup < ApplicationRecord
   acts_as_paranoid
+  has_paper_trail
 
   has_many :access_group_members
   has_many :users, through: :access_group_members
