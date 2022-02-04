@@ -38,7 +38,7 @@ module WarehouseReports
         )
         respond_with(@report, location: reports_location)
       else
-        @filter.valid?
+        @filter.valid? # force error checking
         @reports = report_scope.for_list.
           order(created_at: :desc).
           page(params[:page]).
