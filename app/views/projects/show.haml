@@ -16,7 +16,7 @@
 .row
   .col-sm-8
     .card
-      %table.table.table-sm.table-hover
+      %table.table.table-striped.table-hover.mb-0
         %tr
           %th Project Type
           %td
@@ -121,7 +121,7 @@
         - if can_see_raw_hmis_data?
           = link_to 'HMIS', hmi_path(@project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
     .card
-      %table.table.table-sm.table-hover
+      %table.table.table-striped.table-hover.mb-0
         %tr
           %th Project ID
           %td= @project.ProjectID

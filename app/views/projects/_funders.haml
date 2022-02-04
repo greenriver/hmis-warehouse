@@ -1,12 +1,12 @@
 .d-flex.justify-content-between.mb-2
   %h2 Funding Sources
-  - if RailsDrivers.loaded.include?(:manual_hmis_data)  
+  - if RailsDrivers.loaded.include?(:manual_hmis_data)
     = link_to new_manual_hmis_data_project_funder_path(@project), data: {loads_in_pjax_modal: true}, class: 'btn btn-sm btn-secondary' do
       %i.icon-plus
       Add Manual Funder
 .card.mb-4
   - if funders.any?
-    %table.table.table-sm.table-hover.table-striped
+    %table.table.table-sm.table-hover.table-striped.mb-0
       %thead
         %tr
           %th

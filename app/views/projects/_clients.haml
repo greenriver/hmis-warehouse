@@ -1,10 +1,10 @@
 - if can_upload_hud_zips?
   %h2 Clients
-  .well
-    .d-flex
-      %p= page_entries_info(@clients, entry_name: _('client'))
-      %p.ml-auto= paginate @clients
-    %table.table.table-sm.table-hover
+  .d-flex
+    %p= page_entries_info(@clients, entry_name: _('client'))
+    %p.ml-auto= paginate @clients
+  .card
+    %table.table.table-striped.table-hover.mb-0
       %thead
         %tr
           %th Client
@@ -20,5 +20,5 @@
                 Confidential Client
             %td= service.first_date_in_program
             %td= service.last_date_in_program
-    .d-flex
-      %p.ml-auto= paginate @clients
+
+  %p.ml-auto= paginate @clients
