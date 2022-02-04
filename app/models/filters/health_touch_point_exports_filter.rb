@@ -9,6 +9,8 @@ module Filters
     attribute :name, String
     attribute :search_scope
 
+    validates_presence_of :name
+
     def touch_points_for_user(user)
       return [] unless search_scope.present?
 
