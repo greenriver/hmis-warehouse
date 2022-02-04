@@ -10,7 +10,7 @@ class SecureFilesController < ApplicationController
 
   def index
     @secure_file = file_source.new
-    @secure_files = file_scope
+    @secure_files = file_scope.diet_select
   end
 
   def show

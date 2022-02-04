@@ -37,6 +37,10 @@ module GrdaWarehouse
       where(arel_table[:created_at].gteq(1.months.ago))
     end
 
+    scope :diet_select, -> do
+      select(*(column_names - ['content']))
+    end
+
     def self.clean_expired
       expired.update_all(deleted_at: Time.now)
     end

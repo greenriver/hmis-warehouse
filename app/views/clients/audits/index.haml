@@ -7,26 +7,24 @@
 
 %h1=content_for :title
 %p= paginate @audit_log
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th Date
-            %th User
-            %th Action
-            %th Item
-        %tbody
-          - @audit_log.each do |item|
-            - title = item.title || item.controller_name
-            %tr
-              %td= item.created_at
-              %td= link_to item.user.name, edit_admin_user_path(item.user.id)
-              %td
-                - tooltip = "Method: #{item.method}"
-                %span.action{data: {toggle: :tooltip, title: tooltip}}
-                  = item.action_name
+.card
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th Date
+        %th User
+        %th Action
+        %th Item
+    %tbody
+      - @audit_log.each do |item|
+        - title = item.title || item.controller_name
+        %tr
+          %td= item.created_at
+          %td= link_to item.user.name, edit_admin_user_path(item.user.id)
+          %td
+            - tooltip = "Method: #{item.method}"
+            %span.action{data: {toggle: :tooltip, title: tooltip}}
+              = item.action_name
 
-              %td= link_to title, item.path
-      %p= paginate @audit_log
+          %td= link_to title, item.path
+%p= paginate @audit_log
