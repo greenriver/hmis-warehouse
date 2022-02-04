@@ -63,7 +63,10 @@ class AccessGroup < ApplicationRecord
   end
 
   def remove(users)
-    self.users = (self.users - Array.wrap(users))
+    Array.wrap(users).each do |u|
+      # Need to do this individually for paper trail to work
+      self.users.destroy(u)
+    end
   end
 
   def self.delayed_system_group_maintenance(group: nil)
