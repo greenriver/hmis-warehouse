@@ -109,7 +109,7 @@ other_db: &other_db
   cas:
     <<: *default_cas_db
     database: <%= ENV.fetch("CAS_DATABASE_DB") { ENV['DATABASE_CAS_DB'] } %>
-    migrations_paths: db/cas/migrate
+    database_tasks: false
   <% end %>
 
 ssl: &ssl
