@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,12 +48,56 @@ module GrdaWarehouse
         )
     end
 
+    # This is called in the Hourly scheduled task
+    # It will attempt to upgrade any un-upgraded project groups to the
+    # filter version and then will ensure project lists align with
+    # any recent changes (new projects being added that fall within the filter scope)
+    def self.maintain_project_lists!
+      find_each do |group|
+        group.convert_to_filter!
+        group.maintain_projects!
+      end
+    end
+
     def self.options_for_select(user:)
       viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end
 
     private def maintain_system_group
       AccessGroup.delayed_system_group_maintenance(group: :project_groups)
+    end
+
+    def filter
+      @filter ||= ::Filters::HudFilterBase.new(user_id: User.setup_system_user.id).update(options)
+    end
+
+    # NOTE: we only care about Data Sources, Organizations, Projects, and Project Types
+    def describe_filter_as_html
+      keys = [
+        :project_type_numbers,
+        :project_ids,
+        :organization_ids,
+        :data_source_ids,
+      ]
+      filter.describe_filter_as_html(keys)
+    end
+
+    private def save_filter!
+      update(options: filter.to_h)
+    end
+
+    def maintain_projects!
+      self.projects = GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)
+    end
+
+    # NOTE: this should only be run during the initial conversion to filters, or it will explicitly
+    # set project_ids where it might make more sense to use higher level ids
+    def convert_to_filter!
+      return unless options == {}
+
+      project_ids = projects.pluck(:id)
+      filter.update({ project_ids: project_ids })
+      save_filter!
     end
 
     def any_contacts?
@@ -95,6 +139,8 @@ module GrdaWarehouse
         incoming_projects = rows.map { |row| [row['ProjectID'].to_s, row['data_source_id'].to_s] }
         project_ids = all_projects.select { |key, _id| incoming_projects.include?(key) }.values
         transaction do
+          group.update(options: group.filter.update({ project_ids: project_ids }).to_h)
+          # NOTE: maybe the next two lines should just call maintain_projects!
           group.projects.delete_all
           group.projects = GrdaWarehouse::Hud::Project.where(id: project_ids)
         end
@@ -127,6 +173,42 @@ module GrdaWarehouse
         'ProjectID',
         'data_source_id',
       ]
+    end
+
+    def project_ids
+      filter.project_ids
+    end
+
+    def project_ids=(ids)
+      filter.update(project_ids: ids)
+      save_filter!
+    end
+
+    def organization_ids
+      filter.organization_ids
+    end
+
+    def organization_ids=(ids)
+      filter.update(organization_ids: ids)
+      save_filter!
+    end
+
+    def project_type_numbers
+      filter.project_type_numbers
+    end
+
+    def project_type_numbers=(ids)
+      filter.update(project_type_numbers: ids)
+      save_filter!
+    end
+
+    def data_source_ids
+      filter.data_source_ids
+    end
+
+    def data_source_ids=(ids)
+      filter.update(data_source_ids: ids)
+      save_filter!
     end
   end
 end
