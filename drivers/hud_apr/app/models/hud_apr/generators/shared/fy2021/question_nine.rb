@@ -29,12 +29,14 @@ module HudApr::Generators::Shared::Fy2021
 
       adults_and_hohs = universe.members.where(adult_or_hoh_clause).
         where(a_t[:project_type].in([1, 4]))
-      contacted_ids = adults_and_hohs.joins(apr_client: :hud_report_apr_living_situations).
+      contacted_ids = adults_and_hohs.
+        where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)).
+        pluck(a_t[:id])
+      contacted_ids += adults_and_hohs.joins(apr_client: :hud_report_apr_living_situations).
         where(
           ls_t[:information_date].between(@report.start_date..@report.end_date).
             and(a_t[:date_of_engagement].gteq(ls_t[:information_date]).
-              or(a_t[:date_of_engagement].eq(nil))).
-            or(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)),
+              or(a_t[:date_of_engagement].eq(nil))),
         ).
         pluck(a_t[:id])
 
@@ -86,6 +88,11 @@ module HudApr::Generators::Shared::Fy2021
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
+      engagement_dates = universe.members.
+        where(a_t[:id].in(client_ids)).
+        pluck(a_t[:id], a_t[:date_of_engagement]).
+        to_h
+
       situations = report_living_situation_universe.
         where(hud_report_apr_client_id: client_ids).
         order(information_date: :asc).
@@ -112,8 +119,19 @@ module HudApr::Generators::Shared::Fy2021
         buckets.each do |row, (_, range)|
           cell = "#{col[:column]}#{row}"
           answer = @report.answer(question: table_name, cell: cell)
-          candidates = situations.select { |_, v| v.any? { |cls| col[:situations].include?(cls.living_situation) } }
-          member_ids = candidates.select { |_, v| range.cover?(v.length) }.keys
+
+          situations.each do |client_id, clses|
+            engagement_date = engagement_dates[client_id]
+            next if clses.any? { |cls| cls[:information_date] == engagement_date }
+
+            situations[client_id] = (situations[client_id] << { information_date: engagement_date, living_situation: 99 }).sort_by { |cls| cls[:information_date] }
+          end
+          situations.merge!(
+            (engagement_dates.keys - situations.keys).map { |k| [k, [{ information_date: engagement_dates[k], living_situation: 99 }]] }.to_h,
+          )
+          candidates = situations.select { |_, v| col[:situations].include?(v.first[:living_situation]) }
+
+          member_ids = candidates.select { |_, v| range.cover?(v.select { |cls| cls[:information_date].between?(@report.start_date, @report.end_date) }.length) }.keys
           members = universe.members.where(a_t[:id].in(member_ids))
           answer.add_members(members)
           count = members.count
