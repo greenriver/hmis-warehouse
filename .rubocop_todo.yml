@@ -1723,7 +1723,6 @@ Lint/UselessAccessModifier:
 # Offense count: 100
 Lint/UselessAssignment:
   Exclude:
-    - 'app/models/application_record.rb'
     - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/available_file_tag.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
@@ -1817,6 +1816,7 @@ Naming/HeredocDelimiterNaming:
 # SupportedStylesForLeadingUnderscores: disallowed, required, optional
 Naming/MemoizedInstanceVariableName:
   Exclude:
+    - 'app/controllers/admin/users_controller.rb'
     - 'app/controllers/application_controller.rb'
     - 'app/models/grda_warehouse/report/base.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
@@ -1911,7 +1911,6 @@ Naming/VariableName:
 # Cop supports --auto-correct.
 Security/YAMLLoad:
   Exclude:
-    - 'app/models/application_record.rb'
     - 'app/models/grda_warehouse_base.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
@@ -2035,7 +2034,6 @@ Style/GlobalStdStream:
 # Configuration parameters: MinBodyLength.
 Style/GuardClause:
   Exclude:
-    - 'app/controllers/application_controller.rb'
     - 'app/models/cas/user.rb'
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'

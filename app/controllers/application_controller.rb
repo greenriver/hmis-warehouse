@@ -228,8 +228,11 @@ class ApplicationController < ActionController::Base
     redirect_to user_training_path
   end
 
+  # NOTE: if this gets merged, this may not be necessary
+  # https://github.com/rails/rails/pull/39750/files
   def check_all_db_migrations
     return true unless Rails.env.development?
+    raise ActiveRecord::MigrationError, "App Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:primary RAILS_ENV=#{::Rails.env}" if ApplicationRecord.needs_migration?
     raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:warehouse RAILS_ENV=#{::Rails.env}" if GrdaWarehouseBase.needs_migration?
     raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:health RAILS_ENV=#{::Rails.env}" if HealthBase.needs_migration?
     raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:reporting RAILS_ENV=#{::Rails.env}" if ReportingBase.needs_migration?
