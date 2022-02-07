@@ -122,6 +122,7 @@ module HudApr::Generators::Shared::Fy2021
 
           situations.each do |client_id, clses|
             engagement_date = engagement_dates[client_id]
+            next unless engagement_date.present?
             next if clses.any? { |cls| cls[:information_date] == engagement_date }
 
             situations[client_id] = (situations[client_id] << { information_date: engagement_date, living_situation: 99 }).sort_by { |cls| cls[:information_date] }
