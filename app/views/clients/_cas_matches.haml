@@ -17,15 +17,20 @@
                 %td.nobr
                   = decision.terminal_status
                   %br
-                  %i= decision.program_name
+                  %i
+                    - if decision.confidential?
+                      Confidential Program
+                    - else
+                      = decision.program_name
                 %td
                   = link_to GrdaWarehouse::Config.get(:cas_url) + "/matches/#{decision.match_id}", target: '_blank' do
                     #{decision.match_step}
                 %td= decision.decision_status.sub('Dnd', 'DND')
                 %td.nobr= decision.updated_at.to_date
                 %td
-                  - decision.shelter_agency_contacts.each do |contact|
-                    .mb-2= mail_to contact['email'], contact['name']
+                  - unless decision.confidential?
+                    - decision.shelter_agency_contacts.each do |contact|
+                      .mb-2= mail_to contact['email'], contact['name']
 
-                  - decision.hsp_contacts.each do |contact|
-                    .mb-2= mail_to contact['email'], contact['name']
+                    - decision.hsp_contacts.each do |contact|
+                      .mb-2= mail_to contact['email'], contact['name']

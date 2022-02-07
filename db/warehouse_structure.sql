@@ -3699,7 +3699,8 @@ CREATE TABLE public.cas_reports (
     vacancy_id integer,
     housing_type character varying,
     ineligible_in_warehouse boolean DEFAULT false NOT NULL,
-    actor_type character varying
+    actor_type character varying,
+    confidential boolean DEFAULT false
 );
 
 
@@ -46624,6 +46625,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220126182806'),
 ('20220127153246'),
 ('20220127200317'),
-('20220201213104');
+('20220201213104'),
+('20220204163115');
 
 
