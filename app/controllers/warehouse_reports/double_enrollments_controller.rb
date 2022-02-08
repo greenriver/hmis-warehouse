@@ -17,7 +17,7 @@ module WarehouseReports
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         where(date: @date).group(:project_type, :client_id).
         having(nf('COUNT', [shs_t[:date]]).gt(1)).
-        pluck(:client_id, :project_type, nf('STRING_AGG', [p_t[:ProjectName], ', ']).to_sql, nf('COUNT', [shs_t[:date]]).to_sql).group_by(&:first)
+        pluck(:client_id, :project_type, nf('STRING_AGG', [p_t[:ProjectName], ', ']), nf('COUNT', [shs_t[:date]])).group_by(&:first)
       @clients = client_source.where(id: @counts.keys).index_by(&:id)
     end
 
