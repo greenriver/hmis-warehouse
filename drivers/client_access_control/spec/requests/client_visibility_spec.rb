@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 require 'nokogiri'

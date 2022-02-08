@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,6 +32,18 @@ module HmisCsvImporter::Importer
       else
         'processing...'
       end
+    end
+
+    def import_validations_count(filename, files)
+      validation_classes = HmisCsvImporter::HmisCsvValidation::Base.validation_classes.map(&:to_s)
+      loader_class = files.to_h.invert[filename]
+      import_validations.where(source_type: loader_class, type: validation_classes).count
+    end
+
+    def import_validation_errors_count(filename, files)
+      error_classes = HmisCsvImporter::HmisCsvValidation::Base.error_classes.map(&:to_s)
+      loader_class = files.to_h.invert[filename]
+      import_validations.where(source_type: loader_class, type: error_classes).count
     end
   end
 end

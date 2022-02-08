@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -77,10 +77,11 @@ module WarehouseReports::Export
     end
 
     private def clients_within_projects
-      @clients_within_projects ||= begin
-        GrdaWarehouse::Hud::Client.destination.joins(service_history_enrollments: :project).
-          merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user).where(id: filter.effective_project_ids))
-      end
+      @clients_within_projects ||= GrdaWarehouse::Hud::Client.destination.
+        joins(service_history_enrollments: :project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user).
+        where(id: filter.effective_project_ids)).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: filter.start, end_date: filter.end))
     end
 
     private def clients_with_ongoing_enrollments(clients)

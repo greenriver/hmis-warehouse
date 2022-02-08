@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -70,6 +70,7 @@ class Users::InvitationsController < Devise::InvitationsController
       :notify_on_vispdat_completed,
       :notify_on_client_added,
       :notify_on_anomaly_identified,
+      :expired_at,
       role_ids: [],
       access_group_ids: [],
       coc_codes: [],

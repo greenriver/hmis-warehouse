@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -40,7 +40,7 @@ module Admin::Health
 
     # def update
     #   # @agency_user = Health::AgencyUser.find(params[:id])
-    #   # if @agency_user.update_attributes(agency_user_params)
+    #   # if @agency_user.update(agency_user_params)
     #   #   flash[:notice] = "#{@agency_user.user.name_with_email} is now a manager for #{@agency_user.agency.name}."
     #   # else
     #   #   flash[:error] = "An error occurred, please try again."

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,6 +35,10 @@ module GrdaWarehouse
 
     scope :unexpired, -> do
       where(arel_table[:created_at].gteq(1.months.ago))
+    end
+
+    scope :diet_select, -> do
+      select(*(column_names - ['content']))
     end
 
     def self.clean_expired

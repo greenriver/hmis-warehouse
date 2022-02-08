@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -73,8 +73,6 @@ class ApplicationController < ActionController::Base
   def set_notification
     request.env['exception_notifier.exception_data'] = { 'server' => request.env['SERVER_NAME'] }
   end
-
-  force_ssl if Rails.configuration.force_ssl
 
   # To permit merge(link_params) when creating a new link from existing parameters
   def link_params
@@ -230,19 +228,14 @@ class ApplicationController < ActionController::Base
     redirect_to user_training_path
   end
 
+  # NOTE: if this gets merged, this may not be necessary
+  # https://github.com/rails/rails/pull/39750/files
   def check_all_db_migrations
     return true unless Rails.env.development?
-
-    GrdaWarehouseBase.setup_config
-    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rake warehouse:db:migrate RAILS_ENV=#{::Rails.env}" if GrdaWarehouseBase.needs_migration?
-
-    HealthBase.setup_config
-    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if HealthBase.needs_migration?
-
-    ReportingBase.setup_config
-    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" if ReportingBase.needs_migration?
-
-    ApplicationRecord.setup_config
+    raise ActiveRecord::MigrationError, "App Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:primary RAILS_ENV=#{::Rails.env}" if ApplicationRecord.needs_migration?
+    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:warehouse RAILS_ENV=#{::Rails.env}" if GrdaWarehouseBase.needs_migration?
+    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:health RAILS_ENV=#{::Rails.env}" if HealthBase.needs_migration?
+    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:reporting RAILS_ENV=#{::Rails.env}" if ReportingBase.needs_migration?
   end
 
   def health_emergency?

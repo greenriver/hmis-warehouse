@@ -1,10 +1,11 @@
 - title = "Edit Project Group: #{@project_group.name}"
 = content_for(:title, title)
 = render 'breadcrumbs'
-%h1= title
+
 .row
-  .col-6
-    = simple_form_for @project_group, url: project_group_path(@project_group) do |f|
+  .col-sm-6
+    %h1= title
+    = simple_form_for @project_group, as: :filters, url: project_group_path(@project_group) do |f|
       = render 'form', f: f
       .form-actions.d-flex
         - unless @group_ids.any?
@@ -13,23 +14,24 @@
             Delete Group
         = f.button :submit, class: 'btn btn-primary ml-auto', value: 'Save Project Group'
 
-  .col-6
+  .col-sm-6.pt-2
     - if @project_group.projects.exists?
       %h3 Summary
       .well
         %dl
           %dt Project Types
-          %dd= @project_group.projects.map(&:human_readable_project_type).uniq.join(', ')
+          %dd.mb-4= @project_group.projects.map(&:human_readable_project_type).uniq.join(', ')
           %dt PIT Count
-          %dd= @project_group.projects.map(&:PITCount).compact.sum
+          %dd.mb-4= @project_group.projects.map(&:PITCount).compact.sum
           %dt Project Count
-          %dd= @project_group.projects.count
+          %dd.mb-4= @project_group.projects.count
           %dt Projects
           %dd= @project_group.projects.map(&:ProjectName).join(', ')
 
 - if @project_group.any_contacts?
   .mt-6
     %h3 Contacts
+    %p Contacts are inherited from included projects.
     .card
       %table.table.table-striped.mb-0
         %thead
@@ -44,7 +46,7 @@
               %td
                 = email
 .mt-6
-  - if @reports.any?
+  - if @reports&.any?
     %h3 Project Data Quality Reports
     .card
       %table.table.table-striped.mb-0

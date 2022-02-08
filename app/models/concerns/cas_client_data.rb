@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -67,6 +67,28 @@ module CasClientData
         employed_three_months: _('Employed for 3 or more months'),
         living_wage: _('Earning a living wage ($13 or more)'),
       }
+    end
+
+    # NOTE: these should be kept in-sync with the attr_accessors at the bottom
+    def self.ignored_for_batch_maintenance
+      [
+        :majority_sheltered,
+        :tie_breaker_date,
+        :financial_assistance_end_date,
+        :strengths,
+        :challenges,
+        :foster_care,
+        :open_case,
+        :housing_for_formerly_homeless,
+        :hivaids_status,
+        :drug_test,
+        :heavy_drug_use,
+        :sober,
+        :willing_case_management,
+        :employed_three_months,
+        :living_wage,
+        :housing_release_status,
+      ]
     end
 
     def self.manual_cas_columns

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,7 @@ module CoreDemographicsReport::WarehouseReports
     before_action :set_report
     before_action :set_pdf_export
 
-    background_render_action :render_section, ::BackgroundRender::CoreDemographicsReportJob do
+    background_render_action(:render_section, ::BackgroundRender::CoreDemographicsReportJob) do
       {
         partial: params.require(:partial).underscore,
         filters: @filter.for_params[:filters].to_json,

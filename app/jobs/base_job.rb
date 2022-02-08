@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -105,6 +105,6 @@ class BaseJob < ApplicationJob
     msg = "Restarting stale delayed job: #{job_object.locked_by}"
     notify_on_restart(msg)
 
-    job_object.update_attributes(locked_by: nil, locked_at: nil)
+    job_object.update(locked_by: nil, locked_at: nil)
   end
 end

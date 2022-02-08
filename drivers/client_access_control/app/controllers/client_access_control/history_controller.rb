@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,7 +22,8 @@ module ClientAccessControl
       @date_range = (@start.beginning_of_month..@end.end_of_month)
       @months = @date_range.map do |date|
         [date.year, date.month]
-      end.uniq
+      end.
+        uniq
     end
 
     def queue
@@ -58,9 +59,24 @@ module ClientAccessControl
       file_name = 'service_history.pdf'
 
       template_file = 'client_access_control/history/pdf'
+      layout = false
       pdf = nil
+      html = PdfGenerator.html(
+        controller: ClientAccessControl::HistoryController,
+        template: template_file,
+        layout: layout,
+        user: @user,
+        assigns: {
+          organization_counts: @organization_counts,
+          project_type_counts: @project_type_counts,
+          user: @user,
+          dates: @dates,
+          client: @client,
+          ordered_dates: @dates.keys.sort,
+        },
+      )
       PdfGenerator.new.perform(
-        html: render(file: template_file, layout: false),
+        html: html,
         file_name: file_name,
       ) do |io|
         pdf = io.read

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -670,7 +670,7 @@ module PublicReports
           charts[iso_date] = {}
           coc_codes.each do |coc_code|
             population_overall = if Rails.env.production?
-              population_by_coc.try(:[], coc_code).try(:[], code) || 0
+              population_by_coc.try(:[], date.year).try(:[], coc_code) || 0
             else
               500
             end

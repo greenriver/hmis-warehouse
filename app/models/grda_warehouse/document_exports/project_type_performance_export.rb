@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,8 +9,17 @@ module GrdaWarehouse::DocumentExports
     def perform
       with_status_progression do
         template_file = 'performance_dashboards/project_type/index_pdf'
+        layout = 'layouts/performance_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "ProjectType Performance #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -26,11 +35,8 @@ module GrdaWarehouse::DocumentExports
       PerformanceDashboards::ProjectType
     end
 
-    protected def view
-      context = PerformanceDashboards::ProjectTypeController.view_paths
-      view = ProjectTypePerformanceExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
+    private def controller_class
+      PerformanceDashboards::ProjectTypeController
     end
 
     class ProjectTypePerformanceExportTemplate < PdfExportTemplateBase

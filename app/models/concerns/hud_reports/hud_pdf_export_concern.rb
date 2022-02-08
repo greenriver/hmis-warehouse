@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -36,7 +36,9 @@ module HudReports::HudPdfExportConcern
           rg.title,
           rg,
         ]
-      end.to_h.freeze
+      end.
+        to_h.
+        freeze
     end
 
     private def possible_titles
@@ -53,8 +55,21 @@ module HudReports::HudPdfExportConcern
     def perform
       with_status_progression do
         template_file = 'hud_reports/download'
+        layout = 'layouts/hud_report_export'
+
+        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
+        renderer = controller_class.renderer.new(
+          'warden' => PdfGenerator.warden_proxy(user),
+        )
+        html = renderer.render(
+          template_file,
+          layout: layout,
+          assigns: view_assigns,
+          formats: [:html],
+        )
+
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/hud_report_export'),
+          html: html,
           file_name: "#{report_generator_class.file_prefix}-#{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -64,13 +79,6 @@ module HudReports::HudPdfExportConcern
 
     protected def report_class
       HudReports::ReportInstance
-    end
-
-    protected def view
-      context = controller_class.view_paths
-      view = PdfExportTemplateBase.new(context, view_assigns)
-      view.current_user = user
-      view
     end
   end
 end

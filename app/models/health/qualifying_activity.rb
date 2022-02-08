@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,12 +44,10 @@ module Health
     end
 
     scope :submittable, -> do
-      where.not(
-        mode_of_contact: nil,
-        reached_client: nil,
-        activity: nil,
-        follow_up: nil,
-      )
+      where.not(mode_of_contact: nil).
+      where.not(reached_client: nil).
+      where.not(activity: nil).
+      where.not(follow_up: nil)
     end
 
     scope :in_range, ->(range) do

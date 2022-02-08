@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,11 +35,30 @@ class PdfGenerator
         # headless: false,
         # devtools: true
       },
-    }.deep_merge(options)
+    }.
+      deep_merge(options)
     Grover.new(html, grover_options).to_pdf
   end
 
   def root_url
     Rails.application.routes.url_helpers.root_url(host: ENV['FQDN'])
+  end
+
+  def self.warden_proxy(user)
+    Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
+      i.set_user(user, scope: :user, store: false, run_callbacks: false)
+    end
+  end
+
+  def self.html(controller:, template:, layout:, user:, assigns:)
+    ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
+    renderer = controller.renderer.new(
+      'warden' => warden_proxy(user),
+    )
+    renderer.render(
+      template,
+      layout: layout,
+      assigns: assigns,
+    )
   end
 end

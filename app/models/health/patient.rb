@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -313,7 +313,7 @@ module Health
     end
 
     scope :with_housing_status, -> do
-      where.not(housing_status: [nil, ''], housing_status_timestamp: nil)
+      where.not(housing_status: [nil, '']).where.not(housing_status_timestamp: nil)
     end
 
     scope :enrolled_before, ->(date) do

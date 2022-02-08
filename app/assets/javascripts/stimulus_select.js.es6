@@ -165,6 +165,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
       $(this.elementTarget).val(all_options)
     }
     $(this.elementTarget).trigger('change')
+    $(this.elementTarget).trigger('select2:close')
   }
 
   watchForSelect2Opens() {

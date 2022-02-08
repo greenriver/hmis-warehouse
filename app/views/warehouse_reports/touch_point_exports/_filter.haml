@@ -7,7 +7,7 @@
         = f.input :end, input_html: {value: @filter.end, class: 'form-control jStart'}, as: :date_picker, label: 'End date'
 
   - content_for :filters_col_l do
-    = f.input :name, collection: @filter.touch_points_for_user(current_user), input_html: { data: { placeholder: 'Name' } }, label: 'Touch Point', as: :select_two
+    = f.input :name, collection: @filter.touch_points_for_user(current_user), input_html: { data: { placeholder: 'Name' } }, label: 'Touch Point', as: :select_two, required: true
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Generate Export'

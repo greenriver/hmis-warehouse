@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -2065,14 +2065,14 @@ module GrdaWarehouse::Hud
     def previous_permanent_locations_for_display(user)
       labels = ('A'..'Z').to_a
       seen_addresses = {}
-      addresses_from_enrollments = source_enrollments.visible_to(user).
+      addresses_from_enrollments = source_enrollments.visible_to(user, client_ids: source_client_ids).
         any_address.
         order(EntryDate: :desc).
         preload(:client).map do |enrollment|
           lat_lon = enrollment.address_lat_lon # rubocop:disable Layout/IndentationWidth
           address = {
             year: enrollment.EntryDate.year,
-            client_id: enrollment.client.id,
+            client_id: enrollment.client&.id,
             label: seen_addresses[enrollment.address] ||= labels.shift,
             city: enrollment.LastPermanentCity,
             state: enrollment.LastPermanentState,
@@ -2254,7 +2254,7 @@ module GrdaWarehouse::Hud
         # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|
-          m.warehouse_client_source.update_attributes!(
+          m.warehouse_client_source.update!(
             destination_id: self.id, # rubocop:disable Style/RedundantSelf
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,
@@ -2264,7 +2264,7 @@ module GrdaWarehouse::Hud
         end
         # if we are a source, move us
         if other_client.warehouse_client_source
-          other_client.warehouse_client_source.update_attributes!(
+          other_client.warehouse_client_source.update!(
             destination_id: self.id, # rubocop:disable Style/RedundantSelf
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,

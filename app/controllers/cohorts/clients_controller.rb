@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -560,13 +560,10 @@ module Cohorts
     # This is more strict than visible_in_window_to(user)
     def client_scope
       if @cohort.only_window
-        client_source.destination.
-          where(
-            GrdaWarehouse::WarehouseClient.joins(:data_source).
-            where(ds_t[:visible_in_window].eq(true)).
-            where(wc_t[:destination_id].eq(c_t[:id])).
-            exists,
-          )
+        client_source.destination.where(
+          id: GrdaWarehouse::WarehouseClient.joins(:data_source).
+          where(ds_t[:visible_in_window].eq(true)).select(:destination_id),
+        )
       else
         client_source.destination
       end
