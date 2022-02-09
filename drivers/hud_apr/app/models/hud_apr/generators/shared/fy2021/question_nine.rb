@@ -120,18 +120,27 @@ module HudApr::Generators::Shared::Fy2021
           cell = "#{col[:column]}#{row}"
           answer = @report.answer(question: table_name, cell: cell)
 
+          # If an enrollment has an engagement date, the engagement date counts as a contact, even if
+          # no contact was recorded on that date, and only contacts before the engagment date are counted.
           situations.each do |client_id, clses|
             engagement_date = engagement_dates[client_id]
             next unless engagement_date.present?
 
-            situations[client_id].select! { |cls| cls[:information_date] <= engagement_date } # Only count contacts before engagement per AAQ
+            # Only include contacts before the engagement date
+            situations[client_id].select! { |cls| cls[:information_date] <= engagement_date }
+            # If there is a contact on the engagement date, do not add a separate contact
             next if clses.any? { |cls| cls[:information_date] == engagement_date }
 
+            # If the engagement date needs to be counted as a contact, add it as an unknown living situation, and make sure the contacts are in the right order
             situations[client_id] = (situations[client_id] << { information_date: engagement_date, living_situation: 99 }).sort_by { |cls| cls[:information_date] }
           end
+
+          # Add situations for enrollments with an engagement date but no contacts
           situations.merge!(
             (engagement_dates.keys - situations.keys).map { |k| [k, [{ information_date: engagement_dates[k], living_situation: 99 }]] }.to_h,
           )
+
+          # Filter by column type
           candidates = situations.select { |_, v| col[:situations].include?(v.first[:living_situation]) }
 
           member_ids = candidates.select { |_, v| range.cover?(v.select { |cls| cls[:information_date].between?(@report.start_date, @report.end_date) }.length) }.keys

@@ -70,30 +70,8 @@ module HudReports::LengthOfStays
       (end_date - enrollment.first_date_in_program).to_i
     end
 
-    # Given the reporting period, how many distinct bed nights does the client have?
-    # For entry/exit this is span, for night by night, this is service days.
     private def bed_nights(enrollment)
-      if enrollment.project_tracking_method == 3
-        end_date = [
-          enrollment.last_date_in_program.try(:-, 1.day), # Don't count a bed night that falls on the exit day
-          report_end_date + 1.day,
-        ].compact.min
-
-        enrollment.
-          service_history_services.
-          service_between(start_date: enrollment.first_date_in_program, end_date: end_date).
-          where(service_type: 200).
-          select(:date).
-          distinct.
-          count
-      else
-        end_date = [
-          enrollment.last_date_in_program,
-          report_end_date + 1.day,
-        ].compact.min
-
-        (end_date - enrollment.first_date_in_program).to_i
-      end
+      enrollment.bed_nights(end_date: report_end_date)
     end
 
     private def time_to_move_in(enrollment)

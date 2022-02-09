@@ -41,7 +41,9 @@ module HudReports::Clients
 
       end_date = [enrollment.last_date_in_program, report_end_date, Date.current].compact.min
       enough_days = if enrollment.project.bed_night_tracking?
-        enrollment.enrollment.services.bed_night.count > 365
+        enrollment.enrollment.services.
+          bed_night.between(start_date: enrollment.first_date_in_program, end_date: end_date).
+          count > 365
       else
         true
       end
