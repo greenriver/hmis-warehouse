@@ -141,13 +141,15 @@ module CasClientData
         [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
+        # Homeless or Coordinated Assessment
+        enrollment_scope = service_history_enrollments.in_project_type([1, 2, 4, 8, 14])
         if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
-          service_history_enrollments.with_service_between(
+          enrollment_scope.with_service_between(
             start_date: range.first,
             end_date: range.last,
           ).exists?
         else
-          service_history_enrollments.with_service_between(
+          enrollment_scope.with_service_between(
             start_date: range.first,
             end_date: range.last,
             service_scope: GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated,
