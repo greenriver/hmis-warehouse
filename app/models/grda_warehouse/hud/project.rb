@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,6 +25,7 @@ module GrdaWarehouse::Hud
     RESIDENTIAL_PROJECT_TYPES = {}.tap do |pt|
       h = { # duplicate of code in various places
         ph: [3, 9, 10, 13],
+        oph: [9],
         th: [2],
         es: [1],
         so: [4],
@@ -58,6 +59,7 @@ module GrdaWarehouse::Hud
       rrh: 'Rapid Re-Housing (RRH)',
       ca: 'Coordinated Assessment (CA)',
       psh: 'Permanent Supportive Housing (PSH)',
+      oph: 'Permanent Housing Only (OPH)',
       other: 'Other',
       day_shelter: 'Day Shelter',
       prevention: 'Homelessness Prevention',
@@ -66,7 +68,7 @@ module GrdaWarehouse::Hud
     PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so]) }.freeze
     HOMELESS_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
     CHRONIC_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
-    RESIDENTIAL_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh]) }.freeze
+    RESIDENTIAL_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh, :oph]) }.freeze
     PROJECT_TYPE_COLORS = {
       ph: 'rgba(150, 3, 130, 0.5)',
       th: 'rgba(103, 81, 140, 0.5)',
@@ -81,6 +83,7 @@ module GrdaWarehouse::Hud
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
     PERFORMANCE_REPORTING = { # duplicate of code in various places
       ph: [3, 9, 10, 13],
+      oph: [9],
       th: [2],
       es: [1],
       so: [4],

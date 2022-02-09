@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,7 +18,7 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   scope :consent_active, -> do
     where(
       arel_table[:consent_confirmed_on].lteq(Date.current).
-      and(arel_table[:consent_expires_on].gteq(Date.current))
+      and(arel_table[:consent_expires_on].gteq(Date.current)),
     )
   end
 
@@ -26,16 +26,31 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
     where.not(id: consent_active.select(:id))
   end
 
+  NominatimApiPaused = Class.new(StandardError)
+
   def address_lat_lon
-    return nil unless last_permanent_zip.present?
+    address = last_permanent_zip
+    return unless address.present?
+
     begin
-      result = Nominatim.search(last_permanent_zip).country_codes('us').first
-      if result.present?
-        return {address: last_permanent_zip, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox}
+      result = Rails.cache.fetch(['Nominatim', address.to_s], expires_in: 6.weeks) do
+        raise(NominatimApiPaused, 'Nominatim Paused') if Rails.cache.read(['Nominatim', 'API PAUSE'])
+
+        sleep(0.75)
+        begin
+          Nominatim.search(address).country_codes('us').first
+        rescue Faraday::ConnectionFailed
+          # we've probably been banned, let the API cool off
+          Rails.cache.write(['Nominatim', 'API PAUSE'], true, expires_in: 1.hours)
+          raise(NominatimApiPaused, 'Nominatim Paused')
+        end
       end
-    rescue
+      return { address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
+    rescue NominatimApiPaused
+      # Ignore errors if we are paused
+    rescue StandardError
       setup_notifier('NominatimWarning')
-      @notifier.ping("Error contacting the OSM Nominatim API") if @send_notifications
+      @notifier.ping("Error contacting the OSM Nominatim API. Looking address for enrollment id: #{id}") if @send_notifications
     end
     return nil
   end
@@ -46,9 +61,10 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
 
   def self.maintain_client_consent
     return unless GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
+
     GrdaWarehouse::Hud::Client.revoke_expired_consent
     # all active consent gets a full release
-    self.consent_active.preload(:destination_client).find_each(&:maintain_client_consent)
+    consent_active.preload(:destination_client).find_each(&:maintain_client_consent)
   end
 
   def maintain_client_consent
@@ -76,8 +92,8 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
       [m['ID'], m['Text']]
     end.to_h
 
-    self.where(sexual_orientation: nil).find_each do |hmis_client|
-      value = JSON.parse(hmis_client.response).try(:[], 'CustomDemoData')&.select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+    where(sexual_orientation: nil).find_each do |hmis_client|
+      value = JSON.parse(hmis_client.response).try(:[], 'CustomDemoData')&.select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
       hmis_client.update(sexual_orientation: options[value.to_i])
     end
   end

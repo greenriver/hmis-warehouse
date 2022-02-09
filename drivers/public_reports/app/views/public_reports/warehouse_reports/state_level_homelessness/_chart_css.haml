@@ -65,6 +65,12 @@
     font-weight: 500;
     font-size: 0.8em;
   }
+  .bb-tooltip {
+    min-width: 225px;
+  }
+  .bb-tooltip th {
+    background-color: #343434;
+  }
   /* END CHARTS */
 
   /* SLIDER */
@@ -290,7 +296,7 @@
     background-color: transparent;
   }
   .l-info {
-    max-width: 300px;
+    max-width: 500px;
     min-width: 200px;
     padding: 6px 8px;
     font: 14px/16px Arial, Helvetica, sans-serif;
@@ -303,7 +309,7 @@
   .l-info h4 {
     font-size: 1.2rem;
     margin: 0 0 5px;
-    color: #777;
+    color: #767676;
   }
   /* End map */
   .chronic-legend {
@@ -322,7 +328,7 @@
     color: #CCCCCC;
   }
   .chronic-chart {
-    margin-top: auto;
+    margin-top: 0; /* was: auto; */
     margin-bottom: auto;
   }
   .meter {
@@ -350,10 +356,13 @@
     position: absolute;
     height: 36px;
   }
-
+  .note {
+    font-size: 0.8rem;
+    color: #767676;
+  }
   /* info boxes */
   a.info-button {
-    color:  #777777;
+    color:  #767676;
     font-size: 16px;
   }
 

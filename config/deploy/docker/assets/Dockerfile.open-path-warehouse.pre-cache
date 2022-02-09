@@ -71,7 +71,10 @@ ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native \
 # allow tls connection to database with verification
 COPY config/deploy/docker/assets/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
-COPY --from=code /app /app/
+RUN addgroup -g 1001 app \
+  && adduser -u 1001 -G app -h /app -D app
+
+COPY --from=code --chown=app:app /app /app/
 
 # wkhtmltopdf line
 # https://beuke.org/docker-alpine-wkhtmltopdf/
@@ -102,7 +105,6 @@ RUN apk add --no-cache \
   && bundle install \
   && find /usr/local/bundle -name "*.o" -exec rm {} \; \
   && find /usr/local/bundle -name "*.c" -exec rm {} \; \
-  && RAILS_ENV=production bundle exec rake assets:precompile \
   && cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml \
   && rm -rf tmp/* \
   && mkdir tmp/pids \

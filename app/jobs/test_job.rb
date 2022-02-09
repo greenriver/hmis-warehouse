@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,8 @@ class TestJob < BaseJob
   SLEEP_TIME = 5
 
   def perform(length_in_seconds: 10, memory_bloat_per_second: 10_000_000)
+    setup_notifier('TestJob')
+    @notifier.ping('Testing!') if @send_notifications
     a = Time.now
 
     bloater = {}

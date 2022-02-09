@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -496,6 +496,14 @@ module GrdaWarehouse::Hud
       where(Arel.sql('1').in(races.map { |race| c_t[race] }))
     end
 
+    # a scope where no race was chosen
+    # potentially this should include RaceNone: [8, 9, 99], but if all others are 0 or 99, then
+    # we really don't know the race
+    scope :with_race_none, -> do
+      not_race = [0, 99]
+      where(AmIndAKNative: not_race, Asian: not_race, BlackAfAmerican: not_race, NativeHIPacific: not_race, White: not_race)
+    end
+
     scope :ethnicity_non_hispanic_non_latino, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
@@ -537,23 +545,27 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_female, -> do
-      where(Female: 1).where.not(NoSingleGender: 1)
+      where(Female: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
     end
 
     scope :gender_male, -> do
-      where(Male: 1).where.not(NoSingleGender: 1)
+      where(Male: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
     end
 
     scope :gender_mtf, -> do
-      gender_transgender.gender_female
+      gender_transgender.where(Female: 1)
     end
 
     scope :gender_ftm, -> do
-      gender_transgender.gender_male
+      gender_transgender.where(Male: 1)
     end
 
     scope :no_single_gender, -> do
       where(NoSingleGender: 1)
+    end
+
+    scope :questioning, -> do
+      where(Questioning: 1)
     end
 
     scope :gender_transgender, -> do
@@ -944,6 +956,14 @@ module GrdaWarehouse::Hud
 
     def release_valid?
       housing_release_status&.starts_with?(self.class.full_release_string) || false
+    end
+
+    def partial_release?
+      housing_release_status&.starts_with?(self.class.partial_release_string) || false
+    end
+
+    def full_or_partial_release?
+      release_valid? || partial_release?
     end
 
     def consent_form_valid?
@@ -2002,7 +2022,8 @@ module GrdaWarehouse::Hud
         @race_black_af_american.to_a +
         @race_native_hi_other_pacific.to_a +
         @race_white.to_a
-        multi.select { |m| multi.count(m) > 1 }.to_set
+
+        multi.duplicates.to_set
       end
 
       return 'MultiRacial' if @multiracial.include?(destination_id)
@@ -2044,14 +2065,14 @@ module GrdaWarehouse::Hud
     def previous_permanent_locations_for_display(user)
       labels = ('A'..'Z').to_a
       seen_addresses = {}
-      addresses_from_enrollments = source_enrollments.visible_to(user).
+      addresses_from_enrollments = source_enrollments.visible_to(user, client_ids: source_client_ids).
         any_address.
         order(EntryDate: :desc).
         preload(:client).map do |enrollment|
           lat_lon = enrollment.address_lat_lon # rubocop:disable Layout/IndentationWidth
           address = {
             year: enrollment.EntryDate.year,
-            client_id: enrollment.client.id,
+            client_id: enrollment.client&.id,
             label: seen_addresses[enrollment.address] ||= labels.shift,
             city: enrollment.LastPermanentCity,
             state: enrollment.LastPermanentState,
@@ -2233,7 +2254,7 @@ module GrdaWarehouse::Hud
         # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|
-          m.warehouse_client_source.update_attributes!(
+          m.warehouse_client_source.update!(
             destination_id: self.id, # rubocop:disable Style/RedundantSelf
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,
@@ -2243,7 +2264,7 @@ module GrdaWarehouse::Hud
         end
         # if we are a source, move us
         if other_client.warehouse_client_source
-          other_client.warehouse_client_source.update_attributes!(
+          other_client.warehouse_client_source.update!(
             destination_id: self.id, # rubocop:disable Style/RedundantSelf
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,

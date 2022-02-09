@@ -6,31 +6,33 @@
 .row
   .col-sm-6
     - if @secure_files.any?
-      %table.table.table-sm
-        %thead
-          %tr
-            %th
-              File name
-            %th
-              Uploaded By
-            %th
-              Destined For
-            %th
-              Uploaded On
-            %th
-              Remove
-        %tbody
-          - @secure_files.each do |file|
+      .card
+        %table.table.table-striped.mb-0
+          %thead
             %tr
-              %td
-                = link_to secure_file_path(file) do
-                  = file.name
-              %td= file.sender&.name
-              %td= file.recipient&.name
-              %td= file.created_at.to_date
-              %td
-                = link_to secure_file_path(file), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger' do
-                  %i.icon-cross
+              %th
+                File name
+              %th
+                Uploaded By
+              %th
+                Destined For
+              %th
+                Uploaded On
+              %th
+                Remove
+          %tbody
+            - @secure_files.each do |file|
+              %tr
+                %td
+                  = link_to secure_file_path(file) do
+                    = file.name
+                %td= file.sender&.name
+                %td= file.recipient&.name
+                %td= file.created_at.to_date
+                %td
+                  = link_to secure_file_path(file), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger' do
+                    %i.icon-cross
 
   .col-sm-6
-    = render 'form'
+    .well
+      = render 'form'

@@ -10,7 +10,7 @@
         %i.icon-info{ data: data }
     .c-indicator__content.d-flex
       .c-indicator__passed.ml-auto.mt-4{ class: indicator[:passed] ? "pass" : "fail" }
-        = checkmark_or_x(indicator[:passed], size: :md, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'})
+        = checkmark_or_x(indicator[:passed], size: :md, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
       - base_value_classname = "c-indicator__value"
       .c-indicator__values.mr-auto
         .c-indicator__primary-value.d-flex.mb-2

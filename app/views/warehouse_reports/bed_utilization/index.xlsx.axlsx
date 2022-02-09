@@ -19,6 +19,7 @@ wb.add_worksheet name: 'Inventory Utilization' do |sheet|
     [
       'Project',
       'Project Type',
+      'Organization',
       'Beds',
       'Clients',
       '% Bed Utilization',
@@ -34,6 +35,7 @@ wb.add_worksheet name: 'Inventory Utilization' do |sheet|
       [
         project.name,
         ::HUD.project_type_brief(project.project_type),
+        project.organization_name,
         project.beds,
         project.clients,
         project.bed_utilization,

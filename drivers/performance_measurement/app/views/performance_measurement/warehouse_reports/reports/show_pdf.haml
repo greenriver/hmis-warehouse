@@ -1,0 +1,38 @@
+- title = _("CoC Performance Measurement Dashboard")
+- content_for :title, title
+
+%h1= content_for :title
+
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+.well.report-listing.warehouse-reports__completed
+  = @report.filter.describe_filter_as_html
+
+= render 'performance_measurement/warehouse_reports/reports/table', goal_popover: false, pdf: true
+
+- @report.summary_table.each.with_index do |(title, group), i|
+  - group.each do |sub_category, sub_group|
+    - sub_group.each do |row|
+      - key = row.first
+      - indicator = @report.result_for(key)
+      - if indicator
+        .page-break-after
+          = render 'performance_measurement/warehouse_reports/reports/details', key: key
+:css
+  .performance-measurement--highlight-light-1 {
+    background-color: #decbe4 !important;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 4em;
+  }
+  .performance-measurement--highlight-light-2 {
+    background-color: #cbd5e8 !important;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 4em;
+  }
+  .performance-measurement--highlight-light-3 {
+    background-color: #e6f5c9 !important;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 4em;
+  }

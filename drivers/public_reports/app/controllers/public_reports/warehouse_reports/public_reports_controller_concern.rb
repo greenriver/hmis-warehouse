@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,16 +43,8 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
         @report.update(version_slug: version_slug)
         respond_with(@report, location: path_to_report)
       elsif params.dig(:public_report, :published_url).present?
-        html = if @report.view_template.is_a?(Array)
-          @report.view_template.map do |template|
-            string = @report.html_section_start(template)
-            string << render_to_string(template, layout: 'raw_public_report')
-            string << @report.html_section_end(template)
-          end.join
-        else
-          render_to_string(@report.view_template, layout: 'raw_public_report')
-        end
-        @report.publish!(html)
+        @report.delay.publish!
+        flash[:notice] = 'Report publishing queued, please check the public link in a few minutes.'
         respond_with(@report, location: path_to_report)
       else
         redirect_to(action: :edit)
@@ -102,12 +94,20 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
     end
 
     private def default_filter_options
-      {
-        filters: {
-          start: 4.years.ago.beginning_of_year.to_date,
-          end: 1.years.ago.end_of_year.to_date,
-        },
-      }
+      if last_report.present?
+        last_report.filter_object.for_params
+      else
+        {
+          filters: {
+            start: 4.years.ago.beginning_of_year.to_date,
+            end: 1.years.ago.end_of_year.to_date,
+          },
+        }
+      end
+    end
+
+    private def last_report
+      @last_report ||= report_scope.order(id: :desc).first
     end
 
     private def set_report

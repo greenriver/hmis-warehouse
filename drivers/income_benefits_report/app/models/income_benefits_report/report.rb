@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -205,8 +205,9 @@ module IncomeBenefitsReport
       scope = filter_for_disabilities(scope)
       scope = filter_for_indefinite_disabilities(scope)
       scope = filter_for_dv_status(scope)
-      scope = filter_for_chronic_status(scope)
+      scope = filter_for_chronic_at_entry(scope)
       scope = filter_for_ca_homeless(scope)
+      scope = filter_for_ce_cls_homeless(scope)
       scope = filter_for_times_homeless(scope)
 
       # Limit to most recently started enrollment per client

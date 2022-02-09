@@ -1,8 +1,9 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+###
+
 # Code initially written for and funded by Delaware Health and Social Services.
 # Used and modified with permission.
 #
@@ -24,7 +25,7 @@ module GrdaWarehouse
 
         # fall back to last year we have data for if we're not too far from it.
         this_year = Date.today.year
-        if self.year > max_year && (this_year - self.year < 2)
+        if self.year > max_year && (this_year - self.year < 5)
           Rails.logger.debug { "Using #{max_year} instead of #{self.year} for census values" }
           self.year = max_year
         end

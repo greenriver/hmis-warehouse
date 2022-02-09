@@ -1,12 +1,12 @@
 .d-flex.justify-content-between.mb-2
   %h2 Inventory
-  - if RailsDrivers.loaded.include?(:manual_hmis_data)  
+  - if RailsDrivers.loaded.include?(:manual_hmis_data)
     = link_to new_manual_hmis_data_project_inventory_path(@project), data: {loads_in_pjax_modal: true}, class: 'btn btn-sm btn-secondary' do
       %i.icon-plus
       Add Manual Inventory
 .card.mb-4
   - if inventories.count > 0
-    %table.table.table-sm.table-hover.table-striped
+    %table.table.table-sm.table-hover.table-striped.mb-0
       %thead
         %tr
           %th
@@ -15,9 +15,6 @@
           %th Dates
           %th Unit Inventory
           %th Bed Inventory
-          %th HMIS Participating Beds
-          %th Child Bed Inventory
-          %th Veteran Bed Inventory
           %th CoC Code
           %th
 
@@ -34,9 +31,6 @@
                 = "#{inventory.computed_start_date} - #{inventory.computed_end_date || 'ongoing'}"
             %td= inventory.UnitInventory
             %td= inventory.BedInventory
-            %td= inventory.HMISParticipatingBeds
-            %td= inventory.CHBedInventory
-            %td= inventory.VetBedInventory
             %td
               = inventory.CoCCode
               - if inventory.coc_code_override.present?

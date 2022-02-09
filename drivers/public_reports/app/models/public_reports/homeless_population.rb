@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,7 +28,11 @@ module PublicReports
       public_reports_warehouse_reports_homeless_populations_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
-    def publish!(content)
+    private def controller_class
+      PublicReports::WarehouseReports::HomelessPopulationsController
+    end
+
+    def publish!
       unless published?
         # This should:
         # 1. Take the contents of html and push it up to S3
@@ -37,7 +41,7 @@ module PublicReports
         self.class.transaction do
           unpublish_similar
           update(
-            html: content,
+            html: as_html,
             published_url: generate_publish_url, # NOTE this isn't used in this report
             embed_code: generate_embed_code, # NOTE this isn't used in this report
             state: :published,
@@ -131,6 +135,7 @@ module PublicReports
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
       # scope = filter_for_range(scope) # all future queries limit this by date further, adding it here just makes it slower
+      scope = filter_for_user_access(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_project_type(scope)
       scope = filter_for_data_sources(scope)

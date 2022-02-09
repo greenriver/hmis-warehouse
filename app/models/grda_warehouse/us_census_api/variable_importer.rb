@@ -1,8 +1,9 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+###
+
 # Code initially written for and funded by Delaware Health and Social Services.
 # Used and modified with permission.
 #
@@ -39,7 +40,12 @@ module GrdaWarehouse
               raise "dataset we didn't account for found"
             end
 
-        vars = JSON.parse(Curl.get(lookup_url).body)['variables']
+        vars = []
+        begin
+          vars = JSON.parse(Curl.get(lookup_url).body)['variables']
+        rescue JSON::ParserError => e
+          Rails.logger.error e.message
+        end
 
         records = []
         vars.each do |name, values|
@@ -71,7 +77,12 @@ module GrdaWarehouse
               raise "dataset we didn't account for found"
             end
 
-        groups = JSON.parse(Curl.get(lookup_url).body)['groups']
+        groups = []
+        begin
+          groups = JSON.parse(Curl.get(lookup_url).body)['groups']
+        rescue JSON::ParserError => e
+          Rails.logger.error e.message
+        end
 
         records = []
         groups.each do |values|

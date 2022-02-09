@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -36,6 +36,12 @@ module
           label: 'Including CA homeless at entry?',
           value: @filter.coordinated_assessment_living_situation_homeless ? 'Yes' : nil,
           hint: "Including Coordinated Assessment enrollments where the prior living situation is homeless (#{HUD.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
+        )
+        section.add_control(
+          id: 'ce_cls_as_homeless',
+          label: 'Including CA Current Living Situation Homeless',
+          value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
+          hint: "Including Coordinated Assessment enrollments where the client has at least two homeless current living situations (#{HUD.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
         )
         section.add_control(
           id: 'reporting_period',
@@ -198,7 +204,7 @@ module
         id: 'chronic_status',
         label: 'Chronically Homeless',
         value: @filter.chronic_status ? 'Chronically Homeless' : nil,
-        hint: 'Chronic status is calcualted twice monthly, choosing this will include clients who were chronic on the most-recent calculation within the chosen range.',
+        hint: 'Chronically Homeless at Entry as defined in the HUD HMIS Glossary.',
       )
       section
     end

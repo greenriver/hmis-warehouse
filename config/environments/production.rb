@@ -1,7 +1,8 @@
+require "#{Rails.root}/lib/util/exception_notifier.rb"
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
   deliver_method = ENV.fetch('MAIL_DELIVERY_METHOD') { 'smtp' }.to_sym
-  slack_config = Rails.application.config_for(:exception_notifier)['slack']
 
   # Code is not reloaded between requests.
   config.cache_classes = true
@@ -24,13 +25,14 @@ Rails.application.configure do
   # Apache or NGINX already handles this.
   config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
 
-  # Compress JavaScripts and CSS.
+  # Compress CSS using a preprocessor.
   # harmony: true to enable ES6
   config.assets.js_compressor = Uglifier.new(harmony: true)
   # config.assets.css_compressor = :sass
 
   config.assets.compile = true
   config.assets.digest = true
+  config.assets.check_precompiled_asset = false
 
   # `config.assets.precompile` and `config.assets.version` have moved to config/initializers/assets.rb
 
@@ -62,7 +64,7 @@ Rails.application.configure do
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
 
-  # Use a real queuing backend for Active Job (and separate queues per environment)
+  # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_adapter     = :resque
   # config.active_job.queue_name_prefix = "boston_hmis_#{Rails.env}"
 
@@ -111,17 +113,22 @@ Rails.application.configure do
 
   cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
   cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
+  redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace})
+  config.cache_store = :redis_cache_store, redis_config
 
   config.action_controller.perform_caching = true
+  slack_config = Rails.application.config_for(:exception_notifier)[:slack]
   if slack_config.present?
     config.middleware.use(ExceptionNotification::Rack,
-      :slack => {
-        :webhook_url => slack_config['webhook_url'],
-        :channel => slack_config['channel'],
-        :additional_parameters => {
-          :mrkdwn => true,
-          :icon_url => slack_config['icon_url']
+      slack: {
+        webhook_url: slack_config[:webhook_url],
+        channel: slack_config[:channel],
+        pre_callback: proc { |opts, _notifier, _backtrace, _message, message_opts|
+          ExceptionNotifierLib.insert_log_url!(message_opts)
+        },
+        additional_parameters: {
+          mrkdwn: true,
+          icon_url: slack_config[:icon_url]
         }
       }
     )

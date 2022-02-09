@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -31,8 +31,17 @@ module CoreDemographicsReport::DocumentExports
     def perform
       with_status_progression do
         template_file = 'core_demographics_report/warehouse_reports/core/index_pdf'
+        layout = 'layouts/performance_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "Core Demographics #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -44,21 +53,8 @@ module CoreDemographicsReport::DocumentExports
       CoreDemographicsReport::Core
     end
 
-    protected def view
-      context = CoreDemographicsReport::WarehouseReports::CoreController.view_paths
-      view = CoreDemographicsExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class CoreDemographicsExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
-
-      # def details_performance_dashboards_overview_index_path(*args)
-      #   '#'
-      # end
+    private def controller_class
+      CoreDemographicsReport::WarehouseReports::CoreController
     end
   end
 end

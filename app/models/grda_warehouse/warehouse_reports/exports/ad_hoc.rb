@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -51,7 +51,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     end
 
     def client_scope
-      @client_scope ||=  begin
+      @client_scope ||= begin
         clients = clients_within_age_range
         clients = clients_with_ongoing_enrollments(clients)
         clients = heads_of_household(clients)
@@ -62,10 +62,10 @@ module GrdaWarehouse::WarehouseReports::Exports
     end
 
     private def race_for_client(client)
-      description = client.race_description
-      return 'Multi-Racial' if description.include?(',')
+      fields = client.race_fields
+      return 'Multi-Racial' if fields.count > 1
 
-      description
+      fields.map { |f| ::HUD.race f }.join ', '
     end
 
     def rows_for_export

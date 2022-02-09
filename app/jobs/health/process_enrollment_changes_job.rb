@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -126,7 +126,7 @@ module Health
             # This is a missed re-enrollment
             audit_actions[subscriber_id] = Health::Enrollment::ENROLLMENT
 
-            if referral.re_enrollment_blackout?(file_date)
+            if referral.re_enrollment_blackout?(file_date, audit: true)
               errors << blackout_message(transaction)
             else
               re_enroll_patient(referral, transaction)

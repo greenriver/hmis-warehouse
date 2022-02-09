@@ -19,6 +19,7 @@ class Deployer
   TEST_PORT   = 9999
   WAIT_TIME   = 2
 
+  attr_accessor :version
   attr_accessor :image_tag
   attr_accessor :image_tag_latest
 
@@ -64,6 +65,7 @@ class Deployer
     self.registry_id       = registry_id
     self.repo_name         = repo_name
     self.variant           = 'web'
+    self.version           = `git rev-parse --short=9 HEAD`.chomp
 
     Dir.chdir(_root)
   end
@@ -284,14 +286,17 @@ class Deployer
     @_ruby_version ||= File.read('.ruby-version').chomp
   end
 
+  def _pre_cache_version
+    @_pre_cache_version ||= File.read('.pre-cache-version').chomp
+  end
+
   def _set_image_tag!
     if variant == 'pre-cache'
-      self.image_tag = "#{_ruby_version}--pre-cache"
+      self.image_tag = "#{_ruby_version}-#{_pre_cache_version}--pre-cache"
     elsif ENV['IMAGE_TAG']
       self.image_tag = ENV['IMAGE_TAG'] + "--#{variant}"
       self.image_tag_latest = "latest-" + ENV['IMAGE_TAG'] + "--#{variant}"
     else
-      version = `git rev-parse --short=9 HEAD`.chomp
       self.image_tag = "githash-#{version}--#{variant}"
       self.image_tag_latest = "latest-#{target_group_name}--#{variant}"
     end
@@ -373,7 +378,7 @@ class Deployer
   end
 
   def _pre_cache_image_exists?
-    result = `docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`
+    result = `docker image ls -f 'reference=#{repo_name}' | grep "#{_ruby_version}-#{_pre_cache_version}--pre-cache"`
 
     !result.match?(/^\s*$/)
   end

@@ -22,7 +22,11 @@
             %span.label.label-success
               = Rails.env
       - else
-        .rails-env.ml-auto.mr-6
+        .git-branch.ml-auto
+          .navbar-text
+            .label.label-warning
+              = Rails.version
+        .rails-env.ml-4.mr-6
           .navbar-text
             %span.label.label-success
               = Rails.env

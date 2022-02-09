@@ -11,7 +11,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       qualifying_activity.calculate_payability!
 
       expect(pre_enrollment_activity.naturally_payable).to be true
-      expect(pre_enrollment_activity.compute_valid_unpayable?).to be true
+      expect(pre_enrollment_activity.compute_valid_unpayable).to contain_exactly(:outside_enrollment)
       expect(qualifying_activity.naturally_payable).to be true
     end
   end
@@ -25,7 +25,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       qualifying_activity.calculate_payability!
 
       expect(pre_enrollment_activity.naturally_payable).to be true
-      expect(pre_enrollment_activity.compute_valid_unpayable?).to be true
+      expect(pre_enrollment_activity.compute_valid_unpayable).to contain_exactly(:outside_enrollment)
       expect(qualifying_activity.naturally_payable).to be true
     end
   end
@@ -60,7 +60,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       Timecop.travel(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(payable_outreach.compute_valid_unpayable?).to be false
-        expect(unpayable_outreach.compute_valid_unpayable?).to be true
+        expect(unpayable_outreach.compute_valid_unpayable).to contain_exactly(:outreach_past_cutoff)
       end
     end
 
@@ -72,7 +72,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       Timecop.travel(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(payable_qa.compute_valid_unpayable?).to be false
-        expect(unpayable_qa.compute_valid_unpayable?).to be true
+        expect(unpayable_qa.compute_valid_unpayable).to contain_exactly(:activity_outside_of_engagement_without_careplan)
       end
     end
 
@@ -113,7 +113,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       Timecop.travel(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(payable_outreach.compute_valid_unpayable?).to be false
-        expect(unpayable_outreach.compute_valid_unpayable?).to be true
+        expect(unpayable_outreach.compute_valid_unpayable).to contain_exactly(:outside_enrollment)
       end
     end
 
@@ -218,11 +218,11 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       Timecop.return
       aggregate_failures do
         expect(outreach_qa1.compute_valid_unpayable?).to be false
-        expect(outreach_qa2.compute_valid_unpayable?).to be true
+        expect(outreach_qa2.compute_valid_unpayable).to contain_exactly(:limit_outreaches_per_month_exceeded)
         expect(outreach_qa3.compute_valid_unpayable?).to be false
         expect(outreach_qa4.compute_valid_unpayable?).to be false
-        expect(outreach_qa5.compute_valid_unpayable?).to be true
-        expect(outreach_qa6.compute_valid_unpayable?).to be true
+        expect(outreach_qa5.compute_valid_unpayable).to contain_exactly(:limit_months_outreach_exceeded)
+        expect(outreach_qa6.compute_valid_unpayable).to contain_exactly(:limit_months_outreach_exceeded, :limit_outreaches_per_month_exceeded, :outreach_past_cutoff)
       end
     end
 
@@ -240,12 +240,12 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       aggregate_failures do
         expect(other_qa1.compute_valid_unpayable?).to be false
         expect(other_qa2.compute_valid_unpayable?).to be false
-        expect(other_qa3.compute_valid_unpayable?).to be true
+        expect(other_qa3.compute_valid_unpayable).to contain_exactly(:limit_activities_per_month_without_careplan_exceeded)
         expect(other_qa4.compute_valid_unpayable?).to be false
         expect(other_qa5.compute_valid_unpayable?).to be false
         expect(other_qa6.compute_valid_unpayable?).to be false
-        expect(other_qa7.compute_valid_unpayable?).to be true
-        expect(other_qa8.compute_valid_unpayable?).to be true
+        expect(other_qa7.compute_valid_unpayable).to contain_exactly(:limit_months_without_careplan_exceeded)
+        expect(other_qa8.compute_valid_unpayable).to contain_exactly(:limit_activities_per_month_without_careplan_exceeded, :activity_outside_of_engagement_without_careplan, :limit_months_without_careplan_exceeded)
       end
     end
 
@@ -269,20 +269,20 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       Timecop.return
       aggregate_failures do
         expect(outreach_qa1.compute_valid_unpayable?).to be false
-        expect(outreach_qa2.compute_valid_unpayable?).to be true
+        expect(outreach_qa2.compute_valid_unpayable).to contain_exactly(:limit_outreaches_per_month_exceeded)
         expect(outreach_qa3.compute_valid_unpayable?).to be false
         expect(outreach_qa4.compute_valid_unpayable?).to be false
-        expect(outreach_qa5.compute_valid_unpayable?).to be true
-        expect(outreach_qa6.compute_valid_unpayable?).to be true
+        expect(outreach_qa5.compute_valid_unpayable).to contain_exactly(:limit_months_outreach_exceeded)
+        expect(outreach_qa6.compute_valid_unpayable).to contain_exactly(:outreach_past_cutoff, :limit_outreaches_per_month_exceeded, :limit_months_outreach_exceeded)
 
         expect(other_qa1.compute_valid_unpayable?).to be false
         expect(other_qa2.compute_valid_unpayable?).to be false
-        expect(other_qa3.compute_valid_unpayable?).to be true
+        expect(other_qa3.compute_valid_unpayable).to contain_exactly(:limit_activities_per_month_without_careplan_exceeded)
         expect(other_qa4.compute_valid_unpayable?).to be false
         expect(other_qa5.compute_valid_unpayable?).to be false
         expect(other_qa6.compute_valid_unpayable?).to be false
-        expect(other_qa7.compute_valid_unpayable?).to be true
-        expect(other_qa8.compute_valid_unpayable?).to be true
+        expect(other_qa7.compute_valid_unpayable).to contain_exactly(:limit_months_without_careplan_exceeded)
+        expect(other_qa8.compute_valid_unpayable).to contain_exactly(:limit_activities_per_month_without_careplan_exceeded, :activity_outside_of_engagement_without_careplan, :limit_months_without_careplan_exceeded)
       end
     end
 
@@ -299,8 +299,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     let(:qa) { create :valid_qa }
 
     it 'has a valid procedure code' do
-      qa.calculate_payability!
-      qa.maintain_procedure_valid
+      qa.maintain_cached_values
 
       expect(qa.naturally_payable).to be true
       expect(qa.procedure_valid?).to be true
@@ -312,12 +311,59 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     let(:qa) { create :pctp_signed_qa }
 
     it 'has a valid procedure code' do
-      qa.calculate_payability!
-      qa.maintain_procedure_valid
+      qa.maintain_cached_values
 
       expect(qa.naturally_payable).to be true
       expect(qa.procedure_valid?).to be true
       expect(qa.procedure_code).to eq 'T2024>U4'
+    end
+  end
+
+  describe 'CHA QA' do
+    let(:qa) { create :cha_qa }
+    let(:phone_qa) { create :cha_qa, mode_of_contact: :phone_call }
+
+    it 'has a valid procedure code' do
+      qa.maintain_cached_values
+
+      expect(qa.naturally_payable).to be true
+      expect(qa.procedure_valid?).to be true
+      expect(qa.procedure_code).to eq 'G0506'
+      expect(qa.modifiers).to contain_exactly('U1')
+    end
+
+    it 'marks phone_calls as in person' do
+      TodoOrDie('Remove MH COVID flexibility', by: '2023-01-01')
+      phone_qa.maintain_cached_values
+
+      expect(phone_qa.naturally_payable).to be true
+      expect(phone_qa.procedure_valid?).to be true
+      expect(phone_qa.modifiers).to contain_exactly('U1', 'U2')
+      # expect(phone_qa.modifiers).to contain_exactly('U1', 'U3')
+    end
+  end
+
+  describe 'Discharge follow up QA' do
+    let(:qa) { create :discharge_follow_up_qa }
+    let(:phone_qa) { create :discharge_follow_up_qa, mode_of_contact: :phone_call }
+
+    it 'has a valid procedure code' do
+      qa.maintain_cached_values
+
+      expect(qa.naturally_payable).to be true
+      expect(qa.procedure_valid?).to be true
+      expect(qa.procedure_code).to eq 'G9007>U5'
+      expect(qa.modifiers).to contain_exactly('U1')
+    end
+
+    it 'marks phone_calls as in person' do
+      TodoOrDie('Remove MH COVID flexibility', by: '2023-01-01')
+      phone_qa.maintain_cached_values
+
+      expect(phone_qa.naturally_payable).to be true
+      expect(phone_qa.procedure_valid?).to be true
+      expect(phone_qa.modifiers).to contain_exactly('U1', 'U2')
+      # expect(phone_qa.modifiers).to contain_exactly('U1', U3')
     end
   end
 end

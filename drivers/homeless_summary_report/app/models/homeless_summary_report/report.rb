@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -127,7 +127,7 @@ module HomelessSummaryReport
       when 'Measure 7'
         @filter.update(start: @filter.start - 1.days)
       end
-      puts measure
+      # puts measure
       scope = report_scope_source
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
@@ -139,6 +139,7 @@ module HomelessSummaryReport
       scope = filter_for_projects(scope)
       scope = filter_for_funders(scope)
       scope = filter_for_ca_homeless(scope)
+      scope = filter_for_ce_cls_homeless(scope)
       # force re-calculation of filter
       @filter = nil
       filter
@@ -699,7 +700,8 @@ module HomelessSummaryReport
           ],
           title: 'PH projects except PH-RRH who exited after moving into housing',
         },
-      }.freeze
+      }.
+        freeze
     end
 
     def variants
@@ -896,7 +898,8 @@ module HomelessSummaryReport
           },
           demographic_filters: [:filter_for_returned_to_homelessness_from_permanent_destination],
         },
-      }.freeze
+      }.
+        freeze
     end
 
     def exclude_variants(measure_name, variant)
@@ -929,7 +932,8 @@ module HomelessSummaryReport
         scope.where(
           rc_t[:spm_m7a1_destination].in(Array.wrap(options[:destination])).
           or(rc_t[:spm_m7b1_destination].in(Array.wrap(options[:destination]))),
-        ).count
+        ).
+          count
       end
       value&.round(1) || 0
     end

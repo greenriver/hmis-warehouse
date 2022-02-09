@@ -1,11 +1,13 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Reporting::Hud
   class RunReportJob < BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
     def perform(class_name, report_id, email: true)
       report = HudReports::ReportInstance.find(report_id)
       report.start_report

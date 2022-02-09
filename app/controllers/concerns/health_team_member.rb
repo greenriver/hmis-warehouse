@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,7 +35,7 @@ module HealthTeamMember
 
   def update
     @member = Health::Team::Member.find(params[:id])
-    @member.update_attributes(team_member_params)
+    @member.update(team_member_params)
     respond_with(@member, location: after_path) unless request.xhr?
   end
 

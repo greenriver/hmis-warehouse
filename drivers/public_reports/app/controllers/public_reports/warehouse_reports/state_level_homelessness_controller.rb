@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -52,13 +52,17 @@ module PublicReports::WarehouseReports
     end
 
     private def default_filter_options
-      {
-        filters: {
-          start: 3.years.ago.beginning_of_year.to_date,
-          end: 1.years.ago.end_of_year.to_date,
-          project_type_numbers: [1, 2, 8, 4],
-        },
-      }
+      if last_report.present?
+        last_report.filter_object.for_params
+      else
+        {
+          filters: {
+            start: 3.years.ago.beginning_of_year.to_date,
+            end: 1.years.ago.end_of_year.to_date,
+            project_type_numbers: [1, 2, 8, 4],
+          },
+        }
+      end
     end
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,6 +23,10 @@ module PublicReports
 
     def url
       public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
+    end
+
+    private def controller_class
+      PublicReports::WarehouseReports::PointInTimeController
     end
 
     def run_and_save!
@@ -82,6 +86,7 @@ module PublicReports
       @filter = filter_object
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
+      scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_project_type(scope)

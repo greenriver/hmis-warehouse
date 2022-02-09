@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,8 +8,7 @@ module GrdaWarehouse
   module Shape
     class BlockGroup < GrdaWarehouseBase
       include SharedBehaviors
-
-      scope :my_state, -> { where(statefp: my_fips_state_code) }
+      include StateScopes
 
       def self._full_geoid_prefix
         '1500000'

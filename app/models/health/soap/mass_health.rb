@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,7 +48,10 @@ module Health::Soap
       file_list = Array.wrap(Hash.from_xml(result.response)&.dig('FileList', 'File')).uniq
       return ::Health::Soap::FileList.new(file_list, self)
     rescue StandardError
-      raise result.response.error_message
+      message = result&.response&.error_message
+      raise message if message.present?
+
+      raise # Don't swallow the original exception if we don't have an error message from the API
     end
 
     def generic_results_retrieval_request(payload_type:, payload_id:)

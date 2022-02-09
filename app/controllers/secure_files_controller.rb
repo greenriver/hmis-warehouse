@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,7 @@ class SecureFilesController < ApplicationController
 
   def index
     @secure_file = file_source.new
-    @secure_files = file_scope
+    @secure_files = file_scope.order(created_at: :desc).diet_select
   end
 
   def show

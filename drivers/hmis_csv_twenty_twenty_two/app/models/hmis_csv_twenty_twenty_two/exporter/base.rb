@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       start_date:,
       end_date:,
       projects:,
+      coc_codes: nil,
       period_type: nil,
       directive: nil,
       hash_status: nil,
@@ -38,6 +39,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       @debug = debug
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
       @projects = projects
+      @coc_codes = coc_codes
       @period_type = period_type.presence || 3
       @directive = directive.presence || 2
       @hash_status = hash_status.presence || 1
@@ -105,6 +107,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -121,6 +124,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -129,6 +133,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -137,6 +142,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -155,6 +161,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -172,6 +179,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -181,6 +189,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -199,6 +208,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -208,6 +218,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -217,6 +228,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -226,6 +238,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -235,6 +248,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -244,6 +258,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -253,6 +268,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -262,6 +278,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 
@@ -271,6 +288,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         project_scope: project_scope,
         path: @file_path,
         export: @export,
+        coc_codes: @coc_codes,
       )
     end
 

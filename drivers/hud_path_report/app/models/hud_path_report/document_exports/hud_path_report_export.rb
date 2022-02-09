@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,7 @@ module HudPathReport::DocumentExports
     end
 
     private def controller_class
-      HudApr::PathsController
+      HudPathReport::PathsController
     end
 
     private def possible_generator_classes

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -147,7 +147,7 @@ module GrdaWarehouse
     end
 
     def housed_scope
-      @client_search_scope.where.not(housed_date: nil, destination: [nil, ''])
+      @client_search_scope.where.not(housed_date: nil).where.not(destination: [nil, ''])
     end
 
     # should we show the inactive option for the last `client_search`

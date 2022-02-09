@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -159,7 +159,7 @@ module HudApr::Generators::Shared::Fy2021
               ]
               case method
               when :none
-                ids << member.id if disability_truths.none?(true) && apr_client.disabling_condition.zero?
+                ids << member.id if disability_truths.none?(true) && apr_client.disabling_condition&.zero?
               when :unknown
                 ids << member.id if disability_truths.none?(true) && apr_client.disabling_condition == 1
               when :refused

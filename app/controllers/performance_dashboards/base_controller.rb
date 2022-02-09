@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,11 @@ class PerformanceDashboards::BaseController < ApplicationController
   helper_method :show_client_details?
 
   def breakdown
+    # This is needed when generating the PDF
+    if @report.blank?
+      set_filter
+      set_report
+    end
     @breakdown ||= params[:breakdown]&.to_sym || @report.available_breakdowns.keys.first
   end
   helper_method :breakdown

@@ -1,6 +1,7 @@
+require "#{Rails.root}/lib/util/exception_notifier.rb"
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-
   # Don't force ssl for docker development
   config.force_ssl = false
 
@@ -11,6 +12,7 @@ Rails.application.configure do
 
   config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
   config.action_cable.allowed_request_origins = [ /.+/ ]
+  config.hosts = [ /.*/ ]
 
   # Do not eager load code on boot.
   config.eager_load = false
@@ -22,6 +24,7 @@ Rails.application.configure do
   # Run rails dev:cache to toggle caching.
   if Rails.root.join('tmp', 'caching-dev.txt').exist?
     config.action_controller.perform_caching = true
+    config.action_controller.enable_fragment_cache_logging = true
 
     config.cache_store = :memory_store
     config.public_file_server.headers = {
@@ -32,8 +35,12 @@ Rails.application.configure do
 
     cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
     cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-    config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 5.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
+    redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 5.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace})
+    config.cache_store = :redis_cache_store, redis_config
   end
+
+  # Store uploaded files on the local file system (see config/storage.yml for options).
+  # config.active_storage.service = :local
 
   if ENV['SMTP_SERVER']
     config.action_mailer.delivery_method = :smtp
@@ -72,6 +79,9 @@ Rails.application.configure do
   # Raise an error on page load if there are pending migrations.
   config.active_record.migration_error = :page_load
 
+  # Highlight code that triggered database queries in logs.
+  config.active_record.verbose_query_logs = true
+
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
@@ -79,9 +89,9 @@ Rails.application.configure do
   # config.action_controller.asset_host = ENV['FQDN']
 
   # Suppress logger output for asset requests.
-  config.assets.quiet = false
+  config.assets.quiet = true
 
-  # Raises error for missing translations
+  # Raises error for missing translations.
   # config.action_view.raise_on_missing_translations = true
 
   # Devise requires a default URL
@@ -103,7 +113,7 @@ Rails.application.configure do
   end
 
   # Web console from outside of docker
-  config.web_console.whitelisted_ips = ['172.16.0.0/12', '192.168.0.0/16', '10.0.0.0/8']
+  config.web_console.allowed_ips = ['172.16.0.0/12', '192.168.0.0/16', '10.0.0.0/8']
 
   console do
     if ENV['CONSOLE'] == 'pry'
@@ -118,4 +128,21 @@ Rails.application.configure do
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''
+
+  slack_config = Rails.application.config_for(:exception_notifier)[:slack]
+  if slack_config.present?
+    config.middleware.use(ExceptionNotification::Rack,
+      slack: {
+        webhook_url: slack_config[:webhook_url],
+        channel: slack_config[:channel],
+        pre_callback: proc { |opts, _notifier, _backtrace, _message, message_opts|
+          ExceptionNotifierLib.insert_log_url!(message_opts)
+        },
+        additional_parameters: {
+          mrkdwn: true,
+          icon_url: slack_config[:icon_url]
+        }
+      }
+    )
+  end
 end

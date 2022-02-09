@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,6 +22,10 @@ module PublicReports
 
     def url
       public_reports_warehouse_reports_number_housed_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
+    end
+
+    private def controller_class
+      PublicReports::WarehouseReports::NumberHousedController
     end
 
     def run_and_save!

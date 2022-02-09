@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -89,6 +89,7 @@ module Admin
         :ineligible_uses_extrapolated_days,
         :warehouse_client_name_order,
         :cas_calculator,
+        :service_register_visible,
         client_details: [],
       )
     end

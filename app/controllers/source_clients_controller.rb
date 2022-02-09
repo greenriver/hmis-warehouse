@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,6 +25,11 @@ class SourceClientsController < ApplicationController
     end
     valid_params = validate_new_client_params(clean_params)
     clean_params = clean_params.to_h.with_indifferent_access
+    # Reset gender columns
+    HUD.gender_id_to_field_name.values.uniq.each do |g|
+      clean_params[g] = nil
+    end
+
     clean_params[:Gender]&.each do |k|
       next if k.blank?
 
@@ -58,7 +63,7 @@ class SourceClientsController < ApplicationController
     image = @client.image_for_source_client(max_age)
     # NOTE: The test environment is really unhappy when there's no image
     if image && ! Rails.env.test?
-      send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
+      send_data image, type: ::MimeMagic.by_magic(image), disposition: 'inline'
     else
       head(:forbidden)
       nil

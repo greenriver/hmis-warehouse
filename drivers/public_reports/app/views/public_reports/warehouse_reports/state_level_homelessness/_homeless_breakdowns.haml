@@ -1,4 +1,4 @@
-.d-flex
+.d-flex.mt-4
   .w-30
     %label.ml-auto.mb-2{ for: 'breakdown-group-trigger' }
       Choose grouping
@@ -37,7 +37,8 @@
     var index = $(this).val();
     var selected_date = $(this).data('dates')[index];
     $('.jHomelessBreakdownRow').each(function(e){
-      var chronic_percent = $(this).data('chronics')[selected_date];
+      var title = $(this).find('.jChronicPercent').data('category');
+      var chronic_percent = $(this).data('chronics')[selected_date][title];
       $(this).find('.jChronicPercent').text(chronic_percent);
       $(this).find('.jChronicPercentMeter').css('width', chronic_percent + '%');
     })

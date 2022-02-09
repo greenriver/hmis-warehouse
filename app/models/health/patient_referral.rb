@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -341,8 +341,11 @@ module Health
       was_active_range&.cover?(date)
     end
 
-    def re_enrollment_blackout?(on_date)
-      removal_acknowledged? && on_date < disenrollment_date + 30.days
+    def re_enrollment_blackout?(on_date, audit: false)
+      in_blackout = removal_acknowledged? && on_date < disenrollment_date + 30.days
+      in_blackout ||= rejected? && !removal_acknowledged? if audit
+
+      in_blackout
     end
 
     def display_claimed_by_other(agencies)

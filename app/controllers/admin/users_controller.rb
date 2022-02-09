@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -114,7 +114,7 @@ module Admin
     end
 
     private def adding_admin?
-      @adming_admin ||= begin
+      @adming_admin ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
         adming_admin = false
         existing_roles = @user.user_roles
         unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
@@ -189,7 +189,7 @@ module Admin
     end
 
     private def set_user
-      @user = user_scope.find(params[:id].to_i)
+      @user = User.find(params[:id].to_i)
 
       @agencies = Agency.order(:name)
     end

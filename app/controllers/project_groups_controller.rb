@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 class ProjectGroupsController < ApplicationController
   before_action :require_can_edit_project_groups!
   before_action :require_can_import_project_groups!, only: [:maintenance, :import]
-  before_action :set_project_group, only: [:edit, :update]
+  before_action :set_project_group, only: [:edit, :update, :destroy]
   before_action :set_access, only: [:edit, :update]
 
   def index
@@ -25,9 +25,11 @@ class ProjectGroupsController < ApplicationController
     @project_group = project_group_source.new
     begin
       @project_group.assign_attributes(name: group_params[:name])
-      @project_group.project_ids = group_params[:projects]
+      @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
       @project_group.save
-      @project_group.update_access(user_params[:users].reject(&:empty?).map(&:to_i))
+      users = user_params[:users]&.reject(&:empty?)
+      @project_group.update_access(users.map(&:to_i)) if users.present?
+      @project_group.maintain_projects!
     rescue Exception => e
       flash[:error] = e.message
       render action: :new
@@ -43,9 +45,11 @@ class ProjectGroupsController < ApplicationController
   def update
     begin
       @project_group.assign_attributes(name: group_params[:name])
-      @project_group.project_ids = group_params[:projects]
+      @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
       @project_group.save
-      @project_group.update_access(user_params[:users].reject(&:empty?).map(&:to_i))
+      users = user_params[:users]&.reject(&:empty?)
+      @project_group.update_access(users.map(&:to_i)) if users.present?
+      @project_group.maintain_projects!
     rescue Exception => e
       flash[:error] = e.message
       render action: :edit
@@ -55,6 +59,8 @@ class ProjectGroupsController < ApplicationController
   end
 
   def destroy
+    @project_group.destroy
+    respond_with(@project_group, location: project_groups_path)
   end
 
   def maintenance
@@ -76,16 +82,19 @@ class ProjectGroupsController < ApplicationController
     params.require(:import).permit(:file)
   end
 
+  def filter_params
+    params.require(:filters).permit(::Filters::HudFilterBase.new(user_id: current_user.id).known_params)
+  end
+
   def group_params
-    params.require(:grda_warehouse_project_group).
+    params.require(:filters).
       permit(
         :name,
-        projects: [],
       )
   end
 
   def user_params
-    params.require(:grda_warehouse_project_group).
+    params.require(:filters).
       permit(
         users: [],
       )
@@ -108,5 +117,9 @@ class ProjectGroupsController < ApplicationController
     project_group_source.
       editable_by(current_user).
       includes(:projects).order(name: :asc)
+  end
+
+  def flash_interpolation_options
+    { resource_name: 'Project Group' }
   end
 end

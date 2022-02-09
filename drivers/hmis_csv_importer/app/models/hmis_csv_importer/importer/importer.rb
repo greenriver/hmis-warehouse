@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -778,6 +778,8 @@ module HmisCsvImporter::Importer
       # queue up a rebuild to keep things as in sync as possible
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+      # These need to be updated any time the enrollment changes
+      GrdaWarehouse::ChEnrollment.maintain!
     end
 
     private def db_transaction(&block)

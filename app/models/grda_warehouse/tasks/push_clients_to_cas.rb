@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,7 +35,7 @@ module GrdaWarehouse::Tasks
         update_columns = (Cas::ProjectClient.column_names - ['id']).map(&:to_sym)
         Cas::ProjectClient.transaction do
           Cas::ProjectClient.update_all(sync_with_cas: false)
-          @client_ids.each_slice(1_000) do |client_id_batch|
+          @client_ids.each_slice(150) do |client_id_batch|
             to_update = []
             project_clients = Cas::ProjectClient.
               where(data_source_id: data_source.id, id_in_data_source: client_id_batch).
@@ -199,6 +199,11 @@ module GrdaWarehouse::Tasks
         majority_sheltered: :majority_sheltered,
         tie_breaker_date: :tie_breaker_date,
         financial_assistance_end_date: :financial_assistance_end_date,
+        strengths: :strengths,
+        challenges: :challenges,
+        foster_care: :foster_care,
+        open_case: :open_case,
+        housing_for_formerly_homeless: :housing_for_formerly_homeless,
       }
     end
 
@@ -255,6 +260,10 @@ module GrdaWarehouse::Tasks
         value.map do |id|
           GrdaWarehouse::Cohort.find(id).name
         end&.to_sentence
+      elsif key.in?([:strengths, :challenges])
+        value&.join(', ')&.titleize
+      elsif value.is_a?(Array)
+        value.join(', ')
       else
         value
       end

@@ -6,8 +6,9 @@
       = render 'clients/service_summary'
 
     .d-flex.align-items-start.flex-wrap
-      .client-consent-status.d-none--empty.mb-3.mr-8<
-        = render 'clients/consent_form_flags'
+      - unless GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::TcHat'
+        .client-consent-status.d-none--empty.mb-3.mr-8<
+          = render 'clients/consent_form_flags'
       .mr-8.mb-3.d-none--empty<
         = render 'clients/chronic_flags', client: @client
         - if can_view_clients? || @client.consent_form_valid?
@@ -27,7 +28,7 @@
       .d-none--empty.mb-6.w-100<
         = render 'clients/required_documents'
 
-      - if RailsDrivers.loaded.include?(:service_scanning)
+      - if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
         .d-none--empty.mb-6.w-100<
-          - if can_view_clients?
+          - if can_view_clients? && can_view_service_register_on_client?
             = render 'service_scanning/scanner_ids/clients/register'

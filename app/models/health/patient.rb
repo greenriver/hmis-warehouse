@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -63,6 +63,8 @@ module Health
     # has_many :teams, through: :careplans
     # has_many :team_members, class_name: 'Health::Team::Member', through: :team
     has_many :team_members, class_name: 'Health::Team::Member'
+
+    has_many :consolidated_contacts, class_name: 'Health::Contact'
 
     # has_many :goals, class_name: 'Health::Goal::Base', through: :careplans
     has_many :goals, class_name: 'Health::Goal::Base'
@@ -311,7 +313,7 @@ module Health
     end
 
     scope :with_housing_status, -> do
-      where.not(housing_status: [nil, ''], housing_status_timestamp: nil)
+      where.not(housing_status: [nil, '']).where.not(housing_status_timestamp: nil)
     end
 
     scope :enrolled_before, ->(date) do
@@ -709,13 +711,13 @@ module Health
           user: form.staff,
         }
       end
-      case_notes += sdh_case_management_notes.order(completed_on: :desc).map do |form|
+      case_notes += sdh_case_management_notes.order(date_of_contact: :desc).map do |form|
         {
           type: :warehouse,
           id: form.id,
           title: form.topics.join(', ').html_safe,
           sub_title: form.title || 'No Title',
-          date: form.completed_on&.to_date,
+          date: form.date_of_contact&.to_date || form.completed_on&.to_date,
           user: form.user&.name,
         }
       end
@@ -754,6 +756,10 @@ module Health
         [recent_cha&.phone.presence, recent_cha&.updated_at.to_i],
         [note&.client_phone_number.presence, note&.updated_at.to_i],
       ].sort_by(&:last).map(&:first).compact.reverse.first
+    end
+
+    def most_recent_contact
+      consolidated_contacts.order(collected_on: :desc).first
     end
 
     def phone_message_ok

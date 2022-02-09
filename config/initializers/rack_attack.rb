@@ -36,7 +36,7 @@ class Rack::Attack
   end
 
   def self.warden_user_present?(request)
-    request.env['warden'].user.present?
+    request.env['warden']&.user.present?
   end
 
   # track any remote ip that exceeds our basic request rate limits
@@ -148,7 +148,7 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
 
   # ... and now try to send ot somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
-    notifier_config = Rails.application.config_for(:exception_notifier).fetch('slack', nil)
+    notifier_config = Rails.application.config_for(:exception_notifier).fetch(:slack, nil)
     notifier  = Slack::Notifier.new(
       notifier_config['webhook_url'],
       channel: notifier_config['channel'],

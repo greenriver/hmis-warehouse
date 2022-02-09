@@ -1,21 +1,11 @@
 namespace :db do
-  namespace :migrate do
-    desc "Call the db:migrate subvariant for all the different databases"
-    task :all do
-      system 'bin/rake db:migrate'
-      system 'bin/rake warehouse:db:migrate'
-      system 'bin/rake health:db:migrate'
-      system 'bin/rake reporting:db:migrate'
-    end
-  end
-
   namespace :schema do
     desc "Conditionally load the database schema"
     task :conditional_load, [] => [:environment] do |t, args|
       if ApplicationRecord.connection.table_exists?(:schema_migrations)
         puts "Refusing to load the database schema since there are tables present. This is not an error."
       else
-        Rake::Task['db:schema:load'].invoke
+        Rake::Task['db:schema:load:primary'].invoke
       end
     end
   end
@@ -26,7 +16,7 @@ namespace :db do
       if ApplicationRecord.connection.table_exists?(:schema_migrations)
         puts "Refusing to load the database structure since there are tables present. This is not an error."
       else
-        ApplicationRecord.connection.execute(File.read('db/structure.sql'))
+        Rake::Task['db:structure:load'].invoke
       end
     end
   end
@@ -44,8 +34,5 @@ namespace :db do
       raise "Unset test DB variable #{var}" unless db_name.present?
     end
     system 'RAILS_ENV=test bundle exec rake db:drop db:create db:schema:load'
-    system 'RAILS_ENV=test bundle exec rake warehouse:db:drop warehouse:db:create warehouse:db:schema:load'
-    system 'RAILS_ENV=test bundle exec rake health:db:drop health:db:create health:db:schema:load'
-    system 'RAILS_ENV=test bundle exec rake reporting:db:drop reporting:db:create reporting:db:schema:load'
   end
 end

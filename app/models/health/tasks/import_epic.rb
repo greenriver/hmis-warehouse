@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -124,7 +124,7 @@ module Health::Tasks
 
     def update_housing_statuses
       Health::EpicPatient.
-        where.not(housing_status: nil, housing_status_timestamp: nil).
+        where.not(housing_status: nil).where.not(housing_status_timestamp: nil).
         find_each do |patient|
           status_for_patient = patient.epic_housing_statuses.where(collected_on: patient.housing_status_timestamp.to_date).first_or_create do |status|
             status.status = patient.housing_status

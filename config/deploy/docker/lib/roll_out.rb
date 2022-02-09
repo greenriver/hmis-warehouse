@@ -159,7 +159,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--dj',
+      image: image_base + '--deploy',
       name: name,
       command: ['bin/deploy_tasks.sh'],
     )
@@ -213,7 +213,7 @@ class RollOut
       image: image_base + '--web',
       environment: environment,
       ports: [{
-        "container_port" => 443,
+        "container_port" => 3000,
         "host_port" => 0,
         "protocol" => "tcp"
       }],
@@ -225,14 +225,20 @@ class RollOut
     lb = [{
       target_group_arn: target_group_arn,
       container_name: name,
-      container_port: 443,
+      container_port: 3000,
     }]
 
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
+    # Keep production web containers on on-demand providers
+    capacity_provider_name = if target_group_name.match?(/production|prd/)
+      _on_demand_capacity_provider_name
+    else
+      _spot_capacity_provider_name
+    end
     _start_service!(
-      capacity_provider: _spot_capacity_provider_name,
-      name: name,
+      capacity_provider: capacity_provider_name,
+      name: name + '-2', # version bump for change from port 443 -> 3000
       load_balancers: lb,
       desired_count: web_options['container_count'] || 1,
       minimum_healthy_percent: minimum,
@@ -518,6 +524,20 @@ class RollOut
         puts "[INFO] Looks like the deployment tasks ran to completion (#{self.deployment_id}) #{target_group_name}"
         complete = true
       else
+        # Confirm the log stream is setup
+        resp = nil
+        while resp.nil?
+          begin
+            resp = cwl.get_log_events({
+              log_group_name: target_group_name,
+              log_stream_name: log_stream_name,
+              start_from_head: true,
+            })
+          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
+            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found #{target_group_name}"
+            sleep 30
+          end
+        end
         puts "[WARN] Looks like the deployment task isn't done. #{target_group_name}"
         puts "[WARN] We expected: #{self.deployment_id}"
         puts "[WARN] We got: #{response.dig('registered_deployment_id')}"
@@ -534,22 +554,18 @@ class RollOut
           puts "[WARN] exiting #{target_group_name}"
           exit
         elsif response.downcase.match(/v/)
-          begin
-            resp = cwl.get_log_events({
-              log_group_name: target_group_name,
-              log_stream_name: log_stream_name,
-              start_from_head: true,
-            })
-            resp.events.each do |event|
-              puts "[TASK] #{event.message} #{target_group_name}"
-            end
-          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
-            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found #{target_group_name}"
-            sleep 30
+          resp = cwl.get_log_events({
+            log_group_name: target_group_name,
+            log_stream_name: log_stream_name,
+            start_from_head: true,
+          })
+          resp.events.each do |event|
+            puts "[TASK] #{event.message} #{target_group_name}"
           end
+          sleep 120
         else
-          puts "[INFO] Waiting 30 seconds since we didn't understand your response #{target_group_name}"
-          sleep 30
+          puts "[INFO] Waiting 120 seconds since we didn't understand your response #{target_group_name}"
+          sleep 120
         end
       end
     end

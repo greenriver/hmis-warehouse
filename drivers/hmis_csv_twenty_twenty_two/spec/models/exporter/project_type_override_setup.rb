@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.shared_context '2022 project type override setup', shared_context: :metadata do
   let!(:data_source) { create :source_data_source, id: 2 }
   let!(:user) { create :user }

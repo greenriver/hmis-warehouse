@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -460,7 +460,9 @@ module PerformanceMetrics
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
       scope = filter_for_funders(scope)
-      filter_for_ca_homeless(scope)
+      scope = filter_for_ca_homeless(scope)
+      scope = filter_for_ce_cls_homeless(scope)
+      scope
     end
 
     def enrollment_scope

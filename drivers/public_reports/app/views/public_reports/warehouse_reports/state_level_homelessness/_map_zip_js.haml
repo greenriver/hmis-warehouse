@@ -60,11 +60,12 @@
         let innerHTML = '';
         let hidden = true;
         if (props != null) {
-          const { id, name, code, metric } = props;
-          const rate = this.metrics[name].rate
-          const count = this.metrics[name].count
-          const population = this.metrics[name].overall_population
-          innerHTML = `<h4>Zip Code: ${name}</h4><div class="rate">${rate} per 10,000 people</div><div class="count">${count.toLocaleString()} clients of ${population.toLocaleString()} people</div>`;
+          const { id, name, place, metric } = props;
+          const rate = this.metrics[name]?.rate
+          const count = this.metrics[name]?.count
+          const population = this.metrics[name]?.overall_population
+          let color = this.colors[this.getColor(rate)]
+          innerHTML = `<h4>${name}</h4><div class="rate">Selected population within location: ${color.description}<br>State-wide selected population:  ${count?.toLocaleString()}<br>Census population: ${population?.toLocaleString()}</div>`;
 
           hidden = false;
         }
@@ -93,18 +94,10 @@
     }
 
     getColor(rate) {
-      let division_size = this.max_rate / this.colors.length
-      let division = Math.floor(rate / division_size)
-      if(division == 0) {
-        if(rate > 0) {
-          return this.colors[1]
-        } else {
-          return this.colors[0]
+      for(let color in this.colors) {
+        if(this.colors[color].low <= rate && this.colors[color].high >= rate) {
+          return color;
         }
-      } else if(division < this.colors.length) {
-        return this.colors[division]
-      } else {
-        return this.colors[this.colors.length]
       }
     }
 

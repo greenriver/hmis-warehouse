@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,6 +24,14 @@ module Eto
       has_many :health_touch_points, -> do
         merge(GrdaWarehouse::HmisForm.health)
       end, class_name: 'GrdaWarehouse::HmisForm', through: :source_clients, source: :hmis_forms
+      has_one :most_recent_tc_hat, -> do
+        one_for_column(
+          :collected_at,
+          source_arel_table: hmis_form_t,
+          group_on: [:client_id],
+          scope: where(name: 'HAT (TX-601 Housing Assessment Tool )'),
+        )
+      end, class_name: 'GrdaWarehouse::HmisForm'
 
       def most_recent_coc_assessment_score
         assessment = coc_assessment_touch_points.newest_first.limit(1).first

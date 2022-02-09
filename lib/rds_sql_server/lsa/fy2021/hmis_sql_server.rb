@@ -31,9 +31,38 @@ module HmisSqlServer
   end
 
   class LsaBase < SqlServerBase
-    def clean_row_for_import(row:, headers:) # rubocop:disable Lint/UnusedMethodArgument
+    private def useful_date_column
+      nil
+    end
+
+    private def useful_date(row:, headers:)
+      return unless useful_date_column.present?
+
+      row[headers.index(useful_date_column)]
+    end
+
+    def clean_row_for_import(row:, headers:)
       # replace blanks with nil
-      row.map(&:presence)
+      row.map!(&:presence)
+
+      # ensure we always have DateCreated and DateUpdated
+      useful_date = useful_date(row: row, headers: headers)
+      if useful_date.present?
+        [
+          'DateCreated',
+          'DateUpdated',
+        ].each do |k|
+          field_index = headers.index(k)
+          row[field_index] = row[field_index].presence || useful_date.to_time
+        end
+      end
+      # ensure UserID is always less than 32 characters
+      k = 'UserID'
+      if headers.index(k).present?
+        field_index = headers.index(k)
+        row[field_index] = row[field_index][0..31]
+      end
+      row
     end
   end
 
@@ -60,6 +89,10 @@ module HmisSqlServer
   class Enrollment < LsaBase
     self.table_name = :hmis_Enrollment
     include ::HMIS::Structure::Enrollment
+
+    private def useful_date_column
+      'EntryDate'
+    end
   end
 
   class EnrollmentCoc < LsaBase
@@ -99,7 +132,7 @@ module HmisSqlServer
     def clean_row_for_import(row:, headers:)
       return nil unless row[headers.index('InventoryStartDate')].present?
 
-      # Fixes for LSA idiosyncracies
+      # Fixes for LSA idiosyncrasies
       [
         'CHVetBedInventory',
         'YouthVetBedInventory',
@@ -127,7 +160,7 @@ module HmisSqlServer
     include ::HMIS::Structure::Project
 
     def clean_row_for_import(row:, headers:)
-      # Fixes for LSA idiosyncracies
+      # Fixes for LSA idiosyncrasies
       [
         'HousingType',
       ].each do |k|
@@ -159,23 +192,18 @@ module HmisSqlServer
   class Service < LsaBase
     self.table_name = :hmis_Services
     include ::HMIS::Structure::Service
+
+    private def useful_date_column
+      'DateProvided'
+    end
   end
 
   class User < LsaBase
     self.table_name = :hmis_User
     include ::HMIS::Structure::User
 
-    def clean_row_for_import(row:, headers:)
-      # Fixes for LSA idiosyncracies
-      [
-        'DateCreated',
-        'DateUpdated',
-      ].each do |k|
-        field_index = headers.index(k)
-        row[field_index] = row[field_index].presence || Time.current
-      end
-
-      super(row: row, headers: headers)
+    private def useful_date(row:, headers:) # rubocop:disable Lint/UnusedMethodArgument
+      Time.current
     end
   end
 

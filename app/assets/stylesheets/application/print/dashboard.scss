@@ -3,7 +3,8 @@
 @media print {
   p,
   .ho-container,
-  .o-chart {
+  .o-chart,
+  .page-break-avoid {
     page-break-inside: avoid !important;
   }
 
@@ -220,5 +221,13 @@
   .pdf-hide {
     display: none;
   }
-
+  @for $i from 1 through length($indicator-colors) {
+    $color: nth($indicator-colors, $i);
+    .performance-measurement--highlight-#{$i} {
+      background: $color;
+    }
+    .performance-measurement--highlight-light-#{$i} {
+      background: lighten($color, 5%);
+    }
+  }
 }

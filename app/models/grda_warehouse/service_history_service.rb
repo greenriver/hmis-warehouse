@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -58,6 +58,14 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
 
   scope :adult, -> do
     where(age: (18..Float::INFINITY))
+  end
+
+  scope :aged, ->(range) do
+    where(age: range)
+  end
+
+  scope :unknown_age, -> do
+    where(age: nil).or(where(age: 105..Float::INFINITY)).or(where(age: -Float::INFINITY..-1))
   end
 
   def self.project_type_column

@@ -32,6 +32,10 @@ on:
 
 name: Build and Upload Container Image to ECR
 
+concurrency:
+  group: ${{ github.ref }}-ecs
+  cancel-in-progress: true
+
 jobs:
   deploy:
     name: Deploy
@@ -57,16 +61,22 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Delete pre-cache image?
+    - name: Prepare pre-cache image
+      id: prep
       env:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
       run: |
+        export RUBY_VERSION=`cat .ruby-version`
+        export PRE_CACHE_VERSION=`cat .pre-cache-version`
+        export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
+
         if git log -1 | fgrep '[gh:rebuild]' ;
         then
           echo 'Deleting pre-cache image...'
-          export RUBY_VERSION=`cat .ruby-version`
-          aws ecr batch-delete-image --repository-name ${ECR_REPOSITORY} --image-ids imageTag="${RUBY_VERSION}--pre-cache"
+          aws ecr batch-delete-image --repository-name ${ECR_REPOSITORY} --image-ids imageTag="${PRE_CACHE_TAG}"
         fi
+
+        echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
@@ -75,9 +85,10 @@ jobs:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         DOCKER_ASSETS_PATH: config/deploy/docker/assets
         SHA: ${{ github.sha }}
+        PRE_CACHE_TAG: ${{ steps.prep.outputs.pre_cache_tag }}
       run: |
-        export IMAGE_TAG="githash-${SHA::9}"
-        export RUBY_VERSION=`cat .ruby-version`
+        export GITHASH="${SHA::9}"
+        export IMAGE_TAG="githash-${GITHASH}"
 
         echo $SHA > $DOCKER_ASSETS_PATH/REVISION
         echo 'no tag generated' > image-tag.txt
@@ -87,18 +98,18 @@ jobs:
           # Pull the image that speeds up builds. Build it if we have to.
           # Delete from ECR to re-cache
           echo Pulling or building pre-cache image
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${RUBY_VERSION}--pre-cache || docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.pre-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:${RUBY_VERSION}--pre-cache .
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} || docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.pre-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} .
 
           echo Tagging pre-cache so local dockerfiles will work
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${RUBY_VERSION}--pre-cache ${ECR_REPOSITORY}:latest--pre-cache
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} ${ECR_REPOSITORY}:latest--pre-cache
 
           echo Pushing pre-cache
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${RUBY_VERSION}--pre-cache
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG}
         fi
 
         # the pre-cache image is like a stale version of the code. This builds the most recent things
         echo Building base
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base -t ${ECR_REPOSITORY}:latest--base .
+        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base --build-arg GITHASH=${GITHASH} -t ${ECR_REPOSITORY}:latest--base .
 
         # tag it so we can push it remotely
         echo Tagging base
@@ -106,6 +117,9 @@ jobs:
 
         echo Building web
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.web -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web .
+
+        echo Building deploy
+        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.deploy -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy .
 
         if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
         then
@@ -115,9 +129,10 @@ jobs:
           echo Not building dj
         fi
 
-        echo Pushing base and web
+        echo Pushing base/web/deploy
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
         if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
         then
           echo pushing dj
@@ -129,9 +144,11 @@ jobs:
         echo $IMAGE_TAG--base > image-tag.txt
         echo $IMAGE_TAG--web >> image-tag.txt
         echo $IMAGE_TAG--dj >> image-tag.txt
+        echo $IMAGE_TAG--deploy >> image-tag.txt
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base"
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web"
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj"
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy"
 
     - name: Show image tag
       uses: actions/upload-artifact@v1

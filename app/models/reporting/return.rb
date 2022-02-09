@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ module Reporting
 
     def populate!
       setup_notifier('ReportingSetupJob')
-      return unless source_data_scope(client_ids).exists?
+      return unless enrollment_data(client_ids).exists?
 
       already_running = Reporting::Return.advisory_lock_exists?(Reporting::Housed::ADVISORY_LOCK_KEY)
       if already_running
@@ -25,17 +25,30 @@ module Reporting
       end
     end
 
-    def source_data(ids)
-      source_data_scope(ids).
-        order(client_id: :asc, service_history_enrollment_id: :asc, date: :asc)
+    def service_data(enrollment_ids)
+      GrdaWarehouse::ServiceHistoryService.where(service_history_enrollment_id: enrollment_ids).
+        order(client_id: :asc, service_history_enrollment_id: :asc, date: :asc).
+        where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current))
     end
 
-    private def source_data_scope(ids)
+    private def service_data_scope(c_ids)
       GrdaWarehouse::ServiceHistoryService.
         joins(service_history_enrollment: [:project, :organization, :client]).
         homeless.
-        where(client_id: ids).
+        where(client_id: c_ids).
         where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current))
+    end
+
+    def enrollment_data(c_ids)
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.homeless.
+        joins(:project, :organization, :client).
+        where(client_id: c_ids).
+        open_between(start_date: Reporting::MonthlyReports::Base.lookback_start, end_date: Date.current).
+        with_service_between(
+          start_date: Reporting::MonthlyReports::Base.lookback_start,
+          end_date: Date.current,
+          service_scope: service_data_scope(c_ids),
+        )
     end
 
     # Collapse all days into consecutive stays
@@ -44,21 +57,31 @@ module Reporting
       # in batches because the number of service records is.
       # It is safe to batch by client because this only cares about the client level detail
       self.class.where.not(client_id: client_ids).delete_all
+      cache_client = GrdaWarehouse::Hud::Client.new
+      client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_ids)
+      added = 0
       client_ids.each_slice(1_000).with_index do |ids, i|
-        @notifier.ping("Return: Starting batch #{i + 1} in batches of 1,000, of #{client_ids.count} total clients")
+        # Only send notifications for every 25,000 or if we are on the last batch
+        send_ping = (i % 25).zero? || ids.count < 1_000
+        @notifier.ping("Return: Starting batch #{i + 1} in batches of 1,000, of #{client_ids.count} total clients") if send_ping
         batch_of_stays = []
-        cache_client = GrdaWarehouse::Hud::Client.new
-        client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: ids)
         prior_day = nil
         day = nil
         start_date = nil
         end_date = nil
         length_of_stay = 0
         current_client_id = nil
+        # get enrollments and non-changing data, index on enrollment_id
+        enrollments = {}
+        enrollment_data(ids).pluck(*enrollment_columns.values).each do |row|
+          enrollments[row.first] = row_to_hash(row, enrollment_columns.keys)
+        end
         # create an array with a record for each enrollment that includes the first and last date seen
-        source_data(ids).pluck_in_batches(source_columns.values, batch_size: 400_000) do |batch|
+        service_data(enrollments.keys).pluck_in_batches(shs_columns.values, batch_size: 400_000) do |batch|
           batch.each do |row|
-            day = row_to_hash(row)
+            day = row_to_hash(row, shs_columns.keys)
+            day.merge!(enrollments[day[:service_history_enrollment_id]])
+
             if current_client_id.blank? || current_client_id != day[:client_id]
               prior_day = day.dup
               current_client_id = day[:client_id]
@@ -105,20 +128,18 @@ module Reporting
         transaction do
           self.class.where(client_id: ids).delete_all
           self.class.import(headers, batch_of_stays.map(&:values))
-          @notifier.ping("Return: Adding #{batch_of_stays.count} returns")
+          added += batch_of_stays.count
+          if send_ping
+            @notifier.ping("Return: Added #{added} returns")
+            added = 0
+          end
         end
       end
     end
 
-    def source_columns
-      @source_columns ||= {
-        service_history_enrollment_id: shs_t[:service_history_enrollment_id],
-        record_type: shs_t[:record_type],
-        date: shs_t[:date],
-        age: shs_t[:age],
-        service_type: shs_t[:service_type],
-        client_id: shs_t[:client_id],
-        project_type: shs_t[:project_type],
+    def enrollment_columns
+      @enrollment_columns ||= {
+        service_history_enrollment_id: she_t[:id],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
         project_id: p_t[:id],
@@ -138,8 +159,20 @@ module Reporting
       }.freeze
     end
 
-    private def row_to_hash(row)
-      Hash[source_columns.keys.zip(row)]
+    def shs_columns
+      @shs_columns ||= {
+        service_history_enrollment_id: shs_t[:service_history_enrollment_id],
+        record_type: shs_t[:record_type],
+        date: shs_t[:date],
+        age: shs_t[:age],
+        service_type: shs_t[:service_type],
+        client_id: shs_t[:client_id],
+        project_type: shs_t[:project_type],
+      }.freeze
+    end
+
+    private def row_to_hash(row, keys)
+      Hash[keys.zip(row)]
     end
 
     def client_ids

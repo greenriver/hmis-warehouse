@@ -130,6 +130,7 @@ Rails.application.routes.draw do
           get :print
         end
       end
+      resources :contacts, only: [:index], controller: '/health/contacts'
     end
   end
 
@@ -639,7 +640,7 @@ Rails.application.routes.draw do
   resources :geography, only: [:edit, :update]
   resources :project_cocs, only: [:edit, :update]
 
-  resources :project_groups, except: [:destroy, :show] do
+  resources :project_groups, except: [:show] do
     get :maintenance, on: :collection
     post :import, on: :collection
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
@@ -720,6 +721,9 @@ Rails.application.routes.draw do
       end
     end
     resources :projects, only: [:none] do
+      post :index, on: :collection
+    end
+    resources :hud_filters, only: [:none] do
       post :index, on: :collection
     end
     resources :clients, only: [:show]

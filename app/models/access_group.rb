@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class AccessGroup < ApplicationRecord
   acts_as_paranoid
+  has_paper_trail
 
   has_many :access_group_members
   has_many :users, through: :access_group_members
@@ -62,7 +63,10 @@ class AccessGroup < ApplicationRecord
   end
 
   def remove(users)
-    self.users = (self.users - Array.wrap(users))
+    Array.wrap(users).each do |u|
+      # Need to do this individually for paper trail to work
+      self.users.destroy(u)
+    end
   end
 
   def self.delayed_system_group_maintenance(group: nil)

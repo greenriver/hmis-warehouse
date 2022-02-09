@@ -217,3 +217,13 @@
     margin-bottom: space(2);
   }
 }
+
+@for $i from 1 through length($indicator-colors) {
+  $color: nth($indicator-colors, $i);
+  .performance-measurement--highlight-#{$i} {
+    background: $color;
+  }
+  .performance-measurement--highlight-light-#{$i} {
+    background: lighten($color, 5%);
+  }
+}

@@ -15,7 +15,7 @@
     This report was built to provide supporting details to the "Exiters" and Exits to Permanent Housing" sections of the Population Dashboards.
   .ml-auto.mb-2
     - if current_user.can_view_clients?
-      = link_to(warehouse_reports_client_details_exits_path({format: :xlsx}.merge(link_params)),{class: 'btn btn-secondary'}) do
+      = link_to(warehouse_reports_client_details_exits_path({format: :xlsx}.merge({ filter: @filter.to_h })),{class: 'btn btn-secondary'}) do
         Download Excel
 = render 'common/population_warnings'
 = render 'warehouse_reports/limited_by_project_note'

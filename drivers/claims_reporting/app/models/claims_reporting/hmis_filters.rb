@@ -1,9 +1,9 @@
 ###
-###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 module ClaimsReporting
   # performs a similar function to ::Filter::FilterScopes
   # but that expects a scope that is joinable to "clients"

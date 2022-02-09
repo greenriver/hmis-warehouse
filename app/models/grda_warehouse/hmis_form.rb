@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -130,7 +130,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :with_housing_status, -> do
-    where.not(housing_status: [nil, ''], collected_at: nil)
+    where.not(housing_status: [nil, '']).where.not(collected_at: nil)
   end
 
   scope :within_range, -> (range) do
@@ -700,26 +700,26 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def section_starts_with(string)
-      relevant_section = answers[:sections].select do |section|
-        section[:section_title].downcase.starts_with?(string.downcase)
-      end&.first
-      return false unless relevant_section.present?
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase.starts_with?(string.downcase)
+    end&.first
+    return false unless relevant_section.present?
 
-      relevant_section
-    end
+    relevant_section
+  end
 
-    #
-    # Finds the first relevant answer where the question includes the string.
-    #
-    # @param section [Hash] section part of the HmisForm answers column
-    # @param question_string [String] question_string used to identify a relevant question
-    #
-    # @return [String] the answer provided
-    #
-    def answer_from_section(section, question_string)
-      return unless section
-      section[:questions].select do |question|
-        question[:question].downcase.include?(question_string.downcase)
-      end&.first.try(:[], :answer)
-    end
+  #
+  # Finds the first relevant answer where the question includes the string.
+  #
+  # @param section [Hash] section part of the HmisForm answers column
+  # @param question_string [String] question_string used to identify a relevant question
+  #
+  # @return [String] the answer provided
+  #
+  def answer_from_section(section, question_string)
+    return unless section
+    section[:questions].select do |question|
+      question[:question].downcase.include?(question_string.downcase)
+    end&.first.try(:[], :answer)
+  end
 end

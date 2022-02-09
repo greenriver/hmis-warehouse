@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,6 +22,13 @@ module Filter::FilterScopes
 
       scope.joins(project: :project_cocs).
         merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes))
+    end
+
+    private def filter_for_coc(scope)
+      return scope unless @filter.coc_code.present?
+
+      scope.joins(project: :project_cocs).
+        merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_code))
     end
 
     private def filter_for_household_type(scope)
@@ -158,7 +165,7 @@ module Filter::FilterScopes
 
       # Make this backwards compatible with a pre-set set of project_types.
       p_types = @project_types.presence || @filter.project_type_ids
-      p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless
+      p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless || @filter.ce_cls_as_homeless
 
       return scope if p_types.empty?
 
@@ -281,6 +288,13 @@ module Filter::FilterScopes
         )
     end
 
+    private def filter_for_chronic_at_entry(scope)
+      return scope unless @filter.chronic_status
+
+      scope.joins(enrollment: :ch_enrollment).
+        merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
+    end
+
     private def filter_for_chronic_status(scope)
       return scope unless @filter.chronic_status
 
@@ -348,6 +362,17 @@ module Filter::FilterScopes
         and(e_t[:LivingSituation].in(HUD.homeless_situations(as: :prior))).
         or(she_t[:computed_project_type].in(@project_types)),
       )
+    end
+
+    private def filter_for_ce_cls_homeless(scope)
+      return scope unless @filter.ce_cls_as_homeless
+
+      client_ids_with_two_homeless_cls = scope.ca.joins(enrollment: :current_living_situations).
+        merge(GrdaWarehouse::Hud::CurrentLivingSituation.homeless.between(start_date: @filter.start_date, end_date: @filter.end_date)).group(she_t[:client_id]).
+        having(nf('COUNT', [she_t[:client_id]]).gt(1)).
+        select(:client_id)
+      scope.where(client_id: client_ids_with_two_homeless_cls).
+        or(scope.where(computed_project_type: @project_types))
     end
 
     private def filter_for_times_homeless(scope)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -80,6 +80,7 @@ module Health
       local_params = params.require(:form).permit(
         :signature_on,
         :reviewed_by_supervisor,
+        :verbal_approval,
         health_file_attributes: [
           :id,
           :file,
@@ -100,15 +101,6 @@ module Health
     private def set_blank_form
       @blank_release_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/release'
     end
-
-    private def form_url(_opts = {})
-      if @release_form.new_record?
-        polymorphic_path(release_forms_path_generator, client_id: @client.id)
-      else
-        polymorphic_path(release_form_path_generator, client_id: @client.id, id: @release_form.id)
-      end
-    end
-    helper_method :form_url
 
     private def health_file_params_blank?
       attrs = form_params[:health_file_attributes] || {}

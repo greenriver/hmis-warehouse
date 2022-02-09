@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,8 +13,16 @@ module GrdaWarehouse::DocumentExports
     def perform
       with_status_progression do
         template_file = 'warehouse_reports/bed_utilization/index_pdf'
+        layout = 'layouts/performance_report'
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "Bed Utilization #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -30,14 +38,8 @@ module GrdaWarehouse::DocumentExports
       WarehouseReport::BedUtilization
     end
 
-    protected def view
-      context = ::WarehouseReports::BedUtilizationController.view_paths
-      view = BedUtilizationExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class BedUtilizationExportTemplate < PdfExportTemplateBase
+    private def controller_class
+      ::WarehouseReports::BedUtilizationController
     end
 
     protected def report

@@ -44,7 +44,7 @@ COPY config/deploy/docker/assets/REVISION ./
 ##################
 
 FROM open-path-warehouse:latest--pre-cache
-
+ARG GITHASH
 ARG BUILDER
 
 #############################################
@@ -59,17 +59,32 @@ LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=2.7.4
 
 COPY config/deploy/docker/assets/entrypoint.sh /usr/bin/
-COPY --from=code /app /app/
+COPY --from=code --chown=app:app /app /app/
 
 RUN chmod +x /usr/bin/entrypoint.sh \
   && bundle config without development test doc \
   && bundle install \
   && find /usr/local/bundle -name "*.o" -exec rm {} \; \
   && find /usr/local/bundle -name "*.c" -exec rm {} \; \
-  && RAILS_ENV=production bundle exec rake assets:precompile \
   && cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml \
   && rm -rf tmp/* \
   && rm .env \
-  && mkdir tmp/pids
+  && mkdir tmp/pids \
+  && yarn
+
+RUN touch /etc/timezone
+RUN ln -sf /app/etc-localtime /etc/localtime
+RUN chown -R app:app tmp
+RUN chown -R app:app node_modules
+RUN chown -R app:app /usr/local/bundle
+RUN chown app:app /etc/timezone
+
+RUN touch config/database.yml
+RUN chown app:app config/database.yml
+
+USER app
+
+# Expose the GITHASH to entrypoint.sh for downloading precompiled assets.
+ENV GITHASH=${GITHASH}
 
 ENTRYPOINT ["entrypoint.sh"]

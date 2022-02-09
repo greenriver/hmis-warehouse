@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,9 +24,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   has_one :service_history_enrollment_for_head_of_household, -> { where(head_of_household: true) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:head_of_household_id, :data_source_id], autosave: false
   # Find the non HoH SHEs associated with this enrollment's household, if this is not for the HoH, it will contain this enrollment
   has_many :other_household_service_history_enrollments, -> { where(head_of_household: false) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :household_id], foreign_key: [:data_source_id, :project_id, :household_id], autosave: false
+  has_many :household_enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:data_source_id, :project_id, :household_id], foreign_key: [:data_source_id, :ProjectID, :HouseholdID], autosave: false
 
   # make a scope for every project type and a type? method for instances
-  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k, v|
+  GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.each do |k, v|
     next unless k.is_a?(Symbol)
 
     scope k, -> { where project_type_column => v }

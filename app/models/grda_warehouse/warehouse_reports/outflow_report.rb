@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -70,15 +70,11 @@ module GrdaWarehouse::WarehouseReports
     # Clients with an open enrollment and service within the reporting period,
     # but no service after the cutoff date.
     def clients_without_recent_service
-      @clients_without_recent_service ||= begin
-        clients_without_recent_service_internal(entries_scope)
-      end
+      @clients_without_recent_service ||= clients_without_recent_service_internal(entries_scope)
     end
 
     def hoh_without_recent_service
-      @hoh_without_recent_service ||= begin
-        clients_without_recent_service_internal(entries_scope.heads_of_households)
-      end
+      @hoh_without_recent_service ||= clients_without_recent_service_internal(entries_scope.heads_of_households)
     end
 
     def outflow_to_housing
@@ -224,8 +220,9 @@ module GrdaWarehouse::WarehouseReports
       scope = filter_for_race(scope)
       scope = filter_for_gender(scope)
       scope = filter_for_ethnicity(scope)
-      # NOTE: this is not exposed on the page, but is potentially called from the Performance Metrics reprot
+      # NOTE: this is not exposed on the page, but is potentially called from the Performance Metrics report
       scope = filter_for_ca_homeless(scope)
+      scope = filter_for_ce_cls_homeless(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_age(scope)
       scope = filter_for_veteran_status(scope)

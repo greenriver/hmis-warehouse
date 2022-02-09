@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,7 +35,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       advisory_lock_key = 'project_data_quality_reports'
       if advisory_lock_exists?(advisory_lock_key)
         Rails.logger.info 'Exiting, project data quality reports already running'
-        exit
+        return
       end
 
       # FIXME: figure out how to send notifications on failure in class methods
@@ -397,6 +397,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       self.completed_at = Time.now
       save
       notify_requestor
+      send_notifications
     end
 
     def report_type
@@ -420,6 +421,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def send_notifications
+      return unless notify_contacts
+
       contacts = project_contacts + organization_contacts + project_group_contacts + organization_project_group_contacts
       contacts.index_by(&:email).values.each do |contact|
         ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
@@ -529,11 +532,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def destination_id_for_client(source_id)
-      @destination_ids ||= begin
-        GrdaWarehouse::WarehouseClient.where(source_id: client_scope.entry.select(c_t[:id])).
-          pluck(:source_id, :destination_id).
-          to_h
-      end
+      @destination_ids ||= GrdaWarehouse::WarehouseClient.where(source_id: client_scope.entry.select(c_t[:id])).
+        pluck(:source_id, :destination_id).
+        to_h
       @destination_ids[source_id]
     end
 
@@ -574,12 +575,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def projects
-      @projects ||= begin
-        if project_group_id.present?
-          project_group.projects
-        else
-          [project]
-        end
+      @projects ||= if project_group_id.present?
+        project_group.projects
+      else
+        [project]
       end
     end
 

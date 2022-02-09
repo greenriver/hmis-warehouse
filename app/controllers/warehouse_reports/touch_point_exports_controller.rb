@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,7 +24,7 @@ module WarehouseReports
       options = { search_scope: touch_point_scope }
       options.merge!(filter_params) if filter_params.present?
       @filter = ::Filters::TouchPointExportsFilter.new(options)
-      # whitelist for touchpoint name
+      # allowlist for touchpoint name
       @filter.name = @filter.touch_points_for_user(current_user).detect { |m| m == @filter.name }
       if @filter.name.present?
         @report = report_scope.create(
@@ -36,8 +36,15 @@ module WarehouseReports
           report_class: @report.class.name,
           report_id: @report.id,
         )
+        respond_with(@report, location: reports_location)
+      else
+        @filter.valid? # force error checking
+        @reports = report_scope.for_list.
+          order(created_at: :desc).
+          page(params[:page]).
+          per(25)
+        render action: :index
       end
-      respond_with(@report, location: reports_location)
     end
 
     def show

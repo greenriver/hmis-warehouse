@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,8 +38,11 @@ module CohortColumns
 
     def display_read_only(_user)
       note_count = cohort_client.client.cohort_notes.length || 0
+      unknown_date = DateTime.current - 10.years
+      max_updated_at = (cohort_client.client.cohort_notes.map(&:updated_at)&.max || unknown_date).to_s(:db)
       path = cohort_cohort_client_client_notes_path(cohort, cohort_client)
-      html = content_tag(:span, note_count, class: 'hidden')
+      # Sort pattern
+      html = content_tag(:span, "#{max_updated_at} #{note_count}", class: 'hidden')
       html += link_to pluralize(note_count, 'note'), path, class: 'badge badge-primary py-1 px-2', data: { loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column }
       html
     end

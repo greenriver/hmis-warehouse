@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -57,7 +57,7 @@ module HudReports::Households
                 veteran_status: enrollment.enrollment.client.VeteranStatus,
                 chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
                 relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
-                # Include dates for determining if someone was present at assessement date
+                # Include dates for determining if someone was present at assessment date
                 entry_date: enrollment.first_date_in_program,
                 exit_date: enrollment.last_date_in_program,
               }.with_indifferent_access

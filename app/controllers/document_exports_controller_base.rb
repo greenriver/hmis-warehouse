@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -88,6 +88,7 @@ class DocumentExportsControllerBase < ApplicationController
       'HudSpmReport::DocumentExports::HudSpmReportExport',
       'HudDataQualityReport::DocumentExports::HudDataQualityReportExport',
       'GrdaWarehouse::DocumentExports::BedUtilizationExport',
+      'PerformanceMeasurement::DocumentExports::ReportExport',
     ]
   end
 end

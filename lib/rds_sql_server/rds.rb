@@ -278,9 +278,14 @@ class Rds
   private
 
   def instance_data
-    resp = client.describe_db_instances(db_instance_identifier: identifier)
-
-    raise "Couldn't stop since we couldn't find an instance and figure out its state" if resp.db_instances.length != 1
+    resp = nil
+    begin
+      resp = client.describe_db_instances(db_instance_identifier: identifier)
+    rescue Aws::RDS::Errors::AccessDenied => e
+      # Don't raise access denied errors
+      Rails.logger.error e.message
+    end
+    raise "Couldn't stop since we couldn't find an instance and figure out its state" if resp.blank? || resp.db_instances.length != 1
 
     resp.db_instances.first
   end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -93,7 +93,7 @@ module Health
     scope :last_form_created, -> {order(created_at: :desc).limit(1)}
     scope :with_phone, -> { where.not(client_phone_number: nil) }
     scope :with_housing_status, -> do
-      where.not(housing_status: [nil, ''], date_of_contact: nil)
+      where.not(housing_status: [nil, '']).where.not(date_of_contact: nil)
     end
     scope :within_range, -> (range) do
       where(date_of_contact: range)

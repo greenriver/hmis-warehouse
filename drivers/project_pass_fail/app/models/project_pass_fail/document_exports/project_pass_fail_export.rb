@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,8 +26,17 @@ module ProjectPassFail::DocumentExports
     def perform
       with_status_progression do
         template_file = 'project_pass_fail/warehouse_reports/project_pass_fail/show_pdf'
+        layout = 'layouts/performance_report'
+
+        html = PdfGenerator.html(
+          controller: controller_class,
+          template: template_file,
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
-          html: view.render(file: template_file, layout: 'layouts/performance_report'),
+          html: html,
           file_name: "Project Pass Fail #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
@@ -39,17 +48,8 @@ module ProjectPassFail::DocumentExports
       ProjectPassFail::ProjectPassFail
     end
 
-    protected def view
-      context = ProjectPassFail::WarehouseReports::ProjectPassFailController.view_paths
-      view = ProjectPassFailExportTemplate.new(context, view_assigns)
-      view.current_user = user
-      view
-    end
-
-    class ProjectPassFailExportTemplate < PdfExportTemplateBase
-      def show_client_details?
-        @show_client_details ||= current_user.can_access_some_version_of_clients?
-      end
+    private def controller_class
+      ProjectPassFail::WarehouseReports::ProjectPassFailController
     end
   end
 end

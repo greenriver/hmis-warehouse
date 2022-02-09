@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -368,6 +368,7 @@ module ProjectScorecard
 
     private def percentage(value)
       return 0 if value.nan?
+      return 0 if value.infinite?
 
       (value * 100).to_i
     end

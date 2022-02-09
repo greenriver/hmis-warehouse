@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -58,7 +58,7 @@ module GrdaWarehouse::CustomImports
         file_name: file,
         target_path: target_path.to_s,
       )
-      content_type = MimeMagic.by_path(target_path) # Note, these need to be trusted files
+      content_type = ::MimeMagic.by_path(target_path) # Note, these need to be trusted files
       contents = if content_type.to_s.in?(['text/plain', 'text/csv', 'application/csv'])
         ::File.read(target_path)
       else

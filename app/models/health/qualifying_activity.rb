@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,12 +44,10 @@ module Health
     end
 
     scope :submittable, -> do
-      where.not(
-        mode_of_contact: nil,
-        reached_client: nil,
-        activity: nil,
-        follow_up: nil,
-      )
+      where.not(mode_of_contact: nil).
+      where.not(reached_client: nil).
+      where.not(activity: nil).
+      where.not(follow_up: nil)
     end
 
     scope :in_range, ->(range) do
@@ -395,11 +393,26 @@ module Health
     end
 
     def modifiers
+      TodoOrDie('Remove MH COVID flexibility', by: '2023-01-01')
+
       modifiers = []
+      case activity.to_sym
+      when :cha, :discharge_follow_up
+        if [:phone_call, :video_call].include?(mode_of_contact.to_sym)
+          contact_modifier = self.class.modes_of_contact[:in_person][:code]
+        else
+          contact_modifier = self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+        end
+      else
+        contact_modifier = self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+      end
+
       # attach modifiers from activity
       modifiers << self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
-      modifiers << self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+
+      modifiers << contact_modifier
       modifiers << self.class.client_reached[reached_client&.to_sym].try(:[], :code)
+
       return modifiers.reject(&:blank?).compact
     end
 
@@ -541,6 +554,7 @@ module Health
     end
 
     def maintain_valid_unpayable
+      self.valid_unpayable_reasons = compute_valid_unpayable
       self.valid_unpayable = compute_valid_unpayable?
       save(validate: false)
     end
@@ -551,37 +565,54 @@ module Health
     end
 
     def compute_valid_unpayable?
+      compute_valid_unpayable.present?
+    end
+
+    # Returns the reason the QA is valid unpayable, or nil
+    # :outside_enrollment -
+    # :call_not_reached -
+    # :outreach_past_cutoff -
+    # :limit_outreaches_per_month_exceeded -
+    # :limit_months_outreach_exceeded -
+    # :limit_activities_per_month_without_careplan_exceeded -
+    # :activity_outside_of_engagement_without_careplan -
+    # :limit_months_without_careplan_exceeded -
+    def compute_valid_unpayable
+      @compute_valid_unpayable ||= internal_compute_valid_unpayable
+    end
+
+    private def internal_compute_valid_unpayable
+      reasons = []
       computed_procedure_valid = compute_procedure_valid?
 
-      # Only valid procedures
-      return false unless computed_procedure_valid
+      # Only valid procedures can be valid unpayable
+      return nil unless computed_procedure_valid
 
       # Unpayable if it is a valid procedure, but it didn't occur during an enrollment
-      return true if computed_procedure_valid && ! occurred_during_any_enrollment?
+      reasons << :outside_enrollment if computed_procedure_valid && ! occurred_during_any_enrollment?
 
       # Unpayable if this was a phone/video call where the client wasn't reached
-      return true if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
+      reasons << :call_not_reached if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
 
       # Signing a care plan is payable regardless of engagement status
-      return false if activity == 'pctp_signed'
+      return reasons if activity == 'pctp_signed'
 
       # Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
       if outreach?
-        return true if date_of_activity > patient.outreach_cutoff_date
-        return true unless patient.contributed_dates.include?(date_of_activity)
-        return true unless first_outreach_of_month_for_patient?
-        return true if number_of_outreach_activity_months > 3
+        reasons << :outreach_past_cutoff if date_of_activity > patient.outreach_cutoff_date
+        reasons << :outside_enrollment unless patient.contributed_dates.include?(date_of_activity)
+        reasons << :limit_outreaches_per_month_exceeded unless first_outreach_of_month_for_patient?
+        reasons << :limit_months_outreach_exceeded if number_of_outreach_activity_months > 3
       else
         # Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
         unless patient_has_signed_careplan?
-          return true unless first_non_outreach_of_month_for_patient?
-          return true if patient.engagement_date.blank?
-          return true if date_of_activity > patient.engagement_date
-          return true if number_of_non_outreach_activity_months > 5
+          reasons << :limit_activities_per_month_without_careplan_exceeded unless first_non_outreach_of_month_for_patient?
+          reasons << :activity_outside_of_engagement_without_careplan if patient.engagement_date.blank? || date_of_activity > patient.engagement_date
+          reasons << :limit_months_without_careplan_exceeded if number_of_non_outreach_activity_months > 5
         end
       end
 
-      false
+      reasons.uniq
     end
 
     def validity_class
@@ -590,6 +621,40 @@ module Health
       return 'qa-valid' if procedure_valid?
 
       'qa-invalid'
+    end
+
+    def describe_validity_reasons
+      if valid_unpayable?
+        return valid_unpayable_reasons&.map do |reason|
+          case reason&.to_sym
+          when :outside_enrollment
+            _('patient did not have an active enrollment on the date of the activity')
+          when :call_not_reached
+            _('phone or video calls are not payable if the patient was not reached')
+          when :outreach_past_cutoff
+            _('outreach activities are not payable after the outreach period')
+          when :limit_outreaches_per_month_exceeded
+            _('too many outreach activities in the month')
+          when :limit_months_outreach_exceeded
+            _('too many months with outreach activities')
+          when :limit_activities_per_month_without_careplan_exceeded
+            _('too many non-outreach activities in the month')
+          when :activity_outside_of_engagement_without_careplan
+            _('engagement period has ended, and there is no signed careplan')
+          when :limit_months_without_careplan_exceeded
+            _('too many months with non-outreach activities and no signed careplan')
+          end
+        end || []
+      elsif ! procedure_valid?
+        reasons = []
+        reasons << _('the date of the activity is missing') unless date_of_activity.present?
+        reasons << _('no activity was specified') unless activity.present?
+        reasons << _('no mode of contact') unless mode_of_contact.present?
+        reasons << _('no indication if the client was reached') unless reached_client.present?
+        reasons << _('invalid procedure code') if reasons.blank?
+
+        reasons
+      end
     end
 
     def procedure_with_modifiers

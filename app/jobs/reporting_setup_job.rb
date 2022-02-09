@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class ReportingSetupJob < BaseJob
   include ActionView::Helpers::DateHelper
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   def perform
     setup_notifier('ReportingSetupJob')

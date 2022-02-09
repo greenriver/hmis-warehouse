@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,19 +11,18 @@ module Health
   class Team::Member < HealthBase
     include ArelHelper
     self.table_name = 'team_members'
-    has_paper_trail versions: {class_name: 'Health::HealthVersion'}
+    has_paper_trail versions: { class_name: 'Health::HealthVersion' }
     acts_as_paranoid
 
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier, "ID of team member"
-    phi_attr :user_id, Phi::SmallPopulation, "ID of user"
-    phi_attr :last_contact, Phi::Date, "Date of last contact"
-
+    phi_attr :id, Phi::OtherIdentifier, 'ID of team member'
+    phi_attr :user_id, Phi::SmallPopulation, 'ID of user'
+    phi_attr :last_contact, Phi::Date, 'Date of last contact'
 
     # belongs_to :team, class_name: 'Health::Team', optional: true
     belongs_to :patient, optional: true
 
-    validates :email, email_format: { check_mx: true }, length: {maximum: 250}, allow_blank: true
+    validates :email, email_format: { check_mx: true }, length: { maximum: 250 }, allow_blank: true
     validate :email_domain_if_present
     validates_presence_of :first_name, :last_name, :organization
 
@@ -49,6 +48,7 @@ module Health
 
     def self.class_from_member_type_name name
       return Health::Team::Provider if name == 'General'
+
       names = Hash[available_types.map(&:member_type_name).zip(available_types)]
       names[name] || Health::Team::Other
     end
@@ -82,7 +82,7 @@ module Health
     end
 
     def self.icon
-      self.icon_for(self.member_type_name)
+      icon_for(member_type_name)
     end
 
     def full_name
@@ -122,10 +122,34 @@ module Health
 
     def email_domain_if_present
       return if email.blank?
-      unless Health::Agency.email_valid?(email)
-        errors.add(:email ,'address must match a provider organization domain (e.g. @tuftsmedical.org — can\'t be @gmail.com or other generic domain)')
-      end
+
+      errors.add(:email, 'address must match a provider organization domain (e.g. @tuftsmedical.org — can\'t be @gmail.com or other generic domain)') unless Health::Agency.email_valid?(email)
     end
 
+    def self.as_health_contacts(_force = false)
+      contact_columns = {
+        patient_id: :patient_id,
+        source_id: :id,
+        source_type: :type,
+        description: :title,
+        phone: :phone,
+        email: :email,
+        collected_on: :last_contact,
+      }.invert
+
+      contacts = []
+      Health::Team::Member.find_in_batches do |batch|
+        contacts += batch.map do |row|
+          contact = row.slice(*contact_columns.keys)
+          contact.transform_keys! { |k| contact_columns[k.to_sym] }
+          contact.merge(
+            name: row.full_name,
+            category: row.type.split('::').last,
+          )
+        end
+      end
+
+      contacts
+    end
   end
 end

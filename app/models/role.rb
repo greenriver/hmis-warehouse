@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -858,6 +858,13 @@ class Role < ApplicationRecord
       },
       can_use_service_register: {
         description: 'Grants the ability to scan individual services for a given program.',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
+      can_view_service_register_on_client: {
+        description: 'Grants the ability to view services from the service register for a given client.',
         administrative: false,
         categories: [
           'Client Extras',

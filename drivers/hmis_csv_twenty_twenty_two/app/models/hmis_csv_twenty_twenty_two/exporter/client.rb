@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,12 +35,21 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row[:MiddleName] = row[:MiddleName][0...50] if row[:MiddleName]
       row[:LastName] = row[:LastName][0...50] if row[:LastName]
       row[:NameSuffix] = row[:NameSuffix][0...50] if row[:NameSuffix]
+      # GenderNone should be 99 if it was blank and all other gender columns are blank, 0, or 99
+      gender_columns = [
+        :Female,
+        :Male,
+        :NoSingleGender,
+        :Transgender,
+        :Questioning,
+      ]
+      any_genders = gender_columns.map { |c| ! row[c].in?([nil, 99, 0]) }.any?
+      row[:GenderNone] ||= 99 unless any_genders
 
       [
         :NameDataQuality,
         :SSNDataQuality,
         :DOBDataQuality,
-        :GenderNone,
         :Female,
         :Male,
         :NoSingleGender,

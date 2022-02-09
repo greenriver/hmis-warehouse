@@ -29,7 +29,7 @@ namespace :reporting do
     GrdaWarehouse::LsaRdsStateLog.create(state: state)
 
     lsa_report_ids = Report.where(Report.arel_table[:type].matches('%::Lsa::%')).pluck(:id)
-    exit if ReportResult.incomplete.updated_today.where(report_id: lsa_report_ids).exists?
+    next if ReportResult.incomplete.updated_today.where(report_id: lsa_report_ids).exists?
 
     Rds.new.stop!
   end
@@ -107,7 +107,7 @@ namespace :reporting do
         if ReportingBase.connection.table_exists?(:schema_migrations)
           puts "Refusing to load the reporting database schema since there are tables present. This is not an error."
         else
-          Rake::Task['reporting:db:schema:load'].invoke
+          Rake::Task['db:schema:load:reporting'].invoke
         end
       end
     end
@@ -136,20 +136,5 @@ namespace :reporting do
         Rake::Task["db:test:prepare"].invoke
       end
     end
-
-    # append and prepend proper tasks to all the tasks defined here above
-    ns.tasks.each do |task|
-      task.enhance ["reporting:set_custom_config"] do
-        Rake::Task["reporting:revert_to_original_config"].invoke
-      end
-    end
-  end
-
-  task set_custom_config: [:environment] do
-    ReportingBase.setup_config
-  end
-
-  task revert_to_original_config: [:environment] do
-    ApplicationRecord.setup_config
   end
 end
