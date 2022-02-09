@@ -116,12 +116,6 @@ RSpec.describe 'Datalab 2021 CAPER - SO', type: :model do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q9a',
-      skip: [ # pending AAQ
-        'B2',
-        'E2',
-        'B3',
-        'E3',
-      ],
     )
   end
 
@@ -129,12 +123,6 @@ RSpec.describe 'Datalab 2021 CAPER - SO', type: :model do
     compare_results(
       file_path: result_file_prefix + 'so',
       question: 'Q9b',
-      skip: [ # pending AAQ
-        'B2',
-        'E2',
-        'B3',
-        'E3',
-      ],
     )
   end
 

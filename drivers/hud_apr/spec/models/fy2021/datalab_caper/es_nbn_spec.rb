@@ -160,12 +160,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q9a',
-      skip: [ # pending AAQ
-        'B2',
-        'E2',
-        'B6',
-        'E6',
-      ],
     )
   end
 
@@ -173,14 +167,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q9b',
-      skip: [ # pending AAQ
-        'B2',
-        'E2',
-        'B6',
-        'E6',
-        'B7',
-        'E7',
-      ],
     )
   end
 
