@@ -93,7 +93,7 @@ RSpec.describe Users::SessionsController, type: :request do
       end
 
       it 'user has nothing in memorized device cookie' do
-        jar = ActionDispatch::Cookies::CookieJar.build(request, cookies.to_h)
+        jar = ActionDispatch::Cookies::CookieJar.build(request, cookies.to_hash)
         expect(jar.encrypted[:memorized_device]).to eq nil
       end
     end
@@ -121,7 +121,7 @@ RSpec.describe Users::SessionsController, type: :request do
 
       it 'user has something in memorized device cookie' do
         device_uuid = user_2fa.two_factors_memorized_devices.first.uuid
-        jar = ActionDispatch::Cookies::CookieJar.build(request, cookies.to_h)
+        jar = ActionDispatch::Cookies::CookieJar.build(request, cookies.to_hash)
         expect(jar.encrypted[:memorized_device]).to eq device_uuid
       end
 
