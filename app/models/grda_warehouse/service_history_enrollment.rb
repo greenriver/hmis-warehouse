@@ -425,7 +425,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       ].compact.min
 
       service_history_services.
-        service_between(start_date: enrollment.first_date_in_program, end_date: end_date).
+        service_between(start_date: first_date_in_program, end_date: end_date).
         where(service_type: 200).
         select(:date).
         distinct.
