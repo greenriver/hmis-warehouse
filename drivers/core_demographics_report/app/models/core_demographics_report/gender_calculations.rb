@@ -56,11 +56,11 @@ module
       rows['*Gender Breakdowns'] ||= []
       rows['*Gender Breakdowns'] += ['Gender', 'Count', 'Percentage', nil, nil]
       HUD.genders.each do |id, title|
-        rows["_Gender Breakdowns#{title}"] ||= []
-        rows["_Gender Breakdowns#{title}"] += [
+        rows["_Gender Breakdowns_data_#{title}"] ||= []
+        rows["_Gender Breakdowns_data_#{title}"] += [
           title,
           gender_count(id),
-          gender_percentage(id),
+          gender_percentage(id) / 100,
           nil,
           nil,
         ]
@@ -70,12 +70,12 @@ module
       rows['*Gender/Age Beakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
       HUD.genders.each do |gender, gender_title|
         age_categories.each do |age_range, age_title|
-          rows["_Gender/Age#{gender_title} #{age_title}"] ||= []
-          rows["_Gender/Age#{gender_title} #{age_title}"] += [
+          rows["_Gender/Age_data_#{gender_title} #{age_title}"] ||= []
+          rows["_Gender/Age_data_#{gender_title} #{age_title}"] += [
             gender_title,
             age_title,
             gender_age_count(gender: gender, age_range: age_range),
-            gender_age_percentage(gender: gender, age_range: age_range),
+            gender_age_percentage(gender: gender, age_range: age_range) / 100,
             nil,
           ]
         end

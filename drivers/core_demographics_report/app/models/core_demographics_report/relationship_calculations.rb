@@ -38,13 +38,13 @@ module
     def relationship_data_for_export(rows)
       rows['_Relationship to Head of Household Break'] ||= []
       rows['*Relationship to Head of Household'] ||= []
-      rows['*Relationship to Head of Household'] += ['Count', 'Percentage', nil, nil]
+      rows['*Relationship to Head of Household'] += ['Relationship', 'Count', 'Percentage', nil, nil]
       ::HUD.relationships_to_hoh.each do |id, title|
-        rows["_Relationship#{title}"] ||= []
-        rows["_Relationship#{title}"] += [
+        rows["_Relationship_data_#{title}"] ||= []
+        rows["_Relationship_data_#{title}"] += [
           title,
           relationship_count(id),
-          relationship_percentage(id),
+          relationship_percentage(id) / 100,
           nil,
         ]
       end

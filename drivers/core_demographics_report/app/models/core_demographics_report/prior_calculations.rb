@@ -106,39 +106,39 @@ module
     def priors_data_for_export(rows)
       rows['_Number of Times on the Streets, ES, or SH in The Past 3 Years break'] ||= []
       rows['*Number of Times on the Streets, ES, or SH in The Past 3 Years'] ||= []
-      rows['*Number of Times Reponse'] ||= []
-      rows['*Number of Times Reponse'] += ['Count', 'Percentage', nil, nil]
+      rows['*Number of Times Response'] ||= []
+      rows['*Number of Times Response'] += ['Times', 'Count', 'Percentage', nil, nil]
       ::HUD.times_homeless_options.each do |id, title|
-        rows["_Number of Times Reponse#{title}"] ||= []
-        rows["_Number of Times Reponse#{title}"] += [
+        rows["_Number of Times Response_data_#{title}"] ||= []
+        rows["_Number of Times Response_data_#{title}"] += [
           title,
           times_on_street_count(id),
-          times_on_street_percentage(id),
+          times_on_street_percentage(id) / 100,
           nil,
         ]
       end
       rows['_Number of Months on the Streets, ES, or SH in The Past 3 Years break'] ||= []
       rows['*Number of Months on the Streets, ES, or SH in The Past 3 Years'] ||= []
-      rows['*Number of Months Reponse'] ||= []
-      rows['*Number of Months Reponse'] += ['Count', 'Percentage', nil, nil]
+      rows['*Number of Months Response'] ||= []
+      rows['*Number of Months Response'] += ['Time', 'Count', 'Percentage', nil, nil]
       ::HUD.month_categories.each do |id, title|
-        rows["_Number of Months#{title}"] ||= []
-        rows["_Number of Months#{title}"] += [
+        rows["_Number of Months_data_#{title}"] ||= []
+        rows["_Number of Months_data_#{title}"] += [
           title,
           months_on_street_count(id),
-          months_on_street_percentage(id),
+          months_on_street_percentage(id) / 100,
           nil,
         ]
       end
       rows['_Prior Living Situation break'] ||= []
       rows['*Prior Living Situation'] ||= []
-      rows['*Prior Living Situation'] += ['Count', 'Percentage', nil, nil]
+      rows['*Prior Living Situation'] += ['Situation', 'Count', 'Percentage', nil, nil]
       ::HUD.living_situations.each do |id, title|
-        rows["_Prior Living Situation#{title}"] ||= []
-        rows["_Prior Living Situation#{title}"] += [
+        rows["_Prior Living Situation_data_#{title}"] ||= []
+        rows["_Prior Living Situation_data_#{title}"] += [
           title,
           prior_living_situations_count(id),
-          prior_living_situations_percentage(id),
+          prior_living_situations_percentage(id) / 100,
           nil,
         ]
       end
