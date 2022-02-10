@@ -155,7 +155,8 @@ module GrdaWarehouse::Hud
       joins(e_t.join(ex_t, Arel::Nodes::OuterJoin).
         on(e_t[:EnrollmentID].eq(ex_t[:EnrollmentID]).
         and(e_t[:PersonalID].eq(ex_t[:PersonalID]).
-        and(e_t[:data_source_id].eq(ex_t[:data_source_id])))).
+        and(e_t[:data_source_id].eq(ex_t[:data_source_id])).
+        and(ex_t[:DateDeleted].eq(nil)))).
         join_sources).
         where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
