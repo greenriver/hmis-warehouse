@@ -30501,6 +30501,13 @@ CREATE INDEX "hmis_2022_youth_education_statuses-a32f" ON public.hmis_2022_youth
 
 
 --
+-- Name: hmis_a_act_exl_con; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_a_act_exl_con ON public.hmis_assessments USING btree (active, exclude_from_window, confidential);
+
+
+--
 -- Name: hmis_agg_enrollments_p_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -38985,6 +38992,13 @@ CREATE INDEX index_hmis_assessments_on_data_source_id ON public.hmis_assessments
 
 
 --
+-- Name: index_hmis_assessments_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btree (name);
+
+
+--
 -- Name: index_hmis_assessments_on_site_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46949,6 +46963,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220127200317'),
 ('20220201213104'),
 ('20220204163115'),
-('20220208180300');
+('20220208180300'),
+('20220210132610');
 
 
