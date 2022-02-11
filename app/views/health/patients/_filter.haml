@@ -49,7 +49,7 @@
       = render 'inputs/select', field_name: 'filter[nurse_care_manager_id]', label: 'Nurse Care Manager', options: options, html_options: { include_blank: 'All', style: 'width: 100%;' }
 
       .o-filtration__actions.form__actions
-        = link_to health_patients_path, class:'btn btn-secondary' do
+        = link_to nil, class:'btn btn-secondary' do
           %span.icon-cross.icon-inline
           Clear Filters
         %button.btn.btn-primary.ml-auto{type: :submit}
