@@ -39434,10 +39434,10 @@ CREATE INDEX index_hmis_forms_on_assessment_id ON public.hmis_forms USING btree 
 
 
 --
--- Name: index_hmis_forms_on_client_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_forms_on_client_id_and_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_forms_on_client_id ON public.hmis_forms USING btree (client_id);
+CREATE INDEX index_hmis_forms_on_client_id_and_assessment_id ON public.hmis_forms USING btree (client_id, assessment_id);
 
 
 --
