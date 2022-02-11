@@ -40,6 +40,7 @@ module HudApr::Generators::Shared::Fy2021
 
         # Pre-calculate some values
         household_types = {}
+        household_assessment_required = {}
         times_to_move_in = {}
         move_in_dates = {}
         approximate_move_in_dates = {}
@@ -47,6 +48,8 @@ module HudApr::Generators::Shared::Fy2021
           last_service_history_enrollment = enrollments.last
 
           hh_id = get_hh_id(last_service_history_enrollment)
+          hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last
+          household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
           date = [
             @report.start_date,
             last_service_history_enrollment.first_date_in_program,
@@ -111,6 +114,7 @@ module HudApr::Generators::Shared::Fy2021
           # else
           #   household_types[get_hh_id(last_service_history_enrollment)]
           # end
+          annual_assessment_expected = household_assessment_required[get_hh_id(last_service_history_enrollment)]
 
           household_calculation_date = if needs_ce_assessments?
             ce_latest_assessment.AssessmentDate
@@ -129,7 +133,7 @@ module HudApr::Generators::Shared::Fy2021
             alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
-            annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
+            annual_assessment_expected: annual_assessment_expected,
             annual_assessment_in_window: annual_assessment_in_window?(last_service_history_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,
@@ -192,6 +196,7 @@ module HudApr::Generators::Shared::Fy2021
             last_date_in_program: last_service_history_enrollment.last_date_in_program,
             last_name: source_client.LastName,
             length_of_stay: stay_length(last_service_history_enrollment),
+            bed_nights: bed_nights(last_service_history_enrollment),
             mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,

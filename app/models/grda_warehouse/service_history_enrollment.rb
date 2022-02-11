@@ -415,6 +415,31 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     date
   end
 
+  # How many distinct bed nights does the client have in this enrollment?
+  # For entry/exit this is span, for night by night, this is service days.
+  def bed_nights(end_date: nil)
+    if project_tracking_method == 3
+      end_date = [
+        last_date_in_program.try(:-, 1.day), # Don't count a bed night that falls on the exit day
+        end_date + 1.day, # Include a bed night that falls on the end date
+      ].compact.min
+
+      service_history_services.
+        service_between(start_date: first_date_in_program, end_date: end_date).
+        where(service_type: 200).
+        select(:date).
+        distinct.
+        count
+    else
+      end_date = [
+        last_date_in_program,
+        end_date + 1.day,
+      ].compact.min
+
+      (end_date - first_date_in_program).to_i
+    end
+  end
+
   def self.project_type_column
     if GrdaWarehouse::Config.get(:project_type_override)
       :computed_project_type

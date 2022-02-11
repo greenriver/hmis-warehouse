@@ -558,6 +558,8 @@ module PerformanceMeasurement
         processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
         processed_filter.update(options.deep_merge(spec[:options]))
         processed_filter.comparison_pattern = :no_comparison_period
+        # report uses only one coc_code, need to adjust for the HUD filter that needs coc_codes
+        processed_filter.coc_codes = [filter.coc_code]
         report = HudReports::ReportInstance.from_filter(
           processed_filter,
           generator.title,
