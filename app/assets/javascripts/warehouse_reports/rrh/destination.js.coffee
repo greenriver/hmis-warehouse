@@ -6,6 +6,9 @@ class App.WarehouseReports.Rrh.Destination
 
   plot: =>
     @chart = bb.generate
+      size:
+        width: 500
+        height: 500
       data:
         columns: @data.data
         type: "pie"
@@ -20,7 +23,7 @@ class App.WarehouseReports.Rrh.Destination
       color:
         pattern: ["#fb4d42", "#288be4", "#091f2f", "#58585b", "#9E788F", "#A4B494", "#F3B3A6", "#F18F01", "#E59F71", "#ACADBC", "#D0F1BF"]
       bindto: @wrapper
-
+    console.log(@chart)
   _toolip: (d, defaultTitleFormat, defaultValueFormat, color) =>
     # Somewhat reverse engineered from here:
     # https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
