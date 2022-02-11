@@ -92,11 +92,11 @@ module
       rows['*DV Response'] ||= []
       rows['*DV Response'] += ['Count', 'Percentage', nil, nil]
       ::HUD.no_yes_reasons_for_missing_data_options.each do |id, title|
-        rows["_DV Response#{title}"] ||= []
-        rows["_DV Response#{title}"] += [
+        rows["_DV Response_data_#{title}"] ||= []
+        rows["_DV Response_data_#{title}"] += [
           title,
           dv_status_count(id),
-          dv_status_percentage(id),
+          dv_status_percentage(id) / 100,
           nil,
         ]
       end
@@ -104,11 +104,11 @@ module
       rows['*DV Occurrence Timing'] ||= []
       rows['*DV Occurrence Timing'] += ['Count', 'Percentage', nil, nil]
       ::HUD.when_occurreds.each do |id, title|
-        rows["_DV Occurrence Timing#{title}"] ||= []
-        rows["_DV Occurrence Timing#{title}"] += [
+        rows["_DV Occurrence Timing_data_#{title}"] ||= []
+        rows["_DV Occurrence Timing_data_#{title}"] += [
           title,
           dv_occurrence_count(id),
-          dv_occurrence_percentage(id),
+          dv_occurrence_percentage(id) / 100,
           nil,
         ]
       end
