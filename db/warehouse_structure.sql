@@ -29529,13 +29529,6 @@ CREATE INDEX "hmis_2020_enrollments-UrCS" ON public.hmis_2020_enrollments USING 
 
 
 --
--- Name: hmis_2020_enrollments-WHri; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2020_enrollments-WHri" ON public.hmis_2020_enrollments USING btree ("DateDeleted");
-
-
---
 -- Name: hmis_2020_enrollments-ZK9t; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -30121,13 +30114,6 @@ CREATE INDEX "hmis_2020_services-Rwkq" ON public.hmis_2020_services USING btree 
 --
 
 CREATE INDEX "hmis_2020_services-VJ0s" ON public.hmis_2020_services USING btree ("DateUpdated");
-
-
---
--- Name: hmis_2020_services-WGtP; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2020_services-WGtP" ON public.hmis_2020_services USING btree ("DateDeleted");
 
 
 --
@@ -30978,13 +30964,6 @@ CREATE INDEX "hmis_csv_2020_enrollments-8UEw" ON public.hmis_csv_2020_enrollment
 
 
 --
--- Name: hmis_csv_2020_enrollments-B4uX; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2020_enrollments-B4uX" ON public.hmis_csv_2020_enrollments USING btree ("DateDeleted");
-
-
---
 -- Name: hmis_csv_2020_enrollments-CKRZ; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -31479,13 +31458,6 @@ CREATE INDEX "hmis_csv_2020_services-1ggS" ON public.hmis_csv_2020_services USIN
 --
 
 CREATE INDEX "hmis_csv_2020_services-4Q3B" ON public.hmis_csv_2020_services USING btree ("ServicesID");
-
-
---
--- Name: hmis_csv_2020_services-5b2P; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2020_services-5b2P" ON public.hmis_csv_2020_services USING btree ("DateDeleted");
 
 
 --
