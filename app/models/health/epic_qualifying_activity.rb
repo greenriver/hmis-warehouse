@@ -159,7 +159,7 @@ module Health
 
     def clean_activity_title
       case activity
-      when 'Comprehensive assessment'
+      when 'Comprehensive assessment', 'Comprehensive health assessment'
         'Comprehensive Health Assessment'
       when 'Person-Centered Treatment Plan Signed'
         'Person-Centered Treatment Plan signed'
