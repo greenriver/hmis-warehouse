@@ -51,6 +51,7 @@ module HudReports::Households
 
               hh[get_hh_id(enrollment)] ||= []
               hh[get_hh_id(enrollment)] << {
+                client_id: enrollment.client_id,
                 source_client_id: enrollment.enrollment.client.id,
                 dob: enrollment.enrollment.client.DOB,
                 veteran_status: enrollment.enrollment.client.VeteranStatus,
@@ -64,6 +65,10 @@ module HudReports::Households
             GC.start
           end
       end
+    end
+
+    private def get_hoh_id(hh_id)
+      households[hh_id]&.detect { |household| household[:relationship_to_hoh] == 1 }.try(:[], :client_id)
     end
 
     private def household_member_data(enrollment, _date = nil) # date is included for CE APR compatibility

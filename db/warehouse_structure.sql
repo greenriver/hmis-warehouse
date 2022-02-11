@@ -13160,7 +13160,8 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_problem_sol_div_rr_result integer,
     ce_event_referral_case_manage_after integer,
     ce_event_referral_result integer,
-    gender_multi character varying
+    gender_multi character varying,
+    bed_nights integer
 );
 
 
@@ -46961,6 +46962,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220126182806'),
 ('20220127153246'),
 ('20220127200317'),
+('20220128203412'),
 ('20220201213104'),
 ('20220204163115'),
 ('20220208180300'),

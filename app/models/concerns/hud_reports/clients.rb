@@ -37,10 +37,18 @@ module HudReports::Clients
     # and the reporting period end is more than a year since the beginning of the enrollment
     # and the enrollment started more than one year ago
     private def annual_assessment_expected?(enrollment)
-      return false unless enrollment.head_of_household?
+      return false unless enrollment.present? && enrollment.head_of_household?
 
       end_date = [enrollment.last_date_in_program, report_end_date, Date.current].compact.min
-      enrollment.first_date_in_program + 1.years < end_date
+      enough_days = if enrollment.project.bed_night_tracking?
+        enrollment.enrollment.services.
+          bed_night.between(start_date: enrollment.first_date_in_program, end_date: end_date).
+          count > 365
+      else
+        true
+      end
+
+      enrollment.first_date_in_program + 1.years < end_date && enough_days
     end
 
     private def annual_assessment_in_window?(enrollment, assessment_date)

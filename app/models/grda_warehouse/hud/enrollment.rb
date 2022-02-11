@@ -435,7 +435,7 @@ module GrdaWarehouse::Hud
 
     def dk_or_r_or_missing(value)
       return :dk_or_r if [8, 9].include?(value)
-      return :missing if value == 99
+      return :missing if [nil, 99].include?(value)
     end
 
     def homeless_duration_sufficient
