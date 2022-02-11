@@ -98,7 +98,11 @@ module GrdaWarehouse::Report
         DROP TABLE IF EXISTS recent_report_enrollments;
       SQL
       self.connection.execute(recent_enrollments_query)
-      self.connection.execute('create unique index id_ret_index on recent_report_enrollments (id)')
+      begin
+        self.connection.execute('create unique index id_ret_index on recent_report_enrollments (id)')
+      rescue ActiveRecord::RecordNotUnique
+        Rails.logger.error('Failed to create a unique index on recent_report_enrollments (id)')
+      end
       [
         :EntryDate,
         :client_id,
@@ -138,7 +142,8 @@ module GrdaWarehouse::Report
         join(ex_t, Arel::Nodes::OuterJoin).
           on(e_t[:EnrollmentID].eq(ex_t[:EnrollmentID]).
           and(e_t[:PersonalID].eq(ex_t[:PersonalID]).
-          and(e_t[:data_source_id].eq(ex_t[:data_source_id])))).
+          and(e_t[:data_source_id].eq(ex_t[:data_source_id])).
+          and(ex_t[:DateDeleted].eq(nil)))).
         where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end))).to_sql
       # Turn this into a table
       query.gsub('FROM', 'INTO recent_report_enrollments FROM')
