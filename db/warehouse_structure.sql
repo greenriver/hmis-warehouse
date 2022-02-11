@@ -13160,7 +13160,8 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_problem_sol_div_rr_result integer,
     ce_event_referral_case_manage_after integer,
     ce_event_referral_result integer,
-    gender_multi character varying
+    gender_multi character varying,
+    bed_nights integer
 );
 
 
@@ -23862,6 +23863,20 @@ CREATE INDEX assessment_q_a_id_ds_id_p_id_en_id_aq_id ON public."AssessmentQuest
 --
 
 CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResults" USING btree ("AssessmentID", data_source_id, "PersonalID", "EnrollmentID", "AssessmentResultID");
+
+
+--
+-- Name: ch_enrollments_e_id_ch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ch_enrollments_e_id_ch ON public.ch_enrollments USING btree (enrollment_id, chronically_homeless_at_entry);
+
+
+--
+-- Name: ch_enrollments_e_id_pro; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ch_enrollments_e_id_pro ON public.ch_enrollments USING btree (enrollment_id, processed_as);
 
 
 --
@@ -37956,13 +37971,6 @@ CREATE INDEX "index_censuses_on_date_and_ProjectType" ON public.censuses USING b
 
 
 --
--- Name: index_ch_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ch_enrollments_on_enrollment_id ON public.ch_enrollments USING btree (enrollment_id);
-
-
---
 -- Name: index_children_on_family_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46961,9 +46969,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220126182806'),
 ('20220127153246'),
 ('20220127200317'),
+('20220128203412'),
 ('20220201213104'),
 ('20220204163115'),
 ('20220208180300'),
-('20220210132610');
+('20220210132610'),
+('20220211001613');
 
 
