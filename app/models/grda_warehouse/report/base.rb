@@ -39,7 +39,7 @@ module GrdaWarehouse::Report
 
     # the corresponding model in the GrdaWarehouse::Hud, or other, namespace
     def self.original_class_name
-      @original_class ||= "GrdaWarehouse::Hud::#{ name.gsub /.*::/, '' }"
+      "GrdaWarehouse::Hud::#{name.gsub(/.*::/, '')}"
     end
 
     def readonly?
@@ -53,13 +53,13 @@ module GrdaWarehouse::Report
 
     def self.update_recent_history_table
       sql = GrdaWarehouse::ServiceHistoryService.distinct.joins(service_history_enrollment: [project: :organization]).
-      where(date: [13.months.ago.beginning_of_month.to_date..Date.current.end_of_month.to_date]).
-      select(*sh_columns).to_sql.gsub('FROM', 'INTO recent_service_history FROM')
-      self.connection.execute <<-SQL
+        where(date: [13.months.ago.beginning_of_month.to_date..Date.current.end_of_month.to_date]).
+        select(*sh_columns).to_sql.gsub('FROM', 'INTO recent_service_history FROM')
+      connection.execute <<-SQL
         DROP TABLE IF EXISTS recent_service_history;
       SQL
-      self.connection.execute(sql)
-      self.connection.execute('create unique index id_rsh_index on recent_service_history (id)')
+      connection.execute(sql)
+      connection.execute('create unique index id_rsh_index on recent_service_history (id)')
       [
         :date,
         :client_id,
@@ -68,10 +68,9 @@ module GrdaWarehouse::Report
         :project_tracking_method,
         :computed_project_type,
       ].each do |column|
-        self.connection.execute("create index #{column}_rsh_index on recent_service_history (#{column})")
+        connection.execute("create index #{column}_rsh_index on recent_service_history (#{column})")
       end
     end
-
 
     def self.source_client_table
       @source_client_table ||= begin
@@ -94,59 +93,47 @@ module GrdaWarehouse::Report
     end
 
     def self.update_recent_report_enrollments_table
-      self.connection.execute <<-SQL
+      connection.execute <<-SQL
         DROP TABLE IF EXISTS recent_report_enrollments;
       SQL
-      self.connection.execute(recent_enrollments_query)
-      begin
-        self.connection.execute('create unique index id_ret_index on recent_report_enrollments (id)')
-      rescue ActiveRecord::RecordNotUnique
-        Rails.logger.error('Failed to create a unique index on recent_report_enrollments (id)')
-      end
+      connection.execute(recent_enrollments_query)
+      connection.execute('create unique index id_ret_index on recent_report_enrollments (id)')
       [
         :EntryDate,
         :client_id,
       ].each do |column|
-        self.connection.execute("create index #{column}_ret_index on recent_report_enrollments (\"#{column}\")")
+        connection.execute("create index #{column}_ret_index on recent_report_enrollments (\"#{column}\")")
       end
     end
 
     def self.recent_enrollments_query
       range = ::Filters::DateRange.new(start: 13.months.ago.beginning_of_month.to_date, end: Date.current.end_of_month.to_date)
 
-      d_1_start = range.start
-      d_1_end = range.end
-      d_2_start = e_t[:EntryDate]
-      d_2_end = ex_t[:ExitDate]
+      demographic_sub_query = GrdaWarehouse::Hud::Client.
+        joins(:enrollments).
+        select(nf('MAX', [c_t[:id]])).
+        to_sql
+      demographic_query = Arel.sql("(#{demographic_sub_query})").as('demographic_id')
+      client_sub_query = GrdaWarehouse::WarehouseClient.
+        where(wc_t[:data_source_id].eq(e_t[:data_source_id])).
+        where(wc_t[:id_in_source].eq(e_t[:PersonalID])).
+        select(nf('MAX', [wc_t[:destination_id]])).to_sql
+      client_query = Arel.sql("(#{client_sub_query})").as('client_id')
 
       # This is a copy of the code that creates the report_enrollments view
       # combined with the limit for open during a date range from Enrollment
       # because it is way faster than limiting the view
-      query =  e_t.join(source_client_table).on(
-          e_t[:data_source_id].eq(source_client_table[:data_source_id]).
-          and( e_t[:PersonalID].eq source_client_table[:PersonalID] ).
-          and( source_client_table[:DateDeleted].eq nil )
-        ).join(client_join_table).on(
-          source_client_table[:id].eq client_join_table[:source_id]
-        ).join(destination_client_table).on(
-          destination_client_table[:id].eq(client_join_table[:destination_id]).
-          and( destination_client_table[:DateDeleted].eq nil )
-        ).distinct.
-        project(
-          *GrdaWarehouse::Hud::Enrollment.column_names.map(&:to_sym).map{ |c| e_t[c] },  # all the enrollment columns
-          source_client_table[:id].as('demographic_id'),                                         # the source client id
-          destination_client_table[:id].as('client_id')                                          # the destination client id
-        ).where(
-          e_t[:DateDeleted].eq nil
-        ).
-        join(ex_t, Arel::Nodes::OuterJoin).
-          on(e_t[:EnrollmentID].eq(ex_t[:EnrollmentID]).
-          and(e_t[:PersonalID].eq(ex_t[:PersonalID]).
-          and(e_t[:data_source_id].eq(ex_t[:data_source_id])).
-          and(ex_t[:DateDeleted].eq(nil)))).
-        where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end))).to_sql
+      query = GrdaWarehouse::Hud::Enrollment.open_during_range(range).
+        joins(:client, :destination_client).
+        left_outer_joins(:exit).
+        distinct.
+        select(
+          *GrdaWarehouse::Hud::Enrollment.column_names.map(&:to_sym).map { |c| e_t[c] },
+          demographic_query,
+          client_query,
+        ).to_sql
       # Turn this into a table
-      query.gsub('FROM', 'INTO recent_report_enrollments FROM')
+      query.gsub('FROM "Enrollment"', 'INTO recent_report_enrollments FROM "Enrollment"')
     end
 
     def self.sh_columns
