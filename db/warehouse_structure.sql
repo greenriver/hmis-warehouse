@@ -2415,7 +2415,7 @@ CREATE VIEW public."bi_Demographics" AS
     "Client".data_source_id
    FROM (public."Client"
      JOIN public.warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = ANY (ARRAY[87, 102, 88, 86, 98, 91, 82, 107, 80, 106, 105, 103, 99, 109, 108, 81])));
+  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = ANY (ARRAY[87, 88, 98, 91, 107, 80, 106, 105, 99, 108, 102, 110, 103, 82, 109, 112, 111, 81, 86, 113])));
 
 
 --
@@ -23908,6 +23908,13 @@ CREATE INDEX client_first_name ON public."Client" USING btree ("FirstName");
 
 
 --
+-- Name: client_id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree (client_id);
+
+
+--
 -- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -24073,6 +24080,13 @@ CREATE INDEX enrollment_date_updated ON public."Enrollment" USING btree ("DateUp
 --
 
 CREATE INDEX enrollment_export_id ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: entrydate_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX entrydate_ret_index ON public.recent_report_enrollments USING btree ("EntryDate");
 
 
 --
@@ -36561,6 +36575,13 @@ CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree
 --
 
 CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_clients USING btree (report_instance_id, data_source_id, client_id);
+
+
+--
+-- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
 
 
 --
