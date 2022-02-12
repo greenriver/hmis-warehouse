@@ -639,7 +639,6 @@ Layout/EndAlignment:
 # Configuration parameters: AllowForAlignment, AllowBeforeTrailingComments, ForceEqualSignAlignment.
 Layout/ExtraSpacing:
   Exclude:
-    - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
@@ -976,7 +975,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
     - 'app/models/grda_warehouse/health_emergency/test.rb'
     - 'app/models/grda_warehouse/health_emergency/vaccination.rb'
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
-    - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
     - 'app/models/health/agency_user_saver.rb'
@@ -1687,7 +1685,6 @@ Lint/UnusedMethodArgument:
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/affiliation.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/project_coc.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -1719,7 +1716,6 @@ Lint/UselessAssignment:
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/service_history/base.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
@@ -2162,7 +2158,6 @@ Style/MethodCallWithoutArgsParentheses:
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/project.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/update_clients_from_hmis_forms.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
@@ -2298,7 +2293,6 @@ Style/Next:
     - 'app/models/grda_warehouse/import_remover.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -2550,7 +2544,6 @@ Style/RescueStandardError:
 # AllowedMethods: present?, blank?, presence, try, try!
 Style/SafeNavigation:
   Exclude:
-    - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
 
 # Offense count: 11
 # Cop supports --auto-correct.
@@ -2609,7 +2602,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/grda_warehouse/tasks/project_cleanup.rb'
     - 'app/models/grda_warehouse/tasks/service_history/add.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
