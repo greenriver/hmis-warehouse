@@ -166,6 +166,7 @@ gem 'redis-actionpack'
 
 # AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'
+gem 'aws-sdk-autoscaling', '~> 1'
 gem 'aws-sdk-cloudwatchevents', '~> 1'
 gem 'aws-sdk-cloudwatchlogs', '~> 1'
 gem 'aws-sdk-cloudwatch', '~> 1'

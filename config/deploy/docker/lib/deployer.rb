@@ -7,6 +7,8 @@ require_relative 'roll_out'
 require 'aws-sdk-elasticloadbalancingv2'
 require 'aws-sdk-ecr'
 require 'aws-sdk-secretsmanager'
+require 'aws-sdk-ecs'
+require 'aws-sdk-autoscaling'
 
 class Deployer
   attr_accessor :repo_name
@@ -51,7 +53,10 @@ class Deployer
   # We use this so we can get data from the app about the deployment state
   attr_accessor :fqdn
 
+  attr_accessor :cluster
+
   def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:)
+    self.cluster           = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
     self.target_group_name = target_group_name
     self.assume_ci_build   = assume_ci_build
     self.secrets_arn       = secrets_arn
@@ -139,6 +144,7 @@ class Deployer
         fqdn: fqdn,
         task_role: task_role,
         web_options: web_options,
+        ami_ids: _ami_ids,
       })
   end
 
@@ -432,7 +438,31 @@ class Deployer
     end.target_group_arn
   end
 
+  def _capacity_providers
+    @_capacity_providers ||= ecs.describe_clusters(clusters: [self.cluster]).clusters.first.capacity_providers
+  end
+
+  def _ami_ids
+    return @ami_ids unless @ami_ids.nil?
+    @ami_ids = {}
+
+    ecs.describe_capacity_providers(capacity_providers: _capacity_providers).capacity_providers.each do |capacity_provider|
+      asg_name = capacity_provider.auto_scaling_group_provider.auto_scaling_group_arn.split('/').last
+      asg = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: [ asg_name ]).auto_scaling_groups.first
+
+      launch_template_id = asg.mixed_instances_policy.launch_template.launch_template_specification.launch_template_id
+      launch_template_versions = ec2.describe_launch_template_versions(launch_template_id: launch_template_id)
+
+      ami_id = launch_template_versions.launch_template_versions[0].launch_template_data.image_id
+
+      @ami_ids[capacity_provider.name] = ami_id
+    end
+  end
+
   define_method(:elbv2) { Aws::ElasticLoadBalancingV2::Client.new }
   define_method(:ecr) { Aws::ECR::Client.new }
   define_method(:secretsmanager) { Aws::SecretsManager::Client.new }
+  define_method(:ecs) { Aws::ECS::Client.new }
+  define_method(:autoscaling) { Aws::AutoScaling::Client.new}
+  define_method(:ec2) { Aws::EC2::Client.new}
 end

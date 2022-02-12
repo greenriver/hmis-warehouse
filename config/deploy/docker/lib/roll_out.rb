@@ -29,6 +29,7 @@ class RollOut
   attr_accessor :task_role
   attr_accessor :web_options
   attr_accessor :only_check_ram
+  attr_accessor :ami_ids
 
   include SharedLogic
 
@@ -47,7 +48,7 @@ class RollOut
 
   NOT_SPOT = 'not-spot'
 
-  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:)
+  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, ami_ids:)
     self.cluster             = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
     self.image_base          = image_base
     self.secrets_arn         = secrets_arn
@@ -59,6 +60,7 @@ class RollOut
     self.web_options         = web_options
     self.status_uri          = URI("https://#{fqdn}/system_status/details")
     self.only_check_ram      = false
+    self.ami_ids             = ami_ids
 
     if task_role.nil? || task_role.match(/^\s*$/)
       puts "\n[WARN] task role was not set. The containers will use the role of the entire instance\n\n"
@@ -632,6 +634,14 @@ class RollOut
 
     five_minutes = 5 * 60
 
+    ami_id = ami_ids[capacity_provider]
+    _placement_constraints = [
+      {
+        expression: "attribute:ecs.ami-id == #{ami_id}",
+        type: 'memberOf'
+      }
+    ]
+
     if service_exists
       puts "[INFO] Updating #{name} to #{task_definition.split(/:/).last}: #{desired_count} containers #{target_group_name}"
       payload = {
@@ -647,7 +657,7 @@ class RollOut
             base: 1,
           },
         ],
-        # placement_constraints: _placement_constraints,
+        placement_constraints: _placement_constraints,
         placement_strategy: _placement_strategy,
         deployment_configuration: {
           maximum_percent: maximum_percent,
@@ -683,7 +693,7 @@ class RollOut
           minimum_healthy_percent: minimum_healthy_percent,
         },
         #launch_type: 'EC2',
-        # placement_constraints: placement_constraints,
+        placement_constraints: placement_constraints,
         placement_strategy: _placement_strategy,
         load_balancers: load_balancers,
       }

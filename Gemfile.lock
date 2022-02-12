@@ -127,6 +127,9 @@ GEM
     aws-partitions (1.544.0)
     aws-record (2.6.1)
       aws-sdk-dynamodb (~> 1.18)
+    aws-sdk-autoscaling (1.76.0)
+      aws-sdk-core (~> 3, >= 3.125.0)
+      aws-sigv4 (~> 1.1)
     aws-sdk-cloudwatch (1.54.0)
       aws-sdk-core (~> 3, >= 3.119.0)
       aws-sigv4 (~> 1.1)
@@ -902,6 +905,7 @@ DEPENDENCIES
   authtrail
   auto-session-timeout
   autoprefixer-rails
+  aws-sdk-autoscaling (~> 1)
   aws-sdk-cloudwatch (~> 1)
   aws-sdk-cloudwatchevents (~> 1)
   aws-sdk-cloudwatchlogs (~> 1)
