@@ -7,6 +7,7 @@ require 'aws-sdk-cloudwatchlogs'
 require 'aws-sdk-ec2'
 require_relative '../../../../app/jobs/workoff_arbiter'
 require_relative 'shared_logic'
+require_relative 'aws_sdk_methods'
 
 class RollOut
   attr_accessor :aws_profile
@@ -32,6 +33,7 @@ class RollOut
   attr_accessor :ami_ids
 
   include SharedLogic
+  include AwsSdkMethods
 
   # FIXME: cpu shares as parameter
   # FIXME: log level as parameter
@@ -716,8 +718,4 @@ class RollOut
       raise "Aborting deployment due to command error"
     end
   end
-
-  define_method(:ecs) { Aws::ECS::Client.new(profile: aws_profile) }
-  define_method(:ec2) { Aws::EC2::Client.new(profile: aws_profile) }
-  define_method(:cwl) { Aws::CloudWatchLogs::Client.new(profile: aws_profile) }
 end

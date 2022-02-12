@@ -1,3 +1,5 @@
+require_relative '../../config/deploy/docker/lib/aws_sdk_methods'
+
 ###
 # Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
@@ -15,6 +17,8 @@
 # 50 jobs waiting with a high priority could trigger a workoff worker with a PRIORITY_WEIGHT set high enough
 #
 class WorkoffArbiter
+  include AwsSdkMethods
+
   # How important is the length of time a job has been sitting around waiting?
   AGE_WEIGHT = 2
 
@@ -153,6 +157,4 @@ class WorkoffArbiter
   def _task_definition
     ENV.fetch('WORKOFF_TASK_DEFINITION')
   end
-
-  define_method(:ecs) { Aws::ECS::Client.new }
 end

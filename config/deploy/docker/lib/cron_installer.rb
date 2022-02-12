@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require_relative 'scheduled_task'
+require_relative 'aws_sdk_methods'
 require 'aws-sdk-iam'
 require 'aws-sdk-ecs'
 require 'time'
@@ -8,6 +9,8 @@ require 'time'
 # Run from rails root
 
 class CronInstaller
+  include AwsSdkMethods
+
   MAX_DESCRIPTION_LENGTH = 512
 
   def run!
@@ -173,9 +176,6 @@ class CronInstaller
 
     command.split(' ')
   end
-
-  define_method(:iam) { Aws::IAM::Client.new }
-  define_method(:ecs) { Aws::ECS::Client.new }
 end
 
 CronInstaller.new.run!

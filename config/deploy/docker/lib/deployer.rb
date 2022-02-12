@@ -2,6 +2,7 @@ require 'date'
 require 'byebug'
 require 'English'
 require_relative 'roll_out'
+require_relative 'aws_sdk_methods'
 
 # gem install aws_sdk --version=3.1.5
 require 'aws-sdk-elasticloadbalancingv2'
@@ -11,6 +12,8 @@ require 'aws-sdk-ecs'
 require 'aws-sdk-autoscaling'
 
 class Deployer
+  include AwsSdkMethods
+
   attr_accessor :repo_name
   attr_accessor :registry_id
 
@@ -458,11 +461,4 @@ class Deployer
       @ami_ids[capacity_provider.name] = ami_id
     end
   end
-
-  define_method(:elbv2) { Aws::ElasticLoadBalancingV2::Client.new }
-  define_method(:ecr) { Aws::ECR::Client.new }
-  define_method(:secretsmanager) { Aws::SecretsManager::Client.new }
-  define_method(:ecs) { Aws::ECS::Client.new }
-  define_method(:autoscaling) { Aws::AutoScaling::Client.new}
-  define_method(:ec2) { Aws::EC2::Client.new}
 end

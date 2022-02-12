@@ -3,6 +3,7 @@
 require 'aws-sdk-cloudwatchevents'
 require 'aws-sdk-ecs'
 require_relative 'shared_logic'
+require_relative 'aws_sdk_methods'
 
 class ScheduledTask
   attr_accessor :cluster_name
@@ -16,6 +17,7 @@ class ScheduledTask
   attr_accessor :capacity_provider_strategy
 
   include SharedLogic
+  include AwsSdkMethods
 
   MAX_NAME_LENGTH = 64
 
@@ -170,8 +172,4 @@ class ScheduledTask
   def cluster_arn
     ecs.list_clusters.cluster_arns.find { |x| x.match?(/#{cluster_name}/) }
   end
-
-  define_singleton_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
-  define_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
-  define_method(:ecs) { Aws::ECS::Client.new }
 end

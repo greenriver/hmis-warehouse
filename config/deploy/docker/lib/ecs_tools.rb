@@ -1,10 +1,13 @@
 require 'aws-sdk-ecs'
 require 'aws-sdk-ecr'
-require_relative 'deployer'
 require 'amazing_print'
 require 'aws-sdk-cloudwatchevents'
+require_relative 'deployer'
+require_relative 'aws_sdk_methods'
 
 class EcsTools
+  include AwsSdkMethods
+
   HOST  = 'ecs0.openpath.host'
   IMAGE = ENV['IMAGE']
 
@@ -155,7 +158,6 @@ class EcsTools
       end
     end
   end
-  define_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
 
   # Rebuild the slow parts we hope to not have to build frequently like
   # installing packages, gems, and precompiling assets.
@@ -187,7 +189,4 @@ class EcsTools
       raise "Aborting due to command error"
     end
   end
-
-  define_method(:ecs) { Aws::ECS::Client.new }
-  define_method(:ecr) { Aws::ECR::Client.new }
 end
