@@ -2415,7 +2415,7 @@ CREATE VIEW public."bi_Demographics" AS
     "Client".data_source_id
    FROM (public."Client"
      JOIN public.warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = ANY (ARRAY[87, 102, 88, 86, 98, 91, 82, 107, 80, 106, 105, 103, 99, 109, 108, 81])));
+  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = ANY (ARRAY[87, 88, 98, 91, 107, 80, 106, 105, 99, 108, 102, 110, 103, 82, 109, 112, 111, 81, 86, 113])));
 
 
 --
@@ -23866,6 +23866,20 @@ CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResul
 
 
 --
+-- Name: ch_enrollments_e_id_ch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ch_enrollments_e_id_ch ON public.ch_enrollments USING btree (enrollment_id, chronically_homeless_at_entry);
+
+
+--
+-- Name: ch_enrollments_e_id_pro; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ch_enrollments_e_id_pro ON public.ch_enrollments USING btree (enrollment_id, processed_as);
+
+
+--
 -- Name: client_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23891,6 +23905,13 @@ CREATE INDEX client_export_id ON public."Client" USING btree ("ExportID");
 --
 
 CREATE INDEX client_first_name ON public."Client" USING btree ("FirstName");
+
+
+--
+-- Name: client_id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree (client_id);
 
 
 --
@@ -24059,6 +24080,13 @@ CREATE INDEX enrollment_date_updated ON public."Enrollment" USING btree ("DateUp
 --
 
 CREATE INDEX enrollment_export_id ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: entrydate_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX entrydate_ret_index ON public.recent_report_enrollments USING btree ("EntryDate");
 
 
 --
@@ -29501,13 +29529,6 @@ CREATE INDEX "hmis_2020_enrollments-UrCS" ON public.hmis_2020_enrollments USING 
 
 
 --
--- Name: hmis_2020_enrollments-WHri; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2020_enrollments-WHri" ON public.hmis_2020_enrollments USING btree ("DateDeleted");
-
-
---
 -- Name: hmis_2020_enrollments-ZK9t; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -30093,13 +30114,6 @@ CREATE INDEX "hmis_2020_services-Rwkq" ON public.hmis_2020_services USING btree 
 --
 
 CREATE INDEX "hmis_2020_services-VJ0s" ON public.hmis_2020_services USING btree ("DateUpdated");
-
-
---
--- Name: hmis_2020_services-WGtP; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2020_services-WGtP" ON public.hmis_2020_services USING btree ("DateDeleted");
 
 
 --
@@ -30950,13 +30964,6 @@ CREATE INDEX "hmis_csv_2020_enrollments-8UEw" ON public.hmis_csv_2020_enrollment
 
 
 --
--- Name: hmis_csv_2020_enrollments-B4uX; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2020_enrollments-B4uX" ON public.hmis_csv_2020_enrollments USING btree ("DateDeleted");
-
-
---
 -- Name: hmis_csv_2020_enrollments-CKRZ; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -31451,13 +31458,6 @@ CREATE INDEX "hmis_csv_2020_services-1ggS" ON public.hmis_csv_2020_services USIN
 --
 
 CREATE INDEX "hmis_csv_2020_services-4Q3B" ON public.hmis_csv_2020_services USING btree ("ServicesID");
-
-
---
--- Name: hmis_csv_2020_services-5b2P; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2020_services-5b2P" ON public.hmis_csv_2020_services USING btree ("DateDeleted");
 
 
 --
@@ -36550,6 +36550,13 @@ CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_c
 
 
 --
+-- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
+
+
+--
 -- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -37954,13 +37961,6 @@ CREATE INDEX index_censuses_on_date ON public.censuses USING btree (date);
 --
 
 CREATE INDEX "index_censuses_on_date_and_ProjectType" ON public.censuses USING btree (date, "ProjectType");
-
-
---
--- Name: index_ch_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ch_enrollments_on_enrollment_id ON public.ch_enrollments USING btree (enrollment_id);
 
 
 --
@@ -39427,10 +39427,10 @@ CREATE INDEX index_hmis_forms_on_assessment_id ON public.hmis_forms USING btree 
 
 
 --
--- Name: index_hmis_forms_on_client_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_forms_on_client_id_and_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_forms_on_client_id ON public.hmis_forms USING btree (client_id);
+CREATE INDEX index_hmis_forms_on_client_id_and_assessment_id ON public.hmis_forms USING btree (client_id, assessment_id);
 
 
 --
@@ -46966,6 +46966,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220201213104'),
 ('20220204163115'),
 ('20220208180300'),
-('20220210132610');
+('20220210132610'),
+('20220211001613');
 
 

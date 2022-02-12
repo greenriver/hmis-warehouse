@@ -82,7 +82,7 @@ jobs:
           chmod 600 ~/.pgpass
 
           npm install
-          gem install bundler --version=2.2.15
+          gem install bundler --version=2.2.30
 
       - uses: actions/checkout@v2
 

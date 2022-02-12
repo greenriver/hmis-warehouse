@@ -6,7 +6,7 @@ gem 'rails_drivers'
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
-gem 'nokogiri', '>= 1.11.0.rc4' # >= 1.11.0.rc4 due to CVE-2020-26247
+gem 'nokogiri', '= 1.12.5' # >= 1.11.0.rc4 due to CVE-2020-26247
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
@@ -157,7 +157,7 @@ gem 'progress_bar', require: false
 gem 'slack-notifier'
 gem 'exception_notification'
 
-gem 'puma', '~> 4.3.9'
+gem 'puma', '~> 4.3.11'
 
 gem 'dotenv-rails'
 
