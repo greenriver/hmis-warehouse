@@ -172,4 +172,6 @@ class ScheduledTask
   def cluster_arn
     ecs.list_clusters.cluster_arns.find { |x| x.match?(/#{cluster_name}/) }
   end
+
+  define_singleton_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
 end
