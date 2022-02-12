@@ -90,7 +90,7 @@ We use the following common rails gems and conventions:
 * `bootstrap` for base styles and layout
 * `sass` for custom-css
 * `simple_form` for forms
-* `kaminari` for pagination
+* `pagy` for pagination
 * `brakeman` for basic security scanning.
 * `rack-mini-profiler` to make sure pages are fast. Ideally <200ms
 * helpers need to be explictly loaded in controllers. i.e. we have `config.action_controller.include_all_helpers = false` set
