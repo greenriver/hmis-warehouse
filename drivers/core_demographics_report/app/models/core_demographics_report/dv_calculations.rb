@@ -90,7 +90,7 @@ module
       rows['_DV Victim/Survivor Break'] ||= []
       rows['*DV Victim/Survivor'] ||= []
       rows['*DV Response'] ||= []
-      rows['*DV Response'] += ['Count', 'Percentage', nil, nil]
+      rows['*DV Response'] += ['Response', 'Count', 'Percentage', nil, nil]
       ::HUD.no_yes_reasons_for_missing_data_options.each do |id, title|
         rows["_DV Response_data_#{title}"] ||= []
         rows["_DV Response_data_#{title}"] += [
@@ -102,7 +102,7 @@ module
       end
       rows['*DV Victim/Survivor - Most Recent Occurance'] ||= []
       rows['*DV Occurrence Timing'] ||= []
-      rows['*DV Occurrence Timing'] += ['Count', 'Percentage', nil, nil]
+      rows['*DV Occurrence Timing'] += ['Timing', 'Count', 'Percentage', nil, nil]
       ::HUD.when_occurreds.each do |id, title|
         rows["_DV Occurrence Timing_data_#{title}"] ||= []
         rows["_DV Occurrence Timing_data_#{title}"] += [
