@@ -1,0 +1,30 @@
+- included = []
+- excluded = []
+- @questions.each do |item|
+  - next unless @contents
+  - if @contents.include?(item)
+    - included << item
+  - else
+    - excluded << item
+
+%p
+  Run by #{@report.user.name} at
+  %strong
+    #{@report.completed_at}
+  with the following options:
+.mt-2
+  = render 'hud_reports/parameters', report: @report
+  - if included.any?
+    %p Results included in this download will include the following:
+    - included.each do |item|
+      = link_to path_for_question_result(item, report: @report), class: 'btn btn-sm btn-secondary mb-2 ml-2' do
+        = checkmark_or_x(true)
+        = item
+  - else
+    %p No questions have been completed for this report.
+  - if excluded.any?
+    %p The following were not included in this report, or have not finished running:
+    - excluded.each do |item|
+      .btn.btn-sm.btn-secondary.btn-disabled.mb-2.ml-2
+        = checkmark_or_x(false)
+        = item
