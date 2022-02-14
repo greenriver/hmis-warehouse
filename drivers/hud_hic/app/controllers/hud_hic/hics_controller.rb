@@ -7,6 +7,8 @@
 module HudHic
   class HicsController < ::HudReports::BaseController
     before_action :filter
+    before_action :generator, only: [:download]
+    before_action :set_report, only: [:show, :destroy, :running, :download]
     before_action :set_reports, except: [:index, :running_all_questions]
 
     def available_report_versions

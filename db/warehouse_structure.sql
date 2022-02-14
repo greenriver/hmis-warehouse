@@ -13429,6 +13429,249 @@ ALTER SEQUENCE public.hud_report_dq_living_situations_id_seq OWNED BY public.hud
 
 
 --
+-- Name: hud_report_hic_funders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_hic_funders (
+    id bigint NOT NULL,
+    "FunderID" character varying,
+    "ProjectID" character varying,
+    "Funder" integer,
+    "OtherFunder" character varying,
+    "GrantID" character varying,
+    "StartDate" date,
+    "EndDate" date,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    report_instance_id integer NOT NULL,
+    data_source_id integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hud_report_hic_funders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_hic_funders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_hic_funders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_hic_funders_id_seq OWNED BY public.hud_report_hic_funders.id;
+
+
+--
+-- Name: hud_report_hic_inventories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_hic_inventories (
+    id bigint NOT NULL,
+    "InventoryID" character varying,
+    "ProjectID" character varying,
+    "CoCCode" character varying,
+    "HouseholdType" integer,
+    "Availability" integer,
+    "UnitInventory" integer,
+    "BedInventory" integer,
+    "CHVetBedInventory" integer,
+    "YouthVetBedInventory" integer,
+    "VetBedInventory" integer,
+    "CHYouthBedInventory" integer,
+    "YouthBedInventory" integer,
+    "CHBedInventory" integer,
+    "OtherBedInventory" integer,
+    "ESBedType" integer,
+    "InventoryStartDate" date,
+    "InventoryEndDate" date,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    report_instance_id integer NOT NULL,
+    data_source_id integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hud_report_hic_inventories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_hic_inventories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_hic_inventories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_hic_inventories_id_seq OWNED BY public.hud_report_hic_inventories.id;
+
+
+--
+-- Name: hud_report_hic_organizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_hic_organizations (
+    id bigint NOT NULL,
+    "OrganizationID" character varying,
+    "OrganizationName" character varying,
+    "VictimServiceProvider" integer,
+    "OrganizationCommonName" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    report_instance_id integer NOT NULL,
+    data_source_id integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hud_report_hic_organizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_hic_organizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_hic_organizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_hic_organizations_id_seq OWNED BY public.hud_report_hic_organizations.id;
+
+
+--
+-- Name: hud_report_hic_project_cocs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_hic_project_cocs (
+    id bigint NOT NULL,
+    "ProjectCoCID" character varying,
+    "ProjectID" character varying,
+    "CoCCode" character varying,
+    "Geocode" character varying,
+    "Address1" character varying,
+    "Address2" character varying,
+    "City" character varying,
+    "State" character varying,
+    "Zip" character varying,
+    "GeographyType" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    report_instance_id integer NOT NULL,
+    data_source_id integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hud_report_hic_project_cocs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_hic_project_cocs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_hic_project_cocs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_hic_project_cocs_id_seq OWNED BY public.hud_report_hic_project_cocs.id;
+
+
+--
+-- Name: hud_report_hic_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_hic_projects (
+    id bigint NOT NULL,
+    "ProjectID" character varying,
+    "OrganizationID" character varying,
+    "ProjectName" character varying,
+    "ProjectCommonName" character varying,
+    "OperatingStartDate" date,
+    "OperatingEndDate" date,
+    "ContinuumProject" integer,
+    "ProjectType" integer,
+    "HousingType" integer,
+    "ResidentialAffiliation" integer,
+    "TrackingMethod" integer,
+    "HMISParticipatingProject" integer,
+    "TargetPopulation" integer,
+    "HOPWAMedAssistedLivingFac" integer,
+    "PITCount" integer,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp without time zone,
+    "ExportID" character varying,
+    report_instance_id integer NOT NULL,
+    data_source_id integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hud_report_hic_projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_hic_projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_hic_projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_hic_projects_id_seq OWNED BY public.hud_report_hic_projects.id;
+
+
+--
 -- Name: hud_report_instances; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20237,6 +20480,41 @@ ALTER TABLE ONLY public.hud_report_dq_living_situations ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: hud_report_hic_funders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_funders ALTER COLUMN id SET DEFAULT nextval('public.hud_report_hic_funders_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_hic_inventories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_inventories ALTER COLUMN id SET DEFAULT nextval('public.hud_report_hic_inventories_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_hic_organizations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_organizations ALTER COLUMN id SET DEFAULT nextval('public.hud_report_hic_organizations_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_hic_project_cocs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_project_cocs ALTER COLUMN id SET DEFAULT nextval('public.hud_report_hic_project_cocs_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_hic_projects id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_projects ALTER COLUMN id SET DEFAULT nextval('public.hud_report_hic_projects_id_seq'::regclass);
+
+
+--
 -- Name: hud_report_instances id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22992,6 +23270,46 @@ ALTER TABLE ONLY public.hud_report_dq_clients
 
 ALTER TABLE ONLY public.hud_report_dq_living_situations
     ADD CONSTRAINT hud_report_dq_living_situations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_hic_funders hud_report_hic_funders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_funders
+    ADD CONSTRAINT hud_report_hic_funders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_hic_inventories hud_report_hic_inventories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_inventories
+    ADD CONSTRAINT hud_report_hic_inventories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_hic_organizations hud_report_hic_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_organizations
+    ADD CONSTRAINT hud_report_hic_organizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_hic_project_cocs hud_report_hic_project_cocs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_project_cocs
+    ADD CONSTRAINT hud_report_hic_project_cocs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_hic_projects hud_report_hic_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_hic_projects
+    ADD CONSTRAINT hud_report_hic_projects_pkey PRIMARY KEY (id);
 
 
 --
@@ -39581,6 +39899,76 @@ CREATE INDEX index_hud_report_cells_on_report_instance_id ON public.hud_report_c
 
 
 --
+-- Name: index_hud_report_hic_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_funders_on_data_source_id ON public.hud_report_hic_funders USING btree (data_source_id);
+
+
+--
+-- Name: index_hud_report_hic_funders_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_funders_on_report_instance_id ON public.hud_report_hic_funders USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_hic_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_inventories_on_data_source_id ON public.hud_report_hic_inventories USING btree (data_source_id);
+
+
+--
+-- Name: index_hud_report_hic_inventories_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_inventories_on_report_instance_id ON public.hud_report_hic_inventories USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_hic_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_organizations_on_data_source_id ON public.hud_report_hic_organizations USING btree (data_source_id);
+
+
+--
+-- Name: index_hud_report_hic_organizations_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_organizations_on_report_instance_id ON public.hud_report_hic_organizations USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_hic_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_project_cocs_on_data_source_id ON public.hud_report_hic_project_cocs USING btree (data_source_id);
+
+
+--
+-- Name: index_hud_report_hic_project_cocs_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_project_cocs_on_report_instance_id ON public.hud_report_hic_project_cocs USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_hic_projects_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_projects_on_data_source_id ON public.hud_report_hic_projects USING btree (data_source_id);
+
+
+--
+-- Name: index_hud_report_hic_projects_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_hic_projects_on_report_instance_id ON public.hud_report_hic_projects USING btree (report_instance_id);
+
+
+--
 -- Name: index_hud_report_instances_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46967,6 +47355,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220204163115'),
 ('20220208180300'),
 ('20220210132610'),
-('20220211001613');
+('20220211001613'),
+('20220214202202');
 
 

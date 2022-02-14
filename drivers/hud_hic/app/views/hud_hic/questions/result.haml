@@ -1,0 +1,9 @@
+= content_for :crumbs do
+  = link_to path_for_report(@report) do
+    = "« #{report_short_name} Report"
+- content_for :title do
+  #{report_short_name} #{@question}
+
+%h1= content_for :title
+
+= render 'hud_reports/tables', report: @report, question: @question

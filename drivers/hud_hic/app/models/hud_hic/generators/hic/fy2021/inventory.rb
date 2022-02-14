@@ -5,11 +5,11 @@
 ###
 
 module HudHic::Generators::Hic::Fy2021
-  class Report < ::HudReports::QuestionBase
+  class Inventory < ::HudReports::QuestionBase
     include ArelHelper
     include HudReports::Util
 
-    QUESTION_NUMBER = 'Report'.freeze
+    QUESTION_NUMBER = 'Inventory'.freeze
     def run_question!
     end
   end
