@@ -43,7 +43,7 @@ module AwsSdkHelpers
     include AwsSdkHelpers::ClientMethods
 
     def self.cluster_name
-      ENV.fetch('CLUSTER_NAME', ENV.fetch('AWS_CLUSTER', ENV.fetch('AWS_PROFILE', ENV.fetch('AWS_VAULT'))))
+      ENV.fetch('CLUSTER_NAME', ENV.fetch('AWS_CLUSTER', ENV.fetch('AWS_PROFILE', ENV.fetch('AWS_VAULT', ''))))
     end
     def _cluster_name
       AwsSdkHelpers::Helpers.cluster_name
