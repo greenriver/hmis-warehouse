@@ -1,4 +1,4 @@
-require_relative '../../config/deploy/docker/lib/aws_sdk_methods'
+require_relative '../../config/deploy/docker/lib/aws_sdk_helpers'
 
 ###
 # Copyright 2016 - 2022 Green River Data Analysis, LLC
@@ -17,7 +17,7 @@ require_relative '../../config/deploy/docker/lib/aws_sdk_methods'
 # 50 jobs waiting with a high priority could trigger a workoff worker with a PRIORITY_WEIGHT set high enough
 #
 class WorkoffArbiter
-  include AwsSdkMethods
+  include AwsSdkHelpers::Helpers
 
   # How important is the length of time a job has been sitting around waiting?
   AGE_WEIGHT = 2
@@ -50,6 +50,7 @@ class WorkoffArbiter
   end
 
   def add_worker!
+    placement_constraints = _default_placement_constraints(capacity_provider_name: _on_demand_capacity_provider_name)
     payload = {
       cluster: ENV.fetch('CLUSTER_NAME'),
       task_definition: _task_definition,
@@ -60,6 +61,7 @@ class WorkoffArbiter
           base: 1,
         },
       ],
+      placement_constraints: placement_constraints,
     }
 
     ecs.run_task(payload)
@@ -138,20 +140,6 @@ class WorkoffArbiter
     cluster_name = ENV.fetch('CLUSTER_NAME')
     our_cluster = ecs.describe_clusters(clusters: [cluster_name]).clusters.first
     our_cluster.default_capacity_provider_strategy.map(&:to_h)
-  end
-
-  # Abstraction that lets the cluster provision more/less EC2 instances based
-  # on the requirements of the containers we want to run
-  def _capacity_providers
-    @_capacity_providers ||= ecs.describe_clusters(clusters: [ENV.fetch('CLUSTER_NAME')]).clusters.first.capacity_providers
-  end
-
-  def _spot_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/spt-v2/) }
-  end
-
-  def _on_demand_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
   end
 
   def _task_definition

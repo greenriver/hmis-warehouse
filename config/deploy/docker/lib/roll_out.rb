@@ -7,7 +7,7 @@ require 'aws-sdk-cloudwatchlogs'
 require 'aws-sdk-ec2'
 require_relative '../../../../app/jobs/workoff_arbiter'
 require_relative 'shared_logic'
-require_relative 'aws_sdk_methods'
+require_relative 'aws_sdk_helpers'
 
 class RollOut
   attr_accessor :aws_profile
@@ -30,10 +30,9 @@ class RollOut
   attr_accessor :task_role
   attr_accessor :web_options
   attr_accessor :only_check_ram
-  attr_accessor :ami_ids
 
   include SharedLogic
-  include AwsSdkMethods
+  include AwsSdkHelpers::Helpers
 
   # FIXME: cpu shares as parameter
   # FIXME: log level as parameter
@@ -50,7 +49,7 @@ class RollOut
 
   NOT_SPOT = 'not-spot'
 
-  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, ami_ids:)
+  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:)
     self.cluster             = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
     self.image_base          = image_base
     self.secrets_arn         = secrets_arn
@@ -62,7 +61,7 @@ class RollOut
     self.web_options         = web_options
     self.status_uri          = URI("https://#{fqdn}/system_status/details")
     self.only_check_ram      = false
-    self.ami_ids             = ami_ids
+    @capacity_providers      = capacity_providers
 
     if task_role.nil? || task_role.match(/^\s*$/)
       puts "\n[WARN] task role was not set. The containers will use the role of the entire instance\n\n"
@@ -401,20 +400,6 @@ class RollOut
     self.task_definition = results.to_h.dig(:task_definition, :task_definition_arn)
   end
 
-  # Abstraction that lets the cluster provision more/less EC2 instances based
-  # on the requirements of the containers we want to run
-  def _capacity_providers
-    @_capacity_providers ||= ecs.describe_clusters(clusters: [self.cluster]).clusters.first.capacity_providers
-  end
-
-  def _spot_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/spt-v2/) }
-  end
-
-  def _on_demand_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
-  end
-
   def _run_task!
     _make_cloudwatch_group!
 
@@ -636,13 +621,7 @@ class RollOut
 
     five_minutes = 5 * 60
 
-    ami_id = ami_ids[capacity_provider]
-    _placement_constraints = [
-      {
-        expression: "attribute:ecs.ami-id == #{ami_id}",
-        type: 'memberOf'
-      }
-    ]
+    placement_constraints = _default_placement_constraints(capacity_provider_name: capacity_provider)
 
     if service_exists
       puts "[INFO] Updating #{name} to #{task_definition.split(/:/).last}: #{desired_count} containers #{target_group_name}"
@@ -659,7 +638,7 @@ class RollOut
             base: 1,
           },
         ],
-        placement_constraints: _placement_constraints,
+        placement_constraints: placement_constraints,
         placement_strategy: _placement_strategy,
         deployment_configuration: {
           maximum_percent: maximum_percent,

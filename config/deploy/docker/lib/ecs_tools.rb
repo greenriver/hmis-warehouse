@@ -1,12 +1,9 @@
-require 'aws-sdk-ecs'
-require 'aws-sdk-ecr'
 require 'amazing_print'
-require 'aws-sdk-cloudwatchevents'
 require_relative 'deployer'
-require_relative 'aws_sdk_methods'
+require_relative 'aws_sdk_helpers'
 
 class EcsTools
-  include AwsSdkMethods
+  include AwsSdkHelpers::Helpers
 
   HOST  = 'ecs0.openpath.host'
   IMAGE = ENV['IMAGE']

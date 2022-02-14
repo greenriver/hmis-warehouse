@@ -2,17 +2,11 @@ require 'date'
 require 'byebug'
 require 'English'
 require_relative 'roll_out'
-require_relative 'aws_sdk_methods'
-
-# gem install aws_sdk --version=3.1.5
-require 'aws-sdk-elasticloadbalancingv2'
-require 'aws-sdk-ecr'
-require 'aws-sdk-secretsmanager'
-require 'aws-sdk-ecs'
-require 'aws-sdk-autoscaling'
+require_relative 'aws_sdk_helpers'
 
 class Deployer
-  include AwsSdkMethods
+
+  include AwsSdkHelpers::HasHelpers
 
   attr_accessor :repo_name
   attr_accessor :registry_id
@@ -147,7 +141,7 @@ class Deployer
         fqdn: fqdn,
         task_role: task_role,
         web_options: web_options,
-        ami_ids: _ami_ids,
+        capacity_providers: _capacity_providers,
       })
   end
 
@@ -439,26 +433,5 @@ class Deployer
     @target_group_arn = results.target_groups.find do |tg|
       tg.target_group_name == target_group_name
     end.target_group_arn
-  end
-
-  def _capacity_providers
-    @_capacity_providers ||= ecs.describe_clusters(clusters: [self.cluster]).clusters.first.capacity_providers
-  end
-
-  def _ami_ids
-    return @ami_ids unless @ami_ids.nil?
-    @ami_ids = {}
-
-    ecs.describe_capacity_providers(capacity_providers: _capacity_providers).capacity_providers.each do |capacity_provider|
-      asg_name = capacity_provider.auto_scaling_group_provider.auto_scaling_group_arn.split('/').last
-      asg = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: [ asg_name ]).auto_scaling_groups.first
-
-      launch_template_id = asg.mixed_instances_policy.launch_template.launch_template_specification.launch_template_id
-      launch_template_versions = ec2.describe_launch_template_versions(launch_template_id: launch_template_id)
-
-      ami_id = launch_template_versions.launch_template_versions[0].launch_template_data.image_id
-
-      @ami_ids[capacity_provider.name] = ami_id
-    end
   end
 end

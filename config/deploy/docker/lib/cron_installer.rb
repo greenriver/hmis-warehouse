@@ -1,15 +1,13 @@
 #!/usr/bin/env ruby
 
 require_relative 'scheduled_task'
-require_relative 'aws_sdk_methods'
-require 'aws-sdk-iam'
-require 'aws-sdk-ecs'
+require_relative 'aws_sdk_helpers'
 require 'time'
 
 # Run from rails root
 
 class CronInstaller
-  include AwsSdkMethods
+  include AwsSdkHelpers::Helpers
 
   MAX_DESCRIPTION_LENGTH = 512
 
@@ -76,18 +74,6 @@ class CronInstaller
         base: 1,
       },
     ]
-  end
-
-  def _capacity_providers
-    @_capacity_providers ||= ecs.describe_clusters(clusters: [ENV.fetch('CLUSTER_NAME')]).clusters.first.capacity_providers
-  end
-
-  def _spot_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/spt-v2/) }
-  end
-
-  def _on_demand_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
   end
 
   def task_definition_arn

@@ -3,7 +3,7 @@
 require 'aws-sdk-cloudwatchevents'
 require 'aws-sdk-ecs'
 require_relative 'shared_logic'
-require_relative 'aws_sdk_methods'
+require_relative 'aws_sdk_helpers'
 
 class ScheduledTask
   attr_accessor :cluster_name
@@ -17,7 +17,7 @@ class ScheduledTask
   attr_accessor :capacity_provider_strategy
 
   include SharedLogic
-  include AwsSdkMethods
+  include AwsSdkHelpers::Helpers
 
   MAX_NAME_LENGTH = 64
 
@@ -109,6 +109,8 @@ class ScheduledTask
       ]
     }.to_json
 
+    placement_constraints = _default_placement_constraints
+
     payload = {
       rule: name,
       targets: [
@@ -125,7 +127,7 @@ class ScheduledTask
             # https://github.com/aws/containers-roadmap/issues/937
             # launch_type: "EC2",
             capacity_provider_strategy: capacity_provider_strategy,
-            # placement_constraints: _placement_constraints,
+            placement_constraints: placement_constraints,
             placement_strategy: _placement_strategy,
           },
         },
