@@ -6,7 +6,7 @@ require_relative 'aws_sdk_helpers'
 
 class Deployer
 
-  include AwsSdkHelpers::HasHelpers
+  include AwsSdkHelpers::Helpers
 
   attr_accessor :repo_name
   attr_accessor :registry_id
