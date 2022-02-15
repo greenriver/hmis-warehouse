@@ -66,6 +66,7 @@ module AwsSdkHelpers
           ami_id: ami_id
         }
       end
+      return r
     end
     def _capacity_providers(cluster = nil)
       cluster ||= _cluster_name
