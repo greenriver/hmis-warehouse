@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,7 @@ module Importers::HmisAutoMigrate
   end
 
   def self.apply_migrations(csv_dir, notifier, recursed: false)
-    hud_export = AutoEncodingCsv.read("#{csv_dir}/Export.csv", headers: true)&.first&.to_hash || {}
+    hud_export = AutoEncodingCsv.read("#{csv_dir}/Export.csv", headers: true)&.first&.to_h || {}
     hud_export.transform_keys!(&:downcase)
     return unless hud_export['exportid'].present? # Make sure it is a HUD export file, otherwise do nothing
 

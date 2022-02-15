@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,13 +21,13 @@ RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionNine, type: :model do
 
   describe 'Q9a: Number of Persons Contacted' do
     it 'total of two contacts' do
-      expect(report_result.answer(question: 'Q9a', cell: 'B6').summary).to eq(3)
+      expect(report_result.answer(question: 'Q9a', cell: 'B6').summary).to eq(7)
     end
   end
 
   describe 'Q9b: Number of Persons Engaged' do
     it 'total of one engagement' do
-      expect(report_result.answer(question: 'Q9b', cell: 'B6').summary).to eq(1)
+      expect(report_result.answer(question: 'Q9b', cell: 'B6').summary).to eq(5)
     end
   end
 end

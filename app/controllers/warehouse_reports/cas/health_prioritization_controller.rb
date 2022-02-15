@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -123,9 +123,9 @@ module WarehouseReports::Cas
         index_by(&:first). # order clause ensures most-recent response when indexed
         transform_values do |row|
           v = row.last
-          v = if v.zero?
+          v = if v.in?(['chronic_answer_no', 0])
             'No'
-          elsif v.positive?
+          elsif v == 'chronic_answer_yes' || v.positive?
             'Yes'
           end
           [row.first, v]

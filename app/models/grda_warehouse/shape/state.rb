@@ -1,9 +1,9 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-#
+
 # We need states to figure out which zip codes they contain and as a lookup for
 # fips state codes
 

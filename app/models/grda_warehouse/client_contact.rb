@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,16 @@ module GrdaWarehouse
     belongs_to :source, polymorphic: true
 
     scope :shelter_agency_contacts, -> do
-      where(contact_type: ['Shelter Worker', 'Housing Navigator'])
+      where(
+        contact_type: [
+          'Shelter Worker',
+          'Housing Navigator',
+          'Housing Case Manager',
+          'Case Manager',
+          'Rapid Re-Housing Case Manager',
+          'Secondary Case Manager',
+        ],
+      )
     end
 
     scope :case_managers, -> do

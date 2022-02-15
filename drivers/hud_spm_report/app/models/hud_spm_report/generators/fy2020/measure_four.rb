@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,7 +18,7 @@ module HudSpmReport::Generators::Fy2020
         ['4.3', :run_4_3, 'Change in total income for adult system stayers during the reporting period'],
         ['4.4', :run_4_4, 'Change in earned income for adult system leavers'],
         ['4.5', :run_4_5, 'Change in non-employment cash income for adult system leavers'],
-        ['4.6', :run_4_6, 'Change in earned income for adult system stayers during the reporting period'],
+        ['4.6', :run_4_6, 'Change in total income for adult system leavers'],
       ]
     end
 

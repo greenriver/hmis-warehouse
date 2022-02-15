@@ -4,8 +4,8 @@
 %h1= title
 = render 'admin/audits/user_tabs'
 %p= paginate @versions
-.table-responsive
-  %table.table.table-sm.table-hover
+.card
+  %table.table.table-striped.mb-0
     %thead
       %tr
         %th Date

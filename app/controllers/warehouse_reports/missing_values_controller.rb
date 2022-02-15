@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -115,55 +115,53 @@ module WarehouseReports
       # collects all desired counts, providing also a fraction of the total where appropriate
       # these are sorted for display
       def counts
-        @counts ||= begin
-          client_counts.merge(enrollment_counts).map do |k, v|
-            value = if all_missing_clients_field_key == k || all_missing_enrollments_field_key == k || COLUMN_TO_AREL[k]
-              denominator = if all_missing_clients_field_key == k || COLUMN_TO_AREL[k] && client_column?(k)
-                denominator = client_counts[all_clients_key]
-              elsif all_missing_enrollments_field_key == k || enrollment_column?(k)
-                denominator = enrollment_counts[all_enrollments_key]
-              else
-                raise 'we should never get here'
-              end
-              if denominator.to_f.zero?
-                { na: true }
-              else
-                { fraction: v.to_f / denominator }
-              end
+        @counts ||= client_counts.merge(enrollment_counts).map do |k, v|
+          value = if all_missing_clients_field_key == k || all_missing_enrollments_field_key == k || COLUMN_TO_AREL[k]
+            denominator = if all_missing_clients_field_key == k || COLUMN_TO_AREL[k] && client_column?(k)
+              denominator = client_counts[all_clients_key]
+            elsif all_missing_enrollments_field_key == k || enrollment_column?(k)
+              denominator = enrollment_counts[all_enrollments_key]
             else
-              { counts_present: true } # if we aren't looking for a denominator, the number is one of the denominators we look for
+              raise 'we should never get here'
             end
-            [k, value.merge(total: v)]
-          end.sort do |(ak, _), (bk, _)|
-            # put client stuff before enrollment stuff
-            # put all-x stuff before particular column info
-            # otherwise, sort alphabetically
-            ac, bc = [ak, bk].map { |k| COLUMN_TO_AREL[k].present? && client_column?(k) || [all_clients_key, all_missing_clients_field_key].include?(k) }
-            if ac ^ bc
-              ac ? -1 : 1
-            elsif COLUMN_TO_AREL[ak] && COLUMN_TO_AREL[bk]
-              ak <=> bk
-            elsif ac   # both client-related
-              ac, bc = [ak, bk].map { |k| COLUMN_TO_AREL[k].present? }
-              if ac || bc
-                ac ? 1 : -1
-              elsif ak == all_clients_key
-                -1
-              else
-                1
-              end
-            else       # both enrollment-related
-              ac, bc = [ak, bk].map { |k| COLUMN_TO_AREL[k].present? }
-              if ac || bc
-                ac ? 1 : -1
-              elsif ak == all_enrollments_key
-                -1
-              else
-                1
-              end
+            if denominator.to_f.zero?
+              { na: true }
+            else
+              { fraction: v.to_f / denominator }
             end
-          end.to_h
-        end
+          else
+            { counts_present: true } # if we aren't looking for a denominator, the number is one of the denominators we look for
+          end
+          [k, value.merge(total: v)]
+        end.sort do |(ak, _), (bk, _)|
+          # put client stuff before enrollment stuff
+          # put all-x stuff before particular column info
+          # otherwise, sort alphabetically
+          ac, bc = [ak, bk].map { |k| COLUMN_TO_AREL[k].present? && client_column?(k) || [all_clients_key, all_missing_clients_field_key].include?(k) }
+          if ac ^ bc
+            ac ? -1 : 1
+          elsif COLUMN_TO_AREL[ak] && COLUMN_TO_AREL[bk]
+            ak <=> bk
+          elsif ac   # both client-related
+            ac, bc = [ak, bk].map { |k| COLUMN_TO_AREL[k].present? }
+            if ac || bc
+              ac ? 1 : -1
+            elsif ak == all_clients_key
+              -1
+            else
+              1
+            end
+          else       # both enrollment-related
+            ac, bc = [ak, bk].map { |k| COLUMN_TO_AREL[k].present? }
+            if ac || bc
+              ac ? 1 : -1
+            elsif ak == all_enrollments_key
+              -1
+            else
+              1
+            end
+          end
+        end.to_h
       end
 
       def source_name
@@ -299,50 +297,46 @@ module WarehouseReports
       end
 
       def normalize_hash(h) # rubocop:disable Naming/MethodParameterName
-        h = h.to_hash.first
+        h = h.to_a.first
         h.transform_keys { |k| k.tr('_', ' ') }.with_indifferent_access
       end
 
       def client_counts
-        @client_counts ||= begin
-          if client_columns.any?
-            cols = COLUMN_TO_AREL.slice(*client_columns).values
-            s = if needs_distinct?
-              client_ids = scope.distinct.pluck(:id)
-              client_scope.where(id: client_ids)
-            else
-              client_scope
-            end
-            if cols.many?
-              first_q = cols.first.eq nil
-              union = cols[1..].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
-              s = s.select make_count(union, all_missing_clients_field_key.tr(' ', '_'))
-            end
-            s = s.select(*cols.map { |c| make_count(c.eq(nil), c.name.to_s) })
-            s = s.select nf('COUNT', [ct[:id]]).as(all_clients_key.tr(' ', '_'))
-            normalize_hash s.connection.select_all(s.to_sql)
+        @client_counts ||= if client_columns.any?
+          cols = COLUMN_TO_AREL.slice(*client_columns).values
+          s = if needs_distinct?
+            client_ids = scope.distinct.pluck(:id)
+            client_scope.where(id: client_ids)
           else
-            {}
+            client_scope
           end
+          if cols.many?
+            first_q = cols.first.eq nil
+            union = cols[1..].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
+            s = s.select make_count(union, all_missing_clients_field_key.tr(' ', '_'))
+          end
+          s = s.select(*cols.map { |c| make_count(c.eq(nil), c.name.to_s) })
+          s = s.select nf('COUNT', [ct[:id]]).as(all_clients_key.tr(' ', '_'))
+          normalize_hash s.connection.select_all(s.to_sql)
+        else
+          {}
         end
       end
 
       def enrollment_counts
-        @enrollment_counts ||= begin
-          if enrollment_columns.any?
-            cols = COLUMN_TO_AREL.slice(*enrollment_columns).values
-            s = scope
-            if cols.many?
-              first_q = cols.first.eq nil
-              union = cols[1..].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
-              s = s.select make_count(union, all_missing_enrollments_field_key.tr(' ', '_'))
-            end
-            s = s.select(*cols.map { |c| make_count(c.eq(nil), c.name.to_s) })
-            s = s.select nf('COUNT', [et[:id]]).as(all_enrollments_key.tr(' ', '_'))
-            normalize_hash s.connection.select_all(s.to_sql)
-          else
-            {}
+        @enrollment_counts ||= if enrollment_columns.any?
+          cols = COLUMN_TO_AREL.slice(*enrollment_columns).values
+          s = scope
+          if cols.many?
+            first_q = cols.first.eq nil
+            union = cols[1..].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
+            s = s.select make_count(union, all_missing_enrollments_field_key.tr(' ', '_'))
           end
+          s = s.select(*cols.map { |c| make_count(c.eq(nil), c.name.to_s) })
+          s = s.select nf('COUNT', [et[:id]]).as(all_enrollments_key.tr(' ', '_'))
+          normalize_hash s.connection.select_all(s.to_sql)
+        else
+          {}
         end
       end
 

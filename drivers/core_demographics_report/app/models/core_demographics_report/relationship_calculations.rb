@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,13 +38,13 @@ module
     def relationship_data_for_export(rows)
       rows['_Relationship to Head of Household Break'] ||= []
       rows['*Relationship to Head of Household'] ||= []
-      rows['*Relationship to Head of Household'] += ['Count', 'Percentage', nil, nil]
+      rows['*Relationship to Head of Household'] += ['Relationship', 'Count', 'Percentage', nil, nil]
       ::HUD.relationships_to_hoh.each do |id, title|
-        rows["_Relationship#{title}"] ||= []
-        rows["_Relationship#{title}"] += [
+        rows["_Relationship_data_#{title}"] ||= []
+        rows["_Relationship_data_#{title}"] += [
           title,
           relationship_count(id),
-          relationship_percentage(id),
+          relationship_percentage(id) / 100,
           nil,
         ]
       end

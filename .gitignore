@@ -139,3 +139,6 @@ config/claims_reporting/*
 
 # Pre-cache version file
 !.pre-cache-version
+
+# Ignore CAS db structure, it will be maintained in CAS
+db/cas_structure.sql

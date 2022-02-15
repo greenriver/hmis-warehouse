@@ -1,4 +1,4 @@
-= simple_form_for @participation_form, url: form_url, as: :form, remote: request.xhr?, html: {multipart: true} do |f|
+= simple_form_for @participation_form, url: form_url, as: :form, remote: true, html: {multipart: true} do |f|
 
   = f.error_notification
 
@@ -23,13 +23,15 @@
             %i.icon-download2
             Blank Participation Form
 
-    .row
-      .col-sm-6.j-file-upload
-        - if @participation_form.errors.messages[:file].present?
-          .alert.alert-danger
-            = render 'upload_fields', f: f
-        - else
+    - highlights = ''
+    - if @participation_form.errors.messages[:file].present?
+      - highlights = 'alert alert-danger'
+    %div{class: highlights}
+      .row
+        .col-sm-6.j-file-upload
           = render 'upload_fields', f: f
+        .col-sm-6.my-auto
+          = f.input :verbal_approval, label: 'Patient gave verbal approval'
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 

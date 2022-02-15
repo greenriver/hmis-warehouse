@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,6 +33,7 @@ module Export::Scopes
         e_scope = e_scope.where(project_exists_for_enrollment)
         case @export.period_type
         when 3
+          # FIXME: open_during_range may need to include logic to include deleted Exits
           e_scope = e_scope.open_during_range(@range)
         when 1
           # no-op

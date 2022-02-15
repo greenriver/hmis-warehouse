@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -184,32 +184,32 @@ module
     def age_data_for_export(rows)
       rows['_Adults Break'] ||= []
       rows['*Adults'] ||= []
-      rows['*Adults'] += ['Count', 'Average Age', nil, nil]
+      rows['*Adults'] += ['Gender', 'Count', 'Average Age', nil, nil]
       rows['_Adults - All'] ||= []
-      rows['_Adults - All'] += [adult_count, average_adult_age, nil, nil]
+      rows['_Adults - All'] += ['All', adult_count, average_adult_age, nil, nil]
       rows['_Adults - Female'] ||= []
-      rows['_Adults - Female'] += [adult_female_count, average_adult_female_age, nil, nil]
+      rows['_Adults - Female'] += ['Female', adult_female_count, average_adult_female_age, nil, nil]
       rows['_Adults - Male'] ||= []
-      rows['_Adults - Male'] += [adult_male_count, average_adult_male_age, nil, nil]
+      rows['_Adults - Male'] += ['Male', adult_male_count, average_adult_male_age, nil, nil]
 
       rows['_Children Break'] ||= []
       rows['*Children'] ||= []
-      rows['*Children'] += ['Count', 'Average Age', nil, nil]
+      rows['*Children'] += ['Gender', 'Count', 'Average Age', nil, nil]
       rows['_Children - All'] ||= []
-      rows['_Children - All'] += [child_count, average_child_age, nil, nil]
+      rows['_Children - All'] += ['All', child_count, average_child_age, nil, nil]
       rows['_Children - Female'] ||= []
-      rows['_Children - Female'] += [child_female_count, average_child_female_age, nil, nil]
+      rows['_Children - Female'] += ['Female', child_female_count, average_child_female_age, nil, nil]
       rows['_Children - Male'] ||= []
-      rows['_Children - Male'] += [child_male_count, average_child_male_age, nil, nil]
+      rows['_Children - Male'] += ['Male', child_male_count, average_child_male_age, nil, nil]
       rows['_Age Beakdowns Break'] ||= []
       rows['*Age Beakdowns'] ||= []
       rows['*Age Beakdowns'] += ['Age Range', 'Count', 'Percentage', nil]
       age_categories.each do |age_range, age_title|
-        rows["_Age Beakdowns#{age_title}"] ||= []
-        rows["_Age Beakdowns#{age_title}"] += [
+        rows["_Age Beakdowns_data_#{age_title}"] ||= []
+        rows["_Age Beakdowns_data_#{age_title}"] += [
           age_title,
           age_count(age_range),
-          age_percentage(age_range),
+          age_percentage(age_range) / 100,
           nil,
         ]
       end

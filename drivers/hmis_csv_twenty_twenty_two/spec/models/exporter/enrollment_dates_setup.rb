@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.shared_context '2022 enrollment dates setup', shared_context: :metadata do
   # Setup such that there are more than 3 of each item, but three fall within the date range
   let!(:enrollments) { create_list :hud_enrollment, 5, data_source_id: data_source.id }

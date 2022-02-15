@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,13 +38,13 @@ module
     def household_type_data_for_export(rows)
       rows['_Household Types'] ||= []
       rows['*Household Types'] ||= []
-      rows['*Household Types'] += ['Count', 'Percentage', nil, nil]
+      rows['*Household Types'] += ['Household Type', 'Count', 'Percentage', nil, nil]
       @filter.available_household_types.each do |id, title|
-        rows["_Household Types#{title}"] ||= []
-        rows["_Household Types#{title}"] += [
+        rows["_Household Types_data_#{title}"] ||= []
+        rows["_Household Types_data_#{title}"] += [
           title,
           household_type_count(id),
-          household_type_percentage(id),
+          household_type_percentage(id) / 100,
           nil,
         ]
       end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -297,7 +297,10 @@ module GrdaWarehouse::Hud
         where(housing_release_status: [full_release_string, partial_release_string])
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
-        where(id: GrdaWarehouse::ServiceHistoryEnrollment.with_service_between(start_date: range.first, end_date: range.last).select(:client_id))
+        # Homeless or Coordinated Assessment
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project_type([1, 2, 4, 8, 14]).
+          with_service_between(start_date: range.first, end_date: range.last)
+        where(id: enrollment_scope.select(:client_id))
       else
         raise NotImplementedError
       end

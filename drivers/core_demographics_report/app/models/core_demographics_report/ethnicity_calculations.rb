@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,13 +38,13 @@ module
     def ethnicity_data_for_export(rows)
       rows['_Ethnicity Break'] ||= []
       rows['*Ethnicity'] ||= []
-      rows['*Ethnicity'] += ['Count', 'Percentage', nil, nil]
+      rows['*Ethnicity'] += ['Ethnicity', 'Count', 'Percentage', nil, nil]
       ::HUD.ethnicities.each do |id, title|
-        rows["_Ethnicity#{title}"] ||= []
-        rows["_Ethnicity#{title}"] += [
+        rows["_Ethnicity_data_#{title}"] ||= []
+        rows["_Ethnicity_data_#{title}"] += [
           title,
           ethnicity_count(id),
-          ethnicity_percentage(id),
+          ethnicity_percentage(id) / 100,
           nil,
         ]
       end

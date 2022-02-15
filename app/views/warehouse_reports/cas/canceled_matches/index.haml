@@ -12,45 +12,46 @@
 .row
   .col-sm-12
     .warehouse-reports
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th Match ID
-            %th Started On
-            %th Canceled On Step
-            %th Canceled On
-            %th Canceled Reason
-            %th Previous Step
-            %th Previous Step Completed On
-            %th Program
-            %th Sub-Program
-            %th= "#{_('Shelter Agency Contacts')}"
-            %th= "#{_('HSA Contacts')}"
-
-        %tbody
-          - if @matches.empty?
+      .card
+        %table.table.table-striped.mb-0
+          %thead
             %tr
-              %td.text-center{colspan: 8}
-                %em No Canceled Matches
-          - else
-            - @matches.each do |match|
-              - previous_step = @all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
+              %th Match ID
+              %th Started On
+              %th Canceled On Step
+              %th Canceled On
+              %th Canceled Reason
+              %th Previous Step
+              %th Previous Step Completed On
+              %th Program
+              %th Sub-Program
+              %th= "#{_('Shelter Agency Contacts')}"
+              %th= "#{_('HSA Contacts')}"
 
+          %tbody
+            - if @matches.empty?
               %tr
-                %td= link_to match.match_id, "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}", target: '_blank'
-                %td= match.match_started_at&.to_date
-                %td= "(#{match.decision_order}) #{match.match_step}"
-                %td= match.updated_at.to_date
-                %td= match.administrative_cancel_reason
-                %td= previous_step&.match_step
-                %td= previous_step&.updated_at&.to_date
-                %td= match.program_name
-                %td= match.sub_program_name
-                %td
-                  - match.shelter_agency_contacts.map{|contact| contact.values.join(' ')}.each do |contact|
-                    = contact
-                    %br
-                %td
-                  - match.hsa_contacts.map{|contact| contact.values.join(' ')}.each do |contact|
-                    = contact
-                    %br
+                %td.text-center{colspan: 8}
+                  %em No Canceled Matches
+            - else
+              - @matches.each do |match|
+                - previous_step = @all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
+
+                %tr
+                  %td= link_to match.match_id, "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}", target: '_blank'
+                  %td= match.match_started_at&.to_date
+                  %td= "(#{match.decision_order}) #{match.match_step}"
+                  %td= match.updated_at.to_date
+                  %td= match.administrative_cancel_reason
+                  %td= previous_step&.match_step
+                  %td= previous_step&.updated_at&.to_date
+                  %td= match.program_name
+                  %td= match.sub_program_name
+                  %td
+                    - match.shelter_agency_contacts.map{|contact| contact.values.join(' ')}.each do |contact|
+                      = contact
+                      %br
+                  %td
+                    - match.hsa_contacts.map{|contact| contact.values.join(' ')}.each do |contact|
+                      = contact
+                      %br
