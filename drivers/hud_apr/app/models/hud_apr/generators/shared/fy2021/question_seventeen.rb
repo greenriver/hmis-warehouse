@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,7 +44,7 @@ module HudApr::Generators::Shared::Fy2021
             # The final question doesn't require accessing the jsonb column
             members = members.where(income_clause)
           end
-          members = members.where(stayers_clause) if suffix == :annual_assessment
+          members = members.where(stayers_clause).where(a_t[:annual_assessment_expected].eq(true)) if suffix == :annual_assessment
           members = members.where(leavers_clause) if suffix == :exit
           answer.add_members(members)
           answer.update(summary: members.count)

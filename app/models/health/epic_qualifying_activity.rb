@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -159,7 +159,7 @@ module Health
 
     def clean_activity_title
       case activity
-      when 'Comprehensive assessment'
+      when 'Comprehensive assessment', 'Comprehensive health assessment'
         'Comprehensive Health Assessment'
       when 'Person-Centered Treatment Plan Signed'
         'Person-Centered Treatment Plan signed'

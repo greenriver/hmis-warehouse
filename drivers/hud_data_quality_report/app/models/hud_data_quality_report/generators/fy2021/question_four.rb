@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -50,7 +50,7 @@ module HudDataQualityReport::Generators::Fy2021
 
       answer = @report.answer(question: table_name, cell: 'B2')
       members = leavers.where(
-        a_t[:destination].in([8, 9, 30]).
+        a_t[:destination].in([8, 9, 30, 99]).
           or(a_t[:destination].eq(nil)),
       )
       answer.add_members(members)
@@ -66,7 +66,7 @@ module HudDataQualityReport::Generators::Fy2021
       members = adults_and_hohs.where(
         a_t[:income_date_at_start].eq(nil).
           or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
-          or(a_t[:income_from_any_source_at_start].in([8, 9])).
+          or(a_t[:income_from_any_source_at_start].in([8, 9, 99])).
           or(a_t[:income_from_any_source_at_start].eq(nil)).
           or(a_t[:income_from_any_source_at_start].eq(0).
             and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql))).
@@ -89,7 +89,7 @@ module HudDataQualityReport::Generators::Fy2021
       members = stayers_with_anniversary.where(
         a_t[:income_date_at_annual_assessment].eq(nil).
           or(a_t[:annual_assessment_in_window].eq(false)).
-          or(a_t[:income_from_any_source_at_annual_assessment].in([8, 9])).
+          or(a_t[:income_from_any_source_at_annual_assessment].in([8, 9, 99])).
           or(a_t[:income_from_any_source_at_annual_assessment].eq(nil)).
           or(a_t[:income_from_any_source_at_annual_assessment].eq(0).
             and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql))).
@@ -109,7 +109,7 @@ module HudDataQualityReport::Generators::Fy2021
       members = leavers.where(
         a_t[:income_date_at_exit].eq(nil).
           or(a_t[:income_date_at_exit].not_eq(a_t[:last_date_in_program])).
-          or(a_t[:income_from_any_source_at_exit].in([8, 9])).
+          or(a_t[:income_from_any_source_at_exit].in([8, 9, 99])).
           or(a_t[:income_from_any_source_at_exit].eq(nil)).
           or(a_t[:income_from_any_source_at_exit].eq(0).
             and(income_jsonb_clause(1, a_t[:income_sources_at_exit].to_sql))).

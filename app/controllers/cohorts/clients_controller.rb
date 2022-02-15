@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -132,7 +132,10 @@ module Cohorts
         @clients = client_scope.where(id: @client_ids)
       elsif params.dig(:q, :full_text_search).present?
         @q = client_source.ransack(params[:q])
-        @clients = @q.result(distinct: true).merge(client_scope)
+        # Calling merge on a scope where both sides access the same attribute
+        # results in throwing out the left-hand of the equation
+        # use a sub-query instead
+        @clients = client_scope.where(id: @q.result(distinct: true).select(:id))
       elsif @touchpoints
         @clients = clients_from_touch_points
       end

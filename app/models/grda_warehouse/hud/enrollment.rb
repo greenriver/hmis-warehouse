@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -151,12 +151,7 @@ module GrdaWarehouse::Hud
       d_1_end = range.last
       d_2_start = e_t[:EntryDate]
       d_2_end = ex_t[:ExitDate]
-      # Currently does not count as an overlap if one starts on the end of the other
-      joins(e_t.join(ex_t, Arel::Nodes::OuterJoin).
-        on(e_t[:EnrollmentID].eq(ex_t[:EnrollmentID]).
-        and(e_t[:PersonalID].eq(ex_t[:PersonalID]).
-        and(e_t[:data_source_id].eq(ex_t[:data_source_id])))).
-        join_sources).
+      left_outer_joins(:exit).
         where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
@@ -434,7 +429,7 @@ module GrdaWarehouse::Hud
 
     def dk_or_r_or_missing(value)
       return :dk_or_r if [8, 9].include?(value)
-      return :missing if value == 99
+      return :missing if [nil, 99].include?(value)
     end
 
     def homeless_duration_sufficient

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -41,16 +41,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q6a',
-      skip: [
-        'C3', # FIXME
-        'D3', # FIXME
-        'C6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-        'C7', # FIXME
-        'E7', # FIXME
-        'F7', # FIXME
-      ],
     )
   end
 
@@ -58,13 +48,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q6b',
-      skip: [
-        'C2', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-      ],
     )
   end
 
@@ -72,16 +55,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q6c',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-      ],
     )
   end
 
@@ -89,13 +62,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q6d',
-      skip: [
-        'D4', # FIXME
-        'F4', # FIXME
-        'G4', # FIXME
-        'H4', # FIXME
-        'H5', # FIXME
-      ],
     )
   end
 
@@ -117,12 +83,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q7a',
-      skip: [
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-      ],
     )
   end
 
@@ -130,12 +90,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q7b',
-      skip: [
-        'B3', # FIXME
-        'D3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-      ],
     )
   end
 
@@ -171,10 +125,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q10a',
-      skip: [
-        'B5', # FIXME
-        'C5', # FIXME
-      ],
     )
   end
 
@@ -182,10 +132,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q10b',
-      skip: [
-        'C5', # FIXME
-        'D5', # FIXME
-      ],
     )
   end
 
@@ -200,18 +146,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q10d',
-      skip: [
-        'B5', # FIXME
-        'D5', # FIXME
-        'E5', # FIXME
-        'G5', # FIXME
-        'E8', # FIXME
-        'H8', # FIXME
-        'C9', # FIXME
-        'E9', # FIXME
-        'G9', # FIXME
-        'H9', # FIXME
-      ],
     )
   end
 
@@ -219,18 +153,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q11',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'B7', # FIXME
-        'D7', # FIXME
-        'B9', # FIXME
-        'C9', # FIXME
-        'B11', # FIXME
-        'D11', # FIXME
-        'B12', # FIXME
-        'C12', # FIXME
-      ],
     )
   end
 
@@ -273,21 +195,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q14a',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'E5', # FIXME
-      ],
     )
   end
 
@@ -295,16 +202,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q14b',
-      skip: [
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-      ],
     )
   end
 
@@ -333,16 +230,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q19b',
-      skip: [
-        'C12', # FIMXE
-        'D12', # FIMXE
-        'G12', # FIMXE
-        'H12', # FIMXE
-        'C13', # FIMXE
-        'D13', # FIMXE
-        'C14', # FIMXE
-        'D14', # FIMXE
-      ],
     )
   end
 
@@ -357,16 +244,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q21',
-      skip: [
-        'B10', # FIXME
-        'D10', # FIXME
-        'B11', # FIXME
-        'D11', # FIXME
-        'B12', # FIXME
-        'D12', # FIXME
-        'B17', # FIXME
-        'D17', # FIXME
-      ],
     )
   end
 
@@ -381,10 +258,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q22c',
-      skip: [
-        'D11', # FIXME formatting
-        'E11', # FIXME formatting
-      ],
     )
   end
 
@@ -399,14 +272,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q22e',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'B7', # FIXME
-        'C7', # FIXME
-        'B13', # FIXME
-        'C13', # FIXME
-      ],
     )
   end
 
@@ -428,17 +293,6 @@ RSpec.describe 'Datalab 2021 CAPER - RRH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh',
       question: 'Q25a',
-      skip: [
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'D5', # FIXME
-        'B6', # FIXME
-        'E6', # FIXME
-        'B7', # FIXME
-        'D7', # FIXME
-        'E7', # FIXME
-      ],
     )
   end
 

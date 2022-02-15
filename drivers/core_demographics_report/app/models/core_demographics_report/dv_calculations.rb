@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -90,25 +90,25 @@ module
       rows['_DV Victim/Survivor Break'] ||= []
       rows['*DV Victim/Survivor'] ||= []
       rows['*DV Response'] ||= []
-      rows['*DV Response'] += ['Count', 'Percentage', nil, nil]
+      rows['*DV Response'] += ['Response', 'Count', 'Percentage', nil, nil]
       ::HUD.no_yes_reasons_for_missing_data_options.each do |id, title|
-        rows["_DV Response#{title}"] ||= []
-        rows["_DV Response#{title}"] += [
+        rows["_DV Response_data_#{title}"] ||= []
+        rows["_DV Response_data_#{title}"] += [
           title,
           dv_status_count(id),
-          dv_status_percentage(id),
+          dv_status_percentage(id) / 100,
           nil,
         ]
       end
       rows['*DV Victim/Survivor - Most Recent Occurance'] ||= []
       rows['*DV Occurrence Timing'] ||= []
-      rows['*DV Occurrence Timing'] += ['Count', 'Percentage', nil, nil]
+      rows['*DV Occurrence Timing'] += ['Timing', 'Count', 'Percentage', nil, nil]
       ::HUD.when_occurreds.each do |id, title|
-        rows["_DV Occurrence Timing#{title}"] ||= []
-        rows["_DV Occurrence Timing#{title}"] += [
+        rows["_DV Occurrence Timing_data_#{title}"] ||= []
+        rows["_DV Occurrence Timing_data_#{title}"] += [
           title,
           dv_occurrence_count(id),
-          dv_occurrence_percentage(id),
+          dv_occurrence_percentage(id) / 100,
           nil,
         ]
       end

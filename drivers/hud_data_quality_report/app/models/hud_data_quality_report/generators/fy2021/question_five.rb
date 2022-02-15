@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -51,11 +51,12 @@ module HudDataQualityReport::Generators::Fy2021
       @report.answer(question: table_name).update(metadata: metadata)
 
       adults_and_hohs = universe.members.where(
-        a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
-          and(a_t[:age].gteq(18).
-            or(a_t[:head_of_household].eq(true).
-              and(a_t[:age].lt(18).
-                or(a_t[:age].eq(nil))))),
+        a_t[:project_type].in([1, 4, 8, 2, 3, 9, 10, 13]).
+          and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
+            and(a_t[:age].gteq(18).
+              or(a_t[:head_of_household].eq(true).
+                and(a_t[:age].lt(18).
+                  or(a_t[:age].eq(nil)))))),
       )
 
       es_sh_so_clients = es_sh_so(table_name, adults_and_hohs)
@@ -96,7 +97,7 @@ module HudDataQualityReport::Generators::Fy2021
       # times homeless dk/r/missing
       answer = @report.answer(question: table_name, cell: 'F2')
       times_homeless_members = es_sh_so.where(
-        a_t[:times_homeless].in([8, 9]).
+        a_t[:times_homeless].in([8, 9, 99]).
           or(a_t[:times_homeless].eq(nil)),
       )
       answer.add_members(times_homeless_members)
@@ -105,7 +106,7 @@ module HudDataQualityReport::Generators::Fy2021
       # months homeless dk/r/missing
       answer = @report.answer(question: table_name, cell: 'G2')
       months_homeless_members = es_sh_so.where(
-        a_t[:months_homeless].in([8, 9]).
+        a_t[:months_homeless].in([8, 9, 99]).
           or(a_t[:months_homeless].eq(nil)),
       )
       answer.add_members(months_homeless_members)
@@ -135,37 +136,41 @@ module HudDataQualityReport::Generators::Fy2021
         {
           cell: 'C3',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # missing time in housing
         {
           cell: 'D3',
-          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
             or(a_t[:prior_living_situation].eq(nil)).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # date homeless missing
         {
           cell: 'E3',
-          clause: a_t[:date_homeless].eq(nil),
+          clause: residence_restriction.and(a_t[:date_homeless].eq(nil)),
           include_in_percent: true,
         },
         # times homeless dk/r/missing
         {
           cell: 'F3',
-          clause: a_t[:times_homeless].in([8, 9]).
-            or(a_t[:times_homeless].eq(nil)),
+          clause: residence_restriction.and(
+            a_t[:times_homeless].in([8, 9, 99]).
+              or(a_t[:times_homeless].eq(nil)),
+          ),
           include_in_percent: true,
         },
         # months homeless dk/r/missing
         {
           cell: 'G3',
-          clause: a_t[:months_homeless].in([8, 9]).
-            or(a_t[:months_homeless].eq(nil)),
+          clause: residence_restriction.and(
+            a_t[:months_homeless].in([8, 9, 99]).
+              or(a_t[:months_homeless].eq(nil)),
+          ),
           include_in_percent: true,
         },
       ]
@@ -202,37 +207,43 @@ module HudDataQualityReport::Generators::Fy2021
         {
           cell: 'C4',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # missing time in housing
         {
           cell: 'D4',
-          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
             or(a_t[:prior_living_situation].eq(nil)).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # date homeless missing
         {
           cell: 'E4',
-          clause: a_t[:date_homeless].eq(nil),
+          clause: residence_restriction.and(a_t[:date_homeless].eq(nil)),
           include_in_percent: true,
         },
         # times homeless dk/r/missing
         {
           cell: 'F4',
-          clause: a_t[:times_homeless].in([8, 9]).
-            or(a_t[:times_homeless].eq(nil)),
+          clause: residence_restriction.
+            and(
+              a_t[:times_homeless].in([8, 9, 99]).
+                or(a_t[:times_homeless].eq(nil)),
+            ),
           include_in_percent: true,
         },
         # months homeless dk/r/missing
         {
           cell: 'G4',
-          clause: a_t[:months_homeless].in([8, 9]).
-            or(a_t[:months_homeless].eq(nil)),
+          clause: residence_restriction.
+            and(
+              a_t[:months_homeless].in([8, 9, 99]).
+                or(a_t[:months_homeless].eq(nil)),
+            ),
           include_in_percent: true,
         },
       ]
@@ -253,6 +264,21 @@ module HudDataQualityReport::Generators::Fy2021
       answer.update(summary: percentage(members.count / ph.count.to_f))
 
       members
+    end
+
+    private def residence_restriction
+      @residence_restriction ||= a_t[:prior_living_situation].in([16, 1, 18]).
+        or(
+          a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
+            and(a_t[:prior_length_of_stay].in([10, 11, 2, 3])).
+            and(a_t[:came_from_street_last_night].eq(1)),
+        ).
+        or(
+          a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
+            or(a_t[:prior_living_situation].eq(nil)).
+            and(a_t[:prior_length_of_stay].in([10, 11])).
+            and(a_t[:came_from_street_last_night].eq(1)),
+        )
     end
   end
 end

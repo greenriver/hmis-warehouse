@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,7 +38,7 @@ module HudApr::Generators::Shared::Fy2021
           answer = @report.answer(question: table_name, cell: cell)
 
           members = universe.members.where(stage_clause)
-          members = members.where(a_t[:annual_assessment_expected].eq(true)) if cell == 'C14' # Only count data not collected for clients who won't show in C15
+          members = members.where(a_t[:annual_assessment_expected].eq(true)) if suffix == :annual_assessment && cell != 'C15'
 
           answer.update(summary: 0) and next if members.count.zero?
 

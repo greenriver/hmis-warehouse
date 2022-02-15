@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,13 +42,13 @@ module
     def race_data_for_export(rows)
       rows['_Race Break'] ||= []
       rows['*Race'] ||= []
-      rows['*Race'] += ['Count', 'Percentage', nil, nil]
+      rows['*Race'] += ['Race', 'Count', 'Percentage', nil, nil]
       race_buckets.each do |id, title|
-        rows["_Race#{title}"] ||= []
-        rows["_Race#{title}"] += [
+        rows["_Race_data_#{title}"] ||= []
+        rows["_Race_data_#{title}"] += [
           title,
           race_count(id),
-          race_percentage(id),
+          race_percentage(id) / 100,
           nil,
         ]
       end

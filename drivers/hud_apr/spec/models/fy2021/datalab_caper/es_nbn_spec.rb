@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -34,22 +34,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q5a',
-      skip: [
-        'B1', # FIXME
-        'B2', # FIXME
-        'B3', # FIXME
-        'B4', # FIXME
-        'B5', # FIXME
-        'B6', # FIXME
-        'B7', # FIXME
-        'B8', # FIXME
-        'B10', # FIXME
-        'B12', # FIXME
-        'B13', # FIXME
-        'B14', # FIXME
-        'B15', # FIXME
-        'B16', # FIXME
-      ],
     )
   end
 
@@ -57,36 +41,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q6a',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'F2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'F3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'E4', # FIXME
-        'F4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'E5', # FIXME
-        'F5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-        'B7', # FIXME
-        'C7', # FIXME
-        'E7', # FIXME
-        'F7', # FIXME
-        'E8', # FIXME
-        'F8', # FIXME
-      ],
     )
   end
 
@@ -94,14 +48,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q6b',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-      ],
     )
   end
 
@@ -109,16 +55,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q6c',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-      ],
     )
   end
 
@@ -126,15 +62,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q6d',
-      skip: [
-        'B2', # FIXME
-        'E2', # FIXME
-        'F2', # FIXME
-        'G2', # FIXME
-        'H2', # FIXME
-        'B5', # FIXME
-        'H5', # FIXME
-      ],
     )
   end
 
@@ -142,11 +69,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q6e',
-      skip: [
-        'C2', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-      ],
     )
   end
 
@@ -154,11 +76,10 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q6f',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'C3', # FIXME
+      skip: [ # AAQ pending
+        'B2',
+        'C2',
+        'D2',
       ],
     )
   end
@@ -167,21 +88,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q7a',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'B5', # FIXME
-        'F5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-      ],
     )
   end
 
@@ -189,27 +95,27 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q7b',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'F2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'F3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'E4', # FIXME
-        'F4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'E5', # FIXME
-        'F5', # FIXME
+      skip: [ # FIXME pending AAQ
+        'B2',
+        'C2',
+        'D2',
+        'E2',
+        'F2',
+        'B3',
+        'C3',
+        'D3',
+        'E3',
+        'F3',
+        'B4',
+        'C4',
+        'D4',
+        'E4',
+        'F4',
+        'B5',
+        'C5',
+        'D5',
+        'E5',
+        'F5',
       ],
     )
   end
@@ -218,13 +124,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q8a',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'F2', # FIXME
-      ],
     )
   end
 
@@ -232,27 +131,27 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q8b',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'F2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'F3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'E4', # FIXME
-        'F4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'E5', # FIXME
-        'F5', # FIXME
+      skip: [ # FIXME pending AAQ
+        'B2',
+        'C2',
+        'D2',
+        'E2',
+        'F2',
+        'B3',
+        'C3',
+        'D3',
+        'E3',
+        'F3',
+        'B4',
+        'C4',
+        'D4',
+        'E4',
+        'F4',
+        'B5',
+        'C5',
+        'D5',
+        'E5',
+        'F5',
       ],
     )
   end
@@ -261,12 +160,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q9a',
-      skip: [
-        'B2', # FIXME
-        'E2', # FIXME
-        'B6', # FIXME
-        'E6', # FIXME
-      ],
     )
   end
 
@@ -274,14 +167,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q9b',
-      skip: [
-        'B2', # FIXME
-        'E2', # FIXME
-        'B6', # FIXME
-        'E6', # FIXME
-        'B7', # FIXME
-        'E7', # FIXME
-      ],
     )
   end
 
@@ -289,29 +174,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q10a',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'B7', # FIXME
-        'C7', # FIXME
-        'B8', # FIXME
-        'C8', # FIXME
-        'B9', # FIXME
-        'C9', # FIXME
-        'D9', # FIXME
-      ],
     )
   end
 
@@ -319,16 +181,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q10b',
-      skip: [
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'B9', # FIXME
-        'C9', # FIXME
-        'D9', # FIXME
-      ],
     )
   end
 
@@ -336,12 +188,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q10c',
-      skip: [
-        'B8', # FIXME
-        'F8', # FIXME
-        'B9', # FIXME
-        'F9', # FIXME
-      ],
     )
   end
 
@@ -349,34 +195,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q10d',
-      skip: [
-        'B2', # FIXME
-        'E2', # FIXME
-        'B3', # FIXME
-        'E3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'E4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'E5', # FIXME
-        'F5', # FIXME
-        'B6', # FIXME
-        'E6', # FIXME
-        'B7', # FIXME
-        'E7', # FIXME
-        'B8', # FIXME
-        'E8', # FIXME
-        'H8', # FIXME
-        'B9', # FIXME
-        'C9', # FIXME
-        'D9', # FIXME
-        'E9', # FIXME
-        'F9', # FIXME
-        'H9', # FIXME
-      ],
     )
   end
 
@@ -384,36 +202,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q11',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'B4', # FIXME
-        'E4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'B6', # FIXME
-        'D6', # FIXME
-        'B7', # FIXME
-        'C7', # FIXME
-        'D7', # FIXME
-        'B8', # FIXME
-        'C8', # FIXME
-        'B9', # FIXME
-        'C9', # FIXME
-        'B10', # FIXME
-        'C10', # FIXME
-        'B12', # FIXME
-        'F12', # FIXME
-        'B13', # FIXME
-        'C13', # FIXME
-        'D13', # FIXME
-        'E13', # FIXME
-        'F13', # FIXME
-      ],
     )
   end
 
@@ -421,33 +209,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q12a',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'B7', # FIXME
-        'C7', # FIXME
-        'D7', # FIXME
-        'E7', # FIXME
-        'B8', # FIXME
-        'C8', # FIXME
-        'B9', # FIXME
-        'C9', # FIXME
-        'F9', # FIXME
-        'B10', # FIXME
-        'C10', # FIXME
-        'D10', # FIXME
-        'E10', # FIXME
-        'F10', # FIXME
-      ],
     )
   end
 
@@ -455,25 +216,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q12b',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'F5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-      ],
     )
   end
 
@@ -481,32 +223,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q13a1',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'F3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'E5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'E6', # FIXME
-        'B8', # FIXME
-        'C8', # FIXME
-        'D8', # FIXME
-        'E8', # FIXME
-        'B9', # FIXME
-        'C9', # FIXME
-        'D9', # FIXME
-        'E9', # FIXME
-      ],
     )
   end
 
@@ -514,32 +230,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q13b1',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'F3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'E5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'E6', # FIXME
-        'B8', # FIXME
-        'C8', # FIXME
-        'D8', # FIXME
-        'E8', # FIXME
-        'B9', # FIXME
-        'C9', # FIXME
-        'D9', # FIXME
-        'E9', # FIXME
-      ],
     )
   end
 
@@ -554,25 +244,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q14a',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'F5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-      ],
     )
   end
 
@@ -580,20 +251,10 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q14b',
-      skip: [
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-      ],
     )
   end
 
-  xit 'Q15' do # FIXME
+  it 'Q15' do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q15',
@@ -604,21 +265,9 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q16',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'D3', # FIXME
-        'B5', # FIXME
-        'D5', # FIXME
-        'B6', # FIXME
-        'D6', # FIXME
-        'B7', # FIXME
-        'D7', # FIXME
-        'B11', # FIXME
-        'D11', # FIXME
-        'B14', # FIXME
-        'D14', # FIXME
+      skip: [ # pending AAQ
+        'C7',
+        'C12',
       ],
     )
   end
@@ -627,30 +276,8 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q17',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'D5', # FIXME
-        'C6', # FIXME
-        'B9', # FIXME
-        'D9', # FIXME
-        'B11', # FIXME
-        'D11', # FIXME
-        'B12', # FIXME
-        'D12', # FIXME
-        'B13', # FIXME
-        'D13', # FIXME
-        'D14', # FIXME
-        'B15', # FIXME
-        'D15', # FIXME
-        'B16', # FIXME
-        'D16', # FIXME
-        'D17', # FIXME
+      skip: [ # pending AAQ
+        'C17',
       ],
     )
   end
@@ -659,44 +286,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q19b',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'G2', # FIXME
-        'H2', # FIXME
-        'B3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'F4', # FIXME
-        'H4', # FIXME
-        'I4', # FIXME
-        'B7', # FIXME
-        'D7', # FIXME
-        'E7', # FIXME
-        'C9', # FIXME
-        'D9', # FIXME
-        'C10', # FIXME
-        'D10', # FIXME
-        'G10', # FIXME
-        'H10', # FIXME
-        'G11', # FIXME
-        'H11', # FIXME
-        'C12', # FIXME
-        'D12', # FIXME
-        'G12', # FIXME
-        'H12', # FIXME
-        'C13', # FIXME
-        'D13', # FIXME
-        'G13', # FIXME
-        'H13', # FIXME
-        'B14', # FIXME
-        'C14', # FIXME
-        'D14', # FIXME
-        'F14', # FIXME
-        'G14', # FIXME
-        'H14', # FIXME
-      ],
     )
   end
 
@@ -704,17 +293,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q20a',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'D3', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'D5', # FIXME
-        'B7', # FIXME
-        'D7', # FIXME
-      ],
     )
   end
 
@@ -722,62 +300,13 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q21',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'D3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-        'C5', # FIXME
-        'B6', # FIXME
-        'D6', # FIXME
-        'B7', # FIXME
-        'D7', # FIXME
-        'B8', # FIXME
-        'D8', # FIXME
-        'B9', # FIXME
-        'D9', # FIXME
-        'B12', # FIXME
-        'D12', # FIXME
-        'B13', # FIXME
-        'D13', # FIXME
-        'B14', # FIXME
-        'C14', # FIXME
-        'D14', # FIXME
-        'C15', # FIXME
-        'B16', # FIXME
-        'C16', # FIXME
-        'D16', # FIXME
-        'B17', # FIXME
-        'D17', # FIXME
-      ],
     )
   end
 
-  it 'Q22a2' do
+  xit 'Q22a2' do # pending AAQ
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q22a2',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'B8', # FIXME
-        'C8', # FIXME
-        'B10', # FIXME
-        'C10', # FIXME
-        'D10', # FIXME
-        'B16', # FIXME
-        'C16', # FIXME
-        'D16', # FIXME
-      ],
     )
   end
 
@@ -788,35 +317,10 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     )
   end
 
-  it 'Q22d' do
+  xit 'Q22d' do # pending AAQ
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q22d',
-      skip: [
-        'B2', # FIXME
-        'F2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'E3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'F4', # FIXME
-        'B5', # FIXME
-        'D5', # FIXME
-        'B8', # FIXME
-        'D8', # FIXME
-        'B10', # FIXME
-        'C10', # FIXME
-        'D10', # FIXME
-        'E10', # FIXME
-        'F10', # FIXME
-        'B16', # FIXME
-        'C16', # FIXME
-        'D16', # FIXME
-        'E16', # FIXME
-        'F16', # FIXME
-      ],
     )
   end
 
@@ -824,51 +328,10 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q22e',
-      skip: [
-        'B4', # FIXME
-        'E4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'B7', # FIXME
-        'C7', # FIXME
-        'D7', # FIXME
-        'B8', # FIXME
-        'C8', # FIXME
-        'D8', # FIXME
-        'B9', # FIXME
-        'D9', # FIXME
-        'E9', # FIXME
-        'F9', # FIXME
-        'B10', # FIXME
-        'C10', # FIXME
-        'B11', # FIXME
-        'C11', # FIXME
-        'D11', # FIXME
-        'E11', # FIXME
-        'F11', # FIXME
-        'B12', # FIXME
-        'C12', # FIXME
-        'D12', # FIXME
-        'E12', # FIXME
-        'F12', # FIXME
-        'B13', # FIXME
-        'C13', # FIXME
-        'D13', # FIXME
-        'E13', # FIXME
-        'F13', # FIXME
-        'B14', # FIXME
-        'C14', # FIXME
-        'D14', # FIXME
-        'E14', # FIXME
-        'F14', # FIXME
-      ],
     )
   end
 
-  xit 'Q23c' do # FIXME
+  it 'Q23c' do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q23c',
@@ -886,21 +349,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q25a',
-      skip: [
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'D5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'B7', # FIXME
-        'C7', # FIXME
-        'D7', # FIXME
-      ],
     )
   end
 
@@ -908,20 +356,6 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_nbn',
       question: 'Q26b',
-      skip: [
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'F3', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-      ],
     )
   end
 end

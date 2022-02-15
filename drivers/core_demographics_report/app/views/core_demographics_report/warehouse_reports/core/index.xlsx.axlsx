@@ -1,9 +1,8 @@
 reports = [@report]
-if @report.include_comparison?
-  reports << @comparison
-end
+reports << @comparison if @report.include_comparison?
 wb = xlsx_package.workbook
 wb_styles = wb.styles
+percentage_format = wb_styles.add_style format_code: '0%'
 report_style = wb_styles.add_style({ border: { style: :thick, color: '00918C', edges: [:left] } })
 comparison_style = wb_styles.add_style({ border: { style: :thick, color: 'FFA600', edges: [:left] } })
 header_style = wb_styles.add_style({ sz: 14 })
@@ -38,6 +37,23 @@ wb.add_worksheet(name: 'Report Info') do |sheet|
     )
   end
 end
+data_styles = {
+  'Age Beakdowns' => [th_style, nil, nil, percentage_format],
+  'Gender/Age' => [th_style, nil, nil, nil, percentage_format],
+  'Gender Breakdowns' => [th_style, nil, nil, percentage_format],
+  'Race' => [th_style, nil, nil, percentage_format],
+  'Ethnicity' => [th_style, nil, nil, percentage_format],
+  'Relationship' => [th_style, nil, nil, percentage_format],
+  'Disabilities' => [th_style, nil, nil, percentage_format],
+  'At Least One Disability' => [th_style, nil, nil, percentage_format],
+  'No Disability' => [th_style, nil, nil, percentage_format],
+  'DV Response' => [th_style, nil, nil, percentage_format],
+  'DV Occurrence Timing' => [th_style, nil, nil, percentage_format],
+  'Number of Times Response' => [th_style, nil, nil, percentage_format],
+  'Number of Months' => [th_style, nil, nil, percentage_format],
+  'Prior Living Situation' => [th_style, nil, nil, percentage_format],
+  'Household Types' => [th_style, nil, nil, percentage_format],
+}
 wb.add_worksheet(name: 'Data') do |sheet|
   sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
   @report.class.data_for_export(reports).each_with_index do |(title, row), index|
@@ -58,6 +74,10 @@ wb.add_worksheet(name: 'Data') do |sheet|
         title = title.sub('*', '')
         style = Array.new(12, th_style)
       elsif title.starts_with?('_')
+        if title.include?('_data_')
+          key = title[0..title.index('_data_')].gsub('_', '')
+          style = data_styles[key]
+        end
         title = ''
       end
     end

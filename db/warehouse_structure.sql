@@ -2415,7 +2415,7 @@ CREATE VIEW public."bi_Demographics" AS
     "Client".data_source_id
    FROM (public."Client"
      JOIN public.warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = ANY (ARRAY[87, 102, 88, 86, 98, 91, 82, 107, 80, 106, 105, 103, 99, 109, 108, 81])));
+  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = ANY (ARRAY[87, 88, 98, 91, 107, 80, 106, 105, 99, 108, 102, 110, 103, 82, 109, 112, 111, 81, 86, 113])));
 
 
 --
@@ -3699,7 +3699,8 @@ CREATE TABLE public.cas_reports (
     vacancy_id integer,
     housing_type character varying,
     ineligible_in_warehouse boolean DEFAULT false NOT NULL,
-    actor_type character varying
+    actor_type character varying,
+    confidential boolean DEFAULT false
 );
 
 
@@ -13159,7 +13160,8 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_problem_sol_div_rr_result integer,
     ce_event_referral_case_manage_after integer,
     ce_event_referral_result integer,
-    gender_multi character varying
+    gender_multi character varying,
+    bed_nights integer
 );
 
 
@@ -15140,7 +15142,8 @@ CREATE TABLE public.project_groups (
     name character varying NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    options jsonb DEFAULT '{}'::jsonb
 );
 
 
@@ -23863,6 +23866,20 @@ CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResul
 
 
 --
+-- Name: ch_enrollments_e_id_ch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ch_enrollments_e_id_ch ON public.ch_enrollments USING btree (enrollment_id, chronically_homeless_at_entry);
+
+
+--
+-- Name: ch_enrollments_e_id_pro; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ch_enrollments_e_id_pro ON public.ch_enrollments USING btree (enrollment_id, processed_as);
+
+
+--
 -- Name: client_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23888,6 +23905,13 @@ CREATE INDEX client_export_id ON public."Client" USING btree ("ExportID");
 --
 
 CREATE INDEX client_first_name ON public."Client" USING btree ("FirstName");
+
+
+--
+-- Name: client_id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree (client_id);
 
 
 --
@@ -24056,6 +24080,13 @@ CREATE INDEX enrollment_date_updated ON public."Enrollment" USING btree ("DateUp
 --
 
 CREATE INDEX enrollment_export_id ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: entrydate_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX entrydate_ret_index ON public.recent_report_enrollments USING btree ("EntryDate");
 
 
 --
@@ -29498,13 +29529,6 @@ CREATE INDEX "hmis_2020_enrollments-UrCS" ON public.hmis_2020_enrollments USING 
 
 
 --
--- Name: hmis_2020_enrollments-WHri; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2020_enrollments-WHri" ON public.hmis_2020_enrollments USING btree ("DateDeleted");
-
-
---
 -- Name: hmis_2020_enrollments-ZK9t; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -30093,13 +30117,6 @@ CREATE INDEX "hmis_2020_services-VJ0s" ON public.hmis_2020_services USING btree 
 
 
 --
--- Name: hmis_2020_services-WGtP; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2020_services-WGtP" ON public.hmis_2020_services USING btree ("DateDeleted");
-
-
---
 -- Name: hmis_2020_services-WrTZ; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -30496,6 +30513,13 @@ CREATE INDEX "hmis_2022_youth_education_statuses-48bf" ON public.hmis_2022_youth
 --
 
 CREATE INDEX "hmis_2022_youth_education_statuses-a32f" ON public.hmis_2022_youth_education_statuses USING btree ("YouthEducationStatusID", data_source_id);
+
+
+--
+-- Name: hmis_a_act_exl_con; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_a_act_exl_con ON public.hmis_assessments USING btree (active, exclude_from_window, confidential);
 
 
 --
@@ -30937,13 +30961,6 @@ CREATE INDEX "hmis_csv_2020_enrollments-7ZVi" ON public.hmis_csv_2020_enrollment
 --
 
 CREATE INDEX "hmis_csv_2020_enrollments-8UEw" ON public.hmis_csv_2020_enrollments USING btree ("EnrollmentID", "PersonalID");
-
-
---
--- Name: hmis_csv_2020_enrollments-B4uX; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2020_enrollments-B4uX" ON public.hmis_csv_2020_enrollments USING btree ("DateDeleted");
 
 
 --
@@ -31441,13 +31458,6 @@ CREATE INDEX "hmis_csv_2020_services-1ggS" ON public.hmis_csv_2020_services USIN
 --
 
 CREATE INDEX "hmis_csv_2020_services-4Q3B" ON public.hmis_csv_2020_services USING btree ("ServicesID");
-
-
---
--- Name: hmis_csv_2020_services-5b2P; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2020_services-5b2P" ON public.hmis_csv_2020_services USING btree ("DateDeleted");
 
 
 --
@@ -36540,6 +36550,13 @@ CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_c
 
 
 --
+-- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
+
+
+--
 -- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -37947,13 +37964,6 @@ CREATE INDEX "index_censuses_on_date_and_ProjectType" ON public.censuses USING b
 
 
 --
--- Name: index_ch_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ch_enrollments_on_enrollment_id ON public.ch_enrollments USING btree (enrollment_id);
-
-
---
 -- Name: index_children_on_family_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -38808,6 +38818,167 @@ CREATE INDEX index_hmis_2020_exports_on_importer_log_id ON public.hmis_2020_expo
 
 
 --
+-- Name: index_hmis_2022_affiliations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_affiliations_on_importer_log_id ON public.hmis_2022_affiliations USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_assessment_questions_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_assessment_questions_on_importer_log_id ON public.hmis_2022_assessment_questions USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_assessment_results_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_assessment_results_on_importer_log_id ON public.hmis_2022_assessment_results USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_assessments_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_assessments_on_importer_log_id ON public.hmis_2022_assessments USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_clients_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_clients_on_importer_log_id ON public.hmis_2022_clients USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_current_living_situations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_current_living_situations_on_importer_log_id ON public.hmis_2022_current_living_situations USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_disabilities_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_disabilities_on_importer_log_id ON public.hmis_2022_disabilities USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_employment_educations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_employment_educations_on_importer_log_id ON public.hmis_2022_employment_educations USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_enrollment_cocs_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_enrollment_cocs_on_importer_log_id ON public.hmis_2022_enrollment_cocs USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_enrollments_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_enrollments_on_importer_log_id ON public.hmis_2022_enrollments USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_events_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_events_on_importer_log_id ON public.hmis_2022_events USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_exits_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_exits_on_importer_log_id ON public.hmis_2022_exits USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_exports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_exports_on_importer_log_id ON public.hmis_2022_exports USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_funders_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_funders_on_importer_log_id ON public.hmis_2022_funders USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_health_and_dvs_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_health_and_dvs_on_importer_log_id ON public.hmis_2022_health_and_dvs USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_income_benefits_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_income_benefits_on_importer_log_id ON public.hmis_2022_income_benefits USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_inventories_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_inventories_on_importer_log_id ON public.hmis_2022_inventories USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_organizations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_organizations_on_importer_log_id ON public.hmis_2022_organizations USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_project_cocs_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_project_cocs_on_importer_log_id ON public.hmis_2022_project_cocs USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_projects_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_projects_on_importer_log_id ON public.hmis_2022_projects USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_services_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_services_on_importer_log_id ON public.hmis_2022_services USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_users_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_users_on_importer_log_id ON public.hmis_2022_users USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_youth_education_statuses_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_youth_education_statuses_on_importer_log_id ON public.hmis_2022_youth_education_statuses USING btree (importer_log_id);
+
+
+--
 -- Name: index_hmis_assessments_on_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -38819,6 +38990,13 @@ CREATE INDEX index_hmis_assessments_on_assessment_id ON public.hmis_assessments 
 --
 
 CREATE INDEX index_hmis_assessments_on_data_source_id ON public.hmis_assessments USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_assessments_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btree (name);
 
 
 --
@@ -39004,6 +39182,167 @@ CREATE INDEX index_hmis_csv_2020_users_on_loader_id ON public.hmis_csv_2020_user
 
 
 --
+-- Name: index_hmis_csv_2022_affiliations_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_affiliations_on_loader_id ON public.hmis_csv_2022_affiliations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_assessment_questions_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_assessment_questions_on_loader_id ON public.hmis_csv_2022_assessment_questions USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_assessment_results_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_assessment_results_on_loader_id ON public.hmis_csv_2022_assessment_results USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_assessments_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_assessments_on_loader_id ON public.hmis_csv_2022_assessments USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_clients_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_clients_on_loader_id ON public.hmis_csv_2022_clients USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_current_living_situations_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_current_living_situations_on_loader_id ON public.hmis_csv_2022_current_living_situations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_disabilities_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_disabilities_on_loader_id ON public.hmis_csv_2022_disabilities USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_employment_educations_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_employment_educations_on_loader_id ON public.hmis_csv_2022_employment_educations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_enrollment_cocs_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_enrollment_cocs_on_loader_id ON public.hmis_csv_2022_enrollment_cocs USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_enrollments_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_enrollments_on_loader_id ON public.hmis_csv_2022_enrollments USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_events_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_events_on_loader_id ON public.hmis_csv_2022_events USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_exits_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_exits_on_loader_id ON public.hmis_csv_2022_exits USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_exports_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_exports_on_loader_id ON public.hmis_csv_2022_exports USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_funders_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_funders_on_loader_id ON public.hmis_csv_2022_funders USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_health_and_dvs_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_health_and_dvs_on_loader_id ON public.hmis_csv_2022_health_and_dvs USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_income_benefits_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_income_benefits_on_loader_id ON public.hmis_csv_2022_income_benefits USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_inventories_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_inventories_on_loader_id ON public.hmis_csv_2022_inventories USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_organizations_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_organizations_on_loader_id ON public.hmis_csv_2022_organizations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_project_cocs_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_project_cocs_on_loader_id ON public.hmis_csv_2022_project_cocs USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_projects_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_projects_on_loader_id ON public.hmis_csv_2022_projects USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_services_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_services_on_loader_id ON public.hmis_csv_2022_services USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_users_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_users_on_loader_id ON public.hmis_csv_2022_users USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_youth_education_statuses_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_youth_education_statuses_on_loader_id ON public.hmis_csv_2022_youth_education_statuses USING btree (loader_id);
+
+
+--
 -- Name: index_hmis_csv_import_errors_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39088,10 +39427,10 @@ CREATE INDEX index_hmis_forms_on_assessment_id ON public.hmis_forms USING btree 
 
 
 --
--- Name: index_hmis_forms_on_client_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_forms_on_client_id_and_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_forms_on_client_id ON public.hmis_forms USING btree (client_id);
+CREATE INDEX index_hmis_forms_on_client_id_and_assessment_id ON public.hmis_forms USING btree (client_id, assessment_id);
 
 
 --
@@ -46622,6 +46961,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220126164546'),
 ('20220126182806'),
 ('20220127153246'),
-('20220127200317');
+('20220127200317'),
+('20220128203412'),
+('20220201213104'),
+('20220204163115'),
+('20220208180300'),
+('20220210132610'),
+('20220211001613');
 
 

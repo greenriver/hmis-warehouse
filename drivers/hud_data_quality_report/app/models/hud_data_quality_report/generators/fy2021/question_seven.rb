@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -62,6 +62,7 @@ module HudDataQualityReport::Generators::Fy2021
 
       es_so_members = adults_and_hohs.where(
         a_t[:project_type].eq(4).
+          and(a_t[:date_of_engagement].lt(@report.end_date)).
           or(a_t[:project_type].eq(1).
             and(a_t[:project_tracking_method].eq(3))),
       )
@@ -99,16 +100,16 @@ module HudDataQualityReport::Generators::Fy2021
         a_t[:project_type].eq(1).
           and(a_t[:project_tracking_method].eq(3)),
       )
-      answer.add_members(es_so_members)
-      answer.update(summary: es_so_members.count)
+      answer.add_members(es_members)
+      answer.update(summary: es_members.count)
 
       # Inactive ES
       answer = @report.answer(question: table_name, cell: 'C3')
       inactive_es_members = es_members.where(
         datediff(report_client_universe, 'day', hr_ri_t[:end_date], a_t[:date_of_last_bed_night]).gt(90),
       )
-      answer.add_members(inactive_es_so_members)
-      answer.update(summary: inactive_es_so_members.count)
+      answer.add_members(inactive_es_members)
+      answer.update(summary: inactive_es_members.count)
 
       # percent inactive ES
       answer = @report.answer(question: table_name, cell: 'D3')

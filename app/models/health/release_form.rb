@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -36,6 +36,7 @@ module Health
     scope :valid, -> do
       parent_ids = Health::ReleaseFormFile.where.not(parent_id: nil).pluck(:parent_id)
       where.not(file_location: [nil, '']).
+        or(where(verbal_approval: true)).
         or(where(id: parent_ids))
     end
 
@@ -94,6 +95,8 @@ module Health
     end
 
     def file_or_location
+      return if verbal_approval?
+
       errors.add :file_location, 'Please upload a release of information form.' if health_file.blank? && file_location.blank?
       errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ') if health_file.present? && health_file.invalid?
     end

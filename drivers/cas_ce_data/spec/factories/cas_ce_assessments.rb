@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 FactoryBot.define do
   factory :cas_ce_assessment, class: 'CasCeData::GrdaWarehouse::CasCeAssessment' do
     assessment_location { 'Unknown' }

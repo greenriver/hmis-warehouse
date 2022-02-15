@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -991,17 +991,35 @@ module Health
       team_member.save!
     end
 
+    def assigned_care_coordinator_in_agency?
+      return true unless care_coordinator_id
+
+      care_coordinator_id.in?(available_user_ids)
+    end
+
+    def assigned_nurse_care_manager_in_agency?
+      return true unless nurse_care_manager_id
+
+      nurse_care_manager_id.in?(available_user_ids)
+    end
+
+    def available_user_ids
+      Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
+    end
+
     def available_care_coordinators
       return [] unless health_agency.present?
 
-      user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
+      user_ids = available_user_ids
+      user_ids << care_coordinator_id if care_coordinator_id.present?
       User.where(id: user_ids)
     end
 
     def available_nurse_care_managers
       return [] unless health_agency.present?
 
-      user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
+      user_ids = available_user_ids
+      user_ids << nurse_care_manager_id if nurse_care_manager_id.present?
       User.where(id: user_ids)
     end
 

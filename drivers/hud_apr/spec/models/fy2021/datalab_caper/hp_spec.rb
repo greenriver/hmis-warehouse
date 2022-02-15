@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -41,16 +41,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6a',
-      skip: [
-        'C3', # FIXME
-        'D3', # FIXME
-        'C6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-        'C7', # FIXME
-        'E7', # FIXME
-        'F7', # FIXME
-      ],
     )
   end
 
@@ -58,13 +48,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6b',
-      skip: [
-        'C2', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-      ],
     )
   end
 
@@ -72,16 +55,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6c',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-      ],
     )
   end
 
@@ -89,9 +62,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6d',
-      skip: [
-        'B5', # FIXME
-      ],
     )
   end
 
@@ -99,9 +69,9 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q6e',
-      skip: [
-        'C2', # FIXME
-        'C6', # FIXME
+      skip: [ # pending AAQ
+        'C2',
+        'C6',
       ],
     )
   end
@@ -117,41 +87,13 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q7a',
-      skip: [
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-      ],
     )
   end
 
-  it 'Q7b' do
+  xit 'Q7b' do # pending AAQ
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q7b',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'F2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'F3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'E4', # FIXME
-        'F4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'E5', # FIXME
-        'F5', # FIXME
-      ],
     )
   end
 
@@ -162,32 +104,10 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     )
   end
 
-  it 'Q8b' do
+  xit 'Q8b' do # pending AAQ
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q8b',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'F2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'F3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'E4', # FIXME
-        'F4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'E5', # FIXME
-        'F5', # FIXME
-      ],
     )
   end
 
@@ -209,10 +129,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q10a',
-      skip: [
-        'B5', # FIXME
-        'C5', # FIXME
-      ],
     )
   end
 
@@ -220,10 +136,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q10b',
-      skip: [
-        'C5', # FIXME
-        'D5', # FIXME
-      ],
     )
   end
 
@@ -238,18 +150,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q10d',
-      skip: [
-        'B5', # FIXME
-        'D5', # FIXME
-        'E5', # FIXME
-        'G5', # FIXME
-        'E8', # FIXME
-        'H8', # FIXME
-        'C9', # FIXME
-        'E9', # FIXME
-        'G9', # FIXME
-        'H9', # FIXME
-      ],
     )
   end
 
@@ -257,18 +157,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q11',
-      skip: [
-        'B2', # FIXME
-        'D2', # FIXME
-        'B7', # FIXME
-        'D7', # FIXME
-        'B9', # FIXME
-        'C9', # FIXME
-        'B11', # FIXME
-        'D11', # FIXME
-        'B12', # FIXME
-        'C12', # FIXME
-      ],
     )
   end
 
@@ -311,21 +199,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q14a',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'E5', # FIXME
-      ],
     )
   end
 
@@ -333,16 +206,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q14b',
-      skip: [
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'B4', # FIXME
-        'D4', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-      ],
     )
   end
 
@@ -371,16 +234,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q19b',
-      skip: [
-        'C12', # FIXME
-        'D12', # FIXME
-        'G12', # FIXME
-        'H12', # FIXME
-        'C13', # FIXME
-        'D13', # FIXME
-        'C14', # FIXME
-        'D14', # FIXME
-      ],
     )
   end
 
@@ -395,17 +248,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q21',
-      skip: [
-        'B10', # FIXME
-        'D10', # FIXME
-        'B11', # FIXME
-        'D11', # FIXME
-        'B12', # FIXME
-        'D12', # FIXME
-        'C14', # FIXME
-        'B17', # FIXME
-        'D17', # FIXME
-      ],
     )
   end
 
@@ -444,24 +286,10 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     )
   end
 
-  it 'Q24' do
+  xit 'Q24' do # pending AAQ
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q24',
-      skip: [
-        'B2', # FIXME
-        'C2', # FIXME
-        'D2', # FIXME
-        'E2', # FIXME
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'B7', # FIXME
-        'C7', # FIXME
-      ],
     )
   end
 
@@ -469,17 +297,6 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q25a',
-      skip: [
-        'B4', # FIXME
-        'D4', # FIXME
-        'B5', # FIXME
-        'D5', # FIXME
-        'B6', # FIXME
-        'E6', # FIXME
-        'B7', # FIXME
-        'D7', # FIXME
-        'E7', # FIXME
-      ],
     )
   end
 

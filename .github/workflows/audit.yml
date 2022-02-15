@@ -34,7 +34,7 @@ jobs:
             chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
-          gem install bundler --version=2.2.15
+          gem install bundler --version=2.2.30
 
       - uses: actions/checkout@v2
       - name: Install gems

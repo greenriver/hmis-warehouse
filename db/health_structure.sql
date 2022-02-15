@@ -3326,7 +3326,8 @@ CREATE TABLE public.participation_forms (
     location character varying,
     health_file_id integer,
     reviewed_at timestamp without time zone,
-    reviewer character varying
+    reviewer character varying,
+    verbal_approval boolean DEFAULT false
 );
 
 
@@ -3678,7 +3679,8 @@ CREATE TABLE public.release_forms (
     health_file_id integer,
     reviewed_by_id integer,
     reviewed_at timestamp without time zone,
-    reviewer character varying
+    reviewer character varying,
+    verbal_approval boolean DEFAULT false
 );
 
 
@@ -7456,6 +7458,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211129192820'),
 ('20211130194653'),
 ('20211209205303'),
-('20220112142649');
+('20220112142649'),
+('20220131200130');
 
 

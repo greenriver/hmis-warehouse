@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -66,28 +66,28 @@ module
     def disability_data_for_export(rows)
       rows['_Disability Break'] ||= []
       rows['*Indefinite and Impairing Disabilities'] ||= []
-      rows['*Indefinite and Impairing Disabilities'] += ['Count', 'Percentage', nil, nil]
+      rows['*Indefinite and Impairing Disabilities'] += ['Disability', 'Count', 'Percentage', nil, nil]
       ::HUD.disability_types.each do |id, title|
-        rows["_Disabilities#{title}"] ||= []
-        rows["_Disabilities#{title}"] += [
+        rows["_Disabilities_data_#{title}"] ||= []
+        rows["_Disabilities_data_#{title}"] += [
           title,
           disability_count(id),
-          disability_percentage(id),
+          disability_percentage(id) / 100,
           nil,
         ]
       end
-      rows['_At Least One Disability'] ||= []
-      rows['_At Least One Disability'] += [
+      rows['_At Least One Disability_data_'] ||= []
+      rows['_At Least One Disability_data_'] += [
         'At Least One Disability',
         yes_disability_count,
-        yes_disability_percentage,
+        yes_disability_percentage / 100,
         nil,
       ]
-      rows['_No Disability'] ||= []
-      rows['_No Disability'] += [
+      rows['_No Disability_data_'] ||= []
+      rows['_No Disability_data_'] += [
         'No Disability',
         no_disability_count,
-        no_disability_percentage,
+        no_disability_percentage / 100,
         nil,
       ]
       rows
