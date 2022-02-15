@@ -11,11 +11,29 @@ module HudHic::Generators::Hic::Fy2021
 
     QUESTION_NUMBER = 'Project'.freeze
 
-    def run!
-      universe
-    end
-
     def run_question!
+      @report.start(QUESTION_NUMBER, [QUESTION_NUMBER])
+      universe
+
+      header_row = HudHic::Fy2021::Project.hmis_configuration(version: '2022').keys
+      cell_columns = ('A'..header_row.count.to_csv_column).to_a
+      universe.members.to_a.each_with_index do |row, row_index|
+        header_row.each_with_index do |header, column_index|
+          value = row[header]
+          cell_name = cell_columns[column_index] + (row_index + 1).to_s
+          @report.answer(question: QUESTION_NUMBER, cell: cell_name).update(summary: value)
+        end
+      end
+
+      metadata = {
+        header_row: header_row,
+        row_labels: [],
+        first_column: 'A',
+        last_column: header_row.count.to_csv_column,
+        first_row: 2,
+        last_row: universe.members.count + 1,
+      }
+      @report.answer(question: QUESTION_NUMBER).update(metadata: metadata)
     end
 
     private def universe
@@ -46,6 +64,7 @@ module HudHic::Generators::Hic::Fy2021
         universe_cell = @report.universe(QUESTION_NUMBER)
         universe_cell.add_universe_members(pending_associations)
       end
+      @report.complete(QUESTION_NUMBER)
     end
 
     private def projects_populated?
