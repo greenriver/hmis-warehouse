@@ -92,14 +92,14 @@ module HudPathReport::Generators::Fy2021
 
     private def genders
       {
-        'Female' => a_t[:gender_multi].eq(0),
-        'Male' => a_t[:gender_multi].eq(1),
-        'No Single Gender' => a_t[:gender_multi].in(::HUD.no_single_gender_queries),
-        'Questioning' => a_t[:gender_multi].in(::HUD.questioning_gender_queries),
-        'Transgender' => a_t[:gender_multi].in(::HUD.transgender_gender_queries),
-        'Client doesn\'t know' => a_t[:gender_multi].eq(8),
-        'Client refused' => a_t[:gender_multi].eq(9),
-        'Data not collected' => a_t[:gender_multi].eq(99),
+        'Female' => a_t[:gender_multi].eq('[0]'),
+        'Male' => a_t[:gender_multi].eq('[1]'),
+        'No Single Gender' => a_t[:gender_multi].in(::HUD.no_single_gender_queries.map { |q| "[#{q}]" }),
+        'Questioning' => a_t[:gender_multi].in(::HUD.questioning_gender_queries.map { |q| "[#{q}]" }),
+        'Transgender' => a_t[:gender_multi].in(::HUD.transgender_gender_queries.map { |q| "[#{q}]" }),
+        'Client doesn\'t know' => a_t[:gender_multi].eq('[8]'),
+        'Client refused' => a_t[:gender_multi].eq('[9]'),
+        'Data not collected' => a_t[:gender_multi].eq('[99]'),
         'Total' => :total,
       }.freeze
     end
@@ -134,10 +134,26 @@ module HudPathReport::Generators::Fy2021
         ]
       end.to_h
       [8, 9, 99].each do |v|
-        h[HUD.race_none(v)] = a_t[:race_none].eq(v)
+        query = a_t[:race_none].eq(v)
+        query = query.or(no_race) if v == 99
+        h[HUD.race_none(v)] = query
       end
       h['Total'] = nil
       h.freeze
+    end
+
+    private def no_race
+      query = a_t[:race_none].eq(nil)
+      [
+        :am_ind_ak_native,
+        :asian,
+        :black_af_american,
+        :native_hi_other_pacific,
+        :white,
+      ].each do |key|
+        query = query.and(a_t[key].eq(nil).or(a_t[key].in([0, 99])))
+      end
+      query
     end
 
     private def ethnicities
@@ -146,7 +162,7 @@ module HudPathReport::Generators::Fy2021
         'Hispanic/Latin(a)(o)(x)' => a_t[:ethnicity].eq(1),
         'Client Doesn\'t Know' => a_t[:ethnicity].eq(8),
         'Client Refused' => a_t[:ethnicity].eq(9),
-        'Data Not Collected' => a_t[:ethnicity].eq(99),
+        'Data Not Collected' => a_t[:ethnicity].eq(99).or(a_t[:ethnicity].eq(nil)),
         'Total' => :total,
       }.freeze
     end
@@ -157,7 +173,7 @@ module HudPathReport::Generators::Fy2021
         'Non-veteran' => adults.and(a_t[:veteran].eq(0)),
         "Client doesn't know" => adults.and(a_t[:veteran].eq(8)),
         'Client refused' => adults.and(a_t[:veteran].eq(9)),
-        'Data not collected' => adults.and(a_t[:veteran].eq(99)),
+        'Data not collected' => adults.and(a_t[:veteran].eq(99).or(a_t[:veteran].eq(nil))),
         'Total' => :total,
       }.freeze
     end
@@ -166,7 +182,7 @@ module HudPathReport::Generators::Fy2021
       {
         'Co-occurring substance use disorder' => a_t[:substance_use_disorder].in([1, 2, 3]),
         'No co-occurring substance use disorder' => a_t[:substance_use_disorder].eq(0),
-        'Unknown' => a_t[:substance_use_disorder].in([8, 9, 99]),
+        'Unknown' => a_t[:substance_use_disorder].in([8, 9, 99]).or(a_t[:substance_use_disorder].eq(nil)),
         'Total' => :total,
       }
     end
@@ -177,7 +193,7 @@ module HudPathReport::Generators::Fy2021
         'No' => a_t[:soar].eq(0),
         "Client doesn't know" => a_t[:soar].eq(8),
         'Client refused' => a_t[:soar].eq(9),
-        'Data not collected' => a_t[:soar].eq(99),
+        'Data not collected' => a_t[:soar].eq(99).or(a_t[:soar].eq(nil)),
         'Total' => :total,
       }
     end
@@ -195,9 +211,11 @@ module HudPathReport::Generators::Fy2021
         if value.is_a?(String)
           [value, nil]
         else
+          query = a_t[:prior_living_situation].eq(value)
+          query = query.or(a_t[:prior_living_situation].eq(nil)) if value == 99
           [
             HUD.available_situations[value],
-            a_t[:prior_living_situation].eq(value),
+            query,
           ]
         end
       end.to_h
@@ -207,9 +225,11 @@ module HudPathReport::Generators::Fy2021
 
     private def length_of_stays
       h = [10, 11, 2, 3, 4, 5, 8, 9, 99].map do |v|
+        query = a_t[:length_of_stay].eq(v)
+        query = query.or(a_t[:length_of_stay].eq(nil)) if v == 99
         [
           HUD.length_of_stays[v],
-          a_t[:prior_living_situation].in([1, 16]).and(a_t[:length_of_stay].eq(v)),
+          a_t[:prior_living_situation].in([1, 16]).and(query),
         ]
       end.to_h
       h['Total'] = :total
@@ -231,7 +251,7 @@ module HudPathReport::Generators::Fy2021
         'No' => adults.and(a_t[:domestic_violence].eq(0)),
         "Client doesn't know" => adults.and(a_t[:domestic_violence].eq(8)),
         'Client refused' => adults.and(a_t[:domestic_violence].eq(9)),
-        'Data not collected' => adults.and(a_t[:domestic_violence].eq(99)),
+        'Data not collected' => adults.and(a_t[:domestic_violence].eq(99).or(a_t[:domestic_violence].eq(nil))),
         'Total' => :total,
       }.freeze
     end

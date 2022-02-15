@@ -72,7 +72,7 @@ module HudPathReport::Generators::Fy2021
             project_type: enrollment.project.ProjectType,
             first_date_in_program: enrollment.EntryDate,
             last_date_in_program: enrollment.exit&.ExitDate,
-            contacts: path_contact_dates(enrollment),
+            contacts: path_contact_dates(client),
             services: path_services(enrollment),
             referrals: path_referrals(enrollment),
             income_from_any_source_entry: enrollment.income_benefits_at_entry&.IncomeFromAnySource,
@@ -115,7 +115,7 @@ module HudPathReport::Generators::Fy2021
 
     delegate :client_scope, to: :@generator
 
-    private def last_enrollment(client)
+    private def enrollments(client)
       scope = client.source_enrollments.
         joins(project: :funders).
         open_during_range(@report.start_date..@report.end_date).
@@ -123,7 +123,11 @@ module HudPathReport::Generators::Fy2021
         order(EntryDate: :desc)
       scope = scope.with_project_type(@filter.project_type_ids) if @filter.project_type_ids.present?
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
-      scope.first
+      scope
+    end
+
+    private def last_enrollment(client)
+      enrollments(client).first
     end
 
     private def last_income_in_period(income_benefits)
@@ -149,12 +153,17 @@ module HudPathReport::Generators::Fy2021
       enrollment.exit&.ExitDate.nil? || enrollment.DateOfPATHStatus <= enrollment.exit.ExitDate
     end
 
-    private def path_contact_dates(enrollment)
-      contacts = enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:InformationDate)
-      contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && ! contacts.include?(enrollment.DateOfEngagement)
-      contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && ! contacts.include?(enrollment.DateOfPATHStatus)
-      service_dates = enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided) - contacts
-      contacts + service_dates
+    private def path_contact_dates(client)
+      contacts = []
+      enrollments(client).each do |enrollment|
+        next unless active_in_path(enrollment) && enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?(@report.start_date, @report.end_date)
+
+        contacts += enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:InformationDate)
+        contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement.between?(@report.start_date, @report.end_date)
+        contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(@report.start_date, @report.end_date)
+        contacts += enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided)
+      end
+      contacts
     end
 
     private def path_services(enrollment)

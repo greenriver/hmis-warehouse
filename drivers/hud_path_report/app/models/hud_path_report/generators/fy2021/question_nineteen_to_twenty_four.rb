@@ -166,7 +166,9 @@ module HudPathReport::Generators::Fy2021
 
     def column_with_value(table_name, table_cell, phase, db_column, value)
       answer = @report.answer(question: table_name, cell: table_cell)
-      members = universe.members.where(active_and_enrolled_clients).where(phase).where(a_t[db_column].eq(value))
+      query = a_t[db_column].eq(value)
+      query = query.or(a_t[db_column].eq(nil)) if value == 99 # Not collected can also be nil
+      members = universe.members.where(active_and_enrolled_clients).where(phase).where(query)
       answer.add_members(members)
       count = members.count
       answer.update(summary: count)
@@ -186,7 +188,7 @@ module HudPathReport::Generators::Fy2021
     end
 
     def not_receiving_ssi_or_ssdi(column)
-      jsonb_test(column, 'SSI', 0) + ' AND ' + jsonb_test(column, 'SSDI', 0)
+      "NOT (#{jsonb_test(column, 'SSI', 1)})" + ' AND ' + "NOT(#{jsonb_test(column, 'SSDI', 1)})"
     end
 
     def receiving_medicaid_or_medicare(column)
@@ -194,7 +196,7 @@ module HudPathReport::Generators::Fy2021
     end
 
     def not_receiving_medicaid_or_medicare(column)
-      jsonb_test(column, 'Medicaid', 0) + ' AND ' + jsonb_test(column, 'Medicare', 0)
+      "NOT (#{jsonb_test(column, 'Medicaid', 1)})" + ' AND ' + "NOT(#{jsonb_test(column, 'Medicare', 1)})"
     end
 
     def receiving_other_health_insurance(column)
@@ -218,7 +220,7 @@ module HudPathReport::Generators::Fy2021
         'PrivatePay',
         'StateHealthIns',
         'IndianHealthServices',
-      ].map { |type| jsonb_test(column, type, 0) }.join(' AND ')
+      ].map { |type| "NOT(#{jsonb_test(column, type, 1)})" }.join(' AND ')
     end
 
     def jsonb_test(column, key, value)
