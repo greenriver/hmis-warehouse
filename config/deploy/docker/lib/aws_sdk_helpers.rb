@@ -94,7 +94,6 @@ module AwsSdkHelpers
 
 
     def _spot_capacity_provider_name
-      byebug
       _capacity_providers.find { |k,v| v[:name].match(/spt-v2/) }[1][:name]
     end
 
