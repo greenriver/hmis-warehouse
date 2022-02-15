@@ -100,7 +100,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health_has_qualifying_activities)
   end
 
-  scope :has_unprocessed_quailifying_activities, -> do
+  scope :has_unprocessed_qualifying_activities, -> do
     processed_ids = Health::QualifyingActivity.where(source_type: self.name).
       distinct.
       pluck(:source_id)
