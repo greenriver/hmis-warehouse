@@ -86,7 +86,7 @@ module AwsSdkHelpers
         unless capacity_provider_name.empty?
           ami_id = _capacity_providers[capacity_provider_name][:ami_id]
         else
-          ami_id = _capacity_providers.first[:ami_id]
+          ami_id = _capacity_providers[_capacity_providers.keys.first][:ami_id]
         end
       end
       AwsSdkHelpers::Helpers.default_placement_constraints(ami_id: ami_id)
@@ -94,6 +94,7 @@ module AwsSdkHelpers
 
 
     def _spot_capacity_provider_name
+      byebug
       _capacity_providers.find { |k,v| v[:name].match(/spt-v2/) }[1][:name]
     end
 
