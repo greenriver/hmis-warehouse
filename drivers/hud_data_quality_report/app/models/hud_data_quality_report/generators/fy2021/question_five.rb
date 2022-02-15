@@ -97,7 +97,7 @@ module HudDataQualityReport::Generators::Fy2021
       # times homeless dk/r/missing
       answer = @report.answer(question: table_name, cell: 'F2')
       times_homeless_members = es_sh_so.where(
-        a_t[:times_homeless].in([8, 9]).
+        a_t[:times_homeless].in([8, 9, 99]).
           or(a_t[:times_homeless].eq(nil)),
       )
       answer.add_members(times_homeless_members)
@@ -106,7 +106,7 @@ module HudDataQualityReport::Generators::Fy2021
       # months homeless dk/r/missing
       answer = @report.answer(question: table_name, cell: 'G2')
       months_homeless_members = es_sh_so.where(
-        a_t[:months_homeless].in([8, 9]).
+        a_t[:months_homeless].in([8, 9, 99]).
           or(a_t[:months_homeless].eq(nil)),
       )
       answer.add_members(months_homeless_members)
@@ -136,7 +136,7 @@ module HudDataQualityReport::Generators::Fy2021
         {
           cell: 'C3',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
@@ -159,7 +159,7 @@ module HudDataQualityReport::Generators::Fy2021
         {
           cell: 'F3',
           clause: residence_restriction.and(
-            a_t[:times_homeless].in([8, 9]).
+            a_t[:times_homeless].in([8, 9, 99]).
               or(a_t[:times_homeless].eq(nil)),
           ),
           include_in_percent: true,
@@ -168,7 +168,7 @@ module HudDataQualityReport::Generators::Fy2021
         {
           cell: 'G3',
           clause: residence_restriction.and(
-            a_t[:months_homeless].in([8, 9]).
+            a_t[:months_homeless].in([8, 9, 99]).
               or(a_t[:months_homeless].eq(nil)),
           ),
           include_in_percent: true,
@@ -207,7 +207,7 @@ module HudDataQualityReport::Generators::Fy2021
         {
           cell: 'C4',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
@@ -231,7 +231,7 @@ module HudDataQualityReport::Generators::Fy2021
           cell: 'F4',
           clause: residence_restriction.
             and(
-              a_t[:times_homeless].in([8, 9]).
+              a_t[:times_homeless].in([8, 9, 99]).
                 or(a_t[:times_homeless].eq(nil)),
             ),
           include_in_percent: true,
@@ -241,7 +241,7 @@ module HudDataQualityReport::Generators::Fy2021
           cell: 'G4',
           clause: residence_restriction.
             and(
-              a_t[:months_homeless].in([8, 9]).
+              a_t[:months_homeless].in([8, 9, 99]).
                 or(a_t[:months_homeless].eq(nil)),
             ),
           include_in_percent: true,
