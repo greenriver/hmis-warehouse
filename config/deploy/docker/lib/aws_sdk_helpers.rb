@@ -81,8 +81,8 @@ module AwsSdkHelpers
       ]
     end
     def _default_placement_constraints(capacity_provider_name: '', ami_id: '')
-      unless ami_id.present?
-        if capacity_provider_name.present?
+      if ami_id.empty?
+        unless capacity_provider_name.empty?
           ami_id = _capacity_providers[capacity_provider_name][:ami_id]
         else
           ami_id = _capacity_providers.first[:ami_id]
