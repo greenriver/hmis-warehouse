@@ -22,7 +22,7 @@ module  HudHic::Generators::Hic::Fy2021
       hud_reports_hic_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
-    def project_scope
+    def filter
       @filter = self.class.filter_class.new(
         user_id: @report.user_id,
         enforce_one_year_range: false,
@@ -30,7 +30,11 @@ module  HudHic::Generators::Hic::Fy2021
 
       # Make sure we take advantage of the additive nature of HUD report filters
       @filter.project_ids = @report.project_ids
-      GrdaWarehouse::Hud::Project.where(id: @filter.project_ids).active_on(@filter.on)
+      @filter
+    end
+
+    def project_scope
+      GrdaWarehouse::Hud::Project.where(id: filter.project_ids).active_on(filter.on)
     end
 
     def self.filter_class

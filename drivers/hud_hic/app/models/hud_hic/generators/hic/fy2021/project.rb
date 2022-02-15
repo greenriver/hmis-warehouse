@@ -25,16 +25,19 @@ module HudHic::Generators::Hic::Fy2021
     end
 
     private def add_projects
-      @generator.project_scope.find_in_batches(batch_size: 100) do |batch|
+      @generator.project_scope.preload(:organization).find_in_batches(batch_size: 100) do |batch|
         pending_associations = {}
         batch.each do |project|
-          pending_associations[project.id] = HudHic::Fy2021::Project.new(project.attributes)
+          pending_associations[project] = HudHic::Fy2021::Project.from_attributes_for_hic(project)
+          # Populate PITCount from actual count of unique clients on this day
+          pending_associations[project].PITCount = project.service_history_services.where(date: @generator.filter.on).distinct(:client_id).count
+          pending_associations[project].report_instance_id = @report.id
+          pending_associations[project].data_source_id = project.data_source_id
         end
         HudHic::Fy2021::Project.import(
           pending_associations.values,
           on_duplicate_key_update: {
-            conflict_target: [:ProjectID, :data_source_id, :report_instance_id],
-            columns: pending_associations.values.first&.changes&.keys || [],
+            conflict_target: ['"ProjectID"', :data_source_id, :report_instance_id],
             validate: false,
           },
         )

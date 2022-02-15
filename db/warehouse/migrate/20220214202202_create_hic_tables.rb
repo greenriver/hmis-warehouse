@@ -12,6 +12,7 @@ class CreateHicTables < ActiveRecord::Migration[6.1]
         t.timestamps
         t.datetime :deleted_at
       end
+      add_index klass, [klass.hud_key, :data_source_id, :report_instance_id], unique: true, name: "#{klass.table_name}_uniqueness_constraint"
     end
   end
 end

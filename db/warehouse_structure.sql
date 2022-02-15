@@ -36868,6 +36868,41 @@ CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_c
 
 
 --
+-- Name: hud_report_hic_funders_uniqueness_constraint; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hud_report_hic_funders_uniqueness_constraint ON public.hud_report_hic_funders USING btree ("FunderID", data_source_id, report_instance_id);
+
+
+--
+-- Name: hud_report_hic_inventories_uniqueness_constraint; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hud_report_hic_inventories_uniqueness_constraint ON public.hud_report_hic_inventories USING btree ("InventoryID", data_source_id, report_instance_id);
+
+
+--
+-- Name: hud_report_hic_organizations_uniqueness_constraint; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hud_report_hic_organizations_uniqueness_constraint ON public.hud_report_hic_organizations USING btree ("OrganizationID", data_source_id, report_instance_id);
+
+
+--
+-- Name: hud_report_hic_project_cocs_uniqueness_constraint; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hud_report_hic_project_cocs_uniqueness_constraint ON public.hud_report_hic_project_cocs USING btree ("ProjectCoCID", data_source_id, report_instance_id);
+
+
+--
+-- Name: hud_report_hic_projects_uniqueness_constraint; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hud_report_hic_projects_uniqueness_constraint ON public.hud_report_hic_projects USING btree ("ProjectID", data_source_id, report_instance_id);
+
+
+--
 -- Name: id_ret_index; Type: INDEX; Schema: public; Owner: -
 --
 
