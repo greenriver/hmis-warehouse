@@ -31,6 +31,7 @@ class CronInstaller
         task_definition_arn: task_definition_arn,
         command: command,
         capacity_provider_strategy: capacity_provider_strategy,
+        placement_constraints: _default_placement_constraints,
       }
 
       scheduled_task = ScheduledTask.new(params)
