@@ -390,6 +390,7 @@ class RollOut
 
       # This is the role that the ECS agent and Docker daemon can assume
       execution_role_arn: execution_role,
+      placement_constraints: _default_placement_constraints,
     }
 
     # This is the role that the service/task can assume
