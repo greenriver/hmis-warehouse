@@ -56,7 +56,7 @@
         = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), required: false, label: 'Project Groups', input_html: { name: 'report_result[options][project_group_ids][]', multiple: true }, as: :select_two
         = f.input :data_source_ids, collection: Reports::Lsa::Fy2021::Base.available_data_sources.viewable_by(current_user), required: false, input_html: {name: 'report_result[options][data_source_ids][]', multiple: true}, label: 'Data Sources', as: :select_two
       .col-sm-3
-        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user).distinct.pluck(:CoCCode).compact, selected: GrdaWarehouse::Config.get(:site_coc_codes), input_html: {name: 'report_result[options][coc_code]'}, hint: GrdaWarehouse::Config.get(:site_coc_codes), required: true, as: :select_two
+        = f.input :coc_code, collection: GrdaWarehouse::Lookups::CocCode.options_for_select(user: current_user), selected: GrdaWarehouse::Config.get(:site_coc_codes), input_html: {name: 'report_result[options][coc_code]'}, hint: GrdaWarehouse::Config.get(:site_coc_codes), required: true, as: :select_two
         = f.input :lsa_scope, collection: Reports::Lsa::Fy2021::Base.available_lsa_scopes, input_html: { name: 'report_result[options][lsa_scope]' }, label: 'LSA Scope', include_blank: 'Auto Select', as: :select_two
       .col-sm-3
         = f.input :report_start, as: :date_picker, input_html: {name: 'report_result[options][report_start]', value: Date.new(year-1,10,1)}, label: 'Start Date'
