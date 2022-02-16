@@ -71,23 +71,48 @@ module AwsSdkHelpers
       @capacity_providers ||= AwsSdkHelpers::Helpers.capacity_providers(cluster)
     end
 
-    def self.default_placement_constraints(ami_id:)
-      [
-        {
-          expression: "attribute:ecs.ami-id == #{ami_id}",
-          type: 'memberOf'
-        },
-      ]
-    end
-    def _default_placement_constraints(capacity_provider_name: '', ami_id: '')
-      if ami_id.empty?
-        unless capacity_provider_name.empty?
-          ami_id = _capacity_providers[capacity_provider_name][:ami_id]
-        else
-          ami_id = _capacity_providers[_capacity_providers.keys.first][:ami_id]
-        end
+    def self.default_placement_constraints(ami_id:, cluster_name:, capacity_provider_name:)
+      # Confirm that there is at least one instance w/the provided AMI ID.
+      payload = {
+        filters: [
+          {
+            name: "tag:ecs",
+            values: ["true"],
+          },
+          {
+            name: "tag:Cluster",
+            values: [cluster_name],
+          },
+          {
+            name: "tag:capacity-provider.name",
+            values: [capacity_provider_name]
+          },
+          {
+            name: "image-id",
+            values: [ami_id]
+          }
+        ]
+      }
+      matching_instances = ClientMethods.ec2.describe_instances(payload)
+
+      if matching_instances.reservations.count > 0 && !ami_id.empty?
+        [
+          {
+            expression: "attribute:ecs.ami-id == #{ami_id}",
+            type: 'memberOf'
+          },
+        ]
       end
-      AwsSdkHelpers::Helpers.default_placement_constraints(ami_id: ami_id)
+    end
+    def _default_placement_constraints(capacity_provider_name: nil, ami_id: nil)
+      capacity_provider_name ||= _capacity_providers.keys.first
+      ami_id                 ||= _capacity_providers[capacity_provider_name][:ami_id]
+
+      AwsSdkHelpers::Helpers.default_placement_constraints({
+        ami_id: ami_id,
+        cluster_name: _cluster_name,
+        capacity_provider_name: capacity_provider_name,
+      })
     end
 
 
