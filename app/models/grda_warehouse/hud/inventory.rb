@@ -55,6 +55,14 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :in_coc, ->(coc_code:) do
+      coc_code = Array(coc_code)
+      where(
+        i_t[:CoCCode].in(coc_code).and(i_t[:coc_code_override].eq(nil).or(i_t[:coc_code_override].eq(''))).
+        or(i_t[:coc_code_override].in(coc_code)),
+      )
+    end
+
     scope :serves_families, -> do
       where(HouseholdType: HOUSEHOLD_TYPES[:family])
     end
@@ -74,6 +82,26 @@ module GrdaWarehouse::Hud
 
     scope :serves_children, -> do
       where(HouseholdType: HOUSEHOLD_TYPES[:child_only])
+    end
+
+    def for_export
+      # This should never happen, but does
+      self.ProjectID = if self.ProjectID.blank?
+        'Unknown'
+      else
+        project&.id
+      end
+
+      self.CoCCode = coc_code_override if coc_code_override.present?
+      self.InventoryStartDate = inventory_start_date_override if inventory_start_date_override.present?
+      self.InventoryEndDate = inventory_end_date_override if inventory_end_date_override.present?
+
+      self.BedInventory ||= 0
+      self.UnitInventory ||= 0
+
+      self.UserID = 'op-system' if self.UserID.blank?
+      self.InventoryID = id
+      return self
     end
 
     # when we export, we always need to replace InventoryID with the value of id

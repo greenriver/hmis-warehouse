@@ -192,6 +192,14 @@ module GrdaWarehouse::Hud
       SQL
     end
 
+    def for_export
+      self.VictimServiceProvider ||= 0
+
+      self.UserID = 'op-system' if self.UserID.blank?
+      self.OrganizationID = id
+      return self
+    end
+
     # when we export, we always need to replace OrganizationID with the value of id
     def self.to_csv(scope:)
       attributes = hud_csv_headers.dup
