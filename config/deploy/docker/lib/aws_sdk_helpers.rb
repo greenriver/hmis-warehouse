@@ -41,7 +41,7 @@ module AwsSdkHelpers
     include AwsSdkHelpers::ClientMethods
 
     def self.cluster_name
-      ENV.fetch('CLUSTER_NAME', 'openpath'))
+      ENV.fetch('CLUSTER_NAME', 'openpath')
     end
     def _cluster_name
       AwsSdkHelpers::Helpers.cluster_name
