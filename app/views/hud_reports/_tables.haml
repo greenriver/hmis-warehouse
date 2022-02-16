@@ -1,3 +1,4 @@
+- link = true unless defined?(link)
 - metadata = report&.existing_universe(question)&.metadata
 - if metadata.present?
   - Array(metadata['tables']).each do |table|
@@ -7,4 +8,4 @@
         = "Table #{table}: #{description}"
       - else
         = "Table #{table}"
-    = render 'hud_reports/table', report: report, question: question, table: table
+    = render 'hud_reports/table', report: report, question: question, table: table, link: link

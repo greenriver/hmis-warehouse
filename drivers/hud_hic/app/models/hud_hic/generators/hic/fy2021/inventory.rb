@@ -5,11 +5,16 @@
 ###
 
 module HudHic::Generators::Hic::Fy2021
-  class Inventory < ::HudReports::QuestionBase
+  class Inventory < Base
     include ArelHelper
     include HudReports::Util
 
     QUESTION_NUMBER = 'Inventory'.freeze
+
+    private def question_number
+      QUESTION_NUMBER
+    end
+
     def run_question!
     end
   end

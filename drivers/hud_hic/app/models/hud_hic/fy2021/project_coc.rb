@@ -13,6 +13,10 @@ module HudHic::Fy2021
     has_many :report_project_cocs, as: :universe_membership, dependent: :destroy
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
+    def self.from_attributes_for_hic(project_coc)
+      new(project_coc.for_export.attributes.slice(*hmis_configuration(version: '2022').keys.map(&:to_s)))
+    end
+
     # Hide ID, move client_id, and name to the front
     def self.detail_headers
       special = ['ProjectCoCID', 'ProjectID']

@@ -5,11 +5,16 @@
 ###
 
 module HudHic::Generators::Hic::Fy2021
-  class Funder < ::HudReports::QuestionBase
+  class Funder < Base
     include ArelHelper
     include HudReports::Util
 
     QUESTION_NUMBER = 'Funder'.freeze
+
+    private def question_number
+      QUESTION_NUMBER
+    end
+
     def run_question!
     end
   end

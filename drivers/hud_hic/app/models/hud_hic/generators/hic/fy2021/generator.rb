@@ -34,7 +34,14 @@ module  HudHic::Generators::Hic::Fy2021
     end
 
     def project_scope
-      GrdaWarehouse::Hud::Project.where(id: filter.project_ids).active_on(filter.on)
+      GrdaWarehouse::Hud::Project.where(id: filter.project_ids).active_on(filter.on).
+        joins(:project_cocs).
+        merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: filter.coc_codes))
+    end
+
+    def project_coc_scope
+      GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+        merge(project_scope)
     end
 
     def self.filter_class
@@ -43,11 +50,11 @@ module  HudHic::Generators::Hic::Fy2021
 
     def self.questions
       [
-        HudHic::Generators::Hic::Fy2021::Organization,
+        # HudHic::Generators::Hic::Fy2021::Organization,
         HudHic::Generators::Hic::Fy2021::Project,
         HudHic::Generators::Hic::Fy2021::ProjectCoc,
-        HudHic::Generators::Hic::Fy2021::Inventory,
-        HudHic::Generators::Hic::Fy2021::Funder,
+        # HudHic::Generators::Hic::Fy2021::Inventory,
+        # HudHic::Generators::Hic::Fy2021::Funder,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
@@ -59,11 +66,11 @@ module  HudHic::Generators::Hic::Fy2021
 
     def self.table_classes
       [
-        HudHic::Fy2021::Organization,
+        # HudHic::Fy2021::Organization,
         HudHic::Fy2021::Project,
         HudHic::Fy2021::ProjectCoc,
-        HudHic::Fy2021::Inventory,
-        HudHic::Fy2021::Funder,
+        # HudHic::Fy2021::Inventory,
+        # HudHic::Fy2021::Funder,
       ].freeze
     end
   end

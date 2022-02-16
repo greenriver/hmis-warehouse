@@ -5,11 +5,16 @@
 ###
 
 module HudHic::Generators::Hic::Fy2021
-  class Organization < ::HudReports::QuestionBase
+  class Organization < Base
     include ArelHelper
     include HudReports::Util
 
     QUESTION_NUMBER = 'Organization'.freeze
+
+    private def question_number
+      QUESTION_NUMBER
+    end
+
     def run_question!
     end
   end
