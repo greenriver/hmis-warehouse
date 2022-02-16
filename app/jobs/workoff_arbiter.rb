@@ -1,5 +1,3 @@
-require_relative '../../config/deploy/docker/lib/aws_sdk_helpers'
-
 ###
 # Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
@@ -16,6 +14,9 @@ require_relative '../../config/deploy/docker/lib/aws_sdk_helpers'
 # 50 jobs waiting with enough of them waiting a long time could trigger a workoff worker with AGE_WEIGHT set high enough
 # 50 jobs waiting with a high priority could trigger a workoff worker with a PRIORITY_WEIGHT set high enough
 #
+
+require_relative '../../config/deploy/docker/lib/aws_sdk_helpers'
+
 class WorkoffArbiter
   include AwsSdkHelpers::Helpers
 
