@@ -8,8 +8,11 @@ require 'aws-sdk-ec2'
 require 'aws-sdk-cloudwatchevents'
 require 'aws-sdk-cloudwatch'
 require 'aws-sdk-cloudwatchlogs'
+require "active_support"
 
 module AwsSdkHelpers
+  extend ActiveSupport::Concern
+
   module ClientMethods
     define_singleton_method(:iam) { Aws::IAM::Client.new }
     define_singleton_method(:elbv2) { Aws::ElasticLoadBalancingV2::Client.new }
@@ -20,10 +23,7 @@ module AwsSdkHelpers
     define_singleton_method(:ec2) { Aws::EC2::Client.new}
     define_singleton_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
     define_singleton_method(:cw)  { Aws::CloudWatch::Client.new }
-    def self.cwl(profile = nil)
-      profile ||= AwsSdkHelpers::Helpers.cluster_name
-      Aws::CloudWatchLogs::Client.new(profile: profile)
-    end
+    define_singleton_method(:cwl)  { Aws::CloudWatchLogs::Client.new }
 
     define_method(:iam)              { AwsSdkHelpers::ClientMethods.iam }
     define_method(:elbv2)            { AwsSdkHelpers::ClientMethods.elbv2 }
@@ -34,16 +34,14 @@ module AwsSdkHelpers
     define_method(:ec2)              { AwsSdkHelpers::ClientMethods.ec2 }
     define_method(:cloudwatchevents) { AwsSdkHelpers::ClientMethods.cloudwatchevents }
     define_method(:cw)               { AwsSdkHelpers::ClientMethods.cw }
-    define_method(:cwl)              { AwsSdkHelpers::ClientMethods.cwl(
-      profile: respond_to?(:_cluster_name) ? _cluster_name : AwsSdkHelpers::Helpers.cluster_name,
-    ) }
+    define_method(:cwl)              { AwsSdkHelpers::ClientMethods.cwl }
   end
 
   module Helpers
     include AwsSdkHelpers::ClientMethods
 
     def self.cluster_name
-      ENV.fetch('CLUSTER_NAME', ENV.fetch('AWS_CLUSTER', ENV.fetch('AWS_PROFILE', ENV.fetch('AWS_VAULT', ''))))
+      ENV.fetch('CLUSTER_NAME', 'openpath'))
     end
     def _cluster_name
       AwsSdkHelpers::Helpers.cluster_name
@@ -52,7 +50,7 @@ module AwsSdkHelpers
     def self.capacity_providers(cluster)
       r = {}
       capacity_provider_names = AwsSdkHelpers::ClientMethods.ecs.describe_clusters(clusters: [cluster]).clusters.first.capacity_providers
-      AwsSdkHelpers::ClientMethods.ecs.describe_capacity_providers(capacity_providers: capacity_provider_names).capacity_providers.map do |capacity_provider|
+      AwsSdkHelpers::ClientMethods.ecs.describe_capacity_providers(capacity_providers: capacity_provider_names).capacity_providers.each do |capacity_provider|
         asg_name = capacity_provider.auto_scaling_group_provider.auto_scaling_group_arn.split('/').last
         asg = AwsSdkHelpers::ClientMethods.autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: [ asg_name ]).auto_scaling_groups.first
 

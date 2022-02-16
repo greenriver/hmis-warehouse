@@ -50,7 +50,7 @@ class RollOut
   NOT_SPOT = 'not-spot'
 
   def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:)
-    self.cluster             = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
+    self.cluster             = _cluster_name
     self.image_base          = image_base
     self.secrets_arn         = secrets_arn
     self.target_group_arn    = target_group_arn
