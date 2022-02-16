@@ -56,7 +56,7 @@ module  HudHic::Generators::Hic::Fy2021
     end
 
     def inventory_scope
-      GrdaWarehouse::Hud::Inventory.within_range(filter.range).
+      GrdaWarehouse::Hud::Inventory.active_on(filter.on).
         in_coc(coc_code: filter.coc_codes).
         joins(:project).
         merge(project_scope)

@@ -9,7 +9,7 @@ module HudHic::Generators::Hic::Fy2021
     include ArelHelper
     include HudReports::Util
 
-    QUESTION_NUMBER = 'Project CoC'.freeze
+    QUESTION_NUMBER = 'ProjectCoC'.freeze
 
     private def question_number
       QUESTION_NUMBER

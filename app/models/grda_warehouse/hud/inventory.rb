@@ -45,14 +45,17 @@ module GrdaWarehouse::Hud
     end
 
     scope :within_range, ->(range) do
-      i_start = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
-      i_end = i_t[:InventoryEndDate]
+      start_date = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
+      end_date = cl(i_t[:inventory_end_date_override], i_t[:InventoryEndDate])
       where(
-        i_end.gteq(range.first).
-        or(i_end.eq(nil)).
-        and(i_start.lteq(range.last).
-        or(i_start.eq(nil))),
+        end_date.gteq(range.first).or(end_date.eq(nil)).
+        and(start_date.lteq(range.last).or(start_date.eq(nil))),
       )
+    end
+
+    scope :active_on, ->(date) do
+      date = date.to_date
+      within_range(date..date)
     end
 
     scope :in_coc, ->(coc_code:) do

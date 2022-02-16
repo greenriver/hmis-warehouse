@@ -214,18 +214,17 @@ module GrdaWarehouse::Hud
     end
 
     scope :active_on, ->(date) do
-      where(
-        p_t[:OperatingEndDate].gteq(date).or(p_t[:OperatingEndDate].eq(nil)).
-          and(p_t[:OperatingStartDate].eq(nil).and(p_t[:operating_start_date_override].eq(nil)).
-            or(p_t[:OperatingStartDate].lteq(date).and(p_t[:operating_start_date_override].eq(nil))).
-            or(p_t[:operating_start_date_override].lteq(date))),
-      )
+      date = date.to_date
+      active_during(date..date)
     end
 
     scope :active_during, ->(range) do
-      p_start = cl(p_t[:operating_start_date_override], p_t[:OperatingStartDate])
-      p_end = p_t[:OperatingEndDate]
-      where(p_end.gteq(range.first).or(p_end.eq(nil)).and(p_start.lteq(range.last)))
+      start_date = cl(p_t[:operating_start_date_override], p_t[:OperatingStartDate])
+      end_date = cl(p_t[:operating_end_date_override], p_t[:OperatingEndDate])
+      where(
+        end_date.gteq(range.first).or(end_date.eq(nil)).
+        and(start_date.lteq(range.last).or(start_date.eq(nil))),
+      )
     end
 
     def coc_funded?
