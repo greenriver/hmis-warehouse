@@ -4,33 +4,33 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudHic::Generators::Hic::Fy2021
-  class Organization < Base
+module HudHic::Generators::Hic::Fy2022
+  class Inventory < Base
     include ArelHelper
     include HudReports::Util
 
-    QUESTION_NUMBER = 'Organization'.freeze
+    QUESTION_NUMBER = 'Inventory'.freeze
 
     private def question_number
       QUESTION_NUMBER
     end
 
     private def destination_class
-      HudHic::Fy2021::Organization
+      HudHic::Fy2022::Inventory
     end
 
     private def add
-      @generator.organization_scope.find_in_batches(batch_size: 100) do |batch|
+      @generator.inventory_scope.preload(:project).find_in_batches(batch_size: 100) do |batch|
         pending_associations = {}
-        batch.each do |organization|
-          pending_associations[organization] = destination_class.from_attributes_for_hic(organization)
-          pending_associations[organization].report_instance_id = @report.id
-          pending_associations[organization].data_source_id = organization.data_source_id
+        batch.each do |inventory|
+          pending_associations[inventory] = destination_class.from_attributes_for_hic(inventory)
+          pending_associations[inventory].report_instance_id = @report.id
+          pending_associations[inventory].data_source_id = inventory.data_source_id
         end
         destination_class.import(
           pending_associations.values,
           on_duplicate_key_update: {
-            conflict_target: ['"OrganizationID"', :data_source_id, :report_instance_id],
+            conflict_target: ['"InventoryID"', :data_source_id, :report_instance_id],
             validate: false,
           },
         )
@@ -43,7 +43,7 @@ module HudHic::Generators::Hic::Fy2021
     end
 
     private def populated?
-      @report.report_cells.joins(universe_members: :organization).exists?
+      @report.report_cells.joins(universe_members: :inventory).exists?
     end
   end
 end

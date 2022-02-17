@@ -13,13 +13,13 @@ module HudHic
 
     def available_report_versions
       {
-        'FY 2021' => { slug: :fy2021, active: true },
+        'FY 2022' => { slug: :fy2022, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2021
+      :fy2022
     end
 
     private def filter_class
@@ -28,7 +28,7 @@ module HudHic
 
     private def possible_generator_classes
       {
-        fy2021: HudHic::Generators::Hic::Fy2021::Generator,
+        fy2022: HudHic::Generators::Hic::Fy2022::Generator,
       }
     end
 
