@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudPit::Generators::Pit::Fy2022
+module HudHic::Generators::Hic::Fy2022
   class Base < ::HudReports::QuestionBase
     include ArelHelper
     include HudReports::Util
