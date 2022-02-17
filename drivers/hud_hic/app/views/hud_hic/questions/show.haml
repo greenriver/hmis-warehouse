@@ -6,7 +6,7 @@
 
 %h1= content_for :title
 
-= render 'hud_apr/shared/report_form', url: path_for_questions(@question)
+= render 'hud_hic/shared/report_form', url: path_for_questions(@question)
 
 - if @reports.present?
   = render 'hud_reports/year_tabs'
