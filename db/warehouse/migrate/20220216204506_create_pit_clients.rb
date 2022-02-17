@@ -8,9 +8,12 @@ class CreatePitClients < ActiveRecord::Migration[6.1]
       t.string :last_name
 
       t.index [:report_instance_id, :data_source_id, :client_id], unique: true, name: 'hud_pit_client_conflict_columns'
-
+      t.integer :destination_client_id
       t.integer :age
       t.date :dob
+      t.string :household_type
+      t.string :max_age
+      t.boolean :hoh_veteran
       t.integer :relationship_to_hoh
       t.integer :female
       t.integer :male
@@ -18,12 +21,14 @@ class CreatePitClients < ActiveRecord::Migration[6.1]
       t.integer :transgender
       t.integer :questioning
       t.integer :gender_none
+      t.string :pit_gender
       t.integer :am_ind_ak_native
       t.integer :asian
       t.integer :black_af_american
       t.integer :native_hi_other_pacific
       t.integer :white
       t.integer :race_none
+      t.string :pit_race
       t.integer :ethnicity
       t.integer :veteran
       t.boolean :chronically_homeless
@@ -37,13 +42,13 @@ class CreatePitClients < ActiveRecord::Migration[6.1]
       t.integer :mental_illness
       t.integer :mental_illness_indefinite_impairing
 
-
       t.integer :project_type
       t.string :project_name
-      t.date :first_date_in_program
-      t.date :last_date_in_program
+      t.date :entry_date
+      t.date :exit_date
 
       t.timestamps
+      t.datetime :deleted_at
     end
   end
 end

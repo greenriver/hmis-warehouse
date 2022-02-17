@@ -13807,8 +13807,12 @@ CREATE TABLE public.hud_report_pit_clients (
     report_instance_id bigint,
     first_name character varying,
     last_name character varying,
+    destination_client_id integer,
     age integer,
     dob date,
+    household_type character varying,
+    max_age character varying,
+    hoh_veteran boolean,
     relationship_to_hoh integer,
     female integer,
     male integer,
@@ -13816,12 +13820,14 @@ CREATE TABLE public.hud_report_pit_clients (
     transgender integer,
     questioning integer,
     gender_none integer,
+    pit_gender character varying,
     am_ind_ak_native integer,
     asian integer,
     black_af_american integer,
     native_hi_other_pacific integer,
     white integer,
     race_none integer,
+    pit_race character varying,
     ethnicity integer,
     veteran integer,
     chronically_homeless boolean,
@@ -13836,10 +13842,11 @@ CREATE TABLE public.hud_report_pit_clients (
     mental_illness_indefinite_impairing integer,
     project_type integer,
     project_name character varying,
-    first_date_in_program date,
-    last_date_in_program date,
+    entry_date date,
+    exit_date date,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
