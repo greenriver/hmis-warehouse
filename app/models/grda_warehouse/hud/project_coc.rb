@@ -115,6 +115,31 @@ module GrdaWarehouse::Hud
       cl(pc_t[:hud_coc_code], pc_t[:CoCCode])
     end
 
+    def for_export
+      # This should never happen, but does
+      self.ProjectID = if self.ProjectID.blank?
+        'Unknown'
+      else
+        project&.id
+      end
+
+      self.CoCCode = hud_coc_code if hud_coc_code.present?
+      self.GeographyType = geography_type_override if geography_type_override.present?
+      self.GeographyType ||= 99
+      self.Geocode = geocode_override if geocode_override.present?
+      self.Geocode ||= '0' * 6
+      self.Zip = zip_override if zip_override.present?
+      self.Address1 = self.Address1[0...100] if self.Address1
+      self.Address2 = self.Address2[0...100] if self.Address2
+      self.City = self.City[0...50] if self.City
+      self.Zip = self.Zip.to_s.rjust(5, '0')[0...5] if self.Zip
+      self.Zip ||= '0' * 5
+
+      self.UserID = 'op-system' if self.UserID.blank?
+      self.ProjectCoCID = id
+      return self
+    end
+
     # when we export, we always need to replace ProjectCoCID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)

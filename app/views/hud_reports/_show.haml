@@ -11,7 +11,8 @@
     .d-flex
       %h2= generator.file_prefix
       .ml-auto
-        = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: path_for_report_download(@report, format: :xlsx)
+        - if @pdf_export.present?
+          = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: path_for_report_download(@report, format: :xlsx)
         .mt-4
           = link_to({format: :zip},{class: 'btn btn-primary'}) do
             %span.icon-download2

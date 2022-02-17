@@ -1,9 +1,11 @@
+- link = true unless defined?(link)
 - metadata = report&.existing_universe(question)&.metadata
 - if metadata.present?
   - Array(metadata['tables']).each do |table|
     %h3
-      - if @generator.describe_table(table).present?
-        = "Table #{table}: #{@generator.describe_table(table)}"
+      - description = @generator.describe_table(table)
+      - if description.present?
+        = "Table #{table}: #{description}"
       - else
         = "Table #{table}"
-    = render 'hud_reports/table', report: report, question: question, table: table
+    = render 'hud_reports/table', report: report, question: question, table: table, link: link

@@ -107,6 +107,7 @@ module GrdaWarehouse::Hud
                             join_table: :project_project_groups
 
     has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
+    has_many :service_history_services, through: :service_history_enrollments
 
     has_many :project_cocs, **hud_assoc(:ProjectID, 'ProjectCoc'), inverse_of: :project
     has_many :geographies, **hud_assoc(:ProjectID, 'Geography'), inverse_of: :project
@@ -213,18 +214,17 @@ module GrdaWarehouse::Hud
     end
 
     scope :active_on, ->(date) do
-      where(
-        p_t[:OperatingEndDate].gteq(date).or(p_t[:OperatingEndDate].eq(nil)).
-          and(p_t[:OperatingStartDate].eq(nil).and(p_t[:operating_start_date_override].eq(nil)).
-            or(p_t[:OperatingStartDate].lteq(date).and(p_t[:operating_start_date_override].eq(nil))).
-            or(p_t[:operating_start_date_override].lteq(date))),
-      )
+      date = date.to_date
+      active_during(date..date)
     end
 
     scope :active_during, ->(range) do
-      p_start = cl(p_t[:operating_start_date_override], p_t[:OperatingStartDate])
-      p_end = p_t[:OperatingEndDate]
-      where(p_end.gteq(range.first).or(p_end.eq(nil)).and(p_start.lteq(range.last)))
+      start_date = cl(p_t[:operating_start_date_override], p_t[:OperatingStartDate])
+      end_date = cl(p_t[:operating_end_date_override], p_t[:OperatingEndDate])
+      where(
+        end_date.gteq(range.first).or(end_date.eq(nil)).
+        and(start_date.lteq(range.last).or(start_date.eq(nil))),
+      )
     end
 
     def coc_funded?
@@ -656,6 +656,43 @@ module GrdaWarehouse::Hud
           csv << row
         end
       end
+    end
+
+    def for_export
+      # This should never happen, but does
+      self.OrganizationID = if self.OrganizationID.blank?
+        'Unknown'
+      else
+        organization&.id
+      end
+
+      self.HousingType = housing_type_override if housing_type_override.present?
+      self.ContinuumProject = hud_continuum_funded if hud_continuum_funded.present?
+      self.ContinuumProject = self.ContinuumProject.presence || 0
+      self.OperatingStartDate = operating_start_date_override if operating_start_date_override.present?
+      self.OperatingEndDate = operating_end_date_override if operating_end_date_override.present?
+      self.ProjectCommonName = self.ProjectName if self.ProjectCommonName.blank?
+      self.ProjectCommonName = self.ProjectCommonName[0...50] if self.ProjectCommonName
+      self.HMISParticipatingProject = hmis_participating_project_override if hmis_participating_project_override.present?
+      # NOTE: this defaults to 0 now, HUD doesn't believe this should ever be 99 even though the spec permits it
+      self.HMISParticipatingProject = 0 if self.HMISParticipatingProject.blank?
+      self.TargetPopulation = target_population_override if target_population_override.present?
+
+      # Need to set the project type prior to calculating the tracking method override
+      self.ProjectType = computed_project_type if computed_project_type.present?
+      # If we are have an ES project, the only valid options are 0 and 3, otherwise it should be blank
+      self.TrackingMethod = if self.ProjectType.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es])
+        if tracking_method_override.in?([0, 3])
+          tracking_method_override
+        else
+          0
+        end
+      else # rubocop:disable Style/EmptyElse
+        nil # explicit nil return to indicate that it should always be nil if not ES
+      end
+      self.UserID = 'op-system' if self.UserID.blank?
+      self.ProjectID = id
+      return self
     end
 
     # when we export, we always need to replace ProjectID with the value of id
