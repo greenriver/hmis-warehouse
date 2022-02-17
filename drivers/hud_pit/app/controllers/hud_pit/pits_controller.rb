@@ -28,7 +28,7 @@ module HudPit
 
     private def possible_generator_classes
       {
-        fy2022: HudPit::Generators::Pit::Fy2021::Generator,
+        fy2022: HudPit::Generators::Pit::Fy2022::Generator,
       }
     end
 
