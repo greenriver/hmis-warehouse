@@ -117,7 +117,7 @@ module AwsSdkHelpers
 
 
     def _spot_capacity_provider_name
-      _capacity_providers.find { |k,v| v[:name].match(/spt-v2/) }[1][:name]
+      _capacity_providers.find { |_k,v| v[:name].match(/spt-v2/) }[1][:name]
     end
 
     def _on_demand_capacity_provider_name
