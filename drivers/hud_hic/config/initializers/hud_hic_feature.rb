@@ -6,7 +6,7 @@
 # use with caution!
 RailsDrivers.loaded << :hud_hic
 
-Rails.application.config.hud_reports['HudHic::Generators::Hic::Fy2021::Generator'] = {
+Rails.application.config.hud_reports['HudHic::Generators::Hic::Fy2022::Generator'] = {
   title: 'Housing Inventory Count',
   helper: 'hud_reports_hics_path',
 }

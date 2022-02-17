@@ -4,10 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module  HudHic::Generators::Hic::Fy2021
+module  HudHic::Generators::Hic::Fy2022
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
-      'FY 2021'
+      'FY 2022'
     end
 
     def self.generic_title
@@ -68,11 +68,11 @@ module  HudHic::Generators::Hic::Fy2021
 
     def self.questions
       [
-        HudHic::Generators::Hic::Fy2021::Organization,
-        HudHic::Generators::Hic::Fy2021::Project,
-        HudHic::Generators::Hic::Fy2021::ProjectCoc,
-        HudHic::Generators::Hic::Fy2021::Inventory,
-        HudHic::Generators::Hic::Fy2021::Funder,
+        HudHic::Generators::Hic::Fy2022::Organization,
+        HudHic::Generators::Hic::Fy2022::Project,
+        HudHic::Generators::Hic::Fy2022::ProjectCoc,
+        HudHic::Generators::Hic::Fy2022::Inventory,
+        HudHic::Generators::Hic::Fy2022::Funder,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
@@ -84,11 +84,11 @@ module  HudHic::Generators::Hic::Fy2021
 
     def self.table_classes
       [
-        HudHic::Fy2021::Organization,
-        HudHic::Fy2021::Project,
-        HudHic::Fy2021::ProjectCoc,
-        HudHic::Fy2021::Inventory,
-        HudHic::Fy2021::Funder,
+        HudHic::Fy2022::Organization,
+        HudHic::Fy2022::Project,
+        HudHic::Fy2022::ProjectCoc,
+        HudHic::Fy2022::Inventory,
+        HudHic::Fy2022::Funder,
       ].freeze
     end
   end

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudHic::Generators::Hic::Fy2021
+module HudHic::Generators::Hic::Fy2022
   class Organization < Base
     include ArelHelper
     include HudReports::Util
@@ -16,7 +16,7 @@ module HudHic::Generators::Hic::Fy2021
     end
 
     private def destination_class
-      HudHic::Fy2021::Organization
+      HudHic::Fy2022::Organization
     end
 
     private def add

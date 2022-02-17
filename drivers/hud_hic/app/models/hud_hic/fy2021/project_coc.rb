@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudHic::Fy2021
+module HudHic::Fy2022
   class ProjectCoc < ::GrdaWarehouseBase
     self.table_name = 'hud_report_hic_project_cocs'
     include ::HMIS::Structure::ProjectCoc
