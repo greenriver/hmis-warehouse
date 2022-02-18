@@ -145,7 +145,7 @@ module HudPit::Generators::Pit::Fy2022
     end
 
     private def report_client_universe
-      HudPit::Fy2022::HicClient
+      HudPit::Fy2022::PitClient
     end
 
     private def clients_with_enrollments(batch)
@@ -340,7 +340,7 @@ module HudPit::Generators::Pit::Fy2022
     end
 
     private def a_t
-      @a_t ||= HudPit::Fy2022::HicClient.arel_table
+      @a_t ||= HudPit::Fy2022::PitClient.arel_table
     end
 
     private def project_type_es_clause

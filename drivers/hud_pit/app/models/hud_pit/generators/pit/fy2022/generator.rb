@@ -73,14 +73,22 @@ module  HudPit::Generators::Pit::Fy2022
       end.to_h.freeze
     end
 
+    def self.valid_table_name(table)
+      valid_question_number(table)
+    end
+
     def self.valid_question_number(question_number)
-      questions.keys.detect { |q| q == question_number } || 'Project'
+      questions.keys.detect { |q| q == question_number } || 'Projects'
     end
 
     def self.table_classes
       [
-        HudPit::Fy2022::HicClient,
+        HudPit::Fy2022::PitClient,
       ].freeze
+    end
+
+    def self.client_class
+      HudPit::Fy2022::PitClient
     end
   end
 end

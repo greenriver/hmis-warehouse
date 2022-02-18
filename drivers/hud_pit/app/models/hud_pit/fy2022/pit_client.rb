@@ -5,7 +5,7 @@
 ###
 
 module HudPit::Fy2022
-  class HicClient < ::HudReports::ReportClientBase
+  class PitClient < ::HudReports::ReportClientBase
     self.table_name = 'hud_report_pit_clients'
     acts_as_paranoid
 
