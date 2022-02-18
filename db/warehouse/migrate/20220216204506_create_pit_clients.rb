@@ -12,8 +12,9 @@ class CreatePitClients < ActiveRecord::Migration[6.1]
       t.integer :age
       t.date :dob
       t.string :household_type
-      t.string :max_age
+      t.integer :max_age
       t.boolean :hoh_veteran
+      t.boolean :head_of_household
       t.integer :relationship_to_hoh
       t.integer :female
       t.integer :male
@@ -42,8 +43,10 @@ class CreatePitClients < ActiveRecord::Migration[6.1]
       t.integer :mental_illness
       t.integer :mental_illness_indefinite_impairing
 
+      t.integer :project_id
       t.integer :project_type
       t.string :project_name
+      t.integer :project_hmis_pit_count
       t.date :entry_date
       t.date :exit_date
 

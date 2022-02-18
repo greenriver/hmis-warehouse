@@ -9,7 +9,7 @@ module HudPit::Generators::Pit::Fy2022
     QUESTION_NUMBER = 'Households with at least one Adult & one Child'.freeze
 
     def self.filter_pending_associations(pending_associations)
-      pending_associations.select { |row| row[:household_type] == :adults_and_children }
+      pending_associations.select { |_, row| row[:household_type].to_s == 'adults_and_children' }
     end
 
     def run_question!
@@ -20,68 +20,35 @@ module HudPit::Generators::Pit::Fy2022
       @report.complete(QUESTION_NUMBER)
     end
 
-    private def sub_calculations
+    private def project_types
       [
-        {
-          cell: 'B2', # Total Households in ES
-          query: a_t[:project_type].eq(1).and(a_t[:relationship_to_hoh].eq(1)),
-        },
-        {
-          cell: 'C2', # Total Households in TH
-          query: a_t[:project_type].eq(2).and(a_t[:relationship_to_hoh].eq(1)),
-        },
-        {
-          cell: 'D2', # Total Households in SO
-          query: a_t[:project_type].eq(4).and(a_t[:relationship_to_hoh].eq(1)),
-        },
-        {
-          cell: 'B3', # Total People in ES
-          query: a_t[:project_type].eq(1),
-        },
-        {
-          cell: 'C3', # Total People in TH
-          query: a_t[:project_type].eq(2),
-        },
-        {
-          cell: 'D3', # Total People in SO
-          query: a_t[:project_type].eq(4),
-        },
-        {
-          cell: 'B4', # Total Children in ES
-          query: a_t[:project_type].eq(1).and(child_clause),
-        },
-        {
-          cell: 'C4', # Total Children in TH
-          query: a_t[:project_type].eq(2).and(child_clause),
-        },
-        {
-          cell: 'D4', # Total Children in SO
-          query: a_t[:project_type].eq(4).and(child_clause),
-        },
-        {
-          cell: 'B5', # Total Youth in ES
-          query: a_t[:project_type].eq(1).and(age_ranges['18-24']),
-        },
-        {
-          cell: 'C5', # Total Youth in TH
-          query: a_t[:project_type].eq(2).and(age_ranges['18-24']),
-        },
-        {
-          cell: 'D5', # Total Youth in SO
-          query: a_t[:project_type].eq(4).and(age_ranges['18-24']),
-        },
-        {
-          cell: 'B5', # Total Non-Youth Adults in ES
-          query: a_t[:project_type].eq(1).and(a_t[:age].gteq(25)),
-        },
-        {
-          cell: 'C5', # Total Non-Youth Adults in TH
-          query: a_t[:project_type].eq(2).and(a_t[:age].gteq(25)),
-        },
-        {
-          cell: 'D5', # Total Non-Youth Adults in SO
-          query: a_t[:project_type].eq(4).and(a_t[:age].gteq(25)),
-        },
+        project_type_es_clause,
+        project_type_th_clause,
+        project_type_so_clause,
+      ]
+    end
+
+    private def rows
+      [
+        :households,
+        :clients,
+        :children,
+        :youth,
+        :over_24,
+        :female,
+        :male,
+        :transgender,
+        :gender_other,
+        :non_latino,
+        :latino,
+        :white,
+        :black,
+        :asian,
+        :native_ak,
+        :native_pi,
+        :multi_racial,
+        :chronic_households,
+        :chronic_clients,
       ]
     end
 
@@ -94,25 +61,13 @@ module HudPit::Generators::Pit::Fy2022
           'Transitional',
           'Outreach',
         ],
-        row_labels: [
-          'Total Number of Households',
-          'Number of Persons (under age 18)',
-          'Number of Persons (18 - 24)',
-          'Number of Persons (over age 24)',
-        ],
+        row_labels: row_labels,
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
-        last_row: 19,
+        last_row: 20,
       }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      sub_calculations.each do |calc|
-        members = universe.members.where(calc[:query])
-        answer = @report.answer(question: table_name, cell: calc[:cell])
-        answer.add_members(members)
-        answer.update(summary: members.count)
-      end
+      populate_table(table_name, metadata)
     end
   end
 end

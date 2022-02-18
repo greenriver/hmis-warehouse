@@ -67,6 +67,7 @@ module  HudPit::Generators::Pit::Fy2022
         HudPit::Generators::Pit::Fy2022::ParentingYouth,
         HudPit::Generators::Pit::Fy2022::VeteranAdultAndChild,
         HudPit::Generators::Pit::Fy2022::VeteranAdults,
+        HudPit::Generators::Pit::Fy2022::Projects,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze

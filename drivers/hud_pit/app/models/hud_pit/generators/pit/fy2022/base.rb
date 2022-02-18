@@ -69,10 +69,11 @@ module HudPit::Generators::Pit::Fy2022
           # Only count clients once (where one category is Multiple Races)
           pit_race = source_client.pit_race
           processed_source_clients << source_client.id
-          hoh_veteran = household_member_data(last_service_history_enrollment).detect do |_, member|
+          # NOTE: member is a hash with string keys
+          hoh_veteran = household_member_data(last_service_history_enrollment).detect do |member|
             next unless member
 
-            member.veteran_status == 1 && member.relationship_to_hoh == 1
+            member['veteran_status'] == 1 && member['relationship_to_hoh'] == 1
           end.present?
 
           options = {
@@ -83,9 +84,12 @@ module HudPit::Generators::Pit::Fy2022
 
             age: age,
             dob: source_client.DOB,
+            first_name: source_client.FirstName,
+            last_name: source_client.LastName,
             household_type: household_type,
             max_age: household_ages.compact&.max,
             hoh_veteran: hoh_veteran,
+            head_of_household: enrollment.RelationshipToHoH == 1,
             relationship_to_hoh: enrollment.RelationshipToHoH,
             pit_gender: pit_gender,
             female: source_client.Female,
@@ -114,6 +118,8 @@ module HudPit::Generators::Pit::Fy2022
             mental_illness_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.mental? }&.DisabilityResponse.present?,
             project_type: last_service_history_enrollment.computed_project_type,
             project_name: last_service_history_enrollment.project_name,
+            project_id: last_service_history_enrollment.project.id,
+            project_hmis_pit_count: last_service_history_enrollment.project.PITCount,
             entry_date: last_service_history_enrollment.first_date_in_program,
             exit_date: last_service_history_enrollment.last_date_in_program,
           }
@@ -175,28 +181,182 @@ module HudPit::Generators::Pit::Fy2022
 
     delegate :client_scope, to: :@generator
 
-    private def disability_clauses(suffix)
+    private def populated?
+      @report.report_cells.joins(universe_members: :client).exists?
+    end
+
+    private def sub_calculations
       {
-        'Mental Health Disorder' => a_t["mental_health_problem_#{suffix}".to_sym].eq(1),
-        'Alcohol Use Disorder' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true).
-          and(a_t["drug_abuse_#{suffix}".to_sym].eq(false)),
-        'Drug Use Disorder' => a_t["drug_abuse_#{suffix}".to_sym].eq(true).
-          and(a_t["alcohol_abuse_#{suffix}".to_sym].eq(false)),
-        'Both Alcohol and Drug Use Disorders' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true).
-          and(a_t["drug_abuse_#{suffix}".to_sym].eq(true)),
-        'Chronic Health Condition' => a_t["chronic_disability_#{suffix}".to_sym].eq(1),
-        'HIV/AIDS' => a_t["hiv_aids_#{suffix}".to_sym].eq(1),
-        'Developmental Disability' => a_t["developmental_disability_#{suffix}".to_sym].eq(1),
-        'Physical Disability' => a_t["physical_disability_#{suffix}".to_sym].eq(1),
+        households: {
+          title: 'Total Number of Households',
+          query: hoh_clause,
+        },
+        clients: {
+          title: 'Total Number of Persons',
+          query: Arel.sql('1=1'),
+        },
+        veterans: {
+          title: 'Total Number of Veterans',
+          query: a_t[:veteran].eq(1),
+        },
+        children: {
+          title: 'Number of Persons (under age 18)',
+          query: child_clause,
+        },
+        youth: {
+          title: 'Number of Persons (18 - 24)',
+          query: age_ranges['18-24'],
+        },
+        youth_hoh: {
+          title: 'Number of parenting youth (youth parents only)',
+          query: hoh_clause.and(age_ranges['18-24']),
+        },
+        child_hoh: {
+          title: 'Number of parenting youth (under age 18)',
+          query: hoh_clause.and(child_clause),
+        },
+        hoh_for_youth: { # note because the question is already limted to youth households, this is just here to provide the title
+          title: 'Number of parenting youth (youth parents only)',
+          query: hoh_clause,
+        },
+        children_of_youth_parents: {
+          title: 'Number of children with parenting youth (children under age 18 with parents under age 25)',
+          query: a_t[:head_of_household].eq(false).and(child_clause),
+        },
+        over_24: {
+          title: 'Number of Persons (over age 24)',
+          query: a_t[:age].gteq(25),
+        },
+        female: {
+          title: 'Female',
+          query: a_t[:pit_gender].eq('Female'),
+        },
+        male: {
+          title: 'Male',
+          query: a_t[:pit_gender].eq('Male'),
+        },
+        transgender: {
+          title: 'Transgender',
+          query: a_t[:pit_gender].eq('Transgender'),
+        },
+        gender_other: {
+          title: 'Gender Don’t identify as male, female, or transgender',
+          query: a_t[:pit_gender].eq('A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)'),
+        },
+        non_latino: {
+          title: 'Non-Hispanic/Non-Latino',
+          query: a_t[:ethnicity].not_eq(1),
+        },
+        latino: {
+          title: 'Hispanic/Latino',
+          query: a_t[:ethnicity].eq(1),
+        },
+        white: {
+          title: 'White',
+          query: a_t[:pit_race].eq('White'),
+        },
+        black: {
+          title: 'Black or African-American',
+          query: a_t[:pit_race].eq('BlackAfAmerican'),
+        },
+        asian: {
+          title: 'Asian',
+          query: a_t[:pit_race].eq('Asian'),
+        },
+        native_ak: {
+          title: 'American Indian or Alaska Native',
+          query: a_t[:pit_race].eq('AmIndAKNative'),
+        },
+        native_pi: {
+          title: 'Native Hawaiian or Other Pacific Islander',
+          query: a_t[:pit_race].eq('NativeHIPacific'),
+        },
+        multi_racial: {
+          title: 'Multiple Races',
+          query: a_t[:pit_race].eq('MultiRacial'),
+        },
+        chronic_households: {
+          title: 'Chronically Homeless: Total number of households',
+          query: a_t[:chronically_homeless].eq(true).and(hoh_clause),
+        },
+        chronic_clients: {
+          title: 'Chronically Homeless: Total number of persons',
+          query: a_t[:chronically_homeless].eq(true),
+        },
+        adults_with_mental_illness: {
+          title: 'Adults with a Serious Mental Illness',
+          query: a_t[:mental_illness].eq(true),
+        },
+        adults_with_mental_illness_indefinite: {
+          title: 'Adults with indefinite and impairing Serious Mental Illness',
+          query: a_t[:mental_illness_indefinite_impairing].eq(true),
+        },
+        adults_with_substance_use: {
+          title: 'Adults with a Substance Use Disorder',
+          query: a_t[:substance_use].eq(true),
+        },
+        adults_with_substance_use_indefinite: {
+          title: 'Adults with indefinite and impairing Substance Use Disorder',
+          query: a_t[:substance_use_indefinite_impairing].eq(true),
+        },
+        adults_with_hiv: {
+          title: 'Adults with HIV/AIDS',
+          query: a_t[:hiv_aids].eq(true),
+        },
+        adults_with_hiv_indefinite: {
+          title: 'Adults with indefinite and impairing HIV/AIDS',
+          query: a_t[:hiv_aids_indefinite_impairing].eq(true),
+        },
+        adult_dv_survivors: {
+          title: 'Adult Survivors of Domestic Violence (optional)',
+          query: a_t[:domestic_violence].eq(true),
+        },
+        adult_dv_survivors_currently_fleeing: {
+          title: 'Adult Survivors of Domestic Violence (optional) Currently Fleeing',
+          query: a_t[:domestic_violence_currently_fleeing].eq(true),
+        },
       }
     end
 
-    private def populated?
-      @report.report_cells.joins(:universe_members).exists?
+    private def row_labels
+      rows.map do |key|
+        sub_calculations[key][:title]
+      end
+    end
+
+    private def populate_table(table_name, metadata)
+      @report.answer(question: table_name).update(metadata: metadata)
+      project_types.each.with_index do |project_clause, column_num|
+        rows.each.with_index do |key, row_num|
+          cell = "#{(column_num + 2).to_csv_column}#{row_num + 2}"
+          calc = sub_calculations[key]
+          members = universe.members.where(project_clause).where(calc[:query])
+          answer = @report.answer(question: table_name, cell: cell)
+          answer.add_members(members)
+          # puts "Added: #{members.count} to: #{cell} for: #{calc[:title]} #{universe.members.where(project_clause).where(calc[:query]).to_sql}\n\n"
+          answer.update(summary: members.count)
+        end
+      end
     end
 
     private def a_t
       @a_t ||= HudPit::Fy2022::HicClient.arel_table
+    end
+
+    private def project_type_es_clause
+      a_t[:project_type].eq(1)
+    end
+
+    private def project_type_th_clause
+      a_t[:project_type].eq(2)
+    end
+
+    private def project_type_so_clause
+      a_t[:project_type].eq(4)
+    end
+
+    private def project_type_sh_clause
+      a_t[:project_type].eq(8)
     end
   end
 end
