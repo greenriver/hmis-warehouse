@@ -46,21 +46,23 @@ module Health
     end
 
     def cha_reviewed?(patient_id)
-      # JOIN most_recent_assessments ON comprehensive_health_assessments.id = most_recent_assessments.current_id
-      mra_t = ArelTable.new(:most_recent_assessments)
-      join = h_cha_t.join(mra_t).on(h_cha_t[:id].eq(mra_t[:current_id]))
+      @patients_with_currently_reviewed_chas ||= begin
+        # JOIN most_recent_assessments ON comprehensive_health_assessments.id = most_recent_assessments.current_id
+        mra_t = ArelTable.new(:most_recent_assessments)
+        join = h_cha_t.join(mra_t).on(h_cha_t[:id].eq(mra_t[:current_id]))
 
-      @patients_with_currently_reviewed_chas ||= Health::ComprehensiveHealthAssessment.
-        with(
-          most_recent_assessments:
-            Health::ComprehensiveHealthAssessment.
-              distinct.
-              define_window(:patient_by_update).partition_by(:patient_id, order_by: { updated_at: :desc }).
-              select_window(:first_value, :id, over: :patient_by_update, as: :current_id),
-        ).
-        joins(join.join_sources).
-        where.not(reviewed_by_id: nil).
-        pluck(:patient_id)
+        Health::ComprehensiveHealthAssessment.
+          with(
+            most_recent_assessments:
+              Health::ComprehensiveHealthAssessment.
+                distinct.
+                define_window(:patient_by_update).partition_by(:patient_id, order_by: { updated_at: :desc }).
+                select_window(:first_value, :id, over: :patient_by_update, as: :current_id),
+          ).
+          joins(join.join_sources).
+          where.not(reviewed_by_id: nil).
+          pluck(:patient_id)
+      end
 
       @patients_with_currently_reviewed_chas.include?(patient_id)
     end
