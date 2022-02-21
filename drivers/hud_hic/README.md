@@ -1,3 +1,3 @@
-## HudHic README
+## HUD HIC
 
-This README file should be used to explain the functionality of the driver.
+HUD Report to generate data to be entered for the HIC. As of the 2022 HIC, there are no programing specs, but needs to generate tables in the HMIS CSV format for projects operating on a single chosen date.

@@ -89,12 +89,7 @@ module GrdaWarehouse::Hud
 
     def for_export
       # This should never happen, but does
-      self.ProjectID = if self.ProjectID.blank?
-        'Unknown'
-      else
-        project&.id
-      end
-
+      self.ProjectID ||= project&.id || 'Unknown'
       self.CoCCode = coc_code_override if coc_code_override.present?
       self.InventoryStartDate = inventory_start_date_override if inventory_start_date_override.present?
       self.InventoryEndDate = inventory_end_date_override if inventory_end_date_override.present?
