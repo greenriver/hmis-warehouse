@@ -660,12 +660,7 @@ module GrdaWarehouse::Hud
 
     def for_export
       # This should never happen, but does
-      self.OrganizationID = if self.OrganizationID.blank?
-        'Unknown'
-      else
-        organization&.id
-      end
-
+      self.OrganizationID ||= organization&.id || 'Unknown'
       self.HousingType = housing_type_override if housing_type_override.present?
       self.ContinuumProject = hud_continuum_funded if hud_continuum_funded.present?
       self.ContinuumProject = self.ContinuumProject.presence || 0
