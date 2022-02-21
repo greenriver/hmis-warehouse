@@ -1,3 +1,3 @@
-## HudPit README
+## HUD Point in Time Count (PIT)
 
-This README file should be used to explain the functionality of the driver.
+HUD Report to generate data to be entered for the PIT. As of the 2022 PIT, there are no programing specs.
