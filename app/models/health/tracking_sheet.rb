@@ -48,7 +48,7 @@ module Health
     def cha_reviewed?(patient_id)
       @patients_with_currently_reviewed_chas ||= begin
         # JOIN most_recent_assessments ON comprehensive_health_assessments.id = most_recent_assessments.current_id
-        mra_t = ArelTable.new(:most_recent_assessments)
+        mra_t = Arel::Table.new(:most_recent_assessments)
         join = h_cha_t.join(mra_t).on(h_cha_t[:id].eq(mra_t[:current_id]))
 
         Health::ComprehensiveHealthAssessment.
