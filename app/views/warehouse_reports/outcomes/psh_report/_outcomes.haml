@@ -15,7 +15,8 @@
         An
         %strong unknown exit
         is defined as an exit to an unknown destination with no subsequent return to homelessness.
-      .metric.text-center
-        #jDestinationChart.rrh__destination-chart
-        .rrh__destination-chart-legend
-        =# debug @report.destinations.map{|_, row| [row[:destination], row[:count]]}.to_json
+      .metric.d-flex
+        .ml-auto.mr-auto
+          #jDestinationChart.rrh__destination-chart
+          .rrh__destination-chart-legend
+          =# debug @report.destinations.map{|_, row| [row[:destination], row[:count]]}.to_json

@@ -31,6 +31,8 @@ namespace :maintenance do
       bucket: bucket,
       key: key,
       body: premailer.to_inline_css,
+      content_disposition: 'inline',
+      content_type: 'text/html',
     )
     if resp.etag
       puts 'Successfully uploaded maintenance file to s3'
