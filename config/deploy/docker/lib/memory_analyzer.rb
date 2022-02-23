@@ -247,7 +247,7 @@ class MemoryAnalyzer
       vals = resp.datapoints.map(&:average)
       len = vals.length
       mean = vals.sum.to_f / len
-      stddev = Math.sqrt(vals.inject(0.0) { |s,x| s += (x - mean)**2 } / len)
+      stddev = Math.sqrt(vals.inject(0.0) { |s,x| s + (x - mean)**2 } / len)
 
       resp = get.call(DAY)
 

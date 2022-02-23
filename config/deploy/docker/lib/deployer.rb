@@ -250,12 +250,11 @@ class Deployer
       return
     elsif images.count > 2
       raise "More than two images found during latest-* check, something is wrong."
-      return
     elsif images.count < 1
       raise "No images matching tag #{image_tag} found during latest-* check, something is wrong."
     end
 
-    image = images.find { |image| image.image_id.image_tag == image_tag }
+    image = images.find { |i| i.image_id.image_tag == image_tag }
     manifest = image.image_manifest
 
     if manifest.nil?

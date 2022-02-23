@@ -8,7 +8,7 @@ require 'aws-sdk-ec2'
 require 'aws-sdk-cloudwatchevents'
 require 'aws-sdk-cloudwatch'
 require 'aws-sdk-cloudwatchlogs'
-require "active_support"
+require 'active_support'
 
 module AwsSdkHelpers
   extend ActiveSupport::Concern
@@ -19,11 +19,11 @@ module AwsSdkHelpers
     define_singleton_method(:ecr) { Aws::ECR::Client.new }
     define_singleton_method(:ecs) { Aws::ECS::Client.new }
     define_singleton_method(:secretsmanager) { Aws::SecretsManager::Client.new }
-    define_singleton_method(:autoscaling) { Aws::AutoScaling::Client.new}
-    define_singleton_method(:ec2) { Aws::EC2::Client.new}
+    define_singleton_method(:autoscaling) { Aws::AutoScaling::Client.new }
+    define_singleton_method(:ec2) { Aws::EC2::Client.new }
     define_singleton_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
-    define_singleton_method(:cw)  { Aws::CloudWatch::Client.new }
-    define_singleton_method(:cwl)  { Aws::CloudWatchLogs::Client.new }
+    define_singleton_method(:cw) { Aws::CloudWatch::Client.new }
+    define_singleton_method(:cwl) { Aws::CloudWatchLogs::Client.new }
 
     define_method(:iam)              { AwsSdkHelpers::ClientMethods.iam }
     define_method(:elbv2)            { AwsSdkHelpers::ClientMethods.elbv2 }
@@ -43,6 +43,7 @@ module AwsSdkHelpers
     def self.cluster_name
       ENV.fetch('CLUSTER_NAME', 'openpath')
     end
+
     def _cluster_name
       AwsSdkHelpers::Helpers.cluster_name
     end
@@ -52,7 +53,7 @@ module AwsSdkHelpers
       capacity_provider_names = AwsSdkHelpers::ClientMethods.ecs.describe_clusters(clusters: [cluster]).clusters.first.capacity_providers
       AwsSdkHelpers::ClientMethods.ecs.describe_capacity_providers(capacity_providers: capacity_provider_names).capacity_providers.each do |capacity_provider|
         asg_name = capacity_provider.auto_scaling_group_provider.auto_scaling_group_arn.split('/').last
-        asg = AwsSdkHelpers::ClientMethods.autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: [ asg_name ]).auto_scaling_groups.first
+        asg = AwsSdkHelpers::ClientMethods.autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: [asg_name]).auto_scaling_groups.first
 
         launch_template_id = asg.mixed_instances_policy.launch_template.launch_template_specification.launch_template_id
         launch_template_versions = AwsSdkHelpers::ClientMethods.ec2.describe_launch_template_versions(launch_template_id: launch_template_id)
@@ -61,11 +62,12 @@ module AwsSdkHelpers
 
         r[capacity_provider.name] = {
           name: capacity_provider.name,
-          ami_id: ami_id
+          ami_id: ami_id,
         }
       end
       return r
     end
+
     def _capacity_providers(cluster = nil)
       cluster ||= _cluster_name
       @capacity_providers ||= AwsSdkHelpers::Helpers.capacity_providers(cluster)
@@ -76,53 +78,54 @@ module AwsSdkHelpers
       payload = {
         filters: [
           {
-            name: "tag:ecs",
-            values: ["true"],
+            name: 'tag:ecs',
+            values: ['true'],
           },
           {
-            name: "tag:Cluster",
+            name: 'tag:Cluster',
             values: [cluster_name],
           },
           {
-            name: "tag:capacity-provider.name",
-            values: [capacity_provider_name]
+            name: 'tag:capacity-provider.name',
+            values: [capacity_provider_name],
           },
           {
-            name: "image-id",
-            values: [ami_id]
-          }
-        ]
+            name: 'image-id',
+            values: [ami_id],
+          },
+        ],
       }
       matching_instances = ClientMethods.ec2.describe_instances(payload)
 
-      if matching_instances.reservations.count > 0 && !ami_id.empty?
-        [
-          {
-            expression: "attribute:ecs.ami-id == #{ami_id}",
-            type: 'memberOf'
-          },
-        ]
-      end
+      return unless matching_instances.reservations.count.positive? && !ami_id.empty?
+
+      [
+        {
+          expression: "attribute:ecs.ami-id == #{ami_id}",
+          type: 'memberOf',
+        },
+      ]
     end
+
     def _default_placement_constraints(capacity_provider_name: nil, ami_id: nil)
       capacity_provider_name ||= _capacity_providers.keys.first
       ami_id                 ||= _capacity_providers[capacity_provider_name][:ami_id]
 
-      AwsSdkHelpers::Helpers.default_placement_constraints({
-        ami_id: ami_id,
-        cluster_name: _cluster_name,
-        capacity_provider_name: capacity_provider_name,
-      })
+      AwsSdkHelpers::Helpers.default_placement_constraints(
+        {
+          ami_id: ami_id,
+          cluster_name: _cluster_name,
+          capacity_provider_name: capacity_provider_name,
+        },
+      )
     end
 
-
     def _spot_capacity_provider_name
-      _capacity_providers.find { |_k,v| v[:name].match(/spt-v2/) }[1][:name]
+      _capacity_providers.find { |_k, v| v[:name].match(/spt-v2/) }[1][:name]
     end
 
     def _on_demand_capacity_provider_name
-      _capacity_providers.find { |k,v| v[:name].match(/ondemand-v2/) }[1][:name]
+      _capacity_providers.find { |_k, v| v[:name].match(/ondemand-v2/) }[1][:name]
     end
-
   end
 end

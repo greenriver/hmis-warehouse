@@ -467,10 +467,12 @@ class RollOut
     begin
       ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 5, delay: 5 })
     rescue Aws::Waiters::Errors::TooManyAttemptsError
+      byebug # rubocop:disable Lint/Debugger
     end
     begin
       ecs.wait_until(:tasks_stopped, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 2, delay: 5 })
     rescue Aws::Waiters::Errors::TooManyAttemptsError
+      byebug # rubocop:disable Lint/Debugger
     end
 
     results = ecs.describe_tasks(cluster: cluster, tasks: [task_arn])
@@ -597,9 +599,9 @@ class RollOut
         puts "[TASK] #{event.message} #{target_group_name}"
         if event.message.match?(/---DONE---/)
           self.last_task_completed = true
-          return
+          break
         elsif event.message.match?(/rake aborted|an error has occurred/i)
-          return
+          break
         end
       end
 

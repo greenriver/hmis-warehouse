@@ -55,8 +55,8 @@ class ScheduledTask
         target_ids =
           cloudwatchevents.list_targets_by_rule(
             rule: rule.name
-          ).flat_map do |set|
-            set.targets.map(&:id)
+          ).flat_map do |s|
+            s.targets.map(&:id)
           end
 
         if target_ids.length > 0
