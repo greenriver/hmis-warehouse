@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudDataQualityReport::Generators::Fy2021
+module HudDataQualityReport::Generators::Fy2022
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
       'FY 2022'
@@ -24,13 +24,13 @@ module HudDataQualityReport::Generators::Fy2021
 
     def self.questions
       [
-        HudDataQualityReport::Generators::Fy2021::QuestionOne,
-        HudDataQualityReport::Generators::Fy2021::QuestionTwo,
-        HudDataQualityReport::Generators::Fy2021::QuestionThree,
-        HudDataQualityReport::Generators::Fy2021::QuestionFour,
-        HudDataQualityReport::Generators::Fy2021::QuestionFive,
-        HudDataQualityReport::Generators::Fy2021::QuestionSix,
-        HudDataQualityReport::Generators::Fy2021::QuestionSeven,
+        HudDataQualityReport::Generators::Fy2022::QuestionOne,
+        HudDataQualityReport::Generators::Fy2022::QuestionTwo,
+        HudDataQualityReport::Generators::Fy2022::QuestionThree,
+        HudDataQualityReport::Generators::Fy2022::QuestionFour,
+        HudDataQualityReport::Generators::Fy2022::QuestionFive,
+        HudDataQualityReport::Generators::Fy2022::QuestionSix,
+        HudDataQualityReport::Generators::Fy2022::QuestionSeven,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudDataQualityReport::Generators::Fy2021
+module HudDataQualityReport::Generators::Fy2022
   class QuestionTwo < Base
     include ArelHelper
 
