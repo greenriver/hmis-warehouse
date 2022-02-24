@@ -599,7 +599,7 @@ class RollOut
       (Time.now.utc.to_i - start_time.utc.to_i) < 60 * 5
     end
 
-    while resp.events.length.positive || too_soon.call
+    while resp.events.length.positive? || too_soon.call
       resp.events.each do |event|
         puts "[TASK] #{event.message} #{target_group_name}"
         if event.message.match?(/---DONE---/)
