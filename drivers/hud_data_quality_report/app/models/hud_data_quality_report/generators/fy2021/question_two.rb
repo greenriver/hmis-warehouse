@@ -115,7 +115,7 @@ module HudDataQualityReport::Generators::Fy2021
       answer = @report.answer(question: table_name, cell: 'C3')
       m_members = universe.members.where(
         a_t[:ssn].eq(nil).and(a_t[:ssn_quality].not_in([8, 9])).
-          or(a_t[:ssn_quality].eq(99)), # FIXME: This makes the 11/1 datalab testkit pass, but doesn't match the spec
+          or(a_t[:ssn_quality].eq(99)),
       )
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
@@ -155,7 +155,8 @@ module HudDataQualityReport::Generators::Fy2021
       # DOB missing
       answer = @report.answer(question: table_name, cell: 'C4')
       m_members = universe.members.where(
-        a_t[:dob].eq(nil).and(a_t[:dob_quality].not_in([8, 9])),
+        a_t[:dob].eq(nil).and(a_t[:dob_quality].not_in([8, 9])).
+          or(a_t[:dob_quality].eq(99)),
       )
       answer.add_members(m_members)
       answer.update(summary: m_members.count)

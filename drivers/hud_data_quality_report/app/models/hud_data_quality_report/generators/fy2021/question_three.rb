@@ -86,6 +86,7 @@ module HudDataQualityReport::Generators::Fy2021
 
       members = universe.members.where(
         a_t[:relationship_to_hoh].not_in((1..5).to_a).
+          or(a_t[:relationship_to_hoh].eq(nil)).
           or(a_t[:household_id].in(households_with_multiple_hohs)).
           or(a_t[:household_id].in(households_with_no_hoh)),
       )

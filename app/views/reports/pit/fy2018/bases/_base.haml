@@ -10,7 +10,7 @@
         .col-sm-4
           = f.input :chronic_date, collection: GrdaWarehouse::HudChronic.distinct.order(date: :desc).pluck(:date), input_html: {name: 'report_result[options][chronic_date]', value: default_chronic_date}, as: :select_two
         .col-sm-4
-          = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user).pluck(:CoCCode).uniq, include_blank: false, input_html: {name: 'report_result[options][coc_codes][]', multiple: :multiple}, as: :select_two
+          = f.input :coc_codes, collection: GrdaWarehouse::Lookups::CocCode.options_for_select(user: current_user), include_blank: false, input_html: {name: 'report_result[options][coc_codes][]', multiple: :multiple}, as: :select_two
       %h2 Project Limits
       .row.mb-2
         .col-sm-6

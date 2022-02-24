@@ -109,7 +109,7 @@ module HudApr::Generators::Shared::Fy2021
       answer = @report.answer(question: table_name, cell: 'C3')
       m_members = universe.members.where(
         a_t[:ssn].eq(nil).and(a_t[:ssn_quality].not_in([8, 9])).
-          or(a_t[:ssn_quality].eq(99)), # FIXME: This makes the 11/1 datalab testkit pass, but doesn't match the spec
+          or(a_t[:ssn_quality].eq(99)),
       )
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
@@ -307,6 +307,7 @@ module HudApr::Generators::Shared::Fy2021
 
       members = universe.members.where(
         a_t[:relationship_to_hoh].not_in((1..5).to_a).
+          or(a_t[:relationship_to_hoh].eq(nil)).
           or(a_t[:household_id].in(households_with_multiple_hohs)).
           or(a_t[:household_id].in(households_with_no_hoh)),
       )
@@ -524,7 +525,7 @@ module HudApr::Generators::Shared::Fy2021
       # times homeless dk/r/missing
       answer = @report.answer(question: table_name, cell: 'F2')
       times_homeless_members = es_sh_so.where(
-        a_t[:times_homeless].in([8, 9]).
+        a_t[:times_homeless].in([8, 9, 99]).
           or(a_t[:times_homeless].eq(nil)),
       )
       answer.add_members(times_homeless_members)
@@ -533,7 +534,7 @@ module HudApr::Generators::Shared::Fy2021
       # months homeless dk/r/missing
       answer = @report.answer(question: table_name, cell: 'G2')
       months_homeless_members = es_sh_so.where(
-        a_t[:months_homeless].in([8, 9]).
+        a_t[:months_homeless].in([8, 9, 99]).
           or(a_t[:months_homeless].eq(nil)),
       )
       answer.add_members(months_homeless_members)
@@ -563,7 +564,7 @@ module HudApr::Generators::Shared::Fy2021
         {
           cell: 'C3',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
@@ -586,7 +587,7 @@ module HudApr::Generators::Shared::Fy2021
         {
           cell: 'F3',
           clause: residence_restriction.and(
-            a_t[:times_homeless].in([8, 9]).
+            a_t[:times_homeless].in([8, 9, 99]).
             or(a_t[:times_homeless].eq(nil)),
           ),
           include_in_percent: true,
@@ -595,7 +596,7 @@ module HudApr::Generators::Shared::Fy2021
         {
           cell: 'G3',
           clause: residence_restriction.and(
-            a_t[:months_homeless].in([8, 9]).
+            a_t[:months_homeless].in([8, 9, 99]).
             or(a_t[:months_homeless].eq(nil)),
           ),
           include_in_percent: true,
@@ -633,7 +634,7 @@ module HudApr::Generators::Shared::Fy2021
         {
           cell: 'C4',
           clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-            and(a_t[:prior_length_of_stay].in([8, 9]).
+            and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
@@ -657,7 +658,7 @@ module HudApr::Generators::Shared::Fy2021
           cell: 'F4',
           clause: residence_restriction.
             and(
-              a_t[:times_homeless].in([8, 9]).
+              a_t[:times_homeless].in([8, 9, 99]).
               or(a_t[:times_homeless].eq(nil)),
             ),
           include_in_percent: true,
@@ -667,7 +668,7 @@ module HudApr::Generators::Shared::Fy2021
           cell: 'G4',
           clause: residence_restriction.
             and(
-              a_t[:months_homeless].in([8, 9]).
+              a_t[:months_homeless].in([8, 9, 99]).
               or(a_t[:months_homeless].eq(nil)),
             ),
           include_in_percent: true,
