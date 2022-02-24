@@ -101,7 +101,9 @@ module HudPathReport::Generators::Fy2021
         when :total
           members = universe.members.where(active_and_enrolled_clients)
         else
-          members = universe.members.where(active_and_enrolled_clients).where(a_t[:destination].eq(destination))
+          query = a_t[:destination].eq(destination)
+          query = query.or(a_t[:destination].eq(nil)) if destination == 99 # Also recognize blank as not collected
+          members = universe.members.where(active_and_enrolled_clients).where(query)
         end
         answer.add_members(members)
         sum_members += members
