@@ -146,10 +146,12 @@ module AwsSdkHelpers
     end
 
     def _spot_capacity_provider_name
+      target_group_name ||= self.respond_to?(:target_group_name) ? self.target_group_name : ENV.fetch('TARGET_GROUP_NAME', '') # rubocop:disable Style/RedundantSelf
       @_spot_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name(target_group_name, 'Spot')
     end
 
     def _on_demand_capacity_provider_name
+      target_group_name ||= self.respond_to?(:target_group_name) ? self.target_group_name : ENV.fetch('TARGET_GROUP_NAME', '') # rubocop:disable Style/RedundantSelf
       @_on_demand_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name(target_group_name, 'OnDemand')
     end
   end
