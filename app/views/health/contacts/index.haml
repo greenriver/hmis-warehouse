@@ -1,4 +1,4 @@
-- title = 'Consolidated Contacts'
+- title = 'Consolidated Client Contacts'
 = content_for(:title, title)
 
 = content_for :crumbs do
@@ -15,17 +15,13 @@
     %table.table.table-sm
       %thead
         %tr
-          %th Name
-          %th Category
           %th Description
           %th Phone
           %th Email
           %th Collection Date
       %tbody
-        - @patient.consolidated_contacts.order(name: :asc).each do |contact|
+        - @contacts.each do |contact|
           %tr
-            %td= contact.name
-            %td= contact.category
             %td= contact.description
             %td= contact.phone
             %td= contact.email

@@ -8,6 +8,9 @@ module Health
   class ContactsController < IndividualPatientController
     def index
       @patient = Health::Patient.accessible_by_user(current_user).find_by(client_id: params[:client_id].to_i)
+      @contacts = @patient.
+        client_contacts.
+        order(collected_on: :desc)
     end
   end
 end
