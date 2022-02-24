@@ -8,6 +8,7 @@ require 'aws-sdk-ec2'
 require 'aws-sdk-cloudwatchevents'
 require 'aws-sdk-cloudwatch'
 require 'aws-sdk-cloudwatchlogs'
+require 'aws-sdk-ssm'
 require 'active_support'
 
 module AwsSdkHelpers
@@ -24,6 +25,7 @@ module AwsSdkHelpers
     define_singleton_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
     define_singleton_method(:cw) { Aws::CloudWatch::Client.new }
     define_singleton_method(:cwl) { Aws::CloudWatchLogs::Client.new }
+    define_singleton_method(:ssm) { Aws::SSM::Client.new }
 
     define_method(:iam)              { AwsSdkHelpers::ClientMethods.iam }
     define_method(:elbv2)            { AwsSdkHelpers::ClientMethods.elbv2 }
@@ -35,6 +37,7 @@ module AwsSdkHelpers
     define_method(:cloudwatchevents) { AwsSdkHelpers::ClientMethods.cloudwatchevents }
     define_method(:cw)               { AwsSdkHelpers::ClientMethods.cw }
     define_method(:cwl)              { AwsSdkHelpers::ClientMethods.cwl }
+    define_method(:ssm)              { AwsSdkHelpers::ClientMethods.ssm }
   end
 
   module Helpers
@@ -120,12 +123,34 @@ module AwsSdkHelpers
       )
     end
 
+    def self.get_capacity_provider_name(namespace = '', which = 'Spot')
+      default_path = "/Default/CapacityProviders/#{which}"
+      namespaced_path = "/#{namespace}/CapacityProviders/#{which}"
+
+      params = AwsSdkHelpers::ClientMethods.ssm.get_parameters(
+        {
+          names: [
+            default_path,
+            namespaced_path,
+          ],
+        },
+      )
+
+      if params.parameters.count == 2
+        params.parameters.find { |p| p[:name] == namespaced_path }[:value]
+      elsif params.parameters.count == 1
+        params.parameters[0][:value]
+      else
+        raise "No capacity provider name found: #{which}"
+      end
+    end
+
     def _spot_capacity_provider_name
-      _capacity_providers.find { |_k, v| v[:name].match(/spt-v2/) }[1][:name]
+      @_spot_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name(target_group_name, 'Spot')
     end
 
     def _on_demand_capacity_provider_name
-      _capacity_providers.find { |_k, v| v[:name].match(/ondemand-v2/) }[1][:name]
+      @_on_demand_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name(target_group_name, 'OnDemand')
     end
   end
 end

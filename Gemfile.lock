@@ -194,6 +194,9 @@ GEM
     aws-sdk-sqs (1.45.0)
       aws-sdk-core (~> 3, >= 3.121.2)
       aws-sigv4 (~> 1.1)
+    aws-sdk-ssm (1.128.0)
+      aws-sdk-core (~> 3, >= 3.125.0)
+      aws-sigv4 (~> 1.1)
     aws-sessionstore-dynamodb (2.0.1)
       aws-sdk-dynamodb (~> 1)
       rack (~> 2)
@@ -925,6 +928,7 @@ DEPENDENCIES
   aws-sdk-secretsmanager (~> 1)
   aws-sdk-ses (~> 1)
   aws-sdk-sns
+  aws-sdk-ssm (~> 1)
   bcrypt
   bootsnap
   bootstrap (~> 4.3)
