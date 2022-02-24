@@ -463,13 +463,13 @@ class RollOut
     puts "[INFO] Waiting on the task to start and finish quickly to catch resource-related errors #{target_group_name}"
     begin
       ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 5, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError
-      byebug # rubocop:disable Lint/Debugger
+    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
+      puts "[WARN] #{e.message}"
     end
     begin
       ecs.wait_until(:tasks_stopped, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 2, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError
-      byebug # rubocop:disable Lint/Debugger
+    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
+      puts "[WARN] #{e.message}"
     end
 
     results = ecs.describe_tasks(cluster: cluster, tasks: [task_arn])
