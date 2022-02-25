@@ -2,10 +2,9 @@
 - content_for :title, title
 = render '/warehouse_reports/breadcrumbs', tab: 'operational'
 
-%h1
-  = title
-  %small
-    Clients who are currently enrolled in a project in the selected project types who have provided an affirmative answer to the selected disability types.
+%h1= title
+%p
+  Clients who are currently enrolled in a project in the selected project types who have provided an affirmative answer to the selected disability types.
 %hr
 
 .warehouse-reports__disabled
