@@ -15,7 +15,7 @@ module HudDataQualityReport::Fy2020
     # Hide ID, move client_id, and name to the front
     def self.detail_headers
       special = ['client_id', 'first_name', 'last_name']
-      remove = ['id', 'created_at', 'updated_at']
+      remove = ['id', 'created_at', 'updated_at', 'gender']
       cols = special + (column_names - special - remove)
       cols.map do |h|
         [h, h.humanize]

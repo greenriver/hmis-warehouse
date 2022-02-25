@@ -21,6 +21,7 @@ x-app: &app
     EDITOR: vi
     CHROMEDRIVER_VERSION: 79.0.3945.36
     GROVER_NO_SANDBOX: 'true'
+    BUNDLE_FORCE_RUBY_PLATFORM: true
   env_file: .env.local
   tmpfs:
     - /tmp

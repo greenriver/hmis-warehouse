@@ -8,7 +8,7 @@ RSpec.configure do
   RSpec.configuration.fixpoints_path = 'drivers/hud_data_quality_report/spec/fixpoints'
 end
 
-RSpec.shared_context 'dq context FY2021', shared_context: :metadata do
+RSpec.shared_context 'dq context FY2022', shared_context: :metadata do
   def shared_filter
     {
       start: Date.parse('2019-01-01'),
@@ -47,12 +47,12 @@ RSpec.shared_context 'dq context FY2021', shared_context: :metadata do
   end
 
   def run(filter, question_name)
-    generator = HudDataQualityReport::Generators::Fy2021::Generator
+    generator = HudDataQualityReport::Generators::Fy2022::Generator
     generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: [question_name])).run!(email: false)
   end
 
   def default_setup_path
-    'drivers/hud_data_quality_report/spec/fixtures/files/fy2021/default'
+    'drivers/hud_data_quality_report/spec/fixtures/files/fy2022/default'
   end
 
   def report_result
@@ -63,14 +63,14 @@ RSpec.shared_context 'dq context FY2021', shared_context: :metadata do
     warehouse = GrdaWarehouseBase.connection
 
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    if Fixpoint.exists? :hud_hmis_export_2021_app
+    if Fixpoint.exists? :hud_hmis_export_2022_app
       GrdaWarehouse::Utility.clear!
-      restore_fixpoint :hud_hmis_export_2021_hud_dq_app
-      restore_fixpoint :hud_hmis_export_2021_hud_dq_warehouse, connection: warehouse
+      restore_fixpoint :hud_hmis_export_2022_hud_dq_app
+      restore_fixpoint :hud_hmis_export_2022_hud_dq_warehouse, connection: warehouse
     else
       setup(default_setup_path)
-      store_fixpoint :hud_hmis_export_2021_hud_dq_app
-      store_fixpoint :hud_hmis_export_2021_hud_dq_warehouse, connection: warehouse
+      store_fixpoint :hud_hmis_export_2022_hud_dq_app
+      store_fixpoint :hud_hmis_export_2022_hud_dq_warehouse, connection: warehouse
     end
   end
 
@@ -86,5 +86,5 @@ RSpec.shared_context 'dq context FY2021', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'dq context FY2021', include_shared: true
+  rspec.include_context 'dq context FY2022', include_shared: true
 end

@@ -7,12 +7,12 @@
 require 'rails_helper'
 require_relative 'dq_context'
 
-RSpec.describe HudDataQualityReport::Generators::Fy2021::QuestionSeven, type: :model do
-  include_context 'dq context FY2021'
+RSpec.describe HudDataQualityReport::Generators::Fy2022::QuestionSeven, type: :model do
+  include_context 'dq context FY2022'
 
   before(:all) do
     default_setup
-    run(night_by_night_shelter, HudDataQualityReport::Generators::Fy2021::QuestionSeven::QUESTION_NUMBER)
+    run(night_by_night_shelter, HudDataQualityReport::Generators::Fy2022::QuestionSeven::QUESTION_NUMBER)
   end
 
   after(:all) do

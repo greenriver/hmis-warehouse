@@ -7,12 +7,12 @@
 require 'rails_helper'
 require_relative 'dq_context'
 
-RSpec.describe HudDataQualityReport::Generators::Fy2021::QuestionFive, type: :model do
-  include_context 'dq context FY2021'
+RSpec.describe HudDataQualityReport::Generators::Fy2022::QuestionFive, type: :model do
+  include_context 'dq context FY2022'
   describe 'with default filters' do
     before(:all) do
       default_setup
-      run(default_filter, HudDataQualityReport::Generators::Fy2021::QuestionFive::QUESTION_NUMBER)
+      run(default_filter, HudDataQualityReport::Generators::Fy2022::QuestionFive::QUESTION_NUMBER)
     end
 
     after(:all) do
@@ -33,7 +33,7 @@ RSpec.describe HudDataQualityReport::Generators::Fy2021::QuestionFive, type: :mo
   describe 'When filtering with a specific race' do
     before(:all) do
       default_setup
-      run(race_filter, HudDataQualityReport::Generators::Fy2021::QuestionFive::QUESTION_NUMBER)
+      run(race_filter, HudDataQualityReport::Generators::Fy2022::QuestionFive::QUESTION_NUMBER)
     end
     it 'counts people served' do
       expect(report_result.answer(question: 'Q5', cell: 'B5').summary).to eq(1)

@@ -880,6 +880,7 @@ GEM
 
 PLATFORMS
   aarch64-linux
+  ruby
   x86_64-darwin-20
   x86_64-linux-musl
 
@@ -1074,4 +1075,4 @@ DEPENDENCIES
   with_advisory_lock
 
 BUNDLED WITH
-   2.2.30
+   2.3.8

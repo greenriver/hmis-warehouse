@@ -30,7 +30,7 @@ RUN apk add --no-cache \
   curl libcurl curl-dev \
   imagemagick \
   libmagic file-dev file \
-  build-base libxml2-dev libxslt-dev postgresql-dev \
+  build-base libxml2-dev libxslt-dev postgresql-dev gcompat \
   wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl \
   ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
   chromium nss freetype freetype-dev harfbuzz ca-certificates \
