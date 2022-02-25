@@ -16,23 +16,6 @@ module AdultsWithChildrenYouthHohSubPop::GrdaWarehouse
             and(she_t[:other_clients_under_18].gt(0)),
         )
       end
-
-      scope :family, -> do
-        adults_with_children_youth_hoh
-      end
-
-      scope :family_parents, -> do
-        adults_with_children_youth_hoh.heads_of_households
-      end
-
-      scope :parenting_youth, -> do
-        family_parents.where(age: 18..24)
-      end
-
-      scope :youth_families, -> do
-        adults_with_children_youth_hoh.where(other_clients_over_25: 0).
-          where(age: 0..24) # remove unknown aged clients
-      end
     end
   end
 end

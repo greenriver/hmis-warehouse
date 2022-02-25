@@ -29,7 +29,7 @@ SubpopulationHistoryScope.add_sub_population(
   :adults_with_children_twentyfive_plus_hoh,
 )
 
-Reporting::MonthlyReports::Base.add_available_type(
-  :adults_with_children_twentyfive_plus_hoh,
-  'AdultsWithChildrenTwentyfivePlusHohSubPop::Reporting::MonthlyReports::AdultsWithChildrenTwentyfivePlusHoh',
-)
+# Reporting::MonthlyReports::Base.add_available_type(
+#   :adults_with_children_twentyfive_plus_hoh,
+#   'AdultsWithChildrenTwentyfivePlusHohSubPop::Reporting::MonthlyReports::AdultsWithChildrenTwentyfivePlusHoh',
+# )
