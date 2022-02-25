@@ -6,6 +6,9 @@ class App.WarehouseReports.Rrh.Destination
 
   plot: =>
     @chart = bb.generate
+      size:
+        width: 500
+        height: 500
       data:
         columns: @data.data
         type: "pie"

@@ -87,6 +87,8 @@ module PublicReports::S3Toolset
       bucket: bucket,
       key: key,
       body: html,
+      content_disposition: 'inline',
+      content_type: 'text/html',
     )
     if resp.etag
       Rails.logger.info 'Successfully uploaded report file to s3'

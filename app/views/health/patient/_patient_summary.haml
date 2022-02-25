@@ -39,8 +39,8 @@
         .ho-patient__detail
           %span Email
           = mail_to @patient.current_email
-      -#%h5 Contacts
-      -#= render 'contact'
+      - if @patient.most_recent_contact.present?
+        = link_to 'More Info', client_health_contacts_path(@patient.client), class: 'btn btn-sm btn-secondary'
     .ho-patient__content
       %h4
         Demographics
