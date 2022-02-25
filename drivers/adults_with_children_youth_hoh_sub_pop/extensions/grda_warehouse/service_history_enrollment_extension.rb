@@ -12,11 +12,12 @@ module AdultsWithChildrenYouthHohSubPop::GrdaWarehouse
       scope :adults_with_children_youth_hoh, -> do
         where(
           household_id:
-            she_t[:age].between(18..24).
+            where(
+              she_t[:age].between(18..24).
               and(she_t[:head_of_household].eq(true)).
               and(she_t[:other_clients_under_18].gt(0)).
-              and(she_t[:household_id].not_eq(nil)).
-              select(:household_id),
+              and(she_t[:household_id].not_eq(nil)),
+            ).select(she_t[:household_id]),
         )
       end
     end
