@@ -11,9 +11,12 @@ module AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse
     included do
       scope :adults_with_children_twentyfive_plus_hoh, -> do
         where(
-          she_t[:age].gteq(25).
-            and(she_t[:head_of_household].eq(true)).
-            and(she_t[:other_clients_under_18].gt(0)),
+          household_id:
+            she_t[:age].gteq(25).
+              and(she_t[:head_of_household].eq(true)).
+              and(she_t[:other_clients_under_18].gt(0)).
+              and(she_t[:household_id].not_eq(nil)).
+              select(:household_id),
         )
       end
     end
