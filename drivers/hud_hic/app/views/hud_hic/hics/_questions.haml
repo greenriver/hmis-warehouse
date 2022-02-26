@@ -13,7 +13,7 @@
     #{@report.completed_at}
   with the following options:
 .mt-2
-  = render 'hud_reports/parameters', report: @report
+  = render 'parameters', report: @report
   - if included.any?
     %p Results included in this download will include the following:
     - included.each do |item|

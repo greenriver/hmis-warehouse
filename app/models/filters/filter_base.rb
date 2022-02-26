@@ -690,7 +690,10 @@ module Filters
 
     def describe_filter(keys = nil)
       [].tap do |descriptions|
-        for_params[:filters].each_key do |key|
+        # only show "on" if explicitly chosen
+        display_keys = for_params[:filters]
+        display_keys.delete(:on) unless keys&.include?(:on)
+        display_keys.each_key do |key|
           next if keys.present? && ! keys.include?(key)
 
           descriptions << describe(key)
@@ -704,6 +707,8 @@ module Filters
         'Report Range'
       when :end
         nil
+      when :on
+        'Date'
       when :comparison_pattern
         'Comparison Range' if includes_comparison?
       when :project_type_codes, :project_type_ids, :project_type_numbers
@@ -764,6 +769,8 @@ module Filters
         date_range_words
       when :end
         nil
+      when :on
+        on
       when :comparison_pattern
         comparison_range_words if includes_comparison?
       when :project_type_codes, :project_type_ids, :project_type_numbers
