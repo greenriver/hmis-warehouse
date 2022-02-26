@@ -1,1 +1,1 @@
-$('.jReportListing').html "<%=j render 'hud_reports/reports' %>"
+$('.jReportListing').html "<%=j render 'reports' %>"

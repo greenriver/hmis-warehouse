@@ -30,7 +30,7 @@ module HudHic::Generators::Hic::Fy2022
         first_column: 'A',
         last_column: header_row.count.to_csv_column,
         first_row: 2,
-        last_row: universe.members.count + 1,
+        last_row: universe.members.count,
       }
       @report.answer(question: question_number).update(metadata: metadata)
     end

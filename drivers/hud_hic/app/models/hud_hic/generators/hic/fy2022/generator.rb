@@ -18,6 +18,10 @@ module  HudHic::Generators::Hic::Fy2022
       'HIC'
     end
 
+    def self.file_prefix
+      "#{short_name} #{fiscal_year}"
+    end
+
     def url
       hud_reports_hic_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
