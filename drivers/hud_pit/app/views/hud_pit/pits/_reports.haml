@@ -1,0 +1,35 @@
+- if @reports.present?
+  - if @question
+    %h3 The Following Reports Include #{@question}
+  - else
+    %h3 Reports
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th
+          %th{style: 'width: 20%;'} Status
+          %th{style: 'width: 40%;'} Limits
+          %th Included Questions
+          %th Delete
+      %tbody
+        - @reports.each do |report|
+          %tr
+            %td
+              - if report.running?
+                = render 'hud_reports/spinner'
+            %td
+              = link_to_if report.completed?, report.current_status, path_for_report(report)
+              .text-muted.description Run by: #{report.user.name}
+            %td= render 'parameters', report: report
+            %td
+              - report.build_for_questions&.each do |question|
+                - if report.remaining_questions.include?(question)
+                  .btn.btn-sm.btn-secondary.btn-disabled.mb-2.ml-2{ data: { toggle: :tooltip, title: @generator.describe_table(question), html: 'true' }}
+                    = question
+                - else
+                  = link_to question, path_for_question_result(question, report: report), class: 'btn btn-secondary btn-sm mb-2 ml-2', data: { toggle: :tooltip, title: @generator.describe_table(question), html: 'true' }
+            %td
+              - unless report.running?
+                = link_to path_for_report(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this report?' }  do
+                  %i.icon-cross
