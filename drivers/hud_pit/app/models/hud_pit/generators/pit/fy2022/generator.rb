@@ -26,7 +26,7 @@ module  HudPit::Generators::Pit::Fy2022
       scope = client_source.
         distinct.
         joins(:service_history_enrollments).
-        merge(report_scope_source.ongoing(on_date: on_date))
+        merge(report_scope_source.hud_residential.ongoing(on_date: on_date))
 
       @filter = self.class.filter_class.new(
         user_id: @report.user_id,

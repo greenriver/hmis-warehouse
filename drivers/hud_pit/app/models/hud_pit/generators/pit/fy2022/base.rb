@@ -4,6 +4,20 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# PIT Notes
+#   CoCs should report on people based on where they are sleeping on the night of the count, as opposed to the program they are enrolled in.
+#    RRH + PH (don't count)
+#    RRH + ES/SO/TH/SH - do count
+#
+# Count includes sheltered and unsheltered count
+#   Count sheltered individuals who entered on or before the count date who exited after the count date (or not at all)
+#   Unsheltered may be counted on the day of or day after the count
+#
+# Youth breakdown - no one > 24
+# Parenting youth - subset of households with children if parent >= 18 <= 24 with children,
+#   or subset of children only if parent < 18
+# Unaccompanied youth - individual < 25 counted as a subset of households with only children if < 18, households without children if >= 18 <= 24
+
 module HudPit::Generators::Pit::Fy2022
   class Base < ::HudReports::QuestionBase
     include ArelHelper
@@ -13,15 +27,23 @@ module HudPit::Generators::Pit::Fy2022
     include HudReports::Households
     include HudReports::Veterans
 
+    PROJECT_TYPES = {
+      th: 2,
+      es: 1,
+      sh: 8,
+      so: 4,
+    }.freeze
+
     private def universe
       add unless populated?
 
       @universe ||= @report.universe(self.class.question_number)
     end
 
-    private def add
+    private def add # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
       @generator.client_scope.find_in_batches(batch_size: 1_000) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
+        services_by_client_id = services_on_pit_date(batch)
 
         # Pre-calculate some values
         household_types = {}
@@ -37,10 +59,20 @@ module HudPit::Generators::Pit::Fy2022
         batch.each do |client|
           # Fetch enrollments for destination client
           enrollments = enrollments_by_client_id[client.id]
+          services = services_by_client_id[client.id]
           next unless enrollments.present?
+          next unless services.any? { |s| s.homeless == false } # If the client has a PH with move-in, drop them
 
-          last_service_history_enrollment = enrollments.last
-          enrollment = last_service_history_enrollment.enrollment
+          # FIXME: instead of choosing the last enrollment, choose the one in this order:
+          # ES > SH > TH > SO (1, 8, 2, 4)
+          # if there isn't one of these, move on
+          last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:es] }
+          last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:sh] }
+          last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:th] }
+          last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:so] }
+          enrollment = last_service_history_enrollment&.enrollment
+          next unless enrollment
+
           source_client = enrollment.client
           next unless source_client
 
@@ -183,6 +215,14 @@ module HudPit::Generators::Pit::Fy2022
 
     private def populated?
       @report.report_cells.joins(universe_members: :client).exists?
+    end
+
+    def services_on_pit_date(batch)
+      GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated.
+        where(date: @generator.filter.on).
+        joins(:service_history_enrollment).
+        merge(enrollment_scope_without_preloads.where(client_id: batch.map(&:id))).
+        group_by(&:client_id)
     end
 
     private def sub_calculations

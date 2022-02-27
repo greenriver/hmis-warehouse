@@ -25,7 +25,11 @@ module HudHic::Generators::Hic::Fy2022
         batch.each do |project|
           pending_associations[project] = destination_class.from_attributes_for_hic(project)
           # Populate PITCount from actual count of unique clients on this day
-          pending_associations[project].PITCount = project.service_history_services.where(date: @generator.filter.on).distinct(:client_id).count
+          pending_associations[project].PITCount = project.service_history_services.
+            service_excluding_extrapolated.
+            where(date: @generator.filter.on).
+            distinct(:client_id).
+            count
           pending_associations[project].report_instance_id = @report.id
           pending_associations[project].data_source_id = project.data_source_id
         end

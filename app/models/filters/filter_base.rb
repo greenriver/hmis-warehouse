@@ -328,13 +328,21 @@ module Filters
     # or the most-recent PIT (third wednesday of January)
     # for simplicity, we'll just find the date in the january prior to the end date
     def pit_date
-      third_wednesday_of_end_year = third_wednesday(last.year, 1)
-      return third_wednesday_of_end_year if last > third_wednesday_of_end_year
+      self.class.pit_date(last)
+    end
 
-      third_wednesday(last.year - 1, last.month)
+    def self.pit_date(date)
+      third_wednesday_of_end_year = third_wednesday(date.year, 1)
+      return third_wednesday_of_end_year if date > third_wednesday_of_end_year
+
+      third_wednesday(date.year - 1, date.month)
     end
 
     private def third_wednesday(year, month)
+      self.class.third_wednesday(year, month)
+    end
+
+    def self.third_wednesday(year, month)
       d = Date.new(year, month, 1)
       d += 1.weeks if d.wday > 3 # if the first falls after Wednesday, move forward a week
       d -= (d.wday - 3) % 7 # ensure the first Wednesday
