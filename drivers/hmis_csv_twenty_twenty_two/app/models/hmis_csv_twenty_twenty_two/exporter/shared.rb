@@ -98,7 +98,6 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
     if row.key?(:PITCount)
       row[:PITCount] = pit_count_for(
         project_id: row[:ProjectID],
-        data_source_id: data_source_id,
         export_end_date: export.end_date,
       )
     end
@@ -290,16 +289,18 @@ module HmisCsvTwentyTwentyTwo::Exporter::Shared
     @organization_lookup[[organization_id, data_source_id]]
   end
 
-  def pit_count_for(project_id:, data_source_id:, export_end_date:)
+  def pit_count_for(project_id:, export_end_date:)
     @pit_count_for ||= begin
       most_recent_pit_date = Filters::FilterBase.pit_date(export_end_date)
       GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated.
+        joins(service_history_enrollment: :project).
         where(date: most_recent_pit_date).
-        group(:project_id, :data_source_id).
+        group(p_t[:id]).
         distinct.
-        select(:client_id)
+        select(:client_id).
+        count
     end
-    @pit_count_for[[project_id, data_source_id]]
+    @pit_count_for[project_id.to_i] || 0
   end
 
   def user_export_id(user_id, data_source_id)

@@ -500,7 +500,7 @@ class RebuildCleanHudTables < ActiveRecord::Migration[4.2]
       t.string 'OrganizationID'
       t.string 'OrganizationName'
       t.string 'OrganizationCommonName'
-      t.integer 'DateCreated'
+      # t.integer 'DateCreated'
       t.datetime 'DateCreated'
       t.datetime 'DateUpdated'
       t.string 'UserID', limit: 100
