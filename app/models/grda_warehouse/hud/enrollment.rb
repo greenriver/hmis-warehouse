@@ -376,22 +376,24 @@ module GrdaWarehouse::Hud
       return ! other_homeless
     end
 
-    def chronically_homeless_at_start?
-      chronically_homeless_at_start == :yes
+    # Accept an optional date which will be used for extending the homeless
+    # range if the project is a homeless project
+    def chronically_homeless_at_start?(date: self.EntryDate)
+      chronically_homeless_at_start(date: date) == :yes
     end
 
     # Was the client chronically homeless at the start of this enrollment?
     #
     # @return [Symbol] :yes, :no, :dk_or_r, or :missing
-    def chronically_homeless_at_start
+    def chronically_homeless_at_start(date: self.EntryDate)
       # Line 1
       return :no if is_no?(self.DisablingCondition)
       return dk_or_r_or_missing(self.DisablingCondition) if dk_or_r_or_missing(self.DisablingCondition)
 
       # Line 3
-      if Project::CHRONIC_PROJECT_TYPES.include?(project.ProjectType)
+      if Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
         # Lines 4 - 6
-        return homeless_duration_sufficient if homeless_duration_sufficient
+        return homeless_duration_sufficient(date: date) if homeless_duration_sufficient(date: date)
       end
 
       # Line 9
@@ -432,8 +434,8 @@ module GrdaWarehouse::Hud
       return :missing if [nil, 99].include?(value)
     end
 
-    def homeless_duration_sufficient
-      return :yes if self.DateToStreetESSH.present? && self.DateToStreetESSH <= self.EntryDate - 365.days
+    def homeless_duration_sufficient(date: self.EntryDate)
+      return :yes if self.DateToStreetESSH.present? && self.DateToStreetESSH <= date - 365.days
 
       @three_or_fewer_times_homeless ||= [1, 2, 3].freeze
       return :no if @three_or_fewer_times_homeless.include?(self.TimesHomelessPastThreeYears)
