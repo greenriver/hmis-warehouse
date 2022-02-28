@@ -49,6 +49,8 @@ module HudPit::Generators::Pit::Fy2022
         household_types = {}
         enrollments_by_client_id.each do |_, enrollments|
           last_service_history_enrollment = enrollment_from(enrollments)
+          next unless last_service_history_enrollment
+
           hh_id = get_hh_id(last_service_history_enrollment)
           household_types[hh_id] = household_makeup(hh_id, @generator.filter.on)
         end
