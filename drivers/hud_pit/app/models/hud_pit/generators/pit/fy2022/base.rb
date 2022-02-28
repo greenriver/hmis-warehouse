@@ -40,7 +40,7 @@ module HudPit::Generators::Pit::Fy2022
       @universe ||= @report.universe(self.class.question_number)
     end
 
-    private def add # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
+    private def add
       @generator.client_scope.find_in_batches(batch_size: 1_000) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
         services_by_client_id = services_on_pit_date(batch)
@@ -48,7 +48,7 @@ module HudPit::Generators::Pit::Fy2022
         # Pre-calculate some values
         household_types = {}
         enrollments_by_client_id.each do |_, enrollments|
-          last_service_history_enrollment = enrollments.last
+          last_service_history_enrollment = enrollment_from(enrollments)
           hh_id = get_hh_id(last_service_history_enrollment)
           household_types[hh_id] = household_makeup(hh_id, @generator.filter.on)
         end
@@ -64,14 +64,7 @@ module HudPit::Generators::Pit::Fy2022
           # If the client has a PH with move-in, drop them
           next if services.any? { |s| s.homeless == false }
 
-          # FIXME: instead of choosing the last enrollment, choose the one in this order:
-          # ES > SH > TH > SO (1, 8, 2, 4)
-          # if there isn't one of these, move on
-          enrollments.reverse! # reverse so we get the most-recent enrollment
-          last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:es] }
-          last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:sh] }
-          last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:th] }
-          last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:so] }
+          last_service_history_enrollment = enrollment_from(enrollments)
           enrollment = last_service_history_enrollment&.enrollment
           next unless enrollment
 
@@ -176,6 +169,18 @@ module HudPit::Generators::Pit::Fy2022
           universe_cell.add_universe_members(generator.filter_pending_associations(pending_associations))
         end
       end
+    end
+
+    private def enrollment_from(enrollments)
+      # Instead of the usual choosing the last enrollment, choose the one in this order:
+      # ES > SH > TH > SO (1, 8, 2, 4)
+      # if there isn't one of these, move on
+      # reverse so we get the most-recent enrollment
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:es] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:sh] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:th] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:so] }
+      last_service_history_enrollment
     end
 
     private def report_client_universe
