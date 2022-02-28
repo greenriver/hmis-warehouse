@@ -93,6 +93,8 @@ module GrdaWarehouse::Hud
     # NOTE: you will want to limit this to a particular record_type
     has_one :service_history_enrollment, -> { where(record_type: :entry) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
 
+    has_many :service_history_services, through: :service_history_enrollment
+
     # Cached chronically homeless at entry
     has_one :ch_enrollment, class_name: 'GrdaWarehouse::ChEnrollment'
 
@@ -434,8 +436,15 @@ module GrdaWarehouse::Hud
       return :missing if [nil, 99].include?(value)
     end
 
+    # TODO: test boundaries days/months for entry/exit, NbN, and SO
     def homeless_duration_sufficient(date: self.EntryDate)
-      return :yes if self.DateToStreetESSH.present? && self.DateToStreetESSH <= date - 365.days
+      ch_start_date = [self.DateToStreetESSH, self.EntryDate].compact.min
+      days = if date != self.EntryDate && (project.so? || project.es? && project.bed_night_tracking?)
+        dates_in_enrollment_between(self.Entry_date, date).count + (self.EntryDate - ch_start_date).to_i
+      else
+        date - ch_start_date
+      end
+      return :yes if days > 365.days
 
       @three_or_fewer_times_homeless ||= [1, 2, 3].freeze
       return :no if @three_or_fewer_times_homeless.include?(self.TimesHomelessPastThreeYears)
@@ -444,8 +453,34 @@ module GrdaWarehouse::Hud
       @twelve_or_more_months_homeless ||= [112, 113].freeze # 112 = 12 months, 113 = 13+ months
       return :yes if @twelve_or_more_months_homeless.include?(self.MonthsHomelessPastThreeYears)
 
+      # If you don't have time prior to entry, day calculation above will catch any days during the enrollment
+      # If you have time prior to entry and we are looking at an arbitrary date, we need to add
+      # the months served
+      if date != self.EntryDate && self.MonthsHomelessPastThreeYears > 100
+        months_in_enrollment = if project.so? || project.es? && project.bed_night_tracking?
+          dates_in_enrollment_between(self.Entry_date, date).map do |d|
+            [d.month, d.year]
+          end.uniq.count
+        else
+          month_count = (date.year * 12 + date.month) - (self.EntryDate.year * 12 + self.EntryDate.month)
+          # Subtract 1 from this number if the [project start date] does not fall on the first of the month.
+          month_count -= 1 if month_count.positive? && self.EntryDate.day != 1
+          month_count
+        end
+        months_prior_to_enrollment = self.MonthsHomelessPastThreeYears - 100
+        return :yes if (months_prior_to_enrollment + months_in_enrollment) > 11
+      end
+
       return dk_or_r_or_missing(self.MonthsHomelessPastThreeYears) if dk_or_r_or_missing(self.MonthsHomelessPastThreeYears)
     end
+
+    private def dates_in_enrollment_between(start_date, end_date)
+      @dates_in_enrollment_between ||= service_history_services.
+        service_between(start_date: start_date, end_date: end_date).
+        distinct.
+        pluck(:date)
+    end
+
     # NOTE: this must be included at the end of the class so that scopes can override correctly
     include RailsDrivers::Extensions
   end # End Enrollment
