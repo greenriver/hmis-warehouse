@@ -39,11 +39,32 @@ module ClaimsReporting::Calculators
     end
 
     def vaccinations_for_member(member_id)
-      @vaccination_claims ||= ClaimsReporting::MedicalClaim.
-        where(member_id: @member_ids, procedure_code: vaccination_types.keys + vaccination_doses.keys).
-        pluck(*DATA_FIELDS).
-        group_by(&:first).
-        transform_values! { |claims| claims.map { |claim| DATA_FIELDS.zip(claim).to_h } }
+      @vaccination_claims ||= begin
+        vax_claims = ClaimsReporting::MedicalClaim.
+          where(member_id: @member_ids, procedure_code: vaccination_types.keys + vaccination_doses.keys).
+          pluck(*DATA_FIELDS).
+          group_by(&:first).
+          transform_values! { |claims| claims.map { |claim| DATA_FIELDS.zip(claim).to_h } }
+
+        # Add in any additional EPIC data
+        Health::Vaccination.
+          where(medicaid_id: @member_ids).
+          pluck(:medicaid_id, :vaccination_type, :vaccinated_on).
+          group_by(&:first).
+          each do |medicaid_id, epic_vaxes|
+            epic_vaxes.reject { |(_, _, date)| vax_claims[medicaid_id]&.map { |claim| claim[:service_start_date] }&.include?(date) }.
+              each do |epic_vax|
+                vax_claims[medicaid_id] ||= []
+                vax_claims[medicaid_id] << {
+                  member_id: medicaid_id,
+                  procedure_code: name_to_vaccination_types[epic_vax[1]],
+                  service_start_date: epic_vax[2],
+                }
+              end
+          end
+        vax_claims
+      end
+
       claims = @vaccination_claims[member_id]
       return [] unless claims.present?
 
@@ -54,6 +75,14 @@ module ClaimsReporting::Calculators
           date: claim[:service_start_date],
         }
       end
+    end
+
+    def name_to_vaccination_types
+      @name_to_vaccination_types = {
+        'Pfizer' => '91300',
+        'Moderna' => '91301',
+        'Janssen' => '91303',
+      }.freeze
     end
 
     def vaccination_types
@@ -103,7 +132,7 @@ module ClaimsReporting::Calculators
         # '0021A' => 'first dose',
         # '0022A' => 'second dose',
         # Janssen
-        # '91303' => '', # Unknown dose
+        '91303' => '', # Unknown dose
         '0031A' => 'single dose',
         # Novavax
         # '91304' => '', # Unknown dose
