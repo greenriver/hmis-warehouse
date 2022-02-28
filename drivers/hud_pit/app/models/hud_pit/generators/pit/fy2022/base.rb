@@ -60,12 +60,14 @@ module HudPit::Generators::Pit::Fy2022
           # Fetch enrollments for destination client
           enrollments = enrollments_by_client_id[client.id]
           services = services_by_client_id[client.id]
-          next unless enrollments.present?
-          next unless services.any? { |s| s.homeless == false } # If the client has a PH with move-in, drop them
+          next if enrollments.blank?
+          # If the client has a PH with move-in, drop them
+          next if services.any? { |s| s.homeless == false }
 
           # FIXME: instead of choosing the last enrollment, choose the one in this order:
           # ES > SH > TH > SO (1, 8, 2, 4)
           # if there isn't one of these, move on
+          enrollments.reverse! # reverse so we get the most-recent enrollment
           last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:es] }
           last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:sh] }
           last_service_history_enrollment ||= enrollments.detect { |en| en.computed_project_type == PROJECT_TYPES[:th] }
@@ -204,6 +206,7 @@ module HudPit::Generators::Pit::Fy2022
     private def enrollment_scope_without_preloads
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
+        residential.
         ongoing(on_date: @generator.filter.on).
         with_service_between(start_date: @generator.filter.on, end_date: @generator.filter.on, service_scope: :service_excluding_extrapolated).
         joins(:enrollment)
