@@ -440,7 +440,7 @@ module GrdaWarehouse::Hud
     def homeless_duration_sufficient(date: self.EntryDate)
       ch_start_date = [self.DateToStreetESSH, self.EntryDate].compact.min
       days = if date != self.EntryDate && (project.so? || project.es? && project.bed_night_tracking?)
-        dates_in_enrollment_between(self.Entry_date, date).count + (self.EntryDate - ch_start_date).to_i
+        dates_in_enrollment_between(self.EntryDate, date).count + (self.EntryDate - ch_start_date).to_i
       else
         date - ch_start_date
       end
@@ -458,7 +458,7 @@ module GrdaWarehouse::Hud
       # the months served
       if date != self.EntryDate && self.MonthsHomelessPastThreeYears > 100
         months_in_enrollment = if project.so? || project.es? && project.bed_night_tracking?
-          dates_in_enrollment_between(self.Entry_date, date).map do |d|
+          dates_in_enrollment_between(self.EntryDate, date).map do |d|
             [d.month, d.year]
           end.uniq.count
         else
