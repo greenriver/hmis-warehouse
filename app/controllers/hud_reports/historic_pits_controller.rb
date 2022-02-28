@@ -5,7 +5,7 @@
 ###
 
 module HudReports
-  class PitsController < ApplicationController
+  class HistoricPitsController < ApplicationController
     before_action :require_can_view_hud_reports!
 
     def index

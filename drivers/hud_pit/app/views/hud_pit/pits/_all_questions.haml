@@ -1,0 +1,14 @@
+.well
+  %p
+    The Point In Time Count includes data to be used to complete the HDX PIT count.
+  %p
+    = link_to history_hud_reports_pits_path do
+      See the history of all report runs and download zip files
+  %p
+    = link_to hud_reports_historic_pits_path do
+      Pre-2022 PIT reports
+  %p
+    = link_to new_hud_reports_pit_path do
+      Generate New PIT
+
+= render 'hud_reports/all_questions_table'

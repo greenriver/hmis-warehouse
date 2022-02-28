@@ -28,7 +28,7 @@ require Rails.root.join('spec/support/refresh_materialized_views')
 # Checks for pending migration and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove this line.
 # ActiveRecord::Migration.maintain_test_schema!
-ActiveRecord::Migration.maintain_test_schema!
+# ActiveRecord::Migration.maintain_test_schema!
 # These will eventually be replaced with similar when we move to Rails 6
 # system 'RAILS_ENV=test bin/rake warehouse:db:migrate'
 # system 'RAILS_ENV=test bin/rake health:db:migrate'

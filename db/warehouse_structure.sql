@@ -13797,6 +13797,82 @@ ALTER SEQUENCE public.hud_report_path_clients_id_seq OWNED BY public.hud_report_
 
 
 --
+-- Name: hud_report_pit_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_pit_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    data_source_id bigint,
+    report_instance_id bigint,
+    first_name character varying,
+    last_name character varying,
+    destination_client_id integer,
+    age integer,
+    dob date,
+    household_type character varying,
+    max_age integer,
+    hoh_veteran boolean,
+    head_of_household boolean,
+    relationship_to_hoh integer,
+    female integer,
+    male integer,
+    no_single_gender integer,
+    transgender integer,
+    questioning integer,
+    gender_none integer,
+    pit_gender character varying,
+    am_ind_ak_native integer,
+    asian integer,
+    black_af_american integer,
+    native_hi_other_pacific integer,
+    white integer,
+    race_none integer,
+    pit_race character varying,
+    ethnicity integer,
+    veteran integer,
+    chronically_homeless boolean,
+    chronically_homeless_household boolean,
+    substance_use integer,
+    substance_use_indefinite_impairing integer,
+    domestic_violence integer,
+    domestic_violence_currently_fleeing integer,
+    hiv_aids integer,
+    hiv_aids_indefinite_impairing integer,
+    mental_illness integer,
+    mental_illness_indefinite_impairing integer,
+    project_id integer,
+    project_type integer,
+    project_name character varying,
+    project_hmis_pit_count integer,
+    entry_date date,
+    exit_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hud_report_pit_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_pit_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_pit_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_pit_clients_id_seq OWNED BY public.hud_report_pit_clients.id;
+
+
+--
 -- Name: hud_report_spm_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20529,6 +20605,13 @@ ALTER TABLE ONLY public.hud_report_path_clients ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: hud_report_pit_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_pit_clients ALTER COLUMN id SET DEFAULT nextval('public.hud_report_pit_clients_id_seq'::regclass);
+
+
+--
 -- Name: hud_report_spm_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23326,6 +23409,14 @@ ALTER TABLE ONLY public.hud_report_instances
 
 ALTER TABLE ONLY public.hud_report_path_clients
     ADD CONSTRAINT hud_report_path_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_pit_clients hud_report_pit_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_pit_clients
+    ADD CONSTRAINT hud_report_pit_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -36868,6 +36959,13 @@ CREATE UNIQUE INDEX hud_path_client_conflict_columns ON public.hud_report_path_c
 
 
 --
+-- Name: hud_pit_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX hud_pit_client_conflict_columns ON public.hud_report_pit_clients USING btree (report_instance_id, data_source_id, client_id);
+
+
+--
 -- Name: hud_report_hic_funders_uniqueness_constraint; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40064,6 +40162,27 @@ CREATE INDEX index_hud_report_path_clients_on_report_instance_id ON public.hud_r
 --
 
 CREATE INDEX index_hud_report_path_clients_on_services ON public.hud_report_path_clients USING gin (services);
+
+
+--
+-- Name: index_hud_report_pit_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_pit_clients_on_client_id ON public.hud_report_pit_clients USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_pit_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_pit_clients_on_data_source_id ON public.hud_report_pit_clients USING btree (data_source_id);
+
+
+--
+-- Name: index_hud_report_pit_clients_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_pit_clients_on_report_instance_id ON public.hud_report_pit_clients USING btree (report_instance_id);
 
 
 --
@@ -47391,6 +47510,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220208180300'),
 ('20220210132610'),
 ('20220211001613'),
-('20220214202202');
+('20220214202202'),
+('20220216204506');
 
 

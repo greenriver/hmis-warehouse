@@ -5,10 +5,6 @@
 ###
 
 # These should be removed as these are moved to their own drivers
-Rails.application.config.hud_reports['ReportGenerators::Pit::Fy2018::Base'] = {
-  title: 'Point in Time Count',
-  helper: 'hud_reports_pits_path',
-}
 Rails.application.config.hud_reports['Reports::Lsa::Fy2021::Base'] = {
   title: 'Longitudinal System Analysis',
   helper: 'hud_reports_lsas_path',

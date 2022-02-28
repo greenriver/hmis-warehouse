@@ -1,0 +1,15 @@
+.row
+  - if @reports.present?
+    .col
+      %p= paginate @reports
+  .col.d-flex
+    .ml-auto
+      = render 'hud_reports/view_filter'
+- if @reports.present?
+  .jReportListing
+    = render 'reports'
+  = render 'hud_reports/list_refresher'
+  %p= paginate @reports
+- else
+  %p.none-found
+    No reports to show
