@@ -1,0 +1,7 @@
+- content_for :title, 'Adult and Child Households With HoH 18-24 Dashboard'
+- @show_census = false
+%h1= content_for :title
+- if @html
+  = render 'dashboards/tabs', active: 'adults_with_children_youth_hoh'
+%p.text-muted
+  Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (< 18), and the head of household is 18-24.

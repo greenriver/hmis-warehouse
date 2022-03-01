@@ -119,7 +119,8 @@ class PerformanceDashboards::Base
   end
 
   def self.sub_populations
-    Reporting::MonthlyReports::Base.available_types.map { |k, klass| [klass.constantize.new.sub_population_title, k] }.to_h
+    AvailableSubPopulations.available_sub_populations
+    # Reporting::MonthlyReports::Base.available_types.map { |k, klass| [klass.constantize.new.sub_population_title, k] }.to_h
   end
 
   def valid_sub_population(population)
