@@ -10,6 +10,11 @@ RSpec.describe model, type: :model do
       import_hmis_csv_fixture(file_path, version: 'AutoMigrate', run_jobs: true)
     end
 
+    after(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+    end
+
     it 'the database will have the correct number of source clients' do
       expect(GrdaWarehouse::Hud::Client.source.count).to eq(4)
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(5)
