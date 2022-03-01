@@ -13,7 +13,7 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   serialize :assigned_staff_attributes, Hash
   serialize :counselor_attributes, Hash
   serialize :outreach_counselor_attributes, Hash
-  attr_accessor :phone, :email
+  attr_accessor :phone, :email, :language_1, :language_2
 
   scope :consent_active, -> do
     where(
