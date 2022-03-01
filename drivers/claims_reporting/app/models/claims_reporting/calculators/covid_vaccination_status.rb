@@ -78,7 +78,7 @@ module ClaimsReporting::Calculators
     end
 
     def name_to_vaccination_types
-      @name_to_vaccination_types = {
+      @name_to_vaccination_types ||= {
         'Pfizer' => '91300',
         'Moderna' => '91301',
         'Janssen' => '91303',
