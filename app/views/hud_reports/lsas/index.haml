@@ -1,10 +1,10 @@
-- content_for :title, _("HUD Reports")
+- content_for :title, _('HUD Reports')
 %header.mb-3
   %h1= content_for :title
 
 .row
   .col-sm-3
-    = render "tabs"
+    = render 'hud_reports/tabs', tab_name: 'Longitudinal System Analysis'
   .col-sm-9
     .tab-content
       - @reports.each_with_index do |(category, years), index|

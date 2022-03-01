@@ -328,13 +328,21 @@ module Filters
     # or the most-recent PIT (third wednesday of January)
     # for simplicity, we'll just find the date in the january prior to the end date
     def pit_date
-      third_wednesday_of_end_year = third_wednesday(last.year, 1)
-      return third_wednesday_of_end_year if last > third_wednesday_of_end_year
+      self.class.pit_date(last)
+    end
 
-      third_wednesday(last.year - 1, last.month)
+    def self.pit_date(date)
+      third_wednesday_of_end_year = third_wednesday(date.year, 1)
+      return third_wednesday_of_end_year if date > third_wednesday_of_end_year
+
+      third_wednesday(date.year - 1, date.month)
     end
 
     private def third_wednesday(year, month)
+      self.class.third_wednesday(year, month)
+    end
+
+    def self.third_wednesday(year, month)
       d = Date.new(year, month, 1)
       d += 1.weeks if d.wday > 3 # if the first falls after Wednesday, move forward a week
       d -= (d.wday - 3) % 7 # ensure the first Wednesday
@@ -690,7 +698,10 @@ module Filters
 
     def describe_filter(keys = nil)
       [].tap do |descriptions|
-        for_params[:filters].each_key do |key|
+        # only show "on" if explicitly chosen
+        display_keys = for_params[:filters]
+        display_keys.delete(:on) unless keys&.include?(:on)
+        display_keys.each_key do |key|
           next if keys.present? && ! keys.include?(key)
 
           descriptions << describe(key)
@@ -704,6 +715,8 @@ module Filters
         'Report Range'
       when :end
         nil
+      when :on
+        'Date'
       when :comparison_pattern
         'Comparison Range' if includes_comparison?
       when :project_type_codes, :project_type_ids, :project_type_numbers
@@ -764,6 +777,8 @@ module Filters
         date_range_words
       when :end
         nil
+      when :on
+        on
       when :comparison_pattern
         comparison_range_words if includes_comparison?
       when :project_type_codes, :project_type_ids, :project_type_numbers

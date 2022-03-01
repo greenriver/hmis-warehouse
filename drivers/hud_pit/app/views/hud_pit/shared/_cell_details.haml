@@ -1,0 +1,38 @@
+- column_headings = @generator.column_headings(@question)
+= content_for :crumbs do
+  = link_to path_for_question_result(@question, report: @report) do
+    = "« #{report_short_name} #{@question} Results"
+- content_for :title do
+  = "#{report_short_name} #{@question} #{@cell}"
+.d-flex.mb-2
+  %h1= content_for :title
+  .ml-auto
+    = link_to(link_params.merge({format: :xlsx}),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel
+      Download
+
+- if @clients.blank?
+  %p.none-found
+    No records found.
+- else
+  .card
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-sm.table-bordered.table-fixed
+        %thead.thead-dark
+          %tr
+            %th
+            - column_headings.each_value do |header|
+              %th= header
+        %tbody.thead-dark
+          - @clients.each.with_index do |client, i|
+            %tr
+              %th= i + 1
+              - column_headings.each_key do |k|
+                %td{style: 'max-width: 600px;'}
+                  - if k.to_s == 'client_id'
+                    = link_to from_source_client_path(client[k]) do
+                      = client[k]
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                      %i.icon-info
+                  - else
+                    = formatted_cell(client[k])

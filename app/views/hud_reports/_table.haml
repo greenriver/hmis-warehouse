@@ -1,4 +1,5 @@
 :ruby
+  show_link = true if defined?(show_link).blank?
   exporter = HudReports::CsvExporter.new(report, table)
   columns = exporter.display_column_names
   rows = exporter.as_array
@@ -21,6 +22,6 @@
             - value = '0.0000' if value == 'NaN'
             %td{class: cell_color}
               - begin
-                = link_to_if value.is_a?(Integer) && value.positive?, value, path_for_cell(report: report, question: question, cell_label: cell, table: exporter.table)
+                = link_to_if show_link && value.is_a?(Integer) && value.positive?, value, path_for_cell(report: report, question: question, cell_label: cell, table: exporter.table)
               - rescue NoMethodError
                 = value

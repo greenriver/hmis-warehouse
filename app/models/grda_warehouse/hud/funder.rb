@@ -87,6 +87,17 @@ module GrdaWarehouse::Hud
       [:ProjectID]
     end
 
+    def for_export
+      # This should never happen, but does
+      self.ProjectID ||= project&.id || 'Unknown'
+      self.GrantID ||= 'Unknown'
+      self.OtherFunder = self.OtherFunder[0...50] if self.OtherFunder.present?
+
+      self.UserID = 'op-system' if self.UserID.blank?
+      self.FunderID = id
+      return self
+    end
+
     # when we export, we always need to replace FunderID with the value of id
     def self.to_csv(scope:)
       attributes = hud_csv_headers.dup

@@ -14,7 +14,8 @@ module GrdaWarehouse
     end
 
     scope :needs_processing, -> do
-      joins(:enrollment).where(arel_table[:processed_as].not_eq(e_t[:processed_as]))
+      joins(:enrollment).where(arel_table[:processed_as].not_eq(e_t[:processed_as])).
+        or(where(enrollment_id: GrdaWarehouse::Hud::Enrollment.open_on_date.chronic.select(:id)))
     end
 
     scope :chronically_homeless, -> do
@@ -46,7 +47,7 @@ module GrdaWarehouse
             batch << {
               enrollment_id: enrollment.id,
               processed_as: enrollment.processed_as,
-              chronically_homeless_at_entry: enrollment.chronically_homeless_at_start?,
+              chronically_homeless_at_entry: enrollment.chronically_homeless_at_start?(date: Date.current),
             }
           end
           import(batch)
@@ -61,7 +62,7 @@ module GrdaWarehouse
           batch << {
             id: ch_enrollment.id,
             processed_as: enrollment.processed_as,
-            chronically_homeless_at_entry: enrollment.chronically_homeless_at_start?,
+            chronically_homeless_at_entry: enrollment.chronically_homeless_at_start?(date: Date.current),
           }
         end
         import(

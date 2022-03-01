@@ -30,7 +30,7 @@ module HudReports
         row_names.each do |row_name|
           row = row_with_label(row_name)
           column_names.each do |column_name|
-            answer = @report.answer(question: @table, cell: "#{column_name}#{row_name}").summary || ''
+            answer = @report.preload_answers(@table).answer(question: @table, cell: "#{column_name}#{row_name}").summary || ''
             answer = '0.0000' if answer == 'NaN'
             row << answer
           end

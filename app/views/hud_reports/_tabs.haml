@@ -1,8 +1,6 @@
+- tabs = @report_urls.map { |category, url| { category: category, controls: category, url: url } }
 %ul.nav.nav-pills.report-nav.flex-column{role: :tablist, aria: {orientation: :vertical}}
-  - @tab_content_reports.each do |category|
+  - tabs.sort_by { |row| row[:category] }.each do |row|
     %li.nav-item{role: :presentation}
-      = link_to category, reports_path(anchor: category.parameterize.dasherize), role: :tab, aria: {controls: '#{category}'}, class: 'nav-link'
-  - @report_urls.each do |(category, url)|
-    %li.nav-item{role: :presentation}
-      - active = category == tab_name
-      = link_to category, url, role: :tab, aria: {controls: category}, class: [ 'nav-link', active ? 'active' : '' ]
+      - active = row[:category] == tab_name
+      = link_to row[:category], row[:url], role: :tab, aria: { controls: row[:controls] }, class: [ 'nav-link', active ? 'active' : '' ]

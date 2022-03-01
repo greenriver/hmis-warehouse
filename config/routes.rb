@@ -161,6 +161,8 @@ Rails.application.routes.draw do
     end
   end
   namespace :hud_reports do
+    resources :historic_pits, only: [:index]
+    resources :lsas, only: [:index]
     namespace :ahar do
       namespace :fy_2017 do
         resources :base, only: [:create]

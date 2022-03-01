@@ -1,0 +1,13 @@
+= content_for :crumbs do
+  = link_to path_for_reports do
+    = "« #{report_short_name} Reports"
+- content_for :title do
+  = "#{report_short_name} #{@question}: #{@generator.describe_table(@question)}"
+
+%h1= content_for :title
+
+= render 'hud_hic/shared/report_form', url: path_for_questions(@question)
+
+- if @reports.present?
+  = render 'hud_reports/year_tabs'
+= render 'hud_reports/reports_wrapper'
