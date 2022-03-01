@@ -442,9 +442,9 @@ module GrdaWarehouse::Hud
       days = if date != self.EntryDate && (project.so? || project.es? && project.bed_night_tracking?)
         dates_in_enrollment_between(self.EntryDate, date).count + (self.EntryDate - ch_start_date).to_i
       else
-        date - ch_start_date
+        (date - ch_start_date).to_i
       end
-      return :yes if days > 365.days
+      return :yes if days > 365
 
       @three_or_fewer_times_homeless ||= [1, 2, 3].freeze
       return :no if @three_or_fewer_times_homeless.include?(self.TimesHomelessPastThreeYears)
