@@ -507,6 +507,7 @@ module HomelessSummaryReport
       sub_spec[:demographic_filters].each do |demographic_filter|
         demographic_scope = send(demographic_filter, demographic_scope)
       end
+      puts demographic_scope.select(:client_id).to_sql
       ids = demographic_scope.pluck(:client_id).uniq.to_set
       @filter = nil
       filter
@@ -841,10 +842,24 @@ module HomelessSummaryReport
           },
           demographic_filters: [:filter_for_race],
         },
+        white: {
+          name: 'White',
+          extra_filters: {
+            races: ['White'],
+          },
+          demographic_filters: [:filter_for_race],
+        },
         multi_racial: {
           name: 'Multiracial',
           extra_filters: {
             races: ['MultiRacial'],
+          },
+          demographic_filters: [:filter_for_race],
+        },
+        race_none: {
+          name: 'Unknown Race',
+          extra_filters: {
+            races: ['RaceNone'],
           },
           demographic_filters: [:filter_for_race],
         },

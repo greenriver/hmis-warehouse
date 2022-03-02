@@ -12775,7 +12775,19 @@ CREATE TABLE public.homeless_summary_report_clients (
     spm_adults_with_children_where_parenting_adult_18_to_24__has_rr integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__has_ps integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__first_ integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__return integer
+    spm_adults_with_children_where_parenting_adult_18_to_24__return integer,
+    spm_all_persons__white integer,
+    spm_all_persons__race_none integer,
+    spm_without_children__white integer,
+    spm_without_children__race_none integer,
+    spm_with_children__white integer,
+    spm_with_children__race_none integer,
+    spm_only_children__white integer,
+    spm_only_children__race_none integer,
+    spm_without_children_and_fifty_five_plus__white integer,
+    spm_without_children_and_fifty_five_plus__race_none integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__white integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__race_n integer
 );
 
 
@@ -47511,6 +47523,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220210132610'),
 ('20220211001613'),
 ('20220214202202'),
-('20220216204506');
+('20220216204506'),
+('20220302145218');
 
 
