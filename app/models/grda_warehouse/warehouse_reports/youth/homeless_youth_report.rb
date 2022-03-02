@@ -626,35 +626,41 @@ module GrdaWarehouse::WarehouseReports::Youth
     def g_two_a
       @g_two_a ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: 'White'))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'White'))
     end
 
     def g_two_b
       @g_two_b ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: 'BlackAfAmerican'))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'BlackAfAmerican'))
     end
 
     def g_two_c
       @g_two_c ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: 'Asian'))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'Asian'))
     end
 
     def g_two_d
       @g_two_d ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: 'AmIndAKNative'))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'AmIndAKNative'))
     end
 
     def g_two_e
       @g_two_e ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race]', race: ['NativeHIPacific', 'RaceNone']))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'NativeHIPacific'))
     end
 
     def g_two_f
       @g_two_f ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
+          where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
+    end
+
+    def g_two_g
+      @g_two_g ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
     end
@@ -700,35 +706,41 @@ module GrdaWarehouse::WarehouseReports::Youth
     def h_two_a
       @h_two_a ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: 'White'))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'White'))
     end
 
     def h_two_b
       @h_two_b ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: 'BlackAfAmerican'))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'BlackAfAmerican'))
     end
 
     def h_two_c
       @h_two_c ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: 'Asian'))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'Asian'))
     end
 
     def h_two_d
       @h_two_d ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: 'AmIndAKNative'))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'AmIndAKNative'))
     end
 
     def h_two_e
       @h_two_e ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race]', race: ['NativeHIPacific', 'RaceNone']))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'NativeHIPacific'))
     end
 
     def h_two_f
       @h_two_f ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
+    end
+
+    def h_two_g
+      @h_two_g ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
     end
