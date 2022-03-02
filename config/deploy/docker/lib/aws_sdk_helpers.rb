@@ -124,7 +124,7 @@ module AwsSdkHelpers
     end
 
     def self.get_capacity_provider_name(namespace = '', which = 'Spot')
-      default_path = "/Default/CapacityProviders/#{which}"
+      default_path = "/OpenPath/CapacityProviders/#{which}"
       namespaced_path = "/#{namespace}/CapacityProviders/#{which}"
 
       params = AwsSdkHelpers::ClientMethods.ssm.get_parameters(
