@@ -456,7 +456,7 @@ module GrdaWarehouse::Hud
       # If you don't have time prior to entry, day calculation above will catch any days during the enrollment
       # If you have time prior to entry and we are looking at an arbitrary date, we need to add
       # the months served
-      if date != self.EntryDate && self.MonthsHomelessPastThreeYears > 100
+      if date != self.EntryDate && self.MonthsHomelessPastThreeYears.present? && self.MonthsHomelessPastThreeYears > 100
         months_in_enrollment = if project.so? || project.es? && project.bed_night_tracking?
           dates_in_enrollment_between(self.EntryDate, date).map do |d|
             [d.month, d.year]
