@@ -23,13 +23,17 @@ module HudHic::Generators::Hic::Fy2022
       @generator.project_scope.preload(:organization).find_in_batches(batch_size: 100) do |batch|
         pending_associations = {}
         batch.each do |project|
-          pending_associations[project] = destination_class.from_attributes_for_hic(project)
-          # Populate PITCount from actual count of unique clients on this day
-          pending_associations[project].PITCount = project.service_history_services.
+          # calculate the PIT Count before we adjust the ids
+          pit_count = project.service_history_services.
             service_excluding_extrapolated.
             where(date: @generator.filter.on).
             distinct(:client_id).
             count
+
+          pending_associations[project] = destination_class.from_attributes_for_hic(project)
+          # Populate PITCount from actual count of unique clients on this day
+          pending_associations[project].PITCount = pit_count
+
           pending_associations[project].report_instance_id = @report.id
           pending_associations[project].data_source_id = project.data_source_id
         end
