@@ -2009,6 +2009,13 @@ module GrdaWarehouse::Hud
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
     end
 
+    def pit_race
+      return 'RaceNone' if race_fields.count.zero?
+      return 'MultiRacial' if race_fields.count > 1
+
+      race_fields.first
+    end
+
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
     # advantage of caching
     def race_string(destination_id:, scope_limit: self.class.destination)

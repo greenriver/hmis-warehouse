@@ -1,0 +1,2 @@
+ExportID,SourceType,SourceID,SourceName,SourceContactFirst,SourceContactLast,SourceContactPhone,SourceContactExtension,SourceContactEmail,ExportDate,ExportStartDate,ExportEndDate,SoftwareName,SoftwareVersion,CSVVersion,ExportPeriodType,ExportDirective,HashStatus
+EXPORT,3,,PATH Test,Green,River,,,,2020-09-30 00:00:00,2018-10-01,2020-09-30,Green River,1,FY2022,3,2,1

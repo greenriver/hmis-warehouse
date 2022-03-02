@@ -197,7 +197,7 @@ module EtoApi::Tasks
             data = entity(client: client, response: api_response, entity_label: details['entity_label'])
             if data.present?
               hmis_client[key] = data.try(:[], 'EntityName')
-              hmis_client[details['attributes']] = data if hmis_client[key].present? # rubocop:disable Metrics/BlockNesting
+              hmis_client[details['attributes']] = data if hmis_client[key].present?
             end
           end
 
@@ -242,6 +242,8 @@ module EtoApi::Tasks
           sexual_orientation: hmis_client&.sexual_orientation,
           phone: hmis_client&.phone,
           email: hmis_client&.email,
+          language_1: hmis_client&.language_1,
+          language_2: hmis_client&.language_2,
         }
         hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         if hmis_client.changed?

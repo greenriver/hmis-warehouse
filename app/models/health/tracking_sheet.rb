@@ -51,7 +51,7 @@ module Health
         mra_t = Arel::Table.new(:most_recent_assessments)
         join = h_cha_t.join(mra_t).on(h_cha_t[:id].eq(mra_t[:current_id]))
 
-        Health::ComprehensiveHealthAssessment.
+        Set.new(Health::ComprehensiveHealthAssessment.
           with(
             most_recent_assessments:
               Health::ComprehensiveHealthAssessment.
@@ -61,7 +61,7 @@ module Health
           ).
           joins(join.join_sources).
           where.not(reviewed_by_id: nil).
-          pluck(:patient_id)
+          pluck(:patient_id))
       end
 
       @patients_with_currently_reviewed_chas.include?(patient_id)

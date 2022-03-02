@@ -3,7 +3,7 @@
 = simple_form_for @project_coc, as: :project_coc, url: project_coc_path(@project_coc) do |f|
   .row
     .col-sm-6
-      = f.input :hud_coc_code, input_html: {maxlength: 6}, label: "Override CoC Code, currently: #{@project_coc.CoCCode || 'unset'}"
+      = f.input :hud_coc_code, as: :select_two, collection: HUD.cocs_with_codes.invert, label: "Override CoC Code, currently: #{@project_coc.CoCCode || 'unset'}"
       = f.input :zip_override, input_html: {maxlength: 5}, label: "Override the Zipcode, currently: #{@project_coc.Zip || 'unset'}"
       = f.input :geocode_override, input_html: {maxlength: 6}, label: "Override the Geo Code, currently: #{@project_coc.Geocode || 'unset'}"
       = f.input :geography_type_override, label: 'Geography Type Override', input_html: { value: @project_coc.geography_type_override}, collection: HUD.geography_types.invert, include_blank: "Use actual Geography Type: #{HUD.geography_type(@project_coc.GeographyType) || 'unset'}", as: :select_two

@@ -45,13 +45,24 @@ module GrdaWarehouse::Hud
     end
 
     scope :within_range, ->(range) do
-      i_start = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
-      i_end = i_t[:InventoryEndDate]
+      start_date = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
+      end_date = cl(i_t[:inventory_end_date_override], i_t[:InventoryEndDate])
       where(
-        i_end.gteq(range.first).
-        or(i_end.eq(nil)).
-        and(i_start.lteq(range.last).
-        or(i_start.eq(nil))),
+        end_date.gteq(range.first).or(end_date.eq(nil)).
+        and(start_date.lteq(range.last).or(start_date.eq(nil))),
+      )
+    end
+
+    scope :active_on, ->(date) do
+      date = date.to_date
+      within_range(date..date)
+    end
+
+    scope :in_coc, ->(coc_code:) do
+      coc_code = Array(coc_code)
+      where(
+        i_t[:CoCCode].in(coc_code).and(i_t[:coc_code_override].eq(nil).or(i_t[:coc_code_override].eq(''))).
+        or(i_t[:coc_code_override].in(coc_code)),
       )
     end
 
@@ -74,6 +85,21 @@ module GrdaWarehouse::Hud
 
     scope :serves_children, -> do
       where(HouseholdType: HOUSEHOLD_TYPES[:child_only])
+    end
+
+    def for_export
+      # This should never happen, but does
+      self.ProjectID ||= project&.id || 'Unknown'
+      self.CoCCode = coc_code_override if coc_code_override.present?
+      self.InventoryStartDate = inventory_start_date_override if inventory_start_date_override.present?
+      self.InventoryEndDate = inventory_end_date_override if inventory_end_date_override.present?
+
+      self.BedInventory ||= 0
+      self.UnitInventory ||= 0
+
+      self.UserID = 'op-system' if self.UserID.blank?
+      self.InventoryID = id
+      return self
     end
 
     # when we export, we always need to replace InventoryID with the value of id

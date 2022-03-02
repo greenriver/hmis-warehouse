@@ -1,5 +1,5 @@
 - if window_file_access?
-  .c-card
+  .c-card.c-card-overflow-inherit
     .c-card__content
       - url = polymorphic_path([:queue] + history_path_generator, client_id: @client.id)
       = simple_form_for :pdf, url: url, method: :post do |f|

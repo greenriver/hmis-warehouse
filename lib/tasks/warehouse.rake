@@ -79,7 +79,7 @@ namespace :warehouse do
         if GrdaWarehouseBase.connection.table_exists?(:schema_migrations)
           puts 'Refusing to load the warehouse database structure since there are tables present. This is not an error.'
         else
-          GrdaWarehouseBase.connection.execute(File.read('db/warehouse/structure.sql'))
+          GrdaWarehouseBase.connection.execute(File.read('db/warehouse_structure.sql'))
         end
       end
     end

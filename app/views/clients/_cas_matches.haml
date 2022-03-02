@@ -34,3 +34,5 @@
 
                     - decision.hsp_contacts.each do |contact|
                       .mb-2= mail_to contact['email'], contact['name']
+                    - decision.hsa_contacts.each do |contact|
+                      .mb-2= mail_to contact['email'], contact['name']

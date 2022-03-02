@@ -65,6 +65,7 @@ module Health
     has_many :team_members, class_name: 'Health::Team::Member'
 
     has_many :consolidated_contacts, class_name: 'Health::Contact'
+    has_many :client_contacts, -> { where category: 'Client' }, class_name: 'Health::Contact'
 
     # has_many :goals, class_name: 'Health::Goal::Base', through: :careplans
     has_many :goals, class_name: 'Health::Goal::Base'
@@ -755,11 +756,12 @@ module Health
       [
         [recent_cha&.phone.presence, recent_cha&.updated_at.to_i],
         [note&.client_phone_number.presence, note&.updated_at.to_i],
+        [most_recent_contact&.phone.presence, most_recent_contact&.collected_on&.to_time.to_i],
       ].sort_by(&:last).map(&:first).compact.reverse.first
     end
 
     def most_recent_contact
-      consolidated_contacts.order(collected_on: :desc).first
+      client_contacts.order(collected_on: :desc).first
     end
 
     def phone_message_ok
@@ -834,7 +836,7 @@ module Health
     end
 
     def current_email
-      @current_email ||= email || client.email || 'patient@openpath.biz'
+      @current_email ||= email || client.email || most_recent_contact&.email || 'patient@openpath.biz'
     end
 
     def advanced_directive

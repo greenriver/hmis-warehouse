@@ -36,6 +36,11 @@ module GrdaWarehouse::Tasks
           project_source.transaction do
             project.enrollments.invalidate_processing!
             project.update(computed_project_type: project_type)
+            # Fix the SHE with record_type "first"
+            service_history_enrollment_source.where(
+              project_id: project.ProjectID,
+              data_source_id: project.data_source_id,
+            ).update_all(computed_project_type: project_type, project_type: project_type)
           end
           debug_log("done invalidating enrollments for #{project.ProjectName}") unless blank_initial_computed_project_type
         elsif homeless_mismatch?(project) # if should_update_type? returned true, these have been fixed

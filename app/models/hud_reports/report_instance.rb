@@ -103,12 +103,23 @@ module HudReports
       state.in?(['Waiting', 'Started'])
     end
 
+    # Can be used to preload all answers for a question
+    # Example: @report.preload_answers('Question 1').answer(question: 'Question 1', cell: 'B4')
+    def preload_answers(question)
+      @preload_answers ||= {}
+      @preload_answers[question] ||= report_cells.where(question: question, universe: false).index_by(&:cell_name)
+      self # return self to allow for chaining
+    end
+
     # An answer cell in a question
     #
     # @param question [String] the question name (e.g., 'Q1')
     # @param cell [String] the cell name (e.g, 'B2')
     # @return [ReportCell] the answer cell
     def answer(question:, cell: nil)
+      preloaded_answer = @preload_answers.try(:[], question).try(:[], cell)
+      return preloaded_answer if preloaded_answer.present?
+
       report_cells.
         where(question: question, cell_name: cell, universe: false).
         first_or_create

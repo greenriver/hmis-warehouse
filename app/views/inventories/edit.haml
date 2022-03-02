@@ -3,7 +3,7 @@
 = simple_form_for @inventory, as: :inventory, url: inventory_path(@inventory) do |f|
   .row
     .col-sm-6
-      = f.input :coc_code_override, input_html: {maxlength: 6}, label: "Override CoC Code, currently: #{@inventory.CoCCode || 'unset'}"
+      = f.input :coc_code_override, as: :select_two, collection: HUD.cocs_with_codes.invert, label: "Override CoC Code, currently: #{@inventory.CoCCode || 'unset'}"
       = f.input :inventory_start_date_override, as: :date_picker, label: "Override Inventory Start Date, currently: #{@inventory.InventoryStartDate || 'unset'}"
       = f.input :inventory_end_date_override, as: :date_picker, label: "Override Inventory End Date, currently: #{@inventory.InventoryEndDate || 'unset'}"
       .form-actions

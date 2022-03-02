@@ -17,7 +17,7 @@ Rails.application.config.hud_reports['HudDataQualityReport::Generators::Fy2020::
   helper: 'hud_reports_dqs_path',
 }
 
-Rails.application.config.hud_reports['HudDataQualityReport::Generators::Fy2021::Generator'] = {
+Rails.application.config.hud_reports['HudDataQualityReport::Generators::Fy2022::Generator'] = {
   title: 'Data Quality Report',
   helper: 'hud_reports_dqs_path',
 }

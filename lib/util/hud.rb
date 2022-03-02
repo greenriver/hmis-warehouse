@@ -2455,6 +2455,15 @@ module HUD
     cocs.key?(coc_code)
   end
 
+  def cocs_with_codes
+    cocs.map do |code, name|
+      [
+        code,
+        "#{name} (#{code})",
+      ]
+    end.to_h.freeze
+  end
+
   def cocs
     codes = {
       'CO-500' => 'Colorado Balance of State CoC',

@@ -24,15 +24,34 @@ module HudReports::Incomes
     private def annual_assessment(enrollment)
       enrollment_date = enrollment.EntryDate
 
+      # Try to find the anniversary date based on the last year of the report
       begin
-        anniversary_date = Date.new(report_end_date.year, enrollment_date.month, enrollment_date.day)
+        anniversary_date = Date.new(@report.end_date.year, enrollment_date.month, enrollment_date.day)
       rescue Date::Error
         # If a client was enrolled on 2/29 of a leap year, non-leap years will throw invalid date
         # Make the anniversary fall on the last day of Feb to be consistent with Date.new(...) + 1.year
         if enrollment_date.month == 2 && enrollment_date.day == 29 # rubocop:disable Style/GuardClause
-          anniversary_date = Date.new(report_end_date.year, 2, 28)
+          anniversary_date = Date.new(@report.end_date.year, 2, 28)
         else
           return nil
+        end
+      end
+
+      # if the date falls after the end date, back it up a year
+      anniversary_date -= 1.years if anniversary_date > @report.end_date
+
+      # if the date is now before report start, use the year from report start
+      if anniversary_date < @report.start_date
+        begin
+          anniversary_date = Date.new(@report.start_date.year, enrollment_date.month, enrollment_date.day)
+        rescue Date::Error
+          # If a client was enrolled on 2/29 of a leap year, non-leap years will throw invalid date
+          # Make the anniversary fall on the last day of Feb to be consistent with Date.new(...) + 1.year
+          if enrollment_date.month == 2 && enrollment_date.day == 29 # rubocop:disable Style/GuardClause
+            anniversary_date = Date.new(@report.start_date.year, 2, 28)
+          else
+            return nil
+          end
         end
       end
 

@@ -2,7 +2,8 @@
   %ul.o-menu__group.list-unstyled
     - if can_view_hud_reports?
       %li.o-menu__item
-        = link_to reports_path, class: 'o-menu__link' do
+        - url = Rails.application.config.hud_reports.values.sort_by { |row| row[:title] }.first[:helper]
+        = link_to public_send(url), class: 'o-menu__link' do
           = _("HUD Reports")
     - if can_view_any_reports?
       %li.o-menu__item
