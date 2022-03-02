@@ -829,7 +829,7 @@ module Filters
     end
 
     def chosen_sub_population
-      Reporting::MonthlyReports::Base.available_types[sub_population]&.constantize&.new&.sub_population_title
+      AvailableSubPopulations.available_sub_populations.invert[sub_population]
     end
 
     def chosen_age_ranges
