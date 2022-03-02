@@ -133,6 +133,7 @@ module AwsSdkHelpers
             default_path,
             namespaced_path,
           ],
+          with_decryption: true,
         },
       )
 
