@@ -136,7 +136,7 @@ module HudPit::Generators::Pit::Fy2022
             race_none: source_client.RaceNone,
             ethnicity: source_client.Ethnicity,
             veteran: source_client.VeteranStatus,
-            chronically_homeless: enrollment.chronically_homeless_at_start?(@generator.filter.on),
+            chronically_homeless: enrollment.chronically_homeless_at_start?(date: @generator.filter.on),
             substance_use: disabilities_latest.detect(&:substance?)&.DisabilityResponse&.present?,
             substance_use_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.substance? }&.DisabilityResponse.present?,
             domestic_violence: health_and_dv&.DomesticViolenceVictim,
