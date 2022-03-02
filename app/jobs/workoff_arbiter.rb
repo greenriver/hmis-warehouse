@@ -51,7 +51,6 @@ class WorkoffArbiter
   end
 
   def add_worker!
-    placement_constraints = _default_placement_constraints(capacity_provider_name: _on_demand_capacity_provider_name)
     payload = {
       cluster: ENV.fetch('CLUSTER_NAME'),
       task_definition: _task_definition,
@@ -62,7 +61,6 @@ class WorkoffArbiter
           base: 1,
         },
       ],
-      placement_constraints: placement_constraints,
     }
 
     ecs.run_task(payload)

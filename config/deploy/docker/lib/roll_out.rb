@@ -387,7 +387,6 @@ class RollOut
 
       # This is the role that the ECS agent and Docker daemon can assume
       execution_role_arn: execution_role,
-      placement_constraints: _default_placement_constraints,
     }
 
     # This is the role that the service/task can assume
@@ -627,8 +626,6 @@ class RollOut
 
     five_minutes = 5 * 60
 
-    placement_constraints = _default_placement_constraints(capacity_provider_name: capacity_provider)
-
     if service_exists
       puts "[INFO] Updating #{name} to #{task_definition.split(/:/).last}: #{desired_count} containers #{target_group_name}"
       payload = {
@@ -644,7 +641,6 @@ class RollOut
             base: 1,
           },
         ],
-        placement_constraints: placement_constraints,
         placement_strategy: _placement_strategy,
         deployment_configuration: {
           maximum_percent: maximum_percent,
@@ -677,8 +673,6 @@ class RollOut
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
         },
-        # launch_type: 'EC2',
-        placement_constraints: placement_constraints,
         placement_strategy: _placement_strategy,
         load_balancers: load_balancers,
       }

@@ -125,7 +125,6 @@ class ScheduledTask
             # https://github.com/aws/containers-roadmap/issues/937
             # launch_type: "EC2",
             capacity_provider_strategy: capacity_provider_strategy,
-            placement_constraints: _default_placement_constraints,
             placement_strategy: _placement_strategy,
           },
         },
