@@ -787,6 +787,27 @@ module GrdaWarehouse::Hud
       disabled_client_scope.pluck(:id)
     end
 
+    def self.disabling_condition_client_scope
+      mre_t = Arel::Table.new(:most_recent_enrollments)
+      join = she_t.join(mre_t).on(she_t[:id].eq(mre_t[:current_id]))
+
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.
+        with(
+          most_recent_enrollments:
+            GrdaWarehouse::ServiceHistoryEnrollment.
+              joins(:enrollment).
+              define_window(:client_by_update).partition_by(:client_id, order_by: { e_t[:DateUpdated] => :desc }).
+              select_window(:first_value, she_t[:id], over: :client_by_update, as: :current_id).
+              where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
+              where(e_t[:DisablingCondition].in([0, 1])),
+        ).
+          joins(join.join_sources, :enrollment).
+          where(e_t[:DisablingCondition].eq(1)).
+          select(:client_id),
+      )
+    end
+
     # Include clients with an indefinite and impairing disability
     # and those who have had their disability verified manually
     scope :chronically_disabled, ->(end_date = Date.current) do
