@@ -93,7 +93,7 @@ module PerformanceMeasurement::Details
     memoize :project_details
 
     def clients_for_question(key, period, project_id: nil)
-      field = result_methods[key]
+      field = result_methods[key].try(:[], :calculation_column)
       return [] unless field
 
       project_scope = PerformanceMeasurement::ClientProject.where(period: period, for_question: field)
