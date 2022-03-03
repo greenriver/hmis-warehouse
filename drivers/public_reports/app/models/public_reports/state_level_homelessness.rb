@@ -882,8 +882,18 @@ module PublicReports
 
     private def homeless_chart_breakdowns(section_title:, charts:, setup:, scope:, date:)
       iso_date = date.iso8601
+      section_chronic_count = 0
+      section_total_count = 0
       chronic_scope = scope.joins(enrollment: :ch_enrollment).
         merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
+
+      # NOTE: for adults with children we sum all categories together
+      if section_title.downcase == 'Persons in households with at least one child and one adult'.downcase
+        setup.each do |_, client_scope|
+          section_chronic_count += chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
+          section_total_count += scope.merge(client_scope).distinct.select(:client_id).count
+        end
+      end
 
       setup.each do |title, client_scope|
         chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
@@ -899,9 +909,13 @@ module PublicReports
         total_string = total_for(scope.merge(client_scope), nil)
         total_count = scope.merge(client_scope).distinct.select(:client_id).count
 
-        # intermediate_chronic_count += chronic_count
-        # charts[section_title]['chronic_counts'][iso_date] = intermediate_chronic_count
-        charts[section_title]['chronic_counts'][iso_date] = charts[section_title]['chronic_counts'][iso_date]
+        if section_title.downcase == 'Persons in households with at least one child and one adult'.downcase
+          chronic_count = section_chronic_count
+          total_count = section_total_count
+        end
+        charts[section_title]['chronic_counts'][iso_date] ||= {}
+        charts[section_title]['chronic_counts'][iso_date][title] ||= 0
+        charts[section_title]['chronic_counts'][iso_date][title] = chronic_count
         charts[section_title]['chronic_percents'][iso_date] ||= {}
         charts[section_title]['chronic_percents'][iso_date][title] ||= 0
         charts[section_title]['chronic_percents'][iso_date][title] = enforce_min_threshold([chronic_count, total_count], 'chronic_percents')
