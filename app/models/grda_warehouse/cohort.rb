@@ -103,6 +103,7 @@ module GrdaWarehouse
           client: [
             :source_clients,
             :processed_service_history,
+            :most_recent_pathways_or_rrh_assessment,
             {
               cohort_clients: :cohort,
             },
@@ -310,6 +311,7 @@ module GrdaWarehouse
         ::CohortColumns::ActiveInCasMatch.new,
         ::CohortColumns::SchoolDistrict.new,
         ::CohortColumns::AssessmentScore.new,
+        ::CohortColumns::PathwaysV3AssessmentDate.new,
         ::CohortColumns::VispdatScoreManual.new,
         ::CohortColumns::DaysOnCohort.new,
         ::CohortColumns::CasVashEligible.new,
