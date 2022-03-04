@@ -799,7 +799,7 @@ module GrdaWarehouse::Hud
               joins(:enrollment).
               define_window(:client_by_update).partition_by(:client_id, order_by: { e_t[:DateUpdated] => :desc }).
               select_window(:first_value, she_t[:id], over: :client_by_update, as: :current_id).
-              where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
+              # where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
               where(e_t[:DisablingCondition].in([0, 1])),
         ).
           joins(join.join_sources, :enrollment).
