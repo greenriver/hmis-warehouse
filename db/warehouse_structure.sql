@@ -5105,7 +5105,8 @@ CREATE TABLE public.configs (
     ineligible_uses_extrapolated_days boolean DEFAULT true NOT NULL,
     warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL,
     cas_calculator character varying DEFAULT 'GrdaWarehouse::CasProjectClientCalculator::Default'::character varying NOT NULL,
-    service_register_visible boolean DEFAULT false NOT NULL
+    service_register_visible boolean DEFAULT false NOT NULL,
+    enable_youth_unstably_housed boolean DEFAULT true
 );
 
 
@@ -47524,6 +47525,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220211001613'),
 ('20220214202202'),
 ('20220216204506'),
-('20220302145218');
+('20220302145218'),
+('20220302154833');
 
 
