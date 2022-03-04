@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-09 18:59+0000\n"
-"PO-Revision-Date: 2021-11-09 18:59+0000\n"
+"POT-Creation-Date: 2022-03-04 18:24+0000\n"
+"PO-Revision-Date: 2022-03-04 18:24+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -31,6 +31,9 @@ msgid "A claim was submitted for this CHA; it is no longer editable."
 msgstr ""
 
 msgid "A claim was submitted for this SSM; it is no longer editable."
+msgstr ""
+
+msgid "Able to pass a drug test"
 msgstr ""
 
 msgid "Achieving project outcomes provides a benchmark for how well projects help to end homelessness. Assessing & monitoring project outcomes is necessary to understand a project's rate of success and contribution to CoC-wide performance goals."
@@ -67,6 +70,9 @@ msgid "Appropriate for sober supportive housing"
 msgstr ""
 
 msgid "Asylee, Refugee"
+msgstr ""
+
+msgid "Attachment III - Client Data Reports"
 msgstr ""
 
 msgid "Authorization for Use/Disclosure of Personal Information"
@@ -3468,6 +3474,9 @@ msgstr ""
 msgid "Census Tracking Worksheets"
 msgstr ""
 
+msgid "Challenges"
+msgstr ""
+
 msgid "Child-Only Households"
 msgstr ""
 
@@ -3478,6 +3487,9 @@ msgid "Chronically Homeless for CAS"
 msgstr ""
 
 msgid "City of Boston DND Warehouse"
+msgstr ""
+
+msgid "Clean/sober for at least one year"
 msgstr ""
 
 msgid "Client Contact Locations"
@@ -3498,6 +3510,9 @@ msgstr ""
 msgid "Clients moving into permanent housing"
 msgstr ""
 
+msgid "CoC Performance Measurement Dashboard"
+msgstr ""
+
 msgid "Cohort is visible in CAS"
 msgstr ""
 
@@ -3505,6 +3520,9 @@ msgid "Cohort is visible on Client dashboard"
 msgstr ""
 
 msgid "Cohorts"
+msgstr ""
+
+msgid "Configure Performance Measurement Goal"
 msgstr ""
 
 msgid "Consent form confirmed"
@@ -3529,6 +3547,9 @@ msgid "Coordinated Entry System Particpation 20%"
 msgstr ""
 
 msgid "Core Demographics"
+msgstr ""
+
+msgid "Current open case"
 msgstr ""
 
 msgid "DMH Eligible"
@@ -3564,6 +3585,12 @@ msgstr ""
 msgid "Disability Verification on File"
 msgstr ""
 
+msgid "Earning a living wage ($13 or more)"
+msgstr ""
+
+msgid "Employed for 3 or more months"
+msgstr ""
+
 msgid "Ending Veteran & Chronic Homelessness in Boston"
 msgstr ""
 
@@ -3582,7 +3609,13 @@ msgstr ""
 msgid "Files downloaded from this page may contain Personal Protected Information from a secured environment.  Once you download this file, you and your agency are responsible for maintaining all related Privacy, Security and Confidentiality protections."
 msgstr ""
 
+msgid "Financial Assistance End Date"
+msgstr ""
+
 msgid "Find clients who need a Coordinated Entry re-assessment."
+msgstr ""
+
+msgid "Foster care as youth"
 msgstr ""
 
 msgid "Full HAN Release"
@@ -3654,6 +3687,9 @@ msgstr ""
 msgid "Health SFTP incoming claims data folder"
 msgstr ""
 
+msgid "History of heavy drug use"
+msgstr ""
+
 msgid "Homeless Count Comparison Report"
 msgstr ""
 
@@ -3685,6 +3721,9 @@ msgid "Housing Authority Eligible"
 msgstr ""
 
 msgid "Housing Exit"
+msgstr ""
+
+msgid "Housing Release Signature Date"
 msgstr ""
 
 msgid "Housing Release Status"
@@ -3888,6 +3927,15 @@ msgstr ""
 msgid "Percentage of clients with increased income"
 msgstr ""
 
+msgid "Performance Management Dashboard"
+msgstr ""
+
+msgid "Performance Measurement Goal Configurator"
+msgstr ""
+
+msgid "Performance Measurement Report"
+msgstr ""
+
 msgid "Performance Metrics"
 msgstr ""
 
@@ -3913,6 +3961,9 @@ msgid "Pre-Placement"
 msgstr ""
 
 msgid "Pre-Placement Project"
+msgstr ""
+
+msgid "Prefers housing for formerly homeless"
 msgstr ""
 
 msgid "Previous Removal Reason"
@@ -4038,6 +4089,9 @@ msgstr ""
 msgid "State-Level Homelessness Report Generator"
 msgstr ""
 
+msgid "Strengths"
+msgstr ""
+
 msgid "Successful housing outcomes are one of the most important measures of project success."
 msgstr ""
 
@@ -4077,6 +4131,9 @@ msgstr ""
 msgid "This list of agencies will change over time.  Please revisit this page for the updated list."
 msgstr ""
 
+msgid "Tie Breaker Date"
+msgstr ""
+
 msgid "Time Homeless"
 msgstr ""
 
@@ -4113,6 +4170,9 @@ msgstr ""
 msgid "Upload successful, please let the recipient know the file has been sent."
 msgstr ""
 
+msgid "User Access Logs"
+msgstr ""
+
 msgid "User Directory"
 msgstr ""
 
@@ -4138,6 +4198,9 @@ msgid "Warehouse Project ID"
 msgstr ""
 
 msgid "Where People are Staying"
+msgstr ""
+
+msgid "Willing to engage with housing case management"
 msgstr ""
 
 msgid "Willing to live in congregate housing"
@@ -4182,6 +4245,9 @@ msgstr ""
 msgid "data sources"
 msgstr ""
 
+msgid "engagement period has ended, and there is no signed careplan"
+msgstr ""
+
 msgid "enrollment"
 msgstr ""
 
@@ -4194,7 +4260,28 @@ msgstr ""
 msgid "imports"
 msgstr ""
 
+msgid "invalid procedure code"
+msgstr ""
+
+msgid "no activity was specified"
+msgstr ""
+
+msgid "no indication if the client was reached"
+msgstr ""
+
+msgid "no mode of contact"
+msgstr ""
+
+msgid "outreach activities are not payable after the outreach period"
+msgstr ""
+
 msgid "patient"
+msgstr ""
+
+msgid "patient did not have an active enrollment on the date of the activity"
+msgstr ""
+
+msgid "phone or video calls are not payable if the patient was not reached"
 msgstr ""
 
 msgid "pre-placement"
@@ -4213,6 +4300,21 @@ msgid "stabilization"
 msgstr ""
 
 msgid "the Boston Emergency Shelter Commission"
+msgstr ""
+
+msgid "the date of the activity is missing"
+msgstr ""
+
+msgid "too many months with non-outreach activities and no signed careplan"
+msgstr ""
+
+msgid "too many months with outreach activities"
+msgstr ""
+
+msgid "too many non-outreach activities in the month"
+msgstr ""
+
+msgid "too many outreach activities in the month"
 msgstr ""
 
 msgid "translation"
