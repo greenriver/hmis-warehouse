@@ -8,7 +8,7 @@
       = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Please Choose'}, label: 'CoC Codes', hint: default_coc_code
   %h2 Projects to Include
   %p.alert.alert-info Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type.
-  .row{data: { controller: 'filter-projects' }}
+  .row
     .col-md-8
       .row
         .col-sm-6
