@@ -3908,6 +3908,9 @@ msgstr ""
 msgid "Pathways"
 msgstr ""
 
+msgid "Pathways V3 Assessment Date"
+msgstr ""
+
 msgid "Patient Engagement Trends"
 msgstr ""
 

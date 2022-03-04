@@ -209,6 +209,20 @@ module GrdaWarehouse
       ]
     end
 
+    def self.non_translateable
+      Set.new(
+        [
+          ::CohortColumns::LastName,
+          ::CohortColumns::FirstName,
+          ::CohortColumns::Rank,
+          ::CohortColumns::Age,
+          ::CohortColumns::Gender,
+          ::CohortColumns::Ssn,
+          ::CohortColumns::ClientId,
+        ],
+      )
+    end
+
     def self.available_columns # rubocop:disable Metrics/AbcSize
       [
         ::CohortColumns::LastName.new,
