@@ -211,15 +211,15 @@ module CensusTracking
 
     private def service_data_by_project(project_id)
       if @last_project_id != project_id
-        @data = transform(service_scope(project_id))
+        @all_data ||= service_scope.pluck(*service_columns.values).group_by(&:first)
+        @data = transform(@all_data[project_id] || [])
         @last_project_id = project_id
       end
       @data
     end
 
-    private def transform(scope)
-      rows = scope.
-        pluck(*service_columns.values).
+    private def transform(data)
+      rows = data.
         map do |row|
           client = ::OpenStruct.new(service_columns.keys.zip(row).to_h)
           client.gender_multi = []
@@ -250,11 +250,11 @@ module CensusTracking
       rows
     end
 
-    private def service_scope(project_id)
+    private def service_scope
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         joins(:service_history_services, :client).
         service_on_date(@filter.on).
-        in_project(project_id)
+        in_project(projects.map(&:last))
 
       scope = filter_for_user_access(scope)
       scope = filter_for_cocs(scope)
