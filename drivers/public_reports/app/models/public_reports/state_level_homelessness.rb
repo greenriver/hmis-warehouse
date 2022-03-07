@@ -80,6 +80,24 @@ module PublicReports
       end
     end
 
+    private def remove_from_s3
+      bucket = s3_bucket
+      prefix = public_s3_directory
+      sections.each do |section|
+        prefix = File.join(public_s3_directory, version_slug.to_s, section.to_s)
+        key = File.join(prefix, 'index.html')
+        resp = s3_client.delete_object(
+          bucket: bucket,
+          key: key,
+        )
+        if resp.delete_marker
+          Rails.logger.info "Successfully removed report file from s3 (#{key})"
+        else
+          Rails.logger.info "Unable to remove the report file (#{key})"
+        end
+      end
+    end
+
     def run_and_save!
       start_report
       pre_calculate_data
