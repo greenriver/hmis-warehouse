@@ -31,10 +31,71 @@ module GrdaWarehouse::WarehouseReports
         pluck(:client_id)
     end
 
+    # NOTE: this does not match temporary destinations exactly
+    def clients_to_neutral
+      @clients_to_neutral ||= exits_scope.
+        where(destination: HUD.temporary_destinations + [6]).
+        distinct.
+        pluck(:client_id)
+    end
+
+    def clients_to_jail
+      @clients_to_jail ||= exits_scope.
+        where(destination: 7).
+        distinct.
+        pluck(:client_id)
+    end
+
+    def clients_to_deceased
+      @clients_to_deceased ||= exits_scope.
+        where(destination: 24).
+        distinct.
+        pluck(:client_id)
+    end
+
+    def clients_to_destinations
+      @clients_to_destinations ||= exits_scope.
+        where(destination: HUD.permanent_destinations + HUD.temporary_destinations + [6, 7, 24]).
+        distinct.
+        pluck(:client_id)
+    end
+
     def hoh_to_ph
       @hoh_to_ph ||= exits_scope.
         heads_of_households.
         where(destination: HUD.permanent_destinations).
+        distinct.
+        pluck(:client_id)
+    end
+
+    def hoh_to_neutral
+      @hoh_to_neutral ||= exits_scope.
+        heads_of_households.
+        where(destination: HUD.temporary_destinations + [6]).
+        distinct.
+        pluck(:client_id)
+    end
+
+    def hoh_to_jail
+      @hoh_to_jail ||= exits_scope.
+        heads_of_households.
+        where(destination: 7).
+        distinct.
+        pluck(:client_id)
+    end
+
+    def hoh_to_deceased
+      @hoh_to_deceased ||= exits_scope.
+        heads_of_households.
+        where(destination: 24).
+        distinct.
+        pluck(:client_id)
+    end
+
+    def hoh_to_destinations
+      @hoh_to_destinations ||= exits_scope.
+        heads_of_households.
+        where(destination: HUD.permanent_destinations + HUD.temporary_destinations + [6, 7, 24]).
         distinct.
         pluck(:client_id)
     end
@@ -186,6 +247,14 @@ module GrdaWarehouse::WarehouseReports
         hoh_to_stabilization: "All Heads of Households entering #{_('Stabilization')}",
         exits_to_ph: "Unique Clients exiting to Permanent Destinations or entering #{_('Stabilization')}",
         hoh_exits_to_ph: "Unique Heads of Households exiting to Permanent Destinations or entering #{_('Stabilization')}",
+        clients_to_neutral: 'Unique Clients exiting to a neutral destination',
+        hoh_to_neutral: 'Unique Heads of Households exiting to a neutral destination',
+        clients_to_jail: 'Unique Clients exiting to Jail',
+        hoh_to_jail: 'Unique Heads of Households exiting to Jail',
+        clients_to_deceased: 'Deceased Clients',
+        hoh_to_deceased: 'Deceased Heads of Households',
+        clients_to_destinations: 'Unique Clients exiting to Permanent, Neutral, Jail, or Deceased',
+        hoh_to_destinations: 'Unique Heads of Households exiting to Permanent, Neutral, Jail, or Deceased',
         clients_without_recent_service: 'Clients without recent service',
         hoh_without_recent_service: 'Heads of Households without recent service',
         client_outflow: 'Total Outflow',

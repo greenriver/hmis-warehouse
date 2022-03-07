@@ -1,11 +1,12 @@
 %h2 Metrics
-%table.table.table-hover
-  %thead
-    %tr
-      %th Metric
-      %th Clients
-  %tbody
-    - @report.metrics.each do |key, label|
+.card
+  %table.table.table-striped.mb-0
+    %thead
       %tr
-        %td= link_to label, details_warehouse_reports_outflow_index_path(filter: filter_options, key: key), data: {loads_in_pjax_modal: true}
-        %td= @report.send(key).count
+        %th Metric
+        %th Clients
+    %tbody
+      - @report.metrics.each do |key, label|
+        %tr
+          %td= link_to label, details_warehouse_reports_outflow_index_path(filter: filter_options, key: key), data: {loads_in_pjax_modal: true}
+          %td= @report.send(key).count
