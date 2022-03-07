@@ -243,15 +243,22 @@ module GrdaWarehouse::YouthIntake
     end
 
     def available_housing_stati
-      @available_housing_stati ||= {
-        self.class.stably_housed_string => 'Stably housed <em>(Individual has sufficient resources or support networks immediately available to prevent them from moving to emergency shelter or another place within 30 days.)</em>'.html_safe,
-        self.class.at_risk_string => 'At risk of homelessness <em>(A person 24 years of age or younger whose status or circumstances indicate a significant danger of experiencing homelessness in the near future (four months). Statuses or circumstances that indicate a significant danger may include: (1) youth exiting out-of-home placements; (2) youth who previously were homeless; (3) youth whose parents or primary caregivers are or were previously homeless or have a history of multiple evictions or other types of housing instability; (4) youth who are exposed to abuse and neglect in their homes; (5) youth who experience conflict with parents due to chemical or alcohol dependency, mental health disabilities, or other disabilities; and (6) runaways.)</em>'.html_safe,
-        'Unstably housed' => 'Unstably housed but does not meet definition of At risk of homelessness',
-        self.class.couch_surfing_string => 'Experiencing homelessness: couch surfing',
-        self.class.street_string => 'Experiencing homelessness: street',
-        self.class.shelter_string => 'Experiencing homelessness: in shelter',
-        'Unknown' => 'Unknown',
-      }
+      @available_housing_stati ||= begin
+        options = {
+          self.class.stably_housed_string => 'Stably housed <em>(Individual has sufficient resources or support networks immediately available to prevent them from moving to emergency shelter or another place within 30 days.)</em>'.html_safe,
+          self.class.at_risk_string => 'At risk of homelessness <em>(A person 24 years of age or younger whose status or circumstances indicate a significant danger of experiencing homelessness in the near future (four months). Statuses or circumstances that indicate a significant danger may include: (1) youth exiting out-of-home placements; (2) youth who previously were homeless; (3) youth whose parents or primary caregivers are or were previously homeless or have a history of multiple evictions or other types of housing instability; (4) youth who are exposed to abuse and neglect in their homes; (5) youth who experience conflict with parents due to chemical or alcohol dependency, mental health disabilities, or other disabilities; and (6) runaways.)</em>'.html_safe,
+        }
+        options.merge!({ 'Unstably housed' => 'Unstably housed but does not meet definition of At risk of homelessness' }) if GrdaWarehouse::Config.get(:enable_youth_unstably_housed)
+        options.merge!(
+          {
+            self.class.couch_surfing_string => 'Experiencing homelessness: couch surfing',
+            self.class.street_string => 'Experiencing homelessness: street',
+            self.class.shelter_string => 'Experiencing homelessness: in shelter',
+            'Unknown' => 'Unknown',
+          },
+        )
+        options
+      end
     end
 
     def available_secondary_education
@@ -289,6 +296,7 @@ module GrdaWarehouse::YouthIntake
         'Mental / Emotional disability',
         'Medical / Physical disability',
         'Developmental disability',
+        'Substance abuse disorder',
         'No disabilities',
         'Unknown',
       ]

@@ -44,7 +44,7 @@ module ClaimsReporting::Calculators
           where(member_id: @member_ids, procedure_code: vaccination_types.keys + vaccination_doses.keys).
           pluck(*DATA_FIELDS).
           group_by(&:first).
-          transform_values! { |claims| claims.map { |claim| DATA_FIELDS.zip(claim).to_h } }
+          transform_values! { |claims| claims.map { |claim| DATA_FIELDS.zip(claim).to_h }.uniq { |claim| claim[:service_start_date] } }
 
         # Add in any additional EPIC data
         Health::Vaccination.
