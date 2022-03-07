@@ -535,8 +535,8 @@ class RollOut
         print "\nYou can (w)ait, (p)roceed with deployment anyway, (v)iew log tail, or (a)bort: "
         response = $stdin.gets
         if response.downcase.match(/w/)
-          puts "[INFO] Waiting 30 seconds #{target_group_name}"
-          sleep 30
+          puts "[INFO] Waiting 120 seconds #{target_group_name}"
+          sleep 120
         elsif response.downcase.match(/p/)
           puts "[WARN] Continuing on anyway #{target_group_name}"
           complete = true
@@ -554,10 +554,10 @@ class RollOut
           resp.events.each do |event|
             puts "[TASK] #{event.message} #{target_group_name}"
           end
-          sleep 120
+          sleep 240
         else
           puts "[INFO] Waiting 120 seconds since we didn't understand your response #{target_group_name}"
-          sleep 120
+          sleep 240
         end
       end
     end
