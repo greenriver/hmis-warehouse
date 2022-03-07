@@ -1,45 +1,59 @@
 - section_header = data.keys.first
 - adult_plus_child = section_header.downcase == 'Persons in households with at least one child and one adult'.downcase
 %h4.mr-4= section_header
-- if adult_plus_child
-  %p All adult and child chronic numbers are combined.
 - groups = ['Sheltered', 'Unsheltered', 'Redacted']
 - category = :location_type
+.mb-4
+  - data.each do |_, section|
+    - active_date = section['chronic_percents'].keys.last
+    - chronic_dates = section['chronic_percents']
+    - section['sub_sections'].each do |title, dates|
+      - under_18 = title.downcase == 'Children under 18'.downcase
+      - youth = title.downcase == 'Persons Age 18 to 24'.downcase
+      .jHomelessBreakdownRow{data: { chronics: chronic_dates.to_json}}
+        - total = dates[active_date]['total']
+        - chronic_percent = chronic_dates[active_date][title]
+        .w-100.d-flex
+          .w-50.d-flex
+            - chart_class = "household_type_#{section_header.downcase.parameterize.underscore}_#{title.downcase.parameterize.underscore}"
+            .w-30.breakdown-type.mb-4.mt-auto=title
+            .w-30.mb-auto.mt-auto
+              - js_data = @report.enforce_min_threshold(dates, 'homeless_row')
+              .chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
+              = render 'bar_js', data: js_data, chart_class: chart_class, active_date: active_date, groups: groups, category: category
+            - if adult_plus_child
+              .w-30.d-flex.border-right.border-dark
+                .total-for-type.mb-auto.mt-auto.jTotalCount{data: { dates: dates.to_json }}= total
+            - else
+              .w-30.d-flex
+                .total-for-type.mb-auto.mt-auto.jTotalCount{data: { dates: dates.to_json }}= total
+          - # adult + child chronic is all in one big 'ol bucket
+          .w-50.d-flex.mb-4
+            - if adult_plus_child
+              - if under_18
+                %h5 Chronic Households
+              - if youth
+                .chronic-chart.w-30
+                .meter
+                  .background
+                    - 10.times.with_index do |i|
+                      .fas.fa-male.light{style: "left: #{i * 20}px;"}
+                  .foreground.jChronicPercentMeter{style: "width: #{chronic_percent}%"}
+                    - 10.times.with_index do |i|
+                      .fas.fa-male{style: "left: #{i * 20}px;"}
+            - else
+              .chronic-chart.w-30.mt-auto.mb-auto
+                .meter
+                  .background
+                    - 10.times.with_index do |i|
+                      .fas.fa-male.light{style: "left: #{i * 20}px;"}
+                  .foreground.jChronicPercentMeter{style: "width: #{chronic_percent}%"}
+                    - 10.times.with_index do |i|
+                      .fas.fa-male{style: "left: #{i * 20}px;"}
 
-- data.each do |_, section|
-  - active_date = section['chronic_percents'].keys.last
-  - chronic_dates = section['chronic_percents']
-  - section['sub_sections'].each do |title, dates|
-    - not_first_category = title.downcase != 'Children under 18'.downcase
-    .jHomelessBreakdownRow{data: { chronics: chronic_dates.to_json}}
-      - total = dates[active_date]['total']
-      - chronic_percent = chronic_dates[active_date][title]
-      .w-100.mb-4.d-flex
-        .w-50.d-flex
-          - chart_class = "household_type_#{section_header.downcase.parameterize.underscore}_#{title.downcase.parameterize.underscore}"
-          .w-30.breakdown-type.mb-auto.mt-auto=title
-          .w-30
-            - js_data = @report.enforce_min_threshold(dates, 'homeless_row')
-            .chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
-            = render 'bar_js', data: js_data, chart_class: chart_class, active_date: active_date, groups: groups, category: category
-          .w-30.d-flex
-            .total-for-type.mb-auto.mt-auto.jTotalCount{data: { dates: dates.to_json }}
-              = total
-        - # adult + child chronic is all in one big 'ol bucket
-        .w-50.d-flex
-          - unless adult_plus_child && not_first_category
-            .chronic-chart.w-30
-              .meter
-                .background
-                  - 10.times.with_index do |i|
-                    .fas.fa-male.light{style: "left: #{i * 20}px;"}
-                .foreground.jChronicPercentMeter{style: "width: #{chronic_percent}%"}
-                  - 10.times.with_index do |i|
-                    .fas.fa-male{style: "left: #{i * 20}px;"}
-
-          .chronic-legend.mb-auto.mt-auto.w-70
-            - unless adult_plus_child && not_first_category
-              %span.jChronicPercent{ data: { category: title }}
-                = chronic_percent
-              %span.jChronicSymbol %
-              .label Chronically Homeless
+            - unless adult_plus_child && ! youth
+              .chronic-legend.mb-auto.mt-auto.w-70
+                %span.jChronicPercent{ data: { category: title }}
+                  = chronic_percent
+                %span.jChronicSymbol %
+                .label Chronically Homeless
