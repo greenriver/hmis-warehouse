@@ -248,7 +248,7 @@ module GrdaWarehouse::Tasks
         HUD.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
         value.map do |id|
-          Cas::Neighborhood.find(id).name
+          Cas::Neighborhood.find_by(id: id)&.name
         end&.to_sentence
       elsif key == :tags
         value.keys.map do |id|

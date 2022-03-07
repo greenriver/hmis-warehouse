@@ -42,6 +42,7 @@
           = f.input :infer_family_from_household_id, label: 'Should "presented as an individual" be inferred from the count of matching household ids? (unchecked uses project inventory HouseholdType)'
           = f.input :expose_coc_code, label: 'Expose CoC Code on client dashboard rows?', hint: 'This is most useful if the installation spans multiple CoCs'
           = f.input :enable_youth_hrp, label: 'Enable Youth Housing Resolution Plans'
+          = f.input :enable_youth_unstably_housed, label: 'Enable youth Unstably Housed option'
           = f.input :warehouse_client_name_order, label: 'How should the names on clients be calculated?', collection: GrdaWarehouse::Config.available_warehouse_client_name_orders, as: :select_two
 
       %section.o-section-card

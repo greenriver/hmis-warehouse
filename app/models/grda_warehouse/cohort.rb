@@ -103,6 +103,7 @@ module GrdaWarehouse
           client: [
             :source_clients,
             :processed_service_history,
+            :most_recent_pathways_or_rrh_assessment,
             {
               cohort_clients: :cohort,
             },
@@ -208,6 +209,20 @@ module GrdaWarehouse
       ]
     end
 
+    def self.non_translateable
+      Set.new(
+        [
+          ::CohortColumns::LastName,
+          ::CohortColumns::FirstName,
+          ::CohortColumns::Rank,
+          ::CohortColumns::Age,
+          ::CohortColumns::Gender,
+          ::CohortColumns::Ssn,
+          ::CohortColumns::ClientId,
+        ],
+      )
+    end
+
     def self.available_columns # rubocop:disable Metrics/AbcSize
       [
         ::CohortColumns::LastName.new,
@@ -310,6 +325,7 @@ module GrdaWarehouse
         ::CohortColumns::ActiveInCasMatch.new,
         ::CohortColumns::SchoolDistrict.new,
         ::CohortColumns::AssessmentScore.new,
+        ::CohortColumns::PathwaysV3AssessmentDate.new,
         ::CohortColumns::VispdatScoreManual.new,
         ::CohortColumns::DaysOnCohort.new,
         ::CohortColumns::CasVashEligible.new,

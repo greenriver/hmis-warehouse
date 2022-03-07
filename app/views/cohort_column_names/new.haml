@@ -15,7 +15,7 @@
         %th Type
     %tbody
       - @columns.each do |column|
-        - unless column.input_type == 'read_only'
+        - unless column.class.in?(GrdaWarehouse::Cohort.non_translateable)
           %tr
             %td
               = column.translation_key
