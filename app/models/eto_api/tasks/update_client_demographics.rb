@@ -244,6 +244,7 @@ module EtoApi::Tasks
           email: hmis_client&.email,
           language_1: hmis_client&.language_1,
           language_2: hmis_client&.language_2,
+          youth_current_zip: hmis_client&.youth_current_zip,
         }
         hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         if hmis_client.changed?
