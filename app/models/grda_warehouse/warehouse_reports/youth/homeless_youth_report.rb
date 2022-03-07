@@ -589,7 +589,14 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def follow_up_two_d
-      @follow_up_two_d ||= follow_up_from_homelessness.pluck(:zip_code).uniq
+      @follow_up_two_d ||= begin
+        hmis_clients = GrdaWarehouse::HmisClient.where(client_id: follow_up_two_b) # clients w/ follow ups
+        hmis_zips = hmis_clients.all.map { |hmis_client| hmis_client.processed_fields&.dig('youth_current_zip') }.compact
+
+        follow_up_zips = follow_up_from_homelessness.pluck(:zip_code)
+
+        (hmis_zips + follow_up_zips).uniq
+      end
     end
 
     def g_one_a
