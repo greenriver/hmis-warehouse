@@ -63,10 +63,10 @@ module HudReports
     end
 
     def completed_in
-      if completed?
-        seconds = ((updated_at - created_at)/1.minute).round * 60
-        distance_of_time_in_words(seconds)
-      end
+      return nil unless completed?
+
+      seconds = ((updated_at - created_at) / 1.minute).round * 60
+      distance_of_time_in_words(seconds)
     end
 
     def completed?
@@ -74,24 +74,39 @@ module HudReports
     end
 
     private def new_member(warehouse_client:, universe_client:)
-      UniverseMember.new(
-        report_cell: self,
-        client_id: warehouse_client.id,
-        first_name: universe_client.first_name,
-        last_name: universe_client.last_name,
-        universe_membership: universe_client,
-      )
+      if universe_client.respond_to?(:first_name)
+        UniverseMember.new(
+          report_cell: self,
+          client_id: warehouse_client.id,
+          first_name: universe_client.first_name,
+          last_name: universe_client.last_name,
+          universe_membership: universe_client,
+        )
+      else
+        UniverseMember.new(
+          report_cell: self,
+          universe_membership: universe_client,
+        )
+      end
     end
 
     private def copy_member(member)
-      UniverseMember.new(
-        report_cell: self,
-        client_id: member.client_id,
-        first_name: member.first_name,
-        last_name: member.last_name,
-        universe_membership_type: member.universe_membership_type,
-        universe_membership_id: member.universe_membership_id,
-      )
+      if member.respond_to?(:first_name)
+        UniverseMember.new(
+          report_cell: self,
+          client_id: member.client_id,
+          first_name: member.first_name,
+          last_name: member.last_name,
+          universe_membership_type: member.universe_membership_type,
+          universe_membership_id: member.universe_membership_id,
+        )
+      else
+        UniverseMember.new(
+          report_cell: self,
+          universe_membership_type: member.universe_membership_type,
+          universe_membership_id: member.universe_membership_id,
+        )
+      end
     end
 
     private def join_universe

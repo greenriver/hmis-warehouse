@@ -1,0 +1,12 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: @name.slice(0, 30).gsub(':', ' ')) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.add_row(HudPit::Fy2022::PitClient.detail_headers.values, style: title)
+  @clients.each do |client|
+    row = []
+    HudPit::Fy2022::PitClient.detail_headers.each_key do |k|
+      row << client[k]
+    end
+    sheet.add_row(row)
+  end
+end

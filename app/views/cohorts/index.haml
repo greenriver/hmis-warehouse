@@ -29,78 +29,83 @@
         = render 'sort'
 
     = simple_form_for @cohort, url: cohorts_path do |f|
-      %table.table.table-sm
+      .card.mb-4
+        %table.table.table-striped.mb-0
+          %thead
+            %tr
+              %th{style: 'min-width: 20em;'} Name
+              %th{style: 'width: 12em;'} Effective Date
+              %th Clients
+          %tbody
+            - if current_user.can_manage_cohorts?
+              %tr
+                %td
+                  = f.input :name, label: false
+                %td
+                  = f.input :effective_date, as: :date_picker, label: false
+                %td
+                  = f.submit value: 'Create Cohort', class: 'btn btn-primary'
+      .card
+        %table.table.table-striped.mb-0
+          %thead
+            %tr
+              %th{style: 'min-width: 20em;'} Name
+              %th{style: 'width: 12em;'} Effective Date
+              %th Visible on Client Dashboard?
+              %th Visible in CAS?
+              %th Tagged for CAS?
+              %th.text-center Clients
+            %tbody
+              - @cohorts.each do |cohort|
+                %tr
+                  %td
+                    = link_to cohort.name, cohort_path(cohort)
+                  %td
+                    = cohort.effective_date
+                  %td
+                    = checkmark cohort.show_on_client_dashboard?
+                  %td
+                    = checkmark cohort.visible_in_cas?
+                  %td= cohort.cas_tag_name
+                  %td.text-center
+                    = cohort.cohort_clients.joins(:client).count
+  #inactive-cohorts.tab-pane{role: :tabpanel}
+    .o-page
+      .o-page__controls
+        = render 'search'
+        = render 'sort'
+    .card
+      %table.table.table-striped.mb-0
         %thead
           %tr
             %th{style: 'min-width: 20em;'} Name
             %th{style: 'width: 12em;'} Effective Date
             %th Clients
         %tbody
-          - if current_user.can_manage_cohorts?
-            %tr
-              %td
-                = f.input :name, label: false
-              %td
-                = f.input :effective_date, as: :date_picker, label: false
-              %td
-                = f.submit value: 'Create Cohort', class: 'btn btn-primary'
-      %table.table.table-sm
-        %thead
-          %tr
-            %th{style: 'min-width: 20em;'} Name
-            %th{style: 'width: 12em;'} Effective Date
-            %th Visible on Client Dashboard?
-            %th Visible in CAS?
-            %th Tagged for CAS?
-            %th.text-center Clients
-          - @cohorts.each do |cohort|
+          - @inactive_cohorts.each do |cohort|
             %tr
               %td
                 = link_to cohort.name, cohort_path(cohort)
               %td
                 = cohort.effective_date
-              %td
-                = checkmark cohort.show_on_client_dashboard?
-              %td
-                = checkmark cohort.visible_in_cas?
-              %td= cohort.cas_tag_name
               %td.text-center
-                = cohort.cohort_clients.joins(:client).count
-  #inactive-cohorts.tab-pane{role: :tabpanel}
-    .o-page
-      .o-page__controls
-        = render 'search'
-        = render 'sort'
-    %table.table.table-sm
-      %thead
-        %tr
-          %th{style: 'min-width: 20em;'} Name
-          %th{style: 'width: 12em;'} Effective Date
-          %th Clients
-      %tbody
-        - @inactive_cohorts.each do |cohort|
-          %tr
-            %td
-              = link_to cohort.name, cohort_path(cohort)
-            %td
-              = cohort.effective_date
-            %td.text-center
-              = cohort.cohort_clients.count
+                = cohort.cohort_clients.count
   - if system_cohorts_enabled
     #system-cohorts.tab-pane{role: :tabpanel}
       .o-page
         .o-page__controls
           = render 'search'
           = render 'sort'
-      %table.table.table-sm
-        %thead
-          %tr
-            %th{style: 'min-width: 20em;'} Name
-            %th Clients
-        %tbody
-          - @system_cohorts.each do |cohort|
+      .card
+        %table.table.table-striped.mb-0
+          %thead
             %tr
-              %td
-                = link_to cohort.name, cohort_path(cohort)
-              %td.text-center
-                = cohort.cohort_clients.count
+              %th{style: 'min-width: 20em;'} Name
+              %th Clients
+          %tbody
+            - @system_cohorts.each do |cohort|
+              %tr
+                %td
+                  = link_to cohort.name, cohort_path(cohort)
+                %td.text-center
+                  = cohort.cohort_clients.count

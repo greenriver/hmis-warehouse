@@ -26,6 +26,7 @@ module Health
         'Eligible',
         'Managed Care',
         'ACO',
+        'Coverage Types',
         'Rejection Code',
         'Copay',
         'Copay Total',
@@ -36,6 +37,7 @@ module Health
     def summary_rows
       subscribers.map do |subscriber|
         benefit_names = EBNM1(subscriber)
+        coverages = EB(subscriber).map { |(code, coverage)| "#{code}/#{coverage}" }.join(', ')
         copays = copays(subscriber)
         messages = MSG(subscriber)
         [
@@ -43,6 +45,7 @@ module Health
           eligible(subscriber),
           managed_care(subscriber),
           benefit_names['MC'] || benefit_names['L'],
+          coverages,
           AAA(subscriber),
           copays['B'],
           copays['J'],

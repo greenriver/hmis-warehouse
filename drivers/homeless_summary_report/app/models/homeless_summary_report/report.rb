@@ -67,8 +67,8 @@ module HomelessSummaryReport
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new(user_id: user_id)
-        f.update(options.with_indifferent_access) if options.present?
+        f = ::Filters::FilterBase.new(user_id: user_id, enforce_one_year_range: false)
+        f.update(options.with_indifferent_access.merge(enforce_one_year_range: false)) if options.present?
         f
       end
     end
@@ -449,7 +449,7 @@ module HomelessSummaryReport
               report_client[:report_id] = id
               report_client["spm_#{spm_field}"] = spm_client[spm_field]
               report_client[field_name(cell)] = true if field_measure(spm_field) == 7
-              report_client[detail_variant_name] = report[:report].id
+              report_client[detail_variant_name] = report[:report].id # SPM ID for future reference
               report_clients[client_id] = report_client
             end
           end
@@ -474,7 +474,7 @@ module HomelessSummaryReport
           report_clients.each do |client_id, report_client|
             next unless client_id.in?(client_ids_in_demographic_category)
 
-            # This previously inserted the report id, now we just need to make it > 0
+            # This previously inserted 0, now we just need to make it > 0
             report_client[detail_variant_name] = 1
           end
         end
@@ -507,6 +507,7 @@ module HomelessSummaryReport
       sub_spec[:demographic_filters].each do |demographic_filter|
         demographic_scope = send(demographic_filter, demographic_scope)
       end
+      puts demographic_scope.select(:client_id).to_sql
       ids = demographic_scope.pluck(:client_id).uniq.to_set
       @filter = nil
       filter
@@ -841,10 +842,24 @@ module HomelessSummaryReport
           },
           demographic_filters: [:filter_for_race],
         },
+        white: {
+          name: 'White',
+          extra_filters: {
+            races: ['White'],
+          },
+          demographic_filters: [:filter_for_race],
+        },
         multi_racial: {
           name: 'Multiracial',
           extra_filters: {
             races: ['MultiRacial'],
+          },
+          demographic_filters: [:filter_for_race],
+        },
+        race_none: {
+          name: 'Unknown Race',
+          extra_filters: {
+            races: ['RaceNone'],
           },
           demographic_filters: [:filter_for_race],
         },

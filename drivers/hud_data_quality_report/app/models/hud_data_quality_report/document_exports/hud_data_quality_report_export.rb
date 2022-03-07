@@ -20,7 +20,7 @@ module HudDataQualityReport::DocumentExports
     private def possible_generator_classes
       [
         HudDataQualityReport::Generators::Fy2020::Generator,
-        HudDataQualityReport::Generators::Fy2021::Generator,
+        HudDataQualityReport::Generators::Fy2022::Generator,
       ]
     end
   end

@@ -90,6 +90,7 @@ module Admin
         :warehouse_client_name_order,
         :cas_calculator,
         :service_register_visible,
+        :enable_youth_unstably_housed,
         client_details: [],
       )
     end

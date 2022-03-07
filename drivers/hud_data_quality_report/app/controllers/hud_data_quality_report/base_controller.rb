@@ -11,13 +11,13 @@ module HudDataQualityReport
     def available_report_versions
       {
         'FY 2020' => { slug: :fy2020, active: false },
-        # 'FY 2022' => { slug: :fy2021, active: true },
+        'FY 2022' => { slug: :fy2022, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2020
+      :fy2022
     end
 
     private def filter_class
@@ -78,7 +78,7 @@ module HudDataQualityReport
     private def possible_generator_classes
       {
         fy2020: HudDataQualityReport::Generators::Fy2020::Generator,
-        fy2021: HudDataQualityReport::Generators::Fy2021::Generator,
+        fy2022: HudDataQualityReport::Generators::Fy2022::Generator,
       }
     end
   end

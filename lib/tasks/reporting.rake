@@ -126,7 +126,7 @@ namespace :reporting do
         if ReportingBase.connection.table_exists?(:schema_migrations)
           puts "Refusing to load the reporting database structure since there are tables present. This is not an error."
         else
-          ReportingBase.connection.execute(File.read('db/reporting/structure.sql'))
+          ReportingBase.connection.execute(File.read('db/reporting_structure.sql'))
         end
       end
     end

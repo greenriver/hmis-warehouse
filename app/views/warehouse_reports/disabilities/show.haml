@@ -7,45 +7,42 @@
   Clients who are currently enrolled in a project in the selected project types who have provided an affirmative answer to the selected disability types.
 %hr
 
-.warehouse-reports__disabled
-  .row
-    .col-sm-12
-      %h4 Report Parameters
+.warehouse-reports__disabled.d-flex
+  .params
+    %h4 Report Parameters
+    .well
       = render 'parameters', report: @report
+  .ml-auto.mt-auto.mb-6
+    = link_to({format: :xlsx}, {class: 'btn btn-secondary'}) do
+      Download Excel
 
-  .row(style="padding-top:1em")
-    .col-sm-12.text-right
-      = link_to({format: :xlsx}, {class: 'btn btn-secondary'}) do
-        Download Excel
-
-  .row(style="padding-top:1em")
-    .col-sm-12
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th Last Name
-            %th First Name
-            %th Age
-            %th Unaccompanied?
-            %th Parenting?
-            %th Head of Household?
-            %th Disability
-        %tbody
-          - @clients.each do |client|
-            - enrollment = client['enrollment']
-            %tr
-              %td
-                %nobr= link_to_if can_view_clients?, client['LastName'], appropriate_client_path(client['id'])
-              %td
-                %nobr= link_to_if can_view_clients?, client['FirstName'], appropriate_client_path(client['id'])
-              %td
-                = enrollment&.[]('age')
-              %td
-                = checkmark(enrollment&.[]('unaccompanied_youth'))
-              %td
-                = checkmark(enrollment&.[]('parenting_youth') || enrollment&.[]('parenting_juvenile'))
-              %td
-                = checkmark(enrollment&.[]('head_of_household'))
-              %td
-                - client['disabilities'].each do |disability|
-                  %label.label.label-info= disability
+.card
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Age
+        %th Unaccompanied?
+        %th Parenting?
+        %th Head of Household?
+        %th Disability
+    %tbody
+      - @clients.each do |client|
+        - enrollment = client['enrollment']
+        %tr
+          %td
+            %nobr= link_to_if can_view_clients?, client['LastName'], appropriate_client_path(client['id'])
+          %td
+            %nobr= link_to_if can_view_clients?, client['FirstName'], appropriate_client_path(client['id'])
+          %td
+            = enrollment&.[]('age')
+          %td
+            = checkmark(enrollment&.[]('unaccompanied_youth'))
+          %td
+            = checkmark(enrollment&.[]('parenting_youth') || enrollment&.[]('parenting_juvenile'))
+          %td
+            = checkmark(enrollment&.[]('head_of_household'))
+          %td
+            - client['disabilities'].each do |disability|
+              %label.label.label-info= disability

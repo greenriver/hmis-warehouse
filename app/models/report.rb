@@ -4,6 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# These should be removed as these are moved to their own drivers
+Rails.application.config.hud_reports['Reports::Lsa::Fy2021::Base'] = {
+  title: 'Longitudinal System Analysis',
+  helper: 'hud_reports_lsas_path',
+}
+
 class Report < ApplicationRecord
   require 'csv'
   include Rails.application.routes.url_helpers
@@ -19,6 +25,10 @@ class Report < ApplicationRecord
 
   scope :inactive, -> do
     where enabled: false
+  end
+
+  scope :for_type, ->(query) do
+    where(arel_table[:type].matches("%::#{sanitize_sql_like(query)}::%"))
   end
 
   def model_name
