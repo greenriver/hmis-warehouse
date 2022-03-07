@@ -590,7 +590,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def follow_up_two_d
       @follow_up_two_d ||= begin
-        hmis_clients = GrdaWarehouse::HmisClient.where(client_id: follow_up_two_b) # clients w/ follow ups
+        hmis_clients = GrdaWarehouse::HmisClient.where(client_id: get_source_client_ids(follow_up_from_homelessness))
         hmis_zips = hmis_clients.all.map { |hmis_client| hmis_client.processed_fields&.dig('youth_current_zip') }.compact
 
         follow_up_zips = follow_up_from_homelessness.pluck(:zip_code)
@@ -889,6 +889,13 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     private def get_client_ids(scope)
       scope.distinct.pluck(:client_id)
+    end
+
+    private def get_source_client_ids(scope)
+      GrdaWarehouse::WarehouseClient.
+        joins(:source).
+        where(destination_id: get_client_ids(scope)).
+        pluck(:source_id)
     end
 
     private def follow_up_housing
