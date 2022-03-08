@@ -48,6 +48,7 @@ module TxClientReports::WarehouseReports
     private def report
       @report ||= TxClientReports::AttachmentThreeReport.new(@filter)
     end
+    helper_method :report
 
     private def report_params
       return {} unless params[:filters].present?

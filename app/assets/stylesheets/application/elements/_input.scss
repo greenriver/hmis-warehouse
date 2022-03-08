@@ -4,6 +4,18 @@ input[type=submit] {
   @include button($brand-primary);
 }
 
+input[type=submit].btn-danger {
+  @include button($brand-danger);
+}
+
+input[type=submit].btn-warning {
+  @include button($brand-warning);
+}
+
+input[type=submit].btn-info {
+  @include button($brand-info);
+}
+
 input[type=number] {
   min-width: 100px;
 }

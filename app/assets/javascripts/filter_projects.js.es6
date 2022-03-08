@@ -3,7 +3,7 @@ window.App.StimulusApp = window.App.StimulusApp || {}
 
 App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   static get targets() {
-    return ['element', 'header', 'projects', 'projectTypes', 'dataSources', 'projectGroups', 'calculatedProjects']
+    return ['element', 'header', 'projects', 'projectTypes', 'dataSources', 'projectGroups', 'calculatedProjects', 'submitButton']
   }
 
   initialize() {
@@ -33,6 +33,14 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       data: data,
     }).done((ret) => {
       // console.debug('success')
+      if(ret.includes('No Projects')) {
+        $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
+        $(this.submitButtonTarget).attr('disabled', 'disabled');
+      }
+      else {
+        $('.jProjectWarning').remove();
+        $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
+      }
       $(this.calculatedProjectsTarget).html(ret)
     }).fail((ret) => {
       console.error(['Failed to fetch project list', ret])
