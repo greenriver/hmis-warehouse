@@ -1,73 +1,18 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: 'Att III') do |sheet|
+wb.add_worksheet(name: 'Attachment III') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center, wrap_text: true })
-  headers = [
-    'Warehouse ID',
-    'Project Name',
-    'Item',
-    'Date of First Service',
-    'Report Start Date',
-    'Entry Started after Report Start',
-    'Fort Worth Resident?',
-    'Service Location',
-    'Name',
-    'Street Address',
-    'Age',
-    'Gender',
-    'Race',
-    'Ethnicity',
-    'Hispanic/Latin(a)(o)(x)',
-    'Non-Hispanic/Non-Latin(a)(o)(x)',
-    'American Indian, Alaska Native, or Indigenous',
-    'Asian or Asian American',
-    'Black, African American, or African',
-    'Native Hawaiian or Pacific Islander',
-    'White',
-    'None',
-    'Disabled (Yes)',
-    'Disabled (No)',
-    'hhsize',
-    'HoH Monthly Income',
-    'FHOH (Yes)',
-    'FHOH (No)',
-    'Veteran in Household?',
-    'Disability in Household?',
-  ]
-  sheet.add_row(headers, style: title)
+  sheet.add_row(@report.attachment_three_headers, style: title)
 
-  @rows.each_with_index do |row, index|
-    sheet_row = [
-      row[:client_id],
-      row[:project_name],
-      index + 1,
-      row[:service_date],
-      row[:report_start],
-      ('X' if row[:entry_after_start]),
-      row[:fort_worth_resident],
-      row[:service_location],
-      row[:client_name],
-      row[:street_address],
-      row[:age],
-      row[:genders],
-      row[:race_description],
-      HUD.ethnicity(row[:ethnicity]),
-      ('X' if row[:ethnicity] == 1),
-      ('X' if row[:ethnicity] == 0),
-      ('X' if row[:races].include?('AmIndAKNative')),
-      ('X' if row[:races].include?('Asian')),
-      ('X' if row[:races].include?('BlackAfAmerican')),
-      ('X' if row[:races].include?('NativeHIPacific')),
-      ('X' if row[:races].include?('White')),
-      ('X' if row[:races].include?('RaceNone')),
-      ('X' if row[:disabled]),
-      ('X' unless row[:disabled]),
-      row[:hh_size],
-      row[:income],
-      ('X' if row[:female_hoh]),
-      ('X' unless row[:female_hoh]),
-      ('X' if row[:any_veterans]),
-      ('X' if row[:disability_in_household]),
-    ]
-    sheet.add_row(sheet_row)
+  @report.attachment_three_rows.each do |row|
+    sheet.add_row(row)
+  end
+end
+
+wb.add_worksheet(name: 'Monthly Household Report') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center, wrap_text: true })
+  sheet.add_row(@report.household_report_headers, style: title)
+
+  @report.household_report_rows.each do |row|
+    sheet.add_row(row)
   end
 end

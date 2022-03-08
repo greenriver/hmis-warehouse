@@ -80,6 +80,24 @@ module PublicReports
       end
     end
 
+    private def remove_from_s3
+      bucket = s3_bucket
+      prefix = public_s3_directory
+      sections.each do |section|
+        prefix = File.join(public_s3_directory, version_slug.to_s, section.to_s)
+        key = File.join(prefix, 'index.html')
+        resp = s3_client.delete_object(
+          bucket: bucket,
+          key: key,
+        )
+        if resp.delete_marker
+          Rails.logger.info "Successfully removed report file from s3 (#{key})"
+        else
+          Rails.logger.info "Unable to remove the report file (#{key})"
+        end
+      end
+    end
+
     def run_and_save!
       start_report
       pre_calculate_data
@@ -882,8 +900,18 @@ module PublicReports
 
     private def homeless_chart_breakdowns(section_title:, charts:, setup:, scope:, date:)
       iso_date = date.iso8601
+      section_chronic_count = 0
+      section_total_count = 0
       chronic_scope = scope.joins(enrollment: :ch_enrollment).
         merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
+
+      # NOTE: for adults with children we sum all categories together
+      if section_title.downcase == 'Persons in households with at least one child and one adult'.downcase
+        setup.each do |_, client_scope|
+          section_chronic_count += chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
+          section_total_count += scope.merge(client_scope).distinct.select(:client_id).count
+        end
+      end
 
       setup.each do |title, client_scope|
         chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
@@ -899,9 +927,13 @@ module PublicReports
         total_string = total_for(scope.merge(client_scope), nil)
         total_count = scope.merge(client_scope).distinct.select(:client_id).count
 
-        # intermediate_chronic_count += chronic_count
-        # charts[section_title]['chronic_counts'][iso_date] = intermediate_chronic_count
-        charts[section_title]['chronic_counts'][iso_date] = charts[section_title]['chronic_counts'][iso_date]
+        if section_title.downcase == 'Persons in households with at least one child and one adult'.downcase
+          chronic_count = section_chronic_count
+          total_count = section_total_count
+        end
+        charts[section_title]['chronic_counts'][iso_date] ||= {}
+        charts[section_title]['chronic_counts'][iso_date][title] ||= 0
+        charts[section_title]['chronic_counts'][iso_date][title] = chronic_count
         charts[section_title]['chronic_percents'][iso_date] ||= {}
         charts[section_title]['chronic_percents'][iso_date][title] ||= 0
         charts[section_title]['chronic_percents'][iso_date][title] = enforce_min_threshold([chronic_count, total_count], 'chronic_percents')

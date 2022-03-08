@@ -13,6 +13,146 @@ module TxClientReports
       @filter = filter
     end
 
+    def attachment_three_headers
+      [
+        'Row Number',
+        'Warehouse ID',
+        # 'Project Name',
+        'Date of First Service',
+        # 'Report Start Date',
+        # 'Entry Started after Report Start',
+        'Fort Worth Resident?',
+        'Service Location',
+        'Name',
+        'Street Address',
+        'Age',
+        'Male',
+        'Female',
+        'Hispanic/Latin(a)(o)(x)',
+        'Non-Hispanic/Non-Latin(a)(o)(x)',
+        'American Indian, Alaska Native, or Indigenous',
+        'Asian or Asian American',
+        'Black, African American, or African',
+        'Native Hawaiian or Pacific Islander',
+        'White',
+        'American Indian, Alaska Native, or Indigenous and White',
+        'Black, African American, or African and White',
+        'American Indian, Alaska Native, or Indigenous and White and Black, African American, or African',
+        'Other Multiple Race Combinations',
+        'Disabled (Yes)',
+        'Disabled (No)',
+        'hhsize',
+        'HoH Monthly Income',
+        'FHOH (Yes)',
+        'FHOH (No)',
+      ]
+    end
+
+    def attachment_three_rows
+      rows.map.with_index do |row, index|
+        [
+          index + 1,
+          row[:client_id],
+          # row[:project_name],
+          row[:service_date],
+          # row[:report_start],
+          # ('X' if row[:entry_after_start]),
+          row[:fort_worth_resident],
+          row[:service_location],
+          row[:client_name],
+          row[:street_address],
+          row[:age],
+          ('1' if row[:genders].include?(0)),
+          ('1' if row[:genders].include?(1)),
+          ('1' if row[:ethnicity] == 1),
+          ('1' if row[:ethnicity] == 0), # rubocop:disable Style/NumericPredicate
+          ('1' if row[:races] == ['AmIndAKNative']),
+          ('1' if row[:races] == ['Asian']),
+          ('1' if row[:races] == ['BlackAfAmerican']),
+          ('1' if row[:races] == ['NativeHIPacific']),
+          ('1' if row[:races] == ['White']),
+          ('1' if row[:races].sort == ['White', 'AmIndAKNative'].sort),
+          ('1' if row[:races].sort == ['White', 'BlackAfAmerican'].sort),
+          ('1' if row[:races].sort == ['AmIndAKNative', 'BlackAfAmerican'].sort),
+          ('1' unless row[:races].sort.in?(known_race_categories)),
+          ('1' if row[:disabled]),
+          ('1' unless row[:disabled]),
+          row[:hh_size],
+          row[:income],
+          ('1' if row[:female_hoh]),
+          ('1' unless row[:female_hoh]),
+        ]
+      end
+    end
+
+    def household_report_headers
+      [
+        'Row Number',
+        'Warehouse ID',
+        # 'Project Name',
+        # 'Date of First Service',
+        # 'Report Start Date',
+        'Entry Started after Report Start',
+        'Household Zip Code',
+        'Household County',
+        'Household Size',
+        'HoH Monthly Income',
+        'AMI %',
+        'Gender of Applicant',
+        'Race of Household',
+        'Ethnicity of Household',
+        'Veteran in Household?',
+        'Older Adult (62+) in household?',
+        'Children under 18 in household?',
+        'Person with a disability in household?',
+        'Did the HH stay in HSS funded hotel/motel?',
+        'Short-term Payments for Hotels/Motels ($)',
+        'Rent and Pet Rent Deposits ($)',
+        'Utility Deposits ($)',
+        'Landlord Incentives ($)',
+      ]
+    end
+
+    def household_report_rows
+      rows.map.with_index do |row, index|
+        [
+          index + 1,
+          row[:client_id],
+          (if row[:entry_after_start] then 'Yes' else 'No' end),
+          '', # zipcode
+          '', # county
+          row[:hh_size],
+          row[:income],
+          '', # % AMI
+          row[:genders].map { |k| ::HUD.gender(k) }.join(', '),
+          row[:races].map { |f| ::HUD.race(f) }.join(', '),
+          ::HUD.ethnicity(row[:ethnicity]),
+          (if row[:any_veterans] then 'Yes' else 'No' end),
+          (if row[:over_62_in_household] then 'Yes' else 'No' end),
+          (if row[:child_in_household] then 'Yes' else 'No' end),
+          (if row[:disability_in_household] then 'Yes' else 'No' end),
+          '', # hotel/motel
+          '', # short-term payments
+          '', # rent
+          '', # utility
+          '', # landlord
+        ]
+      end
+    end
+
+    private def known_race_categories
+      @known_race_categories ||= [
+        ['AmIndAKNative'],
+        ['Asian'],
+        ['BlackAfAmerican'],
+        ['NativeHIPacific'],
+        ['White'],
+        ['AmIndAKNative', 'White'].sort,
+        ['BlackAfAmerican', 'White'].sort,
+        ['BlackAfAmerican', 'AmIndAKNative'].sort,
+      ].freeze
+    end
+
     def rows
       return [] unless @filter.project_ids.any? || @filter.project_group_ids.any?
 
@@ -51,7 +191,7 @@ module TxClientReports
           client_id: client.id,
           street_address: enrollment.project.project_cocs&.first&.Address1, # Shelter address
           age: enrollment.age, # Age at project entry to keep report stable
-          genders: client.gender,
+          genders: client.gender_multi,
           ethnicity: client.Ethnicity,
           races: client.race_fields,
           race_description: client.race_description,
