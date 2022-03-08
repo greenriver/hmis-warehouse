@@ -17,7 +17,6 @@
       .text-right.mb-4
         = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: core_demographics_report_warehouse_reports_core_index_path({format: :xlsx}.merge(@filter.for_params))
       - @report.class.available_section_types.each do |section|
-        - next unless section.to_s.include?('gender_a')
         = render 'background_render', url: render_section_core_demographics_report_warehouse_reports_core_index_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
           .rollup
             .rollup-container.well
