@@ -33,20 +33,18 @@ module PublicReports
     end
 
     def publish!
-      unless published?
-        # This should:
-        # 1. Take the contents of html and push it up to S3
-        # 2. Populate the published_url field
-        # 3. Populate the embed_code field
-        self.class.transaction do
-          unpublish_similar
-          update(
-            html: as_html,
-            published_url: generate_publish_url, # NOTE this isn't used in this report
-            embed_code: generate_embed_code, # NOTE this isn't used in this report
-            state: :published,
-          )
-        end
+      # This should:
+      # 1. Take the contents of html and push it up to S3
+      # 2. Populate the published_url field
+      # 3. Populate the embed_code field
+      self.class.transaction do
+        unpublish_similar
+        update(
+          html: as_html,
+          published_url: generate_publish_url, # NOTE this isn't used in this report
+          embed_code: generate_embed_code, # NOTE this isn't used in this report
+          state: :published,
+        )
       end
       push_to_s3
     end
@@ -69,9 +67,27 @@ module PublicReports
           content_type: 'text/html',
         )
         if resp.etag
-          Rails.logger.info 'Successfully uploaded report file to s3'
+          Rails.logger.info "Successfully uploaded report file to s3 (#{key})"
         else
-          Rails.logger.info 'Unable to upload report file'
+          Rails.logger.info "Unable to upload report file (#{key}})"
+        end
+      end
+    end
+
+    private def remove_from_s3
+      bucket = s3_bucket
+      prefix = public_s3_directory
+      populations.keys.each do |population|
+        prefix = File.join(public_s3_directory, version_slug.to_s, population.to_s)
+        key = File.join(prefix, 'index.html')
+        resp = s3_client.delete_object(
+          bucket: bucket,
+          key: key,
+        )
+        if resp.delete_marker
+          Rails.logger.info "Successfully removed report file from s3 (#{key})"
+        else
+          Rails.logger.info "Unable to remove the report file (#{key})"
         end
       end
     end

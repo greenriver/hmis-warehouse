@@ -77,6 +77,7 @@ module PublicReports::S3Toolset
     end
   end
 
+  # NOTE: this is duplicated in 2 other reports that differ minimally
   private def push_to_s3
     bucket = s3_bucket
     prefix = public_s3_directory
@@ -91,9 +92,25 @@ module PublicReports::S3Toolset
       content_type: 'text/html',
     )
     if resp.etag
-      Rails.logger.info 'Successfully uploaded report file to s3'
+      Rails.logger.info "Successfully uploaded report file to s3 (#{key})"
     else
-      Rails.logger.info 'Unable to upload report file'
+      Rails.logger.info "Unable to upload report file (#{key}})"
+    end
+  end
+
+  # NOTE: this is duplicated in 2 other reports that differ minimally
+  private def remove_from_s3
+    bucket = s3_bucket
+    prefix = public_s3_directory
+    key = File.join(prefix, version_slug.to_s, 'index.html')
+    resp = s3_client.delete_object(
+      bucket: bucket,
+      key: key,
+    )
+    if resp.delete_marker
+      Rails.logger.info "Successfully removed report file from s3 (#{key})"
+    else
+      Rails.logger.info "Unable to remove the report file (#{key})"
     end
   end
 end
