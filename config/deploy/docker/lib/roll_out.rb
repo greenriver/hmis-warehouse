@@ -7,7 +7,9 @@ require 'aws-sdk-cloudwatchlogs'
 require 'aws-sdk-ec2'
 require_relative '../../../../app/jobs/workoff_arbiter'
 require_relative 'shared_logic'
+require_relative 'aws_sdk_helpers'
 
+# rubocop:disable Style/RedundantSelf
 class RollOut
   attr_accessor :aws_profile
   attr_accessor :cluster
@@ -31,6 +33,7 @@ class RollOut
   attr_accessor :only_check_ram
 
   include SharedLogic
+  include AwsSdkHelpers::Helpers
 
   # FIXME: cpu shares as parameter
   # FIXME: log level as parameter
@@ -45,10 +48,10 @@ class RollOut
 
   DEFAULT_CPU_SHARES = 256
 
-  NOT_SPOT = 'not-spot'
+  NOT_SPOT = 'not-spot'.freeze
 
-  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:)
-    self.cluster             = ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
+  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:)
+    self.cluster             = _cluster_name
     self.image_base          = image_base
     self.secrets_arn         = secrets_arn
     self.target_group_arn    = target_group_arn
@@ -59,6 +62,7 @@ class RollOut
     self.web_options         = web_options
     self.status_uri          = URI("https://#{fqdn}/system_status/details")
     self.only_check_ram      = false
+    @capacity_providers      = capacity_providers
 
     if task_role.nil? || task_role.match(/^\s*$/)
       puts "\n[WARN] task role was not set. The containers will use the role of the entire instance\n\n"
@@ -76,7 +80,7 @@ class RollOut
     elsif target_group_name.match?(/staging|stg/)
       self.rails_env = 'staging'
     else
-      raise "Cannot figure out environment from target_group_name!"
+      raise 'Cannot figure out environment from target_group_name!'
     end
 
     deployed_at = Date.today.to_s
@@ -95,16 +99,16 @@ class RollOut
     puts "[INFO] DEPLOYMENT_ID=#{self.deployment_id} #{target_group_name}"
 
     self.default_environment = [
-      { "name" => "ECS", "value" => "true" },
-      { "name" => "LOG_LEVEL", "value" => "info" },
-      { "name" => "TARGET_GROUP_NAME", "value" => target_group_name },
-      { "name" => "DEPLOYED_AT", "value" => deployed_at },
-      { "name" => "DEPLOYED_BY", "value" => deployed_by },
-      { "name" => "AWS_REGION", "value" => ENV.fetch('AWS_REGION') { 'us-east-1' } },
-      { "name" => "SECRET_ARN", "value" => secrets_arn },
-      { "name" => "CLUSTER_NAME", "value" => self.cluster },
-      { "name" => "RAILS_ENV", "value" => rails_env },
-      { "name" => "DEPLOYMENT_ID", "value" => self.deployment_id },
+      { 'name' => 'ECS', 'value' => 'true' },
+      { 'name' => 'LOG_LEVEL', 'value' => 'info' },
+      { 'name' => 'TARGET_GROUP_NAME', 'value' => target_group_name },
+      { 'name' => 'DEPLOYED_AT', 'value' => deployed_at },
+      { 'name' => 'DEPLOYED_BY', 'value' => deployed_by },
+      { 'name' => 'AWS_REGION', 'value' => ENV.fetch('AWS_REGION') { 'us-east-1' } },
+      { 'name' => 'SECRET_ARN', 'value' => secrets_arn },
+      { 'name' => 'CLUSTER_NAME', 'value' => self.cluster },
+      { 'name' => 'RAILS_ENV', 'value' => rails_env },
+      { 'name' => 'DEPLOYMENT_ID', 'value' => self.deployment_id },
       # { "name" => "RAILS_MAX_THREADS", "value" => '5' },
       # { "name" => "WEB_CONCURRENCY", "value" =>  '2' },
       # { "name" => "PUMA_PERSISTENT_TIMEOUT", "value" =>  '70' },
@@ -148,7 +152,7 @@ class RollOut
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
       image: image_base + '--dj',
       name: name,
-      command: ['bin/db_prep']
+      command: ['bin/db_prep'],
     )
 
     _run_task!
@@ -213,9 +217,9 @@ class RollOut
       image: image_base + '--web',
       environment: environment,
       ports: [{
-        "container_port" => 3000,
-        "host_port" => 0,
-        "protocol" => "tcp"
+        'container_port' => 3000,
+        'host_port' => 0,
+        'protocol' => 'tcp',
       }],
       name: name,
     )
@@ -252,7 +256,7 @@ class RollOut
     environment = default_environment.dup
 
     dj_options['env'].each do |key, value|
-      environment << { "name" => key, "value" => value }
+      environment << { 'name' => key, 'value' => value }
     end
 
     default_ram = DEFAULT_SOFT_DJ_RAM_MB.call(target_group_name)
@@ -263,7 +267,7 @@ class RollOut
       soft_mem_limit_mb: soft_mem_limit_mb,
       image: image_base + '--dj',
       name: name,
-      environment: environment
+      environment: environment,
     )
 
     return if self.only_check_ram
@@ -284,9 +288,9 @@ class RollOut
   def _get_min_max_from_desired(container_count)
     desired_count = container_count || 1
 
-    if desired_count == 0
-      return [0, 100]
-    elsif desired_count == 1
+    return [0, 100] if desired_count.zero?
+
+    if desired_count == 1
       [100, 200]
     else
       chunk_size = (100 / desired_count) + 1
@@ -296,9 +300,7 @@ class RollOut
   end
 
   def _make_cloudwatch_group!
-    cwl.create_log_group(
-      log_group_name: target_group_name
-    )
+    cwl.create_log_group(log_group_name: target_group_name)
   rescue Aws::CloudWatchLogs::Errors::ResourceAlreadyExistsException
     # puts "[DEBUG] Log group #{target_group_name} exists." if @seen.nil?
     @seen = true
@@ -321,7 +323,7 @@ class RollOut
 
     self.log_prefix = name.split(/ecs/).last.sub(/^-/, '') +
       '/' +
-      Time.now.strftime("%Y-%m-%d:%H-%M%Z").gsub(/:/, '_')
+      Time.now.strftime('%Y-%m-%d:%H-%M%Z').gsub(/:/, '_')
 
     # This is just reverse-engineering what ECS is doing.
     # I'm not sure if there's a way to simplify the stream name
@@ -364,11 +366,11 @@ class RollOut
         # { name: "SOME_PASSWORD", value_from: some_passowrd_secrets_arn, },
       ],
       log_configuration: {
-        log_driver: "awslogs",
+        log_driver: 'awslogs',
         options: {
-          "awslogs-group" => target_group_name,
-          "awslogs-region" => "us-east-1",
-          "awslogs-stream-prefix" => log_prefix,
+          'awslogs-group' => target_group_name,
+          'awslogs-region' => 'us-east-1',
+          'awslogs-stream-prefix' => log_prefix,
         },
       },
     }
@@ -376,9 +378,7 @@ class RollOut
     puts "[INFO] hard RAM limit: #{container_definition[:memory]} #{target_group_name}"
     puts "[INFO] soft RAM limit: #{container_definition[:memory_reservation]} #{target_group_name}"
 
-    if !command.nil?
-      container_definition[:command] = command
-    end
+    container_definition[:command] = command unless command.nil?
 
     task_definition_payload = {
       container_definitions: [container_definition],
@@ -397,20 +397,6 @@ class RollOut
     self.task_definition = results.to_h.dig(:task_definition, :task_definition_arn)
   end
 
-  # Abstraction that lets the cluster provision more/less EC2 instances based
-  # on the requirements of the containers we want to run
-  def _capacity_providers
-    @_capacity_providers ||= ecs.describe_clusters(clusters: [self.cluster]).clusters.first.capacity_providers
-  end
-
-  def _spot_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/spt-v2/) }
-  end
-
-  def _on_demand_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
-  end
-
   def _run_task!
     _make_cloudwatch_group!
 
@@ -425,7 +411,7 @@ class RollOut
       task_definition: task_definition,
     }
 
-    if _capacity_providers.length > 0
+    if _capacity_providers.length.positive?
       puts "[INFO] Using spot capacity provider: #{_spot_capacity_provider_name} #{target_group_name}"
       run_task_payload[:capacity_provider_strategy] = [
         {
@@ -438,10 +424,10 @@ class RollOut
       puts "[ERROR] No dynamic work capacity provider found. Just running the task. #{target_group_name}"
     end
 
-    while (incomplete) do
+    while incomplete
       results = ecs.run_task(run_task_payload)
 
-      if results.failures.length > 0
+      if results.failures.length.positive?
         # FIXME: we can look up the ec2 instance name container instance -> ec2 instance -> tags -> name tag
         # results = ecs.describe_container_instances( container_instances: results.failures.map(&:arn), cluster: cluster).container_instances
         # ec2_instances ||= ec2.describe_instance.instances
@@ -476,23 +462,25 @@ class RollOut
     puts "[INFO] Waiting on the task to start and finish quickly to catch resource-related errors #{target_group_name}"
     begin
       ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 5, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError
+    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
+      puts "[WARN] #{e.message}"
     end
     begin
       ecs.wait_until(:tasks_stopped, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 2, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError
+    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
+      puts "[WARN] #{e.message}"
     end
 
     results = ecs.describe_tasks(cluster: cluster, tasks: [task_arn])
 
-    if results.failures.length > 0
+    if results.failures.length.positive?
       puts "[FATAL] failures: #{results.failures} #{target_group_name}"
       exit
     end
 
-    failure_reasons = results.tasks.flat_map { |x| x.containers.map { |c| c.reason } }.compact
+    failure_reasons = results.tasks.flat_map { |x| x.containers.map(&:reason) }.compact
 
-    if failure_reasons.length > 0
+    if failure_reasons.length.positive?
       puts "[FATAL] failures: #{failures_reasons} #{target_group_name}"
       exit
     end
@@ -516,7 +504,7 @@ class RollOut
   # deployment ID
   def _poll_until_deploy_tasks_complete!
     complete = false
-    while !complete
+    until complete
       response = _get_status
       complete = (response.dig('registered_deployment_id') == self.deployment_id)
 
@@ -528,11 +516,13 @@ class RollOut
         resp = nil
         while resp.nil?
           begin
-            resp = cwl.get_log_events({
-              log_group_name: target_group_name,
-              log_stream_name: log_stream_name,
-              start_from_head: true,
-            })
+            resp = cwl.get_log_events(
+              {
+                log_group_name: target_group_name,
+                log_stream_name: log_stream_name,
+                start_from_head: true,
+              },
+            )
           rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
             puts "[INFO] Waiting 30 seconds since the log stream couldn't be found #{target_group_name}"
             sleep 30
@@ -543,10 +533,10 @@ class RollOut
         puts "[WARN] We got: #{response.dig('registered_deployment_id')}"
         puts "[WARN] You can safely (p)roceed if this is the first deployment #{target_group_name}"
         print "\nYou can (w)ait, (p)roceed with deployment anyway, (v)iew log tail, or (a)bort: "
-        response = STDIN.gets
+        response = $stdin.gets
         if response.downcase.match(/w/)
-          puts "[INFO] Waiting 30 seconds #{target_group_name}"
-          sleep 30
+          puts "[INFO] Waiting 120 seconds #{target_group_name}"
+          sleep 120
         elsif response.downcase.match(/p/)
           puts "[WARN] Continuing on anyway #{target_group_name}"
           complete = true
@@ -554,18 +544,20 @@ class RollOut
           puts "[WARN] exiting #{target_group_name}"
           exit
         elsif response.downcase.match(/v/)
-          resp = cwl.get_log_events({
-            log_group_name: target_group_name,
-            log_stream_name: log_stream_name,
-            start_from_head: true,
-          })
+          resp = cwl.get_log_events(
+            {
+              log_group_name: target_group_name,
+              log_stream_name: log_stream_name,
+              start_from_head: true,
+            },
+          )
           resp.events.each do |event|
             puts "[TASK] #{event.message} #{target_group_name}"
           end
-          sleep 120
+          sleep 240
         else
           puts "[INFO] Waiting 120 seconds since we didn't understand your response #{target_group_name}"
-          sleep 120
+          sleep 240
         end
       end
     end
@@ -576,12 +568,14 @@ class RollOut
   def _tail_logs(start_time = Time.now)
     self.last_task_completed = false
     begin
-      resp = cwl.get_log_events({
-        log_group_name: target_group_name,
-        log_stream_name: log_stream_name,
-        start_time: start_time.utc.to_i,
-        start_from_head: false,
-      })
+      resp = cwl.get_log_events(
+        {
+          log_group_name: target_group_name,
+          log_stream_name: log_stream_name,
+          start_time: start_time.utc.to_i,
+          start_from_head: false,
+        },
+      )
     rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
       puts "[FATAL] The log stream #{log_stream_name} does not exist. At least not yet. #{target_group_name}"
       return
@@ -590,26 +584,28 @@ class RollOut
     puts "[TASK] Log stream is #{target_group_name}/#{log_stream_name}"
 
     get_log_events = ->(next_token) do
-      cwl.get_log_events({
-        log_group_name: target_group_name,
-        log_stream_name: log_stream_name,
-        next_token: next_token,
-        start_from_head: true,
-      })
+      cwl.get_log_events(
+        {
+          log_group_name: target_group_name,
+          log_stream_name: log_stream_name,
+          next_token: next_token,
+          start_from_head: true,
+        },
+      )
     end
 
     too_soon = -> do
       (Time.now.utc.to_i - start_time.utc.to_i) < 60 * 5
     end
 
-    while (resp.events.length > 0 || too_soon.call)
+    while resp.events.length.positive? || too_soon.call
       resp.events.each do |event|
         puts "[TASK] #{event.message} #{target_group_name}"
         if event.message.match?(/---DONE---/)
           self.last_task_completed = true
-          return
+          break
         elsif event.message.match?(/rake aborted|an error has occurred/i)
-          return
+          break
         end
       end
 
@@ -620,9 +616,7 @@ class RollOut
   end
 
   def _start_service!(capacity_provider:, load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0)
-    services = ecs.list_services({
-      cluster: cluster,
-    })
+    services = ecs.list_services({ cluster: cluster })
 
     # services result is paginated. The first any iterates over each page
     service_exists = services.any? do |results|
@@ -647,7 +641,6 @@ class RollOut
             base: 1,
           },
         ],
-        # placement_constraints: _placement_constraints,
         placement_strategy: _placement_strategy,
         deployment_configuration: {
           maximum_percent: maximum_percent,
@@ -656,12 +649,10 @@ class RollOut
             enable: true,
             rollback: true,
           },
-        }
+        },
       }
 
-      if load_balancers.length > 0
-        payload[:health_check_grace_period_seconds] = five_minutes
-      end
+      payload[:health_check_grace_period_seconds] = five_minutes if load_balancers.length.positive?
 
       ecs.update_service(payload)
     else
@@ -682,15 +673,11 @@ class RollOut
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
         },
-        #launch_type: 'EC2',
-        # placement_constraints: placement_constraints,
         placement_strategy: _placement_strategy,
         load_balancers: load_balancers,
       }
 
-      if load_balancers.length > 0
-        payload[:health_check_grace_period_seconds] = five_minutes
-      end
+      payload[:health_check_grace_period_seconds] = five_minutes if load_balancers.length.positive?
 
       ecs.create_service(payload)
     end
@@ -702,12 +689,7 @@ class RollOut
 
     system(cmd)
 
-    if $CHILD_STATUS.exitstatus != 0
-      raise "Aborting deployment due to command error"
-    end
+    raise 'Aborting deployment due to command error' if $CHILD_STATUS.exitstatus != 0
   end
-
-  define_method(:ecs) { Aws::ECS::Client.new(profile: aws_profile) }
-  define_method(:ec2) { Aws::EC2::Client.new(profile: aws_profile) }
-  define_method(:cwl) { Aws::CloudWatchLogs::Client.new(profile: aws_profile) }
 end
+# rubocop:enable Style/RedundantSelf

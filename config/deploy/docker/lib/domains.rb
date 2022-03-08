@@ -3,9 +3,7 @@ require 'amazing_print'
 
 class Domains
   def list!
-    results = route53.list_resource_record_sets(hosted_zone_id: hosted_zone).flat_map do |r|
-      r.resource_record_sets
-    end
+    results = route53.list_resource_record_sets(hosted_zone_id: hosted_zone).flat_map(&:resource_record_sets)
 
     results.each do |r|
       next if r.name.match?(/domainkey/)
