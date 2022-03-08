@@ -17,7 +17,7 @@ module TxClientReports
       [
         'Row Number',
         'Warehouse ID',
-        # 'Project Name',
+        'Project Name',
         'Date of First Service',
         # 'Report Start Date',
         # 'Entry Started after Report Start',
@@ -53,7 +53,7 @@ module TxClientReports
         [
           index + 1,
           row[:client_id],
-          # row[:project_name],
+          row[:project_name],
           row[:service_date],
           # row[:report_start],
           # ('X' if row[:entry_after_start]),
@@ -89,8 +89,8 @@ module TxClientReports
       [
         'Row Number',
         'Warehouse ID',
-        # 'Project Name',
-        # 'Date of First Service',
+        'Project Name',
+        'Date of First Service',
         # 'Report Start Date',
         'Entry Started after Report Start',
         'Household Zip Code',
@@ -118,6 +118,8 @@ module TxClientReports
         [
           index + 1,
           row[:client_id],
+          row[:project_name],
+          row[:service_date],
           (if row[:entry_after_start] then 'Yes' else 'No' end),
           '', # zipcode
           '', # county
