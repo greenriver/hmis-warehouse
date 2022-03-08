@@ -3,11 +3,11 @@
 %h1= content_for :title
 
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
-= simple_form_for @filter, as: :filter, url: path_for_reports do |f|
+= simple_form_for @filter, as: :filter, url: path_for_reports, data: { controller: 'filter-projects' } do |f|
   - content_for :filters_col_full do
     = render 'form', f: f, default_coc_code: default_coc_code, report_versions: active_report_versions
 
   - content_for :filter_actions do
-    = f.button :submit, value: 'Queue Report'
+    = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
 
   = render 'warehouse_reports/filters', f: f
