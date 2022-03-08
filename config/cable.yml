@@ -15,4 +15,3 @@ production:
   adapter: redis
   url: <%= "rediss://#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
   channel_prefix: hmis_production
-
