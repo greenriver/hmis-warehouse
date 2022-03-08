@@ -2,14 +2,22 @@
 %h3= link_to_if can_view_projects?, project.project&.ProjectName, project_path(project.project)
 .well.page-break-after
   .d-flex.text-center.justify-content-center.mt-4
-    .overall-utilization-rate.chunk.mr-4.ml-4
+    .overall-utilization-rate.chunk.mr-auto.ml-4
       - status_class = if project.within_utilization_threshold? then 'text-success' else 'text-danger' end
       .ml-2.mr-2
-        %h4.title Utilization Rate
+        %h4.title Bed Utilization Rate
         .d-flex.justify-content-center
           = embedded_svg(:group)
         .metric{class: status_class}
           = number_to_percentage project.utilization_rate_as_percent, precision: 2
+    .overall-unit-utilization-rate.chunk.mr-auto.ml-auto
+      - status_class = if project.within_unit_utilization_threshold? then 'text-success' else 'text-danger' end
+      .ml-2.mr-2
+        %h4.title Unit Utilization Rate
+        .d-flex.justify-content-center
+          = embedded_svg(:group)
+        .metric{class: status_class}
+          = number_to_percentage project.unit_utilization_rate_as_percent, precision: 2
     .overall-universal-data-elements.chunk.mr-auto.ml-auto
       - status_class = if project.within_universal_data_element_threshold? then 'text-success' else 'text-danger' end
       .ml-2.mr-2
