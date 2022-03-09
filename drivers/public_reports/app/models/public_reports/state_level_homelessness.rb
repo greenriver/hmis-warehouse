@@ -599,7 +599,7 @@ module PublicReports
               (0..max).to_a.sample
             end
 
-            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            count = enforce_min_threshold(count, 'min_threshold')
             # % of population
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
@@ -651,7 +651,7 @@ module PublicReports
               max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            count = enforce_min_threshold(count, 'min_threshold')
             # % of population
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
@@ -703,7 +703,7 @@ module PublicReports
               max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            count = enforce_min_threshold(count, 'min_threshold')
             # % of population
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
@@ -755,7 +755,7 @@ module PublicReports
               max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            count = enforce_min_threshold(count, 'min_threshold')
             # % of population
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
@@ -1064,7 +1064,7 @@ module PublicReports
 
     private def total_for(scope, population)
       count = scope.select(:client_id).distinct.count
-      count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+      count = enforce_min_threshold(count, 'min_threshold')
 
       word = case population
       when :veterans

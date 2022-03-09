@@ -12,6 +12,9 @@ module PublicReports
     include Filter::FilterScopes
     include ArelHelper
     include Reporting::Status
+
+    MIN_THRESHOLD = 11
+
     belongs_to :user, optional: true
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?
@@ -172,8 +175,11 @@ module PublicReports
       update(completed_at: Time.current, state: 'pre-computed')
     end
 
-    def enforce_min_threshold(data, key) # rubocop:disable Metrics/CyclomaticComplexity
+    def enforce_min_threshold(data, key) # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
       case key
+      when 'min_threshold'
+        data = MIN_THRESHOLD if data.positive? && data < MIN_THRESHOLD
+        data
       when 'homeless_households', 'homeless_clients'
         value = data[key]
         return 0 if value.zero?
@@ -216,31 +222,32 @@ module PublicReports
           end
         end
         [sheltered, unsheltered]
-      when 'household_type'
+      when 'donut', 'household_type'
         # return percentages for each instead of raw counts
-        (adult, both, child) = data
-        total = adult + both + child
-        return [0, 0, 0] if total.zero? || (total < 100 && data.any? { |m| m < 11 })
+        total = data.sum
+        return data.map { |_| 0 } if total.zero? || (total < 100 && data.any? { |m| m < 11 })
 
-        adult = ((adult.to_f / total) * 100).round
-        both = ((both.to_f / total) * 100).round
-        child = ((child.to_f / total) * 100).round
+        # convert counts to percents
+        data.map! do |count|
+          ((count.to_f / total) * 100).round
+        end
+
         # if the total is < 1,000, return numbers rounded to the nearest 10%, ensuring that the parts total 100
         if total < 1_000
-          adult = adult.round(-1)
-          both = both.round(-1)
-          child = child.round(-1)
-          diff = (adult + both + child) - 100
-          max = [adult, both, child].max
-          if adult == max
-            adult -= diff
-          elsif both == max
-            both -= diff
-          else
-            child -= diff
+          data.map! do |count|
+            count.round(-1)
+          end
+          diff = data.sum - 100
+          max = data.max
+          # correct any discrepancies caused by rounding by subtracting from the largest
+          data.each.with_index do |count, i|
+            if count == max
+              data[i] -= diff
+              break
+            end
           end
         end
-        [adult, both, child]
+        data
       when 'need_map'
         # Convert all rates to the upper limit of the range of map_colors the rate falls into
         # ensure overall population is at least 100
