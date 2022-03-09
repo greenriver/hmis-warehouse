@@ -209,10 +209,10 @@ module PublicReports
       changes[housed_title] = ['Percent change from prior quarter']
       pit_counts(population).each do |date, counts|
         x << date
-        homeless << counts[:homeless_count] unless population == :housed
-        housed << counts[:housed_count]
-        changes[title] << counts[:homeless_change] unless population == :housed
-        changes[housed_title] << counts[:housed_change]
+        homeless << enforce_min_threshold(counts[:homeless_count], 'pit_chart') unless population == :housed
+        housed << enforce_min_threshold(counts[:housed_count], 'pit_chart')
+        changes[title] << enforce_min_threshold(counts[:homeless_change], 'pit_chart') unless population == :housed
+        changes[housed_title] << enforce_min_threshold(counts[:housed_change], 'pit_chart')
       end
       data << x
       data << homeless unless population == :housed
@@ -235,10 +235,10 @@ module PublicReports
       data = []
       pit_counts(:hoh_from_adults_with_children).each do |date, counts|
         x << date
-        homeless << counts[:homeless_count]
-        housed << counts[:housed_count]
-        changes[title] << counts[:homeless_change]
-        changes[housed_title] << counts[:housed_change]
+        homeless <<  enforce_min_threshold(counts[:homeless_count], 'pit_chart')
+        housed <<  enforce_min_threshold(counts[:housed_count], 'pit_chart')
+        changes[title] <<  enforce_min_threshold(counts[:homeless_change], 'pit_chart')
+        changes[housed_title] <<  enforce_min_threshold(counts[:housed_change], 'pit_chart')
       end
       data << x
       data << homeless
