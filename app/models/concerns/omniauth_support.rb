@@ -42,6 +42,8 @@ module OmniauthSupport
         agency: Agency.where(name: 'Unknown').first_or_create!,
       )
 
+      newly_created = user.new_record? || user.provider.blank?
+
       # Update this info from the provider whenever we can
       user.assign_attributes(
         provider: auth['provider'],
@@ -52,8 +54,6 @@ module OmniauthSupport
         last_name: auth['info']['last_name'],
         provider_raw_info: auth['extra'].merge(auth['credentials']),
       )
-
-      newly_created = user.new_record? || user.provider_set_at.blank?
 
       # Notify existing users the first time OKTA is used
       # to sign into their account
