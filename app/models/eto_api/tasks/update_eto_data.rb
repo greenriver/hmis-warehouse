@@ -259,7 +259,7 @@ module EtoApi::Tasks
 
         if @custom_config.present?
           @custom_config.demographic_fields.each do |key, label|
-            update_attr(hmis_client, key, defined_value(api: api, site_id: site_id, response: api_response, label: label))
+            hmis_client.assign_attributes(key => defined_value(api: api, site_id: site_id, response: api_response, label: label))
           end
 
           @custom_config.demographic_fields_with_attributes.each do |key, details|
@@ -267,8 +267,8 @@ module EtoApi::Tasks
             next unless data.present?
 
             value = data.dig('EntityName')
-            update_attr(hmis_client, key, value)
-            update_attr(hmis_client, details['attributes'], data) if value.present?
+            hmis_client.assign_attributes(key => value)
+            hmis_client.assign_attributes(details['attributes'] => data) if value.present?
           end
 
           # Special cases for fields that don't exist on hmis_client
@@ -306,11 +306,6 @@ module EtoApi::Tasks
         hmis_client.eto_last_updated = api.parse_date(api_response['AuditDate'])
       end
       hmis_client
-    end
-
-    private def update_attr(hmis_client, attr_name, value)
-      # Use introspection to allow setting both AR and regular attributes
-      hmis_client.send("#{attr_name}=", value)
     end
 
     private def defined_demographic_value(api:, value:, cdid:, site_id:)
