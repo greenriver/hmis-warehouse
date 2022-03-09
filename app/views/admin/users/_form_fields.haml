@@ -38,6 +38,8 @@
       %h3 Notifications
       .well
         %p Which notifications should this user receive?
+        - if ENV['OKTA_DOMAIN'].present?
+          = f.input :notify_on_new_account, label: 'New account creation by an external system'
         = f.input :receive_file_upload_notifications, label: 'File uploads'
         - if can_edit_vspdat? # you can only assign this if you can also edit them
           = f.input :notify_on_vispdat_completed, label: "VI-SPDAT submissions", as: :boolean

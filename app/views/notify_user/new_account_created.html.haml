@@ -1,0 +1,5 @@
+%h2
+  A new account has been created for #{@new_user.name_with_email} in the #{_('City of Boston DND Warehouse')}.
+
+%p
+  = link_to 'View account', edit_admin_user_url(@new_user)
