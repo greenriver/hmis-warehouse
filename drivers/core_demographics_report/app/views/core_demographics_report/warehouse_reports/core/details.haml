@@ -11,17 +11,18 @@
 - if scope.exists?
   - headers = @report.header_for(@key)
   %p Showing #{pluralize(number_with_delimiter(scope.distinct.select(:client_id).count), 'client')}.
-  %table.table.table-striped
-    %thead
-      %tr
-        - headers.each do |header|
-          %th= header
-    %tbody
-      - scope.pluck(*@report.columns_for(@key)).each do |row|
+  .card
+    %table.table.table-striped.mb-0
+      %thead
         %tr
-          - row.each_with_index do |col, i|
-            %td
-              - if i == 0
-                = link_to col, appropriate_client_path(id: col)
-              - else
-                = @report.detail_column_display(header: headers[i], column: col)
+          - headers.each do |header|
+            %th= header
+      %tbody
+        - scope.pluck(*@report.columns_for(@key)).each do |row|
+          %tr
+            - row.each_with_index do |col, i|
+              %td
+                - if i == 0
+                  = link_to col, appropriate_client_path(id: col)
+                - else
+                  = @report.detail_column_display(header: headers[i], column: col)
