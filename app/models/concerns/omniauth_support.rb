@@ -61,12 +61,15 @@ module OmniauthSupport
         ::ApplicationMailer.with(user: user).provider_linked.deliver_later
       end
 
-      # send notifications if this is a completely new user
-      NotifyUser.new_account_created(user).deliver_later if user.new_record?
+      newly_created = user.new_record?
 
       user.skip_confirmation! unless user.confirmed?
       user.skip_reconfirmation!
       user.save(validate: false)
+
+      # send notifications if this is a completely new user
+      NotifyUser.new_account_created(user.reload).deliver_later if newly_created
+
       user
     end
   end
