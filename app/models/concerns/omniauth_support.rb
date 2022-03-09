@@ -53,6 +53,8 @@ module OmniauthSupport
         provider_raw_info: auth['extra'].merge(auth['credentials']),
       )
 
+      newly_created = user.new_record? || user.provider_set_at.blank?
+
       # Notify existing users the first time OKTA is used
       # to sign into their account
       if !user.new_record? && user.provider_set_at.blank?
@@ -61,13 +63,11 @@ module OmniauthSupport
         ::ApplicationMailer.with(user: user).provider_linked.deliver_later
       end
 
-      newly_created = user.new_record?
-
       user.skip_confirmation! unless user.confirmed?
       user.skip_reconfirmation!
       user.save(validate: false)
 
-      # send notifications if this is a completely new user
+      # send notifications if this is a completely new user, or if the user was just connected to omniauth
       NotifyUser.new_account_created(user.reload).deliver_later if newly_created
 
       user
