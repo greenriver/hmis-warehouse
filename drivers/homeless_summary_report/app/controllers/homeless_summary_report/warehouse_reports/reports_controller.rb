@@ -13,6 +13,7 @@ module HomelessSummaryReport::WarehouseReports
 
     before_action :require_can_access_some_version_of_clients!, only: [:details]
     before_action :set_report, only: [:show, :destroy, :details]
+    before_action :set_pdf_export, only: [:show]
 
     def index
       @reports = report_scope.ordered.
@@ -30,6 +31,13 @@ module HomelessSummaryReport::WarehouseReports
 
     def show
       @results = @report.results.to_a
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def create
@@ -120,6 +128,10 @@ module HomelessSummaryReport::WarehouseReports
       filters
     end
     helper_method :filter_params
+
+    private def set_pdf_export
+      @pdf_export = HomelessSummaryReport::DocumentExports::ReportExport.new
+    end
 
     private def filter_class
       ::Filters::FilterBase

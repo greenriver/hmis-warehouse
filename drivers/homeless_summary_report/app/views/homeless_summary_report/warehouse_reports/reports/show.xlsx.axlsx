@@ -1,0 +1,58 @@
+wb = xlsx_package.workbook
+
+title = 'Homeless Summary Report'
+wb.add_worksheet name: title[0..30] do |sheet|
+  title_style = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  summary = [
+    'Report Start Date:',
+    @filter.start.to_s,
+    'Report End Date:',
+    @filter.end.to_s,
+    title,
+  ]
+  # @report.filter.describe_filter_as_html
+  sheet.add_row(summary, style: title_style)
+end
+
+@report.measures.each do |measure, data|
+  headers = if measure == 'Measure 7' then data[:headers].first(4) else data[:headers] end
+  wb.add_worksheet name: measure[0..30] do |sheet|
+    title_style = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+    @report.variants.each do |household_category, details|
+      base_variant = details[:base_variant]
+
+      sheet.add_row([base_variant[:name]], style: title_style)
+      sheet.add_row(['', ''] + headers, style: title_style)
+      data[:fields].each do |field, row_data|
+        sheet.add_row([row_data[:title]], style: title_style)
+        row = ['', 'All Persons']
+        row_data[:calculations].each do |calculation|
+          if calculation == :count_destinations
+            @report.destinations.first(3).each.with_index do |_, i|
+              destination = headers[i + 1]
+              row << @report.formatted_value_for(section: measure, household_category: household_category, demographic_category: 'all', field: field, calculation: calculation, destination: destination)
+            end
+          else
+            row << @report.formatted_value_for(section: measure, household_category: household_category, demographic_category: 'all', field: field, calculation: calculation)
+          end
+        end
+        sheet.add_row(row)
+
+        details[:variants].each do |demographic_category, variant|
+          row = ['', variant[:name]]
+          row_data[:calculations].each do |calculation|
+            if calculation == :count_destinations
+              @report.destinations.first(3).each.with_index do |_, i|
+                destination = headers[i + 1]
+                row << @report.formatted_value_for(section: measure, household_category: household_category, demographic_category: demographic_category, field: field, calculation: calculation, destination: destination)
+              end
+            else
+              row << @report.formatted_value_for(section: measure, household_category: household_category, demographic_category: demographic_category, field: field, calculation: calculation)
+            end
+          end
+          sheet.add_row(row)
+        end
+      end
+    end
+  end
+end
