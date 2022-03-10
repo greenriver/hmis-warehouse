@@ -35,8 +35,10 @@ module PublicReports
     end
 
     private def chart_data
+      count = total_homeless_count
+      count = under_threshold if count.positive? && count < 100
       {
-        count: total_homeless_count,
+        count: count,
         date_range: filter_object.date_range_words,
       }.to_json
     end

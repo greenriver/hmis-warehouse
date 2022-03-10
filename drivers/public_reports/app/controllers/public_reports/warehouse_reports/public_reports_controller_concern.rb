@@ -87,6 +87,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
           project_group_ids: [],
         ],
       )
+
       options = default_filter_options if options.blank?
       options[:filters][:enforce_one_year_range] = false
       options
