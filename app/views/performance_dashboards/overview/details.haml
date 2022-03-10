@@ -11,17 +11,18 @@
 - if rows.any?
   - headers = @report.header_for(@options)
   %p Showing #{pluralize(rows.count, 'client')}.
-  %table.table.table-striped
-    %thead
-      %tr
-        - headers.each do |header|
-          %th= header
-    %tbody
-      - rows.values.each do |row|
+  .card
+    %table.table.table-striped.mb-0
+      %thead
         %tr
-          - row.each_with_index do |col, i|
-            %td
-              - if i == 0
-                = link_to col, client_path(id: col)
-              - else
-                = @report.detail_column_display(header: headers[i], column: col)
+          - headers.each do |header|
+            %th= header
+      %tbody
+        - rows.values.each do |row|
+          %tr
+            - row.each_with_index do |col, i|
+              %td
+                - if i == 0
+                  = link_to col, client_path(id: col)
+                - else
+                  = @report.detail_column_display(header: headers[i], column: col)
