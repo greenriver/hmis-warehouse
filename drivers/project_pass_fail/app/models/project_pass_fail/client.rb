@@ -11,6 +11,10 @@ module ProjectPassFail
     belongs_to :project, inverse_of: :clients, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
 
+    scope :heads_of_household, -> do
+      where(relationship_to_hoh: 1)
+    end
+
     def calculate_universal_data_elements(apr_client)
       assign_attributes(
         client_id: apr_client.client_id,
@@ -29,6 +33,7 @@ module ProjectPassFail
         ssn: apr_client.ssn,
         veteran_status: apr_client.veteran_status,
         relationship_to_hoh: apr_client.relationship_to_hoh,
+        household_id: apr_client.household_id,
         enrollment_created: apr_client.enrollment_created,
         enrollment_coc: apr_client.enrollment_coc,
         income_at_entry: apr_client.income_from_any_source_at_start,
@@ -59,6 +64,7 @@ module ProjectPassFail
         race: 'Race',
         veteran_status: 'Veteran Status',
         relationship_to_hoh: 'Relationship to HoH',
+        household_id: 'Household ID',
         enrollment_coc: 'Enrollment CoC',
         enrollment_created: 'Enrollment Added On',
         days_to_enter_entry_date: 'Days Between Entry and Date Added',

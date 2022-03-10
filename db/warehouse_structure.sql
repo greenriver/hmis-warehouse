@@ -15516,7 +15516,8 @@ CREATE TABLE public.project_pass_fails (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    thresholds jsonb DEFAULT '{}'::jsonb
+    thresholds jsonb DEFAULT '{}'::jsonb,
+    unit_utilization_rate double precision
 );
 
 
@@ -15552,7 +15553,8 @@ CREATE TABLE public.project_pass_fails_clients (
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
     income_at_entry integer,
-    gender_multi character varying
+    gender_multi character varying,
+    household_id character varying
 );
 
 
@@ -15633,7 +15635,10 @@ CREATE TABLE public.project_pass_fails_projects (
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
     income_at_entry_error_rate double precision,
-    income_at_entry_error_count integer
+    income_at_entry_error_count integer,
+    available_units integer,
+    unit_utilization_rate double precision,
+    unit_utilization_count integer
 );
 
 
@@ -47526,6 +47531,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220214202202'),
 ('20220216204506'),
 ('20220302145218'),
-('20220302154833');
+('20220302154833'),
+('20220308185943');
 
 

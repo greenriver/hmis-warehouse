@@ -24,14 +24,22 @@
   %h2 Overall
   .well.page-break-after
     .d-flex.text-center.justify-content-center.mt-4.mb-6
-      .overall-utilization-rate.chunk.mr-4.ml-4
+      .overall-utilization-rate.chunk.mr-auto.ml-4
         - status_class = if @report.within_utilization_threshold? then 'text-success' else 'text-danger' end
         .ml-2.mr-2
-          %h4.title Overall Utilization Rate
+          %h4.title Overall Bed Utilization Rate
           .d-flex.justify-content-center
             = embedded_svg(:group)
           .metric{class: status_class}
             = number_to_percentage @report.utilization_rate_as_percent, precision: 2
+      .overall-unit-utilization-rate.chunk.mr-auto.ml-auto
+        - status_class = if @report.within_unit_utilization_threshold? then 'text-success' else 'text-danger' end
+        .ml-2.mr-2
+          %h4.title Overall Unit Utilization Rate
+          .d-flex.justify-content-center
+            = embedded_svg(:group)
+          .metric{class: status_class}
+            = number_to_percentage @report.unit_utilization_rate_as_percent, precision: 2
       .overall-universal-data-elements.chunk.mr-auto.ml-auto
         - status_class = if @report.projects_failing_universal_data_elements.zero? then 'text-success' else 'text-danger' end
         .ml-2.mr-2
