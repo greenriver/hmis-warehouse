@@ -2,13 +2,15 @@
   .col-sm-3
     %dl
       %dt Clients Served
-      %dd= project.clients.count
+      %dd= number_with_delimiter project.clients.count
+      %dt Clients Entering
+      %dd= number_with_delimiter project.clients.where(first_date_in_program: @report.filter.range).count
       %dt Days of services
-      %dd= project.clients.sum(:days_served)
+      %dd= number_with_delimiter project.clients.sum(:days_served)
       %dt Days in Range
-      %dd= project.project_pass_fail.filter.range.count
+      %dd= number_with_delimiter project.project_pass_fail.filter.range.count
       %dt Average Available Beds per Day
-      %dd= project.available_beds
+      %dd= number_with_delimiter project.available_beds
     - if can_view_clients? && !@pdf
       = link_to project_pass_fail_warehouse_reports_project_pass_fail_project_path(project.project_pass_fail, project), class: 'btn btn-primary', target: :_blank do
         Client Details

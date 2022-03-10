@@ -1,10 +1,26 @@
 # Outflow Calculations
 
-Heads of Household calculations are limited to clients with enrollments identifying them as the Head of Household. Client calculations include Heads of Households. 
+Heads of Household calculations are limited to clients with enrollments identifying them as the Head of Household. Client calculations include Heads of Households.
 
-## Clients exiting to PH
+## Clients exiting to Permanent Destinations
 
 The count of the number of clients with an exit from ES, SH, TH, or SO in the reporting period with a self-reported destination that falls within the HUD-defined permanent destinations.
+
+## Clients exiting to Neutral Destinations
+
+The count of the number of clients with an exit from ES, SH, TH, or SO in the reporting period with a self-reported destination that falls within the HUD-defined institutional destinations or Hospital or other residential nonpsychiatric medical facility.
+
+## Clients exiting to Jail
+
+The count of the number of clients with an exit from ES, SH, TH, or SO in the reporting period with a self-reported destination of Jail.
+
+## Deceased Clients
+
+The count of the number of clients with an exit from ES, SH, TH, or SO in the reporting period with a destination of Deceased.
+
+## Clients exiting to Permanent, Neutral, Jail, or Deceased
+
+The count of the number of clients with an exit from ES, SH, TH, or SO in the reporting period with an exit in any of the categories as described above.
 
 ## PSH Clients entering {{Stabilization}}
 

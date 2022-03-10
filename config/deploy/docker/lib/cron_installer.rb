@@ -1,13 +1,14 @@
 #!/usr/bin/env ruby
 
 require_relative 'scheduled_task'
-require 'aws-sdk-iam'
-require 'aws-sdk-ecs'
+require_relative 'aws_sdk_helpers'
 require 'time'
 
 # Run from rails root
 
 class CronInstaller
+  include AwsSdkHelpers::Helpers
+
   MAX_DESCRIPTION_LENGTH = 512
 
   def run!
@@ -52,7 +53,7 @@ class CronInstaller
   def _choose_capacity_provider_strategy(command)
     return _spot_capacity_provider_strategy if command.include?('#capacity_provider:spot')
 
-     _on_demand_capacity_provider_strategy
+    _on_demand_capacity_provider_strategy
   end
 
   def _spot_capacity_provider_strategy
@@ -75,18 +76,6 @@ class CronInstaller
     ]
   end
 
-  def _capacity_providers
-    @_capacity_providers ||= ecs.describe_clusters(clusters: [ENV.fetch('CLUSTER_NAME')]).clusters.first.capacity_providers
-  end
-
-  def _spot_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/spt-v2/) }
-  end
-
-  def _on_demand_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
-  end
-
   def task_definition_arn
     return @task_definition_arn unless @task_definition_arn.nil?
 
@@ -107,7 +96,7 @@ class CronInstaller
       max_results: 1,
     ).task_definition_arns.first
 
-    raise "No task definition found" if task_definition.nil?
+    raise 'No task definition found' if task_definition.nil?
 
     puts "[INFO] Using #{task_definition}"
 
@@ -140,7 +129,6 @@ class CronInstaller
     utc_hour =
       if !hour.include?('*')
         hour.split(',').map do |h|
-
           # utc_offset is how far our time is from UTC in seconds.
           # hour_correction converts to hours and is the opposite sign since
           # we're converting to UTC. If we're 5 hours behind UTC (-5) we need
@@ -157,15 +145,15 @@ class CronInstaller
   end
 
   def get_command(line)
-    reg_match = line.match(%r{/bin/bash -l -c '(.+)'$})
+    reg_match = line.match(/\/bin\/bash -l -c '(.+)'$/)
 
-    raise "invalid cron line" if reg_match.nil?
+    raise 'invalid cron line' if reg_match.nil?
 
     command = reg_match[1]
 
     command = command.split(/&&/).last
 
-    raise "invalid cron line" if command.nil?
+    raise 'invalid cron line' if command.nil?
 
     command.sub!(/^\s*RAILS_ENV=\w+ /, '')
 
@@ -173,9 +161,6 @@ class CronInstaller
 
     command.split(' ')
   end
-
-  define_method(:iam) { Aws::IAM::Client.new }
-  define_method(:ecs) { Aws::ECS::Client.new }
 end
 
 CronInstaller.new.run!

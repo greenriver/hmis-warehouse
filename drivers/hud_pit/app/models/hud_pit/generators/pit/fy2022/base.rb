@@ -89,6 +89,7 @@ module HudPit::Generators::Pit::Fy2022
 
           age = source_client.age_on(@generator.filter.on)
           hh_id = get_hh_id(last_service_history_enrollment)
+          hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last&.enrollment
           household_ages = ages_for(hh_id, @generator.filter.on)
           household_type = household_types[hh_id]
           # https://files.hudexchange.info/resources/documents/Reporting-Gender-for-the-PIT-Count.pdf
@@ -137,6 +138,7 @@ module HudPit::Generators::Pit::Fy2022
             ethnicity: source_client.Ethnicity,
             veteran: source_client.VeteranStatus,
             chronically_homeless: enrollment.chronically_homeless_at_start?(date: @generator.filter.on),
+            chronically_homeless_household: hoh_enrollment&.chronically_homeless_at_start?(date: @generator.filter.on),
             substance_use: disabilities_latest.detect(&:substance?)&.DisabilityResponse&.present?,
             substance_use_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.substance? }&.DisabilityResponse.present?,
             domestic_violence: health_and_dv&.DomesticViolenceVictim,
@@ -331,7 +333,7 @@ module HudPit::Generators::Pit::Fy2022
         },
         chronic_clients: {
           title: 'Chronically Homeless: Total number of persons',
-          query: a_t[:chronically_homeless].eq(true),
+          query: a_t[:chronically_homeless_household].eq(true),
         },
         adults_with_mental_illness: {
           title: 'Adults with a Serious Mental Illness',

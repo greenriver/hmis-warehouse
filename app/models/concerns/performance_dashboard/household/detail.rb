@@ -76,7 +76,8 @@ module PerformanceDashboard::Household::Detail
     }
     # Add any additional columns
     if options[:household]
-      columns['Age'] = she_t[:age]
+      columns['Reporting Age'] = age_calculation
+      columns['DOB'] = c_t[:DOB] if options[:age]
       columns['Other Clients Under 18'] = she_t[:other_clients_under_18]
       columns['Other Clients 18 to 25'] = she_t[:other_clients_between_18_and_25]
       columns['Other Clients over 25'] = she_t[:other_clients_over_25]

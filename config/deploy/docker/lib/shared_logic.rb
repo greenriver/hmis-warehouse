@@ -4,27 +4,27 @@ module SharedLogic
     [
       {
         # Distribute across zones first
-        "field": "attribute:ecs.availability-zone",
-        "type": "spread",
+        'field': 'attribute:ecs.availability-zone',
+        'type': 'spread',
       },
       {
         # Distribute across instances
-        "field": "instanceId",
-        "type": "spread",
+        'field': 'instanceId',
+        'type': 'spread',
       },
       {
         # Then try to maximize utilization (minimize number of EC2 instances)
-        "field": "memory",
-        "type": "binpack",
-      }
+        'field': 'memory',
+        'type': 'binpack',
+      },
     ]
   end
 
   def _placement_constraints
     [
       {
-        "type": "distinctInstance",
-      }
+        'type': 'distinctInstance',
+      },
     ]
   end
 end

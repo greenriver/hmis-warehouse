@@ -9,20 +9,23 @@
     - if reports.count > 1
       - comparison_class = "c-swatch__border-left--td-#{index}"
     %div{class: column_class}
-      .card.mb-4{class: comparison_class}
-        %table.table
-          %thead
-            %tr
-              %th Gender
-              %th Age Range
-              %th Count
-              %th Percentage
-          %tbody
-            - HUD.genders.each do |gender, gender_title|
-              - report.age_categories.each do |age_range, age_title|
-                %tr
-                  %th= gender_title
-                  %th= age_title
-                  %td
-                    = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.gender_age_count(gender: gender, age_range: age_range)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "age_#{age_range}_gender_#{gender}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
-                  %td= number_to_percentage(report.gender_age_percentage(gender: gender, age_range: age_range), precision: 2)
+      - content_for "panel_collapse_content_gender_age_#{index}".to_sym do
+        %div.panel-group.mb-0.panel-collapsible{id: "gender-age__core-demographics-#{index}"}
+        .mb-0{class: comparison_class}
+          %table.table
+            %thead
+              %tr
+                %th Gender
+                %th Age Range
+                %th Count
+                %th Percentage
+            %tbody
+              - HUD.genders.each do |gender, gender_title|
+                - report.age_categories.each do |age_range, age_title|
+                  %tr
+                    %th= gender_title
+                    %th= age_title
+                    %td
+                      = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.gender_age_count(gender: gender, age_range: age_range)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "age_#{age_range}_gender_#{gender}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                    %td= number_to_percentage(report.gender_age_percentage(gender: gender, age_range: age_range), precision: 2)
+      = render 'common/panel_collapse', id: "gender-age-#{index}", title: 'Gender Age Breakdowns', content: "_gender_age_#{index}", panel_body_padded: 'n'

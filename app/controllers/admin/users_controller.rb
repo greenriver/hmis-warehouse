@@ -146,6 +146,7 @@ module Admin
         :agency_id,
         :exclude_from_directory,
         :exclude_phone_from_directory,
+        :notify_on_new_account,
         :receive_file_upload_notifications,
         :notify_on_vispdat_completed,
         :notify_on_client_added,

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'yaml'
 
 class CommandArgs
@@ -30,7 +31,7 @@ class CommandArgs
   end
 
   def self.cluster
-    ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') { ENV.fetch('AWS_VAULT') } }
+    ENV.fetch('CLUSTER_NAME', 'openpath')
   end
 
   def cluster

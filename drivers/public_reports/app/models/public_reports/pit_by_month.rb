@@ -72,8 +72,8 @@ module PublicReports
         [
           date,
           [
-            average_daily_client_count_for_month(date),
-            average_daily_newly_homeless_for_month(date),
+            enforce_min_threshold(average_daily_client_count_for_month(date), 'min_threshold'),
+            enforce_min_threshold(average_daily_newly_homeless_for_month(date), 'min_threshold'),
           ],
         ]
       end

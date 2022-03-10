@@ -20,7 +20,7 @@ module WarehouseReports
       raise 'Key required' if params[:key].blank?
 
       @key = @report.metrics.keys.detect { |key| key.to_s == params[:key] }
-      @enrollments = enrollment_scope.where(client_id: @report.send(@key)).group_by(&:client_id)
+      @enrollments = @report.enrollments_for(@key)
 
       respond_to do |format|
         format.xlsx do
@@ -101,14 +101,6 @@ module WarehouseReports
 
     private def default_end
       1.months.ago.end_of_month
-    end
-
-    def enrollment_scope
-      @report.entries_scope.
-        residential.
-        joins(:client).
-        preload(:client).
-        order(c_t[:LastName], c_t[:FirstName])
     end
 
     private def set_modal_size

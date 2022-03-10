@@ -42,6 +42,8 @@ module OmniauthSupport
         agency: Agency.where(name: 'Unknown').first_or_create!,
       )
 
+      newly_created = user.new_record? || user.provider.blank?
+
       # Update this info from the provider whenever we can
       user.assign_attributes(
         provider: auth['provider'],
@@ -64,6 +66,10 @@ module OmniauthSupport
       user.skip_confirmation! unless user.confirmed?
       user.skip_reconfirmation!
       user.save(validate: false)
+
+      # send notifications if this is a completely new user, or if the user was just connected to omniauth
+      NotifyUser.new_account_created(user.reload).deliver_later if newly_created
+
       user
     end
   end

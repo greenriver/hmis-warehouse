@@ -589,7 +589,14 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def follow_up_two_d
-      @follow_up_two_d ||= follow_up_from_homelessness.pluck(:zip_code).uniq
+      @follow_up_two_d ||= begin
+        hmis_clients = GrdaWarehouse::HmisClient.where(client_id: get_source_client_ids(follow_up_from_homelessness))
+        hmis_zips = hmis_clients.all.map { |hmis_client| hmis_client.processed_fields&.dig('youth_current_zip') }.compact
+
+        follow_up_zips = follow_up_from_homelessness.pluck(:zip_code)
+
+        (hmis_zips + follow_up_zips).uniq
+      end
     end
 
     def g_one_a
@@ -821,31 +828,32 @@ module GrdaWarehouse::WarehouseReports::Youth
         :c_three_college_non_pilot,
         :total_college,
         :all_open_intakes,
-        :f_one_a,
-        :f_one_b,
-        :f_one_c,
-        :f_one_d,
-        :f_one_e,
-        :f_two_a,
-        :f_two_b,
-        :f_two_c,
-        :f_two_d,
-        :f_two_e,
-        :f_two_f,
-        :f_two_g,
-        :f_two_h,
-        :f_two_i,
-        :f_three_a,
-        :f_three_b,
-        :f_three_c,
-        :f_four_a,
-        :f_four_b,
-        :f_four_c,
-        :f_four_d,
-        :f_four_e,
-        :f_four_f,
-        :f_four_g,
-        :f_four_h,
+        :d_one_a,
+        :d_one_b,
+        :d_one_c,
+        :d_one_d,
+        :d_one_e,
+        :d_two_a,
+        :d_two_b,
+        :d_two_c,
+        :d_two_d,
+        :d_two_e,
+        :d_two_f,
+        :d_two_g,
+        :d_two_h,
+        :d_two_i,
+        :d_two_j,
+        :d_three_a,
+        :d_three_b,
+        :d_three_c,
+        :d_four_a,
+        :d_four_b,
+        :d_four_c,
+        :d_four_d,
+        :d_four_e,
+        :d_four_f,
+        :d_four_g,
+        :d_four_h,
         :follow_up_one_a,
         :follow_up_one_b,
         :follow_up_two_a,
@@ -863,6 +871,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         :g_two_d,
         :g_two_e,
         :g_two_f,
+        :g_two_g,
         :g_three_b,
         :h_one_a,
         :h_one_b,
@@ -875,6 +884,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         :h_two_d,
         :h_two_e,
         :h_two_f,
+        :h_two_g,
         :h_three_b,
         :client_ids_for_open_intakes,
       ]
@@ -882,6 +892,13 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     private def get_client_ids(scope)
       scope.distinct.pluck(:client_id)
+    end
+
+    private def get_source_client_ids(scope)
+      GrdaWarehouse::WarehouseClient.
+        joins(:source).
+        where(destination_id: get_client_ids(scope)).
+        pluck(:source_id)
     end
 
     private def follow_up_housing

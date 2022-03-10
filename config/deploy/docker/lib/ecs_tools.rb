@@ -1,11 +1,11 @@
-require 'aws-sdk-ecs'
-require 'aws-sdk-ecr'
-require_relative 'deployer'
 require 'amazing_print'
-require 'aws-sdk-cloudwatchevents'
+require_relative 'deployer'
+require_relative 'aws_sdk_helpers'
 
 class EcsTools
-  HOST  = 'ecs0.openpath.host'
+  include AwsSdkHelpers::Helpers
+
+  HOST  = 'ecs0.openpath.host'.freeze
   IMAGE = ENV['IMAGE']
 
   def shell
@@ -21,7 +21,7 @@ class EcsTools
 
     puts "Using container #{container_id} for a shell"
 
-    puts "making image we can ssh to"
+    puts 'making image we can ssh to'
     system("ssh #{HOST} 'docker commit #{container_id} shell'")
 
     exec("ssh -t #{HOST} 'docker run --rm -ti shell /bin/sh'")
@@ -30,7 +30,7 @@ class EcsTools
   # https://github.com/jorgebastida/awslogs
   def logs(group)
     if group.nil?
-      puts "first parameter is the group"
+      puts 'first parameter is the group'
       system('awslogs groups')
       exit
     end
@@ -56,7 +56,7 @@ class EcsTools
 
     finished = ->(s) { s.deployments.length == 1 && s.deployments[0].status == 'PRIMARY' && s.deployments[0].desired_count == s.deployments[0].running_count }
 
-    while bad do
+    while bad
       puts format(template, 'Good', 'Service Name', 'LB', '#', 'Status', 'pending', 'running', 'created', 'updated')
       puts '-' * 147
 
@@ -74,7 +74,7 @@ class EcsTools
       services.each do |service|
         deployments = service.deployments
 
-        finished_deployment = finished.call(service) #deployments.length == 1 && deployments[0].status == 'PRIMARY' && deployments[0].desired_count == deployments[0].running_count
+        finished_deployment = finished.call(service) # deployments.length == 1 && deployments[0].status == 'PRIMARY' && deployments[0].desired_count == deployments[0].running_count
 
         # Skip printing anything if we have finished this deployment, or if we're under the acceptable threshold
         next if failures && finished_deployment || failures && unfinished_count <= max_unfinished
@@ -103,7 +103,7 @@ class EcsTools
           #   debugger
           # end
 
-          header =  ['', '', '']
+          header = ['', '', '']
         end
         puts '-' * 147
 
@@ -125,19 +125,21 @@ class EcsTools
     results = ecs.list_container_instances(cluster: cluster)
     container_instances = results.to_h[:container_instance_arns]
 
+    # rubocop:disable Style/RedundantBegin
     container_instances.each do |ci|
       begin
         results = ecs.update_container_agent(
           cluster: cluster,
           container_instance: ci,
         )
-        #puts results.ai
+        # puts results.ai
         puts "Scheduled update for agent on #{ci}. Only doing this one so we don't restart all the agents at once."
         exit
       rescue Aws::ECS::Errors::NoUpdateAvailableException, Aws::ECS::Errors::UpdateInProgressException
         puts "No update needed for #{ci}."
       end
     end
+    # rubocop:enable Style/RedundantBegin
   end
 
   def list_cron!(args)
@@ -147,47 +149,42 @@ class EcsTools
       )
 
       resp.rules.each do |rule|
-        puts "%-60s %-60s %-40s" % [
-          rule[:description],
-          rule[:schedule_expression],
-          rule[:name],
-        ]
+        puts format('%-60s %-60s %-40s',
+                    rule[:description],
+                    rule[:schedule_expression],
+                    rule[:name])
       end
     end
   end
-  define_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
 
   # Rebuild the slow parts we hope to not have to build frequently like
   # installing packages, gems, and precompiling assets.
   def clear_cache!(repo_name)
     _run("docker image rm #{repo_name}:latest--pre-cache")
-    #_run("docker image rm #{repo_url}:latest--pre-cache")
+    # _run("docker image rm #{repo_url}:latest--pre-cache")
 
-    result = ecr.batch_delete_image({
-      image_ids: [
-        {
-          image_tag: "latest--pre-cache",
-        },
-      ],
-      repository_name: repo_name,
-    })
+    result = ecr.batch_delete_image(
+      {
+        image_ids: [
+          {
+            image_tag: 'latest--pre-cache',
+          },
+        ],
+        repository_name: repo_name,
+      },
+    )
 
     puts result.to_h.ai
   end
 
   private
 
-  def _run(c, abort_on_error: false)
-    cmd = c.gsub(/\n/, ' ').squeeze(' ')
-    puts "Running #{cmd}"
+  def _run(cmd, abort_on_error: false)
+    command = cmd.gsub(/\n/, ' ').squeeze(' ')
+    puts "Running #{command}"
 
-    system(cmd)
+    system(command)
 
-    if $CHILD_STATUS.exitstatus != 0 && abort_on_error
-      raise "Aborting due to command error"
-    end
+    raise 'Aborting due to command error' if $CHILD_STATUS.exitstatus != 0 && abort_on_error
   end
-
-  define_method(:ecs) { Aws::ECS::Client.new }
-  define_method(:ecr) { Aws::ECR::Client.new }
 end

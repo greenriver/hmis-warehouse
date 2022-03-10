@@ -12,6 +12,8 @@ module PublicReports
     include GrdaWarehouse::UsCensusApi::Aggregates
     acts_as_paranoid
 
+    MIN_THRESHOLD = 11
+
     def title
       _('Homeless Populations Report Generator')
     end
@@ -33,20 +35,18 @@ module PublicReports
     end
 
     def publish!
-      unless published?
-        # This should:
-        # 1. Take the contents of html and push it up to S3
-        # 2. Populate the published_url field
-        # 3. Populate the embed_code field
-        self.class.transaction do
-          unpublish_similar
-          update(
-            html: as_html,
-            published_url: generate_publish_url, # NOTE this isn't used in this report
-            embed_code: generate_embed_code, # NOTE this isn't used in this report
-            state: :published,
-          )
-        end
+      # This should:
+      # 1. Take the contents of html and push it up to S3
+      # 2. Populate the published_url field
+      # 3. Populate the embed_code field
+      self.class.transaction do
+        unpublish_similar
+        update(
+          html: as_html,
+          published_url: generate_publish_url, # NOTE this isn't used in this report
+          embed_code: generate_embed_code, # NOTE this isn't used in this report
+          state: :published,
+        )
       end
       push_to_s3
     end
@@ -69,9 +69,27 @@ module PublicReports
           content_type: 'text/html',
         )
         if resp.etag
-          Rails.logger.info 'Successfully uploaded report file to s3'
+          Rails.logger.info "Successfully uploaded report file to s3 (#{key})"
         else
-          Rails.logger.info 'Unable to upload report file'
+          Rails.logger.info "Unable to upload report file (#{key}})"
+        end
+      end
+    end
+
+    private def remove_from_s3
+      bucket = s3_bucket
+      prefix = public_s3_directory
+      populations.keys.each do |population|
+        prefix = File.join(public_s3_directory, version_slug.to_s, population.to_s)
+        key = File.join(prefix, 'index.html')
+        resp = s3_client.delete_object(
+          bucket: bucket,
+          key: key,
+        )
+        if resp.delete_marker
+          Rails.logger.info "Successfully removed report file from s3 (#{key})"
+        else
+          Rails.logger.info "Unable to remove the report file (#{key})"
         end
       end
     end
@@ -235,8 +253,8 @@ module PublicReports
         [
           date.iso8601,
           {
-            homeless_count: client_count_for_date(date, population, :homeless),
-            housed_count: client_count_for_date(date, population, :residential_non_homeless),
+            homeless_count: enforce_min_threshold(client_count_for_date(date, population, :homeless), 'pit_chart'),
+            housed_count: enforce_min_threshold(client_count_for_date(date, population, :residential_non_homeless), 'pit_chart'),
           },
         ]
       end.to_h
@@ -287,10 +305,8 @@ module PublicReports
       scope
     end
 
-    private def total_for(scope, population)
-      count = scope.select(:client_id).distinct.count
-
-      word = case population
+    private def word_for(population)
+      case population
       when :veterans
         'Veteran'
       when :adults_with_children, :hoh_from_adults_with_children
@@ -298,8 +314,13 @@ module PublicReports
       else
         'Person'
       end
+    end
 
-      pluralize(number_with_delimiter(count), word)
+    private def total_for(scope, population)
+      count = scope.select(:client_id).distinct.count
+      count = enforce_min_threshold(count, 'min_threshold')
+
+      pluralize(number_with_delimiter(count), word_for(population))
     end
 
     private def location_chart(population)
@@ -307,19 +328,27 @@ module PublicReports
         quarter_dates.each do |date|
           case population
           when :housed
+            rrh = with_service_in_quarter(report_scope, date, population).in_project_type(13).select(:client_id).distinct.count
+            psh = with_service_in_quarter(report_scope, date, population).in_project_type([3, 9, 10]).select(:client_id).distinct.count
+            (rrh, psh) = enforce_min_threshold([rrh, psh], 'location')
+
             charts[date.iso8601] = {
               data: [
-                ['Rapid-Rehousing', with_service_in_quarter(report_scope, date, population).in_project_type(13).select(:client_id).distinct.count],
-                ['Permanent Housing', with_service_in_quarter(report_scope, date, population).in_project_type([3, 9, 10]).select(:client_id).distinct.count],
+                ['Rapid-Rehousing', rrh],
+                ['Permanent Housing', psh],
               ],
               title: _('Type of Housing'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           when :homeless
+            sheltered = with_service_in_quarter(report_scope, date, population).homeless_sheltered.select(:client_id).distinct.count
+            unsheltered = with_service_in_quarter(report_scope, date, population).homeless_unsheltered.select(:client_id).distinct.count
+            (sheltered, unsheltered) = enforce_min_threshold([sheltered, unsheltered], 'location')
+
             charts[date.iso8601] = {
               data: [
-                ['Sheltered', with_service_in_quarter(report_scope, date, population).homeless_sheltered.select(:client_id).distinct.count],
-                ['Unsheltered', with_service_in_quarter(report_scope, date, population).homeless_unsheltered.select(:client_id).distinct.count],
+                ['Sheltered', sheltered],
+                ['Unsheltered', unsheltered],
               ],
               title: _('Where People are Staying'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
@@ -328,10 +357,14 @@ module PublicReports
             # We want to count households not all clients for families
             population = :hoh_from_adults_with_children if population == :adults_with_children
 
+            homeless = with_service_in_quarter(report_scope, date, population).homeless.select(:client_id).distinct.count
+            housed = with_service_in_quarter(report_scope, date, population).residential_non_homeless.select(:client_id).distinct.count
+            (homeless, housed) = enforce_min_threshold([homeless, housed], 'location')
+
             charts[date.iso8601] = {
               data: [
-                ['Homeless', with_service_in_quarter(report_scope, date, population).homeless.select(:client_id).distinct.count],
-                ['Housed', with_service_in_quarter(report_scope, date, population).residential_non_homeless.select(:client_id).distinct.count],
+                ['Homeless', homeless],
+                ['Housed', housed],
               ],
               title: _('Homeless or Housed'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
@@ -376,21 +409,41 @@ module PublicReports
     private def gender_chart(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
+          data = with_service_in_quarter(report_scope, date, population).
+            joins(:client).
+            group(GrdaWarehouse::Hud::Client.gender_binary_sql_case).
+            count.
+            map do |gender_id, count|
+              # Force any count to be at least the minimum allowe
+              # Force any unknown genders to Unknown
+              gender_id = nil unless gender_id.in?([0, 1, 2, 5, 6])
+              [
+                ::HUD.gender(gender_id) || 'Unknown',
+                count,
+              ]
+            end.to_h
+          data['Unknown'] ||= 0
+          counts = data.values
+          # Set the total string for the middle before we do cleanup
+          word = word_for(population)
+          total = with_service_in_quarter(report_scope, date, population).select(:client_id).distinct.count
+          total = if total < 100
+            "less than #{pluralize(100, word)}"
+          else
+            pluralize(number_with_delimiter(total), word)
+          end
+
+          counts = enforce_min_threshold(counts, 'donut')
+
+          genders = {}
+          data.each.with_index do |(k, _), i|
+            genders[k] = counts[i]
+          end
+
           charts[date.iso8601] = {
-            data: with_service_in_quarter(report_scope, date, population).
-              joins(:client).
-              group(GrdaWarehouse::Hud::Client.gender_binary_sql_case).
-              count.
-              map do |gender_id, count|
-                # Force any unknown genders to Unknown
-                gender_id = nil unless gender_id.in?([0, 1, 2, 5, 6])
-                [
-                  ::HUD.gender(gender_id) || 'Unknown',
-                  count,
-                ]
-              end,
+            data: genders.to_a,
             title: _('Gender'),
-            total: total_for(with_service_in_quarter(report_scope, date, population), population),
+            total: total,
           }
         end
       end
@@ -410,10 +463,26 @@ module PublicReports
               data[bucket_age(age)] << client_id unless client_ids.include?(client_id)
               client_ids << client_id
             end
+          counts = data.values.map(&:count)
+          # Set the total string for the middle before we do cleanup
+          word = word_for(population)
+          total = counts.sum
+          total = if total < 100
+            "less than #{pluralize(100, word)}"
+          else
+            pluralize(number_with_delimiter(total), word)
+          end
+
+          counts = enforce_min_threshold(counts, 'donut')
+          ages = {}
+          data.each.with_index do |(k, _), i|
+            ages[age_name(k)] = counts[i]
+          end
+
           charts[date.iso8601] = {
-            data: data.map { |age, ids| [age_name(age), ids.count] },
+            data: ages.to_a,
             title: _('Age'),
-            total: total_for(with_service_in_quarter(report_scope, date, population), population),
+            total: total,
           }
         end
       end
@@ -449,21 +518,40 @@ module PublicReports
     private def ethnicity_chart(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
+          data = with_service_in_quarter(report_scope, date, population).
+            joins(:client).
+            group(c_t[:Ethnicity]).
+            count.
+            map do |e_id, count|
+              # Force any unknown ethnicties to Unknown
+              e_id = nil unless e_id.in?([0, 1])
+              [
+                ::HUD.ethnicity(e_id) || 'Unknown',
+                count,
+              ]
+            end.to_h
+          data['Unknown'] ||= 0
+          counts = data.values
+          # Set the total string for the middle before we do cleanup
+          word = word_for(population)
+          total = with_service_in_quarter(report_scope, date, population).select(:client_id).distinct.count
+          total = if total < 100
+            "less than #{pluralize(100, word)}"
+          else
+            pluralize(number_with_delimiter(total), word)
+          end
+
+          counts = enforce_min_threshold(counts, 'donut')
+
+          ethnicities = {}
+          data.each.with_index do |(k, _), i|
+            ethnicities[k] = counts[i]
+          end
+
           charts[date.iso8601] = {
-            data: with_service_in_quarter(report_scope, date, population).
-              joins(:client).
-              group(c_t[:Ethnicity]).
-              count.
-              map do |e_id, count|
-                # Force any unknown ethnicties to Unknown
-                e_id = nil unless e_id.in?([0, 1])
-                [
-                  ::HUD.ethnicity(e_id) || 'Unknown',
-                  count,
-                ]
-              end,
+            data: ethnicities.to_a,
             title: _('Ethnicity'),
-            total: total_for(with_service_in_quarter(report_scope, date, population), population),
+            total: total,
           }
         end
       end
@@ -496,11 +584,12 @@ module PublicReports
               client_ids << client.id
             end
           total_count = data.map { |_, ids| ids.count }.sum
+          data = enforce_min_threshold(data, 'race')
           # Format:
           # [["Black or African American",38, 53],["White",53, 76],["Native Hawaiian or Other Pacific Islander",1, 12],["Multi-Racial",4, 10],["Asian",1, 5],["American Indian or Alaska Native",1, 1]]
           combined_data = data.map do |race, ids|
             label = if race == 'None'
-              'Unknown'
+              'Other or Unknown'
             else
               race
             end
@@ -589,11 +678,28 @@ module PublicReports
               data[client_population(enrollment, date)] ||= 0
               data[client_population(enrollment, date)] += 1 unless counted_clients.include?(client.id)
               counted_clients << client.id
-            end
+            end.to_h
+
+          counts = data.values
+          # Set the total string for the middle before we do cleanup
+          word = word_for(:adults_with_children)
+          total = counts.sum
+          total = if total < 100
+            "less than #{pluralize(100, word)}"
+          else
+            pluralize(number_with_delimiter(total), word)
+          end
+
+          counts = enforce_min_threshold(counts, 'donut')
+
+          household_compositions = {}
+          data.each.with_index do |(k, _), i|
+            household_compositions[k] = counts[i]
+          end
           charts[date.iso8601] = {
-            data: data.to_a,
+            data: household_compositions.to_a,
             title: _('Household Composition'),
-            total: total_for(scope, :adults_with_children), # Force Households
+            total: total,
           }
         end
       end
@@ -708,10 +814,26 @@ module PublicReports
               data[bucket_days(client.days_homeless(on_date: date))] += 1 unless counted_clients.include?(client.id)
               counted_clients << client.id
             end
+          counts = data.values
+          # Set the total string for the middle before we do cleanup
+          word = word_for(population)
+          total = counts.sum
+          total = if total < 100
+            "less than #{pluralize(100, word)}"
+          else
+            pluralize(number_with_delimiter(total), word)
+          end
+
+          counts = enforce_min_threshold(counts, 'donut')
+
+          times = {}
+          data.each.with_index do |(k, _), i|
+            times[k] = counts[i]
+          end
           charts[date.iso8601] = {
-            data: data.to_a,
+            data: times.to_a,
             title: _('Time Homeless'),
-            total: total_for(with_service_in_quarter(report_scope, date, population), population),
+            total: total,
           }
         end
       end
@@ -750,10 +872,26 @@ module PublicReports
               data[bucket_days(days)] += 1 unless counted_clients.include?(enrollment.client_id)
               counted_clients << enrollment.client_id
             end
+          counts = data.values
+          # Set the total string for the middle before we do cleanup
+          word = word_for(population)
+          total = counts.sum
+          total = if total < 100
+            "less than #{pluralize(100, word)}"
+          else
+            pluralize(number_with_delimiter(total), word)
+          end
+
+          counts = enforce_min_threshold(counts, 'donut')
+
+          times = {}
+          data.each.with_index do |(k, _), i|
+            times[k] = counts[i]
+          end
           charts[date.iso8601] = {
-            data: data.to_a,
+            data: times.to_a,
             title: _('Time in Project'),
-            total: total_for(with_service_in_quarter(report_scope, date, population), population),
+            total: total,
           }
         end
       end

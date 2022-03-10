@@ -94,7 +94,8 @@ module PerformanceDashboard::Overview::Detail
       'Exit Date' => she_t[:last_date_in_program],
     }
     # Add any additional columns
-    columns['Age'] = she_t[:age] if options[:age]
+    columns['Reporting Age'] = age_calculation if options[:age]
+    columns['DOB'] = c_t[:DOB] if options[:age]
     if options[:gender]
       columns['Female'] = c_t[:Female]
       columns['Male'] = c_t[:Male]
@@ -104,7 +105,8 @@ module PerformanceDashboard::Overview::Detail
       columns['Unknown Gender'] = c_t[:GenderNone]
     end
     if options[:household]
-      columns['Age'] = she_t[:age]
+      columns['Reporting Age'] = age_calculation
+      columns['DOB'] = c_t[:DOB]
       columns['Other Clients Under 18'] = she_t[:other_clients_under_18]
       columns['Other Clients 18 to 25'] = she_t[:other_clients_between_18_and_25]
       columns['Other Clients over 25'] = she_t[:other_clients_over_25]

@@ -285,7 +285,27 @@ module ClaimsReporting
 
     def procedure_with_modifiers
       # sort is here since this is used as a key to match against other data
-      ([procedure_code] + modifiers.sort).join('>').to_s
+      # There are a few cases where we treat a modifier as part of a procedure code, so we address them here
+      pc = procedure_code
+      mods = modifiers
+      case pc
+      when 'G9007'
+        if mods.include?('U5')
+          pc = 'G9007>U5'
+          mods.delete('U5')
+        end
+      when 'T1023'
+        if mods.include?('U6')
+          pc = 'T1023>U6'
+          mods.delete('U6')
+        end
+      when 'T2024'
+        if mods.include?('U4')
+          pc = 'T2024>U4'
+          mods.delete('U4')
+        end
+      end
+      ([pc] + mods.sort).join('>').to_s
     end
     memoize :procedure_with_modifiers
 
