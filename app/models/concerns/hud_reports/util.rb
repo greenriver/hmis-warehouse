@@ -21,6 +21,15 @@ module HudReports::Util
       end.map(&:enrollment_group_id).uniq
     end
 
+    def pit_date(month:, before:)
+      year = before.year if month < before.month
+      year = before.year if month == before.month && before.day >= last_wednesday_of(month: before.month, year: before.year).day
+      year = before.year - 1 if month > before.month
+      year = before.year - 1 if month == before.month && before.day < last_wednesday_of(month: before.month, year: before.year).day
+
+      last_wednesday_of(month: month, year: year)
+    end
+
     private def last_wednesday_of(month:, year:)
       date = Date.new(year, month, 1).end_of_month
       return date if date.wednesday?
