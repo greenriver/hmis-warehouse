@@ -31,10 +31,22 @@ module GrdaWarehouse::WarehouseReports
         pluck(:client_id)
     end
 
+    private def neutral_destinations
+      [2, 4, 5, 6, 12, 13, 14, 15, 18, 25, 27, 29]
+    end
+
+    private def jail_destinations
+      [7]
+    end
+
+    private def deceased_destinations
+      [24]
+    end
+
     # NOTE: this does not match temporary destinations exactly
     def clients_to_neutral
       @clients_to_neutral ||= exits_scope.
-        where(destination: HUD.temporary_destinations + [6]).
+        where(destination: neutral_destinations).
         distinct.
         pluck(:client_id)
     end
@@ -53,9 +65,16 @@ module GrdaWarehouse::WarehouseReports
         pluck(:client_id)
     end
 
+    def clients_to_permanent_or_neutral
+      @clients_to_permanent_or_neutral ||= (exits_scope.
+        where(destination: HUD.permanent_destinations + neutral_destinations).
+        distinct.
+        pluck(:client_id) + clients_to_stabilization).uniq
+    end
+
     def clients_to_destinations
       @clients_to_destinations ||= (exits_scope.
-        where(destination: HUD.permanent_destinations + HUD.temporary_destinations + [6, 7, 24]).
+        where(destination: HUD.permanent_destinations + neutral_destinations + jail_destinations + deceased_destinations).
         distinct.
         pluck(:client_id) + clients_to_stabilization).uniq
     end
@@ -71,7 +90,7 @@ module GrdaWarehouse::WarehouseReports
     def hoh_to_neutral
       @hoh_to_neutral ||= exits_scope.
         heads_of_households.
-        where(destination: HUD.temporary_destinations + [6]).
+        where(destination: neutral_destinations).
         distinct.
         pluck(:client_id)
     end
@@ -92,10 +111,18 @@ module GrdaWarehouse::WarehouseReports
         pluck(:client_id)
     end
 
+    def hoh_to_permanent_or_neutral
+      @hoh_to_permanent_or_neutral ||= (exits_scope.
+        heads_of_households.
+        where(destination: HUD.permanent_destinations + neutral_destinations).
+        distinct.
+        pluck(:client_id) + hoh_to_stabilization).uniq
+    end
+
     def hoh_to_destinations
       @hoh_to_destinations ||= (exits_scope.
         heads_of_households.
-        where(destination: HUD.permanent_destinations + HUD.temporary_destinations + [6, 7, 24]).
+        where(destination: HUD.permanent_destinations + neutral_destinations + jail_destinations + deceased_destinations).
         distinct.
         pluck(:client_id) + hoh_to_stabilization).uniq
     end
@@ -253,6 +280,8 @@ module GrdaWarehouse::WarehouseReports
         hoh_to_jail: 'Unique Heads of Households exiting to Jail',
         clients_to_deceased: 'Deceased Clients',
         hoh_to_deceased: 'Deceased Heads of Households',
+        clients_to_permanent_or_neutral: 'Unique Clients Entering Housing or exiting to Permanent, Neutral Destinations',
+        hoh_to_permanent_or_neutral: 'Unique Heads of Households Entering Housing or exiting to Permanent, Neutral Destinations',
         clients_to_destinations: 'Unique Clients Entering Housing or exiting to Permanent, Neutral, Jail, or Deceased Destinations',
         hoh_to_destinations: 'Unique Heads of Households Entering Housing or exiting to Permanent, Neutral, Jail, or Deceased Destinations',
         clients_without_recent_service: 'Clients without recent service',
