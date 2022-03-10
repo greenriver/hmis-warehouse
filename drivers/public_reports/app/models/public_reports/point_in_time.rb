@@ -70,7 +70,7 @@ module PublicReports
       pit_count_dates.map do |date|
         [
           date,
-          client_count_for_date(date),
+          enforce_min_threshold(client_count_for_date(date), 'min_threshold'),
         ]
       end
     end
