@@ -22,7 +22,7 @@ module
     end
 
     def race_buckets
-      ::HUD.races.merge('MultiRacial' => 'Multi-racial')
+      @race_buckets ||= ::HUD.races.merge('MultiRacial' => 'Multi-racial', 'Does Not Know' => 'Does Not Know', 'Refused' => 'Refused', 'Not Collected' => 'Not Collected').except('RaceNone')
     end
 
     def race_count(type)
@@ -72,7 +72,7 @@ module
           client_scope = GrdaWarehouse::Hud::Client.where(id: distinct_client_ids)
           cache_client = GrdaWarehouse::Hud::Client.new
           distinct_client_ids.pluck(:client_id).each do |client_id|
-            clients[client_id] = cache_client.race_string(scope_limit: client_scope, destination_id: client_id)
+            clients[client_id] = cache_client.race_string(scope_limit: client_scope, include_none_reason: true, destination_id: client_id)
           end
         end
       end
