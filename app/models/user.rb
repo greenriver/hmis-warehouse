@@ -81,6 +81,10 @@ class User < ApplicationRecord
     where(receive_account_request_notifications: true)
   end
 
+  scope :receives_new_account_notifications, -> do
+    where(notify_on_new_account: true)
+  end
+
   scope :active, -> do
     where(
       arel_table[:active].eq(true).and(
