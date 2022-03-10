@@ -1,17 +1,30 @@
 wb = xlsx_package.workbook
+wb_styles = wb.styles
+header_style = wb_styles.add_style({ sz: 14 })
+th_style = wb_styles.add_style(
+  {
+    bg_color: '81adb9',
+    b: true,
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  },
+)
 
-title = 'Homeless Summary Report'
-wb.add_worksheet name: title[0..30] do |sheet|
-  title_style = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-  summary = [
-    'Report Start Date:',
-    @filter.start.to_s,
-    'Report End Date:',
-    @filter.end.to_s,
-    title,
-  ]
-  # @report.filter.describe_filter_as_html
-  sheet.add_row(summary, style: title_style)
+wb.add_worksheet(name: 'Report Info') do |sheet|
+  sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.add_row(
+    ['Homeless Summary Report'],
+    style: header_style,
+  )
+  @filter.selected_params_for_display.each do |title, value|
+    value = value.join(', ') if value.is_a?(Array)
+    sheet.add_row(
+      [
+        "#{title}:",
+        value,
+      ],
+      style: [th_style, nil],
+    )
+  end
 end
 
 @report.measures.each do |measure, data|
