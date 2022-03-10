@@ -34,10 +34,8 @@ module HudPit::Generators::Pit::Fy2022
         first_column: 'A',
         last_column: 'E',
         first_row: 2,
-        last_row: 17,
       }
 
-      @report.answer(question: table_name).update(metadata: metadata)
       client_counts = universe.members.distinct.
         group(:project_id, :project_name, :project_hmis_pit_count).
         count(:client_id)
@@ -45,6 +43,8 @@ module HudPit::Generators::Pit::Fy2022
         group(:project_id, :project_name).
         where(hoh_clause).
         count(:client_id)
+      metadata[:last_row] = client_counts.count + 1
+      @report.answer(question: table_name).update(metadata: metadata)
       # there will always be at least as many clients as households, so loop over those
       client_counts.each.with_index do |((project_id, project_name, pit_count), client_count), row_num|
         household_count = household_counts[[project_id, project_name]] || 0
