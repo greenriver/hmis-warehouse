@@ -554,10 +554,10 @@ class RollOut
           resp.events.each do |event|
             puts "[TASK] #{event.message} #{target_group_name}"
           end
-          sleep 240
+          sleep 600
         else
           puts "[INFO] Waiting 120 seconds since we didn't understand your response #{target_group_name}"
-          sleep 240
+          sleep 120
         end
       end
     end
