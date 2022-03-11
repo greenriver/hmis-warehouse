@@ -74,6 +74,24 @@ module GrdaWarehouse::Hud
       end
     end
 
+    scope :overridden, -> do
+      scope = where(Arel.sql('1=0'))
+      override_columns.each_key do |col|
+        scope = scope.or(where.not(col => nil))
+      end
+      scope
+    end
+
+    # If any of these are blank, we'll consider it overridden
+    def self.override_columns
+      {
+        hud_coc_code: :CoCCode,
+        geography_type_override: :GeographyType,
+        geocode_override: :Geocode,
+        zip_override: :Zip,
+      }
+    end
+
     def self.zip_code_shapes
       joins(<<~SQL)
         INNER JOIN shape_zip_codes ON ( shape_zip_codes.zcta5ce10 = "ProjectCoC"."Zip" OR shape_zip_codes.zcta5ce10 = "ProjectCoC"."zip_override")

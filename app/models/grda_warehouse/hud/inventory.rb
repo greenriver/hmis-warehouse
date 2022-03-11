@@ -87,6 +87,23 @@ module GrdaWarehouse::Hud
       where(HouseholdType: HOUSEHOLD_TYPES[:child_only])
     end
 
+    scope :overridden, -> do
+      scope = where(Arel.sql('1=0'))
+      override_columns.each_key do |col|
+        scope = scope.or(where.not(col => nil))
+      end
+      scope
+    end
+
+    # If any of these are blank, we'll consider it overridden
+    def self.override_columns
+      {
+        coc_code_override: :CoCCode,
+        inventory_start_date_override: :InventoryStartDate,
+        inventory_end_date_override: :InventoryEndDate,
+      }
+    end
+
     def for_export
       # This should never happen, but does
       self.ProjectID ||= project&.id || 'Unknown'

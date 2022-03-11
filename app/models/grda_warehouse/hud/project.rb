@@ -343,6 +343,28 @@ module GrdaWarehouse::Hud
       end
     end
 
+    scope :overridden, -> do
+      scope = where(Arel.sql('1=0'))
+      override_columns.each_key do |col|
+        scope = scope.or(where.not(col => nil))
+      end
+      scope
+    end
+
+    # If any of these are blank, we'll consider it overridden
+    def self.override_columns
+      {
+        act_as_project_type: :ProjectType,
+        hud_continuum_funded: :ContinuumProject,
+        housing_type_override: :HousingType,
+        operating_start_date_override: :OperatingStartDate,
+        operating_end_date_override: :OperatingEndDate,
+        hmis_participating_project_override: :HMISParticipatingProject,
+        target_population_override: :TargetPopulation,
+        tracking_method_override: :TrackingMethod,
+      }
+    end
+
     def self.can_see_all_projects?(user)
       visible_count = viewable_by(user).distinct.count
       visible_count.positive? && visible_count == all.count
