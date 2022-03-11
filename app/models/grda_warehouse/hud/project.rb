@@ -25,6 +25,8 @@ module GrdaWarehouse::Hud
     RESIDENTIAL_PROJECT_TYPES = {}.tap do |pt|
       h = { # duplicate of code in various places
         ph: [3, 9, 10, 13],
+        rrh: [13],
+        psh: [3, 10],
         oph: [9],
         th: [2],
         es: [1],
