@@ -90,28 +90,6 @@ RSpec.describe 'Datalab 2021 CAPER - Entry-Exit ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_ee',
       question: 'Q7b',
-      skip: [ # FIXME pending AAQ
-        'B2',
-        'C2',
-        'D2',
-        'E2',
-        'F2',
-        'B3',
-        'C3',
-        'D3',
-        'E3',
-        'F3',
-        'B4',
-        'C4',
-        'D4',
-        'E4',
-        'F4',
-        'B5',
-        'C5',
-        'D5',
-        'E5',
-        'F5',
-      ],
     )
   end
 
@@ -126,28 +104,6 @@ RSpec.describe 'Datalab 2021 CAPER - Entry-Exit ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'es_ee',
       question: 'Q8b',
-      skip: [ # FIXME pending AAQ
-        'B2',
-        'C2',
-        'D2',
-        'E2',
-        'F2',
-        'B3',
-        'C3',
-        'D3',
-        'E3',
-        'F3',
-        'B4',
-        'C4',
-        'D4',
-        'E4',
-        'F4',
-        'B5',
-        'C5',
-        'D5',
-        'E5',
-        'F5',
-      ],
     )
   end
 

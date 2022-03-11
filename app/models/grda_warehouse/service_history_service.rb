@@ -21,6 +21,10 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     end
   end
 
+  scope :on_date, ->(date, service_scope: :current_scope) do
+    service_between(start_date: date, end_date: date, service_scope: service_scope)
+  end
+
   scope :hud_project_type, ->(project_types) do
     in_project_type(project_types)
   end

@@ -189,38 +189,8 @@ module HudApr::Generators::Shared::Fy2021
 
     private def pit_universe(month:)
       heads_of_household = universe.members.where(a_t[:head_of_household].eq(true))
-
       pit_date = pit_date(month: month, before: @report.end_date)
-      psh_rrh_universe = heads_of_household.where(
-        a_t[:first_date_in_program].lteq(pit_date).
-          and(a_t[:last_date_in_program].gt(pit_date).
-            or(a_t[:last_date_in_program].eq(nil))).
-          and(a_t[:move_in_date].lteq(pit_date)).
-          and(a_t[:project_type].in([3, 13])),
-      )
-      so_serv_ce_universe = heads_of_household.where(
-        a_t[:first_date_in_program].lteq(pit_date).
-          and(a_t[:last_date_in_program].gteq(pit_date).
-            or(a_t[:last_date_in_program].eq(nil))).
-          and(a_t[:project_type].in([4, 6])),
-      )
-      other_universe = heads_of_household.where(
-        a_t[:first_date_in_program].lteq(pit_date).
-          and(a_t[:last_date_in_program].gt(pit_date).
-            or(a_t[:last_date_in_program].eq(nil))).
-          and(a_t[:project_type].in([2, 8, 9, 10])),
-      )
-
-      psh_rrh_universe.or(so_serv_ce_universe).or(other_universe)
-    end
-
-    private def pit_date(month:, before:)
-      year = before.year if month < before.month
-      year = before.year if month == before.month && before.day >= last_wednesday_of(month: before.month, year: before.year).day
-      year = before.year - 1 if month > before.month
-      year = before.year - 1 if month == before.month && before.day < last_wednesday_of(month: before.month, year: before.year).day
-
-      last_wednesday_of(month: month, year: year)
+      heads_of_household.where("pit_enrollments ? '#{pit_date}'")
     end
   end
 end

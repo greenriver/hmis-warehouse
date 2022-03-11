@@ -90,7 +90,7 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     )
   end
 
-  xit 'Q7b' do # pending AAQ
+  it 'Q7b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q7b',
@@ -104,7 +104,7 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     )
   end
 
-  xit 'Q8b' do # pending AAQ
+  it 'Q8b' do
     compare_results(
       file_path: result_file_prefix + 'hp',
       question: 'Q8b',
