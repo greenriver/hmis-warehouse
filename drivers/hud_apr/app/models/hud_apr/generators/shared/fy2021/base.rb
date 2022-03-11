@@ -405,7 +405,7 @@ module HudApr::Generators::Shared::Fy2021
       pit_dates = [1, 4, 7, 10].map { |month| pit_date(month: month, before: @report.end_date) }
       pit_dates.map do |pit_date|
         enrollments_for_date = enrollments.select do |enrollment|
-          enrolled = case enrollment.project_type
+          enrolled = case enrollment.computed_project_type
           when 3, 13 # PSH/RRH
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
@@ -419,8 +419,9 @@ module HudApr::Generators::Shared::Fy2021
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date) # Include the exit date
           end
           next false unless enrolled
+          next true if enrollment.computed_project_type != 1 || enrollment.project_tracking_method != 3 # Not ES or ES and not NbN
 
-          enrollment.project_tracking_method != 3 || enrollment.service_history_services.bed_nights.on_date(pit_date).exists?
+          enrollment.service_history_services.bed_night.on_date(pit_date).exists?
         end.map do |enrollment|
           {
             first_date_in_program: enrollment.first_date_in_program,

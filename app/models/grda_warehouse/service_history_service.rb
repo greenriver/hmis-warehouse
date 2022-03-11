@@ -25,10 +25,6 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     service_between(start_date: date, end_date: date, service_scope: service_scope)
   end
 
-  scope :bed_nights, -> do
-    where(service_type: 200)
-  end
-
   scope :hud_project_type, ->(project_types) do
     in_project_type(project_types)
   end

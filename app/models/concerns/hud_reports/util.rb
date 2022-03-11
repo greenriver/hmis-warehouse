@@ -21,10 +21,17 @@ module HudReports::Util
       end.map(&:enrollment_group_id).uniq
     end
 
+    # APR/CAPER PIT dates are defined to be the LAST WEDNESDAY of the most recent specified month before the end of
+    # the reporting period (So, for example if a report ends in the middle of August, A date between Jan - Jul would
+    # fall in the same year as the report end date, and Aug - Dec would fall in the previous year).
     def pit_date(month:, before:)
+      # Months prior to the before date are in the same year
       year = before.year if month < before.month
+      # Days in the before month fall in the same year if the before date is on or after the PIT date
       year = before.year if month == before.month && before.day >= last_wednesday_of(month: before.month, year: before.year).day
+      # Months after the before date are in the previous year
       year = before.year - 1 if month > before.month
+      # Days in the before month fall in the previous year if the before date is before the PIT date
       year = before.year - 1 if month == before.month && before.day < last_wednesday_of(month: before.month, year: before.year).day
 
       last_wednesday_of(month: month, year: year)
