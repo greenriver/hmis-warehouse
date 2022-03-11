@@ -480,6 +480,30 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :race_doesnt_know, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:RaceNone].eq(8)).
+          select(:destination_id),
+      )
+    end
+
+    scope :race_refused, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:RaceNone].eq(9)).
+          select(:destination_id),
+      )
+    end
+
+    scope :race_not_collected, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:RaceNone].eq(99)).
+          select(:destination_id),
+      )
+    end
+
     scope :multi_racial, -> do
       columns = [
         c_t[:AmIndAKNative],
@@ -2039,7 +2063,7 @@ module GrdaWarehouse::Hud
 
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
     # advantage of caching
-    def race_string(destination_id:, scope_limit: self.class.destination)
+    def race_string(destination_id:, include_none_reason: false, scope_limit: self.class.destination)
       @limited_scope ||= self.class.destination.merge(scope_limit)
 
       @race_am_ind_ak_native ||= @limited_scope.where(id: self.class.race_am_ind_ak_native.select(:id)).distinct.pluck(:id).to_set
@@ -2065,6 +2089,15 @@ module GrdaWarehouse::Hud
       return 'NativeHIPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
 
+      if include_none_reason
+        @doesnt_know ||= @limited_scope.where(id: self.class.race_doesnt_know.select(:id)).distinct.pluck(:id).to_set
+        @refused ||= @limited_scope.where(id: self.class.race_refused.select(:id)).distinct.pluck(:id).to_set
+
+        return 'Does Not Know' if @doesnt_know.include?(destination_id)
+        return 'Refused' if @refused.include?(destination_id)
+
+        return 'Not Collected'
+      end
       'RaceNone'
     end
 
