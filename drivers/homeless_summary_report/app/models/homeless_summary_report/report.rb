@@ -365,7 +365,7 @@ module HomelessSummaryReport
         },
         support: {
           unit: headers,
-          counts: counts['All Persons'],
+          counts: counts['All Clients'],
           all_counts: counts,
         },
       }
@@ -419,7 +419,7 @@ module HomelessSummaryReport
           max: max_value_for(section),
         },
         support: {
-          one_detail_counts: detail_counts['All Persons'],
+          one_detail_counts: detail_counts['All Clients'],
           all_detail_counts: detail_counts,
         },
       }
@@ -566,6 +566,7 @@ module HomelessSummaryReport
             'Average Days',
             'Median Days',
           ],
+          description: 'Length of Time Clients Remain Homeless',
         },
         'Measure 2' => {
           fields: m2_fields,
@@ -573,6 +574,7 @@ module HomelessSummaryReport
             'Client Count',
             '% in Category',
           ],
+          description: 'The Extent to which Clients Who Exit Homelessness to Permanent Housing Destinations Return to Homelessness within 6, 12, and 24 months',
         },
         'Measure 7' => {
           fields: {
@@ -587,6 +589,7 @@ module HomelessSummaryReport
             'Temporary Destinations',
             'Institutional Destinations',
           ] + ::HUD.valid_destinations.map { |id, d| "#{d} (#{id})" },
+          description: 'Successful Placement from Street Outreach and Successful Placement in or Retention of Permanent Housing',
         },
       }
       # Measure 1 is table with Client Count, Average Days, Median Days
@@ -616,7 +619,7 @@ module HomelessSummaryReport
     def m2_fields
       {
         m2_reentry_days: {
-          title: 'Clients exiting to Permanent Destinations Within 2 Years Prior to Report Start',
+          title: 'exiting to Permanent Destinations Within 2 Years Prior to Report Start',
           calculations: [:count, :percent],
           total: :spm_m2_reentry_days,
         },
@@ -657,27 +660,27 @@ module HomelessSummaryReport
       {
         m1a_es_sh_days: {
           cells: [['1a', 'C2']],
-          title: 'Clients with ES or SH stays',
+          title: 'with ES or SH stays',
           calculations: [:count, :average, :median],
         },
         m1a_es_sh_th_days: {
           cells: [['1a', 'C3']],
-          title: 'Clients with ES, SH, or TH stays',
+          title: 'with ES, SH, or TH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_ph_days: {
           cells: [['1b', 'C2']],
-          title: 'Clients with ES, SH, or PH stays',
+          title: 'with ES, SH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_th_ph_days: {
           cells: [['1b', 'C3']],
-          title: 'Clients with ES, SH, TH, or PH stays',
+          title: 'with ES, SH, TH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m2_reentry_days: {
           cells: [['2', 'B7']],
-          title: 'Clients Re-Entering Homelessness',
+          title: 'Re-Entering Homelessness',
         },
         m7a1_destination: {
           cells: [
@@ -725,7 +728,7 @@ module HomelessSummaryReport
       household_types = {
         all_persons: {
           base_variant: {
-            name: 'All Persons',
+            name: 'All Clients',
             extra_filters: {
               household_type: :all,
             },
@@ -734,7 +737,7 @@ module HomelessSummaryReport
         },
         with_children: {
           base_variant: {
-            name: 'Persons in Adult/Child Households',
+            name: 'Clients in Adult/Child Households',
             extra_filters: {
               household_type: :with_children,
             },
@@ -743,7 +746,7 @@ module HomelessSummaryReport
         },
         only_children: {
           base_variant: {
-            name: 'Persons in Child Only Households',
+            name: 'Clients in Child Only Households',
             extra_filters: {
               household_type: :only_children,
             },
@@ -752,7 +755,7 @@ module HomelessSummaryReport
         },
         without_children_and_fifty_five_plus: {
           base_variant: {
-            name: 'Persons in Adult Only Households who are Age 55+',
+            name: 'Clients in Adult Only Households who are Age 55+',
             extra_filters: {
               household_type: :without_children,
               age_ranges: [
@@ -766,7 +769,7 @@ module HomelessSummaryReport
         },
         adults_with_children_where_parenting_adult_18_to_24: {
           base_variant: {
-            name: 'Adults in Adult/Child Households where the Parenting Adult is 18-24',
+            name: 'Clients in Adult/Child Households where the Parenting Adult is 18-24',
             extra_filters: {
               household_type: :with_children,
               hoh_only: true,
@@ -799,58 +802,57 @@ module HomelessSummaryReport
 
     def self.demographic_variants
       {
-        white_non_hispanic_latino: {
-          name: 'White Non-Hispanic/Non-Latin(a)(o)(x) Persons',
+        non_hispanic_latino: {
+          name: HUD.ethnicity(0), # non-hispanic latino
           extra_filters: {
-            ethnicities: [HUD.ethnicity('Non-Hispanic/Non-Latin(a)(o)(x)', true)],
-            races: ['White'],
+            ethnicities: [0],
           },
-          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
+          demographic_filters: [:filter_for_ethnicity],
         },
         hispanic_latino: {
-          name: 'Hispanic/Latin(a)(o)(x)',
+          name: HUD.ethnicity(1), # hispanic lation
           extra_filters: {
-            ethnicities: [HUD.ethnicity('Hispanic/Latin(a)(o)(x)', true)],
+            ethnicities: [1],
           },
           demographic_filters: [:filter_for_ethnicity],
         },
         black_african_american: {
-          name: 'Black/African American Persons',
+          name: HUD.race('BlackAfAmerican'),
           extra_filters: {
             races: ['BlackAfAmerican'],
           },
           demographic_filters: [:filter_for_race],
         },
         asian: {
-          name: 'Asian Persons',
+          name: HUD.race('Asian'),
           extra_filters: {
             races: ['Asian'],
           },
           demographic_filters: [:filter_for_race],
         },
         american_indian_alaskan_native: {
-          name: 'American Indian/Alaskan Native Persons',
+          name: HUD.race('AmIndAKNative'),
           extra_filters: {
             races: ['AmIndAKNative'],
           },
           demographic_filters: [:filter_for_race],
         },
         native_hawaiian_other_pacific_islander: {
-          name: 'Native Hawaiian or Pacific Islander',
+          name: HUD.race('NativeHIPacific'),
           extra_filters: {
             races: ['NativeHIPacific'],
           },
           demographic_filters: [:filter_for_race],
         },
         white: {
-          name: 'White',
+          name: HUD.race('White'),
           extra_filters: {
             races: ['White'],
           },
           demographic_filters: [:filter_for_race],
         },
         multi_racial: {
-          name: 'Multiracial',
+          name: HUD.race('MultiRacial'),
           extra_filters: {
             races: ['MultiRacial'],
           },
@@ -862,6 +864,47 @@ module HomelessSummaryReport
             races: ['RaceNone'],
           },
           demographic_filters: [:filter_for_race],
+        },
+
+        b_n_h_l: {
+          name: [HUD.race('BlackAfAmerican'), HUD.ethnicity(0)].join(' '),
+          extra_filters: {
+            ethnicities: [0],
+            races: ['BlackAfAmerican'],
+          },
+          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
+        },
+        a_n_h_l: {
+          name: [HUD.race('Asian'), HUD.ethnicity(0)].join(' '),
+          extra_filters: {
+            ethnicities: [0],
+            races: ['Asian'],
+          },
+          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
+        },
+        n_n_h_l: {
+          name: [HUD.race('AmIndAKNative'), HUD.ethnicity(0)].join(' '),
+          extra_filters: {
+            ethnicities: [0],
+            races: ['AmIndAKNative'],
+          },
+          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
+        },
+        h_n_h_l: {
+          name: [HUD.race('NativeHIPacific'), HUD.ethnicity(0)].join(' '),
+          extra_filters: {
+            ethnicities: [0],
+            races: ['NativeHIPacific'],
+          },
+          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
+        },
+        white_non_hispanic_latino: {
+          name: [HUD.race('White'), HUD.ethnicity(0)].join(' '),
+          extra_filters: {
+            ethnicities: [0],
+            races: ['White'],
+          },
+          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
         },
         fleeing_dv: {
           name: 'Currently Fleeing DV',
