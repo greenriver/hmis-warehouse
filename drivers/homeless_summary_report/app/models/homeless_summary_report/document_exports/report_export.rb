@@ -25,8 +25,8 @@ module HomelessSummaryReport::DocumentExports
 
     def perform
       with_status_progression do
-        template_file = 'homeless_summary_report/warehouse_reports/report/index_pdf'
-        layout = 'layouts/homeless_summary_report'
+        template_file = 'homeless_summary_report/warehouse_reports/reports/show_pdf'
+        layout = 'layouts/performance_report'
 
         html = PdfGenerator.html(
           controller: controller_class,

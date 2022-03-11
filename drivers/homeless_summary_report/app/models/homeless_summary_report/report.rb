@@ -79,7 +79,7 @@ module HomelessSummaryReport
     end
 
     def self.url
-      'homeless_summary_report/warehouse_reports/report'
+      'homeless_summary_report/warehouse_reports/reports'
     end
 
     def url
