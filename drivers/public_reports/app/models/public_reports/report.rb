@@ -142,6 +142,7 @@ module PublicReports
     private def unpublish_similar
       self.class.
         where(version_slug: version_slug).
+        where.not(id: id).
         update_all(
           type: type,
           published_url: nil,
