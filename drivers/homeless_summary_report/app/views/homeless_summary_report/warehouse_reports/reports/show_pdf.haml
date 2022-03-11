@@ -9,8 +9,9 @@
 - @report.measures.each do |measure, data|
   .well.page-break-after
     - measure_slug = measure.underscore.tr(' ', '_')
-    .d-flex
+    .mb-4
       %h2= measure
+      %p= data[:description]
     - @report.variants.each do |household_category, details|
       - base_variant = details[:base_variant]
       - data[:fields].each do |field, row|
