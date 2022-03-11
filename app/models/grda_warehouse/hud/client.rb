@@ -2092,7 +2092,6 @@ module GrdaWarehouse::Hud
       if include_none_reason
         @doesnt_know ||= @limited_scope.where(id: self.class.race_doesnt_know.select(:id)).distinct.pluck(:id).to_set
         @refused ||= @limited_scope.where(id: self.class.race_refused.select(:id)).distinct.pluck(:id).to_set
-        @none ||= @limited_scope.where(id: self.class.race_none.select(:id)).distinct.pluck(:id).to_set
 
         return 'Does Not Know' if @doesnt_know.include?(destination_id)
         return 'Refused' if @refused.include?(destination_id)
