@@ -76,6 +76,11 @@ module GrdaWarehouse::SystemCohorts
     def self.cohort_classes
       @cohort_classes ||= {
         currently_homeless_cohort: GrdaWarehouse::SystemCohorts::CurrentlyHomeless,
+        veteran_cohort: GrdaWarehouse::SystemCohorts::Veteran,
+        youth_cohort: GrdaWarehouse::SystemCohorts::Youth,
+        chronic_cohort: GrdaWarehouse::SystemCohorts::Chronic,
+        adult_and_child_cohort: GrdaWarehouse::SystemCohorts::AdultAndChild,
+        adult_only_cohort: GrdaWarehouse::SystemCohorts::AdultOnly,
       }.freeze
     end
   end

@@ -5106,7 +5106,12 @@ CREATE TABLE public.configs (
     warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL,
     cas_calculator character varying DEFAULT 'GrdaWarehouse::CasProjectClientCalculator::Default'::character varying NOT NULL,
     service_register_visible boolean DEFAULT false NOT NULL,
-    enable_youth_unstably_housed boolean DEFAULT true
+    enable_youth_unstably_housed boolean DEFAULT true,
+    veteran_cohort boolean DEFAULT false NOT NULL,
+    youth_cohort boolean DEFAULT false NOT NULL,
+    chronic_cohort boolean DEFAULT false NOT NULL,
+    adult_and_child_cohort boolean DEFAULT false NOT NULL,
+    adult_only_cohort boolean DEFAULT false NOT NULL
 );
 
 
@@ -13204,7 +13209,8 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_referral_case_manage_after integer,
     ce_event_referral_result integer,
     gender_multi character varying,
-    bed_nights integer
+    bed_nights integer,
+    pit_enrollments jsonb DEFAULT '[]'::jsonb
 );
 
 
@@ -47563,6 +47569,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220302145218'),
 ('20220302154833'),
 ('20220308185943'),
-('20220311161639');
+('20220308193503'),
+('20220311161639'),
+('20220312204503');
 
 

@@ -61,7 +61,7 @@ module GrdaWarehouse::SystemCohorts
           newly_identified << client_id
         elsif HUD.permanent_destinations.include?(previous_destination) || previous_service_date < enrollment_date
           returned_from_housing << client_id
-        elsif most_recent_service_dates[client_id] >= Date.current - days_of_inactivity.days
+        elsif most_recent_service_dates[client_id] && most_recent_service_dates[client_id] >= Date.current - days_of_inactivity.days
           returned_from_inactive << client_id
         end
       end
