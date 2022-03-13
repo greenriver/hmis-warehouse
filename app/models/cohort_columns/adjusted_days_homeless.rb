@@ -20,7 +20,12 @@ module CohortColumns
 
     def default_value(client_id)
       effective_date = cohort.effective_date || Date.current
-      GrdaWarehouse::Hud::Client.days_homeless(client_id: client_id, on_date: effective_date)
+      # Use the pre-calculated value if we're looking at today
+      if effective_date == Date.current
+        GrdaWarehouse::WarehouseClientsProcessed.service_history.find_by(client_id: client_id)&.homeless_days
+      else
+        GrdaWarehouse::Hud::Client.days_homeless(client_id: client_id, on_date: effective_date)
+      end
     end
   end
 end

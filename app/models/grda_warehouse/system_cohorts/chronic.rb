@@ -11,8 +11,10 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def enrollment_source
-      # TODO: Find all clients who are enrolled in a project indicating chronic at entry (for the current date)
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.veterans
+      # Find all clients who are enrolled in a project indicating chronic at entry (for the current date)
+      clients = GrdaWarehouse::Hud::Client.destination.joins(source_enrollments: :ch_enrollment).
+        merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.where(client_id: clients.distinct.select(:id))
     end
   end
 end

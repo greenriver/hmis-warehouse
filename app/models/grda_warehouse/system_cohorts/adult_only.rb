@@ -12,7 +12,7 @@ module GrdaWarehouse::SystemCohorts
 
     private def enrollment_source
       # TODO: Find all households with people only 18 or older
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.veterans
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.where(client_id: adult_only_client_ids)
     end
   end
 end

@@ -7,12 +7,12 @@
 module GrdaWarehouse::SystemCohorts
   class Youth < CurrentlyHomeless
     def cohort_name
-      'Youth'
+      'Youth (under 25)'
     end
 
     private def enrollment_source
       # TODO: Find all households with people only 25 or less
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.veterans
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.where(client_id: youth_only_client_ids)
     end
   end
 end
