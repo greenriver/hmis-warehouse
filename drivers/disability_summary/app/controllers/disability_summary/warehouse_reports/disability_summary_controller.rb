@@ -26,8 +26,6 @@ module DisabilitySummary::WarehouseReports
     end
 
     def details
-      @key = params[:key]
-      @sub_key = params[:sub_key]
       respond_to do |format|
         format.html {}
         format.xlsx do

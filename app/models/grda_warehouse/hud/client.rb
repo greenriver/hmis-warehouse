@@ -1404,7 +1404,7 @@ module GrdaWarehouse::Hud
     end
 
     def fake_client_image_data
-      gender = if self[:Gender].in?([1, 3]) then 'male' else 'female' end
+      gender = if self[:Male].in?([1]) then 'male' else 'female' end
       age_group = if age.blank? || age > 18 then 'adults' else 'children' end
       image_directory = File.join('public', 'fake_photos', age_group, gender)
       available = Dir[File.join(image_directory, '*.jpg')]

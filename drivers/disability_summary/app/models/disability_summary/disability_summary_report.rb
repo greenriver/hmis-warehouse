@@ -153,18 +153,34 @@ module DisabilitySummary
     # most recent response for each client for each disability type per CoC
     def data_for_disabilities
       @data_for_disabilities ||= Rails.cache.fetch(disabilities_cache_key, expires_in: expiration_length) do
+        columns = {
+          client_id: :client_id,
+          disability_type: :DisabilityType,
+          disability_response: :DisabilityResponse,
+          indefinite: :IndefiniteAndImpairs,
+          coc_code: :CoCCode,
+          veteran_status: c_t[:VeteranStatus],
+          dob: c_t[:DOB],
+          reporting_age: age_calculation,
+          entry_date: she_t[:first_date_in_program],
+          ethnicity: c_t[:Ethnicity],
+        }
+        HUD.gender_fields.each do |field|
+          columns[field] = c_t[field]
+        end
+        race_cache_client = GrdaWarehouse::Hud::Client.new
         data = {}
         # binding.pry
-        report_scope.joins(enrollment: :disabilities, project: :project_cocs).
+        report_scope.joins(:client, enrollment: :disabilities, project: :project_cocs).
           order(:CoCCode, d_t[:InformationDate].desc).
-          pluck(
-            :client_id,
-            :DisabilityType,
-            :DisabilityResponse,
-            :IndefiniteAndImpairs,
-            :CoCCode,
-          ).each do |client_id, disability_type, disability_response, indefinite, coc_code|
-            disability = HUD.disability_type(disability_type)
+          pluck(*columns.values).each do |row|
+            row = Hash[columns.keys.zip(row)]
+            client_id = row[:client_id]
+            coc_code = row[:coc_code]
+            disability_response = row[:disability_response]
+            indefinite = row[:indefinite]
+            disability = HUD.disability_type(row[:disability_type])
+            race = race_cache_client.race_string(destination_id: client_id, scope_limit: GrdaWarehouse::Hud::Client.joins(:service_history_enrollments).merge(report_scope))
 
             # only count the first response for a client in each type per coc
             data[:counted_by_coc] ||= {}
@@ -177,30 +193,90 @@ module DisabilitySummary
             next unless disability_response.in?(GrdaWarehouse::Hud::Disability.positive_responses)
 
             indefinite ||= 99
-            response = HUD.disability_type(disability_response)
+            response = if row[:disability_type] == 10
+              HUD.disability_response disability_response
+            else
+              HUD.no_yes_reasons_for_missing_data disability_response
+            end
 
-            data[:all] ||= disability_options(Set)
-            data[:all][disability] << client_id
-
-            data[:by_coc] ||= {}
-            data[:by_coc][coc_code] ||= {}
-            data[:by_coc][coc_code][:clients] ||= {}
-            data[:by_coc][coc_code][:clients][disability] ||= {}
-            data[:by_coc][coc_code][:clients][disability][client_id] ||= {
-              disability_type: disability_type,
+            client_data = {
+              disability_type: row[:disability_type],
               disability: disability,
               response: response,
               indefinite: indefinite,
               coc_code: coc_code,
+              race: race,
+              veteran_status: row[:veteran_status],
+              dob: row[:dob],
+              reporting_age: row[:reporting_age],
             }
+            HUD.gender_fields.each do |field|
+              client_data[field] = row[field]
+            end
 
+            data[:clients] ||= {}
+            data[:clients][client_id] ||= client_data
+
+            data[:all] ||= disability_options(Set)
+            data[:all][disability] << client_id
+            data[:all][:clients] ||= {}
+            data[:all][:clients][disability] ||= Set.new
+            data[:all][:clients][disability] << client_id
+
+            data[:by_coc] ||= {}
+            data[:by_coc][coc_code] ||= {}
+            # data[:by_coc][coc_code][:clients] ||= {}
+            # data[:by_coc][coc_code][:clients][disability] ||= {}
+            # data[:by_coc][coc_code][:clients][disability][HUD.no_yes_reasons_for_missing_data(indefinite)] ||= Set.new
+            # data[:by_coc][coc_code][:clients][disability][HUD.no_yes_reasons_for_missing_data(indefinite)] << client_id
             data[:by_coc][coc_code][:disabilities] ||= disability_options(indefinite_options)
             data[:by_coc][coc_code][:disabilities][disability][HUD.no_yes_reasons_for_missing_data(indefinite)] << client_id
+
             data[:by_coc][coc_code][:disabilities_summary] ||= disability_options(Set)
             data[:by_coc][coc_code][:disabilities_summary][disability] << client_id
           end
         data
       end
+    end
+
+    def detail_data(params)
+      detail = params.dig(:detail)
+      coc = params.dig(:coc)
+      disability = params.dig(:disability)
+      indefinite = params.dig(:indefinite)
+      return unless disability.present?
+      return unless disability.in?(HUD.disability_types.values)
+      return if coc.present? && ! coc.in?(HUD.cocs.keys)
+      return if indefinite.present? && ! indefinite.in?(HUD.no_yes_reasons_for_missing_data_options.values)
+
+      ids = if detail == 'universe'
+        data_for_disabilities[:all][:clients][disability]
+      else
+        data_for_disabilities[:by_coc][coc][:disabilities][disability][HUD.no_yes_reasons_for_missing_data(indefinite)]
+      end
+
+      data_for_disabilities[:clients].select do |client_id, _|
+        ids.include?(client_id)
+      end.values
+    end
+
+    def support_title(params)
+      detail = params.dig(:detail)
+      coc = params.dig(:coc)
+      disability = params.dig(:disability)
+      indefinite = params.dig(:indefinite)
+      return unless disability.present?
+      return unless disability.in?(HUD.disability_types.values)
+      return if coc.present? && ! coc.in?(HUD.cocs.keys)
+      return if indefinite.present? && ! indefinite.in?(HUD.no_yes_reasons_for_missing_data_options.values)
+
+      title = disability
+      title += " (Indefinite and Impairing: #{indefinite})"
+      title += ' at the Universe Level' if detail == 'universe'
+      title += " for #{coc}" if coc
+
+      title += " for #{filter.date_range_words}"
+      title
     end
 
     private def disability_options(hash_or_set)

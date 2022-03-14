@@ -1,0 +1,19 @@
+- title = "Support for #{@report.support_title(params)}"
+- content_for :title, title
+%h1= title
+- data = @report.detail_data(params)
+- if data
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          - HUD.races(multi_racial: true).values.each do |race|
+            %th= race
+          - HUD.gender_id_to_field_name.each_key do |id|
+            %th= HUD.gender(id)
+      %tbody
+        %tr
+          - HUD.races(multi_racial: true).keys.each do |race|
+            %td= data.count { |row| row[:race] == race }
+          - HUD.gender_id_to_field_name.each_value do |field|
+            %td= data.count { |row| row[field] == 1 }
