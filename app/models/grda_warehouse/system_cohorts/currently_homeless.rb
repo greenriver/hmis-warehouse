@@ -96,6 +96,7 @@ module GrdaWarehouse::SystemCohorts
         distinct.
         pluck(:client_id)
       inactive_client_ids = cohort_clients.pluck(:client_id) - active_client_ids
+
       remove_clients(inactive_client_ids, 'Inactive')
     end
 

@@ -495,7 +495,7 @@ module GrdaWarehouse
     end
 
     private def inactive_date
-      @inactive_date ||= Date.current - days_of_inactivity.days
+      Date.current - days_of_inactivity.days
     end
 
     private def calculated_days_homeless(client)
