@@ -18,10 +18,14 @@
               %thead
                 %tr
                   - data.each do |disability, _|
+                    - next if disability == :clients
+
                     %th.text-center= disability
               %tbody
                 %tr
                   - data.each do |disability, ids|
+                    - next if disability == :clients
+
                     %th.text-center
                       = link_to_if(ids.count > 0, number_with_delimiter(ids.count), details_disability_summary_warehouse_reports_disability_summary_index_path({ filters: report.filter.to_h }.merge(detail: :universe, disability: disability)))
         - report.data_for_disabilities[:by_coc].each do |coc_code, data|

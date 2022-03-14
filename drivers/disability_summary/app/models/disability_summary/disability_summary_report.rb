@@ -209,6 +209,7 @@ module DisabilitySummary
               veteran_status: row[:veteran_status],
               dob: row[:dob],
               reporting_age: row[:reporting_age],
+              ethnicity: row[:ethnicity],
             }
             HUD.gender_fields.each do |field|
               client_data[field] = row[field]
@@ -271,7 +272,7 @@ module DisabilitySummary
       return if indefinite.present? && ! indefinite.in?(HUD.no_yes_reasons_for_missing_data_options.values)
 
       title = disability
-      title += " (Indefinite and Impairing: #{indefinite})"
+      title += " (Indefinite and Impairing: #{indefinite})" if indefinite
       title += ' at the Universe Level' if detail == 'universe'
       title += " for #{coc}" if coc
 
