@@ -447,6 +447,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: true,
             health: false,
           },
+          {
+            url: 'override_summary/warehouse_reports/reports',
+            name: 'Override Summary',
+            description: 'Track and download all inventory related items that are overridden.',
+            limitable: true,
+            health: false,
+          },
         ],
         'CAS' => [
           {
