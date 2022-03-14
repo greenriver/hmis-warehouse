@@ -3,6 +3,7 @@
 %h1= title
 - data = @report.detail_data(params)
 - if data
+  %p Showing data for #{pluralize(data.count, 'unique client')}.
   .card
     %table.table.table-striped.mb-0
       %thead
