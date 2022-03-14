@@ -95,7 +95,7 @@ module GrdaWarehouse::Hud
       scope
     end
 
-    # If any of these are blank, we'll consider it overridden
+    # If any of these are not blank, we'll consider it overridden
     def self.override_columns
       {
         coc_code_override: :CoCCode,
