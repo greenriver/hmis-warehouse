@@ -10,10 +10,19 @@ module DisabilitySummary::WarehouseReports
     include AjaxModalRails::Controller
     include ArelHelper
     include BaseFilters
+    extend BackgroundRenderAction
 
     before_action :require_can_view_clients, only: [:detail]
     before_action :set_report
     before_action :set_pdf_export
+
+    background_render_action(:render_section, ::BackgroundRender::DisabilitySummaryJob) do
+      {
+        partial: params.require(:partial).underscore,
+        filters: @filter.for_params[:filters].to_json,
+        user_id: current_user.id,
+      }
+    end
 
     def index
       respond_to do |format|
