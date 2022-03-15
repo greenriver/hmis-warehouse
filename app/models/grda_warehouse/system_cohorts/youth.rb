@@ -11,7 +11,7 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def enrollment_source
-      # TODO: Find all households with people only 25 or less
+      # Find all households with people only 25 or less
       GrdaWarehouse::ServiceHistoryEnrollment.entry.where(client_id: youth_only_client_ids)
     end
   end

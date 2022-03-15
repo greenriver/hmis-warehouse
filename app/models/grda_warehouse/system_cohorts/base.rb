@@ -37,10 +37,10 @@ module GrdaWarehouse::SystemCohorts
           end
         end
 
-        # Save the cohort client, and log the create reason
         cohort_client_batch << cohort_client
       end
 
+      # Save the cohort clients, and log the create reasons
       update_columns = self.class.available_columns.map { |c| c.column.to_sym if c.column_editable? }.compact.uniq + [:deleted_at]
       results = GrdaWarehouse::CohortClient.import!(
         cohort_client_batch,
