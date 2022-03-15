@@ -13,6 +13,7 @@ BostonHmis::Application.routes.draw do
   end
 
   namespace :health_flexible_service do
+    resources :my_vprs, only: [:index]
     namespace :warehouse_reports do
       resources :member_lists, only: [:index, :create]
     end

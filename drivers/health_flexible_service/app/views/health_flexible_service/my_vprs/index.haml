@@ -1,0 +1,9 @@
+- content_for(:title, "My Patients")
+%h1= content_for(:title)
+
+- if can_view_patients_for_own_agency? && current_user.health_agencies.any?
+  %ul.nav.nav-tabs.sub-nav-tabs
+    %li.nav-item{role: 'presentation'}
+      = link_to 'Dashboard', health_my_patients_path, class: 'nav-link'
+    %li.nav-item{role: 'presentation', class: 'active'}
+      = link_to 'Flex Services', health_flexible_service_my_vprs_path, class: 'nav-link'
