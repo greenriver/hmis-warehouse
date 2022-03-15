@@ -31,7 +31,11 @@
             %td.date-cell= disability.enrollment.EntryDate
             %td= disability.InformationDate
             %td= HUD.disability_type disability.DisabilityType
-            %td= HUD.disability_response disability.DisabilityResponse
+            %td
+              - if disability.DisabilityType == 10
+                = HUD.disability_response disability.DisabilityResponse
+              - else
+                = HUD.no_yes_reasons_for_missing_data disability.DisabilityResponse
             %td= HUD.no_yes_reasons_for_missing_data(disability.IndefiniteAndImpairs)
 - else
   .no-data
