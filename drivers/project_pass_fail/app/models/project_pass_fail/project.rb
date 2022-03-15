@@ -133,8 +133,8 @@ module ProjectPassFail
     end
 
     def calculate_timeliness
-      self.average_days_to_enter_entry_date = if clients.exists?
-        clients.sum(:days_to_enter_entry_date) / clients.count.to_f
+      self.average_days_to_enter_entry_date = if clients.where(first_date_in_program: filter.range).exists?
+        clients.where(first_date_in_program: filter.range).sum(:days_to_enter_entry_date) / clients.where(first_date_in_program: filter.range).count.to_f
       else
         0
       end
