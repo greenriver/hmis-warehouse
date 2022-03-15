@@ -3,4 +3,5 @@
 (function() {
   this.App || (this.App = {});
   App.cable = ActionCable.createConsumer();
+  ActionCable.logger.enabled = true;
 }).call(this);

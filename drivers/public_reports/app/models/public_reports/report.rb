@@ -282,10 +282,11 @@ module PublicReports
       when 'race'
         # Collapse any where the count of the bucket is < 100 into the None
         data.each do |k, ids|
-          if ids.count < 100
-            data['None'] += ids
-            data[k] = Set.new
-          end
+          next unless ids.count < 100
+
+          data['None'] ||= Set.new
+          data['None'] += ids
+          data[k] = Set.new
         end
       else
         # Default case is simply to return a formatted number
