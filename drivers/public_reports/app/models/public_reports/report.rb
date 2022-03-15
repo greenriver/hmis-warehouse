@@ -281,10 +281,10 @@ module PublicReports
         percent.round(-1)
       when 'race'
         # Collapse any where the count of the bucket is < 100 into the None
+        data['None'] ||= Set.new
         data.each do |k, ids|
           next unless ids.count < 100
 
-          data['None'] ||= Set.new
           data['None'] += ids
           data[k] = Set.new
         end
