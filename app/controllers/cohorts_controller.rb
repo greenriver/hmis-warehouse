@@ -143,7 +143,7 @@ class CohortsController < ApplicationController
       :tag_id,
       user_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
-    params.require(:grda_warehouse_cohort).permit(opts)
+    params.require(:cohort).permit(opts)
   end
 
   def set_assessment_types
