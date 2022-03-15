@@ -1,0 +1,28 @@
+- title = @report.title
+- content_for :title, title
+- r_data = @report.data
+
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
+%h1.mb-5= title
+.d-flex.mb-4
+  %p The following items have been overridden from their HMIS values.
+  .ml-auto
+    = render 'report_downloads/report_download', export: nil, excel_download_path: override_summary_warehouse_reports_reports_path({format: :xlsx})
+- if r_data.present?
+  - r_data.each do |project_name, data|
+    %h2= project_name
+    - if data[:projects]
+      - data[:projects].each do |project|
+        = link_to project.ProjectName, project_path(project), target: :_blank
+        = render 'table', klass: GrdaWarehouse::Hud::Project, object: project
+    - if data[:inventories]
+      - data[:inventories].each do |inventory|
+        = link_to 'Inventory', edit_inventory_path(inventory), target: :_blank
+        = render 'table', klass: GrdaWarehouse::Hud::Inventory, object: inventory
+    - if data[:project_cocs]
+      - data[:project_cocs].each do |project_coc|
+        = link_to 'Project CoC', edit_project_coc_path(project_coc), target: :_blank
+        = render 'table', klass: GrdaWarehouse::Hud::ProjectCoc, object: project_coc
+- else
+  .card
+    %p.none-found No overrides found

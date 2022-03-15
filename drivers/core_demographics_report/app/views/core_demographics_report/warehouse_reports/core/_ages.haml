@@ -37,6 +37,22 @@
               %th Male
               %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.adult_male_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :adult_male_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= report.average_adult_male_age
+            %tr
+              %th Transgender
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.adult_trans_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :adult_trans_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= report.average_adult_trans_age
+            %tr
+              %th Questioning
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.adult_questioning_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :adult_questioning_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= report.average_adult_questioning_age
+            %tr
+              %th No Single Gender
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.adult_no_single_gender_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :adult_no_single_gender_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= report.average_adult_no_single_gender_age
+            %tr
+              %th Unknown Gender
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.adult_unknown_gender_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :adult_unknown_gender_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= report.average_adult_unknown_gender_age
 
       %h3 Children
       .card.mb-4{class: comparison_class}
@@ -51,7 +67,6 @@
               %th All
               %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.child_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= report.average_child_age
-
             %tr
               %th Female
               %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.child_female_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_female_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
@@ -60,6 +75,22 @@
               %th Male
               %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.child_male_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_male_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= report.average_child_male_age
+            %tr
+              %th Trangender
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.child_trans_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_trans_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= report.average_child_trans_age
+            %tr
+              %th Questioning
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.child_questioning_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_questioning_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= report.average_child_questioning_age
+            %tr
+              %th No Single Gender
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.child_no_single_gender_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_no_single_gender_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= report.average_child_no_single_gender_age
+            %tr
+              %th Unknown Gender
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.child_unknown_gender_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_unknown_gender_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= report.average_child_unknown_gender_age
         %div{class: column_class}
 
       %h3 Age Breakdowns

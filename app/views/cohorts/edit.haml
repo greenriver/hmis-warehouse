@@ -3,7 +3,7 @@
 = content_for :crumbs do
   = link_to cohort_path(@cohort) do
     &laquo; Cohort
-= simple_form_for @cohort, url: cohort_path(@cohort) do |f|
+= simple_form_for @cohort, as: :cohort, url: cohort_path(@cohort) do |f|
   .row
     .col-sm-8
       = f.input :name, disabled: @cohort.system_cohort

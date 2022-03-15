@@ -216,6 +216,22 @@ module CoreDemographicsReport
       c_t[:Female].eq(1)
     end
 
+    private def trans_clause
+      c_t[:Transgender].eq(1)
+    end
+
+    private def questioning_clause
+      c_t[:Questioning].eq(1)
+    end
+
+    private def no_single_gender_clause
+      c_t[:NoSingleGender].eq(1)
+    end
+
+    private def unknown_gender_clause
+      c_t[:GenderNone].in([8, 9, 99])
+    end
+
     private def average_age(clause:)
       average_age = nf('AVG', [age_calculation])
       scope = report_scope.joins(:client).where(clause)
