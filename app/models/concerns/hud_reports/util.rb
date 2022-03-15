@@ -44,6 +44,12 @@ module HudReports::Util
       date.prev_occurring(:wednesday)
     end
 
+    private def anniversary_date(entry_date:, report_end_date:)
+      enrollment_age = report_end_date.year - entry_date.year
+      enrollment_age -= 1 if entry_date > report_end_date.years_ago(enrollment_age)
+      entry_date + enrollment_age.years
+    end
+
     private def percentage(value)
       value = 0 if value.to_f&.nan?
 
