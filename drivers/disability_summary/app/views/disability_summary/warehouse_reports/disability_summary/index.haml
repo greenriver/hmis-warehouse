@@ -19,12 +19,8 @@
           .text-right.mb-4
             = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: disability_summary_warehouse_reports_disability_summary_index_path({format: :xlsx}.merge(@filter.for_params))
       - @report.class.available_section_types.each do |section|
-        .rollup{data: {partial: section}}
+        = render 'background_render', url: render_section_disability_summary_warehouse_reports_disability_summary_index_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
+          .rollup
+            .rollup-container.well
 
 = render 'computation_description'
--# load in all the bits of aggregate statistics via ajax
-= content_for :page_js do
-  :javascript
-    'use strict';
-    var section_path = #{(url_for(action: 'index') + '/section/').to_json.html_safe};
-    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});

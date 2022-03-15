@@ -1,0 +1,52 @@
+- title = "Support for #{@report.support_title(params)}"
+- content_for :title, title
+%h1= title
+- data = @report.detail_data(params)
+- if data
+  %p Showing data for #{pluralize(data.count, 'unique client')}.
+  %h3 Gender
+  .card.mb-6
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          - HUD.gender_id_to_field_name.each_key do |id|
+            %th= HUD.gender(id)
+      %tbody
+        %tr
+          - HUD.gender_id_to_field_name.each_value do |field|
+            %td= data.count { |row| row[field] == 1 }
+  %h3 Age
+  .card.mb-6
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          - GrdaWarehouse::Hud::Client.extended_age_groups.each_value do |group|
+            %th= group[:name]
+      %tbody
+        %tr
+          - GrdaWarehouse::Hud::Client.extended_age_groups.each_value do |group|
+            %td= data.count { |row| group[:range].include?(row[:reporting_age]) }
+  %h3 Race
+  .card.mb-6
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          - HUD.races(multi_racial: true).values.each do |race|
+            %th= race
+      %tbody
+        %tr
+          - HUD.races(multi_racial: true).keys.each do |race|
+            %td= data.count { |row| row[:race] == race }
+  %h3 Ethnicity
+  .card.mb-6
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          - HUD.yes_no_missing_options.each_value do |option|
+            %th= option
+      %tbody
+        %tr
+          - HUD.yes_no_missing_options.each_key do |id|
+            %td= data.count { |row| row[:ethnicity] == id }
+
+- #TODO break each of these into their own table, add ethnicity and veteran status
