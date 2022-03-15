@@ -57,7 +57,7 @@ module HudReports::Clients
       return nil if assessment_date.nil?
 
       anniversary_date = anniversary_date(entry_date: enrollment_date, report_end_date: @report.end_date)
-      assessment_date.between?(anniversary_date - 30.days, anniversary_date + 30.days)
+      assessment_date.between?(anniversary_date - 30.days, [anniversary_date + 30.days, @report.end_date].min)
     end
 
     private def living_situations

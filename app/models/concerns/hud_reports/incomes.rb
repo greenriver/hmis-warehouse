@@ -35,7 +35,7 @@ module HudReports::Incomes
       anniversary_date = anniversary_date(entry_date: enrollment_date, report_end_date: @report.end_date)
 
       enrollment.income_benefits_annual_update.
-        where(InformationDate: anniversary_date - 30.days .. anniversary_date + 30.days).
+        where(InformationDate: anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min).
         select do |i|
         i.InformationDate <= report_end_date
       end.max_by(&:InformationDate)
