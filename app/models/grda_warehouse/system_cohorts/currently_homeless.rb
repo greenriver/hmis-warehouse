@@ -35,6 +35,7 @@ module GrdaWarehouse::SystemCohorts
       candidate_enrollments = enrollment_source.
         homeless.
         ongoing.
+        with_service_between(start_date: inactive_date, end_date: Date.current).
         where.not(client_id: service_history_source.where(date: Date.yesterday, homeless: false).select(:client_id)).
         where.not(client_id: moved_in_ph).
         where.not(client_id: cohort_clients.select(:client_id)).
@@ -61,7 +62,7 @@ module GrdaWarehouse::SystemCohorts
           newly_identified << client_id
         elsif HUD.permanent_destinations.include?(previous_destination) || previous_service_date < enrollment_date
           returned_from_housing << client_id
-        elsif most_recent_service_dates[client_id] >= Date.current - days_of_inactivity.days
+        elsif most_recent_service_dates[client_id] && most_recent_service_dates[client_id] >= Date.current - days_of_inactivity.days
           returned_from_inactive << client_id
         end
       end
@@ -87,14 +88,15 @@ module GrdaWarehouse::SystemCohorts
 
     private def remove_inactive_clients
       # Inactive (hasn't been seen in a homeless project in N days, where N refers to the setting on the cohort.)
-      inactive_date = Date.current - days_of_inactivity.days
       active_client_ids = enrollment_source.
         homeless.
         where(client_id: cohort_clients.select(:client_id)).
         joins(:service_history_services).
         where(shs_t[:date].gt(inactive_date)).
+        distinct.
         pluck(:client_id)
       inactive_client_ids = cohort_clients.pluck(:client_id) - active_client_ids
+
       remove_clients(inactive_client_ids, 'Inactive')
     end
 
