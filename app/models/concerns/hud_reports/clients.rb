@@ -5,6 +5,7 @@
 ###
 
 # Required concerns:
+#   HudReports::Util for anniversary_date
 #
 # Required accessors:
 #   a_t: Arel Type for the universe model
@@ -55,26 +56,8 @@ module HudReports::Clients
       enrollment_date = enrollment.first_date_in_program
       return nil if assessment_date.nil?
 
-      begin
-        anniversary_date = Date.new(report_end_date.year, enrollment_date.month, enrollment_date.day)
-      rescue Date::Error
-        # If a client was enrolled on 2/29 of a leap year, non-leap years will throw invalid date
-        # Make the anniversary fall on the last day of Feb to be consistent with Date.new(...) + 1.year
-        if enrollment_date.month == 2 && enrollment_date.day == 29 # rubocop:disable Style/GuardClause
-          anniversary_date = Date.new(report_end_date.year, 2, 28)
-        else
-          return nil
-        end
-      end
-
-      # if the anniversary date is just past the report range, but assessment was done early, but
-      # within the 30 day window, report as valid
-      return true if assessment_date.between?(anniversary_date - 30.days, anniversary_date + 30.days)
-
-      anniversary_date -= 1.year if anniversary_date > report_end_date
-      return nil if anniversary_date < enrollment_date
-
-      assessment_date.between?(anniversary_date - 30.days, anniversary_date + 30.days)
+      anniversary_date = anniversary_date(entry_date: enrollment_date, report_end_date: @report.end_date)
+      assessment_date.between?(anniversary_date - 30.days, [anniversary_date + 30.days, @report.end_date].min)
     end
 
     private def living_situations
