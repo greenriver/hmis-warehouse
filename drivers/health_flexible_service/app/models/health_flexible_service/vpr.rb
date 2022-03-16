@@ -24,6 +24,7 @@ module HealthFlexibleService
       mmis_name = ::Health::Cp.sender.first&.mmis_enrollment_name
 
       self.planned_on = Date.current
+      self.end_date = planned_on + 6.months
       self.first_name = patient.client.FirstName
       self.middle_name = patient.client.MiddleName
       self.last_name = patient.client.LastName
@@ -59,6 +60,10 @@ module HealthFlexibleService
       (1..HealthFlexibleService::Vpr.max_service_count).each do |i|
         self["service_#{i}_delivering_entity"] = mmis_name
       end
+    end
+
+    scope :active, -> do
+      where(arel_table[:end_date].gteq(Date.current))
     end
 
     scope :category_in_range, ->(category, range) do
@@ -118,6 +123,14 @@ module HealthFlexibleService
 
     private def language_from(value)
       value&.gsub(/\d+\. /, '')
+    end
+
+    def vpr_sentence
+      (1..self.class.max_service_count).
+        map { |i| "service_#{i}_goals" }.
+        map { |goal| public_send(goal) }.
+        reject(&:blank?).
+        join(', ')
     end
 
     def self.service_attributes

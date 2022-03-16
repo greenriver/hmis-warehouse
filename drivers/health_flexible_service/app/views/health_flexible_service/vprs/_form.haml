@@ -11,7 +11,11 @@
 %section.page-break-after
   .well.condensed-checkboxes
     %h3 Member Information
-    = f.input :planned_on, as: :date_picker, label: 'Date of service planning'
+    .row
+      .col-3
+        = f.input :planned_on, as: :date_picker, label: 'Date of service planning'
+      .col-3
+        = f.input :end_date, as: :date_picker, disabled: true, hint: 'May be extended via follow up'
     %div{class: width_class}
       = f.input :first_name, label: 'Member first name'
       = f.input :middle_name, label: 'Member middle initial'

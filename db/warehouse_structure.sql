@@ -3710,7 +3710,12 @@ CREATE TABLE public.configs (
     warehouse_client_name_order character varying DEFAULT 'earliest'::character varying NOT NULL,
     cas_calculator character varying DEFAULT 'GrdaWarehouse::CasProjectClientCalculator::Default'::character varying NOT NULL,
     service_register_visible boolean DEFAULT false NOT NULL,
-    enable_youth_unstably_housed boolean DEFAULT true
+    enable_youth_unstably_housed boolean DEFAULT true,
+    veteran_cohort boolean DEFAULT false NOT NULL,
+    youth_cohort boolean DEFAULT false NOT NULL,
+    chronic_cohort boolean DEFAULT false NOT NULL,
+    adult_and_child_cohort boolean DEFAULT false NOT NULL,
+    adult_only_cohort boolean DEFAULT false NOT NULL
 );
 
 
@@ -11432,7 +11437,37 @@ CREATE TABLE public.homeless_summary_report_clients (
     spm_without_children_and_fifty_five_plus__white integer,
     spm_without_children_and_fifty_five_plus__race_none integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__white integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__race_n integer
+    spm_adults_with_children_where_parenting_adult_18_to_24__race_n integer,
+    spm_all_persons__non_hispanic_latino integer,
+    spm_all_persons__b_n_h_l integer,
+    spm_all_persons__a_n_h_l integer,
+    spm_all_persons__n_n_h_l integer,
+    spm_all_persons__h_n_h_l integer,
+    spm_without_children__non_hispanic_latino integer,
+    spm_without_children__b_n_h_l integer,
+    spm_without_children__a_n_h_l integer,
+    spm_without_children__n_n_h_l integer,
+    spm_without_children__h_n_h_l integer,
+    spm_with_children__non_hispanic_latino integer,
+    spm_with_children__b_n_h_l integer,
+    spm_with_children__a_n_h_l integer,
+    spm_with_children__n_n_h_l integer,
+    spm_with_children__h_n_h_l integer,
+    spm_only_children__non_hispanic_latino integer,
+    spm_only_children__b_n_h_l integer,
+    spm_only_children__a_n_h_l integer,
+    spm_only_children__n_n_h_l integer,
+    spm_only_children__h_n_h_l integer,
+    spm_without_children_and_fifty_five_plus__non_hispanic_latino integer,
+    spm_without_children_and_fifty_five_plus__b_n_h_l integer,
+    spm_without_children_and_fifty_five_plus__a_n_h_l integer,
+    spm_without_children_and_fifty_five_plus__n_n_h_l integer,
+    spm_without_children_and_fifty_five_plus__h_n_h_l integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__non_hi integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__b_n_h_ integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__a_n_h_ integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__n_n_h_ integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer
 );
 
 
@@ -48304,6 +48339,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220302145218'),
 ('20220302154833'),
 ('20220308185943'),
-('20220308193503');
+('20220308193503'),
+('20220311161639'),
+('20220312204503');
 
 

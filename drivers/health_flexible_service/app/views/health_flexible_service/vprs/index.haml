@@ -18,6 +18,7 @@
           %thead
             %tr
               %th Date of Service Planning
+              %th End Date
               %th Last updated
               %th Download
               %th
@@ -27,6 +28,7 @@
                 %td
                   = link_to edit_client_health_flexible_service_vpr_path(@client, vpr) do
                     = vpr.planned_on
+                %td= vpr.end_date
                 %td
                   = vpr.updated_at
                   by #{vpr.user.name}

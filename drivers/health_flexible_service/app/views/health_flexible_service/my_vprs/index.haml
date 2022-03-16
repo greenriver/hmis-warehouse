@@ -7,3 +7,18 @@
       = link_to 'Dashboard', health_my_patients_path, class: 'nav-link'
     %li.nav-item{role: 'presentation', class: 'active'}
       = link_to 'Flex Services', health_flexible_service_my_vprs_path, class: 'nav-link'
+
+- if @patients.any?
+  %p.mr-5= page_entries_info @patients, entry_name: _('patient')
+  = paginate @patients
+
+  - @patients.each do |patient|
+    = render 'patient_card', patient: patient, vpr: patient.flexible_services.last
+
+  = paginate @patients
+
+= content_for :page_js do
+  :javascript
+    $('.jHousingNavigator').on('change', function(e){
+      $(this).closest('form').trigger('submit');
+    });
