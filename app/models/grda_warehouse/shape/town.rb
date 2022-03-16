@@ -10,12 +10,29 @@ module GrdaWarehouse
       include SharedBehaviors
       include StateScopes
 
-      def name
-        read_attribute(:town)
+      def candidate_zip_codes
+        ZipCode.joins(Arel.sql(<<~SQL))
+          join shape_towns ON (
+            ST_Intersects(
+              shape_towns.simplified_geom,
+              shape_zip_codes.simplified_geom
+            )
+            AND
+            shape_towns.id = #{id}
+          )
+        SQL
       end
 
       def self._full_geoid_prefix
-        '1600000'
+        'CUSTOMTOWN'
+      end
+
+      def self._geoid_column
+        'town'
+      end
+
+      def name
+        read_attribute(:town)
       end
 
       def self.simplification_distance_in_degrees

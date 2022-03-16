@@ -79,7 +79,8 @@ CREATE TYPE public.census_levels AS ENUM (
     'TRACT',
     'BG',
     'TABBLOCK',
-    'CUSTOM'
+    'CUSTOM',
+    'CUSTOMTOWN'
 );
 
 
@@ -3272,7 +3273,7 @@ CREATE VIEW public.bi_nightly_census_by_projects AS
 --
 
 CREATE TABLE public.service_history_enrollments (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     client_id integer NOT NULL,
     data_source_id integer,
     date date NOT NULL,
@@ -47571,6 +47572,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220308185943'),
 ('20220308193503'),
 ('20220311161639'),
-('20220312204503');
+('20220312204503'),
+('20220316160839');
 
 
