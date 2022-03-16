@@ -7,7 +7,7 @@
   - width_class = ''
 
 = render 'form_header'
-%h2 Part II: Cover Page
+%h2 Part I: Cover Page
 %section.page-break-after
   .well.condensed-checkboxes
     %h3 Member Information
@@ -75,7 +75,7 @@
       = f.input :complex_physical_health_need_detail
       = f.input :behavioral_health_need, as: :pretty_boolean
       = f.input :behavioral_health_need_detail
-      = f.input :activities_of_daily_living, as: :pretty_boolean
+      = f.input :activities_of_daily_living, as: :pretty_boolean, label: 'Activities of Daily Living (ADL)/Instrumental Activities of Daily Living (IADL)'
       = f.input :activities_of_daily_living_detail
       = f.input :ed_utilization, as: :pretty_boolean, label: 'ED utilization'
       = f.input :high_risk_pregnancy, as: :pretty_boolean
@@ -133,15 +133,15 @@
       %div{class: col_class}
         = f.input :gender, as: :pretty_boolean_group, collection: @vpr.class.available_genders, label: 'Gender/Gender Identity'
         %div{class: width_class}
-          = f.input :gender_detail, label: 'Reason for not specifying', hint: 'Optional'
+          = f.input :gender_detail, label: 'Self-described gender', hint: "If 'prefer to self-describe' is selected"
       %div{class: col_class}
         = f.input :sexual_orientation, as: :pretty_boolean_group, collection: @vpr.class.available_orientations, label: 'Sexual Orientation'
         %div{class: width_class}
-          = f.input :sexual_orientation_detail, label: 'Reason for not specifying', hint: 'Optional'
+          = f.input :sexual_orientation_detail, label: 'Self-described sexuak orientation', hint: "If 'prefer to self-describe' is selected"
       %div{class: col_class}
         = f.input :race, as: :pretty_boolean_group, collection: @vpr.class.available_races, label: 'Race/Ethnicity (Check all that apply)', multiple: true
         %div{class: width_class}
-          = f.input :race_detail, label: 'Other race, ethnicity, or origin detail', hint: 'Optional'
+          = f.input :race_detail, label: 'Other race, ethnicity, or origin detail', hint: "If 'some other race,ethnicity, or origin' is selected"
       %div{class: col_class}
         = f.input :primary_language
         %div{class: width_class}
@@ -149,7 +149,7 @@
       %div{class: col_class}
         = f.input :education, collection: @vpr.class.available_educations, as: :pretty_boolean_group
         %div{class: width_class}
-          = f.input :education_detail, label: 'Other education detail'
+          = f.input :education_detail, label: "If 'Other' is selected"
       %div{class: col_class}
         = f.input :employment_status, collection: @vpr.class.available_employments, as: :pretty_boolean_group
 
