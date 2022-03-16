@@ -41,10 +41,15 @@ module GrdaWarehouse
 
       module ClassMethods
         # Drastically reduce size of shapes and payload to send to the UI
-        def simplify!
+        def simplify!(force: false)
           # Simplify
           # https://postgis.net/docs/ST_Simplify.html
-          where(simplified_geom: nil).update_all(Arel.sql("simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))"))
+          scope = if force
+            where(Arel.sql('1=1'))
+          else
+            where(simplified_geom: nil)
+          end
+          scope.update_all(Arel.sql("simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))"))
         end
 
         # This is the id the census returns

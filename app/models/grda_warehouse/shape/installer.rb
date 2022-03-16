@@ -148,6 +148,8 @@ module GrdaWarehouse
             FROM land
           SQL
 
+          Rails.logger.info 'Simplifying after water removal'
+          klass.simplify!(force: true)
           klass.connection.exec_query("VACUUM ANALYZE #{klass.table_name}")
         end
       end
