@@ -226,4 +226,12 @@ class NotifyUser < DatabaseMailer
       mail(to: user.email, subject: 'Account Request Submitted')
     end
   end
+
+  def new_account_created(new_user)
+    @notify = User.active.receives_new_account_notifications
+    @new_user = new_user
+    @notify.each do |user|
+      mail(to: user.email, subject: 'Account Created')
+    end
+  end
 end

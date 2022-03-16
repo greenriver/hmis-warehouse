@@ -5,6 +5,10 @@
     %p
       The report is publicly available.
   .ml-auto
+    .mb-4
+      = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
+        = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
+        = f.submit 'Re-Publish', data: { confirm: @report.publish_warning }
     = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
-      = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
-      = f.submit 'Re-Publish', data: { confirm: @report.publish_warning }
+      = f.input :unpublish, as: :hidden, input_html: { value: @report.generate_publish_url }
+      = f.button :submit, 'Un-Publish', data: { confirm: @report.un_publish_warning }, class: 'btn btn-danger'

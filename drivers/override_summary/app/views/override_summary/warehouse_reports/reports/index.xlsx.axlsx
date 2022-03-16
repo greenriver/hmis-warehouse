@@ -1,0 +1,57 @@
+wb = xlsx_package.workbook
+wb_styles = wb.styles
+header_style = wb_styles.add_style({ sz: 14 })
+th_style = wb_styles.add_style(
+  {
+    bg_color: 'f2f2f2',
+    b: true,
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  },
+)
+wb_styles.add_style(
+  {
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  },
+)
+wb.add_worksheet(name: @report.title) do |sheet|
+  @report.data.each do |project_name, data|
+    sheet.add_row(
+      [project_name],
+      style: header_style,
+    )
+
+    data[:projects].each do |object|
+      sheet.add_row([object.ProjectName, project_url(object)])
+      sheet.add_row(['Column', 'HMIS Value', 'Override Value'], style: th_style)
+      object.class.override_columns.each do |override, hmis|
+        overridden_value = object.send(override)
+        next if overridden_value.blank?
+
+        sheet.add_row([hmis, object.send(hmis), overridden_value])
+      end
+    end
+
+    data[:inventories].each do |object|
+      sheet.add_row(['Inventory', edit_inventory_url(object)])
+      sheet.add_row(['Column', 'HMIS Value', 'Override Value'], style: th_style)
+      object.class.override_columns.each do |override, hmis|
+        overridden_value = object.send(override)
+        next if overridden_value.blank?
+
+        sheet.add_row([hmis, object.send(hmis), overridden_value])
+      end
+    end
+
+    data[:project_cocs].each do |object|
+      sheet.add_row(['Project CoC', edit_project_coc_url(object)])
+      sheet.add_row(['Column', 'HMIS Value', 'Override Value'], style: th_style)
+      object.class.override_columns.each do |override, hmis|
+        overridden_value = object.send(override)
+        next if overridden_value.blank?
+
+        sheet.add_row([hmis, object.send(hmis), overridden_value])
+      end
+    end
+    sheet.add_row([''])
+  end
+end

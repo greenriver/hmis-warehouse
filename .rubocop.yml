@@ -1,20 +1,24 @@
 inherit_from: .rubocop_todo.yml
 
 AllCops:
+  Exclude:
+    - 'db/**/*'
+    - 'config/*'
+    - 'config/environments/**/*.rb'
+    - 'config/initializers/**/*.rb'
+    - 'config/locales/**/*.rb'
+    - 'script/**/*'
+    - 'bin/{rails,rake,bundle}'
+    - 'app/assets/**/*'
+    - 'bin/db_prep'
+
   Include:
     - '**/Rakefile'
     - 'app/**/*.rb'
     - 'spec/**/*.rb'
     - 'drivers/**/*.rb'
     - 'lib/**/*.rb'
-
-  Exclude:
-    - 'db/**/*'
-    - 'config/**/*'
-    - 'script/**/*'
-    - 'bin/{rails,rake,bundle}'
-    - 'app/assets/**/*'
-    - 'bin/db_prep'
+    - 'config/deploy/docker/lib/*.rb'
 
   NewCops: disable
 

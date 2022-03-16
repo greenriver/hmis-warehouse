@@ -64,8 +64,16 @@ module ProjectPassFail
       (utilization_rate * 100).round(2)
     end
 
+    def unit_utilization_rate_as_percent
+      ((unit_utilization_rate || 0) * 100).round(2)
+    end
+
     def within_utilization_threshold?
       utilization_rate.in?(utilization_range)
+    end
+
+    def within_unit_utilization_threshold?
+      unit_utilization_rate.in?(utilization_range)
     end
 
     def within_timeliness_threshold?
@@ -99,6 +107,13 @@ module ProjectPassFail
         0
       end
       assign_attributes(utilization_rate: rate)
+      capacity = projects.sum(:available_units)
+      rate = if capacity.positive? && clients.heads_of_household.exists?
+        clients.heads_of_household.sum(:days_served).to_f / filter.range.count / capacity
+      else
+        0
+      end
+      assign_attributes(unit_utilization_rate: rate)
     end
 
     private def calculate_universal_data_element_rates
@@ -111,8 +126,8 @@ module ProjectPassFail
     private def calculate_timeliness
       projects.each(&:calculate_timeliness)
 
-      self.average_days_to_enter_entry_date = if clients.exists?
-        clients.sum(:days_to_enter_entry_date) / clients.count.to_f
+      self.average_days_to_enter_entry_date = if clients.where(first_date_in_program: filter.range).exists?
+        clients.where(first_date_in_program: filter.range).sum(:days_to_enter_entry_date) / clients.where(first_date_in_program: filter.range).count.to_f
       else
         0
       end
@@ -121,12 +136,16 @@ module ProjectPassFail
     private def populate_projects
       projects = []
       hmis_projects.find_each do |project|
+        average_unit_count = project.inventories.within_range(filter.as_date_range).map do |i|
+          i.average_daily_inventory(range: filter.as_date_range, field: :UnitInventory)
+        end.sum
         average_bed_count = project.inventories.within_range(filter.as_date_range).map do |i|
           i.average_daily_inventory(range: filter.as_date_range, field: :BedInventory)
         end.sum
         p = Project.new(
           project_pass_fail_id: id,
           project_id: project.id,
+          available_units: average_unit_count,
           available_beds: average_bed_count,
         )
         projects << p

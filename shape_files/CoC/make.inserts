@@ -28,6 +28,8 @@ end
 
 FileUtils.rm_f('coc.sql')
 
+FileUtils.rm_f('inserts.sql')
+
 Dir.glob('**/*shp').each do |shape_file|
   system "shp2pgsql -s 4269:4326 -p -I #{shape_file} shape_cocs > coc.structure.sql"
   puts "Exporting insert statements into inserts.sql for #{shape_file}"

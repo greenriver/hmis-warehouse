@@ -46,7 +46,7 @@ begin
     end
 
     if File.exists?(target) && ENV['UPDATE_ONLY']=='true'
-      puts "Skipping #{target} which already exists locally"
+      # puts "Skipping #{target} which already exists locally"
       next
     end
 

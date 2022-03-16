@@ -97,7 +97,7 @@ module HUD
       'BlackAfAmerican' => 'Black, African American, or African', # 3
       'NativeHIPacific' => 'Native Hawaiian or Pacific Islander', # 4
       'White' => 'White', # 5
-      'RaceNone' => 'None', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
+      'RaceNone' => 'Doesn\'t Know, refused, or not collected', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
     }
     race_list['MultiRacial'] = 'Multi-Racial' if multi_racial
     race_list

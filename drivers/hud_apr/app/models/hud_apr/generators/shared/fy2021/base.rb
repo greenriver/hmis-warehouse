@@ -223,6 +223,7 @@ module HudApr::Generators::Shared::Fy2021
                 first_date_in_program: last_service_history_enrollment.first_date_in_program,
               ),
             ),
+            pit_enrollments: pit_enrollment_info(enrollments),
             physical_disability_entry: disabilities_at_entry.detect(&:physical?)&.DisabilityResponse,
             physical_disability_exit: disabilities_at_exit.detect(&:physical?)&.DisabilityResponse,
             physical_disability_latest: disabilities_latest.detect(&:physical?)&.DisabilityResponse,
@@ -398,6 +399,40 @@ module HudApr::Generators::Shared::Fy2021
         joins(:enrollment)
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
+    end
+
+    private def pit_enrollment_info(enrollments)
+      pit_dates = [1, 4, 7, 10].map { |month| pit_date(month: month, before: @report.end_date) }
+      pit_dates.map do |pit_date|
+        enrollments_for_date = enrollments.select do |enrollment|
+          enrolled = case enrollment.computed_project_type
+          when 3, 13 # PSH/RRH
+            enrollment.first_date_in_program <= pit_date &&
+              (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
+              enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data
+              enrollment.move_in_date <= pit_date
+          when 1, 2, 8, 9, 10 # Other residential
+            enrollment.first_date_in_program <= pit_date &&
+              (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
+          else # Other project types (4, 6, 11)
+            enrollment.first_date_in_program <= pit_date &&
+              (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date) # Include the exit date
+          end
+          next false unless enrolled
+          next true if enrollment.computed_project_type != 1 || enrollment.project_tracking_method != 3 # Not ES or ES and not NbN
+
+          enrollment.service_history_services.bed_night.on_date(pit_date).exists?
+        end.map do |enrollment|
+          {
+            first_date_in_program: enrollment.first_date_in_program,
+            last_date_in_program: enrollment.last_date_in_program,
+            project_type: enrollment.project_type,
+            project_tracking_method: enrollment.project_tracking_method,
+            move_in_date: enrollment.move_in_date,
+          }
+        end
+        [pit_date, enrollments_for_date]
+      end.to_h.select { |_, v| v.present? }
     end
 
     delegate :client_scope, to: :@generator

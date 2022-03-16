@@ -14,7 +14,12 @@
 # 50 jobs waiting with enough of them waiting a long time could trigger a workoff worker with AGE_WEIGHT set high enough
 # 50 jobs waiting with a high priority could trigger a workoff worker with a PRIORITY_WEIGHT set high enough
 #
+
+require_relative '../../config/deploy/docker/lib/aws_sdk_helpers'
+
 class WorkoffArbiter
+  include AwsSdkHelpers::Helpers
+
   # How important is the length of time a job has been sitting around waiting?
   AGE_WEIGHT = 2
 
@@ -136,23 +141,7 @@ class WorkoffArbiter
     our_cluster.default_capacity_provider_strategy.map(&:to_h)
   end
 
-  # Abstraction that lets the cluster provision more/less EC2 instances based
-  # on the requirements of the containers we want to run
-  def _capacity_providers
-    @_capacity_providers ||= ecs.describe_clusters(clusters: [ENV.fetch('CLUSTER_NAME')]).clusters.first.capacity_providers
-  end
-
-  def _spot_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/spt-v2/) }
-  end
-
-  def _on_demand_capacity_provider_name
-    _capacity_providers.find { |cp| cp.match(/ondemand-v2/) }
-  end
-
   def _task_definition
     ENV.fetch('WORKOFF_TASK_DEFINITION')
   end
-
-  define_method(:ecs) { Aws::ECS::Client.new }
 end

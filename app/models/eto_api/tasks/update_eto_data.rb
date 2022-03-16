@@ -142,7 +142,7 @@ module EtoApi::Tasks
           :subject_id,
           :response_id,
           :eto_last_updated,
-        ).map do |client_id, site_id, assessment_id, subject_id, response_id, eto_last_updated| # rubocop:disable Metrics/ParameterLists
+        ).map do |client_id, site_id, assessment_id, subject_id, response_id, eto_last_updated|
           [[client_id, site_id, assessment_id, subject_id, response_id], eto_last_updated]
         end.to_h
 
@@ -224,7 +224,7 @@ module EtoApi::Tasks
       ]
     end
 
-    def save_demographics(api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
+    def save_demographics(api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:)
       hmis_client = fetch_demographics(
         api: api,
         client_id: client_id,
@@ -236,7 +236,7 @@ module EtoApi::Tasks
       hmis_client&.save
     end
 
-    def fetch_demographics(api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
+    def fetch_demographics(api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:)
       @custom_config = GrdaWarehouse::EtoApiConfig.active.find_by(data_source_id: data_source_id)
 
       hmis_client = nil
@@ -259,15 +259,16 @@ module EtoApi::Tasks
 
         if @custom_config.present?
           @custom_config.demographic_fields.each do |key, label|
-            hmis_client[key] = defined_value(api: api, site_id: site_id, response: api_response, label: label)
+            hmis_client.assign_attributes(key => defined_value(api: api, site_id: site_id, response: api_response, label: label))
           end
 
           @custom_config.demographic_fields_with_attributes.each do |key, details|
             data = entity(api: api, site_id: site_id, response: api_response, entity_label: details['entity_label'])
-            if data.present?
-              hmis_client[key] = data.try(:[], 'EntityName')
-              hmis_client[details['attributes']] = data if hmis_client[key].present? # rubocop:disable Metrics/BlockNesting
-            end
+            next unless data.present?
+
+            value = data.dig('EntityName')
+            hmis_client.assign_attributes(key => value)
+            hmis_client.assign_attributes(details['attributes'] => data) if value.present?
           end
 
           # Special cases for fields that don't exist on hmis_client
@@ -314,7 +315,7 @@ module EtoApi::Tasks
       options[value]
     end
 
-    def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated: nil) # rubocop:disable Metrics/ParameterLists
+    def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated: nil)
       @custom_config = GrdaWarehouse::EtoApiConfig.active.find_by(data_source_id: data_source_id)
 
       api_response = api.touch_point_response(
@@ -442,7 +443,7 @@ module EtoApi::Tasks
       hmis_form
     end
 
-    def save_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated: nil) # rubocop:disable Metrics/ParameterLists
+    def save_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated: nil)
       hmis_form = fetch_touch_point(
         api: api,
         site_id: site_id,

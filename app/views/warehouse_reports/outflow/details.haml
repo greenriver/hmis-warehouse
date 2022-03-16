@@ -6,11 +6,12 @@
 = content_for :modal_title, title
 
 - if @enrollments.any?
-  .pull-right
-    = link_to details_warehouse_reports_outflow_index_path(filter: filter_options, key: @key, format: :xlsx) do
-      Download
-      %span.icon-download2
-  %p Showing #{pluralize(@enrollments.count, 'row')}
+  .d-flex
+    %p Showing #{pluralize(@enrollments.count, 'row')}
+    .ml-auto
+      = link_to details_warehouse_reports_outflow_index_path(filter: filter_options, key: @key, format: :xlsx), class: 'btn btn-secondary btn-sm' do
+        %span.icon-download2
+        Download
   %table.table.table-sm.mt-4
     %thead
       %tr
@@ -20,6 +21,7 @@
         %th Project Type
         %th First Date In Program
         %th Last Date In Program
+        %th Move-in Date
         %th Destination
     %tbody
       - @enrollments.keys.each do |client_id|
@@ -36,6 +38,8 @@
               %td= enrollment.service_type_brief
               %td= enrollment.first_date_in_program
               %td= enrollment.last_date_in_program
+              %td
+                = enrollment.move_in_date if enrollment.move_in_date && enrollment.move_in_date > @filter.start
               %td= HUD.destination(enrollment.destination)
 - else
   None found.

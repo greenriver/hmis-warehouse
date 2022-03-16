@@ -89,6 +89,7 @@ class DocumentExportsControllerBase < ApplicationController
       'HudDataQualityReport::DocumentExports::HudDataQualityReportExport',
       'GrdaWarehouse::DocumentExports::BedUtilizationExport',
       'PerformanceMeasurement::DocumentExports::ReportExport',
+      'HomelessSummaryReport::DocumentExports::ReportExport',
     ]
   end
 end

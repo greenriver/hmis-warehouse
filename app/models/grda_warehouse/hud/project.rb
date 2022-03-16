@@ -25,6 +25,8 @@ module GrdaWarehouse::Hud
     RESIDENTIAL_PROJECT_TYPES = {}.tap do |pt|
       h = { # duplicate of code in various places
         ph: [3, 9, 10, 13],
+        rrh: [13],
+        psh: [3, 10],
         oph: [9],
         th: [2],
         es: [1],
@@ -339,6 +341,28 @@ module GrdaWarehouse::Hud
       else
         none
       end
+    end
+
+    scope :overridden, -> do
+      scope = where(Arel.sql('1=0'))
+      override_columns.each_key do |col|
+        scope = scope.or(where.not(col => nil))
+      end
+      scope
+    end
+
+    # If any of these are not blank, we'll consider it overridden
+    def self.override_columns
+      {
+        act_as_project_type: :ProjectType,
+        hud_continuum_funded: :ContinuumProject,
+        housing_type_override: :HousingType,
+        operating_start_date_override: :OperatingStartDate,
+        operating_end_date_override: :OperatingEndDate,
+        hmis_participating_project_override: :HMISParticipatingProject,
+        target_population_override: :TargetPopulation,
+        tracking_method_override: :TrackingMethod,
+      }
     end
 
     def self.can_see_all_projects?(user)

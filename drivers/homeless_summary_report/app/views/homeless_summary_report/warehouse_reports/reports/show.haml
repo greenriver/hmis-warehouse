@@ -1,5 +1,4 @@
 = render 'breadcrumbs'
-= render 'beta_warning'
 
 - title = "Homeless Summary Report"
 - content_for :title, title
@@ -7,12 +6,15 @@
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
   = @report.filter.describe_filter_as_html
-
+  .text-right.mb-4
+    = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: homeless_summary_report_warehouse_reports_report_path(@report, format: :xlsx)
 - @report.measures.each do |measure, data|
   .well
     - measure_slug = measure.underscore.tr(' ', '_')
     .d-flex
-      %h2= measure
+      .mb-4.mr-4
+        %h2= measure
+        %p= data[:description]
       .ml-auto
         %a{href: '#', data: {toggle: :collapse, target: "\##{measure_slug}"}, aria: {expanded: 'false', controls: measure_slug}}
           View details

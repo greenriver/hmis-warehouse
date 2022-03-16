@@ -88,20 +88,6 @@ RSpec.describe 'Datalab 2021 APR - rrh 2 projects', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh_2',
       question: 'Q7b',
-      skip: [ # FIXME pending AAQ
-        'B2',
-        'C2',
-        'F2',
-        'B3',
-        'C3',
-        'F3',
-        'B4',
-        'C4',
-        'F4',
-        'B5',
-        'C5',
-        'F5',
-      ],
     )
   end
 
@@ -116,16 +102,6 @@ RSpec.describe 'Datalab 2021 APR - rrh 2 projects', type: :model do
     compare_results(
       file_path: result_file_prefix + 'rrh_2',
       question: 'Q8b',
-      skip: [ # FIXME pending AAQ
-        'B2',
-        'C2',
-        'B3',
-        'C3',
-        'B4',
-        'C4',
-        'B5',
-        'C5',
-      ],
     )
   end
 

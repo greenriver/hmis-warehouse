@@ -80,6 +80,24 @@ module PublicReports
       end
     end
 
+    private def remove_from_s3
+      bucket = s3_bucket
+      prefix = public_s3_directory
+      sections.each do |section|
+        prefix = File.join(public_s3_directory, version_slug.to_s, section.to_s)
+        key = File.join(prefix, 'index.html')
+        resp = s3_client.delete_object(
+          bucket: bucket,
+          key: key,
+        )
+        if resp.delete_marker
+          Rails.logger.info "Successfully removed report file from s3 (#{key})"
+        else
+          Rails.logger.info "Unable to remove the report file (#{key})"
+        end
+      end
+    end
+
     def run_and_save!
       start_report
       pre_calculate_data
@@ -135,123 +153,6 @@ module PublicReports
         adults_with_children: _('Adults with Children'),
         children: _('Child-Only Households'),
       }
-    end
-
-    def enforce_min_threshold(data, key) # rubocop:disable Metrics/CyclomaticComplexity
-      case key
-      when 'homeless_households', 'homeless_clients'
-        value = data[key]
-        return 0 if value.zero?
-        return number_with_delimiter(value) if value > 100
-
-        under_threshold
-      when 'unsheltered_percent'
-        unsheltered_count = data['unsheltered_clients'].to_f || 0.0
-        sheltered_count = data['homeless_clients'] || 0
-        percent = if unsheltered_count.zero? || sheltered_count.zero?
-          0
-        elsif unsheltered_count > 100 && sheltered_count > 100
-          ((unsheltered_count / sheltered_count) * 100).round
-        else
-          ((unsheltered_count / sheltered_count) * 100).round(-1)
-        end
-        "#{percent}%"
-      when 'pit_chart', 'inflow_outflow'
-        return data if data.zero?
-        return data if data > 100
-
-        100
-      when 'location'
-        # return percentages for each instead of raw counts
-        (sheltered, unsheltered) = data
-        total = sheltered + unsheltered
-        return [0, 0] if total.zero? || (total < 100 && data.any? { |m| m < 11 })
-
-        sheltered = ((sheltered.to_f / total) * 100).round
-        unsheltered = ((unsheltered.to_f / total) * 100).round
-        # if the total is < 1,000, return numbers rounded to the nearest 10%, ensuring that the parts total 100
-        if total < 1_000
-          sheltered = sheltered.round(-1)
-          unsheltered = unsheltered.round(-1)
-          diff = (sheltered + unsheltered) - 100
-          if sheltered > unsheltered
-            sheltered -= diff
-          else
-            unsheltered -= diff
-          end
-        end
-        [sheltered, unsheltered]
-      when 'household_type'
-        # return percentages for each instead of raw counts
-        (adult, both, child) = data
-        total = adult + both + child
-        return [0, 0, 0] if total.zero? || (total < 100 && data.any? { |m| m < 11 })
-
-        adult = ((adult.to_f / total) * 100).round
-        both = ((both.to_f / total) * 100).round
-        child = ((child.to_f / total) * 100).round
-        # if the total is < 1,000, return numbers rounded to the nearest 10%, ensuring that the parts total 100
-        if total < 1_000
-          adult = adult.round(-1)
-          both = both.round(-1)
-          child = child.round(-1)
-          diff = (adult + both + child) - 100
-          max = [adult, both, child].max
-          if adult == max
-            adult -= diff
-          elsif both == max
-            both -= diff
-          else
-            child -= diff
-          end
-        end
-        [adult, both, child]
-      when 'need_map'
-        # Convert all rates to the upper limit of the range of map_colors the rate falls into
-        # ensure overall population is at least 100
-        # {"homeless_map"=>{"2018-01-01"=>{"ROCKPORT"=>{"count"=>62, "overall_population"=>500, "rate"=>12.4}, "COLRAIN"=>{"count"=>95, "overall_population"=>500, "rate"=>19.0}...
-        data.each do |_, date_data|
-          date_data.each do |_, count_data|
-            count_data.each do |_, c_data|
-              c_data[:count] = 'less than 100' if c_data[:count].positive? && c_data[:count] < 100
-              top_of_range = map_colors.values.detect { |bucket| bucket[:range].cover?(c_data[:rate]) }.try(:[], :range)&.last
-              c_data[:rate] = top_of_range || 0 unless top_of_range == 100
-            end
-          end
-        end
-      when 'homeless_row'
-        data.each do |_, chart_data|
-          next unless chart_data['data'].map(&:last).any? { |count| count < MIN_THRESHOLD }
-
-          chart_data['data'].each do |row|
-            row[1] = 0
-          end
-          chart_data['data'] << ['Redacted', 100]
-        end
-      when 'chronic_percents'
-        (chronic_count, total_count) = data
-        return 0 unless total_count.positive?
-
-        percent = (chronic_count.to_f / total_count * 100).round
-        return percent if total_count > 1_000
-
-        percent.round(-1)
-      when 'race'
-        # Collapse any where the count of the bucket is < 100 into the None
-        data.each do |k, ids|
-          if ids.count < 100
-            data['None'] += ids
-            data[k] = Set.new
-          end
-        end
-      else
-        # Default case is simply to return a formatted number
-        number_with_delimiter(data[key])
-      end
-    end
-
-    private def under_threshold
-      'Under 100'
     end
 
     private def chart_data
@@ -698,7 +599,7 @@ module PublicReports
               (0..max).to_a.sample
             end
 
-            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            count = enforce_min_threshold(count, 'min_threshold')
             # % of population
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
@@ -750,7 +651,7 @@ module PublicReports
               max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            count = enforce_min_threshold(count, 'min_threshold')
             # % of population
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
@@ -802,7 +703,7 @@ module PublicReports
               max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            count = enforce_min_threshold(count, 'min_threshold')
             # % of population
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
@@ -854,7 +755,7 @@ module PublicReports
               max = [overall_homeless_population, 1].compact.max / 3
               (0..max).to_a.sample
             end
-            count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+            count = enforce_min_threshold(count, 'min_threshold')
             # % of population
             rate = 0
             rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
@@ -882,8 +783,18 @@ module PublicReports
 
     private def homeless_chart_breakdowns(section_title:, charts:, setup:, scope:, date:)
       iso_date = date.iso8601
+      section_chronic_count = 0
+      section_total_count = 0
       chronic_scope = scope.joins(enrollment: :ch_enrollment).
         merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
+
+      # NOTE: for adults with children we sum all categories together
+      if section_title.downcase == 'Persons in households with at least one child and one adult'.downcase
+        setup.each do |_, client_scope|
+          section_chronic_count += chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
+          section_total_count += scope.merge(client_scope).distinct.select(:client_id).count
+        end
+      end
 
       setup.each do |title, client_scope|
         chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
@@ -899,9 +810,13 @@ module PublicReports
         total_string = total_for(scope.merge(client_scope), nil)
         total_count = scope.merge(client_scope).distinct.select(:client_id).count
 
-        # intermediate_chronic_count += chronic_count
-        # charts[section_title]['chronic_counts'][iso_date] = intermediate_chronic_count
-        charts[section_title]['chronic_counts'][iso_date] = charts[section_title]['chronic_counts'][iso_date]
+        if section_title.downcase == 'Persons in households with at least one child and one adult'.downcase
+          chronic_count = section_chronic_count
+          total_count = section_total_count
+        end
+        charts[section_title]['chronic_counts'][iso_date] ||= {}
+        charts[section_title]['chronic_counts'][iso_date][title] ||= 0
+        charts[section_title]['chronic_counts'][iso_date][title] = chronic_count
         charts[section_title]['chronic_percents'][iso_date] ||= {}
         charts[section_title]['chronic_percents'][iso_date][title] ||= 0
         charts[section_title]['chronic_percents'][iso_date][title] = enforce_min_threshold([chronic_count, total_count], 'chronic_percents')
@@ -1149,7 +1064,7 @@ module PublicReports
 
     private def total_for(scope, population)
       count = scope.select(:client_id).distinct.count
-      count = MIN_THRESHOLD if count.positive? && count < MIN_THRESHOLD
+      count = enforce_min_threshold(count, 'min_threshold')
 
       word = case population
       when :veterans

@@ -3,6 +3,7 @@
 require 'aws-sdk-cloudwatchevents'
 require 'aws-sdk-ecs'
 require_relative 'shared_logic'
+require_relative 'aws_sdk_helpers'
 
 class ScheduledTask
   attr_accessor :cluster_name
@@ -16,6 +17,7 @@ class ScheduledTask
   attr_accessor :capacity_provider_strategy
 
   include SharedLogic
+  include AwsSdkHelpers::Helpers
 
   MAX_NAME_LENGTH = 64
 
@@ -31,7 +33,7 @@ class ScheduledTask
   end
 
   def name
-    suffix = (0.upto(9).to_a +  'A'.upto('Z').to_a)[offset]
+    suffix = (0.upto(9).to_a + 'A'.upto('Z').to_a)[offset]
 
     ideal_name = "#{target_group_name}#{suffix}"
 
@@ -52,12 +54,12 @@ class ScheduledTask
       set.rules.each do |rule|
         target_ids =
           cloudwatchevents.list_targets_by_rule(
-            rule: rule.name
-          ).flat_map do |set|
-            set.targets.map(&:id)
+            rule: rule.name,
+          ).flat_map do |s|
+            s.targets.map(&:id)
           end
 
-        if target_ids.length > 0
+        if target_ids.length.positive?
           puts "[INFO] Deleting #{target_ids.join(', ')} in rule #{rule.name}"
           cloudwatchevents.remove_targets(
             rule: rule.name,
@@ -79,15 +81,15 @@ class ScheduledTask
     payload = {
       name: name,
       schedule_expression: schedule_expression,
-      state: "ENABLED", # accepts ENABLED, DISABLED
+      state: 'ENABLED', # accepts ENABLED, DISABLED
       description: description,
       tags: [
         {
-          key: "CreatedBy",
+          key: 'CreatedBy',
           value: ENV.fetch('USER') { 'unknown' },
         },
         {
-          key: "target_group_name",
+          key: 'target_group_name',
           value: target_group_name,
         },
       ],
@@ -102,9 +104,9 @@ class ScheduledTask
 
   def add_target!
     input = {
-      "containerOverrides" => [
-        _container_overrides
-      ]
+      'containerOverrides' => [
+        _container_overrides,
+      ],
     }.to_json
 
     payload = {
@@ -123,7 +125,6 @@ class ScheduledTask
             # https://github.com/aws/containers-roadmap/issues/937
             # launch_type: "EC2",
             capacity_provider_strategy: capacity_provider_strategy,
-            # placement_constraints: _placement_constraints,
             placement_strategy: _placement_strategy,
           },
         },
@@ -152,13 +153,13 @@ class ScheduledTask
       # It needs to match or this doesn't work
       # FIXME: pull from task definition. maybe we should just always call
       # it 'app'
-      "name" => "#{target_group_name}-cron-worker",
-      "command" => command,
+      'name' => "#{target_group_name}-cron-worker",
+      'command' => command,
     }
 
     resource_adjustments =
       if command.any? { |token| token == 'jobs:arbitrate_workoff' }
-        print " (Modifying RAM for arbitrate workoff: 800/400) "
+        print ' (Modifying RAM for arbitrate workoff: 800/400) '
         { 'memory' => 800, 'memoryReservation' => 400 }
       else
         {}
@@ -172,6 +173,4 @@ class ScheduledTask
   end
 
   define_singleton_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
-  define_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
-  define_method(:ecs) { Aws::ECS::Client.new }
 end

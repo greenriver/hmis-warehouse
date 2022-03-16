@@ -1,0 +1,15 @@
+.card.mb-4
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th Column
+        %th HMIS Value
+        %th Override Value
+    %tbody
+      - klass.override_columns.each do |override, hmis|
+        - overridden_value = object.send(override)
+        - next if overridden_value.blank?
+        %tr
+          %td= hmis
+          %td= object.send(hmis)
+          %td= overridden_value

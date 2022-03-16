@@ -1613,7 +1613,8 @@ CREATE TABLE public.users (
     receive_account_request_notifications boolean DEFAULT false,
     provider_set_at timestamp without time zone,
     exclude_from_directory boolean DEFAULT false,
-    exclude_phone_from_directory boolean DEFAULT false
+    exclude_phone_from_directory boolean DEFAULT false,
+    notify_on_new_account boolean DEFAULT false NOT NULL
 );
 
 
@@ -3036,6 +3037,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210719143827'),
 ('20210819132153'),
 ('20220127152605'),
-('20220216174239');
+('20220216174239'),
+('20220309140327');
 
 

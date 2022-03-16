@@ -28,6 +28,29 @@ module HudPit::Generators::Pit::Fy2022
       ]
     end
 
+    private def sub_calculations
+      calcs = super
+      # The following calculations should only be run for the HoH for parenting youth
+      # per HUD guidance from 11/2021
+      [
+        :female,
+        :male,
+        :transgender,
+        :gender_other,
+        :non_latino,
+        :latino,
+        :white,
+        :black,
+        :asian,
+        :native_ak,
+        :native_pi,
+        :multi_racial,
+      ].each do |key|
+        calcs[key][:query] = calcs[key][:query].and(hoh_clause)
+      end
+      calcs
+    end
+
     private def rows
       [
         :households,

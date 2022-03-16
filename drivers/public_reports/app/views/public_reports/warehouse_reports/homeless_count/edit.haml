@@ -7,4 +7,4 @@
 
 %p Once published the following report will be available at: #{@report.generate_publish_url}
 .well
-  %iframe{src: raw_public_reports_warehouse_reports_homeless_count_path(@report), width: '100%', height: 400, frameBorder: 0}
+  %iframe{src: raw_public_reports_warehouse_reports_homeless_count_path(@report, pp: :disabled), width: '100%', height: 400, frameBorder: 0}

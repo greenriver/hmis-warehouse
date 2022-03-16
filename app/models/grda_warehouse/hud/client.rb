@@ -480,6 +480,30 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :race_doesnt_know, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:RaceNone].eq(8)).
+          select(:destination_id),
+      )
+    end
+
+    scope :race_refused, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:RaceNone].eq(9)).
+          select(:destination_id),
+      )
+    end
+
+    scope :race_not_collected, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:RaceNone].eq(99)).
+          select(:destination_id),
+      )
+    end
+
     scope :multi_racial, -> do
       columns = [
         c_t[:AmIndAKNative],
@@ -683,7 +707,7 @@ module GrdaWarehouse::Hud
         range_18_to_24: { name: '18 - 24 yrs old', start_age: 18, end_age: 25 },
         range_25_to_30: { name: '25 - 30 yrs old', start_age: 25, end_age: 31 },
         range_31_to_50: { name: '31 - 50 yrs old', start_age: 31, end_age: 51 },
-        range_51_to_61: { name: '51 - 61 yrs old', start_age: 51, end_age: 62 },
+        range_51_to_61: { name: '51 - 61 yrs old', start_age: 51, end_age: 61 },
         range_62_to_nil: { name: '62+ yrs old', start_age: 62, end_age: nil },
       }
     end
@@ -700,11 +724,11 @@ module GrdaWarehouse::Hud
         range_31_to_35: { name: '31 - 35 yrs old', range: (31..35) },
         range_36_to_40: { name: '36 - 40 yrs old', range: (36..40) },
         range_41_to_45: { name: '41 - 45 yrs old', range: (41..45) },
-        range_44_to_50: { name: '45 - 50 yrs old', range: (45..50) },
+        range_44_to_50: { name: '46 - 50 yrs old', range: (46..50) },
         range_51_to_55: { name: '51 - 55 yrs old', range: (51..55) },
-        range_55_to_60: { name: '56 - 60 yrs old', range: (55..60) },
+        range_55_to_60: { name: '56 - 60 yrs old', range: (56..60) },
         range_61_to_62: { name: '61 - 62 yrs old', range: (61..62) },
-        range_62_plus: { name: '62+ yrs old', range: (62..Float::INFINITY) },
+        range_62_plus: { name: '63+ yrs old', range: (63..Float::INFINITY) },
         missing: { name: 'Missing', range: [nil] },
       }
     end
@@ -1380,7 +1404,7 @@ module GrdaWarehouse::Hud
     end
 
     def fake_client_image_data
-      gender = if self[:Gender].in?([1, 3]) then 'male' else 'female' end
+      gender = if self[:Male].in?([1]) then 'male' else 'female' end
       age_group = if age.blank? || age > 18 then 'adults' else 'children' end
       image_directory = File.join('public', 'fake_photos', age_group, gender)
       available = Dir[File.join(image_directory, '*.jpg')]
@@ -2039,7 +2063,7 @@ module GrdaWarehouse::Hud
 
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
     # advantage of caching
-    def race_string(destination_id:, scope_limit: self.class.destination)
+    def race_string(destination_id:, include_none_reason: false, scope_limit: self.class.destination)
       @limited_scope ||= self.class.destination.merge(scope_limit)
 
       @race_am_ind_ak_native ||= @limited_scope.where(id: self.class.race_am_ind_ak_native.select(:id)).distinct.pluck(:id).to_set
@@ -2065,6 +2089,15 @@ module GrdaWarehouse::Hud
       return 'NativeHIPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
 
+      if include_none_reason
+        @doesnt_know ||= @limited_scope.where(id: self.class.race_doesnt_know.select(:id)).distinct.pluck(:id).to_set
+        @refused ||= @limited_scope.where(id: self.class.race_refused.select(:id)).distinct.pluck(:id).to_set
+
+        return 'Does Not Know' if @doesnt_know.include?(destination_id)
+        return 'Refused' if @refused.include?(destination_id)
+
+        return 'Not Collected'
+      end
       'RaceNone'
     end
 

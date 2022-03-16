@@ -5,9 +5,10 @@
   .row
     .col-sm-4
       %h3= "#{@report.title_for(household_category, :all)} #{row[:title]}"
-      %a.jToggleChartData{href: '#'}
-        Toggle demographics
-        %i.icon-users
+      - unless @pdf
+        %a.jToggleChartData{href: '#'}
+          Toggle demographics
+          %i.icon-users
     .col-sm-8
       .jChart.c-chart--horizontal-bar{class: "#{variant_slug}", data: {chart: chart_data.to_json, active: 'one_' }}
 
@@ -21,7 +22,7 @@
         let active = $('.jChart.#{variant_slug}').data('active');
         if(active == 'one_') {
           active = 'all_';
-          chart.chart.resize({height: 850})
+          chart.chart.resize({height: 1200})
         } else {
           active = 'one_'
           chart.chart.resize({height: 150})

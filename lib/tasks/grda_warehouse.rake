@@ -362,7 +362,12 @@ namespace :grda_warehouse do
     Rails.logger.tagged('shapes') do
       installer = GrdaWarehouse::Shape::Installer.new
       installer.run!
-      installer.prune! unless Rails.env.development?
     end
+  end
+
+  desc 'Remove water from shapes'
+  task :remove_water_from_shapes, [] => [:environment] do
+    installer = GrdaWarehouse::Shape::Installer.new
+    installer.remove_all_water!
   end
 end

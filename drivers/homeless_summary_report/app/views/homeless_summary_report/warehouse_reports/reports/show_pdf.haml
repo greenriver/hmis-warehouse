@@ -1,0 +1,22 @@
+- @pdf = true
+- title = "Homeless Summary Report"
+- content_for :title, title
+%h1= content_for :title
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+.well.report-listing.warehouse-reports__completed
+  = @report.filter.describe_filter_as_html
+
+- @report.measures.each do |measure, data|
+  .well.page-break-after
+    - measure_slug = measure.underscore.tr(' ', '_')
+    .mb-4
+      %h2= measure
+      %p= data[:description]
+    - @report.variants.each do |household_category, details|
+      - base_variant = details[:base_variant]
+      - data[:fields].each do |field, row|
+        .page-break-avoid
+          - if measure == 'Measure 7'
+            = render 'chart_stacked', measure: measure, household_category: household_category, field: field, row: row
+          - else
+            = render 'chart', measure: measure, household_category: household_category, field: field, row: row

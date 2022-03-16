@@ -42,6 +42,10 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
       if params[:public_report]&.key?(:version_slug)
         @report.update(version_slug: version_slug)
         respond_with(@report, location: path_to_report)
+      elsif params.dig(:public_report, :unpublish) == @report.generate_publish_url
+        @report.unpublish!
+        flash[:notice] = 'Report has been unpublished.'
+        respond_with(@report, location: path_to_report)
       elsif params.dig(:public_report, :published_url).present?
         @report.delay.publish!
         flash[:notice] = 'Report publishing queued, please check the public link in a few minutes.'
@@ -83,6 +87,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
           project_group_ids: [],
         ],
       )
+
       options = default_filter_options if options.blank?
       options[:filters][:enforce_one_year_range] = false
       options

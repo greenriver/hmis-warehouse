@@ -1,8 +1,9 @@
 - detail_variant_name = "spm_#{household_category}__#{demographic_category}"
 - headers = if measure == 'Measure 7' then data[:headers].first(4) else data[:headers] end
-.d-flex
+- new_category = demographic_category == 'all' && title != 'All Persons'
+.d-flex{class: if new_category then 'mt-8 pt-4 border-top' end}
   %h3= title
-  - if demographic_category == 'all'
+  - if new_category
     - spm_id = @report.clients.send(detail_variant_name).limit(1).pluck(detail_variant_name)
     - if spm_id.present?
       .ml-auto= link_to 'View related SPM report', hud_reports_spm_path(spm_id), target: :_blank

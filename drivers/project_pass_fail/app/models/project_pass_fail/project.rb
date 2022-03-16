@@ -31,8 +31,16 @@ module ProjectPassFail
       (utilization_rate * 100).round(2)
     end
 
+    def unit_utilization_rate_as_percent
+      (unit_utilization_rate * 100).round(2)
+    end
+
     def within_utilization_threshold?
       utilization_rate.in?(utilization_range)
+    end
+
+    def within_unit_utilization_threshold?
+      unit_utilization_rate.in?(utilization_range)
     end
 
     def within_universal_data_element_threshold?
@@ -68,6 +76,13 @@ module ProjectPassFail
         0
       end
       self.utilization_count = clients.count
+
+      self.unit_utilization_rate = if available_units.positive? && clients.exists?
+        clients.heads_of_household.sum(:days_served).to_f / project_pass_fail.filter.range.count / available_units
+      else
+        0
+      end
+      self.unit_utilization_count = clients.heads_of_household.count
     end
 
     private def destination_client_service_counts
@@ -118,8 +133,8 @@ module ProjectPassFail
     end
 
     def calculate_timeliness
-      self.average_days_to_enter_entry_date = if clients.exists?
-        clients.sum(:days_to_enter_entry_date) / clients.count.to_f
+      self.average_days_to_enter_entry_date = if clients.where(first_date_in_program: project_pass_fail.filter.range).exists?
+        clients.where(first_date_in_program: project_pass_fail.filter.range).sum(:days_to_enter_entry_date) / clients.where(first_date_in_program: project_pass_fail.filter.range).count.to_f
       else
         0
       end
