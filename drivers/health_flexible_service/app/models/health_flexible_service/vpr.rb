@@ -17,6 +17,7 @@ module HealthFlexibleService
 
     belongs_to :patient, class_name: 'Health::Patient', optional: true
     belongs_to :user, class_name: 'User', optional: true
+    has_many :follow_ups, inverse_of: :vpr, dependent: :destroy
 
     def set_defaults
       cha = patient.recent_cha_form

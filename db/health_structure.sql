@@ -2784,7 +2784,8 @@ CREATE TABLE public.health_flexible_service_follow_ups (
     aco_approved_flex_services_on date,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    vpr_id bigint
 );
 
 
@@ -6687,6 +6688,13 @@ CREATE INDEX index_health_flexible_service_follow_ups_on_user_id ON public.healt
 
 
 --
+-- Name: index_health_flexible_service_follow_ups_on_vpr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_flexible_service_follow_ups_on_vpr_id ON public.health_flexible_service_follow_ups USING btree (vpr_id);
+
+
+--
 -- Name: index_health_flexible_service_vprs_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7515,6 +7523,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220131200130'),
 ('20220315172910'),
 ('20220315200203'),
-('20220315200521');
+('20220315200521'),
+('20220316184128');
 
 

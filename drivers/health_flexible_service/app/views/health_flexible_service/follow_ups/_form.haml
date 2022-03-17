@@ -1,0 +1,44 @@
+- row_class = ''
+- col_class = ''
+- width_class = 'w-50'
+- if @pdf
+  - row_class = 'row'
+  - col_class = 'col-sm-6'
+  - width_class = ''
+
+= render 'form_header'
+%section.page-break-after
+  .well.condensed-checkboxes
+    %h3 Member Information
+    = f.input :completed_on, as: :date_picker, label: 'Date follow-up form completed'
+    %div{class: width_class}
+      = f.input :first_name, label: 'Member first name'
+      = f.input :middle_name, label: 'Member middle initial'
+      = f.input :last_name, label: 'Member last name'
+      = f.input :dob, as: :date_picker, label: 'Member date of birth'
+    %div{class: row_class}
+      %div{class: col_class}
+        %h3 Organization Delivering Flexible Services
+        %div{class: width_class}
+          = f.input :delivery_first_name, label: 'First name'
+          = f.input :delivery_last_name, label: 'Last name'
+          = f.input :delivery_organization, label: 'Organization'
+          = f.input :delivery_phone, label: 'Phone'
+          = f.input :delivery_email, label: 'Email'
+      %div{class: col_class}
+        %h3 Organization Reviewing Flexible Services
+        %div{class: width_class}
+          = f.input :reviewer_first_name, label: 'First name'
+          = f.input :reviewer_last_name, label: 'Last name'
+          = f.input :reviewer_organization, label: 'Organization'
+          = f.input :reviewer_phone, label: 'Phone'
+          = f.input :reviewer_email, label: 'Email'
+= f.input :services_completed, label: 'List Flexible Services completed'
+= f.input :goal_status, label: 'Member Goal Status', hint: '(e.g., member is no longer experiencing homelessness)'
+= f.input :additional_flex_services_requested, as: :pretty_boolean, label: 'Requesting additional Flexible Services?'
+= f.input :additional_flex_services_requested_detail, label: 'Why/Why not?'
+= f.input :agreement_to_flex_services, as: :pretty_boolean, label: 'Member agreed to additional FS?'
+= f.input :agreement_to_flex_services_detail, label: 'Notes', hint: '(e.g., member declined services)'
+= f.input :aco_approved_flex_services, as: :pretty_boolean, label: 'ACO approved additional FS?'
+= f.input :aco_approved_flex_services_detail, label: 'If no, why?', hint: 'Optional'
+= f.input :aco_approved_flex_services_on, as: :date_picker
