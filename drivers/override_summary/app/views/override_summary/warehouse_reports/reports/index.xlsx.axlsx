@@ -18,7 +18,6 @@ wb.add_worksheet(name: @report.title) do |sheet|
   @report.data.each do |organization_name, projects|
     projects.each do |project_name, data|
       data[:projects].each do |object|
-        sheet.add_row([])
         object.class.override_columns.each do |override, hmis|
           overridden_value = object.send(override)
           next if overridden_value.blank?
