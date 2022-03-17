@@ -9,20 +9,25 @@
   .ml-auto
     = render 'report_downloads/report_download', export: nil, excel_download_path: override_summary_warehouse_reports_reports_path({format: :xlsx})
 - if r_data.present?
-  - r_data.each do |project_name, data|
-    %h2= project_name
-    - if data[:projects]
-      - data[:projects].each do |project|
-        = link_to project.ProjectName, project_path(project), target: :_blank
-        = render 'table', klass: GrdaWarehouse::Hud::Project, object: project
-    - if data[:inventories]
-      - data[:inventories].each do |inventory|
-        = link_to 'Inventory', edit_inventory_path(inventory), target: :_blank
-        = render 'table', klass: GrdaWarehouse::Hud::Inventory, object: inventory
-    - if data[:project_cocs]
-      - data[:project_cocs].each do |project_coc|
-        = link_to 'Project CoC', edit_project_coc_path(project_coc), target: :_blank
-        = render 'table', klass: GrdaWarehouse::Hud::ProjectCoc, object: project_coc
+  - r_data.each do |organization_name, projects|
+    .panel-group.panel-collapsible{ id: organization_name.parameterize }
+    - content_for :panel_collapse_content, flush: true do
+      - projects.each do |project_name, data|
+        .mb-6
+          %h3= project_name
+          - if data[:projects]
+            - data[:projects].each do |project|
+              = link_to project.ProjectName, project_path(project), target: :_blank
+              = render 'table', klass: GrdaWarehouse::Hud::Project, object: project
+          - if data[:inventories]
+            - data[:inventories].each do |inventory|
+              = link_to 'Inventory', edit_inventory_path(inventory), target: :_blank
+              = render 'table', klass: GrdaWarehouse::Hud::Inventory, object: inventory
+          - if data[:project_cocs]
+            - data[:project_cocs].each do |project_coc|
+              = link_to 'Project CoC', edit_project_coc_path(project_coc), target: :_blank
+              = render 'table', klass: GrdaWarehouse::Hud::ProjectCoc, object: project_coc
+    = render 'common/panel_collapse', id: organization_name.parameterize, title: organization_name
 - else
   .card
     %p.none-found No overrides found
