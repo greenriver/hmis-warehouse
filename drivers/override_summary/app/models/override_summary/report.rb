@@ -42,18 +42,75 @@ module OverrideSummary
     def data
       @data ||= {}.tap do |by_project|
         all_projects.each do |project|
-          k = project.organization_and_name(include_confidential_names: true)
-          by_project[k] ||= {}
-          by_project[k][:projects] ||= []
-          by_project[k][:projects] << project if projects.key?(project.id)
-          by_project[k][:inventories] = inventories[project] || []
-          by_project[k][:project_cocs] = project_cocs[project] || []
+          project_name = project.name(include_confidential_names: true, include_project_type: true)
+          organization_name = project.organization.OrganizationName
+          by_project[organization_name] ||= {}
+          by_project[organization_name][project_name] ||= {}
+          by_project[organization_name][project_name][:projects] ||= []
+          by_project[organization_name][project_name][:projects] << project if projects.key?(project.id)
+          by_project[organization_name][project_name][:inventories] = inventories[project] || []
+          by_project[organization_name][project_name][:project_cocs] = project_cocs[project] || []
+        end
+      end
+    end
+
+    def manual_data
+      @manual_data ||= {}.tap do |md|
+        funders = GrdaWarehouse::Hud::Funder.where(manual_entry: true).
+          joins(project: :organization).
+          preload(project: :organization)
+        inventories = GrdaWarehouse::Hud::Inventory.where(manual_entry: true).
+          joins(project: :organization).
+          preload(project: :organization)
+        project_cocs = GrdaWarehouse::Hud::ProjectCoc.where(manual_entry: true).
+          joins(project: :organization).
+          preload(project: :organization)
+
+        if funders.exists?
+          data = {}
+          funders.each do |funder|
+            org_name = funder.project.organization.OrganizationName
+            project_name = funder.project.name(include_confidential_names: true, include_project_type: true)
+            data[org_name] ||= {}
+            data[org_name][project_name] ||= []
+            data[org_name][project_name] << funder
+          end
+          md['Funder - Manual Records'] = data
+        end
+
+        if inventories.exists?
+          data = {}
+          inventories.each do |inventory|
+            org_name = inventory.project.organization.OrganizationName
+            project_name = inventory.project.name(include_confidential_names: true, include_project_type: true)
+            data[org_name] ||= {}
+            data[org_name][project_name] ||= []
+            data[org_name][project_name] << inventory
+          end
+          md['Inventory - Manual Records'] = data
+        end
+
+        if project_cocs.exists?
+          data = {}
+          project_cocs.each do |project_coc|
+            org_name = project_coc.project.organization.OrganizationName
+            project_name = project_coc.project.name(include_confidential_names: true, include_project_type: true)
+            data[org_name] ||= {}
+            data[org_name][project_name] ||= []
+            data[org_name][project_name] << project_coc
+          end
+          md['Project CoC - Manual Records'] = data
         end
       end
     end
 
     private def all_projects
-      @all_projects = (projects.values + project_cocs.keys + inventories.keys).uniq.sort_by(&:ProjectName)
+      @all_projects = (projects.values + project_cocs.keys + inventories.keys).uniq.sort_by do |p|
+        [
+          p.organization.OrganizationName,
+          p.ProjectName,
+        ]
+      end
     end
 
     private def projects
