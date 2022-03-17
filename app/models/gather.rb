@@ -29,7 +29,7 @@ class Gather < OpenStruct
       data = scope.distinct.pluck(id_column, calculation_column)
       buckets.each do |title, calcs|
         gathered[title] = data.select do |_, column|
-          call(calcs[:lambda], column)
+          calcs[:lambda].call(column)
         end.map(&:first)
       end
     end
