@@ -10,6 +10,9 @@ module AnalysisTool
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include ::KnownCategories::Age
+    include ::KnownCategories::Gender
+    include ::KnownCategories::Coc
 
     attr_reader :filter
     attr_accessor :comparison_pattern

@@ -9,7 +9,7 @@ class Gather < OpenStruct
   #  {
   #     'Title' => {
   #       lambda: -> { }, accepts an item of type column to pluck
-  #       where_clause: that returns same set from active record,
+  #       where_clause: that returns same set from active record
   #     }
   #   }
   # @param buckets [Hash]
@@ -23,23 +23,35 @@ class Gather < OpenStruct
     @cache_key ||= Digest::MD5.hexdigest(buckets.to_s + scope.to_sql + id_column.to_ + calculation_column.to_s)
   end
 
+  private def expires_in
+    return 30.seconds if Rails.env.development?
+
+    30.minutes
+  end
+
   # Returns a hash of ids keyed on titles
   def ids
     @ids ||= {}.tap do |gathered|
-      data = scope.distinct.pluck(id_column, calculation_column)
-      buckets.each do |title, calcs|
-        gathered[title] = data.select do |_, column|
-          calcs[:lambda].call(column)
-        end.map(&:first)
+      Rails.cache.fetch([cache_key, 'ids'], expires_in: expires_in) do
+        data = scope.distinct.pluck(id_column, calculation_column)
+        buckets.each do |title, calcs|
+          gathered[title] = data.select do |_, column|
+            calcs[:lambda].call(column)
+          end.map(&:first).to_set
+        end
       end
     end
+  end
+
+  def bucket(title:)
+    ids[title]
   end
 
   # Returns a hash of scopes keyed on titles
   def scopes
     @scopes ||= {}.tap do |gathered|
       buckets.each do |title, calcs|
-        gathered[title] = scope.distinct.pluck(id_column, calculation_column).where(calcs[:where_clause])
+        gathered[title] = scope.distinct.where(calcs[:where_clause])
       end
     end
   end

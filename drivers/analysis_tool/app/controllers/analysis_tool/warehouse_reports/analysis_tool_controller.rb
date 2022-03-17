@@ -44,6 +44,19 @@ module AnalysisTool::WarehouseReports
       end
     end
 
+    def breakdowns
+      # This is needed when generating the PDF
+      # if @report.blank?
+      #   set_filter
+      #   set_report
+      # end
+      @breakdowns ||= {}.tap do |bd|
+        bd[:x] ||= params[:x_breakdown]&.to_sym || @report.available_breakdowns.keys.first
+        bd[:y] ||= params[:y_breakdown]&.to_sym || @report.available_breakdowns.keys.second
+      end
+    end
+    helper_method :breakdowns
+
     private def set_report
       @report = report_class.new(@filter)
     end
