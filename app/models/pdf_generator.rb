@@ -22,7 +22,8 @@ class PdfGenerator
       display_header_footer: false,
       # header_template: '<h2>Header</h2>',
       # footer_template: '<h6 class="text-center"><span class="pageNumber"></span> of <span class="totalPages"></span></h6>',
-      timeout: 150_000,
+      timeout: 600_000, # Stop after 10 minutes
+      request_timeout: 600_000, # Stop after 10 minutes
       format: 'Letter',
       emulate_media: 'print',
       margin: {
