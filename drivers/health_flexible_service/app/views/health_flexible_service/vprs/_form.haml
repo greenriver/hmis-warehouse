@@ -137,13 +137,15 @@
       %div{class: col_class}
         = f.input :sexual_orientation, as: :pretty_boolean_group, collection: @vpr.class.available_orientations, label: 'Sexual Orientation'
         %div{class: width_class}
-          = f.input :sexual_orientation_detail, label: 'Self-described sexuak orientation', hint: "If 'prefer to self-describe' is selected"
+          = f.input :sexual_orientation_detail, label: 'Self-described sexual orientation', hint: "If 'prefer to self-describe' is selected"
       %div{class: col_class}
         = f.input :race, as: :pretty_boolean_group, collection: @vpr.class.available_races, label: 'Race/Ethnicity (Check all that apply)', multiple: true
         %div{class: width_class}
           = f.input :race_detail, label: 'Other race, ethnicity, or origin detail', hint: "If 'some other race,ethnicity, or origin' is selected"
-      %div{class: col_class}
-        = f.input :primary_language
+      %div{class: width_class}
+        = f.input :primary_language, as: :select_two, collection: @vpr.class.available_languages
+        %div{class: col_class}
+          = f.input :primary_language_detail, hint: "If 'Other' is selected"
         %div{class: width_class}
           = f.input :primary_language_refused, as: :pretty_boolean, label: 'Prefer not to say'
       %div{class: col_class}

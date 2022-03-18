@@ -2964,7 +2964,8 @@ CREATE TABLE public.health_flexible_service_vprs (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    end_date date
+    end_date date,
+    primary_language_detail character varying
 );
 
 
@@ -7524,6 +7525,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220315172910'),
 ('20220315200203'),
 ('20220315200521'),
-('20220316184128');
+('20220316184128'),
+('20220317205450');
 
 
