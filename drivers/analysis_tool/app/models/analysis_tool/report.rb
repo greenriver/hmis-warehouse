@@ -15,7 +15,7 @@ module AnalysisTool
     include ::KnownCategories::Coc
 
     attr_reader :filter
-    attr_accessor :comparison_pattern
+    attr_accessor :comparison_pattern, :breakdowns
 
     def initialize(filter)
       @filter = filter
@@ -38,6 +38,28 @@ module AnalysisTool
       [
         'table',
       ]
+    end
+
+    def results
+      @results ||= []
+    end
+
+    private def x_data
+      @x_data ||= Gather.new(
+        buckets: breakdown_calculation(breakdowns[:x]),
+        scope: report_scope,
+        id_column: she_t[:client_id],
+        calculation_column: breakdown_column(breakdowns[:x]),
+      )
+    end
+
+    private def y_data
+      @y_data ||= Gather.new(
+        buckets: breakdown_calculation(breakdowns[:y]),
+        scope: report_scope,
+        id_column: she_t[:client_id],
+        calculation_column: breakdown_column(breakdowns[:y]),
+      )
     end
 
     def section_ready?(section)
@@ -131,10 +153,18 @@ module AnalysisTool
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
+    private def breakdown_calculation(key)
+      available_breakdowns[key.to_sym].try(:[], :method) || available_breakdowns[:age][:method]
+    end
+
+    private def breakdown_column(key)
+      available_breakdowns[key.to_sym].try(:[], :calculation_column) || available_breakdowns[:age][:calculation_column]
+    end
+
     def available_breakdowns
       breakdowns = {
-        age: 'By Age',
-        gender: 'By Gender',
+        age: { title: 'By Age', method: :age_calculations, calculation_column: standard_age_column },
+        gender: { title: 'By Gender', method: :gender_calculations, calculation_column: standard_gender_column },
         # household: 'By Household Type',
         # veteran: 'By Veteran Status',
         # race: 'By Race',
@@ -144,7 +174,7 @@ module AnalysisTool
       }
 
       # Only show CoC tab if the site is setup to show it
-      breakdowns[:coc] = 'By CoC' if GrdaWarehouse::Config.get(:multi_coc_installation)
+      breakdowns[:coc] = { title: 'By CoC', method: :coc_calculations } if GrdaWarehouse::Config.get(:multi_coc_installation)
       breakdowns
     end
   end

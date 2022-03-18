@@ -1,0 +1,13 @@
+.card
+  %table.table.table-striped.mb-0
+    - @report.results.each.with_index do |row, ri|
+      - if ri.zero?
+        %thead
+      - elsif ri == 1
+        %tbody
+      %tr
+        - row.each.with_index do |cell, ci|
+          - if ri.zero? || ci.zero?
+            %th= cell
+          - else
+            %td= cell

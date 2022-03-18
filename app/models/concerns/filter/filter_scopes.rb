@@ -51,26 +51,27 @@ module Filter::FilterScopes
     end
 
     private def age_calculation
-      cast(
-        datepart(
-          GrdaWarehouse::ServiceHistoryEnrollment,
-          'YEAR',
-          nf(
-            'AGE',
-            [
-              nf(
-                'GREATEST',
-                [
-                  she_t[:first_date_in_program],
-                  @filter.start_date,
-                ],
-              ),
-              c_t[:DOB],
-            ],
-          ),
-        ),
-        'integer',
-      )
+      age_on_date(@filter.start_date)
+      # cast(
+      #   datepart(
+      #     GrdaWarehouse::ServiceHistoryEnrollment,
+      #     'YEAR',
+      #     nf(
+      #       'AGE',
+      #       [
+      #         nf(
+      #           'GREATEST',
+      #           [
+      #             she_t[:first_date_in_program],
+      #             @filter.start_date,
+      #           ],
+      #         ),
+      #         c_t[:DOB],
+      #       ],
+      #     ),
+      #   ),
+      #   'integer',
+      # )
     end
 
     private def filter_for_age(scope)

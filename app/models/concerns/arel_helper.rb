@@ -49,6 +49,17 @@ module ArelHelper
       Arel.sql("#{exists_type} (#{sql} and #{quoted_table_name}.\"#{column_name}\" = \"#{alias_name}\".\"#{column_name}\") ")
     end
 
+    private def age_on_date(start_date)
+      cast(
+        datepart(
+          GrdaWarehouse::ServiceHistoryEnrollment,
+          'YEAR',
+          nf('AGE', [nf('GREATEST', [she_t[:first_date_in_program], start_date]), c_t[:DOB]]),
+        ),
+        'integer',
+      )
+    end
+
     def qt(value)
       self.class.qt value
     end
@@ -109,8 +120,8 @@ module ArelHelper
       self.class.lit str
     end
 
-    def acase(conditions, elsewise: nil)
-      self.class.acase conditions, elsewise: elsewise
+    def acase(conditions, elsewise: nil, quote: true)
+      self.class.acase conditions, elsewise: elsewise, quote: quote
     end
 
     def cast(exp, as)
@@ -446,9 +457,13 @@ module ArelHelper
     end
 
     # a little syntactic sugar to make a case statement
-    def acase(conditions, elsewise: nil)
+    def acase(conditions, elsewise: nil, quote: true)
       stmt = conditions.map do |c, v|
-        "WHEN (#{qt(c).to_sql}) THEN (#{qt(v).to_sql})"
+        if quote
+          "WHEN (#{qt(c).to_sql}) THEN (#{qt(v).to_sql})"
+        else
+          "WHEN (#{c}) THEN (#{qt(v).to_sql})"
+        end
       end.join ' '
       stmt += " ELSE (#{qt(elsewise).to_sql})" if elsewise.present?
       lit "CASE #{stmt} END"
