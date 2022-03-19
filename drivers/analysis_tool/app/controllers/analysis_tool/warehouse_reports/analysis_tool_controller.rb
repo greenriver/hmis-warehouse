@@ -85,7 +85,7 @@ module AnalysisTool::WarehouseReports
     end
 
     def filter_params
-      params.permit(filter: filter_class.new.known_params)
+      params.permit(filters: filter_class.new.known_params)
     end
     helper_method :filter_params
 

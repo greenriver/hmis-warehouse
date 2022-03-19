@@ -3,8 +3,8 @@
 
 - url = polymorphic_path(@report.report_path_array)
 = simple_form_for @filter, as: :filters, url: url, method: :get do |f|
-  = hidden_field_tag :row_breakdown, breakdowns[:x]
-  = hidden_field_tag :col_breakdown, breakdowns[:y]
+  = hidden_field_tag :row_breakdown, breakdowns[:col]
+  = hidden_field_tag :col_breakdown, breakdowns[:row]
 
   - if @chosen_section
     .form-filters-section-prs1
@@ -30,6 +30,6 @@
     = f.submit 'Save & Update', class: 'float-none'
     %button.ml-2.btn.btn-outline-primary(type='button' pjax-modal-close) Cancel
     - if @chosen_section.blank?
-      = link_to url_for(action: :index, row_breakdown: breakdowns[:row], col_breakdown: breakdowns[:col]), class: 'btn btn-outline-primary ml-auto'coldo
+      = link_to url_for(action: :index, row_breakdown: breakdowns[:row], col_breakdown: breakdowns[:col]), class: 'btn btn-outline-primary ml-auto' do
         %i.icon-settings_backup_restore
         Reset to Default
