@@ -12,7 +12,7 @@ module AnalysisTool
     include ArelHelper
     include ::KnownCategories::Age
     include ::KnownCategories::Gender
-    include ::KnownCategories::Coc
+    include ::KnownCategories::HouseholdType
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :breakdowns
@@ -41,7 +41,12 @@ module AnalysisTool
     end
 
     def results
-      @results ||= []
+      @results ||= [].tap do |table|
+        table << [nil] + x_data.keys
+        x_data.values.product(y_data.values).collect { |x, y| (x & y).count }.each_slice(x_data.length).with_index do |row, y_index|
+          table << [y_data.keys[y_index]] + row
+        end
+      end
     end
 
     private def x_data
@@ -50,7 +55,7 @@ module AnalysisTool
         scope: report_scope,
         id_column: she_t[:client_id],
         calculation_column: breakdown_column(breakdowns[:x]),
-      )
+      ).ids
     end
 
     private def y_data
@@ -59,7 +64,7 @@ module AnalysisTool
         scope: report_scope,
         id_column: she_t[:client_id],
         calculation_column: breakdown_column(breakdowns[:y]),
-      )
+      ).ids
     end
 
     def section_ready?(section)
@@ -150,11 +155,11 @@ module AnalysisTool
     end
 
     def report_scope_source
-      GrdaWarehouse::ServiceHistoryEnrollment.entry
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client)
     end
 
     private def breakdown_calculation(key)
-      available_breakdowns[key.to_sym].try(:[], :method) || available_breakdowns[:age][:method]
+      send(available_breakdowns[key.to_sym].try(:[], :method) || available_breakdowns[:age][:method])
     end
 
     private def breakdown_column(key)
@@ -162,20 +167,16 @@ module AnalysisTool
     end
 
     def available_breakdowns
-      breakdowns = {
-        age: { title: 'By Age', method: :age_calculations, calculation_column: standard_age_column },
-        gender: { title: 'By Gender', method: :gender_calculations, calculation_column: standard_gender_column },
-        # household: 'By Household Type',
+      @available_breakdowns ||= {
+        age: { title: 'By Age', method: :age_calculations, calculation_column: standard_age_calculation },
+        gender: { title: 'By Gender', method: :gender_calculations, calculation_column: standard_gender_calculation },
+        household: { title: 'By Household Type', method: :household_type_calculations, calculation_column: standard_household_type_calculation },
         # veteran: 'By Veteran Status',
         # race: 'By Race',
         # ethnicity: 'By Ethnicity',
         # project_type: 'By Project Type',
         # lot_homeless: 'By LOT Homeless',
       }
-
-      # Only show CoC tab if the site is setup to show it
-      breakdowns[:coc] = { title: 'By CoC', method: :coc_calculations } if GrdaWarehouse::Config.get(:multi_coc_installation)
-      breakdowns
     end
   end
 end

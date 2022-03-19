@@ -5,6 +5,7 @@
 ###
 
 class Gather < OpenStruct
+  include ArelHelper
   # Accepts a hash of buckets with either lambdas or where clauses or both to determine inclusion of items from the scope
   #  {
   #    'Title' =>  -> { }, accepts an item of type column to pluck
@@ -14,10 +15,14 @@ class Gather < OpenStruct
   # @param id_column [Symbol or Arel column equivalent] used to determine uniqueness
   # @param calculation_column [Symbol or Arel column equivalent] used to determine bucket
   def initialize(buckets:, scope:, id_column: :id, calculation_column:)
+    @buckets = buckets
+    @scope = scope
+    @id_column = id_column
+    @calculation_column = calculation_column
   end
 
   private def cache_key
-    @cache_key ||= Digest::MD5.hexdigest(buckets.to_s + scope.to_sql + id_column.to_ + calculation_column.to_s)
+    @cache_key ||= Digest::MD5.hexdigest(@buckets.to_s + @scope.to_sql + @id_column.to_s + @calculation_column.to_s)
   end
 
   private def expires_in
@@ -29,21 +34,22 @@ class Gather < OpenStruct
   # Returns a hash of ids keyed on titles
   def ids
     @ids ||= {}.tap do |gathered|
-      Rails.cache.fetch([cache_key, 'ids'], expires_in: expires_in) do
-        # Fetch all matching data, ordered by entry date, so we get the most-recent enrollment
-        # pluck the differentiator and the calculation that can be compared in the lambda
-        data = scope.distinct.order(first_date_in_program: :desc).pluck(id_column, calculation_column)
-        counted = Set.new
-        buckets.each do |title, calcs|
-          gathered[title] = data.select do |id, column|
-            next if id.in?(counted)
+      # Rails.cache.fetch([cache_key, 'ids'], expires_in: expires_in) do
+      # Fetch all matching data, ordered by entry date, so we get the most-recent enrollment
+      # pluck the differentiator and the calculation that can be compared in the lambda
 
-            in_bucket = calcs[:lambda].call(column)
-            count << id if in_bucket
-            in_bucket
-          end.map(&:first).to_set
-        end
+      data = @scope.distinct.order(first_date_in_program: :desc).pluck(@id_column, @calculation_column, she_t[:first_date_in_program])
+      counted = Set.new
+      @buckets.each do |title, lambda|
+        gathered[title] = data.select do |id, value, _|
+          next if id.in?(counted)
+
+          in_bucket = lambda.call(value)
+          counted << id if in_bucket
+          in_bucket
+        end.map(&:first).to_set
       end
+      # end
     end
   end
 

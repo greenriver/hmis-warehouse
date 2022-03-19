@@ -9,11 +9,7 @@ module KnownCategories::Age
 
   def age_calculations
     @age_calculations ||= {}.tap do |calcs|
-      calcs['< 1 yr old'] = {
-        lambda: ->(value) { value.zero?(0) },
-        where_clause: age_calculation.eq(0),
-        column: age_calculation,
-      }
+      calcs['< 1 yr old'] = ->(value) { value&.zero? }
       [
         [1, 5],
         [6, 13],
@@ -29,23 +25,10 @@ module KnownCategories::Age
         [56, 60],
         [61, 62],
       ].each do |one, two|
-        calcs["#{one} - #{two} yrs old"] = {
-          lambda: ->(value) { value.in?(one..two) },
-          where_clause: age_calculation.between(one, two),
-          column: age_calculation,
-        }
+        calcs["#{one} - #{two} yrs old"] = ->(value) { value.in?(one..two) }
       end
-      calcs['63+ yrs old'] = {
-        lambda: ->(value) { value >= 63 },
-        where_clause: age_calculation.gteq(63),
-        column: age_calculation,
-      }
-
-      calcs['Missing'] = {
-        lambda: ->(value) { value.blank? },
-        where_clause: c_t[:DOB].eq(nil),
-        column: c_t[:DOB],
-      }
+      calcs['63+ yrs old'] = ->(value) { value.present? && value >= 63 }
+      calcs['Missing'] = ->(value) { value.blank? }
     end
   end
 

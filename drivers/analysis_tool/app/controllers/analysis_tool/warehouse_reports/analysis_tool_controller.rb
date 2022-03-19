@@ -25,6 +25,7 @@ module AnalysisTool::WarehouseReports
     end
 
     def index
+      @report.breakdowns = breakdowns
       respond_to do |format|
         format.html {}
         # format.xlsx do

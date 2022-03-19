@@ -1,7 +1,6 @@
 :ruby
-  options = @report.available_breakdowns.map do |id, title|
-    title = title.gsub(/^By /, '')
-    [title, id]
+  options = @report.available_breakdowns.keys.map do |title|
+    [title, title]
   end
   html_options = {
     class: 'form-control select optional select2 stimulus-select j-disaggregation',

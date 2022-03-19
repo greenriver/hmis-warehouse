@@ -9,15 +9,10 @@ module KnownCategories::HouseholdType
 
   def household_type_calculations
     @household_type_calculations ||= {}.tap do |calcs|
-      HUD.household_types.each do |key, title|
-        field = HUD.household_type_id_to_field_name[key]
-        next if field == :GenderNone
-
-        calcs[title] = ->(value) { value == 1 }
-      end
-      calcs['Client doesn\'t know'] = ->(value) { value == 8 }
-      calcs['Client refused'] = ->(value) { value == 9 }
-      calcs['Data not collected'] = ->(value) { value == 99 }
+      calcs['Adult only'] = ->(value) { value == 'adult_only' }
+      calcs['Adult and child'] = ->(value) { value == 'adult_and_child' }
+      calcs['Child only'] = ->(value) { value == 'child_only' }
+      calcs['Unknown'] = ->(value) { value == 'unknown' }
     end
   end
 
