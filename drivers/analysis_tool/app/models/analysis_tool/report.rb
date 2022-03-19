@@ -67,6 +67,23 @@ module AnalysisTool
       ).ids
     end
 
+    def support_title(params)
+      cell = params[:cell].map(&:to_i)
+      x_breakdown = params[:x_breakdown].to_sym
+      y_breakdown = params[:y_breakdown].to_sym
+
+      [
+        [
+          available_breakdowns[x_breakdown][:title],
+          breakdown_calculation(x_breakdown).keys[cell.first],
+        ].join(' - '),
+        [
+          available_breakdowns[y_breakdown][:title],
+          breakdown_calculation(y_breakdown).keys[cell.last],
+        ].join(' - '),
+      ].join(' with ')
+    end
+
     def section_ready?(section)
       Rails.cache.exist?(cache_key_for_section(section))
     end
@@ -168,9 +185,9 @@ module AnalysisTool
 
     def available_breakdowns
       @available_breakdowns ||= {
-        age: { title: 'By Age', method: :age_calculations, calculation_column: standard_age_calculation },
-        gender: { title: 'By Gender', method: :gender_calculations, calculation_column: standard_gender_calculation },
-        household: { title: 'By Household Type', method: :household_type_calculations, calculation_column: standard_household_type_calculation },
+        age: { title: 'Age', method: :age_calculations, calculation_column: standard_age_calculation },
+        gender: { title: 'Gender', method: :gender_calculations, calculation_column: standard_gender_calculation },
+        household: { title: 'Household Type', method: :household_type_calculations, calculation_column: standard_household_type_calculation },
         # veteran: 'By Veteran Status',
         # race: 'By Race',
         # ethnicity: 'By Ethnicity',
