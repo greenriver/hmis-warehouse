@@ -53,8 +53,8 @@ module AnalysisTool::WarehouseReports
       #   set_report
       # end
       @breakdowns ||= {}.tap do |bd|
-        bd[:x] ||= params[:x_breakdown]&.to_sym || @report.available_breakdowns.keys.first
-        bd[:y] ||= params[:y_breakdown]&.to_sym || @report.available_breakdowns.keys.second
+        bd[:row] ||= params[:row_breakdown]&.to_sym || @report.available_breakdowns.keys.first
+        bd[:col] ||= params[:col_breakdown]&.to_sym || @report.available_breakdowns.keys.second
       end
     end
     helper_method :breakdowns

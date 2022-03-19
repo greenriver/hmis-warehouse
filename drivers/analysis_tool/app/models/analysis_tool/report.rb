@@ -42,46 +42,61 @@ module AnalysisTool
 
     def results
       @results ||= [].tap do |table|
-        table << [nil] + x_data.keys
-        x_data.values.product(y_data.values).collect { |x, y| (x & y).count }.each_slice(x_data.length).with_index do |row, y_index|
-          table << [y_data.keys[y_index]] + row
+        table << [nil] + row_data.keys
+        col_data.values.each.with_index do |col_ids, col_i|
+          row = []
+          row_data.values.each.with_index do |row_ids, row_i|
+            row << col_data.keys[col_i] if row_i.zero?
+            row << (col_ids.to_a & row_ids.to_a)
+          end
+          table << row
         end
       end
     end
 
-    private def x_data
-      @x_data ||= Gather.new(
-        buckets: breakdown_calculation(breakdowns[:x]),
+    private def row_data
+      @row_data ||= Gather.new(
+        buckets: breakdown_calculation(breakdowns[:row]),
         scope: report_scope,
         id_column: she_t[:client_id],
-        calculation_column: breakdown_column(breakdowns[:x]),
+        calculation_column: breakdown_column(breakdowns[:row]),
       ).ids
     end
 
-    private def y_data
-      @y_data ||= Gather.new(
-        buckets: breakdown_calculation(breakdowns[:y]),
+    private def col_data
+      @col_data ||= Gather.new(
+        buckets: breakdown_calculation(breakdowns[:col]),
         scope: report_scope,
         id_column: she_t[:client_id],
-        calculation_column: breakdown_column(breakdowns[:y]),
+        calculation_column: breakdown_column(breakdowns[:col]),
       ).ids
     end
 
     def support_title(params)
       cell = params[:cell].map(&:to_i)
-      x_breakdown = params[:x_breakdown].to_sym
-      y_breakdown = params[:y_breakdown].to_sym
+      row_breakdown = params[:row_breakdown]&.to_sym || breakdowns[:row]
+      col_breakdown = params[:col_breakdown]&.to_sym || breakdowns[:col]
 
       [
         [
-          available_breakdowns[x_breakdown][:title],
-          breakdown_calculation(x_breakdown).keys[cell.first],
+          available_breakdowns[row_breakdown][:title],
+          breakdown_calculation(row_breakdown).keys[cell.first],
         ].join(' - '),
         [
-          available_breakdowns[y_breakdown][:title],
-          breakdown_calculation(y_breakdown).keys[cell.last],
+          available_breakdowns[col_breakdown][:title],
+          breakdown_calculation(col_breakdown).keys[cell.last],
         ].join(' - '),
       ].join(' with ')
+    end
+
+    def support_for(params)
+      cell = params[:cell].map(&:to_i)
+      row_breakdown = params[:row_breakdown]&.to_sym || breakdowns[:row]
+      col_breakdown = params[:col_breakdown]&.to_sym || breakdowns[:col]
+      row_ids = row_data[breakdown_calculation(row_breakdown).keys[cell.first]]
+      col_ids = col_data[breakdown_calculation(col_breakdown).keys[cell.last]]
+      client_ids = (row_ids.to_a & col_ids.to_a)
+      GrdaWarehouse::Hud::Client.where(id: client_ids)
     end
 
     def section_ready?(section)

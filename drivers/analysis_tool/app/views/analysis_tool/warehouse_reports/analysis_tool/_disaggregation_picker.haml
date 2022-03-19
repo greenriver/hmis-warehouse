@@ -11,11 +11,11 @@
     %label.h4.mt-2.gray.mb-0.mr-3(for='j-disaggregation-x' style='flex-shrink: 0')
       Rows:
     .ml-0.mt-0
-      = render 'inputs/select', field_name: :x_breakdown, label: false, options: options_for_select(options, breakdowns[:x]), html_options: html_options.merge(id: 'j-disaggregation-x')
+      = render 'inputs/select', field_name: :row_breakdown, label: false, options: options_for_select(options, breakdowns[:row]), html_options: html_options.merge(id: 'j-disaggregation-x')
     %label.h4.mt-2.gray.mb-0.mr-3.ml-4(for='j-disaggregation-y' style='flex-shrink: 0')
       Columns:
     .ml-0.mt-0
-      = render 'inputs/select', field_name: :y_breakdown, label: false, options: options_for_select(options, breakdowns[:y]), html_options: html_options.merge(id: 'j-disaggregation-y')
+      = render 'inputs/select', field_name: :col_breakdown, label: false, options: options_for_select(options, breakdowns[:col]), html_options: html_options.merge(id: 'j-disaggregation-y')
   #j-disaggregation-spinner.ml-4.mb-5.d-none
     .mr-2= render 'spinner'
     %div Loading&hellip;
@@ -26,17 +26,17 @@
     $(function() {
       var $selects = $('.j-disaggregation');
       $selects.change(function() {
-        var x_breakdown = $('#j-disaggregation-x').val();
-        var y_breakdown = $('#j-disaggregation-y').val();
+        var row_breakdown = $('#j-disaggregation-x').val();
+        var col_breakdown = $('#j-disaggregation-y').val();
 
-        if (x_breakdown || y_breakdown) {
+        if (row_breakdown || col_breakdown) {
           $selects.prop('disabled', true)
           $('#j-disaggregation-spinner').removeClass('d-none').addClass('d-flex');
           var url = new URL(window.location.href);
-          url.searchParams.set('x_breakdown', x_breakdown);
-          url.searchParams.set('y_breakdown', y_breakdown);
+          url.searchParams.set('row_breakdown', row_breakdown);
+          url.searchParams.set('col_breakdown', col_breakdown);
           window.location = url.href;
-          history.pushState({}, x_breakdown, url.href);
+          history.pushState({}, row_breakdown, url.href);
         }
       });
     })

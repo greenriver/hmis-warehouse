@@ -10,4 +10,4 @@
           - if ri.zero? || ci.zero?
             %th= cell
           - else
-            %td= link_to_if cell&.positive?, cell, details_analysis_tool_warehouse_reports_analysis_tool_index_path(link_params.merge(cell: [ci - 1, ri - 1]))
+            %td= link_to_if cell.count.positive?, cell.count, details_analysis_tool_warehouse_reports_analysis_tool_index_path(link_params.merge(cell: [ci - 1, ri - 1]))
