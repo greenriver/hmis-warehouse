@@ -1,0 +1,18 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Analysis') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  @report.results.each.with_index do |row, ri|
+    if ri.zero?
+      sheet.add_row(row, style: title)
+    else
+      row.map!.with_index do |item, i|
+        if i.zero?
+          item
+        else
+          item.count
+        end
+      end
+      sheet.add_row(row)
+    end
+  end
+end

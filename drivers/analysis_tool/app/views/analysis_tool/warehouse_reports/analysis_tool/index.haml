@@ -14,5 +14,10 @@
     .top-nav-prs1
       %h1.mb-5= title
     .main-inner-prs1
-      .mt-2= render 'disaggregation_picker'
+      %p.mt-2.mb-4
+        Choose a universe and two categories.  This report will show how many people are in each category cross-section.
+      .d-flex
+        .mr-4= render 'disaggregation_picker'
+        .ml-auto.mb-4
+          = render 'report_downloads/report_download', export: nil, excel_download_path: analysis_tool_warehouse_reports_analysis_tool_index_path({format: :xlsx}.merge(link_params))
       = render 'table'

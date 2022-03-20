@@ -28,10 +28,10 @@ module AnalysisTool::WarehouseReports
       @report.breakdowns = breakdowns
       respond_to do |format|
         format.html {}
-        # format.xlsx do
-        #   filename = "Client Analysis - #{Time.current.to_s(:db)}.xlsx"
-        #   headers['Content-Disposition'] = "attachment; filename=#{filename}"
-        # end
+        format.xlsx do
+          filename = "Client Analysis - #{Time.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
       end
     end
 
