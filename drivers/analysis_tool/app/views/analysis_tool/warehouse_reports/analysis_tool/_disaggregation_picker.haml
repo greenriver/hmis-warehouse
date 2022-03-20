@@ -11,11 +11,11 @@
     %label.h4.mt-2.gray.mb-0.mr-3(for='j-disaggregation-x' style='flex-shrink: 0')
       Rows:
     .ml-0.mt-0
-      = render 'inputs/select', field_name: :row_breakdown, label: false, options: options_for_select(options, breakdowns[:row]), html_options: html_options.merge(id: 'j-disaggregation-x')
-    %label.h4.mt-2.gray.mb-0.mr-3.ml-4(for='j-disaggregation-y' style='flex-shrink: 0')
+      = render 'inputs/select', field_name: :row_breakdown, label: false, options: options_for_select(options, breakdowns[:col]), html_options: html_options.merge(id: 'j-disaggregation-col')
+    %label.h4.mt-2.gray.mb-0.mr-3.ml-4(for='j-disaggregation-col' style='flex-shrink: 0')
       Columns:
     .ml-0.mt-0
-      = render 'inputs/select', field_name: :col_breakdown, label: false, options: options_for_select(options, breakdowns[:col]), html_options: html_options.merge(id: 'j-disaggregation-y')
+      = render 'inputs/select', field_name: :col_breakdown, label: false, options: options_for_select(options, breakdowns[:row]), html_options: html_options.merge(id: 'j-disaggregation-row')
   #j-disaggregation-spinner.ml-4.mb-5.d-none
     .mr-2= render 'spinner'
     %div Loading&hellip;
@@ -26,8 +26,8 @@
     $(function() {
       var $selects = $('.j-disaggregation');
       $selects.change(function() {
-        var row_breakdown = $('#j-disaggregation-x').val();
-        var col_breakdown = $('#j-disaggregation-y').val();
+        var row_breakdown = $('#j-disaggregation-row').val();
+        var col_breakdown = $('#j-disaggregation-col').val();
 
         if (row_breakdown || col_breakdown) {
           $selects.prop('disabled', true)

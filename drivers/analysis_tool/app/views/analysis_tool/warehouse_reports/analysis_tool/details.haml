@@ -10,6 +10,8 @@
         %th DOB
         %th Gender
         %th Veteran Status
+        %th Race
+        %th Ethnicity
     %tbody
       - @report.support_for(params).each do |client|
         %tr
@@ -19,3 +21,5 @@
           %td= client.DOB
           %td= client.gender
           %td= HUD.no_yes_missing(client.VeteranStatus)
+          %td= client.race_description
+          %td= HUD.ethnicity(client.Ethnicity)

@@ -14,6 +14,8 @@ module AnalysisTool
     include ::KnownCategories::Gender
     include ::KnownCategories::HouseholdType
     include ::KnownCategories::Race
+    include ::KnownCategories::VeteranStatus
+    include ::KnownCategories::Ethnicity
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :breakdowns
@@ -204,9 +206,9 @@ module AnalysisTool
         age: { title: 'Age', method: :age_calculations, calculation_column: standard_age_calculation },
         gender: { title: 'Gender', method: :gender_calculations, calculation_column: standard_gender_calculation },
         household: { title: 'Household Type', method: :household_type_calculations, calculation_column: standard_household_type_calculation },
-        # veteran: 'By Veteran Status',
-        race: { title: 'By Race', method: :race_calculations, calculation_column: standard_race_calculation },
-        # ethnicity: 'By Ethnicity',
+        veteran: { title: 'Veteran Status', method: :veteran_status_calculations, calculation_column: standard_veteran_status_calculation },
+        race: { title: 'Race', method: :race_calculations, calculation_column: standard_race_calculation },
+        ethnicity: { title: 'Ethnicity', method: :ethnicity_calculations, calculation_column: standard_ethnicity_calculation },
         # project_type: 'By Project Type',
         # lot_homeless: 'By LOT Homeless',
       }
