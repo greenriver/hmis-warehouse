@@ -16,6 +16,8 @@ module AnalysisTool
     include ::KnownCategories::Race
     include ::KnownCategories::VeteranStatus
     include ::KnownCategories::Ethnicity
+    include ::KnownCategories::Lot
+    include ::KnownCategories::LotThreeYears
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :breakdowns
@@ -190,7 +192,7 @@ module AnalysisTool
     end
 
     def report_scope_source
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client)
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(client: :processed_service_history)
     end
 
     private def breakdown_calculation(key)
@@ -209,8 +211,8 @@ module AnalysisTool
         veteran: { title: 'Veteran Status', method: :veteran_status_calculations, calculation_column: standard_veteran_status_calculation },
         race: { title: 'Race', method: :race_calculations, calculation_column: standard_race_calculation },
         ethnicity: { title: 'Ethnicity', method: :ethnicity_calculations, calculation_column: standard_ethnicity_calculation },
-        # project_type: 'By Project Type',
-        # lot_homeless: 'By LOT Homeless',
+        lot_homeless_three_years: { title: 'LOT Homeless (last 3 years)', method: :lot_three_years_calculations, calculation_column: standard_lot_three_years_calculation },
+        lot_homeless: { title: 'LOT Homeless (all time)', method: :lot_calculations, calculation_column: standard_lot_calculation },
       }
     end
   end
