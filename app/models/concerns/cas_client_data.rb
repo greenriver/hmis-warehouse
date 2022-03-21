@@ -121,6 +121,13 @@ module CasClientData
         max_by(&:AssessmentDate)
     end
 
+    def most_recent_cls
+      @most_recent_cls ||= source_clients.map(&:most_recent_current_living_situation).
+        compact.
+        select { |a| a.InformationDate.present? }.
+        max_by(&:InformationDate)
+    end
+
     def most_recent_tc_hat_for_destination
       @most_recent_tc_hat_for_destination ||= source_clients.map(&:most_recent_tc_hat).
         compact.
