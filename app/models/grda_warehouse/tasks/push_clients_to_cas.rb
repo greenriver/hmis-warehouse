@@ -204,6 +204,17 @@ module GrdaWarehouse::Tasks
         foster_care: :foster_care,
         open_case: :open_case,
         housing_for_formerly_homeless: :housing_for_formerly_homeless,
+        need_daily_assistance: :need_daily_assistance,
+        full_time_employed: :full_time_employed,
+        can_work_full_time: :can_work_full_time,
+        willing_to_work_full_time: :willing_to_work_full_time,
+        rrh_successful_exit: :rrh_successful_exit,
+        th_desired: :th_desired,
+        drug_test: :drug_test,
+        employed_three_months: :employed_three_months,
+        site_case_management_required: :site_case_management_required,
+        currently_fleeing: :currently_fleeing,
+        dv_date: :dv_date,
       }
     end
 
@@ -225,7 +236,7 @@ module GrdaWarehouse::Tasks
           title_display_for(k),
           value_display_for(k, value),
         ]
-      end.compact
+      end.compact.sort_by(&:first)
     end
 
     def title_display_for(column)
@@ -287,6 +298,12 @@ module GrdaWarehouse::Tasks
           dv_rrh_desired: 'DV RRH Desired',
           rrh_th_desired: 'RRH TH Desired',
           active_cohort_ids: 'Active Cohorts',
+          dv_date: 'Most recent date of DV',
+          th_desired: 'TH Desired',
+          vispdat_score: 'VISPDAT Score',
+          vispdat_priority_score: 'VISPDAT Priority Score',
+          vispdat_length_homeless_in_days: 'Vispdat length homeless in days',
+          rrh_successful_exit: 'RRH successful exit:',
         },
       )
       @title_override[column]
