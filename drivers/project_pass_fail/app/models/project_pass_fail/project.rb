@@ -28,11 +28,11 @@ module ProjectPassFail
     end
 
     def utilization_rate_as_percent
-      (utilization_rate * 100).round(2)
+      ((utilization_rate || 0) * 100).round(2)
     end
 
     def unit_utilization_rate_as_percent
-      (unit_utilization_rate * 100).round(2)
+      ((unit_utilization_rate || 0) * 100).round(2)
     end
 
     def within_utilization_threshold?
