@@ -57,7 +57,7 @@ module ServiceScanning
       if @service.client_id.present?
         client = @service.client
         if client.present?
-          @service.save!(options)
+          @service.save!
           respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: client.id, service_id: @service.id)))
         else
           flash[:error] = 'Unable to add service.'
@@ -148,7 +148,7 @@ module ServiceScanning
             if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
               flash[:notice] = "Client #{@client.full_name} created."
               after_create_path = client_path_generator
-              if @client.data_source.after_create_path.present? # rubocop:disable Metrics/BlockNesting
+              if @client.data_source.after_create_path.present?
                 after_create_path += [@client.data_source.after_create_path]
                 redirect_to polymorphic_path(after_create_path, client_id: destination_client.id)
               else

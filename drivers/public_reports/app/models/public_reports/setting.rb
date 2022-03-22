@@ -19,6 +19,16 @@ module PublicReports
       types
     end
 
+    def self.available_map_type_descriptions
+      types = {
+        'Continuum of Care' => 'Client data will be aggregated by comparing the CoCCodes from the Project CoC records for the projects where a client is enrolled.',
+        'County' => 'Client data will be aggregated by comparing the Zip codes from the Project CoC records for the projects where a client is enrolled and aggregating them into their counties, distributing the population based on the percent of a zipcode in a given county.',
+        'Zipcode' => 'Client data will be aggregated by comparing the Zip codes from the Project CoC records for the projects where a client is enrolled.',
+      }
+      types['Town/City'] = 'Client data will be aggregated by comparing the City from the Project CoC records for the projects where a client is enrolled and comparing to a known list of cities in the state.' if GrdaWarehouse::Shape::Town.exists?
+      types
+    end
+
     def color_pattern(category = nil)
       if category.blank? || ! color_categories.include?(category.to_sym)
         num_colors.map do |i|

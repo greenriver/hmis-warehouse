@@ -1,0 +1,25 @@
+- title = "Support for #{@report.support_title(params)}"
+%h1.mb-6=title
+.card
+  %table.table.table-striped.mb-0
+    %thead
+      %tr
+        %th Warehouse Client ID
+        %th First Name
+        %th Last Name
+        %th DOB
+        %th Gender
+        %th Veteran Status
+        %th Race
+        %th Ethnicity
+    %tbody
+      - @report.support_for(params).each do |client|
+        %tr
+          %td= link_to client.id, appropriate_client_path(client)
+          %td= client.FirstName
+          %td= client.LastName
+          %td= client.DOB
+          %td= client.gender
+          %td= HUD.no_yes_missing(client.VeteranStatus)
+          %td= client.race_description
+          %td= HUD.ethnicity(client.Ethnicity)

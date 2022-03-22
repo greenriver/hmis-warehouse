@@ -46,6 +46,15 @@ module GrdaWarehouse::Hud
       )
     end, **hud_assoc(:PersonalID, 'Assessment')
 
+    # operates on source_clients only
+    has_one :most_recent_current_living_situation, -> do
+      one_for_column(
+        :InformationDate,
+        source_arel_table: cls_t,
+        group_on: [:PersonalID, :data_source_id],
+      )
+    end, **hud_assoc(:PersonalID, 'CurrentLivingSituation')
+
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 

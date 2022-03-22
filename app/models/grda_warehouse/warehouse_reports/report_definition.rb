@@ -1173,6 +1173,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:analysis_tool)
+        r_list['Operational'] << {
+          url: 'analysis_tool/warehouse_reports/analysis_tool',
+          name: 'Analysis Tool',
+          description: 'Cross cut client data by known categories',
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
