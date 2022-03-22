@@ -1,0 +1,46 @@
+wb = xlsx_package.workbook
+wb_styles = wb.styles
+header_style = wb_styles.add_style({ sz: 14 })
+th_style = wb_styles.add_style(
+  {
+    bg_color: '81adb9',
+    b: true,
+    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
+  }
+)
+wb.add_worksheet(name: 'Report Info') do |sheet|
+  sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.add_row(
+    [
+      'Chosen Universe',
+    ],
+    style: header_style,
+  )
+  @report.filter.selected_params_for_display.each do |title, value|
+    value = value.join(', ') if value.is_a?(Array)
+    sheet.add_row(
+      [
+        "#{title}:",
+        value,
+      ],
+      style: [th_style, nil],
+    )
+  end
+end
+wb.add_worksheet(name: 'Analysis') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  @report.results.each.with_index do |row, ri|
+    if ri.zero?
+      sheet.add_row(row, style: title)
+    else
+      row.map!.with_index do |item, i|
+        if i.zero?
+          item
+        else
+          item.count
+        end
+      end
+      sheet.add_row(row)
+    end
+  end
+end
