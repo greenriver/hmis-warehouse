@@ -9,20 +9,14 @@ module KnownCategories::Lot
 
   def lot_calculations
     @lot_calculations ||= {}.tap do |calcs|
-      calcs['0 - 7 days'] = ->(value) { value == '0 - 7 days' }
-      calcs['8 - 30 days'] = ->(value) { value == '8 - 30 days' }
-      calcs['31 - 60 days'] = ->(value) { value == '31 - 60 days' }
-      calcs['61 - 90 days'] = ->(value) { value == '61 - 90 days' }
-      calcs['91 - 180 days'] = ->(value) { value == '91 - 180 days' }
-      calcs['181 - 365 days'] = ->(value) { value == '181 - 365 days' }
-      calcs['1 - 2 years'] = ->(value) { value == '1 - 2 years' }
-      calcs['2+ years'] = ->(value) { value == '2+ years' }
-      calcs['Unknown'] = ->(value) { value == 'Unknown' }
+      lot_categories.each do |_, title|
+        calcs[title] = ->(value) { value == title }
+      end
     end
   end
 
-  def standard_lot_calculation
-    conditions = [
+  private def lot_categories
+    [
       [wcp_t[:homeless_days].lt(8), '0 - 7 days'],
       [wcp_t[:homeless_days].between(8..30), '8 - 30 days'],
       [wcp_t[:homeless_days].between(31..60), '31 - 60 days'],
@@ -33,6 +27,9 @@ module KnownCategories::Lot
       [wcp_t[:homeless_days].gt(730), '2+ years'],
       [wcp_t[:homeless_days].eq(nil), 'Unknown'],
     ]
-    acase(conditions, elsewise: '99')
+  end
+
+  def standard_lot_calculation
+    acase(lot_categories, elsewise: '99')
   end
 end

@@ -9,20 +9,14 @@ module KnownCategories::LotThreeYears
 
   def lot_three_years_calculations
     @lot_three_years_calculations ||= {}.tap do |calcs|
-      calcs['0 - 7 days'] = ->(value) { value == '0 - 7 days' }
-      calcs['8 - 30 days'] = ->(value) { value == '8 - 30 days' }
-      calcs['31 - 60 days'] = ->(value) { value == '31 - 60 days' }
-      calcs['61 - 90 days'] = ->(value) { value == '61 - 90 days' }
-      calcs['91 - 180 days'] = ->(value) { value == '91 - 180 days' }
-      calcs['181 - 365 days'] = ->(value) { value == '181 - 365 days' }
-      calcs['1 - 2 years'] = ->(value) { value == '1 - 2 years' }
-      calcs['2+ years'] = ->(value) { value == '2+ years' }
-      calcs['Unknown'] = ->(value) { value == 'Unknown' }
+      lot_three_years_categories.each do |_, title|
+        calcs[title] = ->(value) { value == title }
+      end
     end
   end
 
-  def standard_lot_three_years_calculation
-    conditions = [
+  private def lot_three_years_categories
+    [
       [wcp_t[:days_homeless_last_three_years].lt(8), '0 - 7 days'],
       [wcp_t[:days_homeless_last_three_years].between(8..30), '8 - 30 days'],
       [wcp_t[:days_homeless_last_three_years].between(31..60), '31 - 60 days'],
@@ -33,6 +27,9 @@ module KnownCategories::LotThreeYears
       [wcp_t[:days_homeless_last_three_years].gt(730), '2+ years'],
       [wcp_t[:days_homeless_last_three_years].eq(nil), 'Unknown'],
     ]
-    acase(conditions, elsewise: '99')
+  end
+
+  def standard_lot_three_years_calculation
+    acase(lot_three_years_categories, elsewise: '99')
   end
 end

@@ -49,6 +49,8 @@ module ArelHelper
       Arel.sql("#{exists_type} (#{sql} and #{quoted_table_name}.\"#{column_name}\" = \"#{alias_name}\".\"#{column_name}\") ")
     end
 
+    # This method can be used to generate the select for a client's age at entry or start date (usually report start)
+    # It requires the query to include both Client and ServiceHistoryEnrollment to function
     private def age_on_date(start_date)
       cast(
         datepart(
