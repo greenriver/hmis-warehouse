@@ -54,7 +54,6 @@ class ExitClientReport
     @project_types = @filter.project_type_ids
     scope = service_history_source(@user).exit.
       joins(:client).
-      homeless.
       order(:last_date_in_program)
 
     scope = history_scope(scope, @filter.sub_population)
