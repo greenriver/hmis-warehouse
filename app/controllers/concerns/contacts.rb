@@ -28,7 +28,7 @@ module Contacts
       @contact = contact_source.new(contact_params)
       @contact.entity_id = @entity.id
       begin
-        @contact.save!(contact_params)
+        @contact.save!
       rescue Exception => e
         @error = e
         flash[:error] = e
