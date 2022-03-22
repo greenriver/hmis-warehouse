@@ -286,9 +286,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :cas_active, -> do
-      case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      scope = case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
-        where(sync_with_cas: true)
+        # Short circuit if we're using manual flag setting
+        return where(sync_with_cas: true)
       when :chronic
         joins(:chronics).where(chronics: { date: GrdaWarehouse::Chronic.most_recent_day })
       when :hud_chronic
@@ -304,6 +305,9 @@ module GrdaWarehouse::Hud
       else
         raise NotImplementedError
       end
+
+      # Include anyone who should be included by virtue of their data, and anyone who has the checkbox checked
+      scope.or(where(sync_with_cas: true))
     end
 
     scope :full_housing_release_on_file, -> do
