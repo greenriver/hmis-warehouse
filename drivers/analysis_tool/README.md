@@ -1,3 +1,3 @@
 ## AnalysisTool README
 
-This README file should be used to explain the functionality of the driver.
+Report to analyze the cross-cut between two client sub-populations.
