@@ -1,0 +1,35 @@
+= content_for :modal_title do
+  = if @chosen_section then "Edit #{@chosen_section.title} Selection" else 'Edit Universe Selection' end
+
+- url = polymorphic_path(@report.report_path_array)
+= simple_form_for @filter, as: :filters, url: url, method: :get do |f|
+  = hidden_field_tag :row_breakdown, breakdowns[:col]
+  = hidden_field_tag :col_breakdown, breakdowns[:row]
+
+  - if @chosen_section
+    .form-filters-section-prs1
+      = render 'filters/filter_controls/section_form_fields',
+        section: @chosen_section, f: f
+    .d-none
+      - # include the rest of the form controls as "hidden" inputs
+      - @sections.each do |section|
+        - next unless section
+        - if section != @chosen_section
+          = render 'filters/filter_controls/section_form_fields',
+            section: section, f: f
+  - else
+    .row
+      - @sections.in_groups(2).each do |sections|
+        .col-md-6
+          - sections.compact.each do |section|
+            - next unless section
+            .form-filters-section-prs1
+              = render 'filters/filter_controls/section_form_fields',
+                section: section, f: f
+  .form-filters-controls-prs1.d-flex
+    = f.submit 'Save & Update', class: 'float-none'
+    %button.ml-2.btn.btn-outline-primary(type='button' pjax-modal-close) Cancel
+    - if @chosen_section.blank?
+      = link_to url_for(action: :index, row_breakdown: breakdowns[:row], col_breakdown: breakdowns[:col]), class: 'btn btn-outline-primary ml-auto' do
+        %i.icon-settings_backup_restore
+        Reset to Default

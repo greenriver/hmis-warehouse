@@ -11,11 +11,13 @@ module GrdaWarehouse::SystemCohorts
       cohort_classes.each do |config_key, klass|
         next unless GrdaWarehouse::Config.get(config_key)
 
-        klass.first_or_create! do |cohort|
+        system_cohort = klass.first_or_create! do |cohort|
           cohort.name = cohort.cohort_name
           cohort.system_cohort = true
           cohort.days_of_inactivity = 90
-        end.sync
+        end
+        system_cohort.update(name: system_cohort.cohort_name)
+        system_cohort.sync
       end
     end
 
@@ -128,6 +130,22 @@ module GrdaWarehouse::SystemCohorts
       end.flatten
     end
 
+    private def youth_no_child_client_ids
+      @youth_no_child_client_ids ||= households.select do |_, enrollments|
+        only_under_25?(enrollments) && all_over_18?(enrollments)
+      end.map do |_, enrollments|
+        enrollments.map { |client| client[:client_id] }
+      end.flatten
+    end
+
+    private def youth_and_child_client_ids
+      @youth_and_child_client_ids ||= households.select do |_, enrollments|
+        only_under_25?(enrollments) && adult_and_child?(enrollments)
+      end.map do |_, enrollments|
+        enrollments.map { |client| client[:client_id] }
+      end.flatten
+    end
+
     private def household(enrollment)
       households[get_hh_id(enrollment)]
     end
@@ -156,6 +174,8 @@ module GrdaWarehouse::SystemCohorts
         chronic_cohort: GrdaWarehouse::SystemCohorts::Chronic,
         adult_and_child_cohort: GrdaWarehouse::SystemCohorts::AdultAndChild,
         adult_only_cohort: GrdaWarehouse::SystemCohorts::AdultOnly,
+        youth_no_child_cohort: GrdaWarehouse::SystemCohorts::YouthNoChild,
+        youth_and_child_cohort: GrdaWarehouse::SystemCohorts::YouthAndChild,
       }.freeze
     end
   end

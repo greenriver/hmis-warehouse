@@ -86,6 +86,8 @@ module Admin
         :currently_homeless_cohort,
         :veteran_cohort,
         :youth_cohort,
+        :youth_no_child_cohort,
+        :youth_and_child_cohort,
         :chronic_cohort,
         :adult_and_child_cohort,
         :adult_only_cohort,

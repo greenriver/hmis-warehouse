@@ -5112,7 +5112,9 @@ CREATE TABLE public.configs (
     youth_cohort boolean DEFAULT false NOT NULL,
     chronic_cohort boolean DEFAULT false NOT NULL,
     adult_and_child_cohort boolean DEFAULT false NOT NULL,
-    adult_only_cohort boolean DEFAULT false NOT NULL
+    adult_only_cohort boolean DEFAULT false NOT NULL,
+    youth_no_child_cohort boolean DEFAULT false NOT NULL,
+    youth_and_child_cohort boolean DEFAULT false NOT NULL
 );
 
 
@@ -47573,6 +47575,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220308193503'),
 ('20220311161639'),
 ('20220312204503'),
-('20220316160839');
+('20220316160839'),
+('20220317185834');
 
 

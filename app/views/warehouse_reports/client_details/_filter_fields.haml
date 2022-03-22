@@ -9,7 +9,8 @@
       = f.input :coc_codes, collection: GrdaWarehouse::Lookups::CocCode.options_for_select(user: current_user), placeholder: 'Any CoC', as: :select_two, input_html: { multiple: true }, label: 'CoC Limit', required: false
 .row
   .col-sm-4
-    = f.input :project_type_codes, collection: @filter.available_residential_project_types, placeholder: 'Any Project Type', as: :select_two, input_html: { multiple: true, class: 'jProjectTypes' }
+    - project_types = if homeless_only then @filter.available_homeless_project_types else @filter.available_residential_project_types end
+    = f.input :project_type_codes, collection: project_types, placeholder: 'Any Project Type', as: :select_two, input_html: { multiple: true, class: 'jProjectTypes' }
   - if report_filter_visible?(:project_ids, current_user)
     .col-sm
       = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false, placeholder: 'Any Project'
