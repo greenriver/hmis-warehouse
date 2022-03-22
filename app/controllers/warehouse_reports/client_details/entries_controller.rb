@@ -33,6 +33,10 @@ module WarehouseReports::ClientDetails
       end
     end
 
+    def section
+      @report = report_source.new(filter: @filter, user: current_user)
+    end
+
     def report_source
       EntryClientReport
     end
