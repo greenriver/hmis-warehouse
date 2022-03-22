@@ -245,7 +245,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # as of 3/21/2022 Set majority_sheltered based on CLS response
     private def majority_sheltered(client)
       cls = client.most_recent_cls
-      return false if cls.blank?
+      return nil if cls.blank?
 
       # Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)
       return false if cls.CurrentLivingSituation == 16
