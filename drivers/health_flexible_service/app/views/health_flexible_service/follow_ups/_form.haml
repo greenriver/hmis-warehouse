@@ -1,33 +1,25 @@
-- row_class = ''
-- col_class = ''
-- width_class = 'w-50'
-- if @pdf
-  - row_class = 'row'
-  - col_class = 'col-sm-6'
-  - width_class = ''
-
 = render 'form_header'
 %section.page-break-after
   .well.condensed-checkboxes
     %h3 Member Information
     = f.input :completed_on, as: :date_picker, label: 'Date follow-up form completed'
-    %div{class: width_class}
+    %div
       = f.input :first_name, label: 'Member first name'
       = f.input :middle_name, label: 'Member middle initial'
       = f.input :last_name, label: 'Member last name'
       = f.input :dob, as: :date_picker, label: 'Member date of birth'
-    %div{class: row_class}
-      %div{class: col_class}
+    .row
+      .col-sm-6
         %h3 Organization Delivering Flexible Services
-        %div{class: width_class}
+        %div
           = f.input :delivery_first_name, label: 'First name'
           = f.input :delivery_last_name, label: 'Last name'
           = f.input :delivery_organization, label: 'Organization'
           = f.input :delivery_phone, label: 'Phone'
           = f.input :delivery_email, label: 'Email'
-      %div{class: col_class}
+      .col-sm-6
         %h3 Organization Reviewing Flexible Services
-        %div{class: width_class}
+        %div
           = f.input :reviewer_first_name, label: 'First name'
           = f.input :reviewer_last_name, label: 'Last name'
           = f.input :reviewer_organization, label: 'Organization'

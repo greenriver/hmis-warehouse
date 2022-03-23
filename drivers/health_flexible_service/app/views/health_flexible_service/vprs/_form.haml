@@ -1,11 +1,3 @@
-- row_class = ''
-- col_class = ''
-- width_class = 'w-50'
-- if @pdf
-  - row_class = 'row'
-  - col_class = 'col-sm-6'
-  - width_class = ''
-
 = render 'form_header'
 %h2 Part I: Cover Page
 %section.page-break-after
@@ -16,50 +8,50 @@
         = f.input :planned_on, as: :date_picker, label: 'Date of service planning'
       .col-3
         = f.input :end_date, as: :date_picker, disabled: true, hint: '6 months from the date of service planning, may be extended via follow up'
-    %div{class: width_class}
+    %div
       = f.input :first_name, label: 'Member first name'
       = f.input :middle_name, label: 'Member middle initial'
       = f.input :last_name, label: 'Member last name'
       = f.input :dob, as: :date_picker, label: 'Member date of birth'
     = f.input :accommodations_needed
     %h3 Contact Information
-    %div{class: width_class}
+    %div
       = f.input :contact_type, collection: @vpr.class.available_contact_types, as: :select_two
       = f.input :phone
       = f.input :email
     = f.input :additional_contact_details, hint: 'Optional'
     %h3 Flexible Services Contacts
-    %div{class: row_class}
-      %div{class: col_class}
+    .row
+      .col-sm-6
         %h4 Person Developing Plan (Main Point of Concact)
-        %div{class: width_class}
+        %div
           = f.input :main_contact_first_name
           = f.input :main_contact_last_name
           = f.input :main_contact_organization
           = f.input :main_contact_phone
           = f.input :main_contact_email
-      %div{class: col_class}
+      .col-sm-6
         %h4 Person Reviewing Plan
-        %div{class: width_class}
+        %div
           = f.input :reviewer_first_name
           = f.input :reviewer_last_name
           = f.input :reviewer_organization
           = f.input :reviewer_phone
           = f.input :reviewer_email
-      %div{class: col_class}
+      .col-sm-6
         %h4 Person Representing Entity Delivering Flexible Services
-        %div{class: width_class}
+        %div
           = f.input :representative_first_name
           = f.input :representative_last_name
           = f.input :representative_organization
           = f.input :representative_phone
           = f.input :representative_email
     %h3 Plan Acceptance
-    %div{class: row_class}
-      %div{class: col_class}
+    .row
+      .col-sm-6
         = f.input :member_agrees_to_plan, as: :pretty_boolean
         = f.input :member_agreement_notes
-      %div{class: col_class}
+      .col-sm-6
         = f.input :aco_approved, as: :pretty_boolean, label: 'ACO approved'
         = f.input :aco_approved_on, as: :date_picker, label: 'ACO approved on'
         = f.input :aco_rejection_notes, label: 'If no, why not?', hint: 'Optional'
@@ -69,7 +61,7 @@
   %p
     Please specify the date on which the member was screened for Health Needs Based Criteria and check the box next to any Health Needs Based Criteria used to establish member eligibility. Optional: briefly describe the condition or activity (as applicable).
   .well.condensed-checkboxes
-    %div{class: width_class}
+    %div
       = f.input :health_needs_screened_on, as: :date_picker, label: 'Date of health needs based critera screening'
       = f.input :complex_physical_health_need, as: :pretty_boolean
       = f.input :complex_physical_health_need_detail
@@ -98,21 +90,21 @@
     = f.input :receives_wic, as: :pretty_boolean, label: 'Community Support Program (CSP) for Chronically Homeless individuals'
     = f.input :receives_csp, as: :pretty_boolean, label: 'Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)'
     = f.input :receives_other, as: :pretty_boolean, label: 'Other'
-    %div{class: width_class}
+    %div
       = f.input :receives_other_detail, label: 'Other details'
 
 %h2 Part IV: Describe Flexible Services Plan
 %section.page-break-after
-  %div{class: row_class}
+  .row
     - (1..@vpr.class.max_service_count).each do |i|
       - visibility_class = "jFlexibleServicePlan jPlanID_#{i}"
       - if i > 1 && @vpr["service_#{i}_added_on"].blank?
         - visibility_class += ' jFlexibleServicePlanHidden'
         - next if @pdf
-      %div{class: col_class}
+      .col-sm-6
         .well.condensed-checkboxes{class: visibility_class}
           %h3 Flexible Service Plan #{i}
-          %div{class: width_class}
+          %div
             = f.input "service_#{i}_added_on", as: :date_picker, label: 'Date service was added to the FS Plan'
             = f.input "service_#{i}_goals", label: 'Goals', hint: '(e.g., obtain housing, improve food security)'
             = f.input "service_#{i}_category", label: 'Flexible Service Category', collection: @vpr.class.available_categories, as: :pretty_boolean_group
@@ -129,30 +121,30 @@
 %h2 Part V: Demographic Data
 %section.page-break-after
   .well.condensed-checkboxes
-    %div{class: row_class}
-      %div{class: col_class}
+    .row
+      .col-sm-6
         = f.input :gender, as: :pretty_boolean_group, collection: @vpr.class.available_genders, label: 'Gender/Gender Identity'
-        %div{class: width_class}
+        %div
           = f.input :gender_detail, label: 'Self-described gender', hint: "If 'prefer to self-describe' is selected"
-      %div{class: col_class}
+      .col-sm-6
         = f.input :sexual_orientation, as: :pretty_boolean_group, collection: @vpr.class.available_orientations, label: 'Sexual Orientation'
-        %div{class: width_class}
+        %div
           = f.input :sexual_orientation_detail, label: 'Self-described sexual orientation', hint: "If 'prefer to self-describe' is selected"
-      %div{class: col_class}
+      .col-sm-6
         = f.input :race, as: :pretty_boolean_group, collection: @vpr.class.available_races, label: 'Race/Ethnicity (Check all that apply)', multiple: true
-        %div{class: width_class}
+        %div
           = f.input :race_detail, label: 'Other race, ethnicity, or origin detail', hint: "If 'some other race,ethnicity, or origin' is selected"
-      %div{class: width_class}
+      %div
         = f.input :primary_language, as: :select_two, collection: @vpr.class.available_languages
-        %div{class: col_class}
+        .col-sm-6
           = f.input :primary_language_detail, hint: "If 'Other' is selected"
-        %div{class: width_class}
+        %div
           = f.input :primary_language_refused, as: :pretty_boolean, label: 'Prefer not to say'
-      %div{class: col_class}
+      .col-sm-6
         = f.input :education, collection: @vpr.class.available_educations, as: :pretty_boolean_group
-        %div{class: width_class}
+        %div
           = f.input :education_detail, label: "If 'Other' is selected"
-      %div{class: col_class}
+      .col-sm-6
         = f.input :employment_status, collection: @vpr.class.available_employments, as: :pretty_boolean_group
 
 = content_for :page_js do
