@@ -7,6 +7,7 @@
 require 'memoist'
 module GrdaWarehouse::CasProjectClientCalculator
   class TcHat
+    include ArelHelper
     extend Memoist
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
@@ -103,6 +104,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         :site_case_management_required,
         :currently_fleeing,
         :dv_date,
+        :va_eligible,
+        :vash_eligible,
       ]
     end
 
@@ -192,6 +195,24 @@ module GrdaWarehouse::CasProjectClientCalculator
       days += client.tc_hat_additional_days_homeless
 
       days + (client.processed_service_history&.literally_homeless_last_three_years || 0)
+    end
+
+    # Set based on client having any active cohorts with VA Eligible set to Yes or true
+    private def va_eligible(client)
+      client.cohort_clients.
+        joins(:cohort).
+        merge(GrdaWarehouse::Cohort.active).
+        where(c_client_t[:va_eligible].lower.matches('%yes%')).
+        exists?
+    end
+
+    # Set based on client having any active cohorts with VASH Eligible set to Yes or true
+    private def vash_eligible(client)
+      client.cohort_clients.
+        joins(:cohort).
+        merge(GrdaWarehouse::Cohort.active).
+        where(vash_eligible: true).
+        exists?
     end
   end
 end

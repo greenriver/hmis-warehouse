@@ -134,12 +134,13 @@ module CasClientData
         max_by(&:collected_at)
     end
 
-    def active_in_cas?
+    def active_in_cas?(include_overridden: true)
       return false if deceased? || moved_in_with_ph?
 
-      case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      active_by_data = case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
-        sync_with_cas
+        # Short circuit if we're using manual flag setting
+        return sync_with_cas
       when :chronic
         chronics.where(chronics: { date: GrdaWarehouse::Chronic.most_recent_day }).exists?
       when :hud_chronic
@@ -165,6 +166,9 @@ module CasClientData
       else
         raise NotImplementedError
       end
+      return active_by_data unless include_overridden
+
+      active_by_data || sync_with_cas
     end
 
     def inactivate_in_cas
