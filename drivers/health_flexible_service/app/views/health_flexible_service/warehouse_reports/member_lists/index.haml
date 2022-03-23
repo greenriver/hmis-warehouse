@@ -13,7 +13,7 @@
         = f.input :date, as: :date_picker, input_html: {value: @end_date}, label: 'End of quarter'
     .row
       .col-12
-        The downloaded report will include the patients with a referral to the selected ACO open
+        The downloaded report will include the patients with both a referral to the selected ACO and an open
         VPR within the three month period before the selected date  (e.g., #{@end_date - 3.months} to #{@end_date}).
 
   - content_for :filter_actions do

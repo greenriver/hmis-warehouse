@@ -144,7 +144,6 @@ module HealthFlexibleService
           :aco_approved_flex_services_on,
         ],
       )
-      # TODO
     end
 
     def flash_interpolation_options
