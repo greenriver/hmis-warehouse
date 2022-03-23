@@ -418,7 +418,7 @@ module HomelessSummaryReport
         all_columns: all_columns.values,
         groups: [headers],
         options: {
-          height: 200,
+          height: 180,
           max: max_value_for(section),
         },
         support: {
