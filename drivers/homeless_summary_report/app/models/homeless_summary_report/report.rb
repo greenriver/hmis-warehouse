@@ -228,11 +228,11 @@ module HomelessSummaryReport
               )
             else
               # For measure 7 we only want the large buckets, we'll add the detail buckets as a json blob
-              destinations.first(3).each.with_index do |ids, i|
+              destinations.first(6).each.with_index do |ids, i|
                 destination_name = measures[section][:headers].drop(1)[i]
                 value = calculate(detail_variant_name, field, calculation, data.merge(destination: ids))
                 details = []
-                destinations.drop(3).each do |d_id|
+                destinations.drop(6).each do |d_id|
                   next unless ::HUD.destination_type(d_id) == ::HUD.destination_type(ids.first)
 
                   count = calculate(detail_variant_name, field, calculation, data.merge(destination: d_id))
@@ -376,7 +376,7 @@ module HomelessSummaryReport
       row_data = data[:fields][field]
 
       headers = data[:headers].dup.tap { |i| i.delete_at(row_data[:calculations].find_index(:count)) } # delete_at acts on original object
-      headers = headers[0..2]
+      headers = headers[0..5]
       columns = {}
       detail_counts = {}
 
@@ -388,6 +388,9 @@ module HomelessSummaryReport
         section_detail_counts = {}
         values = {}
         headers.each.with_index do |destination, c_idx|
+          # Eliminate Remained Housed if not 7b2
+          next if section == 'Measure 7' && headers[c_idx] == 'Remained housed' && field.to_s != 'm7b2_destination'
+
           values[headers[c_idx]] ||= []
           values[headers[c_idx]] << formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: :count_destinations, destination: destination)
           section_detail_counts[headers[c_idx]] = details_counts_for_destination(section: section, household_category: household_category, demographic_category: demographic_category, field: field, destination: destination)
@@ -415,7 +418,7 @@ module HomelessSummaryReport
         all_columns: all_columns.values,
         groups: [headers],
         options: {
-          height: 150,
+          height: 200,
           max: max_value_for(section),
         },
         support: {
@@ -577,17 +580,15 @@ module HomelessSummaryReport
           description: 'The Extent to which Clients Who Exit Homelessness to Permanent Housing Destinations Return to Homelessness within 6, 12, and 24 months',
         },
         'Measure 7' => {
-          fields: {
-            exited_from_homeless_system: {
-              title: 'Clients',
-              calculations: [:count, :count_destinations],
-            },
-          },
+          fields: m7_fields,
           headers: [
             'Client Count',
+            'Homeless Destinations',
             'Permanent Destinations',
             'Temporary Destinations',
             'Institutional Destinations',
+            'Remained housed',
+            'Unknown, doesn\'t know, refused, or not collected',
           ] + ::HUD.valid_destinations.map { |id, d| "#{d} (#{id})" },
           description: 'Successful Placement from Street Outreach and Successful Placement in or Retention of Permanent Housing',
         },
@@ -600,9 +601,12 @@ module HomelessSummaryReport
 
     def destinations
       [
+        HUD.homeless_destinations,
         HUD.permanent_destinations,
         HUD.temporary_destinations,
         HUD.institutional_destinations,
+        [0], # include those who remained housed for 7b2
+        HUD.other_destinations,
       ] + HUD.valid_destinations.keys
     end
 
@@ -642,18 +646,20 @@ module HomelessSummaryReport
     end
 
     def m7_fields
-      spm_fields.keys.filter { |f| field_measure(f) == 7 }.concat(
-        [
-          :m7a1_c2,
-          :m7a1_c3,
-          :m7a1_c4,
-          :m7b1_c2,
-          :m7b1_c3,
-          :m7b2_c2,
-          :m7b2_c3,
-          :exited_from_homeless_system,
-        ],
-      )
+      {
+        m7a1_destination: {
+          title: 'who exit Street Outreach',
+          calculations: [:count, :count_destinations],
+        },
+        m7b1_destination: {
+          title: ' in ES, SH, TH, and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
+          calculations: [:count, :count_destinations],
+        },
+        m7b2_destination: {
+          title: ' in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
+          calculations: [:count, :count_destinations],
+        },
+      }
     end
 
     def spm_fields
@@ -688,21 +694,21 @@ module HomelessSummaryReport
             ['7a.1', 'C3'],
             ['7a.1', 'C4'],
           ],
-          title: 'Exiting SO',
+          title: 'who exit Street Outreach',
         },
         m7b1_destination: {
           cells: [
             ['7b.1', 'C2'],
             ['7b.1', 'C3'],
           ],
-          title: 'ES, SH, TH, and PH-RRH who exited',
+          title: 'in ES, SH, TH, and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
         },
         m7b2_destination: {
           cells: [
             ['7b.2', 'C2'],
             ['7b.2', 'C3'],
           ],
-          title: 'PH projects except PH-RRH who exited after moving into housing',
+          title: 'in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
         },
       }.
         freeze
@@ -985,13 +991,8 @@ module HomelessSummaryReport
         denominator = clients.send('spm_all_persons__all').send(options[:total]).count
         (scope.count / denominator.to_f) * 100 unless denominator.zero?
       when :count_destinations
-        # spm_m7a1_destination
         rc_t = Client.arel_table
-        scope.where(
-          rc_t[:spm_m7a1_destination].in(Array.wrap(options[:destination])).
-          or(rc_t[:spm_m7b1_destination].in(Array.wrap(options[:destination]))),
-        ).
-          count
+        scope.where(rc_t[cell].in(Array.wrap(options[:destination]))).count
       end
       value&.round(1) || 0
     end
