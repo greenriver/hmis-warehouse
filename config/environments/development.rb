@@ -1,5 +1,7 @@
 require "#{Rails.root}/lib/util/exception_notifier.rb"
 
+I18n.config.available_locales = :en
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
   # Don't force ssl for docker development
