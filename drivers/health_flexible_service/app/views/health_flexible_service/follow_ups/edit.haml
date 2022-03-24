@@ -1,0 +1,10 @@
+= render 'breadcrumbs'
+- title = "Add A Flexible Service VPR Follow Up Form for #{@client.full_name}"
+- content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= content_for(:title)
+  .o-page__content
+    = simple_form_for @follow_up, as: :follow_up, url: client_health_flexible_service_vpr_follow_up_path(@client, @vpr, @follow_up) do |f|
+      = render 'form', f: f
+      = f.button :submit, value: 'Save Follow Up'

@@ -21,7 +21,7 @@ module HealthFlexibleService
     def filename
       @filename ||= begin
         aco = ::Health::AccountableCareOrganization.find(@aco_id)
-        "#{aco.short_name}_ML_R#{@r_number}_QE#{@report_range.end.strftime('%Y%m%d')}.xlsx".upcase
+        "#{aco.short_name}_ML_R#{@r_number}_QE#{@report_range.end.strftime('%Y%m%d')}.xlsm".upcase
       end
     end
 
@@ -62,11 +62,18 @@ module HealthFlexibleService
         delivery_entities(vpr, category),
         'No', # transportation
         vpr[:gender],
+        vpr[:gender_detail],
         vpr[:sexual_orientation],
+        vpr[:sexual_orientation_detail],
         vpr[:race],
+        vpr[:race_detail],
         vpr[:primary_language],
+        vpr[:primary_language_detail],
         vpr[:education],
+        vpr[:education_detail],
         vpr[:employment_status],
+        health_needs(vpr),
+        risk_factors(vpr),
       ]
     end
 
@@ -75,7 +82,8 @@ module HealthFlexibleService
         joins(patient: :patient_referral).
         preload(patient: :patient_referral).
         merge(::Health::PatientReferral.at_acos(@aco_id)).
-        category_in_range(category, @report_range).
+        open_between(start_date: @report_range.begin, end_date: @report_range.end).
+        category(category).
         order(last_name: :asc, first_name: :asc, middle_name: :asc).
         distinct
     end
@@ -87,6 +95,28 @@ module HealthFlexibleService
         vpr[service_entity] if vpr[service_category] == category
       end
       entity_names.compact.uniq.join(', ')
+    end
+
+    private def health_needs(vpr)
+      {
+        complex_physical_health_need: 'Complex Physical Health Need',
+        behavioral_health_need: 'Behavioral Health Need',
+        activities_of_daily_living: 'ADL/IADL',
+        ed_utilization: 'ED Utilization',
+        high_risk_pregnancy: 'High Risk Pregnancy',
+      }.map do |key, value|
+        value if vpr.send(key)
+      end.compact
+    end
+
+    private def risk_factors(vpr)
+      {
+        experiencing_homelessness: 'Experiencing homelessness',
+        at_risk_of_homelessness: 'At risk of experiencing homelessness',
+        at_risk_of_nutritional_deficiency: 'At risk of nutritional deficiency/imbalance',
+      }.map do |key, value|
+        value if vpr.send(key)
+      end.compact
     end
   end
 end

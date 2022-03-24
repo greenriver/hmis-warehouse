@@ -8,11 +8,14 @@ BostonHmis::Application.routes.draw do
   # NOTE: using only: [:none] because leaving it blank inserts the default routes, which we have moved to a driver
   resources :clients, only: [:none] do
     namespace :health_flexible_service do
-      resources :vprs
+      resources :vprs do
+        resources :follow_ups, except: [:index]
+      end
     end
   end
 
   namespace :health_flexible_service do
+    resources :my_vprs, only: [:index]
     namespace :warehouse_reports do
       resources :member_lists, only: [:index, :create]
     end
