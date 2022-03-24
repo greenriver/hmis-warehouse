@@ -16,6 +16,9 @@
     .main-inner-prs1
       %p.mt-2.mb-4
         Choose a universe and two categories.  This report will show how many people are in each category cross-section.
+      %p
+        Universe contains
+        %strong #{pluralize(number_with_delimiter(@report.client_count), 'client')}.
       .d-flex
         .mr-4= render 'disaggregation_picker'
         .ml-auto.mb-4

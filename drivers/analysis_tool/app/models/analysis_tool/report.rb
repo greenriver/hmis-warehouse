@@ -59,6 +59,16 @@ module AnalysisTool
       end
     end
 
+    def client_count
+      @client_count ||= report_scope.distinct.select(:client_id).count
+    end
+
+    def percent(value)
+      return 0 if value.zero? || client_count.zero?
+
+      ((value.to_f / client_count) * 100).round
+    end
+
     private def row_data
       @row_data ||= Gather.new(
         buckets: breakdown_calculation(breakdowns[:row]),

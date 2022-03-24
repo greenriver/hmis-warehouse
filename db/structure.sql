@@ -177,7 +177,6 @@ CREATE TABLE public.activity_logs (
 --
 
 CREATE SEQUENCE public.activity_logs_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -220,7 +219,6 @@ CREATE TABLE public.agencies_consent_limits (
 --
 
 CREATE SEQUENCE public.agencies_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -279,7 +277,6 @@ CREATE TABLE public.cas_reports (
 --
 
 CREATE SEQUENCE public.cas_reports_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -340,7 +337,6 @@ CREATE TABLE public.clients_unduplicated (
 --
 
 CREATE SEQUENCE public.clients_unduplicated_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -453,7 +449,6 @@ CREATE TABLE public.delayed_jobs (
 --
 
 CREATE SEQUENCE public.delayed_jobs_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -532,7 +527,6 @@ CREATE TABLE public.glacier_archives (
 --
 
 CREATE SEQUENCE public.glacier_archives_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -567,7 +561,6 @@ CREATE TABLE public.glacier_vaults (
 --
 
 CREATE SEQUENCE public.glacier_vaults_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -605,7 +598,6 @@ CREATE TABLE public.imports (
 --
 
 CREATE SEQUENCE public.imports_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -637,7 +629,6 @@ CREATE TABLE public.letsencrypt_plugin_challenges (
 --
 
 CREATE SEQUENCE public.letsencrypt_plugin_challenges_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -669,7 +660,6 @@ CREATE TABLE public.letsencrypt_plugin_settings (
 --
 
 CREATE SEQUENCE public.letsencrypt_plugin_settings_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -713,7 +703,6 @@ CREATE TABLE public.login_activities (
 --
 
 CREATE SEQUENCE public.login_activities_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -751,7 +740,6 @@ CREATE TABLE public.messages (
 --
 
 CREATE SEQUENCE public.messages_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -782,7 +770,6 @@ CREATE TABLE public.nicknames (
 --
 
 CREATE SEQUENCE public.nicknames_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -863,7 +850,6 @@ CREATE TABLE public.report_results (
 --
 
 CREATE SEQUENCE public.report_results_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -897,7 +883,6 @@ CREATE TABLE public.report_results_summaries (
 --
 
 CREATE SEQUENCE public.report_results_summaries_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -933,7 +918,6 @@ CREATE TABLE public.reports (
 --
 
 CREATE SEQUENCE public.reports_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1094,6 +1078,7 @@ CREATE TABLE public.roles (
     can_search_all_clients boolean DEFAULT false,
     can_import_project_groups boolean DEFAULT false,
     can_view_client_locations boolean DEFAULT false,
+    _report boolean DEFAULT false,
     can_view_project_related_filters boolean DEFAULT false,
     can_manage_sessions boolean DEFAULT false,
     can_generate_homeless_verification_pdfs boolean DEFAULT false,
@@ -1109,7 +1094,6 @@ CREATE TABLE public.roles (
 --
 
 CREATE SEQUENCE public.roles_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1155,7 +1139,6 @@ CREATE TABLE public.similarity_metrics (
 --
 
 CREATE SEQUENCE public.similarity_metrics_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1349,7 +1332,6 @@ CREATE TABLE public.tokens (
 --
 
 CREATE SEQUENCE public.tokens_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1381,7 +1363,6 @@ CREATE TABLE public.translation_keys (
 --
 
 CREATE SEQUENCE public.translation_keys_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1415,7 +1396,6 @@ CREATE TABLE public.translation_texts (
 --
 
 CREATE SEQUENCE public.translation_texts_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1482,7 +1462,6 @@ CREATE TABLE public.unique_names (
 --
 
 CREATE SEQUENCE public.unique_names_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1524,7 +1503,6 @@ CREATE TABLE public.uploads (
 --
 
 CREATE SEQUENCE public.uploads_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1558,7 +1536,6 @@ CREATE TABLE public.user_roles (
 --
 
 CREATE SEQUENCE public.user_roles_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1648,7 +1625,6 @@ CREATE TABLE public.users (
 --
 
 CREATE SEQUENCE public.users_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1689,7 +1665,6 @@ CREATE TABLE public.versions (
 --
 
 CREATE SEQUENCE public.versions_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1723,7 +1698,6 @@ CREATE TABLE public.warehouse_alerts (
 --
 
 CREATE SEQUENCE public.warehouse_alerts_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2216,14 +2190,6 @@ ALTER TABLE ONLY public.reports
 
 ALTER TABLE ONLY public.roles
     ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -2782,6 +2748,13 @@ CREATE INDEX unduplicated_clients_unduplicated_client_id ON public.clients_undup
 
 
 --
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
+
+
+--
 -- Name: user_roles fk_rails_318345354e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2884,6 +2857,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20161219184752'),
 ('20170505132237'),
 ('20170517200539'),
+('20170526162435'),
 ('20170619210146'),
 ('20170619235354'),
 ('20170627154145'),
@@ -2946,6 +2920,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20180722112728'),
 ('20180801164521'),
 ('20180810210623'),
+('20180821195006'),
 ('20181001172617'),
 ('20181012132645'),
 ('20181024200910'),
@@ -2987,6 +2962,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20191021194633'),
 ('20191022140448'),
 ('20191022181527'),
+('20191029172244'),
 ('20191104165453'),
 ('20191104165454'),
 ('20191104165455'),
@@ -3014,12 +2990,23 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200401161139'),
 ('20200402002149'),
 ('20200410003006'),
+('20200612141235'),
 ('20200612150045'),
+('20200612182702'),
 ('20200709125338'),
 ('20200716133200'),
 ('20200720151331'),
 ('20200720221319'),
+('20200721151558'),
+('20200721152000'),
+('20200721153111'),
+('20200721153237'),
+('20200722021319'),
+('20200722150322'),
+('20200723051505'),
+('20200724150317'),
 ('20200724181711'),
+('20200727061729'),
 ('20200728185654'),
 ('20201105132926'),
 ('20201216141634'),
@@ -3027,6 +3014,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20201221141550'),
 ('20201221183603'),
 ('20210105183208'),
+('20210127180420'),
+('20210127181709'),
 ('20210203195412'),
 ('20210205193320'),
 ('20210206022724'),
