@@ -11,7 +11,7 @@ module Admin
     def create
       @user = User.find params[:user_id]
 
-      if User.inactive.find(@user.id).present?
+      if @user.inactive?
         @user.update(
           active: true,
           last_activity_at: Time.current,
