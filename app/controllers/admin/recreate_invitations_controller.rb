@@ -10,6 +10,15 @@ module Admin
 
     def create
       @user = User.find params[:user_id]
+
+      if User.inactive.find(@user.id).present?
+        @user.update(
+          active: true,
+          last_activity_at: Time.current,
+          expired_at: nil,
+        )
+      end
+
       @user.invite!
       flash[:notice] = "Account activation instructions resent to #{@user.email}"
       redirect_to admin_users_path

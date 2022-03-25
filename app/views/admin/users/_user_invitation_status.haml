@@ -1,11 +1,8 @@
 - if user.invitation_status == :active
   - if user.access_locked?
     Account locked.
-    = link_to 'Unlock', unlock_admin_user_path(user), method: :post, class: 'btn btn-secondary btn-sm mt-2'
   - elsif user.expired?
     Account Expired #{user.expired_at}
-    %br
-    = link_to 'Re-activate account', un_expire_admin_user_path(user), method: :post, class: 'btn btn-secondary btn-sm mt-2'
   - elsif user.future_expiration?
     Account will expire on #{user.expired_at.to_date}
   - else
@@ -14,8 +11,5 @@
   Pending Confirmation.
   %br
   Invitation will expire on #{user.invitation_due_at.strftime "%m/%d/%Y"}
-  %br
-  = link_to "Resend Invitation", admin_user_resend_invitation_path(user), method: :post, class: 'btn btn-secondary btn-sm mt-2'
 - elsif user.invitation_status == :invitation_expired
   %i Invitation Expired.
-  = link_to "Re-create Invitation", admin_user_recreate_invitation_path(user), method: :post, class: 'btn btn-secondary btn-sm mt-2'
