@@ -64,7 +64,7 @@
                   %div= "Sign-in provided by #{user.provider.upcase}"
                 = render 'user_invitation_status', user: user
               %td
-                - if user.invitation_status != :active or user.access_locked?
+                - if user.invitation_status != :active || user.access_locked?
                   .mb-6
                     - if user.access_locked?
                       .w-100
