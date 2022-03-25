@@ -39,7 +39,7 @@
                 = render 'admin/users/user_invitation_status', user: user
               %td
                 - if user.invitation_status == :invitation_expired || user.invitation_status == :pending_confirmation
-                  = simple_form_for(user, url: reactivate_admin_inactive_user_path(user)) do |f|
+                  = simple_form_for(user, url: admin_user_recreate_invitation_path(user), method: :post) do |f|
                     = f.button :button, data: { confirm: 'When re-inviting an user, the account will be re-activated and an email invitation will be sent to the address on file.' }, class: 'btn btn-primary' do
                       Re-invite
                 - else
