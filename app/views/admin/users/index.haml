@@ -64,6 +64,23 @@
                   %div= "Sign-in provided by #{user.provider.upcase}"
                 = render 'user_invitation_status', user: user
               %td
+                - if user.invitation_status != :active or user.access_locked?
+                  .mb-6
+                    - if user.access_locked?
+                      .w-100
+                        = link_to unlock_admin_user_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+                          %i.icon-unlocked
+                          Unlock
+                    - if user.invitation_status == :pending_confirmation
+                      .w-100
+                        = link_to admin_user_resend_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+                          %i.icon-envelope-o
+                          Resend Invitation
+                    - if user.invitation_status == :invitation_expired
+                      .w-100
+                        = link_to admin_user_recreate_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+                          %i.icon-envelope-o
+                          Re-create Invitation
                 .w-100
                   = link_to(edit_admin_user_path(id: user), class: 'btn btn-sm btn-secondary mb-2 text-nowrap') do
                     %i.icon-pencil
@@ -73,21 +90,6 @@
                     = link_to admin_user_audit_path(user), class: 'btn btn-sm btn-secondary mb-2' do
                       %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
                       Audit
-                - if user.access_locked?
-                  .w-100
-                    = link_to unlock_admin_user_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
-                      %i.icon-unlocked
-                      Unlock
-                - if user.invitation_status == :pending_confirmation
-                  .w-100
-                    = link_to admin_user_resend_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
-                      %i.icon-envelope-o
-                      Resend Invitation
-                - if user.invitation_status == :invitation_expired
-                  .w-100
-                    = link_to admin_user_recreate_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
-                      %i.icon-envelope-o
-                      Re-create Invitation
                 - if can_impersonate_users? && user.impersonateable_by?(true_user)
                   .w-100
                     = link_to impersonate_admin_user_path(true_user, become_id: user.id), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
