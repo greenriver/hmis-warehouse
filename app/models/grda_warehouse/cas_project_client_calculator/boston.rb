@@ -257,7 +257,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # 8 Client doesn’t know
       # 9 Client refused
       # 99 Data not collected
-      return nil if cls.CurrentLivingSituation.in?(nil, 30, 17, 37, 8, 9, 99)
+      return nil if cls.CurrentLivingSituation.in?([nil, 30, 17, 37, 8, 9, 99])
 
       true
     end
