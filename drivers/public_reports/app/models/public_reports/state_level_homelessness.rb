@@ -601,13 +601,7 @@ module PublicReports
 
             count = enforce_min_threshold(count, 'min_threshold')
             # % of population
-            # denominator is either state-wide homeless population
-            # or census population for chosen geography
-            denominator = if settings.map_overall_geography_census?
-              population_overall.to_f
-            else
-              overall_homeless_population.to_f
-            end
+            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
             rate = count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][coc_code] = {
@@ -660,13 +654,7 @@ module PublicReports
             end
             count = enforce_min_threshold(count, 'min_threshold')
             # % of population
-            # denominator is either state-wide homeless population
-            # or census population for chosen geography
-            denominator = if settings.map_overall_geography_census?
-              population_overall.to_f
-            else
-              overall_homeless_population.to_f
-            end
+            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
             rate = count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][code] = {
@@ -719,13 +707,7 @@ module PublicReports
             end
             count = enforce_min_threshold(count, 'min_threshold')
             # % of population
-            # denominator is either state-wide homeless population
-            # or census population for chosen geography
-            denominator = if settings.map_overall_geography_census?
-              population_overall.to_f
-            else
-              overall_homeless_population.to_f
-            end
+            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
             rate = count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][code] = {
@@ -778,13 +760,7 @@ module PublicReports
             end
             count = enforce_min_threshold(count, 'min_threshold')
             # % of population
-            # denominator is either state-wide homeless population
-            # or census population for chosen geography
-            denominator = if settings.map_overall_geography_census?
-              population_overall.to_f
-            else
-              overall_homeless_population.to_f
-            end
+            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
             rate = count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][code] = {
@@ -797,6 +773,14 @@ module PublicReports
           end
         end
       end
+    end
+
+    # denominator is either state-wide homeless population
+    # or census population for chosen geography
+    private def map_tooltip_denominator(population_overall, overall_homeless_population)
+      return population_overall.to_f if settings.map_overall_geography_census?
+
+      overall_homeless_population.to_f
     end
 
     private def homeless_breakdowns
