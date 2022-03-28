@@ -28,7 +28,7 @@
         = render 'filter_actives'
         = render 'sort'
 
-    = simple_form_for @cohort, url: cohorts_path do |f|
+    = simple_form_for @cohort, as: :cohort, url: cohorts_path do |f|
       .card.mb-4
         %table.table.table-striped.mb-0
           %thead

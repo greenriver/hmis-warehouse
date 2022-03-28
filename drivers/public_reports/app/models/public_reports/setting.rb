@@ -13,9 +13,19 @@ module PublicReports
       types = {
         coc: 'Continuum of Care',
         county: 'County',
-        zip: 'Zipcode',
+        zip: 'Zip code',
       }
       types[:place] = 'Town/City' if GrdaWarehouse::Shape::Town.exists?
+      types
+    end
+
+    def self.available_map_type_descriptions
+      types = {
+        'Continuum of Care' => 'Client data will be aggregated by comparing the CoCCodes from the Project CoC records for the projects where a client is enrolled.',
+        'County' => 'Client data will be aggregated by comparing the Zip codes from the Project CoC records for the projects where a client is enrolled and aggregating them into their counties, distributing the population based on the percent of a Zip code in a given county.',
+        'Zip code' => 'Client data will be aggregated by comparing the Zip codes from the Project CoC records for the projects where a client is enrolled.',
+      }
+      types['Town/City'] = 'Client data will be aggregated by comparing the City from the Project CoC records for the projects where a client is enrolled and comparing to a known list of cities in the state.' if GrdaWarehouse::Shape::Town.exists?
       types
     end
 

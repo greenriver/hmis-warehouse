@@ -43,9 +43,7 @@ module GrdaWarehouse
         self.levels = levels & _all_levels
         self.skip_set = Set.new
 
-        if self.levels.empty?
-          raise "You likely didn't spell a census level correctly"
-        end
+        raise "You likely didn't spell a census level correctly" if self.levels.empty?
       end
 
       def bootstrap_variables!
@@ -66,26 +64,26 @@ module GrdaWarehouse
       def run!
         _each_where_clause do |where_clause|
           # The gem modifies what we pass in and screws things up, thus the dup.
-          results = self.client.where(where_clause.dup)
+          results = client.where(where_clause.dup)
 
           if results.is_a?(Hash) && results[:body] && results[:body].to_s.match?(/unsupported geography heirarchy/)
-            Rails.logger.warn "Skipping #{where_clause[:level]} within #{where_clause[:within]} as not available for #{self.current_dataset} in #{self.current_year}. Not attempting further queries like this"
+            Rails.logger.warn "Skipping #{where_clause[:level]} within #{where_clause[:within]} as not available for #{current_dataset} in #{current_year}. Not attempting further queries like this"
 
-            self.skip_set << [
+            skip_set << [
               current_year,
               current_dataset,
-              current_census_level
+              current_census_level,
             ]
-          elsif results.is_a?(Hash) && results[:code] && self.slice_size == 1
-            Rails.logger.info "Cannot get #{where_clause}: #{results[:code]} #{results[:body].to_s}"
+          elsif results.is_a?(Hash) && results[:code] && slice_size == 1
+            Rails.logger.info "Cannot get #{where_clause}: #{results[:code]} #{results[:body]}"
           elsif results.is_a?(Hash) && results[:code]
-            Rails.logger.debug "Cannot get #{where_clause}: #{results[:body].to_s}. Retrying"
+            Rails.logger.debug "Cannot get #{where_clause}: #{results[:body]}. Retrying"
             raise RetryException
           else
             _process_success(results)
           end
         rescue HTTP::ConnectionError
-          Rails.logger.error "Retrying query in 30 seconds as it timed out"
+          Rails.logger.error 'Retrying query in 30 seconds as it timed out'
           sleep 30
           retry
         end
@@ -111,11 +109,12 @@ module GrdaWarehouse
           'BG',
           'TABBLOCK',
           'CUSTOM',
+          'CUSTOMTOWN',
         ]
       end
 
       def _default_years
-        (Date.today.year-2).downto(2010)
+        (Date.today.year - 2).downto(2010)
       end
 
       def _default_datasets
@@ -127,20 +126,14 @@ module GrdaWarehouse
 
       def _bad_combo?
         # Can't have a full census in a non census year:
-        if !_full_census_year? && self.current_dataset.match?(/sf\d/)
-          return true
-        end
+        return true if !_full_census_year? && current_dataset.match?(/sf\d/)
 
         # FIXME:
         # API interface is different (census api gem flops). Need to figure this out.
-        if self.current_year == 2011 and self.current_dataset == 'acs1'
-          return true
-        end
+        return true if current_year == 2011 && current_dataset == 'acs1'
 
         # Wouldn't have these yet generally.
-        if self.current_year >= Date.today.year-1
-          return true
-        end
+        return true if current_year >= Date.today.year - 1
 
         return false
       end
@@ -150,40 +143,31 @@ module GrdaWarehouse
         values = []
 
         results.each do |result|
-          full_geoid   = result.delete("GEO_ID")
-          _geo_name    = result.delete("name")
-          _state       = result.delete("state")
-          _county      = result.delete("county")
-          _place       = result.delete("place")
-          _tract       = result.delete("tract")
-          _block_group = result.delete("block group")
-          _block       = result.delete("block")
-          _senate      = result.delete("state legislative district (upper chamber)")
-          _house       = result.delete("state legislative district (lower chamber)")
-          _zip_code    = result.delete("zip code tabulation area")
+          full_geoid   = result.delete('GEO_ID')
+          _geo_name    = result.delete('name')
+          _state       = result.delete('state')
+          _county      = result.delete('county')
+          _place       = result.delete('place')
+          _tract       = result.delete('tract')
+          _block_group = result.delete('block group')
+          _block       = result.delete('block')
+          _senate      = result.delete('state legislative district (upper chamber)')
+          _house       = result.delete('state legislative district (lower chamber)')
+          _zip_code    = result.delete('zip code tabulation area')
 
           result.each do |variable, value|
-            if self.current_vars[variable].nil?
-              raise "invalid variable: #{variable}"
-            end
+            raise "invalid variable: #{variable}" if current_vars[variable].nil?
 
             # Some years/datasets/vars give us "1234" instead of 1234.
-            if value.is_a?(String) && value.match?(/^-?\d+$/)
-              value = value.to_i
-            end
+            value = value.to_i if value.is_a?(String) && value.match?(/^-?\d+$/)
+            value = value.to_f if value.is_a?(String) && value.match?(/^-?\d+\.\d+$/)
 
-            if value.is_a?(String) && value.match?(/^-?\d+\.\d+$/)
-              value = value.to_f
-            end
-
-            if value.is_a?(String)
-              binding.pry
-            end
+            binding.irb if value.is_a?(String) # rubocop:disable Lint/Debugger
 
             # We don't harvest any value that could be negative.
             # -666666666 shows up as a sentinal sometimes
             if value.present? && value >= 0
-              values << [full_geoid, self.current_census_level, value, self.current_vars[variable], now]
+              values << [full_geoid, current_census_level, value, current_vars[variable], now]
             else
               Rails.logger.debug "Nothing for #{variable}"
               # probably too small of a geography to have a value
@@ -194,12 +178,12 @@ module GrdaWarehouse
         CensusValue.import(
           ['full_geoid', 'census_level', 'value', 'census_variable_id', 'created_on'],
           values,
-          on_duplicate_key_update: {conflict_target: ['full_geoid', 'census_variable_id'], columns: [:value]},
-          raise_error: true
+          on_duplicate_key_update: { conflict_target: ['full_geoid', 'census_variable_id'], columns: [:value] },
+          raise_error: true,
         )
 
         Rails.logger.debug { "Upserted #{results.flat_map(&:keys).join(',')}" }
-        print "."
+        print '.'
       end
 
       # each year/dataset/variable/geography combo roughly speaking
@@ -214,11 +198,9 @@ module GrdaWarehouse
             next if _bad_combo?
 
             # We don't have the variables.
-            if CensusVariable.where(year: self.current_year, dataset: self.current_dataset).none?
-              next
-            end
+            next if CensusVariable.where(year: current_year, dataset: current_dataset).none?
 
-            self.client.dataset = dataset
+            client.dataset = dataset
 
             _specify_vars_we_want
 
@@ -236,19 +218,19 @@ module GrdaWarehouse
               working = true
 
               # Attempting to gets values in progressively smaller slices
-              while (working) do
+              while working
                 begin
-                  self.current_vars.keys.each_slice(self.slice_size) do |vars|
+                  current_vars.keys.each_slice(slice_size) do |vars|
                     where_clause[:fields] = vars + ['GEO_ID']
 
                     cache_key = Digest::MD5.hexdigest(where_clause.inspect)
 
                     # enables restarting where we left off
                     if Rails.cache.read(cache_key)
-                      print "s"
+                      print 's'
                       next
                     elsif skip_set.include?([current_year, current_dataset, current_census_level])
-                      print "s"
+                      print 's'
                     else
                       yield where_clause
 
@@ -256,13 +238,12 @@ module GrdaWarehouse
 
                       sleep THROTTLE
                     end
-
                   end
 
-                  # No RetryExceptions, so we're done with this innner loop
+                  # No RetryExceptions, so we're done with this inner loop
                   working = false
                 rescue RetryException
-                  if self.slice_size > 1
+                  if slice_size > 1
                     # there was an error, so cut the number of variables in half
                     self.slice_size /= 2
 
@@ -272,23 +253,23 @@ module GrdaWarehouse
               end
             end
 
-            CensusVariable.where(id: self.current_vars.values).update_all(downloaded: true)
+            CensusVariable.where(id: current_vars.values).update_all(downloaded: true)
           end
         end
       end
 
       def _specify_vars_we_want
-        downloadedness = if ENV['FORCE']=='true'
-                           CensusVariable.all
-                         else
-                           CensusVariable.where(downloaded: false)
-                         end
+        downloadedness = if ENV['FORCE'] == 'true'
+          CensusVariable.all
+        else
+          CensusVariable.where(downloaded: false)
+        end
 
         self.current_vars = CensusVariable.
           with_internal_name.
           merge(downloadedness).
-          for_dataset(self.current_dataset).
-          for_year(self.current_year).
+          for_dataset(current_dataset).
+          for_year(current_year).
           pluck(:name, :id).
           to_h
       end
@@ -298,12 +279,12 @@ module GrdaWarehouse
         return @query_geo_params unless @query_geo_params.nil?
 
         @query_geo_params = [
-          {level: 'COUNTY', within: "STATE:#{state_fips}"},
-          {level: "STATE:#{state_fips}" },
-          {level: 'PLACE' , within: "STATE:#{state_fips}"},
-          {level: 'TRACT' , within: "STATE:#{state_fips}"},
-          {level: 'SLDU'  , within: "STATE:#{state_fips}"}, # Senate
-          {level: 'SLDL'  , within: "STATE:#{state_fips}"}, # House of Rep
+          { level: 'COUNTY', within: "STATE:#{state_fips}" },
+          { level: "STATE:#{state_fips}" },
+          { level: 'PLACE', within: "STATE:#{state_fips}" },
+          { level: 'TRACT', within: "STATE:#{state_fips}" },
+          { level: 'SLDU', within: "STATE:#{state_fips}" }, # Senate
+          { level: 'SLDL', within: "STATE:#{state_fips}" }, # House of Rep
         ]
 
         GrdaWarehouse::Shape::ZipCode.in_state(state_fips).all.map(&:zcta5ce10).each_slice(50) do |slice|
@@ -312,14 +293,14 @@ module GrdaWarehouse
 
         GrdaWarehouse::Shape::County.where(statefp: state_fips).find_each do |county|
           # Block Group
-          @query_geo_params << {level: 'BG', within: "STATE:#{state_fips}+COUNTY:#{county.countyfp}+TRACT:*"}
+          @query_geo_params << { level: 'BG', within: "STATE:#{state_fips}+COUNTY:#{county.countyfp}+TRACT:*" }
 
           # Block (aka tabulation block)
-          @query_geo_params << {level: 'TABBLOCK', within: "STATE:#{state_fips}+COUNTY:#{county.countyfp}+TRACT:*"}
+          @query_geo_params << { level: 'TABBLOCK', within: "STATE:#{state_fips}+COUNTY:#{county.countyfp}+TRACT:*" }
         end
 
         @query_geo_params.select! do |param|
-          self.levels.any? do |level|
+          levels.any? do |level|
             param[:level].starts_with?(level)
           end
         end
@@ -328,7 +309,7 @@ module GrdaWarehouse
       end
 
       def _full_census_year?
-        self.current_year % 10 == 0
+        (current_year % 10).zero?
       end
     end
   end

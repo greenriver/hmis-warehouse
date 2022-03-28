@@ -14,44 +14,53 @@ wb_styles.add_style(
   },
 )
 wb.add_worksheet(name: @report.title) do |sheet|
-  @report.data.each do |project_name, data|
-    sheet.add_row(
-      [project_name],
-      style: header_style,
-    )
+  sheet.add_row(['Organization', 'Project', 'Overriden Item', 'Column', 'HMIS Value', 'Override Value', 'URL'], style: th_style)
+  @report.data.each do |organization_name, projects|
+    projects.each do |project_name, data|
+      data[:projects].each do |object|
+        object.class.override_columns.each do |override, hmis|
+          overridden_value = object.send(override)
+          next if overridden_value.blank?
 
-    data[:projects].each do |object|
-      sheet.add_row([object.ProjectName, project_url(object)])
-      sheet.add_row(['Column', 'HMIS Value', 'Override Value'], style: th_style)
-      object.class.override_columns.each do |override, hmis|
-        overridden_value = object.send(override)
-        next if overridden_value.blank?
+          sheet.add_row([organization_name, project_name, 'Project', hmis, object.send(hmis), overridden_value, project_url(object)])
+        end
+      end
 
-        sheet.add_row([hmis, object.send(hmis), overridden_value])
+      data[:inventories].each do |object|
+        object.class.override_columns.each do |override, hmis|
+          overridden_value = object.send(override)
+          next if overridden_value.blank?
+
+          sheet.add_row([organization_name, project_name, 'Inventory', hmis, object.send(hmis), overridden_value, edit_inventory_url(object)])
+        end
+      end
+
+      data[:project_cocs].each do |object|
+        object.class.override_columns.each do |override, hmis|
+          overridden_value = object.send(override)
+          next if overridden_value.blank?
+
+          sheet.add_row([organization_name, project_name, 'Project CoC', hmis, object.send(hmis), overridden_value, edit_project_coc_url(object)])
+        end
       end
     end
-
-    data[:inventories].each do |object|
-      sheet.add_row(['Inventory', edit_inventory_url(object)])
-      sheet.add_row(['Column', 'HMIS Value', 'Override Value'], style: th_style)
-      object.class.override_columns.each do |override, hmis|
-        overridden_value = object.send(override)
-        next if overridden_value.blank?
-
-        sheet.add_row([hmis, object.send(hmis), overridden_value])
+  end
+end
+@report.manual_data.each do |title, data|
+  wb.add_worksheet(name: title) do |sheet|
+    headers_added = false
+    hmis_fields = []
+    data.each do |organization_name, projects|
+      projects.each do |project_name, objects|
+        objects.each do |object|
+          unless headers_added
+            hmis_fields = object.class.hmis_configuration(version: '2022').keys
+            sheet.add_row(['Organization', 'Project'] + hmis_fields + ['URL'])
+            headers_added = true
+          end
+          sheet.add_row([organization_name, project_name, *object.values_at(*hmis_fields), project_url(object.project.id)])
+        end
       end
     end
-
-    data[:project_cocs].each do |object|
-      sheet.add_row(['Project CoC', edit_project_coc_url(object)])
-      sheet.add_row(['Column', 'HMIS Value', 'Override Value'], style: th_style)
-      object.class.override_columns.each do |override, hmis|
-        overridden_value = object.send(override)
-        next if overridden_value.blank?
-
-        sheet.add_row([hmis, object.send(hmis), overridden_value])
-      end
-    end
-    sheet.add_row([''])
   end
 end

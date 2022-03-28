@@ -1,0 +1,16 @@
+.card
+  %table.table.table-striped.mb-0
+    - @report.results.each.with_index do |row, ri|
+      - if ri.zero?
+        %thead
+      - elsif ri == 1
+        %tbody
+      %tr
+        - row.each.with_index do |cell, ci|
+          - if ri.zero? || ci.zero?
+            %th= cell
+          - else
+            %td
+              = link_to_if cell.count.positive?, number_with_delimiter(cell.count), details_analysis_tool_warehouse_reports_analysis_tool_index_path(link_params.merge(cell: [ci - 1, ri - 1]))
+              %br
+              #{@report.percent(cell.count)}%

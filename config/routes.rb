@@ -310,12 +310,15 @@ Rails.application.routes.draw do
     namespace :client_details do
       resources :exits, only: [:index] do
         post :render_section, on: :collection
+        get :section, on: :collection
       end
       resources :entries, only: [:index] do
         post :render_section, on: :collection
+        get :section, on: :collection
       end
       resources :actives, only: [:index] do
         post :render_section, on: :collection
+        get :section, on: :collection
       end
       resources :last_permanent_zips, only: [:index]
     end

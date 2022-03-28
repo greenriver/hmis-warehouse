@@ -1,0 +1,42 @@
+:ruby
+  options = @report.available_breakdowns.map do |k, item|
+    [item[:title], k]
+  end
+  html_options = {
+    class: 'form-control select optional select2 stimulus-select j-disaggregation',
+    'data-minimum-results-for-search': 10,
+  }
+.d-flex.align-items-center.disaggregation-picker-prs-1
+  .d-flex.align-items-start.disaggregation-picker-prs-1__disaggregation
+    %label.h4.mt-2.gray.mb-0.mr-3(for='j-disaggregation-x' style='flex-shrink: 0')
+      Rows:
+    .ml-0.mt-0
+      = render 'inputs/select', field_name: :row_breakdown, label: false, options: options_for_select(options, breakdowns[:col]), html_options: html_options.merge(id: 'j-disaggregation-col')
+    %label.h4.mt-2.gray.mb-0.mr-3.ml-4(for='j-disaggregation-col' style='flex-shrink: 0')
+      Columns:
+    .ml-0.mt-0
+      = render 'inputs/select', field_name: :col_breakdown, label: false, options: options_for_select(options, breakdowns[:row]), html_options: html_options.merge(id: 'j-disaggregation-row')
+  #j-disaggregation-spinner.ml-4.mb-5.d-none
+    .mr-2= render 'spinner'
+    %div Loading&hellip;
+
+- content_for :page_js do
+  :javascript
+    'use strict';
+    $(function() {
+      var $selects = $('.j-disaggregation');
+      $selects.change(function() {
+        var row_breakdown = $('#j-disaggregation-row').val();
+        var col_breakdown = $('#j-disaggregation-col').val();
+
+        if (row_breakdown || col_breakdown) {
+          $selects.prop('disabled', true)
+          $('#j-disaggregation-spinner').removeClass('d-none').addClass('d-flex');
+          var url = new URL(window.location.href);
+          url.searchParams.set('row_breakdown', row_breakdown);
+          url.searchParams.set('col_breakdown', col_breakdown);
+          window.location = url.href;
+          history.pushState({}, row_breakdown, url.href);
+        }
+      });
+    })

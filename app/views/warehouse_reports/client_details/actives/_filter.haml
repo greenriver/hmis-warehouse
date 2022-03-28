@@ -1,6 +1,6 @@
 = simple_form_for @filter, as: :filter, url: polymorphic_path([:warehouse_reports, :client_details, :actives], sub_population: @filter.sub_population), html: { method: :get, class: 'jFilter' } do |f|
   - content_for :filters_col_full do
-    = render 'warehouse_reports/client_details/filter_fields', f: f
+    = render 'warehouse_reports/client_details/filter_fields', f: f, homeless_only: false
 
   - content_for :form_js do
     = render 'warehouse_reports/new_range_js'

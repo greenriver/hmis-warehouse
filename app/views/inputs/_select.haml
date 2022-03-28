@@ -5,4 +5,4 @@
       %label= label
     .select2-select-all
   .d-flex.flex-row.justify-content-between.align-items-center
-    = select_tag(field_name, options, html_options.deep_merge(class: 'stimulus-select', data: { 'stimulus-select-target' => 'element' }))
+    = select_tag(field_name, options, {class: 'stimulus-select', data: { 'stimulus-select-target' => 'element' }}.deep_merge(html_options))
