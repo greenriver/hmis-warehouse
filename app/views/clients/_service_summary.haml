@@ -53,7 +53,7 @@
       %li
         %h4 Disabled
         %span= yes_no @client.currently_disabled?
-        %i.icon-info{data: {toggle: :tooltip, title: 'Yes indicates a DisabilityResponse of 1, 2, or 3, not followed by a 0.'}}
+        %i.icon-info{data: {toggle: :tooltip, title: 'Yes indicates DisablingCondition of 1 or a DisabilityResponse of 1, 2, or 3, not followed by a 0.'}}
       - if @client.source_hmis_forms.triage.any?
         %li
           %h4 Preferred Language:
