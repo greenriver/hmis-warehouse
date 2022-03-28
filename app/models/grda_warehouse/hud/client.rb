@@ -771,17 +771,24 @@ module GrdaWarehouse::Hud
     # client has a disability response in the affirmative
     # where they don't have a subsequent affirmative or negative
     def currently_disabled?
-      self.class.disabled_client_scope.where(id: id).exists?
+      self.class.disabled_client_scope(client_ids: id).where(id: id).exists?
     end
 
-    def self.disabled_client_scope
+    def self.disabled_client_scope(client_ids: nil)
       # This should be equivalent, but in testing has been significantly slower than the pluck
       # destination.where(id: disabling_condition_client_scope.select(:id)).
       #   or(destination.where(id: disabled_client_because_disability_scope.select(:id)))
-      ids = (
-        disabling_condition_client_scope.pluck(:id) +
-        disabled_client_because_disability_scope.pluck(:id)
-      ).uniq
+      ids = if client_ids.present?
+        (
+          disabling_condition_client_scope.where(id: client_ids).pluck(:id) +
+          disabled_client_because_disability_scope.where(id: client_ids).pluck(:id)
+        ).uniq
+      else
+        (
+          disabling_condition_client_scope.pluck(:id) +
+          disabled_client_because_disability_scope.pluck(:id)
+        ).uniq
+      end
       destination.where(id: ids)
     end
 

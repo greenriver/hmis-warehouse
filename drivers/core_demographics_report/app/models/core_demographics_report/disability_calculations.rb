@@ -126,7 +126,7 @@ module
     end
 
     private def disabled_client_disability_types
-      GrdaWarehouse::Hud::Client.disabled_client_scope.where(id: distinct_client_ids).
+      GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: distinct_client_ids).where(id: distinct_client_ids).
         joins(:source_enrollment_disabilities).
         merge(
           GrdaWarehouse::Hud::Disability.
