@@ -307,6 +307,11 @@ class User < ApplicationRecord
     email == 'noreply@greenriver.com'
   end
 
+  def inactive?
+    return true unless active?
+    expired?
+  end
+
   def data_sources
     viewable GrdaWarehouse::DataSource
   end
