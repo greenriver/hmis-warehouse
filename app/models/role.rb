@@ -1003,6 +1003,16 @@ class Role < ApplicationRecord
         administrative: false,
         categories: [],
       },
+      can_view_all_vprs: {
+        description: 'Can view Flex Services information for all patients',
+        administrative: true,
+        categories: [],
+      },
+      can_view_my_vprs: {
+        description: 'Can view Flex Services information for assigned patients',
+        administrative: false,
+        categories: [],
+      },
     }
   end
 

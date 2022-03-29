@@ -17,6 +17,19 @@ module HealthFlexibleService
 
     belongs_to :patient, class_name: 'Health::Patient', optional: true
     belongs_to :user, class_name: 'User', optional: true
+    has_many :follow_ups, inverse_of: :vpr, dependent: :destroy
+
+    scope :open_between, ->(start_date:, end_date:) do
+      at = arel_table
+      # Excellent discussion of why this works:
+      # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+      d_1_start = start_date
+      d_1_end = end_date
+      d_2_start = at[:planned_on]
+      d_2_end = at[:end_date]
+      # Currently does not count as an overlap if one starts on the end of the other
+      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
+    end
 
     def set_defaults
       cha = patient.recent_cha_form
@@ -24,6 +37,7 @@ module HealthFlexibleService
       mmis_name = ::Health::Cp.sender.first&.mmis_enrollment_name
 
       self.planned_on = Date.current
+      self.end_date = planned_on + 6.months
       self.first_name = patient.client.FirstName
       self.middle_name = patient.client.MiddleName
       self.last_name = patient.client.LastName
@@ -61,17 +75,17 @@ module HealthFlexibleService
       end
     end
 
-    scope :category_in_range, ->(category, range) do
+    scope :active, -> do
+      where(arel_table[:end_date].gteq(Date.current))
+    end
+
+    scope :category, ->(category) do
       a_t = arel_table
       query = nil
 
       (1..max_service_count).each do |i|
         service_category = "service_#{i}_category"
-        service_date = "service_#{i}_added_on"
-
-        query_part = a_t[service_category].eq(category).
-          and(a_t[service_date].gteq(range.begin)).
-          and(a_t[service_date].lteq(range.end))
+        query_part = a_t[service_category].eq(category)
 
         query = if query.nil?
           query_part
@@ -120,6 +134,25 @@ module HealthFlexibleService
       value&.gsub(/\d+\. /, '')
     end
 
+    def vpr_sentence
+      (1..self.class.max_service_count).
+        map { |i| "service_#{i}_goals" }.
+        map { |goal| public_send(goal) }.
+        reject(&:blank?).
+        join(', ')
+    end
+
+    def self.migrate_primary_languages
+      find_each(&:migrate_primary_language)
+    end
+
+    def migrate_primary_language
+      update(primary_language: 'Prefer not to say') if primary_language_refused?
+      return if primary_language.blank? || primary_language.in?(self.class.available_languages.values)
+
+      update(primary_language_detail: primary_language, primary_language: 'Other (Please Specify)')
+    end
+
     def self.service_attributes
       (1..max_service_count + 1).map do |i|
         [
@@ -164,6 +197,7 @@ module HealthFlexibleService
         'Bisexual' => 'Bisexual',
         'Prefer to self-describe (specify below)' => 'Prefer to self-describe (specify below)',
         'Prefer not to say' => 'Prefer not to say',
+        'N/A - Child' => 'N/A - Child',
       }
     end
 
@@ -181,6 +215,51 @@ module HealthFlexibleService
       }
     end
 
+    def self.available_languages
+      {
+        'Amharic' => 'Amharic',
+        'Arabic' => 'Arabic',
+        'Armenian' => 'Armenian',
+        'American Sign Language User' => 'American Sign Language User',
+        'Bengali' => 'Bengali',
+        'Cambodian/Khmer' => 'Cambodian/Khmer',
+        'Cape Verdean' => 'Cape Verdean',
+        'Chinese/Cantonese/Mandarin/Toisanese' => 'Chinese/Cantonese/Mandarin/Toisanese',
+        'Croatian' => 'Croatian',
+        'English' => 'English',
+        'Ethiopian' => 'Ethiopian',
+        'Farsi' => 'Farsi',
+        'French' => 'French',
+        'German' => 'German',
+        'Greek' => 'Greek',
+        'Gujerati' => 'Gujerati',
+        'Haitian/Creole' => 'Haitian/Creole',
+        'Hebrew' => 'Hebrew',
+        'Hindi' => 'Hindi',
+        'Hmong' => 'Hmong',
+        'Italian' => 'Italian',
+        'Japanese' => 'Japanese',
+        'Korean' => 'Korean',
+        'Laotian' => 'Laotian',
+        'Lithuanian' => 'Lithuanian',
+        'Polish' => 'Polish',
+        'Portuguese' => 'Portuguese',
+        'Punjabi' => 'Punjabi',
+        'Russian' => 'Russian',
+        'Serbian-Cyrillic' => 'Serbian-Cyrillic',
+        'Slovenian' => 'Slovenian',
+        'Somali' => 'Somali',
+        'Spanish' => 'Spanish',
+        'Swahili' => 'Swahili',
+        'Swedish' => 'Swedish',
+        'Tagalog' => 'Tagalog',
+        'Thai' => 'Thai',
+        'Vietnamese' => 'Vietnamese',
+        'Prefer not to say' => 'Prefer not to say',
+        'Other (Please Specify)' => 'Other (Please Specify)',
+      }
+    end
+
     def self.available_educations
       {
         'In grade school' => 'In grade school',
@@ -193,6 +272,7 @@ module HealthFlexibleService
         'Graduate Degree' => 'Graduate Degree',
         'Other (Please specify)' => 'Other (Please specify)',
         'Prefer not to say' => 'Prefer not to say',
+        'N/A - Child' => 'N/A - Child',
       }
     end
 
@@ -206,6 +286,7 @@ module HealthFlexibleService
         'Home-maker' => 'Home-maker',
         'Self-employed' => 'Self-employed',
         'Prefer not to say' => 'Prefer not to say',
+        'N/A - Child' => 'N/A - Child',
       }
     end
 
