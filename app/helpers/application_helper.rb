@@ -252,6 +252,12 @@ module ApplicationHelper
     end
   end
 
+  def git_revision
+    File.read(File.join(Rails.root, 'REVISION'))
+  rescue StandardError
+    'unknown revision'
+  end
+
   def impersonating?
     current_user != true_user
   end
