@@ -7,6 +7,7 @@
 require 'memoist'
 module GrdaWarehouse::CasProjectClientCalculator
   class TcHat
+    include ArelHelper
     extend Memoist
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
@@ -38,6 +39,14 @@ module GrdaWarehouse::CasProjectClientCalculator
         willing_case_management: 'engage with housing case management',
         employed_three_months: 'employed for 3 months',
         living_wage: 'an hour or more',
+        need_daily_assistance: 'check this box if you feel the client is unable to live alone',
+        full_time_employed: 'currently working a full time',
+        can_work_full_time: 'client able to work a full-time',
+        willing_to_work_full_time: 'willing to work a full-time',
+        rrh_successful_exit: 'successfully exit 12-24 month rrh',
+        th_desired: 'interested in transitional housing',
+        site_case_management_required: 'client need site-based case management',
+        currently_fleeing: 'are you currently fleeing',
       }.freeze
     end
     memoize :boolean_lookups
@@ -53,6 +62,14 @@ module GrdaWarehouse::CasProjectClientCalculator
         willing_case_management: 'Section C',
         employed_three_months: 'Section C',
         living_wage: 'Section C',
+        need_daily_assistance: 'PAGE #1',
+        full_time_employed: 'Section C',
+        can_work_full_time: 'Section C',
+        willing_to_work_full_time: 'Section C',
+        rrh_successful_exit: 'Section C',
+        th_desired: 'Section C',
+        site_case_management_required: 'Section D',
+        currently_fleeing: 'Section E',
       }
     end
 
@@ -75,6 +92,20 @@ module GrdaWarehouse::CasProjectClientCalculator
         :willing_case_management,
         :employed_three_months,
         :living_wage,
+        :need_daily_assistance,
+        :full_time_employed,
+        :can_work_full_time,
+        :willing_to_work_full_time,
+        :rrh_successful_exit,
+        :lifetime_sex_offender,
+        :th_desired,
+        :drug_test,
+        :employed_three_months,
+        :site_case_management_required,
+        :currently_fleeing,
+        :dv_date,
+        :va_eligible,
+        :vash_eligible,
       ]
     end
 
@@ -139,6 +170,15 @@ module GrdaWarehouse::CasProjectClientCalculator
       client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.include?('with others who are formerly homeless')
     end
 
+    private def dv_date(client)
+      section_title = 'Section E'
+      question_title = 'most recent date the violence occurred'
+
+      relevant_section = client.most_recent_tc_hat_for_destination.
+        section_starts_with(section_title)
+      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title).presence&.to_date
+    end
+
     private def cas_assessment_collected_at(client)
       client.most_recent_tc_hat_for_destination&.collected_at
     end
@@ -155,6 +195,24 @@ module GrdaWarehouse::CasProjectClientCalculator
       days += client.tc_hat_additional_days_homeless
 
       days + (client.processed_service_history&.literally_homeless_last_three_years || 0)
+    end
+
+    # Set based on client having any active cohorts with VA Eligible set to Yes or true
+    private def va_eligible(client)
+      client.cohort_clients.
+        joins(:cohort).
+        merge(GrdaWarehouse::Cohort.active).
+        where(c_client_t[:va_eligible].lower.matches('%yes%')).
+        exists?
+    end
+
+    # Set based on client having any active cohorts with VASH Eligible set to Yes or true
+    private def vash_eligible(client)
+      client.cohort_clients.
+        joins(:cohort).
+        merge(GrdaWarehouse::Cohort.active).
+        where(vash_eligible: true).
+        exists?
     end
   end
 end

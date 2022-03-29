@@ -309,6 +309,7 @@ class User < ApplicationRecord
 
   def inactive?
     return true unless active?
+
     expired?
   end
 
