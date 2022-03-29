@@ -2751,7 +2751,8 @@ CREATE TABLE public.health_flexible_service_follow_ups (
     aco_approved_flex_services_on date,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    vpr_id bigint
 );
 
 
@@ -2929,7 +2930,9 @@ CREATE TABLE public.health_flexible_service_vprs (
     employment_status character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    end_date date,
+    primary_language_detail character varying
 );
 
 
@@ -3515,7 +3518,8 @@ CREATE TABLE public.patients (
     aco_name character varying,
     previous_aco_name character varying,
     invalid_id boolean DEFAULT false,
-    nurse_care_manager_id bigint
+    nurse_care_manager_id bigint,
+    housing_navigator_id bigint
 );
 
 
@@ -6634,6 +6638,13 @@ CREATE INDEX index_health_flexible_service_follow_ups_on_user_id ON public.healt
 
 
 --
+-- Name: index_health_flexible_service_follow_ups_on_vpr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_flexible_service_follow_ups_on_vpr_id ON public.health_flexible_service_follow_ups USING btree (vpr_id);
+
+
+--
 -- Name: index_health_flexible_service_vprs_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6771,6 +6782,13 @@ CREATE INDEX index_patient_referrals_on_deleted_at ON public.patient_referrals U
 --
 
 CREATE INDEX index_patients_on_deleted_at ON public.patients USING btree (deleted_at);
+
+
+--
+-- Name: index_patients_on_housing_navigator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_patients_on_housing_navigator_id ON public.patients USING btree (housing_navigator_id);
 
 
 --
@@ -7459,6 +7477,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20211130194653'),
 ('20211209205303'),
 ('20220112142649'),
-('20220131200130');
+('20220131200130'),
+('20220315172910'),
+('20220315200203'),
+('20220315200521'),
+('20220316184128'),
+('20220317205450');
 
 

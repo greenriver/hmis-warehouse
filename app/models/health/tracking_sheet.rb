@@ -211,7 +211,7 @@ module Health
       @disabled_client ||= begin
         client_ids = Health::Patient.where(id: patient_ids).pluck(:client_id)
         # Set.new(GrdaWarehouse::Hud::Client.disabled_client_scope.where(id: client_ids).pluck(:id)) # slow path
-        Set.new(GrdaWarehouse::Hud::Client.disabling_condition_client_scope.where(id: client_ids).pluck(:id))
+        Set.new(GrdaWarehouse::Hud::Client.disabling_condition_client_scope(client_ids: client_ids).where(id: client_ids).pluck(:id))
       end
       @disabled_client.include?(client.id)
     end

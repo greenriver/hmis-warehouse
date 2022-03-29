@@ -1083,7 +1083,9 @@ CREATE TABLE public.roles (
     can_manage_sessions boolean DEFAULT false,
     can_generate_homeless_verification_pdfs boolean DEFAULT false,
     can_manage_own_ad_hoc_data_sources boolean DEFAULT false,
-    can_view_service_register_on_client boolean DEFAULT false
+    can_view_service_register_on_client boolean DEFAULT false,
+    can_view_all_vprs boolean DEFAULT false,
+    can_view_my_vprs boolean DEFAULT false
 );
 
 
@@ -3038,6 +3040,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210819132153'),
 ('20220127152605'),
 ('20220216174239'),
-('20220309140327');
+('20220309140327'),
+('20220314183405');
 
 

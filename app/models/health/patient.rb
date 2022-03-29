@@ -41,6 +41,7 @@ module Health
     phi_attr :coverage_level, Phi::SmallPopulation
     phi_attr :coverage_inquiry_date, Phi::Date
     phi_attr :nurse_care_manager_id, Phi::SmallPopulation
+    phi_attr :housing_navigator_id, Phi::SmallPopulation
 
     has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
     has_many :appointments, through: :epic_patients
@@ -112,6 +113,7 @@ module Health
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
     belongs_to :care_coordinator, class_name: 'User', optional: true
     belongs_to :nurse_care_manager, class_name: 'User', optional: true
+    belongs_to :housing_navigator, class_name: 'User', optional: true
     has_many :qualifying_activities
     has_many :status_dates
 

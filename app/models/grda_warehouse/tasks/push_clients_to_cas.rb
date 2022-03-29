@@ -47,7 +47,7 @@ module GrdaWarehouse::Tasks
               :processed_service_history,
               :hmis_client,
               :source_disabilities,
-              source_clients: { most_recent_pathways_or_rrh_assessment: :assessment_questions },
+              source_clients: { most_recent_pathways_or_rrh_assessment: [:assessment_questions, :user] },
               cohort_clients: :cohort,
             ).
               where(id: client_id_batch).find_each do |client|
@@ -215,6 +215,10 @@ module GrdaWarehouse::Tasks
         site_case_management_required: :site_case_management_required,
         currently_fleeing: :currently_fleeing,
         dv_date: :dv_date,
+        assessor_first_name: :assessor_first_name,
+        assessor_last_name: :assessor_last_name,
+        assessor_email: :assessor_email,
+        assessor_phone: :assessor_phone,
       }
     end
 

@@ -15,7 +15,7 @@ module HealthFlexibleService::WarehouseReports
 
     def create
       member_list = HealthFlexibleService::MemberList.new(@aco, @r_number, @end_date)
-      xlsx = member_list.write_to('drivers/health_flexible_service/app/views/health_flexible_service/warehouse_reports/member_lists/template.xlsx')
+      xlsx = member_list.write_to('drivers/health_flexible_service/app/views/health_flexible_service/warehouse_reports/member_lists/template.xlsm')
       send_data(xlsx.stream.string, filename: member_list.filename)
     end
 

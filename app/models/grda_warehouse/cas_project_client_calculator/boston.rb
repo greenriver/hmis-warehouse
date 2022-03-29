@@ -60,6 +60,10 @@ module GrdaWarehouse::CasProjectClientCalculator
         :assessment_score_for_cas,
         :tie_breaker_date,
         :financial_assistance_end_date,
+        :assessor_first_name,
+        :assessor_last_name,
+        :assessor_email,
+        :assessor_phone,
       ]
     end
     # memoize :pathways_questions
@@ -257,9 +261,28 @@ module GrdaWarehouse::CasProjectClientCalculator
       # 8 Client doesn’t know
       # 9 Client refused
       # 99 Data not collected
-      return nil if cls.CurrentLivingSituation.in?(nil, 30, 17, 37, 8, 9, 99)
+      return nil if cls.CurrentLivingSituation.in?([nil, 30, 17, 37, 8, 9, 99])
 
       true
+    end
+
+    private def assessor_first_name(client)
+      client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserFirstName
+    end
+
+    private def assessor_last_name(client)
+      client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserLastName
+    end
+
+    private def assessor_email(client)
+      client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserEmail
+    end
+
+    private def assessor_phone(client)
+      [
+        client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserPhone,
+        client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserExtension,
+      ].compact.join('x')
     end
   end
 end

@@ -1,0 +1,16 @@
+!!!
+%html
+  %head
+    = wicked_pdf_stylesheet_link_tag 'health_flex_services_pdf', media: 'all'
+    %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
+    %body
+      - title = 'Flexible Service VPR Follow Up Form'
+      = content_for(:title, title)
+      .o-page
+        .o-page__header
+          %h1 #{content_for(:title)} for
+          %h1= @client.full_name
+        .o-page__content
+          = simple_form_for @follow_up, as: :follow_up, url: client_health_flexible_service_vpr_follow_up_path(@client, @follow_up), wrapper: :readonly do |f|
+            = render 'form', f: f
+      = svg 'symbol-defs'

@@ -18,6 +18,8 @@
           %thead
             %tr
               %th Date of Service Planning
+              %th End Date
+              %th Follow Up
               %th Last updated
               %th Download
               %th
@@ -27,6 +29,12 @@
                 %td
                   = link_to edit_client_health_flexible_service_vpr_path(@client, vpr) do
                     = vpr.planned_on
+                %td= vpr.end_date
+                %td
+                  - margin = vpr.follow_ups.count.positive? ? 'mb-4' : ''
+                  = link_to "Add Follow Up", new_client_health_flexible_service_vpr_follow_up_path(@client, vpr), class: "btn btn-secondary btn-sm #{margin}"
+                  - vpr.follow_ups.each do |follow_up|
+                    %br= link_to follow_up.completed_on, edit_client_health_flexible_service_vpr_follow_up_path(@client, vpr, follow_up)
                 %td
                   = vpr.updated_at
                   by #{vpr.user.name}

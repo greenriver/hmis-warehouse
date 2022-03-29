@@ -775,12 +775,30 @@ module GrdaWarehouse::Hud
     # client has a disability response in the affirmative
     # where they don't have a subsequent affirmative or negative
     def currently_disabled?
-      self.class.disabled_client_scope.where(id: id).exists?
+      self.class.disabled_client_scope(client_ids: id).where(id: id).exists?
+    end
+
+    def self.disabled_client_scope(client_ids: nil)
+      # This should be equivalent, but in testing has been significantly slower than the pluck
+      # destination.where(id: disabling_condition_client_scope.select(:id)).
+      #   or(destination.where(id: disabled_client_because_disability_scope.select(:id)))
+      ids = if client_ids.present?
+        (
+          disabling_condition_client_scope.where(id: client_ids).pluck(:id) +
+          disabled_client_because_disability_scope.where(id: client_ids).pluck(:id)
+        ).uniq
+      else
+        (
+          disabling_condition_client_scope.pluck(:id) +
+          disabled_client_because_disability_scope.pluck(:id)
+        ).uniq
+      end
+      destination.where(id: ids)
     end
 
     # client has a disability response in the affirmative
     # where they don't have a subsequent affirmative or negative
-    def self.disabled_client_scope
+    def self.disabled_client_because_disability_scope
       d_t1 = GrdaWarehouse::Hud::Disability.arel_table
       d_t2 = d_t1.dup
       d_t2.table_alias = 'disability2'
@@ -828,13 +846,13 @@ module GrdaWarehouse::Hud
       mre_t = Arel::Table.new(:most_recent_enrollments)
       join = she_t.join(mre_t).on(she_t[:id].eq(mre_t[:current_id]))
 
-      where(
+      destination.where(
         id: GrdaWarehouse::ServiceHistoryEnrollment.
         with(
           most_recent_enrollments:
             GrdaWarehouse::ServiceHistoryEnrollment.
               joins(:enrollment).
-              define_window(:client_by_update).partition_by(:client_id, order_by: { e_t[:DateUpdated] => :desc }).
+              define_window(:client_by_update).partition_by(:client_id, order_by: { she_t[:first_date_in_program] => :desc }).
               select_window(:first_value, she_t[:id], over: :client_by_update, as: :current_id).
               # where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
               where(e_t[:DisablingCondition].in([0, 1])),

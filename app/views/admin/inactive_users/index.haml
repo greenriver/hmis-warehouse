@@ -38,8 +38,13 @@
               %td
                 = render 'admin/users/user_invitation_status', user: user
               %td
-                = simple_form_for(user, url: reactivate_admin_inactive_user_path(user)) do |f|
-                  = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do
-                    Re-activate
+                - if user.invitation_status.in?([:invitation_expired, :pending_confirmation])
+                  = simple_form_for(user, url: admin_user_recreate_invitation_path(user), method: :post) do |f|
+                    = f.button :button, data: { confirm: 'When re-inviting an user, the account will be re-activated and an email invitation will be sent to the address on file.' }, class: 'btn btn-primary' do
+                      Re-invite
+                - else
+                  = simple_form_for(user, url: reactivate_admin_inactive_user_path(user)) do |f|
+                    = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do
+                      Re-activate
 
     %p= paginate @users

@@ -1,6 +1,6 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_re_entry_index_path, html: { method: :get, class: 'jFilter' } do |f|
   - content_for :filters_col_full do
-    = render 'warehouse_reports/client_details/filter_fields', f: f
+    = render 'warehouse_reports/client_details/filter_fields', f: f, homeless_only: true
 
   - content_for :filter_actions do
     .row
