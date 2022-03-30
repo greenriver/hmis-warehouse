@@ -91,6 +91,8 @@ $icons: (
   filter: '\ea5b',
   file-pdf: '\f1c1',
   file-excel: '\f1c3',
+  heart: '\e807',
+  heart-empty: '\e808',
 );
 
 @function get-icon-code($name) {
