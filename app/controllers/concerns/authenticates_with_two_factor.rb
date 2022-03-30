@@ -55,14 +55,12 @@ module AuthenticatesWithTwoFactor
   end
 
   private def authenticate_with_two_factor_via_otp(user)
-    if valid_otp_attempt?(user) || valid_backup_code_attempt?(user)
-      two_factor_successful(user)
-    else
-      user.increment_failed_attempts
-      Rails.logger.info("Failed Login: user=#{user.email} ip=#{request.remote_ip} method=OTP")
-      flash.now[:alert] = _('Invalid two-factor code.')
-      prompt_for_two_factor(user)
-    end
+    return two_factor_successful(user) if valid_otp_attempt?(user) || valid_backup_code_attempt?(user)
+
+    user.record_failure_and_lock_access_if_exceeded!
+    Rails.logger.info("Failed Login: user=#{user.email} ip=#{request.remote_ip} method=OTP")
+    flash.now[:alert] = _('Invalid two-factor code.')
+    prompt_for_two_factor(user)
   end
 
   private def add_2fa_device(user, name)
