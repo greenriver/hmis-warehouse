@@ -70,9 +70,22 @@ module HudApr::Generators::Shared::Fy2021
 
           last_service_history_enrollment = enrollments.last
           if needs_ce_assessments?
-            ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment)
-            ce_latest_event = latest_ce_event(last_service_history_enrollment, ce_latest_assessment)
+            hh_id = get_hh_id(last_service_history_enrollment)
+            hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last
+            ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
+            ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
+            #
+            # Adjust last service history enrollment if falls outside assessment date
+            last_service_history_enrollment = enrollments.
+              select do |e|
+                ce_latest_assessment.AssessmentDate.between?(
+                  e.first_date_in_program,
+                  e.last_date_in_program || @report.end_date,
+                )
+              end.last
           end
+          next if last_service_history_enrollment.nil?
+
           enrollment = last_service_history_enrollment.enrollment
           source_client = enrollment.client
           next unless source_client
@@ -615,8 +628,13 @@ module HudApr::Generators::Shared::Fy2021
     # Return the most_recent assessment completed for the latest enrollment
     # where the assessment occurred within the report range
     # NOTE: there _should_ always be one of these based on the enrollment_scope and client_scope
-    private def latest_ce_assessment(she_enrollment)
-      she_enrollment.enrollment.assessments.
+    private def latest_ce_assessment(she_enrollment, hoh_enrollment)
+      enrollment = if she_enrollment.enrollment.assessments.present?
+        she_enrollment
+      else
+        hoh_enrollment
+      end
+      enrollment.enrollment.assessments.
         select { |a| a.AssessmentDate.present? && a.AssessmentDate.between?(@report.start_date, @report.end_date) }.
         max_by(&:AssessmentDate)
     end
@@ -638,11 +656,16 @@ module HudApr::Generators::Shared::Fy2021
     # client in the table above.
     # 5. If, for a given client, none of the records found belong to the same [project id] as the CE assessment from step 1, use the latest of those to report the client in the table above.
     # 6. The intention of the criteria is to locate the most recent logically relevant record pertaining to the CE assessment record reported in Q9a and Q9b by giving preference to data entered by the same project.
-    private def latest_ce_event(she_enrollment, ce_latest_assessment)
+    private def latest_ce_event(she_enrollment, hoh_enrollment, ce_latest_assessment)
       # FIXME:
       # need first assessment after report end if it occurred within 90 days of report end
       # exclude events after that assessment if it exists
-      potential_events = she_enrollment.client.source_events.select do |e|
+      enrollment = if she_enrollment.enrollment.assessments.present?
+        she_enrollment
+      else
+        hoh_enrollment
+      end
+      potential_events = enrollment.client.source_events.select do |e|
         next_assessment = first_ce_assessment_within_90_days_after_report_range(she_enrollment)
         end_date_check = [@report.end_date + 90.days, next_assessment&.AssessmentDate].compact.min
         e.EventDate.present? && e.EventDate.between?(

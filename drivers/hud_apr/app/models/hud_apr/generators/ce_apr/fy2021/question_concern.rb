@@ -9,24 +9,38 @@ module HudApr::Generators::CeApr::Fy2021::QuestionConcern
 
   included do
     private def clients_with_enrollments(batch)
-      enrollment_scope.
-        joins(:project).
+      client_ids = batch.map(&:id)
+      assessed_clients = enrollment_scope.
+        joins(:project, enrollment: :assessments).
         merge(GrdaWarehouse::Hud::Project.coc_funded).
-        where(client_id: batch.map(&:id)).
+        where(client_id: client_ids).
         order(as_t[:AssessmentDate].asc).
         group_by(&:client_id).
         reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
+
+      other_client_ids = client_ids - assessed_clients.keys
+      household_ids = assessed_clients.values.map(&:last).map(&:household_id)
+
+      other_household_members = enrollment_scope.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.coc_funded).
+        where(client_id: other_client_ids, household_id: household_ids).
+        order(first_date_in_program: :asc).
+        group_by(&:client_id).
+        reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
+
+      assessed_clients.merge(other_household_members)
     end
 
-    private def enrollment_scope_without_preloads
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        entry.
-        open_between(start_date: @report.start_date, end_date: @report.end_date).
-        joins(enrollment: :assessments).
-        merge(GrdaWarehouse::Hud::Assessment.within_range(@report.start_date..@report.end_date))
-      scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
-      scope
-    end
+    # private def enrollment_scope_without_preloads
+    #   scope = GrdaWarehouse::ServiceHistoryEnrollment.
+    #     entry.
+    #     open_between(start_date: @report.start_date, end_date: @report.end_date).
+    #     joins(enrollment: :assessments).
+    #     merge(GrdaWarehouse::Hud::Assessment.within_range(@report.start_date..@report.end_date))
+    #   scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
+    #   scope
+    # end
 
     # Only include ages for clients who were present on the assessment date
     private def ages_for(household_id, date)
