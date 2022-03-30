@@ -283,35 +283,67 @@ module HomelessSummaryReport
       '%0d'
     end
 
-    def formatted_value_for(section:, household_category:, demographic_category:, field:, calculation:, destination: nil)
-      result = results.detect do |row|
-        checks = [
-          row.section == section.to_s,
-          row.household_category == household_category.to_s,
-          row.demographic_category == demographic_category.to_s,
-          row.field == field.to_s,
-          row.calculation == calculation.to_s,
-        ]
-        checks << (row.destination == destination.to_s) if destination.present?
-        checks.all?(true)
+    private def results_hash
+      @results_hash ||= {}.tap do |r|
+        results.find_each do |row|
+          r[row.section] ||= {}
+          r[row.section][row.household_category] ||= {}
+          r[row.section][row.household_category][row.demographic_category] ||= {}
+          r[row.section][row.household_category][row.demographic_category][row.field] ||= {}
+          r[row.section][row.household_category][row.demographic_category][row.field][row.calculation] ||= {}
+
+          r[row.section][row.household_category][row.demographic_category][row.field][row.calculation]
+          if row.destination
+            r[row.section][row.household_category][row.demographic_category][row.field][row.calculation][row.destination] ||= row
+          else
+            r[row.section][row.household_category][row.demographic_category][row.field][row.calculation][''] ||= row
+          end
+        end
       end
+    end
+
+    def formatted_value_for(section:, household_category:, demographic_category:, field:, calculation:, destination: nil)
+      result = if destination.present?
+        results_hash.dig(section.to_s, household_category.to_s, demographic_category.to_s, field.to_s, calculation.to_s, destination.to_s)
+      else
+        results_hash.dig(section.to_s, household_category.to_s, demographic_category.to_s, field.to_s, calculation.to_s, '')
+      end
+      # NOTE: this allocates a bunch of arrays, and then runs through the results over and over to find the right one, above
+      # does an index lookup instead
+      # result = results.detect do |row|
+      #   checks = [
+      #     row.section == section.to_s,
+      #     row.household_category == household_category.to_s,
+      #     row.demographic_category == demographic_category.to_s,
+      #     row.field == field.to_s,
+      #     row.calculation == calculation.to_s,
+      #   ]
+      #   checks << (row.destination == destination.to_s) if destination.present?
+      #   checks.all?(true)
+      # end
       return '' unless result
 
       format(result.format, result.value)
     end
 
     private def details_counts_for_destination(section:, household_category:, demographic_category:, field:, destination:)
-      result = results.detect do |row|
-        checks = [
-          row.section == section.to_s,
-          row.household_category == household_category.to_s,
-          row.demographic_category == demographic_category.to_s,
-          row.field == field.to_s,
-          row.calculation == 'count_destinations',
-        ]
-        checks << (row.destination == destination.to_s) if destination.present?
-        checks.all?(true)
+      calculation = 'count_destinations'
+      result = if destination.present?
+        results_hash.dig(section.to_s, household_category.to_s, demographic_category.to_s, field.to_s, calculation.to_s, destination.to_s)
+      else
+        results_hash.dig(section.to_s, household_category.to_s, demographic_category.to_s, field.to_s, calculation.to_s, '')
       end
+      # result = results.detect do |row|
+      #   checks = [
+      #     row.section == section.to_s,
+      #     row.household_category == household_category.to_s,
+      #     row.demographic_category == demographic_category.to_s,
+      #     row.field == field.to_s,
+      #     row.calculation == 'count_destinations',
+      #   ]
+      #   checks << (row.destination == destination.to_s) if destination.present?
+      #   checks.all?(true)
+      # end
       result.details
     end
 

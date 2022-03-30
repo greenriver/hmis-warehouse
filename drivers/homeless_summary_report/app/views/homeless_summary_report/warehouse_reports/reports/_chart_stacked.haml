@@ -15,21 +15,20 @@
     :javascript
       $(document).ready(function(){
         let chart = new App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar('.jChart.#{variant_slug}', { remote: false });
-      $('.jChart.#{variant_slug}').closest('.chart-wrapper').find('.jToggleChartData').on('click', function(e) {
-        e.preventDefault();
-        let active = $('.jChart.#{variant_slug}').data('active');
-        if(active == 'one_') {
-          active = 'all_';
-          chart.chart.resize({height: 1400})
-        } else {
-          active = 'one_'
-          chart.chart.resize({height: 150})
-        }
-        $('.jChart.#{variant_slug}').data('active', active);
-        let new_columns = $('.jChart.#{variant_slug}').data('chart')[`${active}columns`];
-        let data = { columns: new_columns, unload: true };
+        $('.jChart.#{variant_slug}').closest('.chart-wrapper').find('.jToggleChartData').on('click', function(e) {
+          e.preventDefault();
+          let active = $('.jChart.#{variant_slug}').data('active');
+          if(active == 'one_') {
+            active = 'all_';
+            chart.chart.resize({height: 1400})
+          } else {
+            active = 'one_'
+            chart.chart.resize({height: 150})
+          }
+          $('.jChart.#{variant_slug}').data('active', active);
+          let new_columns = $('.jChart.#{variant_slug}').data('chart')[`${active}columns`];
+          let data = { columns: new_columns, unload: true };
 
-        chart.chart.load(data);
-      });
-
+          chart.chart.load(data);
+        });
       });
