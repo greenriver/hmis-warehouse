@@ -40,7 +40,7 @@ module AnalysisTool::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "Client Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
+          filename = "#{@report.support_title(params).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
