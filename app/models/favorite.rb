@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Favorite < ApplicationRecord
+class Favorite < GrdaWarehouseBase
   belongs_to :user
   belongs_to :entity, polymorphic: true
 end
