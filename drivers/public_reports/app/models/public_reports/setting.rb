@@ -29,6 +29,18 @@ module PublicReports
       types
     end
 
+    def self.available_map_overall_population_methods
+      {
+        'state' => 'State-wide homeless population',
+        'geography' => 'Selected geography census population',
+      }
+    end
+
+    # Default is state, so, for now, we're just providing a way to check if it's set to geography
+    def map_overall_geography_census?
+      map_overall_population_method == 'geography'
+    end
+
     def color_pattern(category = nil)
       if category.blank? || ! color_categories.include?(category.to_sym)
         num_colors.map do |i|

@@ -135,6 +135,7 @@ module PublicReports::WarehouseReports
         :location_type_color_6,
         :location_type_color_7,
         :location_type_color_8,
+        :map_overall_population_method,
       )
     end
 

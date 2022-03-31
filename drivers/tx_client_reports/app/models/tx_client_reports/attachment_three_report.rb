@@ -214,7 +214,7 @@ module TxClientReports
     end
 
     private def disabled_client_ids
-      @disabled_client_ids ||= GrdaWarehouse::Hud::Client.disabled_client_scope.
+      @disabled_client_ids ||= GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: client_ids).
         where(id: client_ids).
         pluck(:id)
     end

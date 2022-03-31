@@ -431,8 +431,8 @@ module PublicReports
             census_data[label] = 0
             data[races[race_code]] ||= Set.new
             year = date.year
-            full_pop = get_us_census_population(year: year) || 0
-            race_pop = get_us_census_population(race_code: race_code, year: year) || 0
+            full_pop = get_us_census_population_by_race(year: year) || 0
+            race_pop = get_us_census_population_by_race(race_code: race_code, year: year) || 0
             census_data[label] = race_pop / full_pop.to_f if full_pop.positive?
           end
 
@@ -601,8 +601,9 @@ module PublicReports
 
             count = enforce_min_threshold(count, 'min_threshold')
             # % of population
+            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
-            rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
+            rate = count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][coc_code] = {
               count: overall_homeless_population,
               overall_population: population_overall.to_i,
@@ -653,8 +654,9 @@ module PublicReports
             end
             count = enforce_min_threshold(count, 'min_threshold')
             # % of population
+            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
-            rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
+            rate = count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][code] = {
               count: overall_homeless_population,
               overall_population: population_overall.to_i,
@@ -705,8 +707,9 @@ module PublicReports
             end
             count = enforce_min_threshold(count, 'min_threshold')
             # % of population
+            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
-            rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
+            rate = count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][code] = {
               count: overall_homeless_population,
               overall_population: population_overall.to_i,
@@ -757,8 +760,9 @@ module PublicReports
             end
             count = enforce_min_threshold(count, 'min_threshold')
             # % of population
+            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
-            rate = count / overall_homeless_population.to_f * 100.0 if overall_homeless_population&.positive?
+            rate = count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][code] = {
               count: overall_homeless_population,
               overall_population: population_overall.to_i,
@@ -769,6 +773,14 @@ module PublicReports
           end
         end
       end
+    end
+
+    # denominator is either state-wide homeless population
+    # or census population for chosen geography
+    private def map_tooltip_denominator(population_overall, overall_homeless_population)
+      return population_overall.to_f if settings.map_overall_geography_census?
+
+      overall_homeless_population.to_f
     end
 
     private def homeless_breakdowns
@@ -1099,7 +1111,7 @@ module PublicReports
       end
     end
 
-    private def get_us_census_population(race_code: 'All', year:)
+    private def get_us_census_population_by_race(race_code: 'All', year:)
       race_var = \
         case race_code
         when 'AmIndAKNative' then NATIVE_AMERICAN

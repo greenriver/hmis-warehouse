@@ -93,11 +93,4 @@
     .col-lg-8.col-xl-6
       = render 'clients/required_documents'
 
-  %section.o-section-card.row
-    .col-lg-8.col-xl-6
-      %h3 Sync with CAS?
-      .c-card.c-card--block.c-card--padded.c-card--flush
-        = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f
-
-  .form__actions
-    = f.submit value: 'Update CAS Info', class: 'btn btn-primary'
+  = render 'sync_with_cas', f: f

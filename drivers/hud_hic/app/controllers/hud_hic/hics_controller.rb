@@ -26,6 +26,10 @@ module HudHic
       ::Filters::HudFilterBase
     end
 
+    private def zip_exporter
+      ::HudReports::ZipExporter.new(@report, force_quotes: false)
+    end
+
     private def possible_generator_classes
       {
         fy2022: HudHic::Generators::Hic::Fy2022::Generator,
