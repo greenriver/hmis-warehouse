@@ -60,10 +60,11 @@ module GrdaWarehouse::CasProjectClientCalculator
         :assessment_score_for_cas,
         :tie_breaker_date,
         :financial_assistance_end_date,
-        :assessor_first_name,
-        :assessor_last_name,
-        :assessor_email,
-        :assessor_phone,
+        # Don't send these until https://github.com/greenriver/boston-cas/pull/580 has been merged
+        # :assessor_first_name,
+        # :assessor_last_name,
+        # :assessor_email,
+        # :assessor_phone,
       ]
     end
     # memoize :pathways_questions
