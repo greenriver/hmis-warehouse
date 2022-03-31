@@ -1,3 +1,0 @@
-ProjectCoCID,ProjectID,CoCCode,Geocode,Address1,Address2,City,State,Zip,GeographyType,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-COC-1,SO,XX-500,"012345",,,,,,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
-COC-2,SERVICES,XX-500,"012345",,,,,,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
