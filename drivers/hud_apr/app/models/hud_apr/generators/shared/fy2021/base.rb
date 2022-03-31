@@ -52,7 +52,8 @@ module HudApr::Generators::Shared::Fy2021
           household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
           date = [
             @report.start_date,
-            last_service_history_enrollment.first_date_in_program,
+            # Only HoHs get CE assessments, so we use their entry date
+            needs_ce_assessments? ? hoh_enrollment.first_date_in_program : last_service_history_enrollment.first_date_in_program,
           ].max
           household_types[hh_id] = household_makeup(hh_id, date)
           times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
