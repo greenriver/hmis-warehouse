@@ -1,3 +1,5 @@
+- coc_cols = if active_report_versions.count > 1 then 'col-sm-3' else 'col-sm-6' end
+
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
 = simple_form_for @filter, as: :filter, url: url do |f|
   - content_for :filters_col_full do
@@ -8,9 +10,13 @@
           = f.input :start, as: :date_picker, label: 'Start Date', required: true
         .col-sm-3
           = f.input :end, as: :date_picker, label: 'End Date', required: true
-        .col-sm-3
-          = f.input :report_version, collection: active_report_versions, as: :select_two, include_blank: false, label: 'Report Year'
-        .col-sm-3
+
+        - if active_report_versions.count > 1
+          .col-sm-3
+            = f.input :report_version, collection: active_report_versions, as: :select_two, include_blank: false, label: 'Report Version'
+        - else
+          = f.input :report_version, as: :hidden, input_html: { value: active_report_versions.map(&:last)}
+        %div{ class: coc_cols }
           = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true}, label: 'CoC Codes', hint: default_coc_code
       %h2 Projects to Include
       .row

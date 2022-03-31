@@ -12,13 +12,5 @@ module HudApr::Generators::CeApr::Fy2020
     def needs_ce_assessments?
       true
     end
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q6a_pii
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end
