@@ -35,8 +35,21 @@
             = content_for :page_js do
               :javascript
                 $(document).ready(function(){
+                  var data = $('.#{class_name}').data('chart');
+                  var max = Math.max(...data.columns[1].slice(1));
+                  var include_percent = #{result.primary_unit.starts_with?('%')}
+                  data.labels['format'] = function (v, id, i, texts) {
+                    if(v < max * 0.15) {
+                      return '';
+                    }
+                    if(include_percent) {
+                      return d3.format(".0%")(v / 100)
+                    } else {
+                      return d3.format(",.2r")(v)
+                    }
+                  }
                   var chart = bb.generate({
-                    data: $('.#{class_name}').data('chart'),
+                    data: data,
                     axis: {
                       x: { type: 'category' },
                       y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
@@ -81,7 +94,14 @@
     $(document).ready(function(){
       var all_project_data = $('.#{all_projects_class_name}').data('chart');
       var all_project_height = 35 * all_project_data.columns[0].length;
+      console.log(all_project_data);
       var max = Math.max(...all_project_data.columns[1].slice(1));
+      all_project_data.labels['format'] = function (v, id, i, texts) {
+        if(v < max * 0.15) {
+          return '';
+        }
+        return d3.format(",.2r")(v)
+      }
       var all_project_chart = bb.generate({
         data: all_project_data,
         size: { height: all_project_height },
@@ -95,6 +115,10 @@
           rotated: true,
           y: {
             max: max,
+            min: 0,
+            padding: {
+              bottom: 0,
+            },
             outer: false,
             tick: {
               rotate: -35,
