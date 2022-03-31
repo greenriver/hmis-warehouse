@@ -24,38 +24,32 @@ module HudApr::Generators::Apr::Fy2020
       hud_reports_apr_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
-    def self.filter_class
-      ::Filters::HudFilterBase
-    end
-
     def self.questions
       [
-        HudApr::Generators::Apr::Fy2020::QuestionFour, # Project Identifiers in HMIS
-        HudApr::Generators::Apr::Fy2020::QuestionFive, # Report Validations Table
-        HudApr::Generators::Apr::Fy2020::QuestionSix, # Data Quality
-        HudApr::Generators::Apr::Fy2020::QuestionSeven, # Persons Served
-        HudApr::Generators::Apr::Fy2020::QuestionEight, # Households Served
-        HudApr::Generators::Apr::Fy2020::QuestionNine, # Contacts and Engagements
-        HudApr::Generators::Apr::Fy2020::QuestionTen, # Gender
-        HudApr::Generators::Apr::Fy2020::QuestionEleven, # Age-Household Breakdown
-        HudApr::Generators::Apr::Fy2020::QuestionTwelve, # Race & Ethnicity
-        HudApr::Generators::Apr::Fy2020::QuestionThirteen, # Health
-        HudApr::Generators::Apr::Fy2020::QuestionFourteen, # Domestic Violence
-        HudApr::Generators::Apr::Fy2020::QuestionFifteen, # Living Situation
-        HudApr::Generators::Apr::Fy2020::QuestionSixteen, #  Cash Income - Ranges
-        HudApr::Generators::Apr::Fy2020::QuestionSeventeen, # Cash Income - Sources
-        HudApr::Generators::Apr::Fy2020::QuestionEighteen, # Client Cash Income Category - Earned/Other Income Category - by Start and t/Exit Status
-        HudApr::Generators::Apr::Fy2020::QuestionNineteen, # Cash Income – Changes over Time
-        HudApr::Generators::Apr::Fy2020::QuestionTwenty, # Non-Cash Benefits
-        HudApr::Generators::Apr::Fy2020::QuestionTwentyOne, # Health Insurance
-        HudApr::Generators::Apr::Fy2020::QuestionTwentyTwo, # Length of participation
-        HudApr::Generators::Apr::Fy2020::QuestionTwentyThree, # Destination
-        HudApr::Generators::Apr::Fy2020::QuestionTwentyFive, # Veterans
-        HudApr::Generators::Apr::Fy2020::QuestionTwentySix, # Chronically Homeless
-        HudApr::Generators::Apr::Fy2020::QuestionTwentySeven, # Youth
-      ].map do |q|
-        [q.question_number, q]
-      end.to_h.freeze
+        'Question 4',
+        'Question 5',
+        'Question 6',
+        'Question 7',
+        'Question 8',
+        'Question 9',
+        'Question 10',
+        'Question 11',
+        'Question 12',
+        'Question 13',
+        'Question 14',
+        'Question 15',
+        'Question 16',
+        'Question 17',
+        'Question 18',
+        'Question 19',
+        'Question 20',
+        'Question 21',
+        'Question 22',
+        'Question 23',
+        'Question 25',
+        'Question 26',
+        'Question 27',
+      ].map { |q| [q, q] }.to_h
     end
 
     def self.valid_question_number(question_number)
