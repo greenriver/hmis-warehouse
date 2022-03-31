@@ -134,12 +134,13 @@ module CasClientData
         max_by(&:collected_at)
     end
 
-    def active_in_cas?
+    def active_in_cas?(include_overridden: true)
       return false if deceased? || moved_in_with_ph?
 
-      case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      active_by_data = case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
-        sync_with_cas
+        # Short circuit if we're using manual flag setting
+        return sync_with_cas
       when :chronic
         chronics.where(chronics: { date: GrdaWarehouse::Chronic.most_recent_day }).exists?
       when :hud_chronic
@@ -165,6 +166,9 @@ module CasClientData
       else
         raise NotImplementedError
       end
+      return active_by_data unless include_overridden
+
+      active_by_data || sync_with_cas
     end
 
     def inactivate_in_cas
@@ -409,6 +413,6 @@ module CasClientData
     end
 
     # The following do not currently get persisted onto Client, but are calculated live
-    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless, :hivaids_status, :drug_test, :heavy_drug_use, :sober, :willing_case_management, :employed_three_months, :living_wage
+    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless, :hivaids_status, :drug_test, :heavy_drug_use, :sober, :willing_case_management, :employed_three_months, :living_wage, :need_daily_assistance, :full_time_employed, :can_work_full_time, :willing_to_work_full_time, :rrh_successful_exit, :th_desired, :drug_test, :employed_three_months, :site_case_management_required, :currently_fleeing, :dv_date, :assessor_first_name, :assessor_last_name, :assessor_email, :assessor_phone
   end
 end

@@ -295,9 +295,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :cas_active, -> do
-      case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      scope = case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
-        where(sync_with_cas: true)
+        # Short circuit if we're using manual flag setting
+        return where(sync_with_cas: true)
       when :chronic
         joins(:chronics).where(chronics: { date: GrdaWarehouse::Chronic.most_recent_day })
       when :hud_chronic
@@ -313,6 +314,9 @@ module GrdaWarehouse::Hud
       else
         raise NotImplementedError
       end
+
+      # Include anyone who should be included by virtue of their data, and anyone who has the checkbox checked
+      scope.or(where(sync_with_cas: true))
     end
 
     scope :full_housing_release_on_file, -> do
@@ -771,17 +775,24 @@ module GrdaWarehouse::Hud
     # client has a disability response in the affirmative
     # where they don't have a subsequent affirmative or negative
     def currently_disabled?
-      self.class.disabled_client_scope.where(id: id).exists?
+      self.class.disabled_client_scope(client_ids: id).where(id: id).exists?
     end
 
-    def self.disabled_client_scope
+    def self.disabled_client_scope(client_ids: nil)
       # This should be equivalent, but in testing has been significantly slower than the pluck
       # destination.where(id: disabling_condition_client_scope.select(:id)).
       #   or(destination.where(id: disabled_client_because_disability_scope.select(:id)))
-      ids = (
-        disabling_condition_client_scope.pluck(:id) +
-        disabled_client_because_disability_scope.pluck(:id)
-      ).uniq
+      ids = if client_ids.present?
+        (
+          disabling_condition_client_scope.where(id: client_ids).pluck(:id) +
+          disabled_client_because_disability_scope.where(id: client_ids).pluck(:id)
+        ).uniq
+      else
+        (
+          disabling_condition_client_scope.pluck(:id) +
+          disabled_client_because_disability_scope.pluck(:id)
+        ).uniq
+      end
       destination.where(id: ids)
     end
 

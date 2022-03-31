@@ -7,9 +7,10 @@
 require 'zip'
 module HudReports
   class ZipExporter
-    def initialize(report, file_path: 'var/hud_report')
+    def initialize(report, file_path: 'var/hud_report', force_quotes: true)
       @report = report
       @file_path = "#{file_path}/#{Process.pid}" # Usual Unixism -- create a unique path based on the PID
+      @force_quotes = force_quotes
     end
 
     def export!
@@ -21,7 +22,7 @@ module HudReports
 
           metadata = question.metadata
           Array(metadata['tables']).each do |table|
-            exporter = CsvExporter.new(@report, table)
+            exporter = CsvExporter.new(@report, table, force_quotes: @force_quotes)
             exporter.export(@file_path)
           end
         end
