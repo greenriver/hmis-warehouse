@@ -1,6 +1,11 @@
 - clients = @report.support_for(params)
 %h1.mb-6= @report.support_title(params)
-%p Showing #{pluralize(clients.count, 'clients')}
+.d-flex.mb-4
+  %p Showing #{pluralize(clients.count, 'clients')}
+  .ml-auto
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon.icon-download2
+      Download Excel
 .card
   %table.table.table-striped.mb-0
     %thead

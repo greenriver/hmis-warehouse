@@ -22,7 +22,11 @@
             %span.label.label-success
               = Rails.env
       - else
-        .git-branch.ml-auto
+        .git-revision.ml-auto
+          .navbar-text
+            .label.label-warning
+              = git_revision
+        .git-branch.ml-4
           .navbar-text
             .label.label-warning
               = Rails.version

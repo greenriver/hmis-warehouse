@@ -168,7 +168,7 @@ module DisabilitySummary
         HUD.gender_fields.each do |field|
           columns[field] = c_t[field]
         end
-        race_cache_client = GrdaWarehouse::Hud::Client.new
+        # race_cache_client = GrdaWarehouse::Hud::Client.new
         data = {}
         # binding.pry
         report_scope.joins(:client, enrollment: :disabilities, project: :project_cocs).
@@ -180,7 +180,7 @@ module DisabilitySummary
             disability_response = row[:disability_response]
             indefinite = row[:indefinite]
             disability = HUD.disability_type(row[:disability_type])
-            race = race_cache_client.race_string(destination_id: client_id, scope_limit: GrdaWarehouse::Hud::Client.joins(:service_history_enrollments).merge(report_scope))
+            # race = nil #race_cache_client.race_string(destination_id: client_id, scope_limit: GrdaWarehouse::Hud::Client.joins(:service_history_enrollments).merge(report_scope))
 
             # only count the first response for a client in each type per coc
             data[:counted_by_coc] ||= {}
@@ -205,11 +205,12 @@ module DisabilitySummary
               response: response,
               indefinite: indefinite,
               coc_code: coc_code,
-              race: race,
+              # race: race,
               veteran_status: row[:veteran_status],
               dob: row[:dob],
               reporting_age: row[:reporting_age],
               ethnicity: row[:ethnicity],
+              id: client_id,
             }
             HUD.gender_fields.each do |field|
               client_data[field] = row[field]
@@ -245,6 +246,7 @@ module DisabilitySummary
       coc = params.dig(:coc)
       disability = params.dig(:disability)
       indefinite = params.dig(:indefinite)
+
       return unless disability.present?
       return unless disability.in?(HUD.disability_types.values)
       return if coc.present? && ! coc.in?(HUD.cocs.keys)
@@ -252,13 +254,21 @@ module DisabilitySummary
 
       ids = if detail == 'universe'
         data_for_disabilities[:all][:clients][disability]
+      elsif indefinite.blank?
+        data_for_disabilities[:by_coc][coc][:disabilities][disability].values.map(&:to_a).flatten.to_set
       else
         data_for_disabilities[:by_coc][coc][:disabilities][disability][HUD.no_yes_reasons_for_missing_data(indefinite)]
       end
 
-      data_for_disabilities[:clients].select do |client_id, _|
+      clients = data_for_disabilities[:clients].select do |client_id, _|
         ids.include?(client_id)
       end.values
+      # Populate Race (this is too expensive to do system-wide, but should be ok for a drill-down)
+      race_cache_client = GrdaWarehouse::Hud::Client.new
+      clients.map do |client|
+        client[:race] = race_cache_client.race_string(destination_id: client[:id], scope_limit: GrdaWarehouse::Hud::Client.joins(:service_history_enrollments).merge(report_scope))
+        client
+      end
     end
 
     def support_title(params)

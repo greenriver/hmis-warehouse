@@ -270,6 +270,22 @@ class User < ApplicationRecord
     )
   end
 
+  def record_failure_and_lock_access_if_exceeded!
+    # Due to a bug, failed PWs double increment failed attempts. To
+    # compensate, we double the lockout threshold. To match the PW
+    # behavior, double up on failures due to OTP
+    # https://github.com/tinfoil/devise-two-factor/issues/28
+    transaction do
+      2.times do # intentional double increment
+        increment_failed_attempts
+      end
+    end
+    # outside of transaction since this method sends email
+    return unless attempts_exceeded?
+
+    lock_access! unless access_locked?
+  end
+
   def invitation_status
     if invitation_accepted_at.present? || invitation_sent_at.blank?
       :active
