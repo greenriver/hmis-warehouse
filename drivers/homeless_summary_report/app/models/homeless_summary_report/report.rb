@@ -619,8 +619,8 @@ module HomelessSummaryReport
             'Permanent Destinations',
             'Temporary Destinations',
             'Institutional Destinations',
-            'Remained housed',
             'Unknown, doesn\'t know, refused, or not collected',
+            'Remained housed',
           ] + ::HUD.valid_destinations.map { |id, d| "#{d} (#{id})" },
           description: 'Successful Placement from Street Outreach and Successful Placement in or Retention of Permanent Housing',
         },
@@ -637,8 +637,8 @@ module HomelessSummaryReport
         HUD.permanent_destinations,
         HUD.temporary_destinations,
         HUD.institutional_destinations,
-        [0], # include those who remained housed for 7b2
         HUD.other_destinations,
+        [0], # include those who remained housed for 7b2
       ] + HUD.valid_destinations.keys
     end
 
