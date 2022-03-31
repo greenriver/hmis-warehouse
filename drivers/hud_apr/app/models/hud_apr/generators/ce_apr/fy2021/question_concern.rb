@@ -8,6 +8,11 @@ module HudApr::Generators::CeApr::Fy2021::QuestionConcern
   extend ActiveSupport::Concern
 
   included do
+    # By default, only include members with assessments
+    def self.filter_universe_members(associations)
+      associations.reject { |_, row| row[:ce_assessment_date].blank? }
+    end
+
     private def clients_with_enrollments(batch)
       client_ids = batch.map(&:id)
       assessed_clients = enrollment_scope.
@@ -29,7 +34,18 @@ module HudApr::Generators::CeApr::Fy2021::QuestionConcern
         group_by(&:client_id).
         reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
 
-      assessed_clients.merge(other_household_members)
+      non_household_client_ids = other_client_ids - other_household_members.keys
+
+      non_household_members = enrollment_scope.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.coc_funded).
+        where(client_id: non_household_client_ids).
+        order(first_date_in_program: :asc).
+        group_by(&:client_id)
+
+      assessed_clients.
+        merge(other_household_members).
+        merge(non_household_members)
     end
 
     # private def enrollment_scope_without_preloads

@@ -77,13 +77,15 @@ module HudApr::Generators::Shared::Fy2021
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
             #
             # Adjust last service history enrollment if falls outside assessment date
-            last_service_history_enrollment = enrollments.
-              select do |e|
-                ce_latest_assessment.AssessmentDate.between?(
-                  e.first_date_in_program,
-                  e.last_date_in_program || @report.end_date,
-                )
-              end.last
+            if ce_latest_assessment.present?
+              last_service_history_enrollment = enrollments.
+                select do |e|
+                  ce_latest_assessment.AssessmentDate.between?(
+                    e.first_date_in_program,
+                    e.last_date_in_program || @report.end_date,
+                  )
+                end.last
+            end
           end
           next if last_service_history_enrollment.nil?
 
@@ -131,7 +133,7 @@ module HudApr::Generators::Shared::Fy2021
           annual_assessment_expected = household_assessment_required[get_hh_id(last_service_history_enrollment)]
 
           household_calculation_date = if needs_ce_assessments?
-            ce_latest_assessment.AssessmentDate
+            ce_latest_assessment&.AssessmentDate || hoh_enrollment.first_date_in_program
           else
             last_service_history_enrollment.first_date_in_program
           end
@@ -275,9 +277,9 @@ module HudApr::Generators::Shared::Fy2021
                   first_date_in_program: last_service_history_enrollment.first_date_in_program,
                 ),
               ),
-              ce_assessment_date: ce_latest_assessment.AssessmentDate,
-              ce_assessment_type: ce_latest_assessment.AssessmentType, # for Q9a
-              ce_assessment_prioritization_status: ce_latest_assessment.PrioritizationStatus, # for Q9b, Q9d
+              ce_assessment_date: ce_latest_assessment&.AssessmentDate,
+              ce_assessment_type: ce_latest_assessment&.AssessmentType, # for Q9a
+              ce_assessment_prioritization_status: ce_latest_assessment&.PrioritizationStatus, # for Q9b, Q9d
               ce_event_date: ce_latest_event&.EventDate,
               ce_event_event: ce_latest_event&.Event, # Q9c, Q9d
               ce_event_problem_sol_div_rr_result: ce_latest_event&.ProbSolDivRRResult,
@@ -303,7 +305,8 @@ module HudApr::Generators::Shared::Fy2021
         # Attach APR Clients to relevant questions
         @report.build_for_questions.each do |question_number|
           universe_cell = @report.universe(question_number)
-          universe_cell.add_universe_members(pending_associations)
+          generator = @generator.class.questions[question_number]
+          universe_cell.add_universe_members(generator.filter_universe_members(pending_associations))
         end
 
         # Add any associated data that needs to be linked back to the apr clients
@@ -668,9 +671,15 @@ module HudApr::Generators::Shared::Fy2021
       end
       potential_events = enrollment.client.source_events.select do |e|
         next_assessment = first_ce_assessment_within_90_days_after_report_range(she_enrollment)
-        end_date_check = [@report.end_date + 90.days, next_assessment&.AssessmentDate].compact.min
+        if ce_latest_assessment
+          start_date_check = ce_latest_assessment.AssessmentDate
+          end_date_check = [@report.end_date + 90.days, next_assessment&.AssessmentDate].compact.min
+        else
+          start_date_check = @report.start_date
+          end_date_check = @report.end_date
+        end
         e.EventDate.present? && e.EventDate.between?(
-          ce_latest_assessment&.AssessmentDate,
+          start_date_check,
           end_date_check,
         )
       end
