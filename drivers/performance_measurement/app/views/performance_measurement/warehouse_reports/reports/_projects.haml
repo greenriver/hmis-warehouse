@@ -3,7 +3,7 @@
 .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
   %h2 Project Level
 %h4 Project Comparsison #{@report.filter.date_range_words}
-.c-chart--vertical-bar{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar.to_json }}
+.c-chart--vertical-bar{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
 - my_projects = @report.my_projects(current_user, key)
 - if my_projects.present?
   .well.no-break
@@ -18,7 +18,7 @@
           .w-50= render 'warehouse_reports/indicator', indicator: result, link: performance_measurement_warehouse_reports_report_clients_path(report_id: @report.id, key: key, project_id: project_id)
           .w-50
             - class_name = "jProjectLevelPerformance_#{key}_#{project_id}"
-            .c-chart--vertical-bar{class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
+            .c-chart--vertical-bar{class: class_name, data: { chart: result.data_for_system_level_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
             - label = @report.detail_denominator_label_for(key)
             - if label.present?
               .d-flex.text-center.ml-4
@@ -37,7 +37,7 @@
                 $(document).ready(function(){
                   var data = $('.#{class_name}').data('chart');
                   var max = Math.max(...data.columns[1].slice(1));
-                  var include_percent = #{result.primary_unit.starts_with?('%')}
+                  var include_percent = $('.#{class_name}').data('includePercent');
                   data.labels['format'] = function (v, id, i, texts) {
                     if(v < max * 0.15) {
                       return '';
@@ -73,12 +73,25 @@
           .w-50= render 'warehouse_reports/indicator', indicator: result
           .w-50
             - class_name = "jProjectLevelPerformance_#{key}_#{project_id}"
-            %div{class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
+            %div{class: class_name, data: { chart: result.data_for_system_level_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
             = content_for :page_js do
               :javascript
                 $(document).ready(function(){
+                  var data = $('.#{class_name}').data('chart');
+                  var max = Math.max(...data.columns[1].slice(1));
+                  var include_percent = $('.#{class_name}').data('includePercent');
+                  data.labels['format'] = function (v, id, i, texts) {
+                    if(v < max * 0.15) {
+                      return '';
+                    }
+                    if(include_percent) {
+                      return d3.format(".0%")(v / 100)
+                    } else {
+                      return d3.format(",.2r")(v)
+                    }
+                  }
                   var chart = bb.generate({
-                    data: $('.#{class_name}').data('chart'),
+                    data: data,
                     axis: {
                       x: { type: 'category' },
                       y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
@@ -94,13 +107,17 @@
     $(document).ready(function(){
       var all_project_data = $('.#{all_projects_class_name}').data('chart');
       var all_project_height = 35 * all_project_data.columns[0].length;
-      console.log(all_project_data);
       var max = Math.max(...all_project_data.columns[1].slice(1));
+      var include_percent = $('.#{all_projects_class_name}').data('includePercent');
       all_project_data.labels['format'] = function (v, id, i, texts) {
         if(v < max * 0.15) {
           return '';
         }
-        return d3.format(",.2r")(v)
+        if(include_percent) {
+          return d3.format(".0%")(v / 100)
+        } else {
+          return d3.format(",.2r")(v)
+        }
       }
       var all_project_chart = bb.generate({
         data: all_project_data,
