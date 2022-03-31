@@ -145,7 +145,7 @@ module AnalysisTool
 
     protected def build_control_sections
       [
-        build_general_control_section,
+        build_general_control_section(include_comparison_period: false),
         build_coc_control_section,
         build_household_control_section,
         add_demographic_disabilities_control_section,
