@@ -7,22 +7,14 @@
 module Api
   class ReportsController < ApplicationController
     def favorite
-      @report = GrdaWarehouse::WarehouseReports::ReportDefinition.find(params[:id])
+      currently_favorited = current_user.favorite_reports.exists?(params[:id])
 
-      is_favorited = Favorite.find_by(user: current_user, entity_id: @report.id, entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition').present?
-      Rails.logger.warn ">>>>is_favorited #{is_favorited}"
-
-      type = params[:type]
-      if type == 'favorite'
-        current_user.favorite_reports << @report
-        Rails.logger.warn '>>>>Added to favorites'
-      elsif type == 'unfavorite'
-        current_user.favorite_reports.delete(@report)
-        Rails.logger.warn '>>>>Removed from favorites'
-
-      else
-        # Type missing, nothing happens
-        Rails.logger.warn '>>>>Type missing'
+      if request.put? && !currently_favorited
+        report = GrdaWarehouse::WarehouseReports::ReportDefinition.find(params[:id])
+        current_user.favorite_reports << report
+      elsif request.delete? && currently_favorited
+        report = GrdaWarehouse::WarehouseReports::ReportDefinition.find(params[:id])
+        current_user.favorite_reports.delete(report)
       end
     end
   end

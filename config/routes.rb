@@ -733,6 +733,7 @@ Rails.application.routes.draw do
     end
     resources :reports, only: [:none] do
       put :favorite, on: :member
+      delete :favorite, on: :member
     end
     resources :clients, only: [:show]
   end

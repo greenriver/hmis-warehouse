@@ -44848,6 +44848,13 @@ CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entit
 
 
 --
+-- Name: one_entity_per_type_per_id_per_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX one_entity_per_type_per_id_per_user ON public.favorites USING btree (user_id, entity_id, entity_type);
+
+
+--
 -- Name: one_entity_per_type_per_user_allows_delete; Type: INDEX; Schema: public; Owner: -
 --
 
