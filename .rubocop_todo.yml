@@ -64,8 +64,6 @@ Layout/ClosingParenthesisIndentation:
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/importers/hmis_auto_detect/local.rb'
-    - 'app/models/importers/hmis_auto_detect/s3.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
@@ -399,7 +397,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/organization.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/project.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/user.rb'
-    - 'app/models/grda_warehouse/import_remover.rb'
     - 'app/models/grda_warehouse/lsa_rds_state_log.rb'
     - 'app/models/grda_warehouse/public_file.rb'
     - 'app/models/grda_warehouse/recent_service_history.rb'
@@ -579,7 +576,6 @@ Layout/EmptyLinesAroundMethodBody:
   Exclude:
     - 'app/jobs/background_render/core_demographics_report_job.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/income_benefit.rb'
-    - 'app/models/grda_warehouse/import_remover.rb'
     - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
@@ -881,7 +877,6 @@ Layout/MultilineMethodCallIndentation:
 # SupportedStyles: symmetrical, new_line, same_line
 Layout/MultilineMethodDefinitionBraceLayout:
   Exclude:
-    - 'app/models/importers/hmis_auto_detect/uploaded_zip.rb'
 
 # Offense count: 18
 # Cop supports --auto-correct.
@@ -1221,7 +1216,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
-    - 'app/models/importers/hmis_auto_detect/uploaded_zip.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
     - 'app/models/report_generators/data_quality/fy2017/q3.rb'
     - 'app/models/report_generators/data_quality/fy2017/q4.rb'
@@ -1496,7 +1490,6 @@ Lint/DeprecatedClassMethods:
   Exclude:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/health/exporter/health_exporter.rb'
-    - 'app/models/importers/hmis_auto_detect/uploaded_zip.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
 
 # Offense count: 3
@@ -2014,7 +2007,6 @@ Style/GuardClause:
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
-    - 'app/models/importers/hmis_auto_detect/s3.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
@@ -2150,7 +2142,6 @@ Style/MethodCallWithoutArgsParentheses:
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
-    - 'app/models/importers/hmis_auto_detect/s3.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
     - 'app/models/report_generators/data_quality/fy2017/q2.rb'
     - 'app/models/report_generators/data_quality/fy2017/q3.rb'
@@ -2269,7 +2260,6 @@ Style/NestedParenthesizedCalls:
 Style/Next:
   Exclude:
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/import_remover.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
@@ -2722,7 +2712,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tracing/search.rb'
     - 'app/models/health_base.rb'
-    - 'app/models/importers/hmis_auto_detect/s3.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
     - 'app/models/report_generators/data_quality/fy2017/q2.rb'

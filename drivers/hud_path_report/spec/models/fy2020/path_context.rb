@@ -57,7 +57,7 @@ RSpec.shared_context 'path context', shared_context: :metadata do
     import_hmis_csv_fixture(
       file_path,
       data_source: @data_source,
-      version: '2020',
+      version: 'AutoMigrate',
       run_jobs: true,
     )
   end

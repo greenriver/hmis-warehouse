@@ -59,8 +59,6 @@ class UploadsController < ApplicationController
       project_whitelist: @upload.project_whitelist,
     }
     job_class = case params[:grda_warehouse_upload][:import_type]
-    when 'hmis_detect'
-      Importing::HudZip::HmisAutoDetectJob
     when 'hmis_migrate'
       Importing::HudZip::HmisAutoMigrateJob
     end
