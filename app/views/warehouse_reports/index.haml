@@ -1,9 +1,17 @@
 :ruby
   recents_name = 'Recently Viewed'
   recents = [[recents_name, @recent_reports]]
-  definitions_with_recents = recents + @report_definitions
+
+  favorites_name = 'Favorites'
+  favorites = [[favorites_name, @favorite_reports]]
+
+  definitions_with_recents = recents + @report_definitions + favorites
   limited_statement = 'Report is not limited by assigned projects.'
   stimulus_controller = 'list-search'
+
+  favorite_stimulus_controller = 'favorite'
+  favorite_icon = 'icon-heart'
+  not_favorite_icon = 'icon-heart-empty'
 
 .c-list-search{data: {controller: stimulus_controller}}
   .c-list-search__header
@@ -52,10 +60,16 @@
                       %h5= report.name
                       - unless report.limitable?
                         %i.icon-notification{data: {toggle: :tooltip, title: limited_statement}}
-                      - if group_name == recents_name
+                      - if [recents_name, favorites_name].include? group_name
                         - categories.each do |cat|
                           .badge.badge-primary.mr-1.ml-2=report.report_group
                       - if report.new_report?
                         .badge.badge-danger.mr-1.ml-2 New
                     %p.c-list-search__item-description= report.description.html_safe
+                  .mr-1.ml-auto{data: { controller: favorite_stimulus_controller, "#{favorite_stimulus_controller}-id-value": report.id, "#{favorite_stimulus_controller}-favorite-class": favorite_icon, "#{favorite_stimulus_controller}-not-favorite-class": not_favorite_icon}}
+                    %button{data: {action: "click->#{favorite_stimulus_controller}#favorite"}}
+                      - if @favorite_reports.include? report
+                        %i{data: {"favorite-target": "icon"}, class: favorite_icon}
+                      - else
+                        %i{data: {"favorite-target": "icon"}, class: not_favorite_icon}
       .c-list-search__no-results{class: 'hide', data: {"#{stimulus_controller}-target" => "noResults"}} No Reports found

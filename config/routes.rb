@@ -731,6 +731,9 @@ Rails.application.routes.draw do
     resources :hud_filters, only: [:none] do
       post :index, on: :collection
     end
+    resources :reports, only: [:none] do
+      put :favorite, on: :member
+    end
     resources :clients, only: [:show]
   end
 
