@@ -215,10 +215,11 @@ module GrdaWarehouse::Tasks
         site_case_management_required: :site_case_management_required,
         currently_fleeing: :currently_fleeing,
         dv_date: :dv_date,
-        assessor_first_name: :assessor_first_name,
-        assessor_last_name: :assessor_last_name,
-        assessor_email: :assessor_email,
-        assessor_phone: :assessor_phone,
+        # Don't send these until https://github.com/greenriver/boston-cas/pull/580 has been merged
+        # assessor_first_name: :assessor_first_name,
+        # assessor_last_name: :assessor_last_name,
+        # assessor_email: :assessor_email,
+        # assessor_phone: :assessor_phone,
       }
     end
 
