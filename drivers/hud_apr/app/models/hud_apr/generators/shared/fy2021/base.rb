@@ -331,7 +331,9 @@ module HudApr::Generators::Shared::Fy2021
           apr_clients.each do |apr_client|
             last_enrollment = enrollments_by_client_id[apr_client.destination_client_id].last.enrollment
             last_enrollment.client.assessments.select do |assessment|
-              assessment.AssessmentDate.present? && assessment.AssessmentDate.between?(@report.start_date, @report.end_date)
+              assessment.AssessmentDate.present? &&
+                assessment.AssessmentDate.between?(@report.start_date, @report.end_date) &&
+                assessment.enrollment.project.id.in?(@report.project_ids)
             end.each do |assessment|
               assessments << apr_client.hud_report_ce_assessments.build(
                 project_id: assessment.enrollment.project.id,
@@ -342,7 +344,9 @@ module HudApr::Generators::Shared::Fy2021
 
             last_enrollment.client.events.select do |event|
               # NOTE: even though latest_ce_event may be 90 days after end of reporting period, Q10 is still fully limited by report range.
-              event.EventDate.present? && event.EventDate.between?(@report.start_date, @report.end_date)
+              event.EventDate.present? &&
+                event.EventDate.between?(@report.start_date, @report.end_date) &&
+                event.enrollment.project.id.in?(@report.project_ids)
             end.each do |event|
               events << apr_client.hud_report_ce_events.build(
                 project_id: event.enrollment.project.id,
