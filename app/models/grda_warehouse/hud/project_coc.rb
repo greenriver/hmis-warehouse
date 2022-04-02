@@ -135,12 +135,7 @@ module GrdaWarehouse::Hud
 
     def for_export
       # This should never happen, but does
-      self.ProjectID = if self.ProjectID.blank?
-        'Unknown'
-      else
-        project&.id
-      end
-
+      self.ProjectID = project&.id || 'Unknown'
       self.CoCCode = hud_coc_code if hud_coc_code.present?
       self.GeographyType = geography_type_override if geography_type_override.present?
       self.GeographyType ||= 99
