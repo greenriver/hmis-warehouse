@@ -1,8 +1,19 @@
 - if user.invitation_status == :active
   - if user.access_locked?
     Account locked.
-  - elsif user.expired?
-    Account Expired #{user.expired_at}
+  - elsif user.inactive? && user.expired_at?
+    Account expired on #{user.expired_at}.
+  - elsif user.inactive? && user.expired?
+    Account expired due to inactivity. Last activity on #{user.last_activity_at}.
+  - elsif user.inactive?
+    - version = user.versions.where(event: 'deactivate').order(created_at: :desc).first
+    - if version.nil?
+      Account inactive.
+    - elsif can_audit_users? && version.whodunnit?
+      - deactivating_user = User.find(version.whodunnit.to_i)
+      Account deactivated by #{deactivating_user.name} on #{version.created_at}.
+    - else
+      Account deactivated on #{version.created_at}.
   - elsif user.future_expiration?
     Account will expire on #{user.expired_at.to_date}
   - else
