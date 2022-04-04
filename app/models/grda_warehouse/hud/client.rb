@@ -787,6 +787,7 @@ module GrdaWarehouse::Hud
         # If everyone is disabled, short circuit as we don't have to check disabilities
         return destination.where(id: disabling_condition_ids) if Array.wrap(client_ids).sort == disabling_condition_ids.sort
 
+        client_ids -= disabling_condition_ids
         (
           disabling_condition_ids +
           disabled_client_because_disability_scope.where(id: client_ids).pluck(:id)
