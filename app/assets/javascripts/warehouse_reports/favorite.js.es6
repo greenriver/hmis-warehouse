@@ -21,15 +21,21 @@ App.StimulusApp.register('favorite', class extends Stimulus.Controller {
     event.stopPropagation();
 
     const isFavorite = this.iconTarget.classList.contains(this.favoriteClass);
+    const route = isFavorite ? 'unfavorite' : 'favorite';
+
+    this.toggleIcon(isFavorite);
 
     $.ajax({
-      async: false,
-      url: `/api/reports/${this.idValue}/favorite`,
-      type: isFavorite ? 'DELETE' : 'PUT',
-    }).done((ret) => {
-      this.toggleIcon(isFavorite)
-    }).fail((ret) => {
-      console.error(['Failed to favorite', ret])
+      url: `/api/reports/${this.idValue}/${route}`,
+      method: 'PUT'
+    })
+    .done((ret) => {
+      console.debug(`Successful ${route} ${this.idValue}`);
+    })
+    .fail((ret) => {
+      console.error([`Failed to ${route} ${this.idValue}`, ret]);
+      // Undo icon change
+      this.toggleIcon(!isFavorite);
     })
   }
 

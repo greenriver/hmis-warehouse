@@ -8,14 +8,13 @@ module Api
   class ReportsController < ApplicationController
     def favorite
       currently_favorited = current_user.favorite_reports.exists?(params[:id])
+      return if currently_favorited
 
-      if request.put? && !currently_favorited
-        report = GrdaWarehouse::WarehouseReports::ReportDefinition.find(params[:id])
-        current_user.favorite_reports << report
-      elsif request.delete? && currently_favorited
-        report = GrdaWarehouse::WarehouseReports::ReportDefinition.find(params[:id])
-        current_user.favorite_reports.delete(report)
-      end
+      Favorite.create(user_id: current_user.id, entity_id: params[:id].to_i, entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition')
+    end
+
+    def unfavorite
+      current_user.favorite_reports.where(id: params[:id].to_i).destroy_all
     end
   end
 end
