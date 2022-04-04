@@ -1,2 +1,11 @@
 %p
-  All clients on the most recent chronic list will be included in each CAS sync.
+  All clients on the most recent potentially chronic list will be included in each CAS sync.
+%p
+  Will
+  %strong= @client.name
+  sync with CAS?
+  %br
+  = yes_no @client.active_in_cas?(include_overridden: false)
+%p
+  You can force this client to sync with CAS by checking the following box:
+  = f.input :sync_with_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:sync_with_cas], label: 'Force client into CAS'

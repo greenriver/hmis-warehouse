@@ -18,22 +18,15 @@ FactoryBot.define do
     first_name { 'First' }
     sequence(:last_name) { |n| "Last#{n}" }
     dob { Date.current - rand(1000) }
+    planned_on { Date.current - 1.year }
   end
 
-  trait :in_range_1 do
-    service_1_added_on { Date.current }
+  trait :in_range do
+    end_date { Date.current - 1.month }
   end
 
-  trait :in_range_2 do
-    service_2_added_on { Date.current }
-  end
-
-  trait :out_of_range_1 do
-    service_1_added_on { Date.current - 1.year }
-  end
-
-  trait :out_of_range_2 do
-    service_2_added_on { Date.current - 1.year }
+  trait :out_of_range do
+    end_date { Date.current - 7.months }
   end
 
   trait :pre_tenancy_1 do

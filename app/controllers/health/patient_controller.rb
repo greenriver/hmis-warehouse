@@ -36,6 +36,7 @@ module Health
       params.require(:patient).permit(
         :care_coordinator_id,
         :nurse_care_manager_id,
+        :housing_navigator_id,
       )
     end
 

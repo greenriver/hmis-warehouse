@@ -1,3 +1,4 @@
+- markdown = Redcarpet::Markdown.new(::InlineHtml)
 - category = @report.detail_category_for(key)
 - title = "#{category} | #{@report.detail_title_for(key)}"
 - system_class_name = "jSystemLevelChart_#{key}"
@@ -9,8 +10,8 @@
   .d-flex.m-4
     .goal
       %h3 Goal
-      %p= @report.detail_goal_description_for(key)
-    .calculation.m4-2
+      %p= raw markdown.render(@report.detail_goal_description_for(key))
+    .calculation.ml-6
       %h3 Calculation
       %p= @report.detail_calculation_description_for(key)
 
@@ -40,8 +41,21 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function(){
+      var data = $('.#{system_class_name}').data('chart');
+      var max = Math.max(...data.columns[1].slice(1));
+      var include_percent = #{result.primary_unit.starts_with?('%')}
+      data.labels['format'] = function (v, id, i, texts) {
+        if(v < max * 0.15) {
+          return '';
+        }
+        if(include_percent) {
+          return d3.format(".0%")(v / 100)
+        } else {
+          return d3.format(",.2r")(v)
+        }
+      }
       var chart = bb.generate({
-        data: $('.#{system_class_name}').data('chart'),
+        data: data,
         axis: {
           x: { type: 'category' },
           y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
