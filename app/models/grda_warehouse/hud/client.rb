@@ -783,6 +783,7 @@ module GrdaWarehouse::Hud
       # destination.where(id: disabling_condition_client_scope.select(:id)).
       #   or(destination.where(id: disabled_client_because_disability_scope.select(:id)))
       ids = if client_ids.present?
+        client_ids = Array.wrap(client_ids)
         disabling_condition_ids = disabling_condition_client_scope.where(id: client_ids).pluck(:id)
         # If everyone is disabled, short circuit as we don't have to check disabilities
         return destination.where(id: disabling_condition_ids) if Array.wrap(client_ids).sort == disabling_condition_ids.sort
