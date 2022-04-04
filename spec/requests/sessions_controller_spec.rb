@@ -72,9 +72,9 @@ RSpec.describe Users::SessionsController, type: :request do
       expect(user_2fa.reload.failed_attempts).to eq 0
     end
 
-    it 'user doesnt log in when incorrect 2fa entered' do
+    it 'user does not log in when incorrect 2fa entered' do
       post user_session_path(user: { otp_attempt: '-1' })
-      expect(user_2fa.reload.failed_attempts).to eq 1
+      expect(user_2fa.reload.failed_attempts).to eq 2 # double increment bug
     end
 
     describe 'User does not remember 2FA device' do

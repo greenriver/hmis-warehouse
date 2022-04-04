@@ -65,7 +65,7 @@ module HomelessSummaryReport
 
     scope :spm_m7a1_destination, -> { where(arel_table[:spm_m7a1_destination].gt(0)) }
     scope :spm_m7b1_destination, -> { where(arel_table[:spm_m7b1_destination].gt(0)) }
-    scope :spm_m7b2_destination, -> { where(arel_table[:spm_m7b2_destination].gt(0)) }
+    scope :spm_m7b2_destination, -> { where(arel_table[:spm_m7b2_destination].not_eq(nil)) } # include 0 which represents remained housed
     scope :spm_m7a1_c2, -> { where(arel_table[:spm_m7a1_c2].eq(true)) }
     scope :spm_m7a1_c3, -> { where(arel_table[:spm_m7a1_c3].eq(true)) }
     scope :spm_m7a1_c4, -> { where(arel_table[:spm_m7a1_c4].eq(true)) }
