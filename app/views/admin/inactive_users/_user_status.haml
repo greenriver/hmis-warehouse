@@ -15,7 +15,10 @@
   - if version.nil?
     Account deactivated.
   - elsif can_audit_users? && version.whodunnit?
-    - deactivating_user = User.find(version.whodunnit.to_i)
-    Account deactivated by #{deactivating_user.name} on #{version.created_at}.
+    - deactivating_user = User.find_by_id(version.whodunnit.to_i)
+    - if deactivating_user.nil?
+      Account deactivated on #{version.created_at}.
+    - else
+      Account deactivated by #{deactivating_user.name} on #{version.created_at}.
   - else
     Account deactivated on #{version.created_at}.
