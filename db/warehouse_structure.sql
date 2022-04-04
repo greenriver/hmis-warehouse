@@ -3273,7 +3273,7 @@ CREATE VIEW public.bi_nightly_census_by_projects AS
 --
 
 CREATE TABLE public.service_history_enrollments (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     client_id integer NOT NULL,
     data_source_id integer,
     date date NOT NULL,
