@@ -5956,6 +5956,39 @@ ALTER SEQUENCE public.fake_data_id_seq OWNED BY public.fake_data.id;
 
 
 --
+-- Name: favorites; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.favorites (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    entity_type character varying NOT NULL,
+    entity_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: favorites_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.favorites_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: favorites_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.favorites_id_seq OWNED BY public.favorites.id;
+
+
+--
 -- Name: federal_census_breakdowns; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -19669,6 +19702,13 @@ ALTER TABLE ONLY public.fake_data ALTER COLUMN id SET DEFAULT nextval('public.fa
 
 
 --
+-- Name: favorites id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorites ALTER COLUMN id SET DEFAULT nextval('public.favorites_id_seq'::regclass);
+
+
+--
 -- Name: federal_census_breakdowns id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22331,6 +22371,14 @@ ALTER TABLE ONLY public.exports
 
 ALTER TABLE ONLY public.fake_data
     ADD CONSTRAINT fake_data_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: favorites favorites_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorites
+    ADD CONSTRAINT favorites_pkey PRIMARY KEY (id);
 
 
 --
@@ -38984,6 +39032,34 @@ CREATE INDEX index_exports_on_export_id ON public.exports USING btree (export_id
 
 
 --
+-- Name: index_favorites_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_created_at ON public.favorites USING btree (created_at);
+
+
+--
+-- Name: index_favorites_on_entity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_entity ON public.favorites USING btree (entity_type, entity_id);
+
+
+--
+-- Name: index_favorites_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_updated_at ON public.favorites USING btree (updated_at);
+
+
+--
+-- Name: index_favorites_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id);
+
+
+--
 -- Name: index_files_on_type; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44773,6 +44849,13 @@ CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entit
 
 
 --
+-- Name: one_entity_per_type_per_id_per_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX one_entity_per_type_per_id_per_user ON public.favorites USING btree (user_id, entity_id, entity_type);
+
+
+--
 -- Name: one_entity_per_type_per_user_allows_delete; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47579,6 +47662,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220316160839'),
 ('20220317185834'),
 ('20220322185532'),
-('20220328122746');
+('20220328122746'),
+('20220331180748');
 
 

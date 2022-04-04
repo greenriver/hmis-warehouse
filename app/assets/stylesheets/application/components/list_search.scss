@@ -108,7 +108,8 @@
   }
 }
 
-.c-list-search__list-group--recently-viewed {
+.c-list-search__list-group--recently-viewed,
+.c-list-search__list-group--favorites {
   .c-list-search__list-group-header {
     background: $brand-primary-ll;
   }
@@ -143,6 +144,7 @@
   display: block;
   padding: space(4);
   border-bottom: 1px solid $body-bg;
+  position: relative;
   &:last-child {
     border: 0;
   }
@@ -166,6 +168,21 @@
 .c-list-search__item-description {
   margin: 0;
   color: $body-color;
+}
+
+.c-list-search__item-favorite {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+
+  button {
+    background: transparent;
+    border: none;
+    i {
+      color: $cob-sg-optimistic-blue;
+    }
+  }
 }
 
 .c-list-search__no-results {

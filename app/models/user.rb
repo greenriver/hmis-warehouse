@@ -67,6 +67,9 @@ class User < ApplicationRecord
 
   has_many :two_factors_memorized_devices
 
+  has_many :favorites
+  has_many :favorite_reports, through: :favorites, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
+
   belongs_to :agency, optional: true
 
   scope :diet, -> do
