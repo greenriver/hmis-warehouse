@@ -1,0 +1,18 @@
+%section
+  %h3 Appearance
+  %p The following are all optional and will override the appearance of any public report.
+  = f.input :font_url, input_html: { value: @config.font_path }
+  = f.input :font_family_0, label: 'Font family', input_html: { value: @config.font_family }
+  = f.input :font_size_0, label: 'Font size', input_html: { value: @config.font_size }
+  = f.input :font_weight_0, label: 'Font weight', input_html: { value: @config.font_weight }
+  = f.input :summary_color, input_html: { class: 'colorpicker'}
+  = f.input :homeless_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :youth_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :adults_only_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :adults_with_children_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :children_only_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :veterans_primary_color, input_html: { class: 'colorpicker'}
+  - @config.color_categories.each do |category|
+    %h4 Colors for #{category.to_s.titleize}
+    - @config.num_colors_per_category.each do |i|
+      = f.input "#{category}_color_#{i}", input_html: { value: @config["#{category}_color_#{i}"], class: 'colorpicker'}

@@ -12,6 +12,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
     this.truncate_labels = (options != null && options.truncate_labels != null) ? options.truncate_labels : 0;
     this.color_map = {};
     this.next_color = 0;
+    this.legend_holder = options.legend_holder;
     if ((options != null ? options.remote : undefined) === true) {
       this._observe();
     } else {
@@ -55,7 +56,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         // color: this._colors,
         labels: {
           format: (v, id, i, j) => {
-            if (v < 1) {
+            if (v < 0.25 * this.max_value) {
               return '';
             }
             if (this.options.showPercentageWithValue) {
@@ -73,7 +74,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
       const config = {
         data,
         legend: {
-          show: true,
+          show: (this.legend_holder != null) ? false : true,
         },
         bindto: this.chart_selector,
         size: {
@@ -111,9 +112,6 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         bar: {
           width: 15,
           padding: 5,
-          label: {
-            threshold: 1
-          },
         },
         padding: {
           left: this.padding.left || 250,
@@ -126,6 +124,17 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
           }
         },
       };
+      if(this.legend_holder != null) {
+        config.legend = {
+          contents: {
+            bindto: this.legend_holder,
+            template: (title, color) => {
+              const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+              return `<div class="chart-legend-item-prs1">${swatch}<div class="chart-legend-item-label-prs1">${title}</div></div>`;
+            },
+          },
+        };
+      }
       return (this.chart = window.bb.generate(config));
     } else {
       return console.log(`${this.chart_selector} not found on page`);

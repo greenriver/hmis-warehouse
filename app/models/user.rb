@@ -90,6 +90,9 @@ class User < ApplicationRecord
       arel_table[:active].eq(true).and(
         arel_table[:expired_at].eq(nil).
         or(arel_table[:expired_at].gt(Time.current)),
+      ).and(
+        arel_table[:last_activity_at].eq(nil).
+        or(arel_table[:last_activity_at].gt(expire_after.ago)),
       ),
     )
   end
@@ -97,7 +100,8 @@ class User < ApplicationRecord
   scope :inactive, -> do
     where(
       arel_table[:active].eq(false).
-      or(arel_table[:expired_at].lteq(Time.current)),
+      or(arel_table[:expired_at].lteq(Time.current)).
+      or(arel_table[:last_activity_at].lteq(expire_after.ago)),
     )
   end
 
@@ -270,6 +274,22 @@ class User < ApplicationRecord
     )
   end
 
+  def record_failure_and_lock_access_if_exceeded!
+    # Due to a bug, failed PWs double increment failed attempts. To
+    # compensate, we double the lockout threshold. To match the PW
+    # behavior, double up on failures due to OTP
+    # https://github.com/tinfoil/devise-two-factor/issues/28
+    transaction do
+      2.times do # intentional double increment
+        increment_failed_attempts
+      end
+    end
+    # outside of transaction since this method sends email
+    return unless attempts_exceeded?
+
+    lock_access! unless access_locked?
+  end
+
   def invitation_status
     if invitation_accepted_at.present? || invitation_sent_at.blank?
       :active
@@ -305,6 +325,12 @@ class User < ApplicationRecord
 
   def system_user?
     email == 'noreply@greenriver.com'
+  end
+
+  def inactive?
+    return true unless active?
+
+    expired?
   end
 
   def data_sources

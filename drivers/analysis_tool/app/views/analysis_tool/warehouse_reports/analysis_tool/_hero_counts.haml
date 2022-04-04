@@ -1,0 +1,15 @@
+:ruby
+  items = [
+    {
+      name: 'In Universe',
+      value:@report.client_count,
+    },
+  ]
+.d-flex.flex-wrap
+  - items.each do |item|
+    .hero-prs1
+      .d-flex.align-items-center
+        .h1.hero-value-prs1.mr-3= number_with_delimiter item[:value]
+        %div
+          .hero-label-prs1.h5-prs1= item[:name]
+          .hero-unit-prs1 Unique #{'Client'.pluralize(item[:value])}

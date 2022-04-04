@@ -1,0 +1,14 @@
+
+%h3 Map Options
+%p Client data can be placed on the map using one of the following methods:
+%ul
+  - PublicReports::Setting.available_map_type_descriptions.each do |name, description|
+    %li
+      %strong #{name} -
+      = description
+.w-100
+  = f.input :map_type, label: 'Map breakdowns', as: :select_two, collection: PublicReports::Setting.available_map_types.invert
+  = f.input :map_overall_population_method, label: 'Overall Population Calculation', as: :select_two, collection: PublicReports::Setting.available_map_overall_population_methods.invert
+%h4 Map Colors
+- 5.times do |i|
+  = f.input "color_#{i}", label: "Map Color #{i}", input_html: { value: @config.color(i), class: 'colorpicker'}

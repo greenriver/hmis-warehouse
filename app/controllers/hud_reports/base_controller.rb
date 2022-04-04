@@ -28,10 +28,13 @@ module HudReports
           @path_for_running = path_for_running_question
         end
         format.zip do
-          exporter = ::HudReports::ZipExporter.new(@report)
-          send_data(exporter.export!, filename: zip_filename)
+          send_data(zip_exporter.export!, filename: zip_filename)
         end
       end
+    end
+
+    private def zip_exporter
+      ::HudReports::ZipExporter.new(@report)
     end
 
     def running

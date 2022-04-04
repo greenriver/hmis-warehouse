@@ -4,32 +4,32 @@
 .chart-wrapper
   .row
     .col-sm-4
-      %h3= "#{@report.title_for(household_category, :all)}"
+      %h3= "#{@report.title_for(household_category, :all)} #{row[:title]}"
       %a.jToggleChartData{href: '#'}
         Toggle demographics
         %i.icon-users
     .col-sm-8
+      %div{ class: "#{variant_slug}-legend" }
       .jChart.c-chart--horizontal-bar{class: "#{variant_slug}", data: {chart: chart_data.to_json, active: 'one_' }}
 
   = content_for :page_js do
     :javascript
       $(document).ready(function(){
-        let chart = new App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar('.jChart.#{variant_slug}', { remote: false });
-      $('.jChart.#{variant_slug}').closest('.chart-wrapper').find('.jToggleChartData').on('click', function(e) {
-        e.preventDefault();
-        let active = $('.jChart.#{variant_slug}').data('active');
-        if(active == 'one_') {
-          active = 'all_';
-          chart.chart.resize({height: 1250})
-        } else {
-          active = 'one_'
-          chart.chart.resize({height: 250})
-        }
-        $('.jChart.#{variant_slug}').data('active', active);
-        let new_columns = $('.jChart.#{variant_slug}').data('chart')[`${active}columns`];
-        let data = { columns: new_columns, unload: true };
+        let chart = new App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar('.jChart.#{variant_slug}', { remote: false, legend_holder: '.#{variant_slug}-legend' });
+        $('.jChart.#{variant_slug}').closest('.chart-wrapper').find('.jToggleChartData').on('click', function(e) {
+          e.preventDefault();
+          let active = $('.jChart.#{variant_slug}').data('active');
+          if(active == 'one_') {
+            active = 'all_';
+            chart.chart.resize({height: 1400})
+          } else {
+            active = 'one_'
+            chart.chart.resize({height: 150})
+          }
+          $('.jChart.#{variant_slug}').data('active', active);
+          let new_columns = $('.jChart.#{variant_slug}').data('chart')[`${active}columns`];
+          let data = { columns: new_columns, unload: true };
 
-        chart.chart.load(data);
-      });
-
+          chart.chart.load(data);
+        });
       });
