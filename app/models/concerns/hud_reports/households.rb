@@ -129,10 +129,10 @@ module HudReports::Households
     end
 
     private def household_makeup(household_id, date)
-      ages_for = ages_for(household_id, date)
-      return :adults_and_children if adults?(ages_for) && children?(ages_for)
-      return :adults_only if adults?(ages_for) && ! children?(ages_for) && ! unknown_ages?(ages_for)
-      return :children_only if children?(ages_for) && ! adults?(ages_for) && ! unknown_ages?(ages_for)
+      household_ages = ages_for(household_id, date)
+      return :adults_and_children if adults?(household_ages) && children?(household_ages)
+      return :adults_only if adults?(household_ages) && ! children?(household_ages) && ! unknown_ages?(household_ages)
+      return :children_only if children?(household_ages) && ! adults?(household_ages) && ! unknown_ages?(household_ages)
 
       :unknown
     end

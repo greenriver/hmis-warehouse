@@ -16,6 +16,9 @@ module HudApr::Generators::Shared::Fy2021
     include HudReports::LengthOfStays
     include HudReports::Incomes
 
+    def self.filter_universe_members(associations)
+      associations
+    end
     # DEV NOTES: These can be run like so:
     # options = {user_id: 1, coc_code: 'KY-500', start_date: '2018-10-01', end_date: '2019-09-30', project_ids: [1797], generator_class: 'HudApr::Generators::Apr::Fy2021::Generator'}
     # HudApr::Generators::Shared::Fy2021::QuestionFour.new(options: options).run!
@@ -50,10 +53,15 @@ module HudApr::Generators::Shared::Fy2021
           hh_id = get_hh_id(last_service_history_enrollment)
           hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last
           household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
+          end_date = if needs_ce_assessments?
+            # Only HoHs get CE assessments, so we use their entry date
+            hoh_enrollment.first_date_in_program
+          else
+            last_service_history_enrollment.first_date_in_program
+          end
           date = [
             @report.start_date,
-            # Only HoHs get CE assessments, so we use their entry date
-            needs_ce_assessments? ? hoh_enrollment.first_date_in_program : last_service_history_enrollment.first_date_in_program,
+            end_date,
           ].max
           household_types[hh_id] = household_makeup(hh_id, date)
           times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
