@@ -27,7 +27,7 @@ module HudHic
     end
 
     private def zip_exporter
-      ::HudReports::ZipExporter.new(@report, force_quotes: false)
+      ::HudReports::ZipExporter.new(@report, force_quotes: false, quote_empty: false)
     end
 
     private def possible_generator_classes
