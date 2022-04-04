@@ -1,3 +1,4 @@
+- markdown = Redcarpet::Markdown.new(::InlineHtml)
 .well.p-0
   %table.table.table-striped.mb-0
     %thead
@@ -6,8 +7,7 @@
       %th Relevancy
       %th Metric
       %th Passed
-      %th Count
-      %th Unit
+      %th Current Value
       %th Change over Year
       %th Direction
     %tbody
@@ -35,7 +35,7 @@
                     = column.to_s.titleize
                 %td
                   - options = { title: @report.detail_goal_description_for(indicator.field.to_sym), content: @report.detail_calculation_description_for(indicator.field.to_sym), toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom }
-                  = options[:title]
+                  = raw markdown.render(options[:title])
                   - if options[:title].present? && goal_popover
                     %a{ role: :button, tabindex: 0, data: options }
                       %i.icon-info
@@ -47,8 +47,12 @@
                 %td.text-center
                   .c-indicator__passed{ class: indicator[:passed] ? "pass" : "fail" }
                     = checkmark_or_x(indicator[:passed], size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
-                %td.nobr.font-size-md= link_to(number_with_delimiter(indicator[:primary_value]), performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank)
-                %td.nobr= indicator[:primary_unit]
+                %td.nobr.font-size-md
+                  - text = [ number_with_delimiter(indicator[:primary_value]), indicator[:primary_unit] ]
+                  - joiner = if indicator[:primary_unit].starts_with?('%') then '' else ' ' end
+
+                  = link_to(text.join(joiner), performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank)
+
                 %td.nobr #{number_with_delimiter(indicator[:secondary_value])}%
                 %td.text-center
                   .c-indicator__change-icon= change_direction_icon(indicator[:direction])
