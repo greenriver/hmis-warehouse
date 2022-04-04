@@ -89,7 +89,7 @@ module GrdaWarehouse::Hud
 
     def for_export
       # This should never happen, but does
-      self.ProjectID ||= project&.id || 'Unknown'
+      self.ProjectID = project&.id || 'Unknown'
       self.GrantID ||= 'Unknown'
       self.OtherFunder = self.OtherFunder[0...50] if self.OtherFunder.present?
 

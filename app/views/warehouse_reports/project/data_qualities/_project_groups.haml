@@ -6,8 +6,9 @@
         .c-card__content.d-flex.align-items-center
           .c-checkbox.c-checkbox.mr-4
             = check_box_tag("organization-toggle[project_groups]", 1, false, {class: 'j-select-children'})
-            %label{for: "organization-toggle_project_groups", data: {toggle: 'tooltip'}, title: 'Select/Deselect all projects in group'}
-          %h3.mb-0.mt-0 Project Groups
+            %label{for: "organization-toggle_project_groups"}
+            .mt-2 All / None
+          %h3.mb-6.mt-0 Project Groups
       %table.table.c-table.j-children.d-none
         %thead
           %tr

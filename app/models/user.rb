@@ -93,6 +93,9 @@ class User < ApplicationRecord
       arel_table[:active].eq(true).and(
         arel_table[:expired_at].eq(nil).
         or(arel_table[:expired_at].gt(Time.current)),
+      ).and(
+        arel_table[:last_activity_at].eq(nil).
+        or(arel_table[:last_activity_at].gt(expire_after.ago)),
       ),
     )
   end
@@ -100,7 +103,8 @@ class User < ApplicationRecord
   scope :inactive, -> do
     where(
       arel_table[:active].eq(false).
-      or(arel_table[:expired_at].lteq(Time.current)),
+      or(arel_table[:expired_at].lteq(Time.current)).
+      or(arel_table[:last_activity_at].lteq(expire_after.ago)),
     )
   end
 

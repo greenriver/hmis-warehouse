@@ -4,7 +4,8 @@
     .c-card__content.d-flex.align-items-center
       .c-checkbox.c-checkbox.mr-4
         = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'j-select-children'})
-        %label{for: "organization-toggle_#{id}", data: {toggle: 'tooltip'}, title: 'Select/Deselect all projects of organization'}
+        %label{for: "organization-toggle_#{id}"}
+        .mt-2 All / None
       .data-source
         %em.ds.mr-4{class: "ds-color-#{projects.first.data_source_id}"}= data_source
       %h3.mb-0.mt-0= organization.OrganizationName
