@@ -382,7 +382,8 @@ module HudApr::Generators::Shared::Fy2021
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id).
-        reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
+        transform_values { |enrollments| enrollments.reject { |enrollment| nbn_with_no_service?(enrollment) } }.
+        reject { |_, enrollments| enrollments.empty? }
     end
 
     private def nbn_with_no_service?(enrollment)
