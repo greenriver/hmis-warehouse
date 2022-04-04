@@ -1,36 +1,13 @@
-- if user.inactive?
-  -# Show invitation status
-  - if user.invitation_status == :pending_confirmation
-    Pending invitation confirmation.
-    %br
-  - elsif user.invitation_status == :invitation_expired
-    Invitation expired.
-    %br
-  -# Show reason for inactive status
-  - if user.expired_at?
-    Account expired on #{user.expired_at}.
-  - elsif user.expired?
-    Account expired due to inactivity. Last activity on #{user.last_activity_at}.
+- if user.invitation_status == :active
+  - if user.access_locked?
+    Account locked.
+  - elsif user.future_expiration?
+    Account will expire on #{user.expired_at.to_date}
   - else
-    - version = user.versions.where(event: 'deactivate').order(created_at: :desc).first
-    - if version.nil?
-      Account deactivated.
-    - elsif can_audit_users? && version.whodunnit?
-      - deactivating_user = User.find(version.whodunnit.to_i)
-      Account deactivated by #{deactivating_user.name} on #{version.created_at}.
-    - else
-      Account deactivated on #{version.created_at}.
-- else
-  - if user.invitation_status == :active
-    - if user.access_locked?
-      Account locked.
-    - elsif user.future_expiration?
-      Account will expire on #{user.expired_at.to_date}
-    - else
-      Active
-  - elsif user.invitation_status == :pending_confirmation
-    Pending Confirmation.
-    %br
-    Invitation will expire on #{user.invitation_due_at.strftime "%m/%d/%Y"}
-  - elsif user.invitation_status == :invitation_expired
-    %i Invitation Expired.
+    Active
+- elsif user.invitation_status == :pending_confirmation
+  Pending Confirmation.
+  %br
+  Invitation will expire on #{user.invitation_due_at.strftime "%m/%d/%Y"}
+- elsif user.invitation_status == :invitation_expired
+  %i Invitation Expired.
