@@ -98,6 +98,7 @@ module Admin
     end
 
     def destroy
+      @user.paper_trail_event = 'deactivate'
       @user.update(active: false)
       redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
     end

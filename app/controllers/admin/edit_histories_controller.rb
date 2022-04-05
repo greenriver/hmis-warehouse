@@ -20,14 +20,6 @@ module Admin
         page(params[:page]).per(500)
     end
 
-    def name_of_whodunnit(version)
-      who = version.whodunnit
-      return who unless who&.to_i&.to_s == who
-
-      User.find_by(id: who)&.name
-    end
-    helper_method :name_of_whodunnit
-
     def describe_changes_to(version)
       klass = version.item_type.constantize
       klass.describe_changes(version, get_changes_to(version))

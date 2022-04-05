@@ -1,0 +1,15 @@
+-# Show invitation status
+- if user.invitation_status == :pending_confirmation
+  Pending invitation confirmation.
+  %br
+- elsif user.invitation_status == :invitation_expired
+  Invitation expired.
+  %br
+-# Show reason for inactive status
+- if user.expired_at?
+  Account expired on #{user.expired_at}
+- elsif user.expired?
+  Account expired due to inactivity. Last activity on #{user.last_activity_at}
+- else
+  - deactivation_status = user.deactivation_status(current_user)
+  #{deactivation_status}
