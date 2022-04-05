@@ -65,12 +65,27 @@ module HudApr::Generators::CeApr::Fy2021
     # Find any clients that fit the filter criteria _and_ have at least one assessment in their enrollment
     # occurring within the report range
     def client_scope(start_date: @report.start_date, end_date: @report.end_date)
-      scope = client_source.
+      household_ids = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: [:assessments, :project] }).
         merge(GrdaWarehouse::Hud::Project.coc_funded).
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
-        merge(GrdaWarehouse::Hud::Assessment.within_range(start_date..end_date))
+        merge(GrdaWarehouse::Hud::Assessment.within_range(start_date..end_date)).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
+        pluck(:household_id)
+
+      event_ids = client_source.
+        distinct.
+        joins(service_history_enrollments: { enrollment: [:events, :project] }).
+        merge(GrdaWarehouse::Hud::Project.coc_funded).
+        merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
+        merge(GrdaWarehouse::Hud::Event.within_range(start_date..end_date)).
+        pluck(:client_id)
+
+      scope = client_source.
+        distinct.
+        joins(service_history_enrollments: { enrollment: :project }).
+        where(she_t[:household_id].in(household_ids).or(she_t[:client_id].in(event_ids)))
 
       @filter = self.class.filter_class.new(
         user_id: @report.user_id,
