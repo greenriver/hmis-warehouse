@@ -54,8 +54,8 @@ module HudApr::Generators::Shared::Fy2021
           hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last
           household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
           end_date = if needs_ce_assessments?
-            # Only HoHs get CE assessments, so we use their entry date
-            hoh_enrollment.first_date_in_program
+            # Only HoHs get CE assessments, so we prefer their entry date
+            hoh_enrollment&.first_date_in_program || last_service_history_enrollment.first_date_in_program
           else
             last_service_history_enrollment.first_date_in_program
           end
