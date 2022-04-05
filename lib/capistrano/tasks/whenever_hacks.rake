@@ -8,7 +8,7 @@ task :prime_whenever do
 
     old_cron = capture("sudo crontab -u #{fetch(:cron_user)} -l")
     # NOTE: this will need to be adjusted for each ruby version
-    new_section = capture("bash -l -c 'cd #{fetch(:release_path)} && /usr/local/rvm/bin/rvm 2.7.4@global do bundle exec whenever --set \"environment=#{fetch(:rails_env)}\"'")
+    new_section = capture("bash -l -c 'cd #{fetch(:release_path)} && /usr/local/rvm/bin/rvm 2.7.5@global do bundle exec whenever --set \"environment=#{fetch(:rails_env)}\"'")
 
     new_section.sub!(/^.+your crontab file was not.+$/, '')
     new_section.sub!(/^.+whenever --help.+$/, '')
