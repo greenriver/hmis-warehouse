@@ -8,10 +8,10 @@ require 'rails_helper'
 
 RSpec.describe HealthFlexibleService::MemberList, type: :model do
   let!(:aco) { create :accountable_care_organization }
-  let!(:vpr_1) { create :vpr, :out_of_range_1, :pre_tenancy_1 }
-  let!(:vpr_2) { create :vpr, :in_range_1, :pre_tenancy_1 }
-  let!(:vpr_3) { create :vpr, :in_range_1, :nutrition_1, :in_range_2, :pre_tenancy_2 }
-  let!(:vpr_4) { create :vpr, :in_range_1, :pre_tenancy_1, :in_range_2, :pre_tenancy_2 }
+  let!(:vpr_1) { create :vpr, :out_of_range, :pre_tenancy_1 }
+  let!(:vpr_2) { create :vpr, :in_range, :pre_tenancy_1 }
+  let!(:vpr_3) { create :vpr, :in_range, :nutrition_1, :pre_tenancy_2 }
+  let!(:vpr_4) { create :vpr, :in_range, :pre_tenancy_1, :pre_tenancy_2 }
 
   before(:each) do
     vpr_1.patient.patient_referral.update(accountable_care_organization_id: aco.id)
@@ -30,7 +30,7 @@ RSpec.describe HealthFlexibleService::MemberList, type: :model do
     vpr = member_list.vpr_scope('Pre-Tenancy Supports: Individual Supports').last
     cols = member_list.columns(vpr, 'Pre-Tenancy Supports: Individual Supports')
 
-    expect(cols.size).to eq(15)
-    expect(cols[7]).to include(',')
+    expect(cols.size).to eq(22)
+    expect(cols[7]).to include(',') # There should be more than 1 delivery entity
   end
 end

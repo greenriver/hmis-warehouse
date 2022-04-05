@@ -76,12 +76,14 @@ module HealthFlexibleService
 
     def create
       options = permitted_params.merge(user: current_user, patient: @patient)
+      options[:end_date] = options[:planned_on].to_date + 6.months if options[:planned_on].present?
       @vpr = vpr_source.create(options)
       respond_with(@vpr, location: client_health_flexible_service_vprs_path(@client))
     end
 
     def update
       options = permitted_params.merge(user: current_user, patient: @patient)
+      options[:end_date] = options[:planned_on].to_date + 6.months if options[:planned_on].present?
       @vpr = @vpr.update(options)
       respond_with(@vpr, location: client_health_flexible_service_vprs_path(@client))
     end

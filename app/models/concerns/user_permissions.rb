@@ -47,6 +47,7 @@ module UserPermissions
         :can_access_window_search,
         :can_delete_projects_or_data_sources,
         :can_manage_some_ad_hoc_ds,
+        :can_view_some_vprs,
       ].freeze
     end
 
@@ -185,6 +186,10 @@ module UserPermissions
 
     def can_manage_some_ad_hoc_ds
       can_manage_ad_hoc_data_sources? || can_manage_own_ad_hoc_data_sources?
+    end
+
+    def can_view_some_vprs
+      can_view_all_vprs? || can_view_my_vprs?
     end
 
     # Allow all methods above to respond with or without a ?

@@ -1,5 +1,5 @@
 - detail_variant_name = "spm_#{household_category}__#{demographic_category}"
-- headers = if measure == 'Measure 7' then data[:headers].first(4) else data[:headers] end
+- headers = if measure == 'Measure 7' then data[:headers].first(7) else data[:headers] end
 - new_category = demographic_category == 'all' && title != 'All Persons'
 .d-flex{class: if new_category then 'mt-8 pt-4 border-top' end}
   %h3= title
@@ -19,7 +19,7 @@
         %th #{row_data[:title]}:
         - row_data[:calculations].each do |calculation|
           - if calculation == :count_destinations
-            - @report.destinations.first(3).each.with_index do |id, i|
+            - @report.destinations.first(6).each.with_index do |id, i|
               - destination = headers[i + 1]
               %td= @report.formatted_value_for(section: measure, household_category: household_category, demographic_category: demographic_category, field: field, calculation: calculation, destination: destination)
           - else

@@ -1,0 +1,30 @@
+wb = xlsx_package.workbook
+
+wb.add_worksheet(name: @report.support_title(params)[0..30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = [
+    'Warehouse Client ID',
+    'First Name',
+    'Last Name',
+    'DOB',
+    'Gender',
+    'Veteran Status',
+    'Race',
+    'Ethnicity',
+  ]
+  sheet.add_row(row, style: title)
+  clients = @report.support_for(params)
+  clients.each do |client|
+    row = [
+      client.id,
+      client.FirstName,
+      client.LastName,
+      client.DOB,
+      client.gender,
+      HUD.no_yes_missing(client.VeteranStatus),
+      client.race_description,
+      HUD.ethnicity(client.Ethnicity),
+    ]
+    sheet.add_row(row)
+  end
+end

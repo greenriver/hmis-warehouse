@@ -28,7 +28,7 @@ wb.add_worksheet(name: 'Report Info') do |sheet|
 end
 
 @report.measures.each do |measure, data|
-  headers = if measure == 'Measure 7' then data[:headers].first(4) else data[:headers] end
+  headers = if measure == 'Measure 7' then data[:headers].first(7) else data[:headers] end
   wb.add_worksheet name: measure[0..30] do |sheet|
     title_style = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
     @report.variants.each do |household_category, details|
@@ -41,7 +41,7 @@ end
         row = ['', 'All Persons']
         row_data[:calculations].each do |calculation|
           if calculation == :count_destinations
-            @report.destinations.first(3).each.with_index do |_, i|
+            @report.destinations.first(6).each.with_index do |_, i|
               destination = headers[i + 1]
               row << @report.formatted_value_for(section: measure, household_category: household_category, demographic_category: 'all', field: field, calculation: calculation, destination: destination)
             end
@@ -55,7 +55,7 @@ end
           row = ['', variant[:name]]
           row_data[:calculations].each do |calculation|
             if calculation == :count_destinations
-              @report.destinations.first(3).each.with_index do |_, i|
+              @report.destinations.first(6).each.with_index do |_, i|
                 destination = headers[i + 1]
                 row << @report.formatted_value_for(section: measure, household_category: household_category, demographic_category: demographic_category, field: field, calculation: calculation, destination: destination)
               end

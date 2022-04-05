@@ -1,6 +1,13 @@
 - content_for(:title, "My Patients")
 %h1= content_for(:title)
 
+- if current_user.can_view_some_vprs?
+  %ul.nav.nav-tabs.sub-nav-tabs
+    %li.nav-item{role: 'presentation', class: 'active'}
+      = link_to 'Dashboard', health_my_patients_path, class: 'nav-link'
+    %li.nav-item{role: 'presentation'}
+      = link_to 'Flex Services', health_flexible_service_my_vprs_path, class: 'nav-link'
+
 .o-page__controls
   .o-page__search
     = render 'health/patients/search_form', url: health_my_patients_path

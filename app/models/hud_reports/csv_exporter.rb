@@ -8,17 +8,19 @@ require 'csv'
 
 module HudReports
   class CsvExporter
-    attr_accessor :report, :table, :metadata
+    attr_accessor :report, :table, :metadata, :force_quotes, :quote_empty
 
-    def initialize(report, table)
+    def initialize(report, table, force_quotes: true, quote_empty: true)
       @report = report
       @table = table
       @metadata = report.answer(question: table).metadata
+      @force_quotes = force_quotes
+      @quote_empty = quote_empty
     end
 
     def export(file_path)
       file = "#{file_path}/#{csv_name}"
-      CSV.open(file, 'wb', force_quotes: true) do |table|
+      CSV.open(file, 'wb', force_quotes: @force_quotes, quote_empty: @quote_empty) do |table|
         as_array.each { |row| table << row }
       end
     end
