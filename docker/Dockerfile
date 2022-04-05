@@ -1,7 +1,7 @@
 # Based on https://github.com/ledermann/docker-rails/blob/develop/Dockerfile
 ARG RUBY_VERSION
 # NOTE FROM clears all ARGs
-FROM ruby:$RUBY_VERSION-alpine
+FROM ruby:$RUBY_VERSION-alpine3.14
 
 ARG BUNDLER_VERSION
 
