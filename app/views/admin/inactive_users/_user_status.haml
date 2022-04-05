@@ -7,18 +7,9 @@
   %br
 -# Show reason for inactive status
 - if user.expired_at?
-  Account expired on #{user.expired_at}.
+  Account expired on #{user.expired_at}
 - elsif user.expired?
-  Account expired due to inactivity. Last activity on #{user.last_activity_at}.
+  Account expired due to inactivity. Last activity on #{user.last_activity_at}
 - else
-  - version = user.versions.where(event: 'deactivate').order(created_at: :desc).first
-  - if version.nil?
-    Account deactivated.
-  - elsif can_audit_users? && version.whodunnit?
-    - deactivating_user = User.find_by_id(version.whodunnit.to_i)
-    - if deactivating_user.nil?
-      Account deactivated on #{version.created_at}.
-    - else
-      Account deactivated by #{deactivating_user.name} on #{version.created_at}.
-  - else
-    Account deactivated on #{version.created_at}.
+  - deactivation_status = user.deactivation_status(current_user)
+  #{deactivation_status}
