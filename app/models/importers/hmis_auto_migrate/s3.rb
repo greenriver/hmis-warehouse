@@ -42,7 +42,7 @@ module Importers::HmisAutoMigrate
       @file_password = file_password
       @s3_path = path
       @file_path = file_path
-      @local_path = File.join(file_path, @data_source_id.to_s, Time.current.to_i.to_s)
+      @local_path = Dir.mktmpdir([file_path, @data_source_id.to_s])
       @stale = false
       @file_name = file_name
     end
@@ -54,10 +54,10 @@ module Importers::HmisAutoMigrate
     end
 
     def pre_process
-      file_path = copy_from_s3
+      target_path = copy_from_s3
       return if @stale
 
-      upload_id = upload(file_path: file_path) if file_path.present?
+      upload_id = upload(file_path: target_path) if target_path.present?
       Importers::HmisAutoMigrate::UploadedZip.new(
         upload_id: upload_id,
         data_source_id: @data_source_id,

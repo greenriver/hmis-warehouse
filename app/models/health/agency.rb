@@ -16,7 +16,7 @@ module Health
     has_many :agency_users, class_name: 'Health::AgencyUser'
 
     def users
-      User.where(id: (agency_users||[]).map{|au| au.user_id})
+      User.where(id: (agency_users || []).map(&:user_id))
     end
 
     # def self.whitelisted_domains
@@ -29,11 +29,13 @@ module Health
 
     def self.email_valid?(email)
       return false unless email.present?
+
       # whitelisted_domain_regex.match(email)
       # Check that the email is not from a free or disposable or invalid email provider
       email_address = ::EmailCheck::EmailAddress.new(email)
       return false if email_address.blank?
-      ! email_address.free_email_provider? && ! email_address.blacklisted_domain? && MailChecker.valid?(email)
+
+      MailChecker.valid?(email) && !email_address.free_email_provider? && !email_address.blacklisted_domain?
     end
 
     def self.whitelisted_domain_regex
@@ -42,6 +44,5 @@ module Health
       end.join('|')
       Regexp.new(regex_string)
     end
-
   end
 end

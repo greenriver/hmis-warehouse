@@ -67,6 +67,9 @@ class User < ApplicationRecord
 
   has_many :two_factors_memorized_devices
 
+  has_many :favorites
+  has_many :favorite_reports, through: :favorites, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
+
   belongs_to :agency, optional: true
 
   scope :diet, -> do
@@ -90,6 +93,9 @@ class User < ApplicationRecord
       arel_table[:active].eq(true).and(
         arel_table[:expired_at].eq(nil).
         or(arel_table[:expired_at].gt(Time.current)),
+      ).and(
+        arel_table[:last_activity_at].eq(nil).
+        or(arel_table[:last_activity_at].gt(expire_after.ago)),
       ),
     )
   end
@@ -97,7 +103,8 @@ class User < ApplicationRecord
   scope :inactive, -> do
     where(
       arel_table[:active].eq(false).
-      or(arel_table[:expired_at].lteq(Time.current)),
+      or(arel_table[:expired_at].lteq(Time.current)).
+      or(arel_table[:last_activity_at].lteq(expire_after.ago)),
     )
   end
 
@@ -294,6 +301,20 @@ class User < ApplicationRecord
     else
       :invitation_expired
     end
+  end
+
+  def deactivation_status(user)
+    return unless inactive?
+
+    version = versions.where(event: 'deactivate').order(created_at: :desc)&.first
+
+    return 'Account deactivated' unless version
+    return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
+
+    name = version.name_of_whodunnit?
+    return "Account deactivated on #{version.created_at}" unless name
+
+    "Account deactivated by #{name} on #{version.created_at}"
   end
 
   def self.text_search(text)

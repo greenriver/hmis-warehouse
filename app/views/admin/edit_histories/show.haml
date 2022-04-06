@@ -14,11 +14,10 @@
     %tbody
       - @versions.each do |version|
         - changes = describe_changes_to(version)
-        - editor = name_of_whodunnit(version)
         - if changes.present?
           %tr
             %td= version.created_at
-            %td= editor
+            %td= version.name_of_whodunnit?
             %td
               - changes.each do |change|
                 = change

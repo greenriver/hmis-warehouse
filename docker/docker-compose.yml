@@ -5,7 +5,7 @@ x-app: &app
   build:
     context: .
     args:
-      RUBY_VERSION: 2.7.4
+      RUBY_VERSION: 2.7.5
       BUNDLER_VERSION: '2.2.26'
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}

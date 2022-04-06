@@ -62,4 +62,4 @@
           - unless @user.last_training_completed.present?
             = f.input :training_completed, label: 'Check to OVERRIDE course completion requirement'
 
-= render '/users/user_viewable_entities', f: f, roles: Role.editable
+= render '/users/user_viewable_entities', f: f, roles: Role.editable.order(:name)

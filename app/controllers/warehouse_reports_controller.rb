@@ -23,5 +23,6 @@ class WarehouseReportsController < ApplicationController
     @recent_reports = report_definitions.values.flatten.select do |r|
       r.url.in?(recent_reports_paths)
     end
+    @favorite_reports = current_user.favorite_reports
   end
 end

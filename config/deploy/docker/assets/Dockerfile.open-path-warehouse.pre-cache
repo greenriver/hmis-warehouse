@@ -2,7 +2,7 @@
 ## stage build for the self-signed certificate we need ##
 #########################################################
 
-FROM ruby:2.7.4-alpine AS cert
+FROM ruby:2.7.5-alpine3.14 AS cert
 
 RUN apk add --no-cache \
   openssl
@@ -17,7 +17,7 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
 ## Stage for the code ##
 ########################
 
-FROM ruby:2.7.4-alpine AS code
+FROM ruby:2.7.5-alpine3.14 AS code
 
 RUN mkdir -p /app \
     /app/app/assets /app/tmp/pids /app/lib/assets /app/vendor/assets \
@@ -50,7 +50,7 @@ COPY --from=cert /key.pem /cert.pem /app/config/
 ## Actual Build ##
 ##################
 
-FROM ruby:2.7.4-alpine
+FROM ruby:2.7.5-alpine3.14
 
 WORKDIR /app
 
