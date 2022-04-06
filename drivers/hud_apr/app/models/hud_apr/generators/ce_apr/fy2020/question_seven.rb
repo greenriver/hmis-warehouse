@@ -8,9 +8,5 @@ module HudApr::Generators::CeApr::Fy2020
   class QuestionSeven < HudApr::Generators::Shared::Fy2020::QuestionSeven
     include HudApr::Generators::CeApr::Fy2020::QuestionConcern
     QUESTION_TABLE_NUMBERS = ['Q7a'].freeze
-
-    def needs_ce_assessments?
-      true
-    end
   end
 end

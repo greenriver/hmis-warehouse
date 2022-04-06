@@ -15,9 +15,5 @@ module HudApr::Generators::CeApr::Fy2020
         'Q10' => 'Total Coordinated Entry Activity During the Year',
       }.freeze
     end
-
-    def needs_ce_assessments?
-      true
-    end
   end
 end

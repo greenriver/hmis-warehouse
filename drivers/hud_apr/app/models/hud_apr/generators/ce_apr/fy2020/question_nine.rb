@@ -18,9 +18,5 @@ module HudApr::Generators::CeApr::Fy2020
         'Q9d' => 'Referral Events - Households Who Were Referred',
       }.freeze
     end
-
-    def needs_ce_assessments?
-      true
-    end
   end
 end
