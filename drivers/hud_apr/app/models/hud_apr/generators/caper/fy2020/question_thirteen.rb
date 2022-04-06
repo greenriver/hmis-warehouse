@@ -11,13 +11,5 @@ module HudApr::Generators::Caper::Fy2020
       'Q13b1',
       'Q13c1',
     ].freeze
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q13x1_conditions
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end

@@ -68,49 +68,5 @@ module HudPathReport::Generators::Fy2020
     def self.question_number
       QUESTION_NUMBER
     end
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
-      table_name = QUESTION_TABLE_NUMBER
-
-      metadata = {
-        header_row: TABLE_HEADER,
-        row_labels: ROWS.map(&:first),
-        first_column: 'B',
-        last_column: 'B',
-        first_row: 2,
-        last_row: 46,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      sum = 0
-      sum_members = []
-      ROWS.each_with_index do |(_label, destination), index|
-        answer = @report.answer(question: table_name, cell: 'B' + (index + 2).to_s)
-        case destination
-        when nil # Internal label, leave blank
-          next
-        when :subtotal # Section sums
-          answer.update(summary: sum)
-          sum = 0
-          answer.add_members(sum_members)
-          sum_members = []
-          next
-        when :stayers
-          members = universe.members.where(active_and_enrolled_clients).where(stayers)
-        when :total
-          members = universe.members.where(active_and_enrolled_clients)
-        else
-          members = universe.members.where(active_and_enrolled_clients).where(a_t[:destination].eq(destination))
-        end
-        answer.add_members(members)
-        sum_members += members
-        count = members.count
-        sum += count
-        answer.update(summary: count)
-      end
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end

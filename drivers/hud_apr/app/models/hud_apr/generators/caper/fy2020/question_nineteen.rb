@@ -7,13 +7,5 @@
 module HudApr::Generators::Caper::Fy2020
   class QuestionNineteen < HudApr::Generators::Shared::Fy2020::QuestionNineteen
     QUESTION_TABLE_NUMBERS = ['Q19b'].freeze
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q19b_disabling_conditions
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end

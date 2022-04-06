@@ -7,13 +7,5 @@
 module HudApr::Generators::Apr::Fy2020
   class QuestionEighteen < HudApr::Generators::Shared::Fy2020::QuestionEighteen
     QUESTION_TABLE_NUMBER = 'Q18'.freeze
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
-
-      q18_income
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end

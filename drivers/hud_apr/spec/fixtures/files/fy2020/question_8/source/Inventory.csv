@@ -1,3 +1,0 @@
-InventoryID,ProjectID,CoCCode,HouseholdType,Availability,UnitInventory,BedInventory,CHVetBedInventory,YouthVetBedInventory,VetBedInventory,CHYouthBedInventory,YouthBedInventory,CHBedInventory,OtherBedInventory,ESBedType,InventoryStartDate,InventoryEndDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-I-1,DEFAULT-ES,XX-500,3,1,10,10,,,,,,,,1,2018-10-01,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
-I-2,NBN,XX-500,3,1,10,10,,,,,,,,1,2018-10-01,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
