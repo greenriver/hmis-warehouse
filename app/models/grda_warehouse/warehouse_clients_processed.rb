@@ -28,6 +28,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     assessment_client_ids = GrdaWarehouse::Hud::Client.distinct.joins(:coc_assessment_touch_points).pluck(:id)
 
     calcs = StatsCalculator.new(client_ids: client_ids)
+    cohort_calcs = CohortCalculator.new(client_ids: client_ids)
+
     client_ids.each do |client_id|
       processed = existing_by_client_id[client_id] || where(
         client_id: client_id,
@@ -50,18 +52,57 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         days_homeless_plus_overrides: calcs.homeless_counts_plus_overrides[client_id] || 0,
       )
       if force_cohort_calculation || client_id.in?(cohort_client_ids + assessment_client_ids)
+
+        # Cohorts
         processed.assign_attributes(
-          CohortCalcs.new(processed.client).as_hash,
+          enrolled_homeless_shelter: cohort_calcs.enrolled_homeless_shelter(client_id),
+          # enrolled_homeless_unsheltered: client.service_history_enrollments.homeless_unsheltered.ongoing.exists?,
+          # enrolled_permanent_housing: client.service_history_enrollments.permanent_housing.ongoing.exists?,
+          # eto_coordinated_entry_assessment_score: client.most_recent_coc_assessment_score,
+          # household_members: household_members,
+          # last_homeless_visit: last_homeless_visit,
+          # open_enrollments: open_enrollments,
+          # rrh_desired: client.rrh_desired,
+          # vispdat_priority_score: client.calculate_vispdat_priority_score,
+          # vispdat_score: client.most_recent_vispdat_score,
+          # active_in_cas_match: client.cas_reports.where(active_match: true).exists?,
+          # last_exit_destination: client.last_exit_destination,
+          # last_cas_match_date: client.cas_reports.maximum(:match_started_at),
+          # lgbtq_from_hmis: client.sexual_orientation_from_hmis,
+          # cohorts_ongoing_enrollments_es: client.last_seen_in_type(:es),
+          # cohorts_ongoing_enrollments_sh: client.last_seen_in_type(:sh),
+          # cohorts_ongoing_enrollments_th: client.last_seen_in_type(:th),
+          # cohorts_ongoing_enrollments_so: client.last_seen_in_type(:so),
+          # cohorts_ongoing_enrollments_psh: client.last_seen_in_type(:psh),
+          # cohorts_ongoing_enrollments_rrh: client.last_seen_in_type(:rrh),
         )
       end
       begin
-        processed.save if processed.changed?
+        processed.save! if processed.changed?
       rescue PG::ForeignKeyViolation, ActiveRecord::InvalidForeignKey
         Rails.logger.info "Failed to find client in processed clients #{client_id}"
       end
       GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
     end
     nil
+  end
+
+  class CohortCalculator
+    include ArelHelper
+
+    def initialize(client_ids:)
+      @client_ids = client_ids
+    end
+
+    def enrolled_homeless_shelter(client_id)
+      @enrolled_homeless_shelter ||= service_history_enrollments.homeless_sheltered.ongoing.pluck(:client_id).to_set
+      @enrolled_homeless_shelter.include?(client_id)
+    end
+
+    def service_history_enrollments
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(client_id: @client_ids)
+    end
   end
 
   class StatsCalculator
