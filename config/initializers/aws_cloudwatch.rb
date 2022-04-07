@@ -22,9 +22,9 @@ def find_log_stream_name
       end
 
       logs ||= Aws::CloudWatchLogs::Client.new
-      for i in 1..200 do # Limit to 200 requests so we're not endlessly searching.
+      for i in 1..100 do # Limit to 100 requests so we're not endlessly searching.
         begin
-          sleep(2) if i % 25 == 0
+          sleep(2) if i % 5 == 0
           response = logs.describe_log_streams({
             log_group_name: log_group,
             order_by: 'LastEventTime',
@@ -47,12 +47,12 @@ def find_log_stream_name
       end
     end
   rescue Timeout::Error  => e
-    Rails.logger.error 'Throttling exception encountered when searching for log stream.'
+    Rails.logger.error 'Searching for the log stream took too long.'
     return nil
   end
 
   if log_stream.nil?
-    Rails.logger.error 'Log stream not found within 200 requests.'
+    Rails.logger.error 'Log stream not found within 100 requests.'
     return nil
   end
 end
