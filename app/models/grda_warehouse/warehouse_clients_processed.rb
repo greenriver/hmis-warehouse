@@ -18,14 +18,16 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   scope :service_history, -> { where(routine: 'service_history') }
 
-  def self.update_cached_counts(client_ids: [])
+  def self.update_cached_counts(client_ids: [], include_cohort_clients: true)
     existing_by_client_id = where(
       client_id: client_ids,
       routine: :service_history,
     ).index_by(&:client_id)
 
-    cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id)
-    client_ids += cohort_client_ids
+    if include_cohort_clients
+      cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id)
+      client_ids += cohort_client_ids
+    end
 
     client_ids.uniq.each_slice(2_000) do |client_id_batch|
       calcs = StatsCalculator.new(client_ids: client_id_batch)
@@ -70,6 +72,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           last_exit_destination: calcs.last_exit_destination(client_id),
           vispdat_score: calcs.vispdat_score(client_id),
         )
+        processed_batch << processed
       end
       if processed_batch.present?
         import(
@@ -97,10 +100,10 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
               :rrh_desired,
               :last_homeless_visit,
               :cohorts_ongoing_enrollments_es,
+              :cohorts_ongoing_enrollments_sh,
               :cohorts_ongoing_enrollments_th,
               :cohorts_ongoing_enrollments_so,
               :cohorts_ongoing_enrollments_psh,
-              :cohorts_ongoing_enrollments_rrh,
               :cohorts_ongoing_enrollments_rrh,
               :active_in_cas_match,
               :last_cas_match_date,
