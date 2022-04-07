@@ -1,5 +1,0 @@
-ProjectID,OrganizationID,ProjectName,ProjectCommonName,OperatingStartDate,OperatingEndDate,ContinuumProject,ProjectType,HousingType,ResidentialAffiliation,TrackingMethod,HMISParticipatingProject,TargetPopulation,PITCount,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-DEFAULT-PH,O-1,Default PH,,2018-10-01,,1,3,1,,0,1,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
-DEFAULT-SO,O-1,Default SO,,2018-10-01,,1,4,1,,0,1,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
-DEFAULT-TH,O-1,Default TH,,2018-10-01,,1,2,1,,0,1,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
-NBN,O-1,Night-by-Night,,2018-10-01,,1,1,1,,3,1,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT

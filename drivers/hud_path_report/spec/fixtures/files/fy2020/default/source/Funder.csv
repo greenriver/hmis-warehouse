@@ -1,3 +1,0 @@
-FunderID,ProjectID,Funder,OtherFunder,GrantID,StartDate,EndDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-F-1,SO,21,,G-1,2000-01-01,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
-F-2,SERVICES,21,,G-2,2000-01-01,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT

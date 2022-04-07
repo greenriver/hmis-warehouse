@@ -1,8 +1,0 @@
-"ServicesID","EnrollmentID","PersonalID","DateProvided","RecordType","TypeProvided","OtherTypeProvided","SubTypeProvided","FAAmount","ReferralOutcome","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
-S-1,E-6,NSV,2020-01-01,141,4,,,,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
-S-2,E-8,ESO,2020-01-01,141,4,,,,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
-S-3,E-8,ESO,2020-01-02,141,4,,,,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
-S-4,E-8,ESO,2020-02-02,141,6,,,,,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
-S-5,E-8,ESO,2020-01-01,161,1,,,,2,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
-S-6,E-8,ESO,2020-02-01,161,1,,,,1,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
-S-7,E-9,ESV,2020-02-01,161,1,,,,2,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT

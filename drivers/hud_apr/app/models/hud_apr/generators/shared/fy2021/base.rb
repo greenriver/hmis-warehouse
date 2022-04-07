@@ -651,6 +651,8 @@ module HudApr::Generators::Shared::Fy2021
       else
         hoh_enrollment
       end
+      return unless enrollment.enrollment&.assessments.present?
+
       enrollment.enrollment.assessments.
         select { |a| a.AssessmentDate.present? && a.AssessmentDate.between?(@report.start_date, @report.end_date) }.
         max_by(&:AssessmentDate)
