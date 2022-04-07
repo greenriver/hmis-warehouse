@@ -1,8 +1,6 @@
 - if user.invitation_status == :active
   - if user.access_locked?
     Account locked.
-  - elsif user.expired?
-    Account Expired #{user.expired_at}
   - elsif user.future_expiration?
     Account will expire on #{user.expired_at.to_date}
   - else

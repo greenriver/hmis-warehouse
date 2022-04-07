@@ -26,6 +26,7 @@ gem 'census_api', github: 'greenriver/census_api'
 
 # spatial manipulations
 gem 'activerecord-postgis-adapter'
+gem 'ffi'
 gem 'ffi-geos'
 gem 'rgeo'
 gem 'rgeo-geojson'

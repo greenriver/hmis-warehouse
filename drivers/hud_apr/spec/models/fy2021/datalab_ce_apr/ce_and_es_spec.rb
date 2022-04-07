@@ -32,11 +32,6 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'ce_and_es',
       question: 'Q5a',
-      skip: [
-        'B1', # FIXME
-        'B3', # FIXME
-        'B4', # FIXME
-      ],
     )
   end
 
@@ -44,26 +39,12 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'ce_and_es',
       question: 'Q6a',
-      skip: [
-        'B2', # FIXME
-        'E2', # FIXME
-        'F2', # FIXME
-        'B3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'F3', # FIXME
-        'B4', # FIXME
-        'E4', # FIXME
-        'F4', # FIXME
-        'F5', # FIXME
-        'B6', # FIXME
-        'E6', # FIXME
-        'F6', # FIXME
-        'C7', # FIXME
-        'E7', # FIXME
-        'F7', # FIXME
-        'E8', # FIXME
-        'F8', # FIXME
+      skip: [ # Pending AAQ
+        'D3',
+        'E3',
+        'F3',
+        'E8',
+        'F8',
       ],
     )
   end
@@ -72,21 +53,6 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'ce_and_es',
       question: 'Q7a',
-      skip: [
-        'C2', # FIXME
-        'D2', # FIXME
-        'F2', # FIXME
-        'B3', # FIXME
-        'D3', # FIXME
-        'F3', # FIXME
-        'B4', # FIXME
-        'C4', # FIXME
-        'F4', # FIXME
-        'B6', # FIXME
-        'C6', # FIXME
-        'D6', # FIXME
-        'F6', # FIXME
-      ],
     )
   end
 
@@ -94,11 +60,6 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'ce_and_es',
       question: 'Q8a',
-      skip: [
-        'C2', # FIXME
-        'D2', # FIXME
-        'F2', # FIXME
-      ],
     )
   end
 
@@ -106,16 +67,6 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'ce_and_es',
       question: 'Q9a',
-      skip: [
-        'C3', # FIXME
-        'D3', # FIXME
-        'F3', # FIXME
-        'C4', # FIXME
-        'D4', # FIXME
-        'C5', # FIXME
-        'D5', # FIXME
-        'F5', # FIXME
-      ],
     )
   end
 
@@ -123,14 +74,6 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'ce_and_es',
       question: 'Q9b',
-      skip: [
-        'B3', # FIXME
-        'C3', # FIXME
-        'D3', # FIXME
-        'E3', # FIXME
-        'F3', # FIXME
-        'C4', # FIXME
-      ],
     )
   end
 
@@ -146,25 +89,7 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
       file_path: result_file_prefix + 'ce_and_es',
       question: 'Q9d',
       skip: [
-        'C2', # FIXME
-        'D2', # FIXME
-        'F2', # FIXME
-        'C9', # FIXME
-        'D9', # FIXME
-        'C16', # FIXME
-        'D16', # FIXME
-        'F16', # FIXME
-        'C18', # FIXME
-        'D18', # FIXME
-        'B21', # FIXME
-        'C21', # FIXME
-        'E21', # FIXME
-        'C22', # FIXME
-        'D22', # FIXME
-        'F22', # FIXME
-        'B23', # FIXME rounding difference
-        'C23', # FIXME
-        'D23', # FIXME
+        'B23', # Rounding difference
       ],
     )
   end
@@ -173,9 +98,6 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'ce_and_es',
       question: 'Q10',
-      skip: [
-        'B6', # FIXME
-      ],
     )
   end
 end

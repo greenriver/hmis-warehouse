@@ -20,6 +20,11 @@ module HudApr::Generators::CeApr::Fy2021
       true
     end
 
+    def self.filter_universe_members(associations)
+      # Include all clients in Q10 universe
+      associations
+    end
+
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
