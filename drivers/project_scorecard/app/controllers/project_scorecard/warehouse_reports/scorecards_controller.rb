@@ -199,7 +199,7 @@ module ProjectScorecard::WarehouseReports
         permit(
           :start,
           :end,
-          user_id: [],
+          :user_id,
           project_ids: [],
           project_group_ids: [],
         )
@@ -239,8 +239,8 @@ module ProjectScorecard::WarehouseReports
       scope = scope.where(project_id: project_scope.select(:id)).
         or(scope.where(project_group_id: project_group_scope.select(:id)))
 
-      author_user_id = @history_filter.user_id
-      scope = scope.where(user_id: author_user_id) if author_user_id
+      # author_user_id = @history_filter.user_id
+      # scope = scope.where(user_id: author_user_id) if author_user_id
 
       project_ids = @history_filter.project_ids
       scope = scope.where(project: project_ids.uniq) if project_ids&.any?
@@ -252,6 +252,8 @@ module ProjectScorecard::WarehouseReports
     end
 
     private def set_history_filter
+      # user_id is used to filter what projects are listed in the dropdown, so it has to be set to curr user
+      # TODO look into using a custom filter alongside filter base..
       @history_filter = ::Filters::FilterBase.new(
         history_params.merge(
           user_id: current_user.id,
