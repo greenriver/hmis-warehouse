@@ -71,6 +71,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           lgbtq_from_hmis: calcs.sexual_orientation_from_hmis(client_id),
           last_exit_destination: calcs.last_exit_destination(client_id),
           vispdat_score: calcs.vispdat_score(client_id),
+          vispdat_priority_score: calcs.vispdat_priority_score(client_id),
         )
         processed_batch << processed
       end
@@ -110,6 +111,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
               :lgbtq_from_hmis,
               :last_exit_destination,
               :vispdat_score,
+              :vispdat_priority_score,
             ],
           },
         )
@@ -457,48 +459,50 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         end
       @client_household_ids[client_id].map do |household_key|
         @households[household_key].flatten.map do |member|
+          next if member[:client_id] == client_id
+
           "#{member[:first_name]} #{member[:last_name]} (#{member[:age]} in #{member[:first_date_in_program]&.year})"
-        end
-      end.flatten.uniq.join('; ')
+        end.compact
+      end.flatten.uniq.join('; ').presence
     end
 
     def last_homeless_visit(client_id)
-      @last_homeless_visit ||= last_seen_in_type(:homeless, client_id)
-      @last_homeless_visit[client_id]
+      @last_homeless_visit ||= last_seen_in_type(:homeless)
+      @last_homeless_visit[client_id].to_json
     end
 
     def last_es_visit(client_id)
-      @last_es_visit ||= last_seen_in_type(:es, client_id)
-      @last_es_visit[client_id]
+      @last_es_visit ||= last_seen_in_type(:es)
+      @last_es_visit[client_id] || []
     end
 
     def last_sh_visit(client_id)
-      @last_sh_visit ||= last_seen_in_type(:sh, client_id)
-      @last_sh_visit[client_id]
+      @last_sh_visit ||= last_seen_in_type(:sh)
+      @last_sh_visit[client_id] || []
     end
 
     def last_th_visit(client_id)
-      @last_th_visit ||= last_seen_in_type(:th, client_id)
-      @last_th_visit[client_id]
+      @last_th_visit ||= last_seen_in_type(:th)
+      @last_th_visit[client_id] || []
     end
 
     def last_so_visit(client_id)
-      @last_so_visit ||= last_seen_in_type(:so, client_id)
-      @last_so_visit[client_id]
+      @last_so_visit ||= last_seen_in_type(:so)
+      @last_so_visit[client_id] || []
     end
 
     def last_psh_visit(client_id)
-      @last_psh_visit ||= last_seen_in_type(:psh, client_id)
-      @last_psh_visit[client_id]
+      @last_psh_visit ||= last_seen_in_type(:psh)
+      @last_psh_visit[client_id] || []
     end
 
     def last_rrh_visit(client_id)
-      @last_rrh_visit ||= last_seen_in_type(:rrh, client_id)
-      @last_rrh_visit[client_id]
+      @last_rrh_visit ||= last_seen_in_type(:rrh)
+      @last_rrh_visit[client_id] || []
     end
 
     # NOTE: this should be cached in the calling method since this will return different results based on type provided
-    private def last_seen_in_type(type, _client_id)
+    private def last_seen_in_type(type)
       lsit = {}
       GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
@@ -508,7 +512,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         maximum(shs_t[:date]).
         each do |(client_id, project_name, confidential, project_id), date|
           project_name = GrdaWarehouse::Hud::Project.confidential_project_name if confidential
-          lsit[client_id] = {
+          lsit[client_id] ||= []
+          lsit[client_id] << {
             project_name: project_name,
             date: date,
             project_id: project_id,
@@ -536,7 +541,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def rrh_desired(client_id)
-      @rrh_desired ||= GrdaWarehouse::Hud::Client.where(id: @client_ids).pluck(:id, :rrh_desired)
+      @rrh_desired ||= GrdaWarehouse::Hud::Client.where(id: @client_ids).pluck(:id, :rrh_desired).to_h
       @rrh_desired[client_id]
     end
 
@@ -618,7 +623,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       @hmis_vispdat_scores[client_id]
     end
 
-    def calculate_vispdat_priority_score(client_id)
+    def vispdat_priority_score(client_id)
       # get internal vispdat (most recent per client)
       # get hmis vispdat (most recent for client)
       # get all clients who are in the above sets
@@ -700,14 +705,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     private def hmis_vispdats
       # Sometimes we don't have any VI-SPDAT.  ||= still wants to do the queries, short circuit
-      return @hmis_vispdats if @internal_vispdats_attempted
+      return @hmis_vispdats if @hmis_vispdats_attempted
 
       @hmis_vispdats ||= {}.tap do |internal|
         @hmis_vispdats_attempted = true
-        GrdaWarehouse::Hud::Client.destination.
-          where(id: @client_ids).
-          joins(:source_hmis_forms).
-          merge(GrdaWarehouse::HmisForm.vispdat.newest_first).
+        GrdaWarehouse::HmisForm.vispdat.newest_first.joins(:destination_client).
+          merge(GrdaWarehouse::Hud::Client.destination.where(id: @client_ids)).
           each do |vi|
             internal[vi.destination_client.id] ||= vi
           end
