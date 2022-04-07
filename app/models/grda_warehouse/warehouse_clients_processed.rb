@@ -18,91 +18,104 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   scope :service_history, -> { where(routine: 'service_history') }
 
-  def self.update_cached_counts(client_ids: [], force_cohort_calculation: false)
+  def self.update_cached_counts(client_ids: [])
     existing_by_client_id = where(
       client_id: client_ids,
       routine: :service_history,
     ).index_by(&:client_id)
 
     cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id).to_set
-    assessment_client_ids = GrdaWarehouse::Hud::Client.distinct.joins(:coc_assessment_touch_points).pluck(:id)
+    client_ids += cohort_client_ids
 
-    calcs = StatsCalculator.new(client_ids: client_ids)
-    cohort_calcs = CohortCalculator.new(client_ids: client_ids)
+    client_ids.uniq.each_slice(2_000) do |client_id_batch|
+      calcs = StatsCalculator.new(client_ids: client_id_batch)
 
-    client_ids.each do |client_id|
-      processed = existing_by_client_id[client_id] || where(
-        client_id: client_id,
-        routine: :service_history,
-      ).first_or_initialize
+      processed_batch = []
+      client_id_batch.each do |client_id|
+        processed = existing_by_client_id[client_id] || where(
+          client_id: client_id,
+          routine: :service_history,
+        ).first_or_initialize
 
-      processed.assign_attributes(
-        last_service_updated_at: Date.current,
-        first_homeless_date: calcs.first_homeless_dates[client_id],
-        last_homeless_date: calcs.most_recent_homeless_dates[client_id],
-        homeless_days: calcs.homeless_counts[client_id] || 0,
-        first_chronic_date: calcs.first_chronic_dates[client_id],
-        last_chronic_date: calcs.most_recent_chronic_dates[client_id],
-        chronic_days: calcs.chronic_counts[client_id],
-        first_date_served: calcs.first_total_dates[client_id],
-        last_date_served: calcs.most_recent_total_dates[client_id],
-        days_served: calcs.total_counts[client_id],
-        days_homeless_last_three_years: calcs.all_homeless_in_last_three_years[client_id] || 0,
-        literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
-        days_homeless_plus_overrides: calcs.homeless_counts_plus_overrides[client_id] || 0,
-      )
-      if force_cohort_calculation || client_id.in?(cohort_client_ids + assessment_client_ids)
-
-        # Cohorts
         processed.assign_attributes(
-          enrolled_homeless_shelter: cohort_calcs.enrolled_homeless_shelter(client_id),
-          # enrolled_homeless_unsheltered: client.service_history_enrollments.homeless_unsheltered.ongoing.exists?,
-          # enrolled_permanent_housing: client.service_history_enrollments.permanent_housing.ongoing.exists?,
-          # eto_coordinated_entry_assessment_score: client.most_recent_coc_assessment_score,
-          # household_members: household_members,
-          # last_homeless_visit: last_homeless_visit,
-          # open_enrollments: open_enrollments,
-          # rrh_desired: client.rrh_desired,
-          # vispdat_priority_score: client.calculate_vispdat_priority_score,
-          # vispdat_score: client.most_recent_vispdat_score,
-          # active_in_cas_match: client.cas_reports.where(active_match: true).exists?,
-          # last_exit_destination: client.last_exit_destination,
-          # last_cas_match_date: client.cas_reports.maximum(:match_started_at),
-          # lgbtq_from_hmis: client.sexual_orientation_from_hmis,
-          # cohorts_ongoing_enrollments_es: client.last_seen_in_type(:es),
-          # cohorts_ongoing_enrollments_sh: client.last_seen_in_type(:sh),
-          # cohorts_ongoing_enrollments_th: client.last_seen_in_type(:th),
-          # cohorts_ongoing_enrollments_so: client.last_seen_in_type(:so),
-          # cohorts_ongoing_enrollments_psh: client.last_seen_in_type(:psh),
-          # cohorts_ongoing_enrollments_rrh: client.last_seen_in_type(:rrh),
+          last_service_updated_at: Date.current,
+          first_homeless_date: calcs.first_homeless_dates[client_id],
+          last_homeless_date: calcs.most_recent_homeless_dates[client_id],
+          homeless_days: calcs.homeless_counts[client_id] || 0,
+          first_chronic_date: calcs.first_chronic_dates[client_id],
+          last_chronic_date: calcs.most_recent_chronic_dates[client_id],
+          chronic_days: calcs.chronic_counts[client_id],
+          first_date_served: calcs.first_total_dates[client_id],
+          last_date_served: calcs.most_recent_total_dates[client_id],
+          days_served: calcs.total_counts[client_id],
+          days_homeless_last_three_years: calcs.all_homeless_in_last_three_years[client_id] || 0,
+          literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
+          days_homeless_plus_overrides: calcs.homeless_counts_plus_overrides[client_id] || 0,
+          enrolled_homeless_shelter: calcs.enrolled_homeless_shelter(client_id),
+          enrolled_homeless_unsheltered: calcs.enrolled_homeless_unsheltered(client_id),
+          enrolled_permanent_housing: calcs.enrolled_permanent_housing(client_id),
+          household_members: calcs.household_members(client_id),
+          open_enrollments: calcs.open_enrollments(client_id),
+          rrh_desired: calcs.rrh_desired(client_id),
+          last_homeless_visit: calcs.last_homeless_visit(client_id),
+          cohorts_ongoing_enrollments_es: calcs.last_es_visit(client_id),
+          cohorts_ongoing_enrollments_sh: calcs.last_sh_visit(client_id),
+          cohorts_ongoing_enrollments_th: calcs.last_th_visit(client_id),
+          cohorts_ongoing_enrollments_so: calcs.last_so_visit(client_id),
+          cohorts_ongoing_enrollments_psh: calcs.last_psh_visit(client_id),
+          cohorts_ongoing_enrollments_rrh: calcs.last_rrh_visit(client_id),
+          active_in_cas_match: calcs.active_in_cas_match(client_id),
+          last_cas_match_date: calcs.last_cas_match_date(client_id),
+          lgbtq_from_hmis: calcs.sexual_orientation_from_hmis(client_id),
+          last_exit_destination: calcs.last_exit_destination(client_id),
+          vispdat_score: calcs.vispdat_score(client_id),
         )
       end
-      begin
-        processed.save! if processed.changed?
-      rescue PG::ForeignKeyViolation, ActiveRecord::InvalidForeignKey
-        Rails.logger.info "Failed to find client in processed clients #{client_id}"
+      if processed_batch.present?
+        import(
+          processed_batch,
+          on_duplicate_key_update: {
+            columns: [
+              :last_service_updated_at,
+              :first_homeless_date,
+              :last_homeless_date,
+              :homeless_days,
+              :first_chronic_date,
+              :last_chronic_date,
+              :chronic_days,
+              :first_date_served,
+              :last_date_served,
+              :days_served,
+              :days_homeless_last_three_years,
+              :literally_homeless_last_three_years,
+              :days_homeless_plus_overrides,
+              :enrolled_homeless_shelter,
+              :enrolled_homeless_unsheltered,
+              :enrolled_permanent_housing,
+              :household_members,
+              :open_enrollments,
+              :rrh_desired,
+              :last_homeless_visit,
+              :cohorts_ongoing_enrollments_es,
+              :cohorts_ongoing_enrollments_th,
+              :cohorts_ongoing_enrollments_so,
+              :cohorts_ongoing_enrollments_psh,
+              :cohorts_ongoing_enrollments_rrh,
+              :cohorts_ongoing_enrollments_rrh,
+              :active_in_cas_match,
+              :last_cas_match_date,
+              :lgbtq_from_hmis,
+              :last_exit_destination,
+              :vispdat_score,
+            ],
+          },
+        )
       end
-      GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
+      client_id_batch.each do |client_id|
+        GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
+      end
     end
     nil
-  end
-
-  class CohortCalculator
-    include ArelHelper
-
-    def initialize(client_ids:)
-      @client_ids = client_ids
-    end
-
-    def enrolled_homeless_shelter(client_id)
-      @enrolled_homeless_shelter ||= service_history_enrollments.homeless_sheltered.ongoing.pluck(:client_id).to_set
-      @enrolled_homeless_shelter.include?(client_id)
-    end
-
-    def service_history_enrollments
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        where(client_id: @client_ids)
-    end
   end
 
   class StatsCalculator
@@ -378,67 +391,324 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         distinct.
         count(:date)
     end
-  end
 
-  # stats used by Cohort reports --
-  # FIXME: these are N+1 on client *and then some* so ideally
-  # thy get rewritten as batched versions
-  # like StatsCalculator
-  class CohortCalcs
-    attr_reader :client
-
-    def initialize(client)
-      @client = client
+    def enrolled_homeless_shelter(client_id)
+      @enrolled_homeless_shelter ||= ongoing_enrollments.homeless_sheltered.pluck(:client_id).to_set
+      @enrolled_homeless_shelter.include?(client_id)
     end
 
-    def as_hash
-      {
-        enrolled_homeless_shelter: client.service_history_enrollments.homeless_sheltered.ongoing.exists?,
-        enrolled_homeless_unsheltered: client.service_history_enrollments.homeless_unsheltered.ongoing.exists?,
-        enrolled_permanent_housing: client.service_history_enrollments.permanent_housing.ongoing.exists?,
-        eto_coordinated_entry_assessment_score: client.most_recent_coc_assessment_score,
-        household_members: household_members,
-        last_homeless_visit: last_homeless_visit,
-        open_enrollments: open_enrollments,
-        rrh_desired: client.rrh_desired,
-        vispdat_priority_score: client.calculate_vispdat_priority_score,
-        vispdat_score: client.most_recent_vispdat_score,
-        active_in_cas_match: client.cas_reports.where(active_match: true).exists?,
-        last_exit_destination: client.last_exit_destination,
-        last_cas_match_date: client.cas_reports.maximum(:match_started_at),
-        lgbtq_from_hmis: client.sexual_orientation_from_hmis,
-        cohorts_ongoing_enrollments_es: client.last_seen_in_type(:es),
-        cohorts_ongoing_enrollments_sh: client.last_seen_in_type(:sh),
-        cohorts_ongoing_enrollments_th: client.last_seen_in_type(:th),
-        cohorts_ongoing_enrollments_so: client.last_seen_in_type(:so),
-        cohorts_ongoing_enrollments_psh: client.last_seen_in_type(:psh),
-        cohorts_ongoing_enrollments_rrh: client.last_seen_in_type(:rrh),
+    def enrolled_homeless_unsheltered(client_id)
+      @enrolled_homeless_unsheltered ||= ongoing_enrollments.homeless_unsheltered.pluck(:client_id).to_set
+      @enrolled_homeless_unsheltered.include?(client_id)
+    end
+
+    def enrolled_permanent_housing(client_id)
+      @enrolled_permanent_housing ||= ongoing_enrollments.permanent_housing.pluck(:client_id).to_set
+      @enrolled_permanent_housing.include?(client_id)
+    end
+
+    private def ongoing_enrollments
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        ongoing.
+        where(client_id: @client_ids)
+    end
+
+    def household_members(client_id)
+      @household_columns ||= {
+        household_id: she_t[:household_id],
+        data_source_id: she_t[:data_source_id],
+        project_id: she_t[:project_id],
+        first_date_in_program: she_t[:first_date_in_program],
+        client_id: she_t[:client_id],
+        age: she_t[:age],
+        first_name: c_t[:FirstName],
+        last_name: c_t[:LastName],
+        # enrollment_group_id: she_t[:enrollment_group_id],
+        # first_date_in_program: she_t[:first_date_in_program],
+        # last_date_in_program: she_t[:last_date_in_program],
+        # move_in_date: she_t[:move_in_date],
+        # head_of_household: she_t[:head_of_household],
       }
-    end
 
-    private def household_members
-      households = client.households
-      return unless households.present?
+      @client_household_ids ||= GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        enrollments_open_in_last_three_years.
+        distinct.
+        joins(:client).
+        where.not(household_id: [nil, '']).
+        pluck(:client_id, :household_id, :data_source_id, :project_id).
+        group_by(&:shift)
+      return unless @client_household_ids.key?(client_id)
 
-      households.values.flatten.map do |member|
-        "#{member['FirstName']} #{member['LastName']} (#{member['age']} in #{member['date'].year})"
-      end.uniq.join('; ')
-    end
-
-    private def last_homeless_visit
-      client.last_homeless_visits.to_json
-    end
-
-    private def open_enrollments
-      client.service_history_enrollments.ongoing.
-        distinct.residential.
-        pluck(:project_type).map do |project_type|
-          if project_type == 13
-            [project_type, 'RRH']
-          else
-            [project_type, ::HUD.project_type_brief(project_type)]
-          end
+      @households ||= GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:client).
+        enrollments_open_in_last_three_years.
+        where.not(household_id: [nil, '']).
+        pluck(*@household_columns.values).map do |row|
+          Hash[@household_columns.keys.zip(row)]
+        end.uniq.group_by do |m|
+          [
+            m[:household_id],
+            m[:data_source_id],
+            m[:project_id],
+          ]
         end
+      @client_household_ids[client_id].map do |household_key|
+        @households[household_key].flatten.map do |member|
+          "#{member[:first_name]} #{member[:last_name]} (#{member[:age]} in #{member[:first_date_in_program]&.year})"
+        end
+      end.flatten.uniq.join('; ')
+    end
+
+    def last_homeless_visit(client_id)
+      @last_homeless_visit ||= last_seen_in_type(:homeless, client_id)
+      @last_homeless_visit[client_id]
+    end
+
+    def last_es_visit(client_id)
+      @last_es_visit ||= last_seen_in_type(:es, client_id)
+      @last_es_visit[client_id]
+    end
+
+    def last_sh_visit(client_id)
+      @last_sh_visit ||= last_seen_in_type(:sh, client_id)
+      @last_sh_visit[client_id]
+    end
+
+    def last_th_visit(client_id)
+      @last_th_visit ||= last_seen_in_type(:th, client_id)
+      @last_th_visit[client_id]
+    end
+
+    def last_so_visit(client_id)
+      @last_so_visit ||= last_seen_in_type(:so, client_id)
+      @last_so_visit[client_id]
+    end
+
+    def last_psh_visit(client_id)
+      @last_psh_visit ||= last_seen_in_type(:psh, client_id)
+      @last_psh_visit[client_id]
+    end
+
+    def last_rrh_visit(client_id)
+      @last_rrh_visit ||= last_seen_in_type(:rrh, client_id)
+      @last_rrh_visit[client_id]
+    end
+
+    # NOTE: this should be cached in the calling method since this will return different results based on type provided
+    private def last_seen_in_type(type, _client_id)
+      lsit = {}
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
+        merge(GrdaWarehouse::Hud::Project.public_send(type)).
+        where(client_id: @client_ids).
+        joins(:service_history_services, :project).
+        group(:client_id, :project_name, p_t[:confidential], p_t[:id]).
+        maximum(shs_t[:date]).
+        each do |(client_id, project_name, confidential, project_id), date|
+          project_name = GrdaWarehouse::Hud::Project.confidential_project_name if confidential
+          lsit[client_id] = {
+            project_name: project_name,
+            date: date,
+            project_id: project_id,
+          }
+        end
+      lsit
+    end
+
+    def open_enrollments(client_id)
+      @open_enrollments ||= {}.tap do |oe|
+        GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
+          distinct.
+          residential.
+          where(client_id: @client_ids).
+          pluck(:client_id, :project_type).each do |id, project_type|
+            oe[id] ||= []
+            oe[id] << if project_type == 13
+              [project_type, 'RRH']
+            else
+              [project_type, ::HUD.project_type_brief(project_type)]
+            end
+          end
+      end
+      @open_enrollments[client_id]
+    end
+
+    def rrh_desired(client_id)
+      @rrh_desired ||= GrdaWarehouse::Hud::Client.where(id: @client_ids).pluck(:id, :rrh_desired)
+      @rrh_desired[client_id]
+    end
+
+    def active_in_cas_match(client_id)
+      @active_in_cas_match ||= GrdaWarehouse::CasReport.where(active_match: true).pluck(:client_id).to_set
+      @active_in_cas_match.include?(client_id)
+    end
+
+    def last_cas_match_date(client_id)
+      @last_cas_match_date ||= GrdaWarehouse::CasReport.group(:client_id).maximum(:match_started_at)
+      @last_cas_match_date[client_id]
+    end
+
+    def sexual_orientation_from_hmis(client_id)
+      @sexual_orientation_from_hmis ||= {}.tap do |orientation|
+        GrdaWarehouse::Hud::Client.destination.
+          where(id: @client_ids).
+          joins(:source_hmis_clients).
+          merge(GrdaWarehouse::HmisClient.where.not(sexual_orientation: nil)).
+          order(hmis_c_t[:updated_at].desc).
+          pluck(c_t[:id], hmis_c_t[:sexual_orientation], hmis_c_t[:updated_at]).
+          each do |id, value, _|
+            orientation[id] ||= value
+          end
+      end
+      @sexual_orientation_from_hmis[client_id]
+    end
+
+    def last_exit_destination(client_id)
+      @last_exit_destination ||= {}.tap do |destinations|
+        GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: @client_ids).
+          exit_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.current).
+          joins(enrollment: :exit).
+          order(last_date_in_program: :desc).
+          pluck(:client_id, :destination, ex_t[:OtherDestination], :last_date_in_program).
+          each do |id, destination, other_destination, last_date_in_program|
+            destination_code = destination || 99
+            destination_string = if destination_code == 17
+              other_destination
+            else
+              ::HUD.destination(destination_code)
+            end
+            destinations[id] ||= "#{destination_string} (#{last_date_in_program})"
+          end
+      end
+      @last_exit_destination[client_id] || 'None'
+    end
+
+    # Fetch most recent VI-SPDAT from the warehouse,
+    # if not available use the most recent ETO VI-SPDAT
+    # The ETO VI-SPDAT are prioritized by max score on the most recent assessment
+    # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
+
+    def vispdat_score(client_id)
+      vispdat_scores ||= GrdaWarehouse::Vispdat::Base.where(client_id: @client_ids).
+        completed.
+        scores.
+        pluck(:client_id, :score).
+        reverse.to_h # scores scope forces most recent first, to_h return the last one
+
+      score = vispdat_scores[client_id]
+      return score if score.present?
+
+      @hmis_vispdat_scores ||= {}.tap do |hvs|
+        GrdaWarehouse::Hud::Client.destination.
+          where(id: @client_ids).
+          joins(:source_hmis_forms).
+          merge(GrdaWarehouse::HmisForm.vispdat.newest_first).
+          pluck(
+            :id,
+            hmis_form_t[:vispdat_total_score],
+            hmis_form_t[:vispdat_youth_score],
+            hmis_form_t[:vispdat_family_score],
+            hmis_form_t[:collected_at],
+          ).each do |id, total_score, youth_score, family_score, _|
+            hvs[id] ||= [total_score, youth_score, family_score].compact.max
+          end
+      end
+      @hmis_vispdat_scores[client_id]
+    end
+
+    def calculate_vispdat_priority_score(client_id)
+      # get internal vispdat (most recent per client)
+      # get hmis vispdat (most recent for client)
+      # get all clients who are in the above sets
+
+      vispdat_score = vispdat_score(client_id)
+      return nil unless vispdat_score.present?
+
+      client = vispdat_clients[client_id]
+      vispdat = vispdat(client_id)
+
+      if GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'veteran_status'
+        prioritization_bump = 0
+        prioritization_bump += 100 if client.veteran?
+        vispdat_score + prioritization_bump
+      elsif GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'vets_family_youth'
+        prioritization_bump = 0
+        prioritization_bump += 100 if client.veteran?
+        prioritization_bump += 50 if family_vispdat?(vispdat, client)
+        prioritization_bump += 25 if client.youth_on?
+
+        vispdat_score + prioritization_bump
+      else # Default GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'length_of_time'
+        vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization(vispdat, client)
+        vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 1095
+          1095
+        elsif vispdat_length_homeless_in_days >= 730
+          730
+        elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
+          365
+        else
+          0
+        end
+        vispdat_score + vispdat_prioritized_days_score
+      end
+    end
+
+    private def days_homeless_for_vispdat_prioritization(_vispdat, client)
+      client.vispdat_prioritization_days_homeless || all_homeless_in_last_three_years[client.id] || 0
+    end
+
+    private def vispdat_clients
+      return unless internal_vispdats.present? || hmis_vispdats.present?
+
+      ids = internal_vispdats.keys + hmis_vispdats.keys
+      @vispdat_clients ||= GrdaWarehouse::Hud::Client.where(id: ids).index_by(&:id)
+    end
+
+    private def family_vispdat?(vispdat, client)
+      # From local warehouse VI-SPDAT
+      return vispdat.family? if vispdat.respond_to?(:family?)
+
+      # From ETO VI-SPDAT, this is pre-calculated GrdaWarehouse::HmisForm.set_part_of_a_family
+      return client.family_member
+    end
+
+    private def vispdat(client_id)
+      internal = internal_vispdats[client_id]
+      external = hmis_vispdats[client_id]
+
+      vispdats = []
+      vispdats << [internal.submitted_at, internal] if internal
+      vispdats << [external.collected_at, external] if external
+      # return the newest vispdat
+      vispdats.sort_by(&:first)&.last&.last
+    end
+
+    private def internal_vispdats
+      # Sometimes we don't have any VI-SPDAT.  ||= still wants to do the queries, short circuit
+      return @internal_vispdats if @internal_vispdats_attempted
+
+      @internal_vispdats ||= {}.tap do |internal|
+        @internal_vispdats_attempted = true
+        GrdaWarehouse::Vispdat::Base.where(client_id: @client_ids).completed.scores.
+          each do |vi|
+            internal[vi.client_id] ||= vi
+          end
+      end
+    end
+
+    private def hmis_vispdats
+      # Sometimes we don't have any VI-SPDAT.  ||= still wants to do the queries, short circuit
+      return @hmis_vispdats if @internal_vispdats_attempted
+
+      @hmis_vispdats ||= {}.tap do |internal|
+        @hmis_vispdats_attempted = true
+        GrdaWarehouse::Hud::Client.destination.
+          where(id: @client_ids).
+          joins(:source_hmis_forms).
+          merge(GrdaWarehouse::HmisForm.vispdat.newest_first).
+          each do |vi|
+            internal[vi.destination_client.id] ||= vi
+          end
+      end
     end
   end
 end
