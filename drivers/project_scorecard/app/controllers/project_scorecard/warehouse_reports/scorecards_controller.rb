@@ -12,6 +12,7 @@ module ProjectScorecard::WarehouseReports
     before_action :set_filter, only: [:index, :create]
     before_action :set_projects_and_groups, :set_current_reports, only: [:index]
     before_action :set_report, only: [:show, :edit, :rewind, :complete, :update]
+    before_action :set_history_filter, only: [:history]
 
     def index
       start_date = Date.current.prev_month.beginning_of_month
@@ -34,13 +35,17 @@ module ProjectScorecard::WarehouseReports
     end
 
     def history
-      @reports = reports_scope.
+      @reports = filtered_reports_scope.
         order(id: :desc).
-        where(project_id: project_scope.select(:id)).
-        or(reports_scope.order(id: :desc).where(project_group_id: project_group_scope.select(:id))).
         preload(project: [:organization, :data_source]).
         page(params[:page]).per(50)
     end
+
+    private def available_users
+      user_author_ids = reports_scope.distinct.pluck(:user_id)
+      User.active.where(id: user_author_ids)
+    end
+    helper_method :available_users
 
     def show
       report_id = { report_id: @report.id }
@@ -187,6 +192,19 @@ module ProjectScorecard::WarehouseReports
         )
     end
 
+    private def history_params
+      return {} unless params[:filters]
+
+      params.require(:filters).
+        permit(
+          :start,
+          :end,
+          user_id: [],
+          project_ids: [],
+          project_group_ids: [],
+        )
+    end
+
     private def scorecard_params
       parameter_names = []
       @report.controlled_parameters.each do |name|
@@ -213,6 +231,34 @@ module ProjectScorecard::WarehouseReports
 
     private def set_filter
       @filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id, project_type_codes: []))
+    end
+
+    private def filtered_reports_scope
+      scope = reports_scope.started_between(start_date: @history_filter.start, end_date: @history_filter.end)
+
+      scope = scope.where(project_id: project_scope.select(:id)).
+        or(scope.where(project_group_id: project_group_scope.select(:id)))
+
+      author_user_id = @history_filter.user_id
+      scope = scope.where(user_id: author_user_id) if author_user_id
+
+      project_ids = @history_filter.project_ids
+      scope = scope.where(project: project_ids.uniq) if project_ids&.any?
+
+      project_group_ids = @history_filter.project_group_ids
+      scope = scope.where(project_group: project_group_ids.uniq) if project_group_ids&.any?
+
+      scope
+    end
+
+    private def set_history_filter
+      @history_filter = ::Filters::FilterBase.new(
+        history_params.merge(
+          user_id: current_user.id,
+          default_start: Date.current - 3.months,
+          default_end: Date.tomorrow,
+        ),
+      )
     end
 
     private def set_projects_and_groups
