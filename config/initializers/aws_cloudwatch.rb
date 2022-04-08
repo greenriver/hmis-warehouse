@@ -1,30 +1,23 @@
 Rails.logger.debug "Running initializer in #{__FILE__}"
 
 def find_log_stream_name
-  begin
-    Timeout.timeout(15) do
-      log_group = ENV.fetch('TARGET_GROUP_NAME', nil)
+  log_group = ENV.fetch('TARGET_GROUP_NAME', nil)
 
-      if log_group.nil?
-        Rails.logger.info 'TARGET_GROUP_NAME not set, bailing out'
-        return nil
-      end
-
-      begin
-        task_meta = Net::HTTP.get( URI( "#{ENV['ECS_CONTAINER_METADATA_URI_V4']}/task" ) )
-        task_arn  = JSON.parse(task_meta)["TaskARN"]
-        task_id   = task_arn.split('/').last
-      rescue => e
-        Rails.logger.error 'Something broke when querying for the ECS task id.'
-        Rails.logger.error e.message
-      end
-
-      return ENV.fetch('LOG_STREAM_NAME_PREFIX') + "/#{task_id}"
-    end
-  rescue Timeout::Error  => e
-    Rails.logger.error 'Searching for the log stream took too long.'
+  if log_group.nil?
+    Rails.logger.info 'TARGET_GROUP_NAME not set, bailing out'
     return nil
   end
+
+  begin
+    task_meta = Net::HTTP.get( URI( "#{ENV['ECS_CONTAINER_METADATA_URI_V4']}/task" ) )
+    task_arn  = JSON.parse(task_meta)["TaskARN"]
+    task_id   = task_arn.split('/').last
+  rescue => e
+    Rails.logger.error 'Something broke when querying ENV for the ECS task id.'
+    Rails.logger.error e.message
+  end
+
+  return ENV.fetch('LOG_STREAM_NAME_PREFIX') + "/#{task_id}"
 end
 
 log_stream_name = find_log_stream_name
