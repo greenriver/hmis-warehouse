@@ -14,7 +14,7 @@ module HudPit::Fy2022
 
     delegate :PersonalID, to: :source_client
 
-    # Hide ID, move client_id, and name to the front
+    # Hide ID and timestamps, move identifying info to the front
     def self.detail_headers
       special = ['destination_client', 'first_name', 'last_name', 'PersonalID']
       remove = ['id', 'created_at', 'updated_at']
