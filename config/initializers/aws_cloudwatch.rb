@@ -1,8 +1,6 @@
 Rails.logger.debug "Running initializer in #{__FILE__}"
 
 def find_log_stream_name
-  log_stream = nil
-  next_token = nil
   begin
     Timeout.timeout(15) do
       log_group = ENV.fetch('TARGET_GROUP_NAME', nil)
@@ -21,38 +19,10 @@ def find_log_stream_name
         Rails.logger.error e.message
       end
 
-      logs ||= Aws::CloudWatchLogs::Client.new
-      for i in 1..100 do # Limit to 100 requests so we're not endlessly searching.
-        begin
-          sleep(2) if i % 5 == 0
-          response = logs.describe_log_streams({
-            log_group_name: log_group,
-            order_by: 'LastEventTime',
-            descending: true,
-            next_token: next_token,
-          })
-        rescue Aws::CloudWatchLogs::Errors::ThrottlingException, Timeout::Error  => e
-          Rails.logger.error 'Throttling exception encountered when searching for log stream.'
-          return nil
-        end
-
-        log_streams = response.log_streams
-        log_stream = log_streams.find { |s| s.log_stream_name.include?(task_id) }
-        if log_stream.nil?
-          next_token = response.next_token
-          next
-        else
-          return log_stream.log_stream_name
-        end
-      end
+      return Env.fetch('LOG_STREAM_NAME_PREFIX') + "/#{task_id}"
     end
   rescue Timeout::Error  => e
     Rails.logger.error 'Searching for the log stream took too long.'
-    return nil
-  end
-
-  if log_stream.nil?
-    Rails.logger.error 'Log stream not found within 100 requests.'
     return nil
   end
 end
