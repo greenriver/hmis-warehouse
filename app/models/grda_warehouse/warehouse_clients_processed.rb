@@ -39,6 +39,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           routine: :service_history,
         ).first_or_initialize
 
+        # TODO: convert hash lookpus to method arguments (move into methods)
         processed.assign_attributes(
           last_service_updated_at: Date.current,
           first_homeless_date: calcs.first_homeless_dates[client_id],
@@ -468,7 +469,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     def last_homeless_visit(client_id)
       @last_homeless_visit ||= last_seen_in_type(:homeless)
-      @last_homeless_visit[client_id].to_json
+      (@last_homeless_visit[client_id] || []).to_json
     end
 
     def last_es_visit(client_id)
@@ -537,7 +538,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
             end
           end
       end
-      @open_enrollments[client_id]
+      @open_enrollments[client_id] || []
     end
 
     def rrh_desired(client_id)
