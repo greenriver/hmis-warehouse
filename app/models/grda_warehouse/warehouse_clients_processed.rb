@@ -29,7 +29,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       client_ids += cohort_client_ids
     end
 
-    client_ids.uniq.each_slice(2_000) do |client_id_batch|
+    client_ids.uniq.each_slice(15_000) do |client_id_batch|
       calcs = StatsCalculator.new(client_ids: client_id_batch)
 
       processed_batch = []
