@@ -98,7 +98,7 @@ module Importing
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
           distinct.
           pluck(:id)
-        client_ids += GrdaWarehouse::CohortClient.distinct.pluck(:client_id)
+        client_ids += GrdaWarehouse::CohortClient.joins(:client).distinct.pluck(:client_id)
         GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
 
         @notifier.ping('Updated service history summaries') if @send_notifications
