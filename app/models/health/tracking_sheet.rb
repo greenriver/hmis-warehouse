@@ -80,6 +80,15 @@ module Health
       @patients_with_currently_reviewed_chas.include?(patient_id) ? 'Yes' : 'No'
     end
 
+    def initial_cha_date(patient_id)
+      @initial_chas ||= Health::ComprehensiveHealthAssessment.
+        where(patient_id: patient_ids).
+        group(:patient_id).
+        minimum(:completed_at)
+
+      @initial_chas[patient_id]
+    end
+
     def cha_initial_reviewed(patient_id)
       return nil unless any_cha_completed?(patient_id)
 
@@ -266,7 +275,8 @@ module Health
         'SSM_DATE' => ssm_completed_date(patient.id),
         'CHA_RENEWAL_DATE' => cha_renewal_completed_date(patient.id),
         'CHA_RENEWAL_REVIEWED' => cha_renewal_reviewed(patient.id),
-        'CHA_EXPECTED_RENEWAL' => cha_renewal_date(patient.id),
+        'CHA_EXPECTED_RENEWAL_DATE' => cha_renewal_date(patient.id),
+        'CHA_INITIAL_DATE' => initial_cha_date(patient.id),
         'CHA_INITIAL_REVIEWED' => cha_initial_reviewed(patient.id),
         'PCTP_PT_SIGN' => care_plan_patient_signed_date(patient.id),
         'CP_CARE_PLAN_SENT_PCP_DATE' => care_plan_sent_to_provider_date(patient.id),
