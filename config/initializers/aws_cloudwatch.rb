@@ -19,7 +19,7 @@ def find_log_stream_name
         Rails.logger.error e.message
       end
 
-      return Env.fetch('LOG_STREAM_NAME_PREFIX') + "/#{task_id}"
+      return ENV.fetch('LOG_STREAM_NAME_PREFIX') + "/#{task_id}"
     end
   rescue Timeout::Error  => e
     Rails.logger.error 'Searching for the log stream took too long.'
