@@ -77,7 +77,7 @@ module HealthFlexibleService
     end
 
     scope :active, -> do
-      where(arel_table[:end_date].gteq(Date.current))
+      where(open: true)
     end
 
     scope :category, ->(category) do
