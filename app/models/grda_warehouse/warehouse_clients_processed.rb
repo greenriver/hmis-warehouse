@@ -597,13 +597,13 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
 
     def vispdat_score(client_id)
-      vispdat_scores ||= GrdaWarehouse::Vispdat::Base.where(client_id: @client_ids).
+      @vispdat_scores ||= GrdaWarehouse::Vispdat::Base.where(client_id: @client_ids).
         completed.
         scores.
         pluck(:client_id, :score).
         reverse.to_h # scores scope forces most recent first, to_h return the last one
 
-      score = vispdat_scores[client_id]
+      score = @vispdat_scores[client_id]
       return score if score.present?
 
       @hmis_vispdat_scores ||= {}.tap do |hvs|
