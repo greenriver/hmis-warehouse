@@ -27,7 +27,7 @@
                 .c-checkbox.c-checkbox
                   = check_box_tag("project_group[#{id}]", 1, false, {class: 'j-child-select'})
                   %label{ for:"project_group_#{id}", tabindex:'1' }
-              %td= link_to group.name, for_project_group_project_scorecard_warehouse_reports_scorecards_path(project_group_id: id)
+              %td= link_to group.name, history_project_scorecard_warehouse_reports_scorecards_path(:filters => { project_group_ids: [id], start: 1.year.ago})
               %td
                 - if last_status = last_report&.status
                   = link_to last_status, edit_project_scorecard_warehouse_reports_scorecard_path(last_report)
