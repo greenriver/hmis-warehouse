@@ -30,9 +30,9 @@
               - column_headings.each_key do |k|
                 %td{style: 'max-width: 600px;'}
                   - if k.to_s == 'destination_client'
-                    - k = 'destination_client_id'
-                    = link_to appropriate_client_path(client[k]) do
-                      = client[k]
+                    - destination_id = client['destination_client_id']
+                    = link_to appropriate_client_path(destination_id) do
+                      = destination_id
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
