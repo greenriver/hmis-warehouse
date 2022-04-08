@@ -73,26 +73,28 @@ module HealthFlexibleService
     def create
       options = permitted_params.merge(user: current_user, patient: @patient, vpr: @vpr)
       @follow_up = follow_up_source.create(options)
-      @vpr.update(end_date: @vpr.end_date + 6.months) if @follow_up.additional_flex_services_requested?
+      @vpr.update(end_date: vpr_end_date + 6.months)
       respond_with(@follow_up, location: client_health_flexible_service_vprs_path(@client))
     end
 
     def update
-      options = permitted_params.merge(user: current_user, patient: @patient)
+      options = permitted_params.merge(user: current_user)
       @follow_up.update(options)
-      if @follow_up.saved_change_to_additional_flex_services_requested?
-        if @follow_up.additional_flex_services_requested?
-          @vpr.update(end_date: @vpr.end_date + 6.months)
-        else
-          @vpr.update(end_date: @vpr.end_date - 6.months)
-        end
-      end
+      @vpr.update(end_date: vpr_end_date + 6.months)
       respond_with(@follow_up, location: client_health_flexible_service_vprs_path(@client))
     end
 
     def destroy
       @follow_up.destroy
+      @vpr.update(end_date: vpr_end_date + 6.months)
       respond_with(@follow_up, location: client_health_flexible_service_vprs_path(@client))
+    end
+
+    private def vpr_end_date
+      [
+        @vpr.follow_ups.extension_requested.maximum(:completed_on),
+        @vpr.planned_on,
+      ].compact.max
     end
 
     private def follow_up_source
