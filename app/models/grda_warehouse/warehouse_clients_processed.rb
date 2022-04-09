@@ -33,18 +33,19 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   def update_cached_counts(client_ids: [])
     setup_notifier('WarehouseClientsProcessed')
-    cohort_client_ids = []
-    cas_active_client_ids = []
+    extra_data = []
+    limited_data = []
     # If we passed any client_ids in, then use them, otherwise,
     # process anyone active in the past year, or who is on a cohort or active in CAS
     if client_ids.blank?
       client_ids = default_client_ids
       cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id)
       cas_active_client_ids = GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
+      extra_data = (cohort_client_ids + cas_active_client_ids).uniq
+      limited_data = client_ids - extra_data
+    else
+      extra_data = client_ids
     end
-
-    extra_data = (cohort_client_ids + cas_active_client_ids).uniq
-    limited_data = client_ids - extra_data
 
     existing_by_client_id = self.class.where(
       client_id: extra_data + limited_data,
