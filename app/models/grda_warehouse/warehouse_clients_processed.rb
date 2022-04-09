@@ -19,26 +19,37 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   scope :service_history, -> { where(routine: 'service_history') }
 
-  def self.update_cached_counts(client_ids: [], include_cohort_clients: true)
-    new.update_cached_counts(client_ids: client_ids, include_cohort_clients: include_cohort_clients)
+  private def default_client_ids
+    range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
+    GrdaWarehouse::Hud::Client.destination.joins(source_enrollments: :project).
+      merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
+      distinct.
+      pluck(:id)
   end
 
-  def update_cached_counts(client_ids: [], include_cohort_clients: true)
-    setup_notifier('WarehouseClientsProcessed')
-    existing_by_client_id = self.class.where(
-      client_id: client_ids,
-      routine: :service_history,
-    ).index_by(&:client_id)
+  def self.update_cached_counts(client_ids: [])
+    new.update_cached_counts(client_ids: client_ids)
+  end
 
-    cohort_client_ids = if include_cohort_clients
-      GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id)
-    else
-      []
+  def update_cached_counts(client_ids: [])
+    setup_notifier('WarehouseClientsProcessed')
+    cohort_client_ids = []
+    cas_active_client_ids = []
+    # If we passed any client_ids in, then use them, otherwise,
+    # process anyone active in the past year, or who is on a cohort or active in CAS
+    if client_ids.blank?
+      client_ids = default_client_ids
+      cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id)
+      cas_active_client_ids = GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
     end
 
-    cas_active_client_ids = GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
-    extra_data = cohort_client_ids + cas_active_client_ids
+    extra_data = (cohort_client_ids + cas_active_client_ids).uniq
     limited_data = client_ids - extra_data
+
+    existing_by_client_id = self.class.where(
+      client_id: extra_data + limited_data,
+      routine: :service_history,
+    ).index_by(&:client_id)
 
     @notifier.ping("Updating Cache Details for #{limited_data.uniq.count} active clients #{Time.current}")
     limited_data.uniq.each_slice(5_000) do |client_id_batch|
