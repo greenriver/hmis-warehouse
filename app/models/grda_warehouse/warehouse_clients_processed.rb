@@ -9,6 +9,7 @@ require 'util/hud'
 class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   include RandomScope
   include ArelHelper
+  include NotifierConfig
 
   self.table_name = :warehouse_clients_processed
 
@@ -19,7 +20,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   scope :service_history, -> { where(routine: 'service_history') }
 
   def self.update_cached_counts(client_ids: [], include_cohort_clients: true)
-    existing_by_client_id = where(
+    new.update_cached_counts(client_ids: client_ids, include_cohort_clients: include_cohort_clients)
+  end
+
+  def update_cached_counts(client_ids: [], include_cohort_clients: true)
+    setup_notifier('WarehouseClientsProcessed')
+    existing_by_client_id = self.class.where(
       client_id: client_ids,
       routine: :service_history,
     ).index_by(&:client_id)
@@ -29,17 +35,19 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     else
       []
     end
+
     cas_active_client_ids = GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
     extra_data = cohort_client_ids + cas_active_client_ids
     limited_data = client_ids - extra_data
 
+    @notifier.ping("Updating Cache Details for #{limited_data.uniq.count} active clients #{Time.current}")
     limited_data.uniq.each_slice(5_000) do |client_id_batch|
       # puts "starting batch #{Time.current}"
       calcs = StatsCalculator.new(client_ids: client_id_batch)
 
       processed_batch = []
       client_id_batch.each do |client_id|
-        processed = existing_by_client_id[client_id] || where(
+        processed = existing_by_client_id[client_id] || self.class.where(
           client_id: client_id,
           routine: :service_history,
         ).first_or_initialize
@@ -82,7 +90,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         processed_batch << processed if processed.changed?
       end
       if processed_batch.present?
-        import(
+        self.class.import(
           processed_batch,
           on_duplicate_key_update: {
             columns: [
@@ -129,12 +137,13 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     # Anyone on a cohort, or who will sync with CAS gets some extra data
     # This is more expensive to calculate, so we limit who is included
+    @notifier.ping("Updating Cache Details for #{extra_data.uniq.count} clients on cohorts or in CAS #{Time.current}")
     extra_data.uniq.each_slice(1_000) do |client_id_batch|
       # puts "starting extra batch #{Time.current}"
       calcs = StatsCalculator.new(client_ids: client_id_batch)
       processed_batch = []
       client_id_batch.each do |client_id|
-        processed = existing_by_client_id[client_id] || where(
+        processed = existing_by_client_id[client_id] || self.class.where(
           client_id: client_id,
           routine: :service_history,
         ).first_or_initialize
@@ -177,7 +186,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         processed_batch << processed if processed.changed?
       end
       if processed_batch.present?
-        import(
+        self.class.import(
           processed_batch,
           on_duplicate_key_update: {
             columns: [
@@ -221,6 +230,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
       end
     end
+    @notifier.ping("Done Updating Cache Details #{Time.current}")
     nil
   end
 
