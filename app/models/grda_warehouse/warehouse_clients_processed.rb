@@ -9,6 +9,7 @@ require 'util/hud'
 class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   include RandomScope
   include ArelHelper
+  include NotifierConfig
 
   self.table_name = :warehouse_clients_processed
 
@@ -19,22 +20,130 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   scope :service_history, -> { where(routine: 'service_history') }
 
   def self.update_cached_counts(client_ids: [], include_cohort_clients: true)
-    existing_by_client_id = where(
+    new.update_cached_counts(client_ids: client_ids, include_cohort_clients: include_cohort_clients)
+  end
+
+  def update_cached_counts(client_ids: [], include_cohort_clients: true)
+    setup_notifier('WarehouseClientsProcessed')
+    existing_by_client_id = self.class.where(
       client_id: client_ids,
       routine: :service_history,
     ).index_by(&:client_id)
 
-    if include_cohort_clients
-      cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id)
-      client_ids += cohort_client_ids
+    cohort_client_ids = if include_cohort_clients
+      GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id)
+    else
+      []
     end
 
-    client_ids.uniq.each_slice(15_000) do |client_id_batch|
+    cas_active_client_ids = GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
+    extra_data = cohort_client_ids + cas_active_client_ids
+    limited_data = client_ids - extra_data
+
+    @notifier.ping("Updating Cache Details for #{limited_data.uniq.count} active clients #{Time.current}")
+    limited_data.uniq.each_slice(5_000) do |client_id_batch|
+      # puts "starting batch #{Time.current}"
       calcs = StatsCalculator.new(client_ids: client_id_batch)
 
       processed_batch = []
       client_id_batch.each do |client_id|
-        processed = existing_by_client_id[client_id] || where(
+        processed = existing_by_client_id[client_id] || self.class.where(
+          client_id: client_id,
+          routine: :service_history,
+        ).first_or_initialize
+
+        # TODO: convert hash lookpus to method arguments (move into methods)
+        processed.assign_attributes(
+          last_service_updated_at: Date.current,
+          first_homeless_date: calcs.first_homeless_dates[client_id],
+          last_homeless_date: calcs.most_recent_homeless_dates[client_id],
+          homeless_days: calcs.homeless_counts[client_id] || 0,
+          first_chronic_date: calcs.first_chronic_dates[client_id],
+          last_chronic_date: calcs.most_recent_chronic_dates[client_id],
+          chronic_days: calcs.chronic_counts[client_id],
+          first_date_served: calcs.first_total_dates[client_id],
+          last_date_served: calcs.most_recent_total_dates[client_id],
+          days_served: calcs.total_counts[client_id],
+          days_homeless_last_three_years: calcs.all_homeless_in_last_three_years[client_id] || 0,
+          literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
+          days_homeless_plus_overrides: calcs.homeless_counts_plus_overrides[client_id] || 0,
+          # enrolled_homeless_shelter: calcs.enrolled_homeless_shelter(client_id),
+          # enrolled_homeless_unsheltered: calcs.enrolled_homeless_unsheltered(client_id),
+          # enrolled_permanent_housing: calcs.enrolled_permanent_housing(client_id),
+          # household_members: calcs.household_members(client_id),
+          # open_enrollments: calcs.open_enrollments(client_id),
+          # rrh_desired: calcs.rrh_desired(client_id),
+          # last_homeless_visit: calcs.last_homeless_visit(client_id),
+          # cohorts_ongoing_enrollments_es: calcs.last_es_visit(client_id),
+          # cohorts_ongoing_enrollments_sh: calcs.last_sh_visit(client_id),
+          # cohorts_ongoing_enrollments_th: calcs.last_th_visit(client_id),
+          # cohorts_ongoing_enrollments_so: calcs.last_so_visit(client_id),
+          # cohorts_ongoing_enrollments_psh: calcs.last_psh_visit(client_id),
+          # cohorts_ongoing_enrollments_rrh: calcs.last_rrh_visit(client_id),
+          # active_in_cas_match: calcs.active_in_cas_match(client_id),
+          # last_cas_match_date: calcs.last_cas_match_date(client_id),
+          # lgbtq_from_hmis: calcs.sexual_orientation_from_hmis(client_id),
+          # last_exit_destination: calcs.last_exit_destination(client_id),
+          # vispdat_score: calcs.vispdat_score(client_id),
+          # vispdat_priority_score: calcs.vispdat_priority_score(client_id),
+        )
+        processed_batch << processed if processed.changed?
+      end
+      if processed_batch.present?
+        self.class.import(
+          processed_batch,
+          on_duplicate_key_update: {
+            columns: [
+              :last_service_updated_at,
+              :first_homeless_date,
+              :last_homeless_date,
+              :homeless_days,
+              :first_chronic_date,
+              :last_chronic_date,
+              :chronic_days,
+              :first_date_served,
+              :last_date_served,
+              :days_served,
+              :days_homeless_last_three_years,
+              :literally_homeless_last_three_years,
+              :days_homeless_plus_overrides,
+              # :enrolled_homeless_shelter,
+              # :enrolled_homeless_unsheltered,
+              # :enrolled_permanent_housing,
+              # :household_members,
+              # :open_enrollments,
+              # :rrh_desired,
+              # :last_homeless_visit,
+              # :cohorts_ongoing_enrollments_es,
+              # :cohorts_ongoing_enrollments_sh,
+              # :cohorts_ongoing_enrollments_th,
+              # :cohorts_ongoing_enrollments_so,
+              # :cohorts_ongoing_enrollments_psh,
+              # :cohorts_ongoing_enrollments_rrh,
+              # :active_in_cas_match,
+              # :last_cas_match_date,
+              # :lgbtq_from_hmis,
+              # :last_exit_destination,
+              # :vispdat_score,
+              # :vispdat_priority_score,
+            ],
+          },
+        )
+      end
+      client_id_batch.each do |client_id|
+        GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
+      end
+    end
+
+    # Anyone on a cohort, or who will sync with CAS gets some extra data
+    # This is more expensive to calculate, so we limit who is included
+    @notifier.ping("Updating Cache Details for #{extra_data.uniq.count} clients on cohorts or in CAS #{Time.current}")
+    extra_data.uniq.each_slice(1_000) do |client_id_batch|
+      # puts "starting extra batch #{Time.current}"
+      calcs = StatsCalculator.new(client_ids: client_id_batch)
+      processed_batch = []
+      client_id_batch.each do |client_id|
+        processed = existing_by_client_id[client_id] || self.class.where(
           client_id: client_id,
           routine: :service_history,
         ).first_or_initialize
@@ -74,10 +183,10 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           vispdat_score: calcs.vispdat_score(client_id),
           vispdat_priority_score: calcs.vispdat_priority_score(client_id),
         )
-        processed_batch << processed
+        processed_batch << processed if processed.changed?
       end
       if processed_batch.present?
-        import(
+        self.class.import(
           processed_batch,
           on_duplicate_key_update: {
             columns: [
@@ -121,6 +230,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
       end
     end
+    @notifier.ping("Done Updating Cache Details #{Time.current}")
     nil
   end
 
@@ -459,12 +569,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           ]
         end
       @client_household_ids[client_id].map do |household_key|
-        @households[household_key].flatten.map do |member|
+        @households[household_key]&.flatten&.map do |member|
           next if member[:client_id] == client_id
 
           "#{member[:first_name]} #{member[:last_name]} (#{member[:age]} in #{member[:first_date_in_program]&.year})"
-        end.compact
-      end.flatten.uniq.join('; ').presence
+        end&.compact
+      end.flatten.compact.uniq.join('; ').presence
     end
 
     def last_homeless_visit(client_id)
@@ -574,6 +684,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     def last_exit_destination(client_id)
       @last_exit_destination ||= {}.tap do |destinations|
         GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: @client_ids).
+          distinct.
           exit_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.current).
           joins(enrollment: :exit).
           order(last_date_in_program: :desc).
