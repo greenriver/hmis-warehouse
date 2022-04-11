@@ -330,6 +330,7 @@ class RollOut
     # This won't be a complete and valid stream name until TASK_ID is
     # substituted later on
     self.log_stream_name = "#{log_prefix}/#{name}/TASK_ID"
+    environment << { 'name' => 'LOG_STREAM_NAME_PREFIX', 'value' => "#{log_prefix}/#{name}" }
 
     ten_minutes = 10 * 60
 

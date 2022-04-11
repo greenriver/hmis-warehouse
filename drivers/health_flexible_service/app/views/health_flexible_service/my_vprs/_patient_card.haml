@@ -31,12 +31,13 @@
               .card-content.p-4
                 %h2.h4.card-title
                   Days Remaining
-                - days = (vpr.end_date - vpr.planned_on).to_i
+                - days = (vpr.end_date - Date.current).to_i
                 - if days.positive?
-                  = pluralize(days, 'day')
+                  - highlight = 'text-warning font-weight-bold' if days <= 14
+                  %div{class: highlight}= pluralize(days, 'day')
                 - else
-                  .text-warning
-                    Expired
+                  .text-danger.font-weight-bold
+                    EXPIRED
     .row.row--internal
       .col-md-3.card-wrapper
         .card.c-card-overflow-inherit.c-card--internal.c-card--form
