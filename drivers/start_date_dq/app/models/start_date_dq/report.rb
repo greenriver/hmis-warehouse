@@ -34,12 +34,14 @@ module StartDateDq
     end
 
     def column_names
-      ['# Days Difference',
-       'DateToStreetESSH',
-       'Entry Date',
-       'Personal ID',
-       'Project',
-       'Project Type']
+      [
+        '# Days Difference',
+        'DateToStreetESSH',
+        'Entry Date',
+        'Personal ID',
+        'Project',
+        'Project Type',
+      ]
     end
 
     def column_values(row)
