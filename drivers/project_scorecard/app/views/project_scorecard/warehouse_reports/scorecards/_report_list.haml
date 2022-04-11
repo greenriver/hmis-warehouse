@@ -1,7 +1,7 @@
 .table-utilities
 %p= page_entries_info @reports, entry_name: _('scorecard')
-.row
-  .col-sm-12
+- if @reports.exists?
+  .row
     .table-responsive.card
       %table.table.table-striped.mb-0
         %thead
