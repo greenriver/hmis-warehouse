@@ -21,10 +21,10 @@ module ProjectScorecard::WarehouseReports
     end
 
     def history
-      @reports = filtered_reports_scope.
+      scope = filtered_reports_scope.
         order(id: :desc).
-        preload(project: [:organization, :data_source]).
-        page(params[:page]).per(50)
+        preload(project: [:organization, :data_source])
+      @pagy, @reports = pagy(scope, items: 50)
     end
 
     private def available_users
