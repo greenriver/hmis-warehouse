@@ -9,8 +9,6 @@ Rails.application.routes.draw do
     namespace :warehouse_reports do
       resources :scorecards, only: [:index, :create, :show, :edit, :update] do
         get :history, on: :collection
-        get :for_project, on: :collection
-        get :for_project_group, on: :collection
         get :complete, on: :member
         get :rewind, on: :member
       end

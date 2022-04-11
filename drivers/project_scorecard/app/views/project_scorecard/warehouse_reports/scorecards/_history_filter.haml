@@ -1,0 +1,22 @@
+= simple_form_for @history_filter, as: :filters, url: history_project_scorecard_warehouse_reports_scorecards_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm
+        = f.input :project_ids, as: :grouped_select_two, group_method: :last, collection: @history_filter.project_options_for_select(user: current_user), input_html: { multiple: true, data: {placeholder: 'Any Project' }}, include_blank: false, label: 'Projects'
+      .col-sm
+        = f.input :project_group_ids, as: :select_two, collection: @history_filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, data: {placeholder: 'Any Project Group' }}, include_blank: false, label: 'Project Groups'
+      - if can_view_all_reports?
+        .col-sm
+          = f.input :creator_id, as: :select_two, collection: available_users, include_blank: 'Any User', label: 'Author'
+    .row
+      .col-3
+        = f.input :start, label: 'Start Date', as: :date_picker
+      .col-3
+        = f.input :end, label: 'End Date', as: :date_picker
+  - content_for :filter_actions do
+    = f.submit 'Apply Filters', class: ['btn', 'btn-primary']
+    = link_to history_project_scorecard_warehouse_reports_scorecards_path, class:'btn btn-secondary' do
+      %span.icon-cross.icon-inline
+      Clear Filters
+
+  = render 'warehouse_reports/filters', f:f
