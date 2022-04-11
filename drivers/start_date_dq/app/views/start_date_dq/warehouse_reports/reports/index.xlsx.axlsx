@@ -9,28 +9,15 @@ wb.add_worksheet(name: @title[0, 30]) do |sheet|
       'Warehouse Client ID',
       'First Name',
       'Last Name',
-      '# Days Difference',
-      'DateToStreetESSH',
-      'Entry Date',
-      'Personal ID',
-      'Project',
-      'Project Type',
-    ],
+    ] + column_names,
     style: title,
   )
-  @enrollments.each do |en|
-    client = en.client
-    enrollment = en.enrollment
+  @enrollments.each do |row|
+    client = row.client
     sheet.add_row([
       client.id,
       client.FirstName,
       client.LastName,
-      (enrollment.EntryDate - enrollment.DateToStreetESSH).to_i,
-      enrollment.DateToStreetESSH,
-      enrollment.EntryDate,
-      enrollment.PersonalID,
-      GrdaWarehouse::Hud::Project.confidentialize(name: en.project&.name),
-      HUD.project_type_brief(en.project_type),
-    ])
+    ] + column_values(row))
   end
 end

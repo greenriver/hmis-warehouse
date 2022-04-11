@@ -20,25 +20,17 @@
       %thead
         %tr
           %th Client
-          %th # Days Difference
-          %th DateToStreetESSH
-          %th Entry Date
-          %th Personal ID
-          %th Project
-          %th Project Type
+          - column_names.each do |s|
+            %th= s
       %tbody
         - @enrollments.each do |en|
           - client = en.client
-          - date_to_street = en.enrollment.DateToStreetESSH
-          - entry_date = en.enrollment.EntryDate
-          - difference_in_days = (entry_date - date_to_street).to_i
+          - values = column_values(en)
+          - values.pop() # Drop project type
           %tr
             %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-            %td= difference_in_days
-            %td= date_to_street
-            %td= entry_date
-            %td= en.enrollment.PersonalID
-            %td= GrdaWarehouse::Hud::Project.confidentialize(name: en.project&.name)
+            - values.each do |d|
+              %td= d
             %td
               .enrollment__project_type{class: "client__service_type_#{en.project_type}"}
                 .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(en.project_type)}}

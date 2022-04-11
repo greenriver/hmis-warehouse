@@ -56,5 +56,30 @@ module StartDateDq::WarehouseReports
     private def set_title
       @title = 'Approximate Start Date Data Quality'
     end
+
+    private def column_names
+      ['# Days Difference',
+       'DateToStreetESSH',
+       'Entry Date',
+       'Personal ID',
+       'Project',
+       'Project Type']
+    end
+    helper_method :column_names
+
+    private def column_values(row)
+      date_to_street = row.enrollment.DateToStreetESSH
+      entry_date = row.enrollment.EntryDate
+      difference_in_days = (entry_date - date_to_street).to_i
+      [
+        difference_in_days,
+        date_to_street,
+        entry_date,
+        row.enrollment.PersonalID,
+        GrdaWarehouse::Hud::Project.confidentialize(name: row.project&.name),
+        HUD.project_type_brief(row.project_type),
+      ]
+    end
+    helper_method :column_values
   end
 end
