@@ -173,6 +173,8 @@ module Clients::Youth
         :owns_cell_phone,
         :secondary_education,
         :attending_college,
+        :college_pilot,
+        :graduating_college,
         :health_insurance,
         :requesting_financial_assistance,
         :staff_believes_youth_under_24,

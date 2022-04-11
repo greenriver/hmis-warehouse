@@ -27,6 +27,7 @@ FactoryBot.define do
 
   trait :out_of_range do
     end_date { Date.current - 7.months }
+    open { false }
   end
 
   trait :pre_tenancy_1 do
