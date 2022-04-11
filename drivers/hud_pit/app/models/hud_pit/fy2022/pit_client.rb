@@ -10,14 +10,21 @@ module HudPit::Fy2022
     acts_as_paranoid
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
+    belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :client_id
 
-    # Hide ID, move client_id, and name to the front
+    delegate :PersonalID, to: :source_client
+
+    # Hide ID and timestamps, move identifying info to the front
     def self.detail_headers
-      special = ['client_id', 'first_name', 'last_name']
+      special = ['destination_client', 'first_name', 'last_name', 'PersonalID']
       remove = ['id', 'created_at', 'updated_at']
       cols = special + (column_names - special - remove)
       cols.map do |h|
-        [h, h.humanize]
+        title = h.humanize
+        title = 'Client' if h == 'destination_client'
+        title = 'Source Client' if h == 'client_id'
+        title = 'Personal ID' if h == 'PersonalID'
+        [h, title]
       end.to_h
     end
   end

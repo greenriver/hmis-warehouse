@@ -24,15 +24,16 @@
             - column_headings.each_value do |header|
               %th= header
         %tbody.thead-dark
-          - @clients.each.with_index do |client, i|
+          - @clients.preload(:source_client).each.with_index do |client, i|
             %tr
               %th= i + 1
               - column_headings.each_key do |k|
                 %td{style: 'max-width: 600px;'}
-                  - if k.to_s == 'client_id'
-                    = link_to from_source_client_path(client[k]) do
-                      = client[k]
+                  - if k.to_s == 'destination_client'
+                    - destination_id = client['destination_client_id']
+                    = link_to appropriate_client_path(destination_id) do
+                      = destination_id
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
-                    = formatted_cell(client[k])
+                    = formatted_cell(client.public_send(k))

@@ -152,7 +152,7 @@ module GrdaWarehouse::Vispdat
     scope :in_progress, -> { where(submitted_at: nil) }
     scope :completed, -> { where.not(submitted_at: nil) }
     scope :active, -> { where(active: true) }
-    scope :scores, -> { order(submitted_at: :desc).select(:score, :priority_score) }
+    scope :scores, -> { order(submitted_at: :desc).select(:score, :priority_score, :client_id, :id, :submitted_at) }
     scope :high_vulnerability, -> {
       where(priority_score: 731..Float::INFINITY)
     }
