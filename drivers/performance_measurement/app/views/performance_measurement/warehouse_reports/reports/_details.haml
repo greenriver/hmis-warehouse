@@ -3,6 +3,9 @@
 - title = "#{category} | #{@report.detail_title_for(key)}"
 - system_class_name = "jSystemLevelChart_#{key}"
 - result = @report.result_for(key)
+= content_for :crumbs do
+  = link_to performance_measurement_warehouse_reports_report_path(@report) do
+    &laquo; #{_('CoC Performance Measurement Dashboard')}
 .performance-measurement
   .p-4{ class: "performance-measurement--highlight-#{@report.highlight_id(category)}" }
     %h1= title

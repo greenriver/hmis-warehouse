@@ -34,7 +34,7 @@
                   - else
                     = column.to_s.titleize
                 %td
-                  - options = { title: @report.detail_goal_description_for(indicator.field.to_sym), content: @report.detail_calculation_description_for(indicator.field.to_sym), toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom }
+                  - options = { title: markdown.render(@report.detail_goal_description_for(indicator.field.to_sym)), content: markdown.render(@report.detail_calculation_description_for(indicator.field.to_sym)), toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom, html: 'true' }
                   = raw markdown.render(options[:title])
                   - if options[:title].present? && goal_popover
                     %a{ role: :button, tabindex: 0, data: options }
