@@ -12,7 +12,6 @@ module StartDateDq::WarehouseReports
     include Filter::FilterScopes
 
     before_action :set_report
-    before_action :set_title
 
     def index
       respond_to do |format|
@@ -31,7 +30,6 @@ module StartDateDq::WarehouseReports
     private def set_report
       @filter = filter_class.new(
         user_id: current_user.id,
-        enforce_one_year_range: false,
         default_start: Date.current - 3.months,
         default_end: Date.current,
       ).set_from_params(filter_params)
@@ -52,34 +50,5 @@ module StartDateDq::WarehouseReports
     private def filter_class
       ::Filters::FilterBase
     end
-
-    private def set_title
-      @title = 'Approximate Start Date Data Quality'
-    end
-
-    private def column_names
-      ['# Days Difference',
-       'DateToStreetESSH',
-       'Entry Date',
-       'Personal ID',
-       'Project',
-       'Project Type']
-    end
-    helper_method :column_names
-
-    private def column_values(row)
-      date_to_street = row.enrollment.DateToStreetESSH
-      entry_date = row.enrollment.EntryDate
-      difference_in_days = (entry_date - date_to_street).to_i
-      [
-        difference_in_days,
-        date_to_street,
-        entry_date,
-        row.enrollment.PersonalID,
-        GrdaWarehouse::Hud::Project.confidentialize(name: row.project&.name),
-        HUD.project_type_brief(row.project_type),
-      ]
-    end
-    helper_method :column_values
   end
 end

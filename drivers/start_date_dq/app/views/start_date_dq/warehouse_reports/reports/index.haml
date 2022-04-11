@@ -1,7 +1,7 @@
-- content_for :title, @title
-%h1= @title
+- content_for :title, @report.title
+%h1= @report.title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
-%p View differences between the client's self-reported start date (DateToStreetESSH) and the actual entry date.
+%p View differences between the client's self-reported date homeless (DateToStreetESSH) and the enrollment entry date.
 = render 'filter'
 - if !@pagy.present?
   %p.text-center Apply filters to see results.
@@ -20,20 +20,20 @@
       %thead
         %tr
           %th Client
-          - column_names.each do |s|
+          - @report.column_names.each do |s|
             %th= s
       %tbody
-        - @enrollments.each do |en|
-          - client = en.client
-          - values = column_values(en)
+        - @enrollments.each do |row|
+          - client = row.client
+          - values = @report.column_values(row)
           - values.pop() # Drop project type
           %tr
             %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
             - values.each do |d|
               %td= d
             %td
-              .enrollment__project_type{class: "client__service_type_#{en.project_type}"}
-                .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(en.project_type)}}
-                  = HUD.project_type_brief en.project_type
+              .enrollment__project_type{class: "client__service_type_#{row.project_type}"}
+                .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(row.project_type)}}
+                  = HUD.project_type_brief row.project_type
 - else
   %p.text-center No enrollments found

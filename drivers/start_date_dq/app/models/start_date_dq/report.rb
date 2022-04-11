@@ -33,6 +33,28 @@ module StartDateDq
       'Approximate Start Date Data Quality'
     end
 
+    def column_names
+      ['# Days Difference',
+       'DateToStreetESSH',
+       'Entry Date',
+       'Personal ID',
+       'Project',
+       'Project Type']
+    end
+
+    def column_values(row)
+      date_to_street = row.enrollment.DateToStreetESSH
+      entry_date = row.enrollment.EntryDate
+      [
+        (entry_date - date_to_street).to_i,
+        date_to_street,
+        entry_date,
+        row.enrollment.PersonalID,
+        GrdaWarehouse::Hud::Project.confidentialize(name: row.project&.name),
+        HUD.project_type_brief(row.project_type),
+      ]
+    end
+
     def data
       report_scope.joins(:client, :project).
         where(e_t[:EntryDate].not_eq(nil).

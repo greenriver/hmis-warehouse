@@ -1186,7 +1186,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Data Quality'] << {
           url: 'start_date_dq/warehouse_reports/reports',
           name: 'Approximate Start Date Data Quality',
-          description: 'View differences between the client\'s self-reported start date (DateToStreetESSH) and the actual entry date.',
+          description: 'View differences between the client\'s self-reported date homeless (DateToStreetESSH) and the enrollment entry date.',
           limitable: true,
           health: false,
         }
