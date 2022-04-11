@@ -1,28 +1,27 @@
 .table-utilities
 %p= page_entries_info @reports, entry_name: _('scorecard')
 - if @reports.exists?
-  .row
-    .table-responsive.card
-      %table.table.table-striped.mb-0
-        %thead
+  .table-responsive.card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Report Name
+          %th Status
+          %th Run On
+          %th Completed On
+          %th Author
+      %tbody
+        - @reports.each do |report|
           %tr
-            %th Report Name
-            %th Status
-            %th Run On
-            %th Completed On
-            %th Author
-        %tbody
-          - @reports.each do |report|
-            %tr
-              - if report.project.present?
-                %td= "#{report.project.organization_and_name} (#{report.project.data_source.name})"
+            - if report.project.present?
+              %td= "#{report.project.organization_and_name} (#{report.project.data_source.name})"
+            - else
+              %td= report.project_group.name
+            %td
+              - if report.completed?
+                = link_to report.status, project_scorecard_warehouse_reports_scorecard_path(report)
               - else
-                %td= report.project_group.name
-              %td
-                - if report.completed?
-                  = link_to report.status, project_scorecard_warehouse_reports_scorecard_path(report)
-                - else
-                  = link_to report.status, edit_project_scorecard_warehouse_reports_scorecard_path(report)
-              %td= report.started_at
-              %td= report.completed_at
-              %td= report&.user&.name
+                = link_to report.status, edit_project_scorecard_warehouse_reports_scorecard_path(report)
+            %td= report.started_at
+            %td= report.completed_at
+            %td= report&.user&.name
