@@ -10,6 +10,7 @@ module WarehouseReports::Project
     include ArelHelper
     before_action :set_filter, only: [:show, :create]
     before_action :set_projects, :set_current_reports, only: [:show]
+    before_action :set_history_filter, only: [:history]
 
     def show
       @project_report_shells = report_base_class.where.not(project_id: nil).
@@ -34,13 +35,10 @@ module WarehouseReports::Project
     end
 
     def history
-      @project_reports = report_scope.joins(:project).merge(project_scope).
-        order(created_at: :desc).
-        page(params[:page]).per(50)
-
-      @project_group_reports = report_scope.joins(:project_group).merge(project_group_scope).
-        order(created_at: :desc).
-        page(params[:page]).per(50)
+      scope = filtered_report_scope.
+        order(id: :desc).
+        preload(project: [:organization, :data_source])
+      @pagy, @reports = pagy(scope, items: 50)
     end
 
     def create
@@ -121,6 +119,10 @@ module WarehouseReports::Project
       @filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id, project_type_codes: []))
     end
 
+    private def set_history_filter
+      @history_filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id))
+    end
+
     def generate_param
       params.permit(project_data_quality: [:generate])[:project_data_quality][:generate].try(:to_i)
     end
@@ -149,16 +151,7 @@ module WarehouseReports::Project
     private def initial_filter_params
       return {} unless params[:filters]
 
-      params.require(:filters).
-        permit(
-          coc_codes: [],
-          project_types: [],
-          project_type_numbers: [],
-          data_source_ids: [],
-          organization_ids: [],
-          project_ids: [],
-          project_group_ids: [],
-        )
+      params.require(:filters).permit(::Filters::FilterBase.new(user_id: current_user.id).known_params)
     end
 
     private def set_projects
@@ -219,5 +212,33 @@ module WarehouseReports::Project
         order(id: :asc).
         index_by(&:project_group_id)
     end
+
+    private def filtered_report_scope
+      scope = report_scope.where(started_at: (@history_filter.start..@history_filter.end))
+
+      scope = scope.where(project_id: project_scope.select(:id)).
+        or(scope.where(project_group_id: project_group_scope.select(:id)))
+
+      if can_view_all_reports?
+        creator_user_id = @history_filter.creator_id.presence
+        scope = scope.where(requestor_id: creator_user_id) if creator_user_id
+      else
+        scope = scope.where(requestor_id: current_user.id)
+      end
+
+      project_ids = @history_filter.project_ids
+      scope = scope.where(project_id: project_ids.uniq) if project_ids&.any?
+
+      project_group_ids = @history_filter.project_group_ids
+      scope = scope.where(project_group_id: project_group_ids.uniq) if project_group_ids&.any?
+
+      scope
+    end
+
+    private def available_users
+      creator_user_ids = report_scope.distinct.pluck(:requestor_id)
+      User.active.where(id: creator_user_ids)
+    end
+    helper_method :available_users
   end
 end
