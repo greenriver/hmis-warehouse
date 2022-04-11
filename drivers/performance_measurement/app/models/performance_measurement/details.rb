@@ -85,9 +85,10 @@ module PerformanceMeasurement::Details
 
       adjusted_result = result.dup
       adjusted_result.primary_value = result.secondary_value
-      adjusted_result.primary_unit = result.secondary_unit
+      adjusted_result.primary_unit = "#{result.secondary_unit} #{result.value_label}"
       adjusted_result.secondary_value = result.primary_value
       adjusted_result.secondary_unit = result.primary_unit
+      adjusted_result.value_label = nil
       adjusted_result
     end
 
