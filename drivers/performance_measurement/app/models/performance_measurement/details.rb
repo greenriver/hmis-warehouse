@@ -80,6 +80,17 @@ module PerformanceMeasurement::Details
     end
     memoize :my_projects
 
+    def detail_indicator_result(result, key)
+      return result unless detail_year_over_year_change?(key)
+
+      adjusted_result = result.dup
+      adjusted_result.primary_value = result.secondary_value
+      adjusted_result.primary_unit = result.secondary_unit
+      adjusted_result.secondary_value = result.primary_value
+      adjusted_result.secondary_unit = result.primary_unit
+      adjusted_result
+    end
+
     def other_projects(user, key)
       project_details(key).select do |project_id, _|
         user.viewable_project_ids.exclude?(project_id)

@@ -22,14 +22,7 @@
     %h2 System Level
   .d-flex
     .w-50
-      - if  @report.detail_year_over_year_change?(key)
-        - primary_value = result.primary_value
-        - primary_unit = result.primary_unit
-        - result.primary_value = result.secondary_value
-        - result.primary_unit = result.secondary_unit
-        - result.secondary_value = result.primary_value
-        - result.secondary_unit = result.primary_unit
-      = render 'warehouse_reports/indicator', indicator: result
+      = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
     .w-50
       .c-chart--vertical-bar{ class: system_class_name, data: { chart: result.data_for_system_level_bar.to_json }}
       - label = @report.detail_denominator_label_for(key)
