@@ -39,7 +39,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     # process anyone active in the past year, or who is on a cohort or active in CAS
     if client_ids.blank?
       client_ids = default_client_ids
-      cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).distinct.pluck(:client_id)
+      cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).
+        merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
       cas_active_client_ids = GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
       extra_data = (cohort_client_ids + cas_active_client_ids).uniq
       limited_data = client_ids - extra_data
