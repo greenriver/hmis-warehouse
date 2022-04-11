@@ -10,7 +10,6 @@ namespace :jobs do
     if arbiter.needs_worker?
       arbiter.add_worker!
     end
-    raise 'Testing CloudWatch Logs!'
   end
 
   desc "fill the queue test"
