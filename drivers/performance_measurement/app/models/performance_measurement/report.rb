@@ -424,6 +424,7 @@ module PerformanceMeasurement
           },
         },
       ]
+      # TODO: add PSH and OPH :psh, :oph, :rrh
       [:es, :sh, :so, :th].each do |p_type|
         extras << {
           key: "days_in_#{p_type}_bed_details".to_sym,

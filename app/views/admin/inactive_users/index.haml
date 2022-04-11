@@ -36,7 +36,7 @@
                 = link_to admin_user_audit_path(user), class: 'btn btn-sm btn-secondary btn-icon-only' do
                   %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
               %td
-                = render 'admin/users/user_invitation_status', user: user
+                = render 'user_status', user: user
               %td
                 - if user.invitation_status.in?([:invitation_expired, :pending_confirmation])
                   = simple_form_for(user, url: admin_user_recreate_invitation_path(user), method: :post) do |f|

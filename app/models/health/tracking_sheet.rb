@@ -31,10 +31,21 @@ module Health
       @ssm_completed_dates[patient_id]&.to_date
     end
 
-    def cha_completed_date(patient_id)
-      @cha_completed_dates ||= Health::ComprehensiveHealthAssessment.where(patient_id: patient_ids).
-        group(:patient_id).
-        maximum(:completed_at)
+    def any_cha_completed?(patient_id)
+      @patients_with_completed_chas ||= Set.new(Health::ComprehensiveHealthAssessment.completed.pluck(:patient_id))
+
+      @patients_with_completed_chas.include?(patient_id)
+    end
+
+    def cha_renewal_completed_date(patient_id)
+      @cha_completed_dates ||= Health::ComprehensiveHealthAssessment.
+        completed.where(patient_id: patient_ids).
+        pluck(:patient_id, :completed_at).
+        group_by(&:shift).
+        transform_values(&:flatten).
+        reject { |_, values| values.count == 1 }. # Remove patients with only an initial CHA
+        transform_values(&:max)
+
       @cha_completed_dates[patient_id]&.to_date
     end
 
@@ -45,7 +56,9 @@ module Health
       @cha_reviewed_dates[patient_id]&.to_date
     end
 
-    def cha_reviewed?(patient_id)
+    def cha_renewal_reviewed(patient_id)
+      return nil unless cha_renewal_completed_date(patient_id).present? # Ignore patients with out a completed renewal
+
       @patients_with_currently_reviewed_chas ||= begin
         # JOIN most_recent_assessments ON comprehensive_health_assessments.id = most_recent_assessments.current_id
         mra_t = Arel::Table.new(:most_recent_assessments)
@@ -64,7 +77,40 @@ module Health
           pluck(:patient_id))
       end
 
-      @patients_with_currently_reviewed_chas.include?(patient_id)
+      @patients_with_currently_reviewed_chas.include?(patient_id) ? 'Yes' : 'No'
+    end
+
+    def initial_cha_date(patient_id)
+      @initial_chas ||= Health::ComprehensiveHealthAssessment.
+        where(patient_id: patient_ids).
+        group(:patient_id).
+        minimum(:completed_at)
+
+      @initial_chas[patient_id]
+    end
+
+    def cha_initial_reviewed(patient_id)
+      return nil unless any_cha_completed?(patient_id)
+
+      @patients_with_reviewed_initial_chas ||= begin
+        # JOIN oldest_assessments ON comprehensive_health_assessments.id = oldest_assessments.first_id
+        oa_t = Arel::Table.new(:oldest_assessments)
+        join = h_cha_t.join(oa_t).on(h_cha_t[:id].eq(oa_t[:first_id]))
+
+        Set.new(Health::ComprehensiveHealthAssessment.
+          with(
+            oldest_assessments:
+              Health::ComprehensiveHealthAssessment.
+                distinct.
+                define_window(:patient_by_update).partition_by(:patient_id, order_by: { updated_at: :desc }).
+                select_window(:first_value, :id, over: :patient_by_update, as: :first_id),
+          ).
+          joins(join.join_sources).
+          where.not(reviewed_by_id: nil).
+          pluck(:patient_id))
+      end
+
+      @patients_with_reviewed_initial_chas.include?(patient_id) ? 'Yes' : 'No'
     end
 
     def most_recent_face_to_face_qa_date(patient_id)
@@ -227,20 +273,22 @@ module Health
         'CONSENT_DATE' => consented_date(patient.id),
         # Limit SSM and CHA to warehouse versions only (per spec)
         'SSM_DATE' => ssm_completed_date(patient.id),
-        'CHA_DATE' => cha_completed_date(patient.id),
-        'CHA_REVIEWED' => cha_reviewed?(patient.id) ? 'Yes' : 'No',
-        'CHA_RENEWAL_DATE' => cha_renewal_date(patient.id),
+        'CHA_RENEWAL_DATE' => cha_renewal_completed_date(patient.id),
+        'CHA_RENEWAL_REVIEWED' => cha_renewal_reviewed(patient.id),
+        'CHA_EXPECTED_RENEWAL_DATE' => cha_renewal_date(patient.id),
+        'CHA_INITIAL_DATE' => initial_cha_date(patient.id),
+        'CHA_INITIAL_REVIEWED' => cha_initial_reviewed(patient.id),
         'PCTP_PT_SIGN' => care_plan_patient_signed_date(patient.id),
         'CP_CARE_PLAN_SENT_PCP_DATE' => care_plan_sent_to_provider_date(patient.id),
         'PCTP_PCP_SIGN' => care_plan_provider_signed_date(patient.id),
         'PCTP_RENEWAL_DATE' => care_plan_renewal_date(patient.id),
         'QA_FACE_TO_FACE' => most_recent_face_to_face_qa_date(patient.id),
         'QA_LAST' => most_recent_qa_from_case_note(patient.id),
-        'LITERALLY HOMELESS' => patient.client.patient.client.processed_service_history&.literally_homeless_last_three_years,
-        'HMIS DISABILITY' => disabled_client?(patient.client) ? 'Y' : 'N',
-        'HOUSING STATUS' => most_recent_housing_status(patient.id),
-        'CAREPLAN SIGNED WITHIN 122 DAYS' => with_careplans_in_122_days?(patient, as: :text),
-        'SDH RISK SCORE' => sdh_risk_score(patient),
+        'LITERALLY_HOMELESS' => patient.client.patient.client.processed_service_history&.literally_homeless_last_three_years,
+        'HMIS_DISABILITY' => disabled_client?(patient.client) ? 'Y' : 'N',
+        'HOUSING_STATUS' => most_recent_housing_status(patient.id),
+        'CAREPLAN_SIGNED_WITHIN_122_DAYS' => with_careplans_in_122_days?(patient, as: :text),
+        'SDH_RISK_SCORE' => sdh_risk_score(patient),
       }
     end
   end

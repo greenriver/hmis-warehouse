@@ -139,7 +139,10 @@ module HudApr::Generators::CeApr::Fy2021
         'Result: successful referral: client accepted' => a_t[:ce_event_referral_result].eq(1),
         'Result: Unsuccessful referral: client rejected' => a_t[:ce_event_referral_result].eq(2),
         'Result: Unsuccessful referral: provider rejected' => a_t[:ce_event_referral_result].eq(3),
-        'No result recorded' => a_t[:ce_event_referral_result].eq(nil),
+        # Based on 2022 Data Dictionary p. 43 instead of the CE APR spec, pending AAQ
+        'No result recorded' => a_t[:ce_event_event].eq(2).and(a_t[:ce_event_problem_sol_div_rr_result].eq(nil)).
+          or(a_t[:ce_event_event].eq(5).and(a_t[:ce_event_referral_case_manage_after].eq(nil))).
+          or(a_t[:ce_event_event].in((10..15).to_a + (17..18).to_a).and(a_t[:ce_event_referral_result].eq(nil))),
         'Result: Enrolled in Aftercare project' => a_t[:ce_event_referral_case_manage_after].eq(1),
         'Percent of successful referrals to residential projects' => Arel.sql('0=1'), # This will be calculated as a separate step
       }.freeze

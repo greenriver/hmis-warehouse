@@ -44,8 +44,10 @@
       %section.mb-6
         .d-flex.mb-5.ml-4
           .header.d-flex.align-items-center.justify-content-center
-            %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
-            %h2.mb-0.mt-0 Organizations and Projects
+            .mr-2
+              %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, 'scope': "##{select_scope}"}, type: 'button'}
+              .mt-2 All / None
+            %h2.mb-6.mt-0 Organizations and Projects
           .ml-auto
             %p= paginate @project_scope
         - @projects.each do |(data_source, organization), projects|

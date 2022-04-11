@@ -7,14 +7,5 @@
 module HudApr::Generators::Apr::Fy2020
   class QuestionNine < HudApr::Generators::Shared::Fy2020::QuestionNine
     QUESTION_TABLE_NUMBERS = ['Q9a', 'Q9b'].freeze
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      contact_counts = q9a_contacted
-      q9b_engaged(contact_counts)
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end

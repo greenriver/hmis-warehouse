@@ -306,6 +306,10 @@ module ArelHelper
     GrdaWarehouse::HmisForm.arel_table
   end
 
+  def hmis_c_t
+    GrdaWarehouse::HmisClient.arel_table
+  end
+
   def c_client_t
     GrdaWarehouse::CohortClient.arel_table
   end
@@ -653,6 +657,10 @@ module ArelHelper
 
     def hmis_form_t
       GrdaWarehouse::HmisForm.arel_table
+    end
+
+    def hmis_c_t
+      GrdaWarehouse::HmisClient.arel_table
     end
 
     def c_client_t

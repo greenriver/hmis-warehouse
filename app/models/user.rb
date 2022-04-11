@@ -67,6 +67,9 @@ class User < ApplicationRecord
 
   has_many :two_factors_memorized_devices
 
+  has_many :favorites
+  has_many :favorite_reports, through: :favorites, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
+
   belongs_to :agency, optional: true
 
   scope :diet, -> do
@@ -298,6 +301,20 @@ class User < ApplicationRecord
     else
       :invitation_expired
     end
+  end
+
+  def deactivation_status(user)
+    return unless inactive?
+
+    version = versions.where(event: 'deactivate').order(created_at: :desc)&.first
+
+    return 'Account deactivated' unless version
+    return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
+
+    name = version.name_of_whodunnit?
+    return "Account deactivated on #{version.created_at}" unless name
+
+    "Account deactivated by #{name} on #{version.created_at}"
   end
 
   def self.text_search(text)

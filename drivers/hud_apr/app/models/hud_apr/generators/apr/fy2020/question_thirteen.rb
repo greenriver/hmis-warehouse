@@ -14,14 +14,5 @@ module HudApr::Generators::Apr::Fy2020
       'Q13b2',
       'Q13c2',
     ].freeze
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q13x1_conditions
-      q13x2_condition_counts
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end
