@@ -51,6 +51,8 @@ Style/TrailingCommaInArrayLiteral:
   EnforcedStyleForMultiline: comma
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
+Layout/MultilineArrayBraceLayout:
+  EnforcedStyle: new_line
 
 Style/OptionalBooleanParameter:
   Enabled: false
