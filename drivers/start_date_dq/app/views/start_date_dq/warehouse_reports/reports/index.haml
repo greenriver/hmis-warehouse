@@ -24,13 +24,15 @@
       %tbody
         - @enrollments.each do |row|
           - client = row.client
-          - values = @report.column_values(row)
-          - values[0] = number_with_delimiter(values[0]) # Add comma separator to days difference
-          - values.pop() # Drop project type
+          - values_hash = @report.column_values(row)
           %tr
             %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-            - values.each do |d|
-              %td= d
+            - values_hash.each do |key, value|
+              - next if key == "project_type"
+              - if key == "days_between"
+                %td= number_with_delimiter(value)
+              - else
+                %td= value
             %td
               .enrollment__project_type{class: "client__service_type_#{row.project_type}"}
                 .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(row.project_type)}}
