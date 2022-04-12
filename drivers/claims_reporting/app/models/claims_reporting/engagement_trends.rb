@@ -104,7 +104,7 @@ module ClaimsReporting
 
     def summary(cohort)
       (results.dig(cohort.to_s, 'summary')&.to_h || {}).with_indifferent_access.tap do |s|
-        member_months = if cohort.to_s.starts_with?('engaged_for')
+        member_months = if cohort.to_s.starts_with?('engaged_')
           s['engaged_days'].to_f
         elsif cohort.to_s.starts_with?('pre_engaged')
           s['pre_engagement_days'].to_f
@@ -125,7 +125,7 @@ module ClaimsReporting
 
       s = summary(cohort)
       # we calculate utilization in terms of n_claims per year per 1000 members
-      member_years = if cohort.to_s.starts_with?('engaged_for')
+      member_years = if cohort.to_s.starts_with?('engaged')
         s['engaged_days'].to_f
       elsif cohort.to_s.starts_with?('pre_engaged')
         s['pre_engagement_days'].to_f
