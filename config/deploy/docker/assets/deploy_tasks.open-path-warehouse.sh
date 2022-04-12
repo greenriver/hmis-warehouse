@@ -13,42 +13,42 @@ sed -i.bak '/EXTENSION/d' db/warehouse_structure.sql
 # TODO: fix the bootstra_databases! method in roll_out.rb to handle a first install
 # ./bin/db_prep
 
-echo Compiling and pushing assets
-bundle exec rake assets:clobber
-bundle exec rake assets:precompile
+echo === Compiling and pushing assets ===
+time bundle exec rake assets:clobber
+time bundle exec rake assets:precompile
 echo "Syncing to s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH"
-aws s3 sync ./public/assets s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH
+time aws s3 sync ./public/assets s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH
 
 echo Storing Themed Maintenance Page
-bundle exec rake maintenance:create
+time bundle exec rake maintenance:create
 
 echo Migrating with individual rake tasks
 
 echo Migrating app database
-bundle exec rake db:migrate:primary
+time bundle exec rake db:migrate:primary
 
 echo Migrating warehouse database
-bundle exec rake db:migrate:warehouse
+time bundle exec rake db:migrate:warehouse
 
 echo Migrating health database
-bundle exec rake db:migrate:health
+time bundle exec rake db:migrate:health
 
 echo Migrating reporting database
-bundle exec rake db:migrate:reporting
+time bundle exec rake db:migrate:reporting
 
 echo Report seeding
-bundle exec rake reports:seed
+time bundle exec rake reports:seed
 
 echo General seeding
-bundle exec rake db:seed
+time bundle exec rake db:seed
 
 echo Translations
-bundle exec rake gettext:sync_to_po_and_db
+time bundle exec rake gettext:sync_to_po_and_db
 
 echo Installing cron
-./bin/cron_installer.rb
+time ./bin/cron_installer.rb
 
 # keep this always at the end of this file
 echo Making interface aware this script completed
-bundle exec rake deploy:mark_deployment_id
+time bundle exec rake deploy:mark_deployment_id
 echo ---DONE---
