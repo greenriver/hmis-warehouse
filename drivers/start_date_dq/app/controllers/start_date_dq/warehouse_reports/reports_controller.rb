@@ -23,6 +23,7 @@ module StartDateDq::WarehouseReports
         end
         format.xlsx do
           @enrollments = @report.data
+          headers['Content-Disposition'] = 'attachment; filename=Approximate Start Date Report.xlsx'
         end
       end
     end
