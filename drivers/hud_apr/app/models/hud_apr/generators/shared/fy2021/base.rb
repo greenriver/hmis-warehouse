@@ -77,10 +77,12 @@ module HudApr::Generators::Shared::Fy2021
           enrollments = enrollments_by_client_id[client.id]
           next unless enrollments.present?
 
+          hoh_enrollment = nil
           last_service_history_enrollment = enrollments.last
           if needs_ce_assessments?
             hh_id = get_hh_id(last_service_history_enrollment)
-            hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
+            # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
+            hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
             #
@@ -141,7 +143,7 @@ module HudApr::Generators::Shared::Fy2021
           annual_assessment_expected = household_assessment_required[get_hh_id(last_service_history_enrollment)]
 
           household_calculation_date = if needs_ce_assessments?
-            ce_latest_assessment&.AssessmentDate || hoh_enrollment.first_date_in_program
+            ce_latest_assessment&.AssessmentDate || hoh_enrollment&.first_date_in_program
           else
             last_service_history_enrollment.first_date_in_program
           end
