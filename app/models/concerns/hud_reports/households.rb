@@ -41,29 +41,41 @@ module HudReports::Households
     end
 
     private def households
-      @households ||= {}.tap do |hh|
-        enrollment_scope_without_preloads.preload(enrollment: :client).
-          where(client_id: client_scope).find_in_batches(batch_size: 250) do |batch|
-            # puts 'Household Batch: '
-            # puts GetProcessMem.new.inspect
-            batch.each do |enrollment|
-              next unless enrollment.enrollment.client
+      calculate_households if @households.nil?
+      @households
+    end
 
-              hh[get_hh_id(enrollment)] ||= []
-              hh[get_hh_id(enrollment)] << {
-                client_id: enrollment.client_id,
-                source_client_id: enrollment.enrollment.client.id,
-                dob: enrollment.enrollment.client.DOB,
-                veteran_status: enrollment.enrollment.client.VeteranStatus,
-                chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
-                relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
-                # Include dates for determining if someone was present at assessment date
-                entry_date: enrollment.first_date_in_program,
-                exit_date: enrollment.last_date_in_program,
-              }.with_indifferent_access
-            end
-            GC.start
+    private def hoh_enrollments
+      calculate_households if @hoh_enrollments.nil?
+      @hoh_enrollments
+    end
+
+    private def calculate_households
+      @hoh_enrollments ||= {}
+      @households ||= {}
+
+      @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
+        enrollments_by_client_id = clients_with_enrollments(batch)
+        enrollments_by_client_id.each do |_, enrollments|
+          enrollments.each do |enrollment|
+            @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?
+            next unless enrollment&.enrollment&.client.present?
+
+            @households[get_hh_id(enrollment)] ||= []
+            @households[get_hh_id(enrollment)] << {
+              client_id: enrollment.client_id,
+              source_client_id: enrollment.enrollment.client.id,
+              dob: enrollment.enrollment.client.DOB,
+              veteran_status: enrollment.enrollment.client.VeteranStatus,
+              chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
+              relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
+              # Include dates for determining if someone was present at assessment date
+              entry_date: enrollment.first_date_in_program,
+              exit_date: enrollment.last_date_in_program,
+            }.with_indifferent_access
           end
+        end
+        GC.start
       end
     end
 

@@ -24,6 +24,7 @@
           %th Careplan PCP signatures
       %tbody
         - @report.patients_without_payments.each do |patient|
+          - next unless patient.client.present?
           %tr
             %td= link_to patient.medicaid_id, client_health_qualifying_activities_path(patient.client)
             %td= patient.last_name

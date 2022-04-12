@@ -51,7 +51,7 @@ module HudApr::Generators::Shared::Fy2021
           last_service_history_enrollment = enrollments.last
 
           hh_id = get_hh_id(last_service_history_enrollment)
-          hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last
+          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
           household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
@@ -80,7 +80,7 @@ module HudApr::Generators::Shared::Fy2021
           last_service_history_enrollment = enrollments.last
           if needs_ce_assessments?
             hh_id = get_hh_id(last_service_history_enrollment)
-            hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last
+            hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
             #
