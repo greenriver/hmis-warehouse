@@ -14,11 +14,10 @@ wb.add_worksheet(name: @report.title[0, 30]) do |sheet|
   )
   @enrollments.each do |row|
     client = row.client
-    values_hash = @report.column_values(row)
     sheet.add_row([
       client.id,
       client.FirstName,
       client.LastName,
-    ] + values_hash.values)
+    ] + @report.column_values(row).values)
   end
 end

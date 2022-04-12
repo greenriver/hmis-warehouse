@@ -24,12 +24,11 @@
       %tbody
         - @enrollments.each do |row|
           - client = row.client
-          - values_hash = @report.column_values(row)
           %tr
             %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-            - values_hash.each do |key, value|
-              - next if key == "project_type"
-              - if key == "days_between"
+            - @report.column_values(row).each do |key, value|
+              - next if key == :project_type
+              - if key == :days_between
                 %td= number_with_delimiter(value)
               - else
                 %td= value

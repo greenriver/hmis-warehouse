@@ -48,12 +48,12 @@ module StartDateDq
       date_to_street = row.enrollment.DateToStreetESSH
       entry_date = row.enrollment.EntryDate
       {
-        'days_between' => (entry_date - date_to_street).to_i,
-        'date_to_street' => date_to_street,
-        'entry_date' => entry_date,
-        'personal_id' => row.enrollment.PersonalID,
-        'project_name' => GrdaWarehouse::Hud::Project.confidentialize(name: row.project&.name),
-        'project_type' => HUD.project_type_brief(row.project_type),
+        days_between: (entry_date - date_to_street).to_i,
+        date_to_street: date_to_street,
+        entry_date: entry_date,
+        personal_id: row.enrollment.PersonalID,
+        project_name: GrdaWarehouse::Hud::Project.confidentialize(name: row.project&.name),
+        project_type: HUD.project_type_brief(row.project_type),
       }
     end
 
