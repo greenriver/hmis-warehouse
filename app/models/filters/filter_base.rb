@@ -143,7 +143,7 @@ module Filters
       self.ph = filters.dig(:ph).in?(['1', 'true', true]) unless filters.dig(:ph).nil?
       self.times_homeless_in_last_three_years = filters.dig(:times_homeless_in_last_three_years)&.reject(&:blank?)&.map(&:to_i) unless filters.dig(:times_homeless_in_last_three_years).nil?
       self.report_version = filters.dig(:report_version)&.to_sym
-      self.creator_id = filters.dig(:creator_id).to_id unless filters.dig(:creator_id).nil?
+      self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
 
       ensure_dates_work if valid?
       self
