@@ -37,8 +37,8 @@ jobs:
           gem install bundler --version=2.2.30
           echo $GITHUB_WORKSPACE
 
-      - name: Checkout
-        uses: actions/checkout@v3
+
+      - uses: actions/checkout@v3
         with:
           path: 'hmis-warehouse'
       - name: Install gems

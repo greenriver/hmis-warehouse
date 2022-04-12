@@ -54,6 +54,8 @@ jobs:
           - /spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Set up dependencies
         env:
           DATABASE_APP_DB_TEST: boston_hmis_test
@@ -83,9 +85,6 @@ jobs:
 
           npm install
           gem install bundler --version=2.2.30
-
-      - name: Checkout
-        uses: actions/checkout@v3
 
       - name: Install gems
         run: |
