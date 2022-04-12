@@ -4,7 +4,7 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed, type: :model do
   before(:all) do
     import_hmis_csv_fixture(
       'spec/fixtures/files/service_history/materialized',
-      version: 'AutoDetect',
+      version: 'AutoMigrate',
     )
 
     # Add includes_verified_days_homeless override

@@ -13,7 +13,7 @@ RSpec.describe HapReport::Report, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hap_report/spec/fixtures/files/fy2020/default',
-        version: '2020',
+        version: 'AutoMigrate',
         run_jobs: true,
       )
       @report = HapReport::Report.create!(
@@ -51,7 +51,7 @@ RSpec.describe HapReport::Report, type: :model do
     before(:all) do
       import_hmis_csv_fixture(
         'drivers/hap_report/spec/fixtures/files/fy2020/default',
-        version: '2020',
+        version: 'AutoMigrate',
         run_jobs: true,
       )
       @report = HapReport::Report.create!(
