@@ -37,7 +37,6 @@ jobs:
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
           gem install bundler --version=2.2.30
-          echo $GITHUB_WORKSPACE
 
       - name: Install gems
         run: |
