@@ -573,7 +573,7 @@ module GrdaWarehouse::Hud
       else
         safe_project_name
       end
-      project_name += " (#{HUD.project_type_brief(computed_project_type)})" if include_project_type
+      project_name += " (#{HUD.project_type_brief(computed_project_type)})" if include_project_type && computed_project_type.present?
 
       project_name
     end
