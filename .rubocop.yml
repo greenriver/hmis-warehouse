@@ -53,6 +53,8 @@ Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
 Layout/MultilineArrayBraceLayout:
   EnforcedStyle: new_line
+Layout/FirstArrayElementLineBreak:
+  Enabled: true
 
 Style/OptionalBooleanParameter:
   Enabled: false
