@@ -46,7 +46,7 @@ module ClaimsReporting
     end
 
     def active_patients
-      scope = ::Health::Patient.active_between(report_date_range.min, report_date_range.max)
+      scope = ::Health::Patient.where.not(client_id: nil).active_between(report_date_range.min, report_date_range.max)
       if aco_ids.any?
         scope = scope.where(
           id: ::Health::PatientReferral.where(accountable_care_organization_id: aco_ids).select(:patient_id),
