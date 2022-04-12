@@ -3273,7 +3273,7 @@ CREATE VIEW public.bi_nightly_census_by_projects AS
 --
 
 CREATE TABLE public.service_history_enrollments (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     client_id integer NOT NULL,
     data_source_id integer,
     date date NOT NULL,
@@ -15384,7 +15384,31 @@ CREATE TABLE public.pm_clients (
     comparison_days_in_homeless_bed integer,
     comparison_days_in_homeless_bed_details jsonb,
     comparison_days_in_homeless_bed_in_period integer,
-    comparison_days_in_homeless_bed_details_in_period jsonb
+    comparison_days_in_homeless_bed_details_in_period jsonb,
+    reporting_days_in_psh_bed integer,
+    reporting_days_in_psh_bed_details jsonb,
+    reporting_days_in_psh_bed_in_period integer,
+    reporting_days_in_psh_bed_details_in_period jsonb,
+    reporting_days_in_oph_bed integer,
+    reporting_days_in_oph_bed_details jsonb,
+    reporting_days_in_oph_bed_in_period integer,
+    reporting_days_in_oph_bed_details_in_period jsonb,
+    reporting_days_in_rrh_bed integer,
+    reporting_days_in_rrh_bed_details jsonb,
+    reporting_days_in_rrh_bed_in_period integer,
+    reporting_days_in_rrh_bed_details_in_period jsonb,
+    comparison_days_in_psh_bed integer,
+    comparison_days_in_psh_bed_details jsonb,
+    comparison_days_in_psh_bed_in_period integer,
+    comparison_days_in_psh_bed_details_in_period jsonb,
+    comparison_days_in_oph_bed integer,
+    comparison_days_in_oph_bed_details jsonb,
+    comparison_days_in_oph_bed_in_period integer,
+    comparison_days_in_oph_bed_details_in_period jsonb,
+    comparison_days_in_rrh_bed integer,
+    comparison_days_in_rrh_bed_details jsonb,
+    comparison_days_in_rrh_bed_in_period integer,
+    comparison_days_in_rrh_bed_details_in_period jsonb
 );
 
 
@@ -47663,6 +47687,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220317185834'),
 ('20220322185532'),
 ('20220328122746'),
-('20220331180748');
+('20220331180748'),
+('20220411150736');
 
 

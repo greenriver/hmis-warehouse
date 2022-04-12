@@ -7,8 +7,7 @@
       %th Relevancy
       %th Metric
       %th Passed
-      %th Current Value
-      %th Change over Year
+      %th Value
       %th Direction
     %tbody
       - @report.summary_table.each.with_index do |(title, group), i|
@@ -34,7 +33,9 @@
                   - else
                     = column.to_s.titleize
                 %td
-                  - options = { title: @report.detail_goal_description_for(indicator.field.to_sym), content: @report.detail_calculation_description_for(indicator.field.to_sym), toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom }
+                  - options = { title: markdown.render(@report.detail_goal_description_for(indicator.field.to_sym)), content: markdown.render(@report.detail_calculation_description_for(indicator.field.to_sym)), toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom, html: 'true' }
+                  .mb-2
+                    %strong= @report.detail_title_for(key)
                   = raw markdown.render(options[:title])
                   - if options[:title].present? && goal_popover
                     %a{ role: :button, tabindex: 0, data: options }
@@ -48,14 +49,16 @@
                   .c-indicator__passed{ class: indicator[:passed] ? "pass" : "fail" }
                     = checkmark_or_x(indicator[:passed], size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
                 %td.nobr.font-size-md
-                  - text = [ number_with_delimiter(indicator[:primary_value]), indicator[:primary_unit] ]
-                  - joiner = if indicator[:primary_unit].starts_with?('%') then '' else ' ' end
-
-                  = link_to(text.join(joiner), performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank)
-
-                %td.nobr #{number_with_delimiter(indicator[:secondary_value])}%
+                  - link_text = if @report.detail_year_over_year_change?(key)
+                    - "#{number_with_delimiter(indicator[:secondary_value])}% change over year"
+                  - else
+                    - text = [ number_with_delimiter(indicator[:primary_value]), indicator[:primary_unit] ]
+                    - joiner = if indicator[:primary_unit].starts_with?('%') then '' else ' ' end
+                    - text.join(joiner)
+                  = link_to(link_text, performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank)
                 %td.text-center
-                  .c-indicator__change-icon= change_direction_icon(indicator[:direction])
+                  - if @report.detail_year_over_year_change?(key)
+                    .c-indicator__change-icon= change_direction_icon(indicator[:direction])
             - else
               %tr
                 %td
