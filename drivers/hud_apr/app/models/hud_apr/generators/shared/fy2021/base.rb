@@ -676,14 +676,15 @@ module HudApr::Generators::Shared::Fy2021
     # 5. If, for a given client, none of the records found belong to the same [project id] as the CE assessment from step 1, use the latest of those to report the client in the table above.
     # 6. The intention of the criteria is to locate the most recent logically relevant record pertaining to the CE assessment record reported in Q9a and Q9b by giving preference to data entered by the same project.
     private def latest_ce_event(she_enrollment, hoh_enrollment, ce_latest_assessment)
-      # FIXME:
       # need first assessment after report end if it occurred within 90 days of report end
       # exclude events after that assessment if it exists
-      enrollment = if she_enrollment.enrollment.assessments.present?
+      enrollment = if she_enrollment.client.source_events.present?
         she_enrollment
       else
         hoh_enrollment
       end
+      return unless enrollment.present?
+
       potential_events = enrollment.client.source_events.select do |e|
         next_assessment = first_ce_assessment_within_90_days_after_report_range(she_enrollment)
         if ce_latest_assessment
