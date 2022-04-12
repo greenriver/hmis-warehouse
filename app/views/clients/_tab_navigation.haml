@@ -158,7 +158,7 @@
     health.merge!({
       client_health_flexible_service_vprs_path(@client) => {
         title: 'Flex Services',
-        permission: current_user.can_view_some_vprs?,
+        permission: show_health_hpc && current_user.can_view_some_vprs?,
       },
     }) if RailsDrivers.loaded.include?(:health_flexible_service)
   = render 'clients/pre_navigation_bar'
