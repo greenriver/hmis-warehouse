@@ -59,7 +59,7 @@ module HudReports::Households
         enrollments_by_client_id.each do |_, enrollments|
           enrollments.each do |enrollment|
             @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?
-            next unless enrollment.enrollment.client
+            next unless enrollment&.enrollment&.client.present?
 
             @households[get_hh_id(enrollment)] ||= []
             @households[get_hh_id(enrollment)] << {
