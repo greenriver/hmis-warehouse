@@ -35,7 +35,7 @@ module StartDateDq
 
     def column_names
       [
-        '# Days Difference',
+        'Days Between DateToStreet and EntryDate',
         'DateToStreetESSH',
         'Entry Date',
         'Personal ID',

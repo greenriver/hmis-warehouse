@@ -25,6 +25,7 @@
         - @enrollments.each do |row|
           - client = row.client
           - values = @report.column_values(row)
+          - values[0] = number_with_delimiter(values[0]) # Add comma separator to days difference
           - values.pop() # Drop project type
           %tr
             %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
