@@ -35,9 +35,12 @@ jobs:
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
           gem install bundler --version=2.2.30
+          echo $GITHUB_WORKSPACE
 
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          path: 'hmis-warehouse'
       - name: Install gems
         run: |
           bundle config set --local without 'production staging development'
