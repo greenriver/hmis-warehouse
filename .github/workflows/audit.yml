@@ -35,10 +35,9 @@ jobs:
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
           gem install bundler --version=2.2.30
-          mkdir -p /__w/hmis-warehouse/hmis-warehouse
-          chown runner:runner /__w/hmis-warehouse/hmis-warehouse
 
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Install gems
         run: |
           bundle config set --local without 'production staging development'
