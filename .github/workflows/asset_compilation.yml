@@ -78,3 +78,33 @@ jobs:
         # but for now, just to test the load capacity of gha a bit...
         bundle exec rake assets:clobber
         bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
+        bundle exec rake assets:clobber
+        bundle exec rake assets:precompile
