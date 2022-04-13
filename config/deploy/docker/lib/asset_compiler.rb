@@ -9,7 +9,7 @@ class AssetCompiler
 
   def initialize(*args)
     @target_group_name = args[0][:target_group_name]
-    @secret_arn = args[0][:secret_arn]
+    @secret_arn = args[0][:secrets_arn]
   end
 
   def run!
