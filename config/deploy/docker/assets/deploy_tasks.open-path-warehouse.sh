@@ -14,10 +14,10 @@ sed -i.bak '/EXTENSION/d' db/warehouse_structure.sql
 # ./bin/db_prep
 
 echo === Compiling and pushing assets ===
-time bundle exec rake assets:clobber
-time bundle exec rake assets:precompile
+# time bundle exec rake assets:clobber
+# time bundle exec rake assets:precompile
 echo "Syncing to s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH"
-time aws s3 sync ./public/assets s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH
+# time aws s3 sync ./public/assets s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH
 
 echo Storing Themed Maintenance Page
 time bundle exec rake maintenance:create
