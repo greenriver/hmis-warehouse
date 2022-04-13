@@ -558,65 +558,70 @@ module PublicReports
       elsif map_by_county?
         census_comparison_by_county(scope)
       else
-        census_comparison_by_coc(scope)
+        census_comparison_map_data(scope)
       end
     end
 
-    private def census_comparison_by_coc(scope, service_scope: :current_scope)
-      self.map_max_rate ||= 0
-      self.map_max_count ||= 0
-      {}.tap do |charts|
-        quarter_dates.each do |date|
-          iso_date = date.iso8601
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
-          charts[iso_date] = {}
-          coc_codes.each do |coc_code|
-            population_overall = if Rails.env.production?
-              population_by_coc.try(:[], date.year).try(:[], coc_code) || 0
-            else
-              500
-            end
-            overall_homeless_population = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).count
-            else
-              max = [population_overall, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).
-                in_coc(coc_code: coc_code).count
-            else
-              max = [overall_homeless_population, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
+    private def map_geography
+      return zip_codes if map_by_zip?
+      return place_codes if map_by_place?
+      return county_codes if map_by_county?
 
-            count = enforce_min_threshold(count, 'min_threshold')
-            # % of population
-            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
-            rate = 0
-            rate = count / denominator.to_f * 100.0 if denominator&.positive?
-            charts[iso_date][coc_code] = {
-              count: overall_homeless_population,
-              overall_population: population_overall.to_i,
-              rate: rate.round(1),
-            }
-            self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = count if count > self.map_max_count
-          end
+      coc_codes
+    end
+
+    private def overall_population_geography(year, code)
+      return 500 unless Rails.env.production?
+
+      count = if map_by_zip?
+        population_by_zip.try(:[], year).try(:[], code)
+      elsif map_by_place?
+        population_by_place.try(:[], year).try(:[], code)
+      elsif map_by_county?
+        population_by_county.try(:[], year).try(:[], code)
+      else
+        population_by_coc.try(:[], year).try(:[], code)
+      end
+
+      count || 0
+    end
+
+    private def homeless_population_overall(scope:, start_date:, end_date:, service_scope:, population_overall:)
+      if Rails.env.production?
+        scope.with_service_between(
+          start_date: start_date,
+          end_date: end_date,
+          service_scope: service_scope,
+        ).count
+      else
+        max = [population_overall, 1].compact.max / 3
+        (0..max).to_a.sample
+      end
+    end
+
+    private def count_homeless_population(scope:, start_date:, end_date:, service_scope:, overall_homeless_population:, code:)
+      if Rails.env.production?
+        enrolled_scope = scope.with_service_between(
+          start_date: start_date,
+          end_date: end_date,
+          service_scope: service_scope,
+        )
+        if map_by_zip?
+          enrolled_scope.in_zip(zip_code: code).count
+        elsif map_by_place?
+          enrolled_scope.in_place(place: code).count
+        elsif map_by_county?
+          enrolled_scope.in_county(county: code).count
+        else
+          enrolled_scope.in_coc(coc_code: code).count
         end
+      else
+        max = [overall_homeless_population, 1].compact.max / 3
+        (0..max).to_a.sample
       end
     end
 
-    private def census_comparison_by_zip(scope, service_scope: :current_scope)
+    private def census_comparison_map_data(scope, service_scope: :current_scope)
       self.map_max_rate ||= 0
       self.map_max_count ||= 0
       {}.tap do |charts|
@@ -625,151 +630,36 @@ module PublicReports
           start_date = date.beginning_of_quarter
           end_date = date.end_of_quarter
           charts[iso_date] = {}
-          zip_codes.each do |code|
-            population_overall = if Rails.env.production?
-              population_by_zip.try(:[], date.year).try(:[], code) || 0
-            else
-              500
-            end
-            overall_homeless_population = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).count
-            else
-              max = [population_overall, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).
-                in_zip(zip_code: code).count
-            else
-              max = [overall_homeless_population, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = enforce_min_threshold(count, 'min_threshold')
+          map_geography.each do |code|
+            population_overall = overall_population_geography(date.year, code)
+            overall_homeless_population = homeless_population_overall(
+              scope: scope,
+              start_date: start_date,
+              end_date: end_date,
+              service_scope: service_scope,
+              population_overall: population_overall,
+            )
+            homeless_count = count_homeless_population(
+              scope: scope,
+              start_date: start_date,
+              end_date: end_date,
+              service_scope: service_scope,
+              overall_homeless_population: overall_homeless_population,
+              code: code,
+            )
+
+            homeless_count = enforce_min_threshold(homeless_count, 'min_threshold')
             # % of population
             denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
-            rate = count / denominator.to_f * 100.0 if denominator&.positive?
+            rate = homeless_count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][code] = {
               count: overall_homeless_population,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
             }
             self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = count if count > self.map_max_count
-          end
-        end
-      end
-    end
-
-    private def census_comparison_by_place(scope, service_scope: :current_scope)
-      self.map_max_rate ||= 0
-      self.map_max_count ||= 0
-      {}.tap do |charts|
-        quarter_dates.each do |date|
-          iso_date = date.iso8601
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
-          charts[iso_date] = {}
-          place_codes.each do |code|
-            population_overall = if Rails.env.production?
-              population_by_place.try(:[], date.year).try(:[], code) || 0
-            else
-              500
-            end
-            overall_homeless_population = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).count
-            else
-              max = [population_overall, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).
-                in_place(place: code).count
-            else
-              max = [overall_homeless_population, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = enforce_min_threshold(count, 'min_threshold')
-            # % of population
-            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
-            rate = 0
-            rate = count / denominator.to_f * 100.0 if denominator&.positive?
-            charts[iso_date][code] = {
-              count: overall_homeless_population,
-              overall_population: population_overall.to_i,
-              rate: rate.round(1),
-            }
-            self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = count if count > self.map_max_count
-          end
-        end
-      end
-    end
-
-    private def census_comparison_by_county(scope, service_scope: :current_scope)
-      self.map_max_rate ||= 0
-      self.map_max_count ||= 0
-      {}.tap do |charts|
-        quarter_dates.each do |date|
-          iso_date = date.iso8601
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
-          charts[iso_date] = {}
-          county_codes.each do |code|
-            population_overall = if Rails.env.production?
-              population_by_county.try(:[], date.year).try(:[], code) || 0
-            else
-              500
-            end
-            overall_homeless_population = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).count
-            else
-              max = [population_overall, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).
-                in_county(county: code).count
-            else
-              max = [overall_homeless_population, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = enforce_min_threshold(count, 'min_threshold')
-            # % of population
-            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
-            rate = 0
-            rate = count / denominator.to_f * 100.0 if denominator&.positive?
-            charts[iso_date][code] = {
-              count: overall_homeless_population,
-              overall_population: population_overall.to_i,
-              rate: rate.round(1),
-            }
-            self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = count if count > self.map_max_count
+            self.map_max_count = homeless_count if homeless_count > self.map_max_count
           end
         end
       end
@@ -778,6 +668,9 @@ module PublicReports
     # denominator is either state-wide homeless population
     # or census population for chosen geography
     private def map_tooltip_denominator(population_overall, overall_homeless_population)
+      # FIXME: this needs to become a rate (per 10,000), maybe as simple as / 100?
+      # when map_overall_geography_census? is true
+      # TODO: need to update language on the map dependent on .map_overall_geography_census?
       return population_overall.to_f if settings.map_overall_geography_census?
 
       overall_homeless_population.to_f
