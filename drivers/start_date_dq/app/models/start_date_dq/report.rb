@@ -30,13 +30,13 @@ module StartDateDq
     end
 
     def title
-      'Approximate Start Date Data Quality'
+      'Date Homelessness Started'
     end
 
     def column_names
       [
-        'Days Between DateToStreet and EntryDate',
-        'DateToStreetESSH',
+        'Days Between Date Homelessness Started and Entry Date',
+        'Date Homelessness Started (Self-Reported)',
         'Entry Date',
         'Personal ID',
         'Project',
