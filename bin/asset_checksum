@@ -2,4 +2,6 @@ if [ ! "$(ls -A .downloaded-remote-assets 2>/dev/null)" ]; then
   aws s3 cp --recursive s3://openpath-ecs-assets/$ASSETS_PREFIX .downloaded-remote-assets
 fi
 
+ls -al .
+
 tar cf - app/assets package-lock.json Gemfile.lock .github .downloaded-remote-assets | md5sum | cut -d ' ' -f 1
