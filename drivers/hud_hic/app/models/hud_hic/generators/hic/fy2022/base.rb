@@ -48,7 +48,7 @@ module HudHic::Generators::Hic::Fy2022
         row_labels: [],
         first_column: 'A',
         last_column: header_row.count.to_csv_column,
-        first_row: 2,
+        first_row: 1,
         last_row: universe.members.count,
       }
       @report.answer(question: question_number).update(metadata: metadata)
