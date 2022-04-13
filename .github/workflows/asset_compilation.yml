@@ -28,6 +28,36 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
+    - name: Set up dependencies
+      env:
+        DATABASE_APP_DB_TEST: boston_hmis_test
+        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+        HEALTH_DATABASE_DB_TEST: health_test
+        DATABASE_DB_TEST: boston_cas_test
+        REPORTING_DATABASE_DB_TEST: test_boston_reporting
+      run: |
+        apk add --no-cache \
+          nodejs yarn npm \
+          tzdata \
+          git \
+          bash \
+          freetds-dev \
+          icu icu-dev \
+          curl libcurl curl-dev \
+          imagemagick \
+          libmagic file-dev file \
+          build-base libxml2-dev libxslt-dev postgresql-dev \
+          wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+          chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+          lftp postgresql tmux postgis geos geos-dev \
+          shared-mime-info
+
+        echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+        chmod 600 ~/.pgpass
+
+        npm install
+        gem install bundler --version=2.2.30
+
     - name: Install gems
       run: |
         bundle config set --local without 'production staging development'
