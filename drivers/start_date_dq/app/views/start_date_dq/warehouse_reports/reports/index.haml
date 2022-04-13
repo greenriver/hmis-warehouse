@@ -1,7 +1,7 @@
 - content_for :title, @report.title
 %h1= @report.title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
-%p View differences between the client's self-reported date homeless (DateToStreetESSH) and the enrollment entry date.
+%p View differences between the client's self-reported date homelessness started (DateToStreetESSH) and the enrollment entry date.
 = render 'filter'
 - if !@pagy.present?
   %p.text-center Apply filters to see results.
