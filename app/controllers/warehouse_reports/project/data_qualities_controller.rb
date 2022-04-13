@@ -120,7 +120,13 @@ module WarehouseReports::Project
     end
 
     private def set_history_filter
-      @history_filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id))
+      @history_filter = ::Filters::FilterBase.new(
+        initial_filter_params.merge(
+          user_id: current_user.id,
+          default_start: Date.current - 3.months,
+          default_end: Date.tomorrow,
+        ),
+      )
     end
 
     def generate_param
