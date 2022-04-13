@@ -29,10 +29,10 @@ echo Syncing the assets from s3
 
 echo Pulling down assets from S3
 bundle exec rake assets:clobber && mkdir -p ./public/assets
-ASSET_CHECKSUM=`ASSETS_PREFIX=${ASSETS_PREFIX} ./bin/asset_checksum`
+ASSET_CHECKSUM=$(ASSETS_PREFIX=${ASSETS_PREFIX} ./bin/asset_checksum)
 cd ./public/assets
 # Pull down the compiled assets. Using ASSETS_PREFIX from .env and GITHASH from Docker args.
-echo "!!! using ASSET_CHECKSUM ${ASSET_CHECKSUM}"
+echo "!!! using ASSET_CHECKSUM [${ASSET_CHECKSUM}]"
 ASSETS_PREFIX="${ASSETS_PREFIX}/${ASSET_CHECKSUM}" ASSETS_BUCKET_NAME=openpath-precompiled-assets UPDATE_ONLY=true ../../bin/sync_app_assets.rb
 cd ../..
 
