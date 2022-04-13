@@ -9,10 +9,16 @@ class AssetCompiler
 
   def initialize(*args)
     @target_group_name = args[0][:target_group_name]
+    @secret_arn = args[0][:secret_arn]
   end
 
   def run!
     system('bundle exec rake assets:clobber') # TODO: don't call out to bundle like this, it's inefficient
+
+    puts "SECRET_ARN=#{@secret_arn} bin/download_secrets.rb > .env"
+    system(`SECRET_ARN=#{@secret_arn} bin/download_secrets.rb > .env`)
+
+    Dotenv.load('.env', '.env.local')
 
     checksum = `ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum`.strip
 
@@ -21,7 +27,6 @@ class AssetCompiler
     return unless existing_assets.empty?
 
     system('bundle exec rake assets:precompile') # TODO: don't call out to bundle like this, it's inefficient
-    print "Pushing checksum #{checksum}"
     system("aws s3 cp --recursive public/assets s3://#{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum}")
   end
 end

@@ -65,11 +65,11 @@ jobs:
 
     - name: 'App setup'
       run: |
-        cp config/secrets.yml.sample config/secrets.yml
-        mkdir app/assets/stylesheets/theme/styles
-        touch app/assets/stylesheets/theme/styles/_variables.scss
-        cp .rspec.sample .rspec
+        # cp config/secrets.yml.sample config/secrets.yml
+        # mkdir app/assets/stylesheets/theme/styles
+        # touch app/assets/stylesheets/theme/styles/_variables.scss
         cp config/database.yml.ci config/database.yml
+        # pull down secrest from secrest msnager
 
     - name: Generate checksum and compile
       env:
@@ -108,38 +108,4 @@ jobs:
         HEALTH_DATABASE_DB: health_db
         REPORTING_DATABASE_DB: reporting_db
       run: |
-        # pull down secrets from SSM here
-        # bundle exec bin/compile_assets.rb qa
-        # but for now, just to test the load capacity of gha a bit...
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
-        bundle exec rake assets:clobber
-        bundle exec rake assets:precompile
+        bundle exec bin/compile_assets.rb qa

@@ -142,6 +142,3 @@ config/claims_reporting/*
 
 # Ignore CAS db structure, it will be maintained in CAS
 db/cas_structure.sql
-
-# Downloaded theme assets, used during precompilation
-.downloaded-remote-assets

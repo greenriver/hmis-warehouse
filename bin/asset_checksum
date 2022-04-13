@@ -1,5 +1,19 @@
-if [ ! "$(ls -A .downloaded-remote-assets 2>/dev/null)" ]; then
-  aws s3 cp --recursive s3://openpath-ecs-assets/$ASSETS_PREFIX .downloaded-remote-assets
+# if [ ! "$(ls -A .downloaded-remote-assets 2>/dev/null)" ]; then
+#   aws s3 cp --recursive s3://openpath-ecs-assets/$ASSETS_PREFIX .downloaded-remote-assets
+# fi
+# apk add tar # to get GNU tar, put this in dockerfile
+
+# Theme files to reset -- see .gitignore
+# Remove anything on these paths to ensure lingering theme files do not interfere.
+find app/assets -type f -name '.DS_Store' -delete
+rm -rf app/assets/stylesheets/theme/styles
+rm -rf app/assets/images/theme/logo
+rm -rf app/assets/images/theme/icons
+rm -f app/views/root/_homepage_content.haml
+
+if [ "$ASSETS_PREFIX" = "" ]; then
+  export ASSETS_PREFIX=qa-warehouse-staging-ecs
 fi
 
-tar cf - app/assets Gemfile.lock .downloaded-remote-assets | md5sum | cut -d ' ' -f 1
+ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.rb > /dev/null 2>&1
+tar -cf - --sort=name --mtime='UTC 2019-01-01' --group=0 --owner=0 --numeric-owner app/assets | md5sum | cut -d ' ' -f 1
