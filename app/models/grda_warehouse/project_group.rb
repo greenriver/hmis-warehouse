@@ -104,6 +104,12 @@ module GrdaWarehouse
       contacts.any? || organization_contacts.any?
     end
 
+    def used_for_cas_sync?
+      return unless GrdaWarehouse::Config.get(:cas_available_method).to_sym == :project_group
+
+      GrdaWarehouse::Config.get(:cas_sync_project_group_id) == id
+    end
+
     def self.import_csv(file)
       parsed = csv(file)
       original = parsed.dup

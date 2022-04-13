@@ -5,6 +5,10 @@
 .row
   .col-sm-6
     %h1= title
+    - if @project_group.used_for_cas_sync?
+      .alert.alert-warning
+        %p
+          This project group is used for syncing clients to CAS. Changes made here will affect who is synced to CAS.
     = simple_form_for @project_group, as: :filters, url: project_group_path(@project_group) do |f|
       = render 'form', f: f
       .form-actions.d-flex

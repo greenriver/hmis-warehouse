@@ -65,4 +65,36 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
       end
     end
   end
+
+  describe 'when syncing by project group' do
+    before(:all) do
+      @cas_project_group = GrdaWarehouse::ProjectGroup.new(name: 'test')
+      @cas_project_group.save!
+      @config = GrdaWarehouse::Config.first_or_create
+      @config.update(
+        so_day_as_month: true,
+        cas_available_method: :project_group,
+        cas_sync_project_group_id: @cas_project_group.id,
+      )
+      import_hmis_csv_fixture(
+        'spec/fixtures/files/service_history/cas_activity_methods',
+        version: 'AutoDetect',
+      )
+    end
+    after(:all) do
+      GrdaWarehouse::Utility.clear!
+      cleanup_hmis_csv_fixtures
+      @cas_project_group.destroy
+      Delayed::Job.delete_all
+    end
+
+    it 'finds no client who is active for CAS' do
+      expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(0)
+    end
+
+    it 'finds some clients who are active for CAS' do
+      @cas_project_group.projects = GrdaWarehouse::Hud::Project.all
+      expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).not_to eq(0)
+    end
+  end
 end

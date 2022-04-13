@@ -163,6 +163,9 @@ module CasClientData
             service_scope: GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated,
           ).exists?
         end
+      when :project_group
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        service_history_enrollments.in_project(project_ids).exists?
       else
         raise NotImplementedError
       end
