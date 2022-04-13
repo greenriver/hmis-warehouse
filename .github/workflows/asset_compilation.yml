@@ -15,6 +15,7 @@ jobs:
     name: Compile
 
     runs-on: ubuntu-20.04
+    container: ruby:2.7.5-alpine3.13
 
     steps:
     - name: Checkout
