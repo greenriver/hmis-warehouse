@@ -1,8 +1,8 @@
-# on:
-#   push:
-#     branches:
-#       - '*'
-#       - '**/*'
+on:
+  push:
+    branches:
+      - '*'
+      - '**/*'
 
 name: Precompile any assets that have changed and push them to S3
 
@@ -33,4 +33,8 @@ jobs:
 
     - name: Generate checksum and compile
       run: |
-        bundle exec bin/compile_assets.rb qa
+        # pull down secrets from SSM here
+        # bundle exec bin/compile_assets.rb qa
+        # but for now, just to test the load capacity of gha a bit...
+        bundle exec bin/rails assets:clobber
+        bundle exec bin/rails assets:precompile
