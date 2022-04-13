@@ -162,6 +162,8 @@ module GrdaWarehouse::Tasks
         child_in_household: :child_in_household,
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years_cached,
         days_literally_homeless_in_last_three_years: :literally_homeless_last_three_years_cached,
+        hmis_days_homeless_last_three_years: :hmis_days_homeless_in_last_three_years,
+        hmis_days_homeless_all_time: :hmis_days_homeless_all_time,
         vispdat_score: :most_recent_vispdat_score,
         vispdat_length_homeless_in_days: :days_homeless_for_vispdat_prioritization,
         vispdat_priority_score: :calculate_vispdat_priority_score,
