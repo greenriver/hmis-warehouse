@@ -5,13 +5,13 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class Project
+  class Project < GrdaWarehouse::Hud::Project
+    include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
+    setup_hud_column_access(GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2022'))
 
-    def process(row)
-     row.ProjectID = row.id
-    end
+    belongs_to :organization_with_delted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Organization', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], optional: true
 
-    def self.export_scope(project_scope:, export:)
+    def export! project_scope:, path:, export:
       case export.period_type
       when 3
         export_scope = project_scope
@@ -19,6 +19,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
         export_scope = project_scope.
           modified_within_range(range: (export.start_date..export.end_date))
       end
+
+      export_to_path(
+        export_scope: export_scope,
+        path: path,
+        export: export,
+      )
     end
 
     def apply_overrides(row, data_source_id:)

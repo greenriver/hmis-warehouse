@@ -56,54 +56,40 @@ module HmisCsvTwentyTwentyTwo::Exporter
         set_time_format
         setup_export
 
-        # FIXME: replace with calls to Kiba
         # Project related items
-        binding.pry
-        destination_class = HmisCsvTwentyTwentyTwo::Exporter::Project
-        HmisCsvTwentyTwentyTwo::Exporter::KibaExport.export!(
-          HmisCsvTwentyTwentyTwo::Exporter::RailsSource,
-          destination_class.export_scope(
-            project_scope: project_scope,
-            export: @export,
-          ),
-          destination_class,
-          HmisCsvTwentyTwentyTwo::Exporter::CsvDestination,
-          File.join(@file_path, file_name_for(destination_class)),
-        )
+        export_projects
+        export_project_cocs
+        export_organizations
+        export_inventories
+        export_funders
+        export_affiliations
 
-        # export_project_cocs
-        # export_organizations
-        # export_inventories
-        # export_funders
-        # export_affiliations
+        # Enrollment related
+        export_enrollments
+        export_exits
+        export_clients
+        export_enrollment_cocs
+        export_disabilities
+        export_employment_educations
+        export_health_and_dvs
+        export_income_benefits
+        export_services
+        export_current_living_situations
+        export_assessments
+        export_assessment_questions
+        export_assessment_results
+        export_events
+        export_youth_education_statuses
 
-        # # Enrollment related
-        # export_enrollments
-        # export_exits
-        # export_clients
-        # export_enrollment_cocs
-        # export_disabilities
-        # export_employment_educations
-        # export_health_and_dvs
-        # export_income_benefits
-        # export_services
-        # export_current_living_situations
-        # export_assessments
-        # export_assessment_questions
-        # export_assessment_results
-        # export_events
-        # export_youth_education_statuses
+        export_users
 
-        # export_users
-
-        # build_export_file
-      #   zip_archive
-      #   upload_zip
-      #   save_fake_data
-      # ensure
-      #   remove_export_files
-      #   reset_time_format
-      binding.pry
+        build_export_file
+        zip_archive
+        upload_zip
+        save_fake_data
+      ensure
+        remove_export_files
+        reset_time_format
       end
       @export
     end
@@ -335,39 +321,35 @@ module HmisCsvTwentyTwentyTwo::Exporter
       export.export!
     end
 
-    def file_name_for(klass)
-      exportable_files[klass]
-    end
-
     def exportable_files
       self.class.exportable_files
     end
 
     def self.exportable_files
       {
-        # 'Affiliation.csv' => HmisCsvTwentyTwentyTwo::Exporter::Affiliation,
-        # 'Client.csv' => client_source,
-        # 'Disabilities.csv' => disability_source,
-        # 'EmploymentEducation.csv' => employment_education_source,
-        # 'Enrollment.csv' => enrollment_source,
-        # 'EnrollmentCoC.csv' => enrollment_coc_source,
-        # 'Exit.csv' => exit_source,
-        # 'Export.csv' => export_source,
-        # 'Funder.csv' => funder_source,
-        # 'HealthAndDV.csv' => health_and_dv_source,
-        # 'IncomeBenefits.csv' => income_benefits_source,
-        # 'Inventory.csv' => inventory_source,
-        # 'Organization.csv' => organization_source,
-        HmisCsvTwentyTwentyTwo::Exporter::Project => 'Project.csv',
-        # 'ProjectCoC.csv' => project_coc_source,
-        # 'Services.csv' => service_source,
-        # 'CurrentLivingSituation.csv' => current_living_situation_source,
-        # 'Assessment.csv' => assessment_source,
-        # 'AssessmentQuestions.csv' => assessment_question_source,
-        # 'AssessmentResults.csv' => assessment_result_source,
-        # 'Event.csv' => event_source,
-        # 'User.csv' => user_source,
-        # 'YouthEducationStatus.csv' => youth_education_status_source,
+        'Affiliation.csv' => affiliation_source,
+        'Client.csv' => client_source,
+        'Disabilities.csv' => disability_source,
+        'EmploymentEducation.csv' => employment_education_source,
+        'Enrollment.csv' => enrollment_source,
+        'EnrollmentCoC.csv' => enrollment_coc_source,
+        'Exit.csv' => exit_source,
+        'Export.csv' => export_source,
+        'Funder.csv' => funder_source,
+        'HealthAndDV.csv' => health_and_dv_source,
+        'IncomeBenefits.csv' => income_benefits_source,
+        'Inventory.csv' => inventory_source,
+        'Organization.csv' => organization_source,
+        'Project.csv' => project_source,
+        'ProjectCoC.csv' => project_coc_source,
+        'Services.csv' => service_source,
+        'CurrentLivingSituation.csv' => current_living_situation_source,
+        'Assessment.csv' => assessment_source,
+        'AssessmentQuestions.csv' => assessment_question_source,
+        'AssessmentResults.csv' => assessment_result_source,
+        'Event.csv' => event_source,
+        'User.csv' => user_source,
+        'YouthEducationStatus.csv' => youth_education_status_source,
       }.freeze
     end
 
@@ -476,7 +458,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def self.project_source
-      GrdaWarehouse::Hud::Project
+      HmisCsvTwentyTwentyTwo::Exporter::Project
     end
 
     def project_source
