@@ -402,7 +402,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # 11: Day Shelter
   # 12: Homeless Prevention
   # 13: Rapid Re-Housing (PH)
-  # 14: Coordinated Assessment
+  # 14: Coordinated Entry
   def service_type
     ::HUD.project_type(computed_project_type)
   end
