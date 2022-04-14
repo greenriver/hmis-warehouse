@@ -126,4 +126,4 @@ jobs:
         HEALTH_DATABASE_DB: health_db
         REPORTING_DATABASE_DB: reporting_db
       run: |
-        DEPLOY_PROTECT_SECRETS=true bundle exec bin/compile_assets.rb qa
+        DEPLOY_PROTECT_SECRETS=true bundle exec bin/compile_assets.rb gha_assets_dev
