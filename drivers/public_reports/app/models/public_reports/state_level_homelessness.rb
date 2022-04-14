@@ -157,15 +157,15 @@ module PublicReports
 
     private def chart_data
       {
-        # count: percent_change_in_count,
+        count: percent_change_in_count,
         date_range: filter_object.date_range_words,
         quarters: quarter_dates,
         summary: summary,
-        # pit_chart: pit_chart,
-        # inflow_outflow: inflow_outflow,
-        # location_chart: location_chart,
-        # household_type: household_type,
-        # race_chart: race_chart,
+        pit_chart: pit_chart,
+        inflow_outflow: inflow_outflow,
+        location_chart: location_chart,
+        household_type: household_type,
+        race_chart: race_chart,
         need_map: enforce_min_threshold(need_map, 'need_map'),
         homeless_breakdowns: homeless_breakdowns,
         map_max_rate: map_max_rate,
