@@ -47,8 +47,10 @@ class ProjectGroupsController < ApplicationController
       @project_group.assign_attributes(name: group_params[:name])
       @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
       @project_group.save
-      users = user_params[:users]&.reject(&:empty?)
-      @project_group.update_access(users.map(&:to_i))
+      if user_params.key?(:users)
+        users = user_params[:users]&.reject(&:empty?)
+        @project_group.update_access(users.map(&:to_i))
+      end
       @project_group.maintain_projects!
     rescue Exception => e
       flash[:error] = e.message
