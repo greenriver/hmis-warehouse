@@ -21,6 +21,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: ruby setup
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7.5
+        bundler-cache: true
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
