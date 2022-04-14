@@ -91,6 +91,5 @@ jobs:
         SECRET_ARN=$SECRETS_FILE_SECRET_ARN bundle exec bin/download_secrets.rb > config/deploy/docker/assets/secret.deploy.values.yml
 
     - name: Generate checksum and compile
-      env:
       run: |
         DEPLOY_PROTECT_SECRETS=true bundle exec bin/compile_assets.rb qa
