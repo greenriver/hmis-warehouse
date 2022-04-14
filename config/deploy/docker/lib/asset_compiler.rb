@@ -17,7 +17,7 @@ class AssetCompiler
       t1 = Time.now
       yield(block)
       t2 = Time.now
-      puts "#{name} took #{t2 - t1}"
+      puts "⏱ #{name} took #{t2 - t1}"
     else
       puts "where's my block >:("
     end
@@ -52,7 +52,7 @@ class AssetCompiler
     end
 
     time_me name: 'Compiling assets' do
-      system('source .env; rake assets:precompile --quiet >/dev/null') # TODO: don't call out to bundle like this, it's inefficient
+      system('source .env; rake --quiet assets:precompile >/dev/null') # TODO: don't call out to bundle like this, it's inefficient
     end
 
     time_me name: 'Uploading compiled assets' do
