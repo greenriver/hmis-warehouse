@@ -19,7 +19,8 @@ ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.r
 
 # ls -aR1 app/assets #debug
 
-tar -cf /app/.asset_checksum.tar --sort=name \
+touch /app/.asset_checksum.tar #???
+tar -c --file=/app/.asset_checksum.tar --sort=name \
   --mtime='UTC 2019-01-01' \
   --group=0 \
   --owner=0 \
