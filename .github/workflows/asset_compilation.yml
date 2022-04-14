@@ -27,6 +27,18 @@ jobs:
     #     ruby-version: 2.7.5
     #     bundler-cache: true
 
+
+    # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
+    # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
+    # isn't supported on Alpine.
+    - name: cache gems
+      uses: actions/cache@v2
+      with:
+        path: vendor/bundle
+        key: ${{ runner.os }}-gem-bundler-${{ hashFiles('**/Gemfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-gem-bundler-
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -118,14 +130,3 @@ jobs:
         REPORTING_DATABASE_DB: reporting_db
       run: |
         bundle exec bin/compile_assets.rb qa
-
-    # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
-    # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
-    # isn't supported on Alpine.
-    - name: cache gems
-      uses: actions/cache@v2
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gem-bundler-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-gem-bundler-
