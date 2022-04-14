@@ -313,7 +313,7 @@ module GrdaWarehouse::Hud
         where(id: enrollment_scope.select(:client_id))
       when :project_group
         project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
-        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project(project_ids)
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
         where(id: enrollment_scope.select(:client_id))
       else
         raise NotImplementedError

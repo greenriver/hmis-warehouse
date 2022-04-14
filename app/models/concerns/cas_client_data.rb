@@ -165,7 +165,7 @@ module CasClientData
         end
       when :project_group
         project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
-        service_history_enrollments.in_project(project_ids).exists?
+        service_history_enrollments.ongoing.in_project(project_ids).exists?
       else
         raise NotImplementedError
       end
