@@ -1,0 +1,34 @@
+.well
+  #jFollowupChart
+#computation-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    %dl
+      %dt QAs
+      %dd
+        Count of the number of submittable QAs for Follow-up within 3 days of hospital discharge within a month.
+      %dt Admissions
+      %dd
+        Count of the number of inpatient admissions per month as reported by ED/IP Visits.
+        Visits are reported at admission, so, extended visits, or visits at the end of the
+        month may appear on a different months than the corresponding QA.
+        Because visit information may be delayed, the most recent data may be under reported.
+
+  = render 'common/panel_collapse', id: 'computation-info', title: 'How this Data is Computed'
+= content_for :page_js do
+  :javascript
+    var followups = bb.generate({
+      data: {
+        x: 'x',
+        xFormat: '%Y-%m-%d',
+        columns: #{raw @report.for_chart}
+      },
+      axis: {
+        x: {
+          type: 'timeseries',
+          tick: {
+            format: '%m-%Y'
+          }
+        }
+      },
+      bindto: '#jFollowupChart'
+    });

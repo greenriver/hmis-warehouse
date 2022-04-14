@@ -10,6 +10,19 @@ module HealthIpFollowupReport::WarehouseReports
     before_action :require_can_administer_health!
 
     def index
+      @end_date = report_params[:end_date]&.to_date || Date.today
+      @start_date = report_params[:start_date]&.to_date || @end_date - 3.months
+      @report = ::HealthIpFollowupReport::FollowupsReport.new(start_date: @start_date, end_date: @end_date)
+    end
+
+    def report_params
+      return {} unless params[:report]
+
+      params.require(:report).
+        permit(
+          :start_date,
+          :end_date,
+        )
     end
   end
 end
