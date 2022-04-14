@@ -19,7 +19,7 @@ class AssetCompiler
 
     Dotenv.load('.env', '.env.local')
 
-    checksum = `ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum`.split(' ')[-1]
+    checksum = `SECRET_ARN=#{@secret_arn} ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum`.split(' ')[-1]
 
     puts checksum
 

@@ -10,6 +10,13 @@ if [ "$ASSETS_PREFIX" = "" ]; then
   export ASSETS_PREFIX=qa-warehouse-staging-ecs
 fi
 
+if [ "$SECRET_ARN" != "" ]; then
+  bin/download_secrets.rb > .env.secret
+else
+  echo 'No $SECRET_ARN!'
+  exit 1
+fi
+
 ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.rb > /dev/null 2>&1
 
 tar -cf - --sort=name \
@@ -20,5 +27,5 @@ tar -cf - --sort=name \
   --absolute-names \
   --no-acls \
   --mode="go-rwx,u-rw" \
-  --exclude=.keep,*.rbc,**.orig,*.swp,*.code-workspace,*.bowerrc,*.sublime-project,*.sublime-workspace,**/fixpoints/*.yml \
-  app/assets | md5sum | cut -d ' ' -f 1
+  --exclude=.keep,*.rbc,**.orig,*.swp \
+  app/assets .env.secret | md5sum | cut -d ' ' -f 1
