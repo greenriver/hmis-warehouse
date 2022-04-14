@@ -27,15 +27,19 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
     [0, 20, 65], # health priority age
     [true, false], # multi coc installation
   ) do |combination|
-    configs_variations.append(
-      [[:cas_available_method,
+    variation = [
+      [
+        :cas_available_method,
         :consent_visible_to_all,
         :expose_coc_code,
         :health_emergency,
         :health_emergency_tracing,
         :health_priority_age,
-        :multi_coc_installation], combination].transpose.to_h,
-    )
+        :multi_coc_installation,
+      ], combination
+    ].transpose.to_h
+    variation[:cas_sync_project_group_id] = 1 if variation[:cas_available_method] == :project_group
+    configs_variations.append(variation)
   end
 
   configs_variations.each do |variation|
