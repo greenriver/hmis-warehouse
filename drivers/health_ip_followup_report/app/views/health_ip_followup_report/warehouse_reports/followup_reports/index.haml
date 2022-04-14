@@ -1,3 +1,18 @@
 - content_for :title, 'Inpatient Follow Ups'
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs'
+
+= simple_form_for :report, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-3
+        = f.input :start_date, as: :date_picker, input_html: {value: @start_date}
+      .col-3
+        = f.input :end_date, as: :date_picker, input_html: {value: @end_date}
+
+  - content_for :filter_actions do
+    = f.submit 'Update Report', data: {disable_with: false}
+
+  = render 'warehouse_reports/filters', f:f
+
+= render 'chart'
