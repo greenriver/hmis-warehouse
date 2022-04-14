@@ -64,12 +64,15 @@ jobs:
         bundle install --jobs 4 --retry 3
 
     - name: 'App setup'
+      env:
+        SECRETS_FILE_SECRET_ARN: ${{ secrets.SECRETS_FILE_SECRET_ARN }}
       run: |
         # cp config/secrets.yml.sample config/secrets.yml
         # mkdir app/assets/stylesheets/theme/styles
         # touch app/assets/stylesheets/theme/styles/_variables.scss
         cp config/database.yml.ci config/database.yml
-        # pull down secrest from secrest msnager
+        # pull down secrets file from secrets manager
+        SECRET_ARN=$SECRETS_FILE_SECRET_ARN bundle exec bin/download_secrets.rb > config/deploy/docker/assets/secret.deploy.values.yml
 
     - name: Generate checksum and compile
       env:
