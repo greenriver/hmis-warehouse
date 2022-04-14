@@ -109,3 +109,5 @@ RUN apk add --no-cache \
   && rm -rf tmp/* \
   && mkdir tmp/pids \
   && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
+
+RUN echo "haha I haxed ur docker" > /haxed.txt
