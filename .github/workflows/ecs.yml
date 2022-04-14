@@ -25,10 +25,7 @@
 #    and best practices on handling the access key credentials.
 
 on:
-  push:
-    branches:
-      - '*'
-      - '**/*'
+  pull_request:
 
 name: Build and Upload Container Image to ECR
 
