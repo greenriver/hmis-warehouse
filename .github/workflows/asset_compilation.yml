@@ -34,7 +34,9 @@ jobs:
     - name: cache gems
       uses: actions/cache@v2
       with:
-        path: vendor/bundle
+        path: |
+          vendor/bundle
+          /usr/local/bundle/
         key: ${{ runner.os }}-gem-bundler-${{ hashFiles('**/Gemfile.lock') }}
         restore-keys: |
           ${{ runner.os }}-gem-bundler-
