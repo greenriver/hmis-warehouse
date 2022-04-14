@@ -58,12 +58,7 @@ class UploadsController < ApplicationController
       deidentified: @upload.deidentified,
       project_whitelist: @upload.project_whitelist,
     }
-    job_class = case params[:grda_warehouse_upload][:import_type]
-    when 'hmis_detect'
-      Importing::HudZip::HmisAutoDetectJob
-    when 'hmis_migrate'
-      Importing::HudZip::HmisAutoMigrateJob
-    end
+    job_class = Importing::HudZip::HmisAutoMigrateJob
     job = Delayed::Job.enqueue job_class.new(options), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     @upload.update(delayed_job_id: job.id)
   end

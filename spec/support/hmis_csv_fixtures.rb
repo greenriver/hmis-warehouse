@@ -2,7 +2,7 @@ module HmisCsvFixtures
   def import_hmis_csv_fixture(
     file_path,
     data_source: nil,
-    version: '2020',
+    version: 'AutoMigrate',
     run_jobs: true,
     user: User.setup_system_user,
     allowed_projects: nil,
@@ -35,13 +35,6 @@ module HmisCsvFixtures
         file_path: tmp_path,
         data_source_id: data_source.id,
         deidentified: deidentified,
-      )
-    elsif version == 'AutoDetect'
-      Importers::HmisAutoDetect::Local.new(
-        file_path: tmp_path,
-        data_source_id: data_source.id,
-        deidentified: deidentified,
-        allowed_projects: allowed_projects,
       )
     elsif version == 'AutoMigrate'
       Importers::HmisAutoMigrate::Local.new(

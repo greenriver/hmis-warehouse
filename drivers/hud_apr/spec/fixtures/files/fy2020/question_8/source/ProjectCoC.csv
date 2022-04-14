@@ -1,5 +1,0 @@
-ProjectCoCID,ProjectID,CoCCode,Geocode,Address1,Address2,City,State,Zip,GeographyType,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-COC-1,DEFAULT-PH,XX-500,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
-COC-2,NBN,XX-500,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
-COC-3,DEFAULT-SO,XX-500,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT
-COC-4,DEFAULT-TH,XX-500,,,,,,,,2018-10-01 00:00:00,2018-10-01 00:00:00,user,,EXPORT

@@ -12,6 +12,10 @@ module HealthFlexibleService
     belongs_to :user, class_name: 'User', optional: true
     belongs_to :vpr, inverse_of: :follow_ups
 
+    scope :extension_requested, -> do
+      where(additional_flex_services_requested: true)
+    end
+
     def set_defaults
       self.completed_on = Date.current
       self.first_name = patient.client.FirstName

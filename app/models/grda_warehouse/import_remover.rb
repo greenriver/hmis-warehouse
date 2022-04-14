@@ -14,7 +14,7 @@ module GrdaWarehouse
       @import_log.update(zip: @import_log.upload.file.to_s)
       @data_source_id = @import_log.data_source_id
 
-      @upload = Importers::HmisAutoDetect::UploadedZip.new(
+      @upload = Importers::HmisAutoMigrate::UploadedZip.new(
         data_source_id: @data_source_id,
         upload_id: @import_log.upload_id,
       )

@@ -27,8 +27,9 @@ module HealthFlexibleService
       d_1_end = end_date
       d_2_start = at[:planned_on]
       d_2_end = at[:end_date]
+      open = at[:open]
       # Currently does not count as an overlap if one starts on the end of the other
-      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
+      where(d_2_end.gteq(d_1_start).or(open.eq(true)).and(d_2_start.lteq(d_1_end)))
     end
 
     def set_defaults
@@ -76,7 +77,7 @@ module HealthFlexibleService
     end
 
     scope :active, -> do
-      where(arel_table[:end_date].gteq(Date.current))
+      where(open: true)
     end
 
     scope :category, ->(category) do

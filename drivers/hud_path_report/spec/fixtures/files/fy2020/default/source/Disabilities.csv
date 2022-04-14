@@ -1,3 +1,0 @@
-DisabilitiesID,EnrollmentID,PersonalID,InformationDate,DisabilityType,DisabilityResponse,IndefiniteAndImpairs,TCellCountAvailable,TCellCount,TCellSource,ViralLoadAvailable,ViralLoad,ViralLoadSource,DataCollectionStage,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-D-1,E-8,ESO,2020-01-01,10,3,,,,,,,,1,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT
-D-2,E-9,ESV,2020-01-01,10,99,,,,,,,,1,2000-01-01 00:00:00,2000-01-01 00:00:00,user,,EXPORT

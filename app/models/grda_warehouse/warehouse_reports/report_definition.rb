@@ -1182,6 +1182,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:start_date_dq)
+        r_list['Data Quality'] << {
+          url: 'start_date_dq/warehouse_reports/reports',
+          name: 'Date Homelessness Started',
+          description: 'View differences between the client\'s self-reported date homelessness started (DateToStreetESSH) and the enrollment entry date.',
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end

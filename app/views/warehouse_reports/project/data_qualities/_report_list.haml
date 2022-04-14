@@ -1,35 +1,25 @@
-- title = if report_type == :project then 'For Projects' elsif report_type == :project_group then 'For Project Groups' end
-- if reports.exists?
-  .d-flex
-    %h2= title
-    %p.ml-auto= paginate reports
+.d-flex
+  %p!= pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count))
+  %p.ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.count.positive?
+- if @pagy.count.positive?
   .card.mb-6
     %table.table.table-striped.mb-0
       %thead
         %tr
-          - if report_type == :project
-            %th Organization / Project
-            %th Data Source
-          - elsif report_type == :project_group
-            %th Project Group
+          %th Report Name
           %th Date Range
           %th Run On
           %th Completed On
           %th Author
       %tbody
-        - reports.each do |report|
+        - @reports.each do |report|
           %tr
-            - if report_type == :project
-              %td= report.project.organization_and_name
-              %td= report.project.data_source.name
+            - if report.project.present?
+              %td= "#{report.project.organization_and_name} (#{report.project.data_source.name})"
               %td= link_to report.status, project_data_quality_report_path(project_id: report.project_id, id: report.id)
-            - elsif report_type == :project_group
+            - else
               %td= report.project_group.name
               %td= link_to report.status, project_group_data_quality_report_path(project_group_id: report.project_group_id, id: report.id)
             %td= report.started_at
             %td= report.completed_at
             %td= report&.requestor&.name
-- else
-  %h2= title
-  %p.none-found
-    No reports on file.

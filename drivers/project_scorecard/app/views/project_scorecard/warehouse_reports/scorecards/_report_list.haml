@@ -1,11 +1,13 @@
-- if @reports.exists?
-  %p= paginate @reports
-  .card
+.d-flex
+  %p!= pagy_info(@pagy, item_name: _('scorecard').pluralize(@pagy.count))
+  %p.ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.count.positive?
+- if @pagy.count.positive?
+  .table-responsive.card
     %table.table.table-striped.mb-0
       %thead
         %tr
           %th Report Name
-          %th Date Range
+          %th Status
           %th Run On
           %th Completed On
           %th Author
@@ -24,6 +26,3 @@
             %td= report.started_at
             %td= report.completed_at
             %td= report&.user&.name
-- else
-  %p
-    No reports on file
