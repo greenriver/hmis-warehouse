@@ -21,7 +21,7 @@ class AssetCompiler
 
     # system('ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum')
     tmp = `ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum`
-    checksum = tmp[-1].split(' ')
+    checksum = tmp.split(' ')[-1]
     puts tmp
 
     puts checksum
