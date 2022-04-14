@@ -19,7 +19,10 @@ class AssetCompiler
 
     Dotenv.load('.env', '.env.local')
 
-    checksum = `ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum`.split(' ')[-1].strip
+    # system('ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum')
+    tmp = `ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum`
+    checksum = tmp[-1].split(' ')
+    puts tmp
 
     puts checksum
 
