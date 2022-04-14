@@ -14,16 +14,16 @@ class AssetCompiler
 
   def run!
     t1 = Time.now
-    `rake assets:clobber` # TODO: don't call out to bundle like this, it's inefficient
-    t2 = Time.now
-    puts "Clobbering took #{t2 - t1}"
-
-    t1 = Time.now
     system(`SECRET_ARN=#{@secret_arn} bin/download_secrets.rb > .env`)
     t2 = Time.now
     puts "Secrets fetching took #{t2 - t1}"
 
     Dotenv.load('.env', '.env.local')
+
+    t1 = Time.now
+    `rake assets:clobber` # TODO: don't call out to bundle like this, it's inefficient
+    t2 = Time.now
+    puts "Clobbering took #{t2 - t1}"
 
     t1 = Time.now
     checksum = `SECRET_ARN=#{@secret_arn} ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum`.split(' ')[-1]
