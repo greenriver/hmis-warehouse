@@ -16,4 +16,13 @@ if [ "$ASSETS_PREFIX" = "" ]; then
 fi
 
 ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.rb > /dev/null 2>&1
-tar -cf - --sort=name --mtime='UTC 2019-01-01' --group=0 --owner=0 --numeric-owner app/assets | md5sum | cut -d ' ' -f 1
+
+ls -alR1 app/assets #debug
+
+tar -cf - --sort=name \
+  --mtime='UTC 2019-01-01' \
+  --group=0 \
+  --owner=0 \
+  --numeric-owner \
+  --exclude=*.rbc,**.orig,*.swp,*.code-workspace,*.bowerrc,*.sublime-project,*.sublime-workspace,**/fixpoints/*.yml \
+  app/assets | md5sum | cut -d ' ' -f 1
