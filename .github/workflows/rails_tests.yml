@@ -1,10 +1,10 @@
 name: Rails Tests
 
-on:
-  push:
-    branches:
-      - '*'
-      - '**/*'
+# on:
+#   push:
+#     branches:
+#       - '*'
+#       - '**/*'
   # NOTE: you don't need to build all PRs if you are also building all branches
   # pull_request:
   #   branches:

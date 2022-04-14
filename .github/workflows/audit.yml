@@ -1,9 +1,9 @@
 name: Bundle Audit and Brakeman
-on:
-  push:
-    branches:
-      - '*'
-      - '**/*'
+# on:
+#   push:
+#     branches:
+#       - '*'
+#       - '**/*'
 concurrency:
   group: ${{ github.ref }}-audit
   cancel-in-progress: true
