@@ -34,8 +34,14 @@
               - displayed << enrollment.EnrollmentID
               %tr
                 %th{colspan: 10}
-                  = enrollment.project&.organization_and_name(include_confidential_names: can_view_confidential_enrollment_details?)
-
+                  .d-flex
+                    .mr-4
+                      = enrollment.project&.organization_and_name(include_confidential_names: can_view_confidential_enrollment_details?)
+                    - disabling_condition = enrollment.DisablingCondition == 1
+                    - if disabling_condition
+                      .ml-4
+                        = checkmark(disabling_condition)
+                        Disabling Condition on Enrollment
             %tr
               %td
                 .ds{class: "ds-color-#{enrollment.data_source_id}"}= ds_short_name_for(enrollment.client.id)
