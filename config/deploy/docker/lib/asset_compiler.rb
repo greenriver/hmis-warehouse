@@ -21,7 +21,7 @@ class AssetCompiler
     Dotenv.load('.env', '.env.local')
 
     t1 = Time.now
-    `rake assets:clobber` # TODO: don't call out to bundle like this, it's inefficient
+    `source .env; rake assets:clobber` # TODO: don't call out to bundle like this, it's inefficient
     t2 = Time.now
     puts "Clobbering took #{t2 - t1}"
 
@@ -40,7 +40,7 @@ class AssetCompiler
     return unless existing_assets.empty?
 
     t1 = Time.now
-    `rake assets:precompile` # TODO: don't call out to bundle like this, it's inefficient
+    `source .env; rake assets:precompile` # TODO: don't call out to bundle like this, it's inefficient
     t2 = Time.now
     puts "Precompiling took #{t2 - t1}"
 
