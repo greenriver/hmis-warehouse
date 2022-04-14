@@ -40,7 +40,7 @@ class AssetCompiler
     return unless existing_assets.empty?
 
     t1 = Time.now
-    `source .env; rake assets:precompile` # TODO: don't call out to bundle like this, it's inefficient
+    `source .env; rake assets:precompile >/dev/null` # TODO: don't call out to bundle like this, it's inefficient
     t2 = Time.now
     puts "Precompiling took #{t2 - t1}"
 
