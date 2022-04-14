@@ -87,7 +87,7 @@ jobs:
         echo "> bundle config path = $(bundle config path)"
         echo "> bundle install --jobs 10 --retry 3"
         bundle install --jobs 10 --retry 3
-        echo "> bundle info rails"
+        echo "> bundle info rails --path = $(bundle info rails --path)"
 
     - name: 'App setup'
       env:
