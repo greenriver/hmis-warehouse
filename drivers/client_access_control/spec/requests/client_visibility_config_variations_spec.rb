@@ -38,12 +38,22 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
         :multi_coc_installation,
       ], combination
     ].transpose.to_h
-    variation[:cas_sync_project_group_id] = 1 if variation[:cas_available_method] == :project_group
     configs_variations.append(variation)
   end
 
   configs_variations.each do |variation|
     context 'when using variable configs' do
+      before(:all) do
+        if variation[:cas_available_method] == :project_group
+          @cas_project_group = GrdaWarehouse::ProjectGroup.new(name: 'test group for cas sync config')
+          @cas_project_group.save!
+          variation[:cas_sync_project_group_id] = @cas_project_group.id
+        end
+      end
+      after(:all) do
+        @cas_project_group.destroy if variation[:cas_available_method] == :project_group
+      end
+
       before do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
