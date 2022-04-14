@@ -157,7 +157,6 @@ module PublicReports
 
     private def chart_data
       {
-        count: percent_change_in_count,
         date_range: filter_object.date_range_words,
         quarters: quarter_dates,
         summary: summary,
@@ -241,10 +240,6 @@ module PublicReports
 
     def map_colors
       @map_colors ||= {}.tap do |m_colors|
-        # slight = 0.000001
-        # ten_percent = 9.999999
-        # max_rate = parsed_pre_calculated_data.try(:[], 'map_max_rate') || map_max_rate
-        # colors = chart_color_shades(:map_primary_color)
         colors = ['#FFFFFF']
         5.times do |i|
           colors << settings["color_#{i}"]
