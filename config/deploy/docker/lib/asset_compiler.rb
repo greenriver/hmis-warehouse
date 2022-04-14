@@ -28,6 +28,6 @@ class AssetCompiler
     return unless existing_assets.empty?
 
     system('bundle exec rake assets:precompile') # TODO: don't call out to bundle like this, it's inefficient
-    system("aws s3 cp --recursive public/assets s3://#{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum}")
+    system("aws s3 cp --recursive public/assets s3://#{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum} >/dev/null")
   end
 end
