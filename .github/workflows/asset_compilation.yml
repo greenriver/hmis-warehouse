@@ -82,8 +82,12 @@ jobs:
 
     - name: Install gems
       run: |
+        echo "> bundle config set --local without 'production staging development'"
         bundle config set --local without 'production staging development'
+        echo "> bundle config path = $(bundle config path)"
+        echo "> bundle install --jobs 10 --retry 3"
         bundle install --jobs 10 --retry 3
+        echo "> bundle info rails"
 
     - name: 'App setup'
       env:
