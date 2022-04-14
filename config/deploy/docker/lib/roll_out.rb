@@ -216,21 +216,25 @@ class RollOut
       soft_mem_limit_mb: soft_mem_limit_mb,
       image: image_base + '--web',
       environment: environment,
-      ports: [{
-        'container_port' => 3000,
-        'host_port' => 0,
-        'protocol' => 'tcp',
-      }],
+      ports: [
+        {
+          'container_port' => 3000,
+          'host_port' => 0,
+          'protocol' => 'tcp',
+        },
+      ],
       name: name,
     )
 
     return if self.only_check_ram
 
-    lb = [{
-      target_group_arn: target_group_arn,
-      container_name: name,
-      container_port: 3000,
-    }]
+    lb = [
+      {
+        target_group_arn: target_group_arn,
+        container_name: name,
+        container_port: 3000,
+      },
+    ]
 
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
@@ -504,18 +508,23 @@ class RollOut
   # ---DONE--- or if the task executed the rake task that updates the
   # deployment ID
   def _poll_until_deploy_tasks_complete!
+    puts '>> _poll_until_deploy_tasks_complete!' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
     complete = false
     until complete
+      puts '>> `until complete` loop iteration' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
       response = _get_status
       complete = (response.dig('registered_deployment_id') == self.deployment_id)
+      puts ">> complete? [#{complete.inspect}]" if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
 
       if complete || self.last_task_completed
         puts "[INFO] Looks like the deployment tasks ran to completion (#{self.deployment_id}) #{target_group_name}"
         complete = true
       else
+        puts '>> not complete, else' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
         # Confirm the log stream is setup
         resp = nil
         while resp.nil?
+          puts '>> while resp.nil? loop iteration' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
           begin
             resp = cwl.get_log_events(
               {
@@ -545,6 +554,7 @@ class RollOut
           puts "[WARN] exiting #{target_group_name}"
           exit
         elsif response.downcase.match(/v/)
+          puts '>> response.downcase.match(/v/)' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
           resp = cwl.get_log_events(
             {
               log_group_name: target_group_name,
@@ -555,7 +565,8 @@ class RollOut
           resp.events.each do |event|
             puts "[TASK] #{event.message} #{target_group_name}"
           end
-          sleep 600
+          puts '>> sleep 600 -> sleep 30' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
+          sleep 30
         else
           puts "[INFO] Waiting 120 seconds since we didn't understand your response #{target_group_name}"
           sleep 120
@@ -600,16 +611,20 @@ class RollOut
     end
 
     while resp.events.length.positive? || too_soon.call
+      puts '>> tail loop iteration start' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
       resp.events.each do |event|
         puts "[TASK] #{event.message} #{target_group_name}"
         if event.message.match?(/---DONE---/)
+          puts '>> found --DONE--' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
           self.last_task_completed = true
           break
         elsif event.message.match?(/rake aborted|an error has occurred/i)
+          puts '>> found an error' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
           break
         end
       end
 
+      puts '>> sleep 15...' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
       sleep 15
 
       resp = get_log_events.call(resp.next_forward_token)
