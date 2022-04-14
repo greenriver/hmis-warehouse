@@ -17,7 +17,7 @@ fi
 
 ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.rb > /dev/null 2>&1
 
-ls -alR1 app/assets #debug
+ls -aR1 app/assets #debug
 
 tar -cf - --sort=name \
   --mtime='UTC 2019-01-01' \
