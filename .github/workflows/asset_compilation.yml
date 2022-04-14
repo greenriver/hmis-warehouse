@@ -80,7 +80,7 @@ jobs:
     - name: Install gems
       run: |
         bundle config set --local without 'production staging development'
-        bundle install --jobs 4 --retry 3
+        bundle install --jobs 10 --retry 3
 
     - name: 'App setup'
       env:
