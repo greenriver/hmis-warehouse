@@ -143,10 +143,10 @@ jobs:
       run: |
         bundle exec bin/compile_assets.rb qa
 
-    - name: artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: asset_checksum.tar
-        path: |
-          .asset_checksum.tar
-          /tmp/.asset_checksum.tar
+    # - name: artifact
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: asset_checksum.tar
+    #     path: |
+    #       .asset_checksum.tar
+    #       /tmp/.asset_checksum.tar

@@ -28,10 +28,7 @@ class AssetCompiler
 
     existing_assets = `aws s3 ls #{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum}`.strip
 
-    puts "aws s3 ls #{COMPILED_ASSETS_BUCKET}/***/#{checksum}"
-    puts existing_assets
-
-    return unless existing_assets.empty? || existing_assets == 'PRE []/'
+    return unless existing_assets.empty?
 
     system('bundle exec rake assets:precompile') # TODO: don't call out to bundle like this, it's inefficient
     system("aws s3 cp --recursive public/assets s3://#{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum}")
