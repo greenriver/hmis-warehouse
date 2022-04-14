@@ -69,7 +69,10 @@ jobs:
           chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
           lftp postgresql tmux postgis geos geos-dev \
           shared-mime-info \
-          tar
+          tar \
+          python3 py3-pip
+
+        pip3 install awscli
 
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
