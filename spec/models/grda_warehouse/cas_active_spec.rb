@@ -78,7 +78,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
       )
       import_hmis_csv_fixture(
         'spec/fixtures/files/service_history/cas_activity_methods',
-        version: 'AutoDetect',
+        version: 'AutoMigrate',
       )
     end
     after(:all) do
