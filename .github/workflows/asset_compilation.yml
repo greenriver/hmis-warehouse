@@ -147,4 +147,6 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: asset_checksum.tar
-        path: /app/.asset_checksum.tar
+        path: |
+          .asset_checksum.tar
+          /tmp/.asset_checksum.tar

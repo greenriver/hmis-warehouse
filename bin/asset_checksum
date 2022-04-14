@@ -19,9 +19,11 @@ ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.r
 
 # ls -aR1 app/assets #debug
 
+echo "Tar Version:"
 tar --version
+echo "MD5 version:"
 md5sum --help
-touch /app/.asset_checksum.tar #???
+# touch /app/.asset_checksum.tar #???
 # tar -c --file=/app/.asset_checksum.tar --sort=name \
 #   --mtime='UTC 2019-01-01' \
 #   --group=0 \
@@ -35,7 +37,7 @@ tar -cf - --sort=name \
   --owner=0 \
   --numeric-owner \
   --exclude=.keep,*.rbc,**.orig,*.swp,*.code-workspace,*.bowerrc,*.sublime-project,*.sublime-workspace,**/fixpoints/*.yml \
-  app/assets > /app/.asset_checksum.tar
+  app/assets | tee ./.asset_checksum.tar /tmp/.asset_checksum.tar >/dev/null 2&>1
 
 tar -cf - --sort=name \
   --mtime='UTC 2019-01-01' \
