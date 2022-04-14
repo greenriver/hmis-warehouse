@@ -15,14 +15,14 @@
 // In order to use variables/mixins/functions in individual files
 // import the 'helpers' file (app/assets/stylesheets/application/helpers.scss)
 /////////////////////////////////////////
-@import "./application/elements";
-@import "./application/layouts";
-@import "./application/objects";
-@import "./application/components";
-@import "./application/base";
-@import "./application/modules";
-@import "./application/overrides";
-@import "./application/utilities";
+@import "./application/elements/*";
+@import "./application/layouts/*";
+@import "./application/objects/*";
+@import "./application/components/*";
+@import "./application/base/*";
+@import "./application/modules/*";
+@import "./application/overrides/*";
+@import "./application/utilities/*";
 
 @import "./application/print/base";
 @import "./application/print/dashboard";
