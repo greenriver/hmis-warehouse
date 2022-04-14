@@ -161,11 +161,11 @@ module PublicReports
         date_range: filter_object.date_range_words,
         quarters: quarter_dates,
         summary: summary,
-        pit_chart: pit_chart,
-        inflow_outflow: inflow_outflow,
-        location_chart: location_chart,
-        household_type: household_type,
-        race_chart: race_chart,
+        # pit_chart: pit_chart,
+        # inflow_outflow: inflow_outflow,
+        # location_chart: location_chart,
+        # household_type: household_type,
+        # race_chart: race_chart,
         need_map: enforce_min_threshold(need_map, 'need_map'),
         homeless_breakdowns: homeless_breakdowns,
         map_max_rate: map_max_rate,
@@ -249,28 +249,21 @@ module PublicReports
         5.times do |i|
           colors << settings["color_#{i}"]
         end
-
-        m_colors[colors[0]] = { description: '0%', range: (0..0), low: 0, high: 0 }
-        m_colors[colors[1]] = { description: 'Any - 10%', range: (0.000001..10.0), low: 0.000001, high: 10.0 }
-        m_colors[colors[2]] = { description: '11% - 15%', range: (10.000001..15.0), low: 10.000001, high: 15.0 }
-        m_colors[colors[3]] = { description: '15% - 20%', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
-        m_colors[colors[4]] = { description: '20% - 25%', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
-        m_colors[colors[5]] = { description: '25%+', range: (25.000001..100.0), low: 25.000001, high: 100.0 }
-        # m_colors[colors.first] = { description: '0%', range: (0..0) }
-        # m_colors[colors.second] = { description: 'Any - 10%', range: (slight..ten_percent) }
-        # colors.drop(2).each.with_index do |color, i|
-        #   division_size = (max_rate - ten_percent) / colors.count
-        #   division_start = ten_percent + (i * division_size)
-        #   division_start = ten_percent + slight if division_start.zero?
-        #   if i == colors.drop(3).count
-        #     division_end = Float::INFINITY
-        #     description = "#{division_start.round}+"
-        #   else
-        #     division_end = (i + 2) * division_size
-        #     description = "#{division_start.round}% - #{division_end.round}%"
-        #   end
-        #   m_colors[color] = { description: description, range: (division_start..division_end) }
-        # end
+        if settings.map_overall_geography_census?
+          m_colors[colors[0]] = { description: 'None', range: (0..0), low: 0, high: 0 }
+          m_colors[colors[1]] = { description: 'Any - 15 per 10,000', range: (0.000001..15.0), low: 0.000001, high: 15.0 }
+          # m_colors[colors[2]] = { description: '11 - 15 per 10,000', range: (10.000001..15.0), low: 10.000001, high: 15.0 }
+          m_colors[colors[3]] = { description: '16 - 20 per 10,000', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
+          m_colors[colors[4]] = { description: '21 - 25 per 10,000', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
+          m_colors[colors[5]] = { description: '26+ per 10,000', range: (25.000001..100.0), low: 25.000001, high: 100.0 }
+        else
+          m_colors[colors[0]] = { description: '0%', range: (0..0), low: 0, high: 0 }
+          m_colors[colors[1]] = { description: 'Any - 10%', range: (0.000001..10.0), low: 0.000001, high: 10.0 }
+          m_colors[colors[2]] = { description: '11% - 15%', range: (10.000001..15.0), low: 10.000001, high: 15.0 }
+          m_colors[colors[3]] = { description: '16% - 20%', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
+          m_colors[colors[4]] = { description: '21% - 25%', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
+          m_colors[colors[5]] = { description: '26%+', range: (25.000001..100.0), low: 25.000001, high: 100.0 }
+        end
       end
     end
 
@@ -493,73 +486,30 @@ module PublicReports
     # Counts and rate of homeless individuals by CoC
     private def homeless_map
       scope = homeless_scope
-      if map_by_zip?
-        census_comparison_by_zip(scope)
-      elsif map_by_place?
-        census_comparison_by_place(scope)
-      elsif map_by_county?
-        census_comparison_by_county(scope)
-      else
-        census_comparison_by_coc(scope)
-      end
+      census_comparison_map_data(scope)
     end
 
     private def youth_homeless_map
       @filter = filter_object.deep_dup
       @filter.age_ranges = [:eighteen_to_twenty_four]
       scope = filter_for_age(homeless_scope)
-
-      if map_by_zip?
-        census_comparison_by_zip(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
-      elsif map_by_place?
-        census_comparison_by_place(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
-      elsif map_by_county?
-        census_comparison_by_county(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
-      else
-        census_comparison_by_coc(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
-      end
+      service_scope = GrdaWarehouse::ServiceHistoryService.aged(18..24)
+      census_comparison_map_data(scope, service_scope: service_scope)
     end
 
     private def adults_homeless_map
       scope = homeless_scope.adult_only_households
-
-      if map_by_zip?
-        census_comparison_by_zip(scope)
-      elsif map_by_place?
-        census_comparison_by_place(scope)
-      elsif map_by_county?
-        census_comparison_by_county(scope)
-      else
-        census_comparison_by_coc(scope)
-      end
+      census_comparison_map_data(scope)
     end
 
     private def adults_with_children_homeless_map
       scope = homeless_scope.adults_with_children
-
-      if map_by_zip?
-        census_comparison_by_zip(scope)
-      elsif map_by_place?
-        census_comparison_by_place(scope)
-      elsif map_by_county?
-        census_comparison_by_county(scope)
-      else
-        census_comparison_by_coc(scope)
-      end
+      census_comparison_map_data(scope)
     end
 
     private def veterans_homeless_map
       scope = homeless_scope.veterans
-
-      if map_by_zip?
-        census_comparison_by_zip(scope)
-      elsif map_by_place?
-        census_comparison_by_place(scope)
-      elsif map_by_county?
-        census_comparison_by_county(scope)
-      else
-        census_comparison_map_data(scope)
-      end
+      census_comparison_map_data(scope)
     end
 
     private def map_geography
@@ -571,7 +521,9 @@ module PublicReports
     end
 
     private def overall_population_geography(year, code)
-      return 500 unless Rails.env.production?
+      # For testing
+      # return 10_000 unless Rails.env.production?
+      return (500..2_000).to_a.sample unless Rails.env.production?
 
       count = if map_by_zip?
         population_by_zip.try(:[], year).try(:[], code)
@@ -594,8 +546,12 @@ module PublicReports
           service_scope: service_scope,
         ).count
       else
+        # This should change across quarter, but not geography
         max = [population_overall, 1].compact.max / 3
-        (0..max).to_a.sample
+        @fake_overall_homeless_pop_per_quarter ||= {}
+        @fake_overall_homeless_pop_per_quarter[start_date] ||= {}
+        @fake_overall_homeless_pop_per_quarter[start_date][scope.to_s] ||= (0..max).to_a.sample
+        @fake_overall_homeless_pop_per_quarter[start_date][scope.to_s]
       end
     end
 
@@ -618,6 +574,8 @@ module PublicReports
       else
         max = [overall_homeless_population, 1].compact.max / 3
         (0..max).to_a.sample
+        # for testing
+        # 16
       end
     end
 
@@ -648,8 +606,8 @@ module PublicReports
               code: code,
             )
 
-            homeless_count = enforce_min_threshold(homeless_count, 'min_threshold')
-            # % of population
+            homeless_count = enforce_min_threshold(homeless_count, 'min_threshold') unless settings.map_overall_geography_census?
+            # % of homeless population or rate per 10,000 of overall population
             denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
             rate = homeless_count / denominator.to_f * 100.0 if denominator&.positive?
@@ -657,6 +615,7 @@ module PublicReports
               count: overall_homeless_population,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
+              homeless_count: homeless_count,
             }
             self.map_max_rate = rate if rate > self.map_max_rate
             self.map_max_count = homeless_count if homeless_count > self.map_max_count
@@ -668,10 +627,7 @@ module PublicReports
     # denominator is either state-wide homeless population
     # or census population for chosen geography
     private def map_tooltip_denominator(population_overall, overall_homeless_population)
-      # FIXME: this needs to become a rate (per 10,000), maybe as simple as / 100?
-      # when map_overall_geography_census? is true
-      # TODO: need to update language on the map dependent on .map_overall_geography_census?
-      return population_overall.to_f if settings.map_overall_geography_census?
+      return population_overall.to_f / 100 if settings.map_overall_geography_census?
 
       overall_homeless_population.to_f
     end
