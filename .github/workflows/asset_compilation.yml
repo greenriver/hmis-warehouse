@@ -21,12 +21,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    # - name: ruby setup
-    #   uses: ruby/setup-ruby@v1
-    #   with:
-    #     ruby-version: 2.7.5
-    #     bundler-cache: true
-
     - name: Install GNU tar (required by cache step and checksumming)
       run: |
         apk add --no-cache tar
@@ -86,22 +80,14 @@ jobs:
 
     - name: Install gems
       run: |
-        echo "> bundle config set --local without 'production staging development'"
         bundle config set --local without 'production staging development'
-        echo "> bundle config path = $(bundle config path)"
-        echo "> bundle install --jobs 10 --retry 3"
         bundle install --jobs 10 --retry 3
-        echo "> bundle info rails --path = $(bundle info rails --path)"
 
     - name: 'App setup'
       env:
         SECRETS_FILE_SECRET_ARN: ${{ secrets.SECRETS_FILE_SECRET_ARN }}
       run: |
-        # cp config/secrets.yml.sample config/secrets.yml
-        # mkdir app/assets/stylesheets/theme/styles
-        # touch app/assets/stylesheets/theme/styles/_variables.scss
         cp config/database.yml.ci config/database.yml
-        # pull down secrets file from secrets manager
         SECRET_ARN=$SECRETS_FILE_SECRET_ARN bundle exec bin/download_secrets.rb > config/deploy/docker/assets/secret.deploy.values.yml
 
     - name: Generate checksum and compile
@@ -142,11 +128,3 @@ jobs:
         REPORTING_DATABASE_DB: reporting_db
       run: |
         bundle exec bin/compile_assets.rb qa
-
-    # - name: artifact
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: asset_checksum.tar
-    #     path: |
-    #       .asset_checksum.tar
-    #       /tmp/.asset_checksum.tar
