@@ -27,6 +27,9 @@ jobs:
     #     ruby-version: 2.7.5
     #     bundler-cache: true
 
+    - name: Install GNU tar (required by cache step and checksumming)
+      run: |
+        apk add --no-cache tar
 
     # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
     # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
@@ -71,7 +74,6 @@ jobs:
           chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
           lftp postgresql tmux postgis geos geos-dev \
           shared-mime-info \
-          tar \
           python3 py3-pip
 
         pip3 install awscli
