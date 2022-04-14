@@ -142,3 +142,9 @@ jobs:
         REPORTING_DATABASE_DB: reporting_db
       run: |
         bundle exec bin/compile_assets.rb qa
+
+  - name: artifact
+    uses: actions/upload-artifact@v3
+    with:
+      name: asset_checksum.tar
+      path: /app/.asset_checksum.tar
