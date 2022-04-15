@@ -56,19 +56,17 @@ module HmisCsvTwentyTwentyTwo::Exporter
         set_time_format
         setup_export
 
-        # FIXME: replace with calls to Kiba
         # Project related items
-        binding.pry
         destination_class = HmisCsvTwentyTwentyTwo::Exporter::Project
         HmisCsvTwentyTwentyTwo::Exporter::KibaExport.export!(
-          HmisCsvTwentyTwentyTwo::Exporter::RailsSource,
-          destination_class.export_scope(
+          source_class: HmisCsvTwentyTwentyTwo::Exporter::RailsSource,
+          source_config: destination_class.export_scope(
             project_scope: project_scope,
             export: @export,
           ),
-          destination_class,
-          HmisCsvTwentyTwentyTwo::Exporter::CsvDestination,
-          File.join(@file_path, file_name_for(destination_class)),
+          transforms: destination_class.transforms,
+          dest_class: HmisCsvTwentyTwentyTwo::Exporter::CsvDestination,
+          dest_config: File.join(@file_path, file_name_for(destination_class)),
         )
 
         # export_project_cocs

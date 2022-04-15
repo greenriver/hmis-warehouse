@@ -21,6 +21,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
       end
     end
 
+    def self.transforms
+      [
+        HmisCsvTwentyTwentyTwo::Exporter::Project::Overrides,
+      ]
+    end
+
     def apply_overrides(row, data_source_id:)
       # This should never happen, but does
       row[:OrganizationID] = 'Unknown' unless row[:OrganizationID].present?

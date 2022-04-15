@@ -13,7 +13,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def each
       @scope.find_in_batches do |batch|
         batch.each do |row|
-          yield(row.attributes)
+          yield(row)
         end
       end
     end

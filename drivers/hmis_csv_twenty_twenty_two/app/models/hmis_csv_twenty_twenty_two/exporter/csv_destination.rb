@@ -13,7 +13,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def write(row)
-      binding.pry
       @csv ||= CSV.open(output_file, 'w')
       unless @headers_written
         @headers_written = true
