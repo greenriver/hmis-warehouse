@@ -1191,6 +1191,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:health_ip_followup_report)
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'health_ip_followup_report/warehouse_reports/followup_reports',
+          name: 'Inpatient Follow Ups',
+          description: 'Rate of 72-hour follow ups after inpatient visits.',
+          limitable: false,
+          health: true,
+        }
+      end
 
       r_list
     end
