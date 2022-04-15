@@ -62,8 +62,8 @@ module TxClientReports
           row[:client_name],
           row[:street_address],
           row[:age],
-          ('1' if row[:genders].include?(0)),
-          ('1' if row[:genders].include?(1)),
+          ('1' if row[:genders].include?(1)), # Male
+          ('1' if row[:genders].include?(0)), # Female
           ('1' if row[:ethnicity] == 1),
           ('1' if row[:ethnicity] == 0), # rubocop:disable Style/NumericPredicate
           ('1' if row[:races] == ['AmIndAKNative']),
