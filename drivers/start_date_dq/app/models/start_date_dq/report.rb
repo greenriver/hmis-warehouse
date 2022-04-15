@@ -58,10 +58,35 @@ module StartDateDq
     end
 
     def data
-      report_scope.joins(:client, :project).
+      scope = report_scope.joins(:client, :project).
         where(e_t[:EntryDate].not_eq(nil).
-          and(e_t[:DateToStreetESSH].not_eq(nil))).
-        order(datediff(report_scope, 'day', e_t[:EntryDate], e_t[:DateToStreetESSH]).desc)
+          and(e_t[:DateToStreetESSH].not_eq(nil)))
+
+      days_between = datediff(scope, 'day', e_t[:EntryDate], e_t[:DateToStreetESSH])
+
+      if @filter.length_of_times.present?
+        ranges = @filter.length_of_times.map { |s| day_ranges[s] }
+        conditions = collapse_ranges(ranges).filter_map do |r|
+          next unless r.begin != -Float::INFINITY || r.end != Float::INFINITY
+
+          if r.begin == -Float::INFINITY
+            days_between.lteq(r.end)
+          elsif r.end == Float::INFINITY
+            days_between.gt(r.begin)
+          else
+            days_between.gt(r.begin).and(days_between.lteq(r.end))
+          end
+        end
+
+        if conditions.present?
+          days_between_condition = conditions.reduce(conditions[0]) do |clause, cond|
+            clause == cond ? clause : clause.or(cond)
+          end
+          scope = scope.where(days_between_condition)
+        end
+      end
+
+      scope.order(days_between.desc)
     end
 
     def report_scope
@@ -70,11 +95,40 @@ module StartDateDq
       scope = filter_for_range(scope)
       scope = filter_for_project_type(scope, all_project_types: false)
       scope = filter_for_projects(scope)
+      scope = filter_for_cocs(scope)
       scope
     end
 
     def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:enrollment)
+    end
+
+    def day_ranges
+      {
+        '<0 days': (-Float::INFINITY..-1),
+        '0-30 days': (-1..30),
+        '31-90 days': (30..90),
+        '91-180 days': (90..180),
+        '181+ days': (180..Float::INFINITY),
+      }
+    end
+
+    # collapse overlapping ranges [0..30, 30..90] => [0..90]
+    private def collapse_ranges(ranges)
+      ranges.each_with_index do |curr, i|
+        next unless i != 0
+
+        prev = ranges[i - 1]
+        next unless curr.overlaps?(prev)
+
+        merged_range = (prev.begin..curr.end)
+        ranges[i] = merged_range
+
+        (0..i - 1).each do |j|
+          ranges[j] = merged_range if ranges[j].overlaps?(merged_range)
+        end
+      end
+      ranges.uniq
     end
   end
 end
