@@ -158,16 +158,6 @@ module TxClientReports
     def rows
       return [] unless @filter.project_ids.any? || @filter.project_group_ids.any?
 
-      enrollments = enrollment_scope.
-        preload(
-          service_history_enrollment_for_head_of_household: { enrollment: :income_benefits_at_entry },
-          project: :project_cocs,
-          household_enrollments: :client,
-        ).
-        where(client_id: client_ids).
-        order(first_date_in_program: :desc). # index by uses the last value, so this selects the oldest enrollment
-        index_by(&:client_id)
-
       client_scope.map do |client|
         enrollment = enrollments[client.id]
         project = enrollment.project
@@ -215,8 +205,7 @@ module TxClientReports
 
     private def disabled_client_ids
       @disabled_client_ids ||= GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: client_ids).
-        where(id: client_ids).
-        pluck(:id)
+        pluck(:id).to_set
     end
 
     private def enrollment_scope
@@ -236,6 +225,31 @@ module TxClientReports
         distinct.
         joins(:service_history_enrollments).
         where(id: enrollment_scope.distinct.pluck(:client_id))
+    end
+
+    private def enrollments
+      @enrollments ||= enrollment_scope.
+        # NOTE: the preloads for these require a bunch of or clauses, which ends up being much slower
+        # Using includes/references to get the left outer joins, which is faster.
+        # This doesn't always end up faster in development, but seems to be in production
+        # preload(
+        #   service_history_enrollment_for_head_of_household: { enrollment: :income_benefits_at_entry },
+        #   project: :project_cocs,
+        #   household_enrollments: :client,
+        # ).
+        includes(
+          service_history_enrollment_for_head_of_household: { enrollment: :income_benefits_at_entry },
+          project: :project_cocs,
+          household_enrollments: :client,
+        ).
+        references(
+          service_history_enrollment_for_head_of_household: { enrollment: :income_benefits_at_entry },
+          project: :project_cocs,
+          household_enrollments: :client,
+        ).
+        # where(client_id: client_ids).
+        order(first_date_in_program: :desc). # index by uses the last value, so this selects the oldest enrollment
+        index_by(&:client_id)
     end
 
     private def client_source
