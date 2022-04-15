@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        client_group: [load1, load2, load3, load4]
+        client_group: [load1, load2, load3, load4, load5, load6, load7, load8]
 
     runs-on: ubuntu-20.04
     container: ruby:2.7.5-alpine3.13
