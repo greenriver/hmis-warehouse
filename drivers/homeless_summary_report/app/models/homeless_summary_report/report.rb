@@ -102,9 +102,9 @@ module HomelessSummaryReport
       # ensure filter has been set
       filter
       [
-        build_general_control_section(include_comparison_period: false),
+        build_coordinate_assessment_control_section,
         build_hoh_control_section,
-        build_coc_control_section(true),
+        build_funding_section,
       ]
     end
 

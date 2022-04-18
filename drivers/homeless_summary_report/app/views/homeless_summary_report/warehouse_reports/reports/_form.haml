@@ -1,8 +1,37 @@
-%p.alert.alert-info Please note that, unless you include all homeless project types (ES, SO, SH, TH), returns to homelessness calculations may not work as expected.
 - url = polymorphic_path(@report.report_path_array)
-= simple_form_for @filter, as: :filters, url: url do |f|
+
+%p.alert.alert-info Please note that, unless you include all homeless project types (ES, SO, SH, TH), returns to homelessness calculations may not work as expected.
+
+= simple_form_for @filter, as: :filters, url: url, data: { controller: 'filter-projects' } do |f|
   - content_for :filters_col_full do
-    .row
+    .row.mb-4
+      .col-sm-3
+        = f.input :start, as: :date_picker, label: 'Start Date', required: true
+      .col-sm-3
+        = f.input :end, as: :date_picker, label: 'End Date', required: true
+      .col-sm-6
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose CoCs'}, label: 'CoC Codes'
+    %h2 Projects to Include
+    %p.alert.alert-info Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type.
+    .row.mb-4
+      .col-md-8
+        .row
+          .col-sm-6
+            = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update' } },label: 'Projects'
+          .col-sm-6
+            = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources', data: { 'filter-projects-target' => 'dataSources', action: 'change->filter-projects#update' }}, label: 'Data Sources'
+        .row
+          .col-sm-6
+            = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, input_html: { multiple: true, placeholder: 'Choose Project Types', data: { 'filter-projects-target' => 'projectTypes', action: 'change->filter-projects#update' } }, label: 'Project Types', as: :select_two
+          .col-sm-6
+            = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Project Groups', data: { 'filter-projects-target' => 'projectGroups', action: 'change->filter-projects#update' }}, label: 'Project Groups'
+      .col-md-4
+        .filter__selected-projects.project-list{ data: { 'filter-projects-target' => 'calculatedProjects' }}
+          %h3{data: { 'filter-projects-target' => 'header' }} Included Projects
+          .rollup
+            %p.well.rollup-container
+    %h2 Limits
+    .row.mt-4
       - @sections.in_groups(2).each do |sections|
         .col-md-6
           - sections.compact.each do |section|
@@ -10,7 +39,9 @@
             .form-filters-section-prs1
               = render 'filters/filter_controls/section_form_fields',
                 section: section, f: f
+              - if section.id == 'coordinated_assessment'
+                %p.alert.alert-info The Coordinated Assessment (CA) project type must be included explicitly for these limits to be functional.
   - content_for :filter_actions do
-    = f.submit 'Queue Report', class: ['btn', 'btn-primary']
+    = f.submit 'Queue Report', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }
 
   = render 'warehouse_reports/filters', f:f

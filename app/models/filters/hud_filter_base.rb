@@ -41,6 +41,10 @@ module Filters
       scope = filter_for_race(scope)
       scope = filter_for_ethnicity(scope)
       scope = filter_for_sub_population(scope)
+
+      # FIXME: these filter by project type, too, which limits scope a lot
+      # scope = filter_for_ca_homeless(scope)
+      # scope = filter_for_ce_cls_homeless(scope)
       scope
     end
 
