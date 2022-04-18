@@ -168,7 +168,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       'Youth' => :youth,
       'VI-SPDAT' => :vispdat,
       'Health' => :health,
-      'Coordinated Assessment' => :coordinated_assessment,
+      'Coordinated Entry' => :coordinated_assessment,
       'Other' => :other,
       'Synthetic' => :synthetic,
     }

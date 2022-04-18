@@ -13,8 +13,6 @@
 Layout/AccessModifierIndentation:
   Exclude:
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
@@ -50,12 +48,6 @@ Layout/BlockAlignment:
 # SupportedStyles: case, end
 Layout/CaseIndentation:
   Exclude:
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
 
 # Offense count: 57
 # Cop supports --auto-correct.
@@ -65,18 +57,6 @@ Layout/ClosingParenthesisIndentation:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
 
 # Offense count: 34
 # Cop supports --auto-correct.
@@ -101,10 +81,6 @@ Layout/CommentIndentation:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
 
 # Offense count: 7
 # Cop supports --auto-correct.
@@ -113,8 +89,6 @@ Layout/CommentIndentation:
 Layout/DefEndAlignment:
   Exclude:
     - 'app/models/health/aco_performance.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/report_result.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
 
@@ -170,12 +144,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/report_generators/lsa/fy2018/base.rb'
     - 'app/models/report_generators/lsa/fy2019/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
     - 'app/models/reports/data_quality/fy2016/base.rb'
     - 'app/models/reports/data_quality/fy2017/base.rb'
     - 'app/models/reports/lsa/fy2018/base.rb'
@@ -217,9 +185,7 @@ Layout/EmptyLineBetweenDefs:
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/report_results_summaries/ahar/fy2016.rb'
     - 'app/models/report_results_summaries/ahar/fy2017.rb'
     - 'app/models/report_results_summaries/data_quality/fy2016.rb'
@@ -270,18 +236,8 @@ Layout/EmptyLines:
     - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/d3_charts.rb'
     - 'app/models/reporting/rrh_report.rb'
     - 'app/models/reporting_base.rb'
@@ -299,8 +255,6 @@ Layout/EmptyLines:
 Layout/EmptyLinesAroundAccessModifier:
   Exclude:
     - 'app/channels/application_cable/connection.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -320,10 +274,6 @@ Layout/EmptyLinesAroundBlockBody:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
 
 # Offense count: 317
 # Cop supports --auto-correct.
@@ -583,14 +533,6 @@ Layout/EmptyLinesAroundMethodBody:
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/reports/system_performance/fy2017/base.rb'
     - 'app/models/reports/system_performance/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2019/base.rb'
@@ -621,8 +563,6 @@ Layout/EndAlignment:
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
 
 # Offense count: 58
 # Cop supports --auto-correct.
@@ -635,14 +575,7 @@ Layout/ExtraSpacing:
     - 'app/models/grda_warehouse/warehouse_reports/youth/export.rb'
     - 'app/models/grda_warehouse_base.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/similarity_metric/experiment.rb'
     - 'app/models/similarity_metric/initializer.rb'
     - 'app/models/similarity_metric/multinomial.rb'
@@ -655,12 +588,6 @@ Layout/FirstArgumentIndentation:
   Exclude:
     - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
 
 # Offense count: 14
@@ -690,8 +617,6 @@ Layout/FirstHashElementIndentation:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'drivers/claims_reporting/app/models/hl7/value_set_code.rb'
 
 # Offense count: 264
@@ -719,18 +644,8 @@ Layout/HashAlignment:
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/similarity_metric/base.rb'
 
 # Offense count: 8
@@ -784,13 +699,7 @@ Layout/IndentationWidth:
     - 'app/models/report_generators/lsa/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/report_result.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
@@ -809,9 +718,6 @@ Layout/LeadingCommentSpace:
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/reports/ahar/fy2016/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'bin/containers/list'
@@ -827,12 +733,6 @@ Layout/MultilineMethodCallBraceLayout:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
     - 'app/models/talentlms/facade.rb'
 
 # Offense count: 258
@@ -859,14 +759,6 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/health/signature_request.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/token.rb'
 
 # Offense count: 1
@@ -884,9 +776,7 @@ Layout/SpaceAfterColon:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
 
@@ -913,13 +803,7 @@ Layout/SpaceAfterComma:
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/reports/ahar/fy2016/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'app/models/reports/pit/fy2017/by_project.rb'
@@ -964,8 +848,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
     - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
     - 'app/models/health/agency_user_saver.rb'
     - 'app/models/health_base.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/report_result.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/experiment.rb'
@@ -976,7 +858,6 @@ Layout/SpaceAroundKeyword:
   Exclude:
     - 'app/models/glacier/restore.rb'
     - 'app/models/glacier/utils.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
 
 # Offense count: 279
 # Cop supports --auto-correct.
@@ -1004,14 +885,7 @@ Layout/SpaceAroundOperators:
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/import.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/report_result.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
@@ -1062,18 +936,9 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/report_generators/data_quality/fy2017/q4.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
     - 'app/models/report_generators/system_performance/fy2019/base.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'app/models/reports/data_quality/fy2016/base.rb'
@@ -1157,9 +1022,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/exporter/health_exporter.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
     - 'app/models/similarity_metric/experiment.rb'
@@ -1217,17 +1079,8 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'app/models/reports/data_quality/fy2016/base.rb'
     - 'app/models/reports/data_quality/fy2017/base.rb'
@@ -1269,15 +1122,9 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
     - 'app/models/report_generators/system_performance/fy2019/base.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/d3_charts.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
     - 'app/models/talentlms/config.rb'
@@ -1377,8 +1224,6 @@ Layout/SpaceInsideParens:
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/health/claims/base.rb'
     - 'app/models/health/sdh_case_management_note.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
     - 'app/models/similarity_metric.rb'
@@ -1564,8 +1409,6 @@ Lint/ShadowingOuterLocalVariable:
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/q3.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
@@ -1616,17 +1459,8 @@ Lint/UnusedBlockArgument:
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
     - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
     - 'app/models/similarity_metric/experiment.rb'
 
 # Offense count: 116
@@ -1667,8 +1501,6 @@ Lint/UnusedMethodArgument:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/epic_patient.rb'
     - 'app/models/health/problem.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/similarity_metric/base.rb'
 
 # Offense count: 1
@@ -1708,7 +1540,6 @@ Lint/UselessAssignment:
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
     - 'app/models/similarity_metric/experiment.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
@@ -1745,8 +1576,6 @@ Metrics/PerceivedComplexity:
 Naming/AccessorMethodName:
   Exclude:
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
 
 # Offense count: 4
 # Cop supports --auto-correct.
@@ -1826,7 +1655,6 @@ Naming/MethodParameterName:
 Naming/PredicateName:
   Exclude:
     - 'spec/**/*'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/reports/ahar/fy2016/by_data_source.rb'
     - 'app/models/reports/ahar/fy2016/by_project.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
@@ -1927,8 +1755,6 @@ Style/ColonMethodCall:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reports/data_quality/fy2016/base.rb'
     - 'app/models/reports/data_quality/fy2017/base.rb'
@@ -2003,8 +1829,6 @@ Style/GuardClause:
     - 'app/models/health/tasks/import_patient_referrals.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/report_result.rb'
     - 'app/models/reporting/rrh_report.rb'
     - 'app/models/similarity_metric/base.rb'
@@ -2078,13 +1902,7 @@ Style/IfUnlessModifier:
     - 'app/models/report_generators/lsa/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/report_result.rb'
     - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/similarity_metric.rb'
@@ -2145,20 +1963,8 @@ Style/MethodCallWithoutArgsParentheses:
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'lib/docker_fs_fix.rb'
 
@@ -2202,20 +2008,8 @@ Style/MutableConstant:
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/tasks/import_patient_referral_refreshes.rb'
     - 'app/models/health/tasks/import_patient_referrals.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/similarity_metric/base.rb'
     - 'app/models/similarity_metric/boolean.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
@@ -2267,13 +2061,8 @@ Style/Next:
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
     - 'app/models/similarity_metric/initializer.rb'
@@ -2315,9 +2104,7 @@ Style/NumericPredicate:
     - 'app/models/report_generators/data_quality/fy2017/q4.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/report_result.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/base.rb'
@@ -2375,7 +2162,6 @@ Style/RedundantCondition:
 # Cop supports --auto-correct.
 Style/RedundantInterpolation:
   Exclude:
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
 
 # Offense count: 25
 # Cop supports --auto-correct.
@@ -2390,8 +2176,6 @@ Style/RedundantParentheses:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/enrollment_coc.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
 
 # Offense count: 366
 # Cop supports --auto-correct.
@@ -2478,9 +2262,7 @@ Style/RescueModifier:
     - 'app/models/health/premium_payment.rb'
     - 'app/models/old_warehouse_base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
     - 'app/models/reporting/rrh_report.rb'
@@ -2510,7 +2292,6 @@ Style/SafeNavigation:
 Style/SelfAssignment:
   Exclude:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
 
 # Offense count: 13
 # Cop supports --auto-correct.
@@ -2607,16 +2388,8 @@ Style/StringLiterals:
     - 'app/models/report_generators/data_quality/fy2017/q3.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
     - 'app/models/reports/ahar/fy2016/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
@@ -2720,20 +2493,8 @@ Style/TrailingCommaInArguments:
     - 'app/models/report_generators/lsa/fy2019/base.rb'
     - 'app/models/report_generators/pit/fy2018/by_project.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_three.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
     - 'app/models/reporting/rrh_report.rb'
@@ -2765,8 +2526,6 @@ Style/TrailingCommaInArrayLiteral:
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
 
 # Offense count: 296
 # Cop supports --auto-correct.
@@ -2793,17 +2552,8 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/soap/file_list.rb'
     - 'app/models/health_base.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_two.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_five.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_seven.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_six.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_two.rb'
     - 'app/models/reporting/d3_charts.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'app/models/similarity_metric.rb'
@@ -2857,6 +2607,4 @@ Style/YodaCondition:
 Style/ZeroLengthPredicate:
   Exclude:
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
-    - 'app/models/report_generators/system_performance/fy2018/measure_one.rb'
-    - 'app/models/report_generators/system_performance/fy2019/measure_one.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
