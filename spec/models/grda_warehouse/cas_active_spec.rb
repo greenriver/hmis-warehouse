@@ -67,6 +67,16 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   end
 
   describe 'when syncing by project group' do
+    let!(:data_source) { create :data_source_fixed_id, source_type: nil, authoritative: false }
+    let!(:project) { create :hud_project, data_source_id: data_source.id }
+    let!(:client) { create :hud_client, data_source: data_source, data_source_id: data_source.id }
+    let!(:enrollment) { create :hud_enrollment, ProjectID: project.ProjectID, data_source_id: data_source.id }
+    let!(:service_history_enrollment) do
+      create :grda_warehouse_service_history, :service_history_entry,
+             project: project, client: client, enrollment_group_id: enrollment.EnrollmentID,
+             first_date_in_program: Date.yesterday, data_source_id: data_source.id
+    end
+
     before(:all) do
       @cas_project_group = GrdaWarehouse::ProjectGroup.new(name: 'test')
       @cas_project_group.save!
@@ -92,9 +102,9 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
       expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(0)
     end
 
-    it 'finds some clients who are active for CAS' do
-      @cas_project_group.projects = GrdaWarehouse::Hud::Project.all
-      expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).not_to eq(0)
+    it 'finds one client who is active for CAS' do
+      @cas_project_group.projects << project
+      expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(1)
     end
   end
 end
