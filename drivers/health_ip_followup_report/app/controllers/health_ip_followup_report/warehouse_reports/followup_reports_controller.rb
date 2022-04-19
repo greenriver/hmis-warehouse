@@ -7,7 +7,7 @@
 module HealthIpFollowupReport::WarehouseReports
   class FollowupReportsController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :require_can_administer_health!
+    before_action :require_can_view_aggregate_health!
 
     def index
       @end_date = report_params[:end_date]&.to_date || Date.today
