@@ -126,6 +126,7 @@ class Deployer
     _docker_login!
     _build_and_push_all!
     _check_secrets!
+    _check_compiled_assets!
   end
 
   def roll_out
@@ -163,6 +164,17 @@ class Deployer
     our_commit = `git rev-parse #{branch}`.chomp
 
     raise 'Push or pull your branch first!' unless remote.start_with?(our_commit)
+  end
+
+  def _check_compiled_assets!
+    checksum = `SECRET_ARN=#{secrets_arn} ASSETS_PREFIX=#{target_group_name} bin/asset_checksum`.split(' ')[-1]
+    existing_assets = `aws s3 ls #{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum}`.strip
+
+    while existing_assets.empty?
+      puts 'Assets not compiled yet, waiting 30 seconds...'
+      sleep 30
+      existing_assets = `aws s3 ls #{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum}`.strip
+    end
   end
 
   def _docker_login!
