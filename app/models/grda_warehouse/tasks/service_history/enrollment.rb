@@ -465,7 +465,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     # Service is considered a homeless service if it is in ES, SO, SH or TH.
     # Service is explicitly NOT homeless if it is in PH after the move-in date.
-    # All other service, Services Only, Other, Days Shelter, Coordinated Assessment, and PH pre-move-in date is
+    # All other service, Services Only, Other, Days Shelter, Coordinated Entry, and PH pre-move-in date is
     # neither homeless nor not homeless and receives a nil value and will neither show up in homeless,
     # or non_homeless scopes"?
     def homeless?(date)
@@ -645,7 +645,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # 11  Day Shelter
       # 12  Homelessness Prevention
       # 13  PH - Rapid Re-Housing
-      # 14  Coordinated Assessment
+      # 14  Coordinated Entry
 
       # RecordType
       # 12  Contact   4.12
