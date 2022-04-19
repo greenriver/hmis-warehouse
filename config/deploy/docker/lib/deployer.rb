@@ -3,6 +3,7 @@ require 'byebug'
 require 'English'
 require_relative 'roll_out'
 require_relative 'aws_sdk_helpers'
+require_relative 'asset_compiler'
 
 class Deployer
   include AwsSdkHelpers::Helpers
@@ -168,12 +169,12 @@ class Deployer
 
   def _check_compiled_assets!
     checksum = `SECRET_ARN=#{secrets_arn} ASSETS_PREFIX=#{target_group_name} bin/asset_checksum`.split(' ')[-1]
-    existing_assets = `aws s3 ls #{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum}`.strip
+    existing_assets = `aws s3 ls #{AssetCompiler::COMPILED_ASSETS_BUCKET}/#{target_group_name}/#{checksum}`.strip
 
     while existing_assets.empty?
-      puts 'Assets not compiled yet, waiting 30 seconds...'
+      puts "Assets for hash [#{checksum}] not compiled yet, waiting 30 seconds..."
       sleep 30
-      existing_assets = `aws s3 ls #{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum}`.strip
+      existing_assets = `aws s3 ls #{AssetCompiler::COMPILED_ASSETS_BUCKET}/#{target_group_name}/#{checksum}`.strip
     end
   end
 

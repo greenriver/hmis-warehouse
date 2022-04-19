@@ -4,6 +4,7 @@ find app/assets -type f -name '.DS_Store' -delete
 rm -rf app/assets/stylesheets/theme/styles
 rm -rf app/assets/images/theme/logo
 rm -rf app/assets/images/theme/icons
+rm -rf app/assets/images/icons
 
 if [ "$ASSETS_PREFIX" = "" ]; then
   export ASSETS_PREFIX=qa-warehouse-staging-ecs
