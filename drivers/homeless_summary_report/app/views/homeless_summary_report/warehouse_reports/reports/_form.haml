@@ -39,8 +39,6 @@
             .form-filters-section-prs1
               = render 'filters/filter_controls/section_form_fields',
                 section: section, f: f
-              - if section.id == 'coordinated_entry'
-                %p.alert.alert-info The Coordinated Entry (CE) project type must be included explicitly for these limits to be functional.
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }
 
