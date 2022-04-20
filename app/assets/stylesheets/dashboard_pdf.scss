@@ -6,23 +6,23 @@
 // Or any other static (that we don't change) CSS
 /////////////////////
 // Vendor
-@import "billboard.js/src/scss/billboard";
-@import "./application/vendor/icons";
-@import "./application/vendor/bootstrap/index";
+//= require billboard.js/src/scss/billboard
+//= require ./application/vendor/icons
+//= require ./application/vendor/bootstrap/index
 
 //////////////////////////////////////////
 // Base Application Styles
 // In order to use variables/mixins/functions in individual files
 // import the 'helpers' file (app/assets/stylesheets/application/helpers.scss)
 /////////////////////////////////////////
-@import "./application/elements/*";
-@import "./application/layouts/*";
-@import "./application/objects/*";
-@import "./application/components/*";
-@import "./application/base/*";
-@import "./application/modules/*";
-@import "./application/overrides/*";
-@import "./application/utilities/*";
+//= require_tree ./application/elements
+//= require_tree ./application/layouts
+//= require_tree ./application/objects
+//= require_tree ./application/components
+//= require_tree ./application/base
+//= require_tree ./application/modules
+//= require_tree ./application/overrides
+//= require_tree ./application/utilities
 
-@import "./application/print/base";
-@import "./application/print/dashboard";
+//= require ./application/print/base
+//= require ./application/print/dashboard

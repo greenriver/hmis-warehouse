@@ -7,34 +7,34 @@
 // Or any other static (that we don't change) CSS
 /////////////////////
 // Vendor
-@import "./application/vendor/bootstrap/index";
-@import "select2";
-@import "select2-bootstrap";
-@import "bootstrap-datepicker";
-@import "billboard.js/dist/billboard.min";
-@import "jquery-ui/sortable";
-@import "jquery-ui/slider";
-@import "jquery-ui/autocomplete";
-@import "leaflet";
-@import "leaflet.markercluster/MarkerCluster.css";
-@import "leaflet.markercluster/MarkerCluster.Default.css";
-@import "leaflet-beautify-marker/leaflet-beautify-marker-icon.css";
-@import "jquery.minicolors";
-@import "datatables_bootstrap";
-@import "vis";
-@import "./application/vendor/icons";
-@import "bootstrap-datetimepicker";
+//= require ./application/vendor/bootstrap/index
+//= require select2
+//= require select2-bootstrap
+//= require bootstrap-datepicker
+//= require billboard.js/dist/billboard.min
+//= require jquery-ui/sortable
+//= require jquery-ui/slider
+//= require jquery-ui/autocomplete
+//= require leaflet
+//= require leaflet.markercluster/MarkerCluster.css
+//= require leaflet.markercluster/MarkerCluster.Default.css
+//= require leaflet-beautify-marker/leaflet-beautify-marker-icon.css
+//= require jquery.minicolors
+//= require datatables_bootstrap
+//= require vis
+//= require ./application/vendor/icons
+//= require bootstrap-datetimepicker
 
 //////////////////////////////////////////
 // Base Application Styles
 // In order to use variables/mixins/functions in individual files
 // import the 'helpers' file (app/assets/stylesheets/application/helpers.scss)
 /////////////////////////////////////////
-@import "./application/elements/*";
-@import "./application/layouts/*";
-@import "./application/objects/*";
-@import "./application/components/*";
-@import "./application/base/*";
-@import "./application/modules/*";
-@import "./application/overrides/*";
-@import "./application/utilities/*";
+//= require_tree ./application/elements
+//= require_tree ./application/layouts
+//= require_tree ./application/objects
+//= require_tree ./application/components
+//= require_tree ./application/base
+//= require_tree ./application/modules
+//= require_tree ./application/overrides
+//= require_tree ./application/utilities
