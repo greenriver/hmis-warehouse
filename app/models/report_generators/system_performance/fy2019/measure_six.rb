@@ -75,7 +75,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       # 11: Day Shelter
       # 12: Homeless Prevention
       # 13: Rapid Re-Housing (PH)
-      # 14: Coordinated Assessment
+      # 14: Coordinated Entry
 
     end
 

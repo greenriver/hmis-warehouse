@@ -33,7 +33,7 @@ module TableauExport
         11, #=> 'Day Shelter',
         12, #=> 'Homelessness Prevention',
         13, #=> 'PH - Rapid Re-Housing',
-        14, #=> 'Coordinated Assessment',
+        14, #=> 'Coordinated Entry',
       ]
     end
 

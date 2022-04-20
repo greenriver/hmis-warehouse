@@ -50,7 +50,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         # 11: Day Shelter
         # 12: Homeless Prevention
         # 13: Rapid Re-Housing (PH)
-        # 14: Coordinated Assessment
+        # 14: Coordinated Entry
         #
 
         project_types = SO + ES + TH + SH + PH
