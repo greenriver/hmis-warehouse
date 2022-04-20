@@ -1,6 +1,7 @@
 require 'English'
 require 'amazing_print'
 require 'yaml'
+require 'pty'
 require_relative 'ecs_tools'
 require_relative 'memory_analyzer'
 require 'aws-sdk-cloudwatchlogs'
@@ -169,8 +170,6 @@ class RollOut
     )
 
     _run_task!
-
-    _poll_until_deploy_tasks_complete!
   end
 
   def register_cron_job_worker!
@@ -405,8 +404,6 @@ class RollOut
   def _run_task!
     _make_cloudwatch_group!
 
-    start_time = Time.now
-
     puts "[INFO] Running task: #{task_definition} #{target_group_name}"
 
     incomplete = true
@@ -493,7 +490,7 @@ class RollOut
     task_id = task_arn.split('/').last
     log_stream_name.sub!(/TASK_ID/, task_id)
 
-    _tail_logs(start_time)
+    _tail_logs
   end
 
   def _get_status
@@ -508,126 +505,51 @@ class RollOut
   # ---DONE--- or if the task executed the rake task that updates the
   # deployment ID
   def _poll_until_deploy_tasks_complete!
-    puts '>> _poll_until_deploy_tasks_complete!' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
     complete = false
     until complete
-      puts '>> `until complete` loop iteration' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
       response = _get_status
       complete = (response.dig('registered_deployment_id') == self.deployment_id)
-      puts ">> complete? [#{complete.inspect}]" if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
 
       if complete || self.last_task_completed
         puts "[INFO] Looks like the deployment tasks ran to completion (#{self.deployment_id}) #{target_group_name}"
         complete = true
       else
-        puts '>> not complete, else' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
-        # Confirm the log stream is setup
-        resp = nil
-        while resp.nil?
-          puts '>> while resp.nil? loop iteration' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
-          begin
-            resp = cwl.get_log_events(
-              {
-                log_group_name: target_group_name,
-                log_stream_name: log_stream_name,
-                start_from_head: true,
-              },
-            )
-          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
-            puts "[INFO] Waiting 30 seconds since the log stream couldn't be found #{target_group_name}"
-            sleep 30
-          end
-        end
-        puts "[WARN] Looks like the deployment task isn't done. #{target_group_name}"
-        puts "[WARN] We expected: #{self.deployment_id}"
-        puts "[WARN] We got: #{response.dig('registered_deployment_id')}"
-        puts "[WARN] You can safely (p)roceed if this is the first deployment #{target_group_name}"
-        print "\nYou can (w)ait, (p)roceed with deployment anyway, (v)iew log tail, or (a)bort: "
-        response = $stdin.gets
-        if response.downcase.match(/w/)
-          puts "[INFO] Waiting 120 seconds #{target_group_name}"
-          sleep 120
-        elsif response.downcase.match(/p/)
-          puts "[WARN] Continuing on anyway #{target_group_name}"
-          complete = true
-        elsif response.downcase.match(/a/)
-          puts "[WARN] exiting #{target_group_name}"
-          exit
-        elsif response.downcase.match(/v/)
-          puts '>> response.downcase.match(/v/)' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
-          resp = cwl.get_log_events(
-            {
-              log_group_name: target_group_name,
-              log_stream_name: log_stream_name,
-              start_from_head: true,
-            },
-          )
-          resp.events.each do |event|
-            puts "[TASK] #{event.message} #{target_group_name}"
-          end
-          puts '>> sleep 600 -> sleep 30' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
-          sleep 30
-        else
-          puts "[INFO] Waiting 120 seconds since we didn't understand your response #{target_group_name}"
-          sleep 120
-        end
+        _tail_logs
       end
     end
   end
 
   # If you can construct or query for the log stream name, you can use this to
   # tail any tasks, even those that are part of a service.
-  def _tail_logs(start_time = Time.now)
-    self.last_task_completed = false
+  def _tail_logs
     begin
-      resp = cwl.get_log_events(
+      _resp = cwl.get_log_events(
         {
           log_group_name: target_group_name,
           log_stream_name: log_stream_name,
-          start_time: start_time.utc.to_i,
-          start_from_head: false,
-        },
-      )
-    rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
-      puts "[FATAL] The log stream #{log_stream_name} does not exist. At least not yet. #{target_group_name}"
-      return
-    end
-
-    puts "[TASK] Log stream is #{target_group_name}/#{log_stream_name}"
-
-    get_log_events = ->(next_token) do
-      cwl.get_log_events(
-        {
-          log_group_name: target_group_name,
-          log_stream_name: log_stream_name,
-          next_token: next_token,
           start_from_head: true,
         },
       )
+    rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
+      puts "[FATAL] The log stream #{log_stream_name} does not exist. At least not yet. Waiting 30 seconds...#{target_group_name}"
+      sleep 30
+      _tail_logs
     end
-
-    too_soon = -> do
-      (Time.now.utc.to_i - start_time.utc.to_i) < 60 * 5
-    end
-
-    while resp.events.length.positive? || too_soon.call
-      puts '>> tail loop iteration start' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
-      resp.events.each do |event|
-        puts "[TASK] #{event.message} #{target_group_name}"
-        if event.message.match?(/---DONE---/)
-          puts '>> found --DONE--' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
-          self.last_task_completed = true
-          break
-        elsif event.message.match?(/rake aborted|an error has occurred/i)
-          puts '>> found an error' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
-          break
+    begin
+      cmd = "aws logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
+      PTY.spawn(cmd) do |stdout, _stdin, _pid|
+        stdout.each do |line|
+          print line
+          if line.match?(/---DONE---/)
+            puts 'found ---DONE---, exiting'
+            break
+          end
         end
+      rescue Errno::EIO
+        puts 'Errno:EIO error, but this probably just meams that the process has finished giving output'
       end
-
-      puts '>> sleep 15...' if ENV.fetch('DEPLOY_ADVANCED_LOGGING', false)
-      sleep 15
-
-      resp = get_log_events.call(resp.next_forward_token)
+    rescue PTY::ChildExited
+      puts 'The child process exited!'
     end
   end
 
