@@ -2,7 +2,7 @@
 <%= ENV.fetch('RAILS_ENV') { 'unknown' } %>:
   slack:
     webhook_url: <%= ENV['EXCEPTION_WEBHOOK_URL'] %>
-    channel: '<%= '#' + ENV['EXCEPTION_WEBHOOK_CHANNEL'] %>'
+    channel: '<%= '#' + ENV.fetch('EXCEPTION_WEBHOOK_CHANNEL_OVERRIDE, ENV['EXCEPTION_WEBHOOK_CHANNEL']) %>'
     additional_parameters:
       mrkdwn: true
       icon_url: <%= ENV.fetch('EXCEPTION_WEBHOOK_ICON') %>

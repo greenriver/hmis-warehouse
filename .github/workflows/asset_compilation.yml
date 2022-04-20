@@ -130,4 +130,4 @@ jobs:
         HEALTH_DATABASE_DB: health_db
         REPORTING_DATABASE_DB: reporting_db
       run: |
-        DEPLOY_PROTECT_SECRETS=true EXCEPTION_WEBHOOK_CHANNEL=gr-op-gha-except bundle exec bin/compile_assets.rb ${{ matrix.client_group }}
+        DEPLOY_PROTECT_SECRETS=true EXCEPTION_WEBHOOK_CHANNEL_OVERRIDE=gr-op-gha-except bundle exec bin/compile_assets.rb ${{ matrix.client_group }}
