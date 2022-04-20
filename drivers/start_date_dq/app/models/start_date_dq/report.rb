@@ -66,15 +66,15 @@ module StartDateDq
 
       if @filter.length_of_times.present?
         ranges = @filter.length_of_times.map { |s| day_ranges[s] }
-        conditions = collapse_ranges(ranges).filter_map do |r|
+        conditions = ranges.filter_map do |r|
           next unless r.begin != -Float::INFINITY || r.end != Float::INFINITY
 
           if r.begin == -Float::INFINITY
             days_between.lteq(r.end)
           elsif r.end == Float::INFINITY
-            days_between.gt(r.begin)
+            days_between.gteq(r.begin)
           else
-            days_between.gt(r.begin).and(days_between.lteq(r.end))
+            days_between.gteq(r.begin).and(days_between.lteq(r.end))
           end
         end
 
@@ -106,29 +106,11 @@ module StartDateDq
     def day_ranges
       {
         '<0 days': (-Float::INFINITY..-1),
-        '0-30 days': (-1..30),
-        '31-90 days': (30..90),
-        '91-180 days': (90..180),
-        '181+ days': (180..Float::INFINITY),
+        '0-30 days': (0..30),
+        '31-90 days': (31..90),
+        '91-180 days': (91..180),
+        '181+ days': (181..Float::INFINITY),
       }
-    end
-
-    # collapse overlapping ranges [0..30, 30..90] => [0..90]
-    private def collapse_ranges(ranges)
-      ranges.each_with_index do |curr, i|
-        next unless i != 0
-
-        prev = ranges[i - 1]
-        next unless curr.overlaps?(prev)
-
-        merged_range = (prev.begin..curr.end)
-        ranges[i] = merged_range
-
-        (0..i - 1).each do |j|
-          ranges[j] = merged_range if ranges[j].overlaps?(merged_range)
-        end
-      end
-      ranges.uniq
     end
   end
 end
