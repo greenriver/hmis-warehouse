@@ -35,8 +35,8 @@ module WarehouseReports
 
       params.require(:report).
         permit(
-          :start_date,
-          :end_date,
+          :start,
+          :end,
           project_ids: [],
           organization_ids: [],
           data_source_ids: [],
