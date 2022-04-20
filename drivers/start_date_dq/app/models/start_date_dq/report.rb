@@ -65,16 +65,16 @@ module StartDateDq
       days_between = datediff(scope, 'day', e_t[:EntryDate], e_t[:DateToStreetESSH])
 
       if @filter.length_of_times.present?
-        ranges = @filter.length_of_times.map { |s| day_ranges[s] }
-        conditions = ranges.filter_map do |r|
-          next unless r.begin != -Float::INFINITY || r.end != Float::INFINITY
+        conditions = @filter.length_of_times.filter_map do |s|
+          next unless day_ranges.key?(s)
 
-          if r.begin == -Float::INFINITY
-            days_between.lteq(r.end)
-          elsif r.end == Float::INFINITY
-            days_between.gteq(r.begin)
+          range = day_ranges[s]
+          if range.begin == -Float::INFINITY
+            days_between.lteq(range.end)
+          elsif range.end == Float::INFINITY
+            days_between.gteq(range.begin)
           else
-            days_between.gteq(r.begin).and(days_between.lteq(r.end))
+            days_between.gteq(range.begin).and(days_between.lteq(range.end))
           end
         end
 
