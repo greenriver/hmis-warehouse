@@ -1,5 +1,5 @@
 # Theme files to reset -- see .gitignore
-# Remove anything on these paths to ensure lingering theme files do not interfere.
+# Remove anything on these paths to ensure lingering theme files from other clients do not interfere.
 find app/assets -type f -name '.DS_Store' -delete
 rm -rf app/assets/stylesheets/theme/styles
 rm -rf app/assets/images/theme/logo
@@ -10,6 +10,7 @@ if [ "$ASSETS_PREFIX" = "" ]; then
   export ASSETS_PREFIX=qa-warehouse-staging-ecs
 fi
 
+# Get client secrets, store in separate secrets file for hashing later.
 if [ "$SECRET_ARN" != "" ]; then
   bin/download_secrets.rb > .env.secret
 else
@@ -17,15 +18,19 @@ else
   exit 1
 fi
 
+# Pull down our client theme files.
 ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.rb > /dev/null 2>&1
 
-tar -cf - --sort=name \
-  --mtime='UTC 2019-01-01' \
-  --group=0 \
-  --owner=0 \
-  --numeric-owner \
-  --absolute-names \
-  --no-acls \
-  --mode="go-rwx,u-rw" \
-  --exclude=.keep,*.rbc,**.orig,*.swp \
+# Use tar to create a content hash of the assets folder and the client secrets.
+# The below flags are intended to strip or normalize all metadata so that we're only hashing on contents.
+# This has been adapted from several different StackOverflow suggestions for no-metadata tarring.
+tar -cf - --sort=name `# Force sorting` \
+  --mtime='UTC 2019-01-01' `# Normalize modified time.` \
+  --group=0 `# Normalize group owner.` \
+  --owner=0 `# Normalize user owner.` \
+  --numeric-owner `# Use numeric values for owner so our normalized values always match.` \
+  --absolute-names `# Force absolute paths` \
+  --no-acls `# No ACLs` \
+  --mode="go-rwx,u-rw" `# Normalize permissions` \
+  --exclude=.keep,*.rbc,**.orig,*.swp `# Exclude a few files we know we don't care about` \
   app/assets .env.secret | md5sum | cut -d ' ' -f 1

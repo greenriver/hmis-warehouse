@@ -13,12 +13,6 @@ sed -i.bak '/EXTENSION/d' db/warehouse_structure.sql
 # TODO: fix the bootstra_databases! method in roll_out.rb to handle a first install
 # ./bin/db_prep
 
-# echo === Compiling and pushing assets ===
-# time bundle exec rake assets:clobber
-# time bundle exec rake assets:precompile
-# echo "Syncing to s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH"
-# time aws s3 sync ./public/assets s3://openpath-precompiled-assets/$ASSETS_PREFIX/$GITHASH
-
 echo Storing Themed Maintenance Page
 T1=`date +%s`
 bundle exec rake maintenance:create

@@ -37,7 +37,11 @@ RUN apk add --no-cache \
   lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
   shared-mime-info \
   vim less \
+  tar \
+  python3 py3-pip \
   && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
+
+RUN pip3 install awscliv2
 
 RUN mkdir /app
 WORKDIR /app

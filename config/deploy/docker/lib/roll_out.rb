@@ -500,25 +500,6 @@ class RollOut
     {}
   end
 
-  # tailing the logs until we see "---DONE---" isn't reliable because we don't
-  # know how long to wait for sure. We consider it complete if we saw
-  # ---DONE--- or if the task executed the rake task that updates the
-  # deployment ID
-  def _poll_until_deploy_tasks_complete!
-    complete = false
-    until complete
-      response = _get_status
-      complete = (response.dig('registered_deployment_id') == self.deployment_id)
-
-      if complete || self.last_task_completed
-        puts "[INFO] Looks like the deployment tasks ran to completion (#{self.deployment_id}) #{target_group_name}"
-        complete = true
-      else
-        _tail_logs
-      end
-    end
-  end
-
   # If you can construct or query for the log stream name, you can use this to
   # tail any tasks, even those that are part of a service.
   def _tail_logs
@@ -542,14 +523,16 @@ class RollOut
           print line
           if line.match?(/---DONE---/)
             puts 'found ---DONE---, exiting'
-            break
+            return true
           end
         end
       rescue Errno::EIO
-        puts 'Errno:EIO error, but this probably just meams that the process has finished giving output'
+        puts '[WARN] Errno:EIO error, but this probably just meams that the process has finished giving output'
+        return false
       end
     rescue PTY::ChildExited
-      puts 'The child process exited!'
+      puts '[WARN] The child process exited!'
+      return false
     end
   end
 

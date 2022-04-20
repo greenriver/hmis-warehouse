@@ -151,7 +151,7 @@ class Deployer
   def _ensure_clean_repo!
     return unless `git status --porcelain` != ''
 
-    puts 'Aborting since git is not clean'
+    puts '[FATAL] Aborting since git is not clean'
     exit 1
   end
 
@@ -164,18 +164,17 @@ class Deployer
     remote = `git ls-remote origin | grep #{branch}`.chomp
     our_commit = `git rev-parse #{branch}`.chomp
 
-    raise 'Push or pull your branch first!' unless remote.start_with?(our_commit)
+    raise '[FATAL] Push or pull your branch first!' unless remote.start_with?(our_commit)
   end
 
   def _check_compiled_assets!
     checksum = `SECRET_ARN=#{secrets_arn} ASSETS_PREFIX=#{target_group_name} bin/asset_checksum`.split(' ')[-1]
-    existing_assets = `aws s3 ls #{AssetCompiler::COMPILED_ASSETS_BUCKET}/#{target_group_name}/#{checksum}`.strip
 
-    while existing_assets.empty?
-      puts "Assets for hash [#{checksum}] not compiled yet, waiting 30 seconds..."
-      sleep 30
-      existing_assets = `aws s3 ls #{AssetCompiler::COMPILED_ASSETS_BUCKET}/#{target_group_name}/#{checksum}`.strip
+    while `aws s3 ls #{AssetCompiler::COMPILED_ASSETS_BUCKET}/#{target_group_name}/#{checksum}`.strip.empty?
+      puts "[INFO] Assets for hash [#{checksum}] not compiled yet, waiting 60 seconds..."
+      sleep 60
     end
+    puts "[INFO] Assets for hash [#{checksum}] are compiled, proceeding..."
   end
 
   def _docker_login!
