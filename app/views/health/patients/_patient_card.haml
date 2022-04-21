@@ -92,14 +92,14 @@
                   .alert.alert-warning
                     %p.text-small
                       %i.icon-warning
-                      Currently assigned Care Coordinator is not part of patient's agency.
+                      Currently assigned Care Coordinator is not active in the Care Hub or is not part of patient's agency.
 
                 = f.input :nurse_care_manager_id, collection: patient.available_nurse_care_managers, input_html: {class: [:jNurseCareManager], id: "nurse_care_manager_id_#{patient.id}"}, as: :select_two
                 - unless patient.assigned_nurse_care_manager_in_agency?
                   .alert.alert-warning
                     %p.text-small
                       %i.icon-warning
-                      Currently assigned Nurse Care Manager is not part of patient's agency.
+                      Currently assigned Nurse Care Manager is not active in the Care Hub or is not part of patient's agency.
             - else
               Patient record is not correctly assigned
       .col-md-6.card-wrapper
