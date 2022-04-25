@@ -33,14 +33,7 @@ module WarehouseReports
     private def report_params
       return nil unless params[:report].present?
 
-      params.require(:report).
-        permit(
-          :start,
-          :end,
-          project_ids: [],
-          organization_ids: [],
-          data_source_ids: [],
-        )
+      params.require(:report).permit(@filter.known_params)
     end
 
     private def client_source
