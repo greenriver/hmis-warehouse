@@ -21,6 +21,8 @@ module Filters
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids += effective_project_ids_from_project_types
 
+      # TODO: determine which projects should be excluded/included based on chosen funding sources (include all if no funding sources present) and remove from effective_project_ids
+
       # Add an invalid id if there are none
       @effective_project_ids = [0] if @effective_project_ids.empty?
 

@@ -67,7 +67,7 @@ module HomelessSummaryReport
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new(user_id: user_id, enforce_one_year_range: false)
+        f = ::Filters::HudFilterBase.new(user_id: user_id, enforce_one_year_range: false)
         f.update(options.with_indifferent_access.merge(enforce_one_year_range: false)) if options.present?
         f
       end
@@ -102,7 +102,7 @@ module HomelessSummaryReport
       # ensure filter has been set
       filter
       [
-        build_coordinate_assessment_control_section,
+        # build_coordinate_assessment_control_section,
         build_hoh_control_section,
         build_funding_section,
       ]
@@ -128,18 +128,9 @@ module HomelessSummaryReport
         @filter.update(start: @filter.start - 1.days)
       end
       # puts measure
-      scope = report_scope_source
-      scope = filter_for_user_access(scope)
+      scope = @filter.apply(report_scope_source)
       scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_project_type(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
+
       # force re-calculation of filter
       @filter = nil
       filter
