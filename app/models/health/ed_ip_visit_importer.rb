@@ -46,7 +46,7 @@ module Health
 
     private def import_from_sftp(file_path)
       Tempfile.create(File.basename(file_path)) do |tmpfile|
-        use_sftp do |sftp|
+        using_sftp do |sftp|
           sftp.download!(file_path, tmpfile.path)
           file = Health::EdIpVisitFileV2.create(
             content: tmpfile.read,

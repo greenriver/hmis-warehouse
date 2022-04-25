@@ -128,3 +128,21 @@ and run with
 ```
 rake health:db:migrate
 ```
+
+# How to Create a New Report
+
+Follow these steps to create a new custom report.
+
+1. Generate scaffolding for a new [Rails Driver](https://github.com/degica/rails_drivers):
+    ```bash
+    rails g driver custom_new_report_name
+    ```
+2. Add the relevant routes, controller, and view to the new Driver. See other examples for how they should be namespaced.
+3. Add your new report to the `report_list` in the `GrdaWarehouse::WarehouseReports::ReportDefinition` model. Make sure to wrap it in a check to see whether the driver is loaded. See [ReportDefinition](https://github.com/greenriver/hmis-warehouse/blob/production/app/models/grda_warehouse/warehouse_reports/report_definition.rb) for examples.
+4. Finally, run `rails db:seed` to populate the database with your new report definition. Alternatively, you can run the two relevant steps individually:
+    ```ruby
+    # Generates a new ReportDefinition
+    GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+    # Adds the report to the "all reports" group
+    AccessGroup.maintain_system_groups
+    ```

@@ -7,13 +7,5 @@
 module HudApr::Generators::Caper::Fy2020
   class QuestionTwentyFive < HudApr::Generators::Shared::Fy2020::QuestionTwentyFive
     QUESTION_TABLE_NUMBERS = ['Q25a'].freeze
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q25a_number_of_veterans
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end

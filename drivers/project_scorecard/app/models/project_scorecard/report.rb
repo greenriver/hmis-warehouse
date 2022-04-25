@@ -29,6 +29,10 @@ module ProjectScorecard
     has_many :project_group_project_contacts, through: :project_group, source: :contacts
     has_many :project_group_organization_contacts, through: :project_group, source: :organization_contacts
 
+    scope :started_between, ->(start_date:, end_date:) do
+      where(started_at: (start_date..end_date))
+    end
+
     def completed?
       status == 'completed'
     end

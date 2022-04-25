@@ -7,14 +7,5 @@
 module HudApr::Generators::Apr::Fy2020
   class QuestionSeven < HudApr::Generators::Shared::Fy2020::QuestionSeven
     QUESTION_TABLE_NUMBERS = ['Q7a', 'Q7b'].freeze
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q7a_persons_served
-      q7b_pit_count
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end

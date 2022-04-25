@@ -7,7 +7,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
     before(:all) do
       import_hmis_csv_fixture(
         'spec/fixtures/files/importers/hmis_twenty_twenty/project_data_quality_v4',
-        version: 'AutoDetect',
+        version: 'AutoMigrate',
       )
     end
     after(:all) do

@@ -1,6 +1,10 @@
 - title = "#{@report.detail_category_for(@key)} | #{@report.detail_title_for(@key)}"
-- content_for :title, title
+
 - project_id = params[:project_id]
+= content_for :crumbs do
+  = link_to performance_measurement_warehouse_reports_report_details_path(@report, key: @key) do
+    &laquo; #{title}
+- content_for :title, "#{title} - Details"
 %h1= content_for :title
 %h2= link_to_if can_view_projects?, @report.result_for(@key, project_id: project_id).hud_project.name_and_type, project_path(project_id)
 .d-flex.mb-4

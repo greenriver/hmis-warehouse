@@ -7,14 +7,5 @@
 module HudApr::Generators::Apr::Fy2020
   class QuestionTwelve < HudApr::Generators::Shared::Fy2020::QuestionTwelve
     QUESTION_TABLE_NUMBERS = ['Q12a', 'Q12b'].freeze
-
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q12a_race
-      q12b_ethnicity
-
-      @report.complete(QUESTION_NUMBER)
-    end
   end
 end

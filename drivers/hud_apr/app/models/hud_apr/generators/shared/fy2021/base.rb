@@ -51,7 +51,7 @@ module HudApr::Generators::Shared::Fy2021
           last_service_history_enrollment = enrollments.last
 
           hh_id = get_hh_id(last_service_history_enrollment)
-          hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last
+          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
           household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
@@ -77,10 +77,12 @@ module HudApr::Generators::Shared::Fy2021
           enrollments = enrollments_by_client_id[client.id]
           next unless enrollments.present?
 
+          hoh_enrollment = nil
           last_service_history_enrollment = enrollments.last
           if needs_ce_assessments?
             hh_id = get_hh_id(last_service_history_enrollment)
-            hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last
+            # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
+            hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
             #
@@ -141,7 +143,7 @@ module HudApr::Generators::Shared::Fy2021
           annual_assessment_expected = household_assessment_required[get_hh_id(last_service_history_enrollment)]
 
           household_calculation_date = if needs_ce_assessments?
-            ce_latest_assessment&.AssessmentDate || hoh_enrollment.first_date_in_program
+            ce_latest_assessment&.AssessmentDate || hoh_enrollment&.first_date_in_program
           else
             last_service_history_enrollment.first_date_in_program
           end
@@ -651,7 +653,7 @@ module HudApr::Generators::Shared::Fy2021
       else
         hoh_enrollment
       end
-      return unless enrollment.enrollment&.assessments.present?
+      return unless enrollment&.enrollment&.assessments.present?
 
       enrollment.enrollment.assessments.
         select { |a| a.AssessmentDate.present? && a.AssessmentDate.between?(@report.start_date, @report.end_date) }.
@@ -676,14 +678,15 @@ module HudApr::Generators::Shared::Fy2021
     # 5. If, for a given client, none of the records found belong to the same [project id] as the CE assessment from step 1, use the latest of those to report the client in the table above.
     # 6. The intention of the criteria is to locate the most recent logically relevant record pertaining to the CE assessment record reported in Q9a and Q9b by giving preference to data entered by the same project.
     private def latest_ce_event(she_enrollment, hoh_enrollment, ce_latest_assessment)
-      # FIXME:
       # need first assessment after report end if it occurred within 90 days of report end
       # exclude events after that assessment if it exists
-      enrollment = if she_enrollment.enrollment.assessments.present?
+      enrollment = if she_enrollment.client.source_events.present?
         she_enrollment
       else
         hoh_enrollment
       end
+      return unless enrollment.present?
+
       potential_events = enrollment.client.source_events.select do |e|
         next_assessment = first_ce_assessment_within_90_days_after_report_range(she_enrollment)
         if ce_latest_assessment

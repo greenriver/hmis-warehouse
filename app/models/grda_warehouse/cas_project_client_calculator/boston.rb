@@ -106,9 +106,12 @@ module GrdaWarehouse::CasProjectClientCalculator
         question_matching_requirement('c_survivor_choice')&.AssessmentAnswer.to_s.in?(['1', '3'])
     end
 
+    # Bedrooms come through as an integer that needs to be looked up, but needs to be passed to CAS
+    # as an integer of the number of rooms. For now we'll grab just the integer section of the looked up value
+    # so that we get the right number in CAS
     private def required_number_of_bedrooms(client)
       bedrooms = client.most_recent_pathways_or_rrh_assessment_for_destination.
-        question_matching_requirement('c_larger_room_size')&.AssessmentAnswer
+        question_matching_requirement('c_larger_room_size')&.lookup&.response_text&.scan(/\d+/)&.first
       return unless bedrooms.present?
 
       bedrooms.to_i

@@ -1,4 +1,0 @@
-CurrentLivingSitID,EnrollmentID,PersonalID,InformationDate,CurrentLivingSituation,VerifiedBy,LeaveSituation14Days,SubsequentResidence,ResourcesToObtain,LeaseOwn60Day,MovedTwoOrMore,LocationDetails,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-CLS-1,E-10,C-1,2019-01-01,1,,,,,,,,2019-01-01 00:00:00,2019-01-01 00:00:00,user,,EXPORT
-CLS-2,E-13,C-4,2019-02-01,1,,,,,,,,2019-01-01 00:00:00,2019-01-01 00:00:00,user,,EXPORT
-CLS-3,E-11,C-2,2019-12-01,1,,,,,,,,2019-01-01 00:00:00,2019-01-01 00:00:00,user,,EXPORT

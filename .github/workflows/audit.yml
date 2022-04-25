@@ -17,6 +17,8 @@ jobs:
     # Docker Hub image that the job executes in
     container: ruby:2.7.5-alpine3.13
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Set up dependencies
         run: |
           apk add --no-cache \
@@ -36,7 +38,6 @@ jobs:
             shared-mime-info
           gem install bundler --version=2.2.30
 
-      - uses: actions/checkout@v2
       - name: Install gems
         run: |
           bundle config set --local without 'production staging development'

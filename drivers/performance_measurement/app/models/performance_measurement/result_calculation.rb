@@ -656,6 +656,24 @@ module PerformanceMeasurement::ResultCalculation
       average_bed_utilization(detail, __method__, project_type: :th, project: project)
     end
 
+    def rrh_average_bed_utilization(detail, project: nil)
+      return unless project.blank? || project.hud_project&.rrh?
+
+      average_bed_utilization(detail, __method__, project_type: :rrh, project: project)
+    end
+
+    def psh_average_bed_utilization(detail, project: nil)
+      return unless project.blank? || project.hud_project&.psh?
+
+      average_bed_utilization(detail, __method__, project_type: :psh, project: project)
+    end
+
+    def oph_average_bed_utilization(detail, project: nil)
+      return unless project.blank? || project.hud_project&.oph?
+
+      average_bed_utilization(detail, __method__, project_type: :oph, project: project)
+    end
+
     def average_bed_utilization(detail, meth, project_type:, project: nil)
       field = detail[:calculation_column]
       day_count = filter.range.count

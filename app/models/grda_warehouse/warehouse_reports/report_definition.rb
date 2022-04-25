@@ -1182,6 +1182,24 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:start_date_dq)
+        r_list['Data Quality'] << {
+          url: 'start_date_dq/warehouse_reports/reports',
+          name: 'Approximate Start Date Data Quality',
+          description: 'View differences between the client\'s self-reported date homeless (DateToStreetESSH) and the enrollment entry date.',
+          limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:health_ip_followup_report)
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'health_ip_followup_report/warehouse_reports/followup_reports',
+          name: 'Inpatient Follow Ups',
+          description: 'Rate of 72-hour follow ups after inpatient visits.',
+          limitable: false,
+          health: true,
+        }
+      end
 
       r_list
     end
