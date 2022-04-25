@@ -58,10 +58,44 @@ module StartDateDq
     end
 
     def data
-      report_scope.joins(:client, :project).
+      scope = report_scope.joins(:client, :project).
         where(e_t[:EntryDate].not_eq(nil).
-          and(e_t[:DateToStreetESSH].not_eq(nil))).
-        order(datediff(report_scope, 'day', e_t[:EntryDate], e_t[:DateToStreetESSH]).desc)
+          and(e_t[:DateToStreetESSH].not_eq(nil)))
+
+      days_between = datediff(scope, 'day', e_t[:EntryDate], e_t[:DateToStreetESSH])
+
+      if @filter.length_of_times.present?
+        conditions = @filter.length_of_times.filter_map do |s|
+          next unless day_ranges.key?(s)
+
+          range = day_ranges[s]
+          if range.begin == -Float::INFINITY
+            days_between.lteq(range.end)
+          elsif range.end == Float::INFINITY
+            days_between.gteq(range.begin)
+          else
+            days_between.gteq(range.begin).and(days_between.lteq(range.end))
+          end
+        end
+
+        if conditions.present?
+          days_between_condition = conditions.reduce(conditions[0]) do |clause, cond|
+            clause == cond ? clause : clause.or(cond)
+          end
+          scope = scope.where(days_between_condition)
+        end
+      end
+
+      fields = []
+      fields << report_scope_source.arel_table[Arel.star]
+      fields << GrdaWarehouse::Hud::Client.arel_table[Arel.star]
+      fields << GrdaWarehouse::Hud::Enrollment.arel_table[Arel.star]
+      fields << GrdaWarehouse::Hud::Project.arel_table[Arel.star]
+      fields << Arel.sql(days_between.to_sql)
+
+      scope.distinct.
+        order(days_between.desc).
+        select(fields)
     end
 
     def report_scope
@@ -70,11 +104,22 @@ module StartDateDq
       scope = filter_for_range(scope)
       scope = filter_for_project_type(scope, all_project_types: false)
       scope = filter_for_projects(scope)
+      scope = filter_for_cocs(scope)
       scope
     end
 
     def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:enrollment)
+    end
+
+    def day_ranges
+      {
+        '<0 days': (-Float::INFINITY..-1),
+        '0-30 days': (0..30),
+        '31-90 days': (31..90),
+        '91-180 days': (91..180),
+        '181+ days': (181..Float::INFINITY),
+      }
     end
   end
 end
