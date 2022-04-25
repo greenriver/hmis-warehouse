@@ -86,7 +86,16 @@ module StartDateDq
         end
       end
 
-      scope.order(days_between.desc)
+      fields = []
+      fields << report_scope_source.arel_table[Arel.star]
+      fields << GrdaWarehouse::Hud::Client.arel_table[Arel.star]
+      fields << GrdaWarehouse::Hud::Enrollment.arel_table[Arel.star]
+      fields << GrdaWarehouse::Hud::Project.arel_table[Arel.star]
+      fields << Arel.sql(days_between.to_sql)
+
+      scope.distinct.
+        order(days_between.desc).
+        select(fields)
     end
 
     def report_scope
