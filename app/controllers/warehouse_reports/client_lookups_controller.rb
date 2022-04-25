@@ -10,7 +10,8 @@ module WarehouseReports
     include ArelHelper
 
     def index
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id, enforce_one_year_range: false).update(report_params)
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id, enforce_one_year_range: false)
+      @filter.update(report_params)
       respond_to do |format|
         format.html {}
         format.xlsx do
