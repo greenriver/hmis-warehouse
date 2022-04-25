@@ -22,6 +22,14 @@ module Health
       where.not(admit_date: nil)
     end
 
+    scope :in_range, ->(range) do
+      where(admit_date: range)
+    end
+
+    scope :inpatient, -> do
+      where(encounter_major_class: 'Inpatient')
+    end
+
     # Populate table with pre-existing data
     def self.populate!
       Health::EdIpVisitFile.find_each do |file|
