@@ -46,7 +46,8 @@ jobs:
           - pre-cache
           - base
           - dj
-          - cron
+          - web
+          - deploy
 
     steps:
     - name: Checkout
