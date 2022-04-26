@@ -54,8 +54,8 @@ jobs:
         DATABASE_APP_DB_TEST: boston_hmis_test
         WAREHOUSE_DATABASE_DB_TEST: warehouse_test
         HEALTH_DATABASE_DB_TEST: health_test
-        DATABASE_DB_TEST: boston_cas_test
-        REPORTING_DATABASE_DB_TEST: test_boston_reporting
+        DATABASE_DB_TEST: cas_test
+        REPORTING_DATABASE_DB_TEST: reporting_test
       run: |
         apk add --no-cache \
           nodejs yarn npm \
