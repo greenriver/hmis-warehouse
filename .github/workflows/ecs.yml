@@ -125,7 +125,7 @@ jobs:
         echo $SHA > $DOCKER_ASSETS_PATH/REVISION
         echo 'no tag generated' > image-tag.txt
 
-        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.${{ matrix.image_variant }} ];
+        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.${{ matrix.image_variant }} ]; then
           echo Building ${{ matrix.image_variant }}
           docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.${{ matrix.image_variant }} --build-arg GITHASH=${GITHASH} -t ${ECR_REPOSITORY}:latest--${{ matrix.image_variant }} .
 
