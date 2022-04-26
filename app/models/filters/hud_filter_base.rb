@@ -26,6 +26,7 @@ module Filters
         @effective_project_ids = funder_scope.where(id: funder_ids).
           joins(:project).
           where(p_t[:id].in(@effective_project_ids)).
+          distinct.
           pluck(p_t[:id])
       end
 
