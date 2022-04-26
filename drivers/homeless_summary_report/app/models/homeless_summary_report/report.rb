@@ -58,6 +58,22 @@ module HomelessSummaryReport
       update(completed_at: Time.current)
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(
+        [
+          :start,
+          :end,
+          :coc_codes,
+          :project_type_codes,
+          :project_ids,
+          :project_group_ids,
+          :data_source_ids,
+          :funder_ids,
+          :hoh_only,
+        ],
+      )
+    end
+
     def filter=(filter_object)
       self.options = filter_object.to_h
       # force reset the filter cache
