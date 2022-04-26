@@ -745,6 +745,8 @@ module Filters
         'Data Sources'
       when :project_group_ids
         'Project Groups'
+      when :funder_ids
+        'Funding Sources'
       when :veteran_statuses
         'Veteran Status'
       when :household_type
@@ -807,6 +809,8 @@ module Filters
         chosen_data_sources
       when :project_group_ids
         chosen_project_groups
+      when :funder_ids
+        chosen_funding_sources
       when :veteran_statuses
         chosen_veteran_statuses
       when :household_type
@@ -886,6 +890,16 @@ module Filters
       return nil unless project_group_ids.reject(&:blank?).present?
 
       GrdaWarehouse::ProjectGroup.where(id: project_group_ids).pluck(:name)
+    end
+
+    def chosen_funding_sources
+      return nil unless funder_ids.reject(&:blank?).present?
+
+      GrdaWarehouse::Hud::Funder.where(id: funder_ids).
+        pluck(:Funder).
+        map do |funder_code|
+          "#{HUD.funding_source(funder_code&.to_i)} (#{funder_code})"
+        end
     end
 
     def chosen_veteran_statuses
