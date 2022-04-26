@@ -31,7 +31,18 @@ module
           short_label: 'Project Type',
           value: describe_project_type_control_section,
         )
-        add_coordinated_entry_sections(section)
+        section.add_control(
+          id: 'coordinated_assessment_living_situation_homeless',
+          label: 'Including CE homeless at entry?',
+          value: @filter.coordinated_assessment_living_situation_homeless ? 'Yes' : nil,
+          hint: "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HUD.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
+        )
+        section.add_control(
+          id: 'ce_cls_as_homeless',
+          label: 'Including CE Current Living Situation Homeless',
+          value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
+          hint: "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HUD.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
+        )
         section.add_control(
           id: 'reporting_period',
           required: true,
@@ -43,27 +54,6 @@ module
             value: nil,
           )
         end
-      end
-    end
-
-    private def add_coordinated_entry_sections(section)
-      section.add_control(
-        id: 'coordinated_assessment_living_situation_homeless',
-        label: 'Including CE homeless at entry?',
-        value: @filter.coordinated_assessment_living_situation_homeless ? 'Yes' : nil,
-        hint: "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HUD.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
-      )
-      section.add_control(
-        id: 'ce_cls_as_homeless',
-        label: 'Including CE Current Living Situation Homeless',
-        value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
-        hint: "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HUD.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
-      )
-    end
-
-    protected def build_coordinate_assessment_control_section
-      ::Filters::UiControlSection.new(id: 'coordinated_entry').tap do |section|
-        add_coordinated_entry_sections(section)
       end
     end
 
