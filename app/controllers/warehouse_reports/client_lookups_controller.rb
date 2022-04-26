@@ -10,7 +10,8 @@ module WarehouseReports
     include ArelHelper
 
     def index
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id, enforce_one_year_range: false).update(report_params)
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id, enforce_one_year_range: false)
+      @filter.update(report_params)
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -33,14 +34,7 @@ module WarehouseReports
     private def report_params
       return nil unless params[:report].present?
 
-      params.require(:report).
-        permit(
-          :start_date,
-          :end_date,
-          project_ids: [],
-          organization_ids: [],
-          data_source_ids: [],
-        )
+      params.require(:report).permit(@filter.known_params)
     end
 
     private def client_source

@@ -18,11 +18,12 @@
           = color_data[:description]
 .d-flex
   .ml-auto.mr-auto.d-flex
-    Percentage of homeless population
+    - if @report.settings.map_overall_geography_census?
+      Population group rate by location
+    - else
+      Percentage of homeless population
 
-- # include the map class directly
-- map_type = @report.map_type
-= render map_type
+= render 'map_js'
 
 .d-flex
   %p.ml-auto.mr-auto.note Please note: the map above shows the number of individuals and families receiving homelessness services based on the #{@report.map_type_human} of the providers' principal site during the selected period.

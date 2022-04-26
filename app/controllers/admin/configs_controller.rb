@@ -98,6 +98,7 @@ module Admin
         :cas_calculator,
         :service_register_visible,
         :enable_youth_unstably_housed,
+        :cas_sync_project_group_id,
         client_details: [],
       )
     end
