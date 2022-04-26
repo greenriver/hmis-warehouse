@@ -10,8 +10,14 @@
         %button.btn.btn-secondary{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
           Actions
           %span.caret
-        .dropdown-menu.dropdown-menu-right{style: 'padding:10px;'}
-          %div{style: 'width: 300px;'}
+        .dropdown-menu.dropdown-menu-right{style: 'padding:10px; white-space: nowrap;'}
+          %div{style: 'padding: 0.25rem 1.5rem;'}
+            %label.bulkSubmitSelectionsLabel Submit agency and care staff selection.
+            %br
+            %button.btn.btn-default.mb-3.bulk-submit-selections{ data: {url: bulk_assign_agency_and_care_staff_admin_health_patient_referrals_path }}
+              Assign Selected Agencies and Care Staff
+          .dropdown-divider
+          %div{style: 'padding: 0.25rem 1.5rem;'}
             = simple_form_for :bulk_assignment, url: bulk_assign_agency_admin_health_patient_referrals_path do |f|
               = f.input :agency_id, as: :select_two, collection: @agencies, label_method: :name, value_method: :id, required: false
               = f.input :patient_referral_ids, as: :check_boxes, collection: @patient_referrals, label_method: :first_name, value_method: :id, wrapper_html: {style: 'display:none;'}, label: false

@@ -6,6 +6,7 @@
 
 module Admin::Health
   class PatientReferralsController < HealthController
+    before_action :authenticate_user!
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
     before_action :require_can_approve_patient_assignments!
@@ -141,8 +142,16 @@ module Admin::Health
     # rubocop:disable Style/IfInsideElse
     def assign_agency
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
-      if @patient_referral.update(assign_agency_params)
-        @patient_referral.convert_to_patient
+      permitted_params = assign_agency_params
+      care_coordinator_id = permitted_params[:patient][:care_coordinator_id] if permitted_params[:patient].present?
+      nurse_care_manager_id = permitted_params[:patient][:nurse_care_manager_id] if permitted_params[:patient].present?
+
+      if assign_agency_inner(
+        @patient_referral,
+        permitted_params[:agency_id],
+        care_coordinator_id,
+        nurse_care_manager_id,
+      )
         if request.xhr?
           if @patient_referral.assigned_agency.present?
             @success = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
@@ -168,6 +177,25 @@ module Admin::Health
     end
     # rubocop:enable Style/IfInsideElse
 
+    private def assign_agency_inner(patient_referral, agency_id = nil, care_coordinator_id = nil, nurse_care_manager_id = nil)
+      care_staff_id = care_coordinator_id.presence || nurse_care_manager_id.presence
+
+      # agency_id is only present if this is a re-assignment
+      agency_id ||= (Health::AgencyUser.where(user_id: care_staff_id.to_i).pluck(:agency_id).first if care_staff_id.present?)
+
+      return false unless patient_referral.update({ agency_id: agency_id }) # return unless
+
+      patient_referral.convert_to_patient
+      return true unless care_staff_id.present?
+
+      # Update CC and NCM
+      patient = patient_referral.patient
+      patient.update({ care_coordinator_id: care_coordinator_id, nurse_care_manager_id: nurse_care_manager_id })
+      patient.build_team_member!(Health::Team::CareCoordinator, care_coordinator_id.to_i, current_user) if care_coordinator_id.present?
+      patient.build_team_member!(Health::Team::Nurse, nurse_care_manager_id.to_i, current_user) if nurse_care_manager_id.present?
+      return true
+    end
+
     def bulk_assign_agency
       @params = params[:bulk_assignment] || {}
       @agency = Health::Agency.find(@params[:agency_id]) if @params[:agency_id].present?
@@ -185,6 +213,27 @@ module Admin::Health
         flash[:error] = 'Error: Please select patients to assign.'
         redirect_to review_admin_health_patient_referrals_path
       end
+    end
+
+    def bulk_assign_agency_and_care_staff
+      return unless params[:assignments].present?
+
+      num_patients = 0
+      failed_count = 0
+      params.require(:assignments).each do |_, obj|
+        num_patients += 1
+        patient_referral = Health::PatientReferral.find(obj[:id].to_i)
+        failed_count += 1 unless assign_agency_inner(patient_referral, nil, obj[:care_coordinator_id], obj[:nurse_care_manager_id])
+      end
+
+      if failed_count.zero?
+        flash[:success] = "#{num_patients} Patients have been assigned."
+        flash.keep(:success)
+      else
+        flash[:error] = "Failed to assign #{failed_count} patients."
+        flash.keep(:error)
+      end
+      render js: "window.location = #{review_admin_health_patient_referrals_path.to_json}"
     end
 
     private def set_sender
@@ -213,8 +262,38 @@ module Admin::Health
     def assign_agency_params
       params.require(:health_patient_referral).permit(
         :agency_id,
+        patient: [
+          :care_coordinator_id,
+          :nurse_care_manager_id,
+        ],
       )
     end
+
+    def infer_agency_name(patient)
+      care_staff_id = patient.care_coordinator_id || patient.nurse_care_manager_id
+      return unless care_staff_id.present?
+
+      Health::AgencyUser.where(user_id: care_staff_id).first&.agency&.name
+    end
+    helper_method :infer_agency_name
+
+    def care_coordinators_grouped_by_agency(patient)
+      user_ids = Health::AgencyUser.pluck(:user_id)
+      user_ids << patient.care_coordinator_id if patient.care_coordinator_id.present?
+      User.where(id: user_ids).group_by do |u|
+        Health::AgencyUser.where(user_id: u.id).first.agency.name
+      end
+    end
+    helper_method :care_coordinators_grouped_by_agency
+
+    def nurse_care_managers_grouped_by_agency(patient)
+      user_ids = Health::AgencyUser.pluck(:user_id)
+      user_ids << patient.nurse_care_manager_id if patient.nurse_care_manager_id.present?
+      User.where(id: user_ids).group_by do |u|
+        Health::AgencyUser.where(user_id: u.id).first.agency.name
+      end
+    end
+    helper_method :nurse_care_managers_grouped_by_agency
 
     def filters_path
       @filter_paths = load_tabs.map { |tab| [tab[:id], tab[:path]] }.to_h
