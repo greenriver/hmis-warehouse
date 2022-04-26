@@ -40,15 +40,17 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        image_variant:
+          - pre-cache
+          - base
+          - dj
+          - cron
 
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-
-    #- name: Install postgres
-    #  uses: harmon758/postgresql-action@v1
-    #  with:
-    #    postgresql version: '11'  # See https://hub.docker.com/_/postgres for available versions
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -65,6 +67,7 @@ jobs:
       id: prep
       env:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      if: ${{ matrix.image_variant == 'pre-cache' }}
       run: |
         export RUBY_VERSION=`cat .ruby-version`
         export PRE_CACHE_VERSION=`cat .pre-cache-version`
@@ -78,8 +81,9 @@ jobs:
 
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
 
-    - name: Build, tag, and push image to Amazon ECR
+    - name: Build, tag, and push pre-cache image to Amazon ECR
       id: build-image
+      if: ${{ matrix.image_variant == 'pre-cache' }}
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
@@ -87,9 +91,6 @@ jobs:
         SHA: ${{ github.sha }}
         PRE_CACHE_TAG: ${{ steps.prep.outputs.pre_cache_tag }}
       run: |
-        export GITHASH="${SHA::9}"
-        export IMAGE_TAG="githash-${GITHASH}"
-
         echo $SHA > $DOCKER_ASSETS_PATH/REVISION
         echo 'no tag generated' > image-tag.txt
 
@@ -107,48 +108,36 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG}
         fi
 
-        # the pre-cache image is like a stale version of the code. This builds the most recent things
-        echo Building base
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base --build-arg GITHASH=${GITHASH} -t ${ECR_REPOSITORY}:latest--base .
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      if: ${{ matrix.image_variant != 'pre-cache' }}
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        DOCKER_ASSETS_PATH: config/deploy/docker/assets
+        SHA: ${{ github.sha }}
+        PRE_CACHE_TAG: ${{ steps.prep.outputs.pre_cache_tag }}
+      run: |
+        export GITHASH="${SHA::9}"
+        export IMAGE_TAG="githash-${GITHASH}"
 
-        # tag it so we can push it remotely
-        echo Tagging base
-        docker tag ${ECR_REPOSITORY}:latest--base $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
+        echo $SHA > $DOCKER_ASSETS_PATH/REVISION
+        echo 'no tag generated' > image-tag.txt
 
-        echo Building web
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.web -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web .
+        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.${{ matrix.image_variant }} ];
+          echo Building ${{ matrix.image_variant }}
+          docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.${{ matrix.image_variant }} --build-arg GITHASH=${GITHASH} -t ${ECR_REPOSITORY}:latest--${{ matrix.image_variant }} .
 
-        echo Building deploy
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.deploy -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy .
+          echo Tagging ${{ matrix.image_variant }}
+          docker tag ${ECR_REPOSITORY}:latest--${{ matrix.image_variant }} $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--${{ matrix.image_variant }}
 
-        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
-        then
-          echo Building dj
-          docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--${{ matrix.image_variant }}
         else
-          echo Not building dj
+          echo No Dockerfile, not building ${{ matrix.image_variant }}
         fi
 
-        echo Pushing base/web/deploy
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
-        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
-        then
-          echo pushing dj
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
-        else
-          echo not pushing dj
-        fi
-
-        echo $IMAGE_TAG--base > image-tag.txt
-        echo $IMAGE_TAG--web >> image-tag.txt
-        echo $IMAGE_TAG--dj >> image-tag.txt
-        echo $IMAGE_TAG--deploy >> image-tag.txt
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base"
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web"
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj"
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy"
+        echo $IMAGE_TAG--${{ matrix.image_variant }} >> image-tag.txt
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--${{ matrix.image_variant }}"
 
     - name: Show image tag
       uses: actions/upload-artifact@v1
