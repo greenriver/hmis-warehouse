@@ -90,6 +90,7 @@ class DocumentExportsControllerBase < ApplicationController
       'GrdaWarehouse::DocumentExports::BedUtilizationExport',
       'PerformanceMeasurement::DocumentExports::ReportExport',
       'HomelessSummaryReport::DocumentExports::ReportExport',
+      'GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport',
     ]
   end
 end
