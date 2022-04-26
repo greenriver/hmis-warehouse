@@ -26,7 +26,7 @@ class AssetCompiler
   def self.compiled_assets_s3_path(target_group_name, checksum)
     target_group_name = target_group_name.gsub(/[^0-9A-Za-z\_\-]/, '') # Sanitize for cli.
     checksum = checksum.gsub(/[^0-9A-Za-z]/, '') # Sanitize for cli.
-    File.sanitize(File.join(COMPILED_ASSETS_BUCKET, target_group_name, checksum))
+    File.join(COMPILED_ASSETS_BUCKET, target_group_name, checksum)
   end
 
   def run!
