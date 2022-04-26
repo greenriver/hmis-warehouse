@@ -6,6 +6,7 @@
 
 module Filters
   class HudFilterBase < FilterBase
+    include ArelHelper
     validates_presence_of :coc_codes
 
     # Force people to choose project types because they are additive with projects
@@ -21,7 +22,12 @@ module Filters
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids += effective_project_ids_from_project_types
 
-      # TODO: determine which projects should be excluded/included based on chosen funding sources (include all if no funding sources present) and remove from effective_project_ids
+      if funder_ids.present?
+        @effective_project_ids = funder_scope.where(id: funder_ids).
+          joins(:project).
+          where(p_t[:id].in(@effective_project_ids)).
+          pluck(p_t[:id])
+      end
 
       # Add an invalid id if there are none
       @effective_project_ids = [0] if @effective_project_ids.empty?
@@ -49,6 +55,10 @@ module Filters
 
     private def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry
+    end
+
+    private def funder_scope
+      GrdaWarehouse::Hud::Funder
     end
   end
 end

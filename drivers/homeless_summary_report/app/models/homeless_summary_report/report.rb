@@ -102,7 +102,6 @@ module HomelessSummaryReport
       # ensure filter has been set
       filter
       [
-        # build_coordinate_assessment_control_section,
         build_hoh_control_section,
         build_funding_section,
       ]
