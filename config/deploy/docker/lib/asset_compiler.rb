@@ -49,7 +49,7 @@ class AssetCompiler
 
     existing_assets = ''
     time_me name: 'Checking if compiled assets already exist' do
-      existing_assets = `aws s3 ls #{compiled_assets_s3_path(@target_group_name, checksum).shellescape}`.strip
+      existing_assets = `aws s3 ls #{self.class.compiled_assets_s3_path(@target_group_name, checksum).shellescape}`.strip
     end
 
     unless existing_assets.empty?
@@ -62,7 +62,7 @@ class AssetCompiler
     end
 
     time_me name: 'Uploading compiled assets' do
-      system("aws s3 cp --recursive public/assets s3://#{compiled_assets_s3_path(@target_group_name, checksum).shellescape} >/dev/null")
+      system("aws s3 cp --recursive public/assets s3://#{self.class.compiled_assets_s3_path(@target_group_name, checksum).shellescape} >/dev/null")
     end
   end
 end
