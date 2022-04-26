@@ -118,8 +118,8 @@ module HomelessSummaryReport
       # ensure filter has been set
       filter
       [
-        build_hoh_control_section,
         build_funding_section,
+        build_hoh_control_section,
       ]
     end
 
