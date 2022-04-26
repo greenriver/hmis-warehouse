@@ -8,8 +8,8 @@ class AssetCompiler
   COMPILED_ASSETS_BUCKET = 'openpath-precompiled-assets'.freeze
 
   def initialize(*args)
-    @target_group_name = args[0][:target_group_name]
-    @secret_arn = args[0][:secrets_arn]
+    @target_group_name = args[0][:target_group_name].gsub(/[^0-9A-Za-z\_\-]/, '') # Sanitize for cli.
+    @secret_arn = args[0][:secrets_arn].gsub(/[^0-9A-Za-z\_\-\:\/]/, '') # Sanitize for cli.
   end
 
   def time_me(name: '<unnamed>', &block)
@@ -23,9 +23,15 @@ class AssetCompiler
     end
   end
 
+  def self.compiled_assets_s3_path(target_group_name, checksum)
+    target_group_name = target_group_name.gsub(/[^0-9A-Za-z\_\-]/, '') # Sanitize for cli.
+    checksum = checksum.gsub(/[^0-9A-Za-z]/, '') # Sanitize for cli.
+    File.sanitize(File.join(COMPILED_ASSETS_BUCKET, target_group_name, checksum))
+  end
+
   def run!
     time_me name: 'Secrets download' do
-      system(`SECRET_ARN=#{@secret_arn} bin/download_secrets.rb > .env`)
+      system(`SECRET_ARN=#{@secret_arn.shellescape} bin/download_secrets.rb > .env`)
     end
 
     Dotenv.load('.env', '.env.local')
@@ -36,14 +42,14 @@ class AssetCompiler
 
     checksum = '<nochecksum>'
     time_me name: 'Checksumming' do
-      checksum = `SECRET_ARN=#{@secret_arn} ASSETS_PREFIX=#{@target_group_name} bin/asset_checksum`.split(' ')[-1]
+      checksum = `SECRET_ARN=#{@secret_arn.shellescape} ASSETS_PREFIX=#{@target_group_name.shellescape} bin/asset_checksum`.split(' ')[-1]
     end
 
     puts "Asset checksum: [#{checksum}]"
 
     existing_assets = ''
     time_me name: 'Checking if compiled assets already exist' do
-      existing_assets = `aws s3 ls #{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum}`.strip
+      existing_assets = `aws s3 ls #{compiled_assets_s3_path(@target_group_name, checksum).shellescape}`.strip
     end
 
     unless existing_assets.empty?
@@ -56,7 +62,7 @@ class AssetCompiler
     end
 
     time_me name: 'Uploading compiled assets' do
-      system("aws s3 cp --recursive public/assets s3://#{COMPILED_ASSETS_BUCKET}/#{@target_group_name}/#{checksum} >/dev/null")
+      system("aws s3 cp --recursive public/assets s3://#{compiled_assets_s3_path(@target_group_name, checksum).shellescape} >/dev/null")
     end
   end
 end
