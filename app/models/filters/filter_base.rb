@@ -895,11 +895,7 @@ module Filters
     def chosen_funding_sources
       return nil unless funder_ids.reject(&:blank?).present?
 
-      GrdaWarehouse::Hud::Funder.where(id: funder_ids).
-        pluck(:Funder).
-        map do |funder_code|
-          "#{HUD.funding_source(funder_code&.to_i)} (#{funder_code})"
-        end
+      funder_ids.map { |code| "#{HUD.funding_source(code&.to_i)} (#{code})" }
     end
 
     def chosen_veteran_statuses
