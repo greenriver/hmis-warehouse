@@ -1,0 +1,9 @@
+- title = _('Built For Zero Monthly Report')
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'audit'
+%h1.mb-5= title
+= render 'filter'
+- if @section.present?
+  .card
+    = render @section

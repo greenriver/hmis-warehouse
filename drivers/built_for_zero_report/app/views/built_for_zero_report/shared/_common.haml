@@ -1,0 +1,63 @@
+.row
+  .col
+    %h2 Actively Homeless
+.row
+  .col
+    %table.table.table-striped
+      %tbody
+        %tr
+          %td
+            = "#{population}"
+          %td
+            =  data.actively_homeless.count
+.row
+  .col
+    %h2 Length of Time from Identification to Housing
+.row
+  .col
+    %table.table.table-striped
+      %tbody
+        %tr
+          %td
+            = "For #{population}"
+          %td
+            - _, average = data.average_lot_to_housing
+            = average
+.row
+  .col
+    %h2 Outflow
+.row
+  .col
+    %table.table.table-striped
+      %tbody
+        %tr
+          %td
+            Housing Placements
+          %td= data.housed.count
+        %tr
+          %td
+            Moved to Inactive
+          %td= data.inactive.count
+        %tr
+          %td
+            No Longer Meets Population Criteria
+          %td= data.ineligible.count
+.row
+  .col
+    %h2 Inflow
+.row
+  .col
+    %table.table.table-striped
+      %tbody
+        %tr
+          %td
+            Newly Identified
+          %td= data.newly_identified.count
+        %tr
+          %td
+            Returned to Active List from Housing
+          %td= data.returned_from_housing.count
+        %tr
+          %td
+            Returned to Active List from Inactive
+          %td= data.returned_from_inactivity.count

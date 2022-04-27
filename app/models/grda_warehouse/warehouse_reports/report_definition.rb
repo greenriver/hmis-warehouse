@@ -1191,6 +1191,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:built_for_zero_report)
+        r_list['Operational'] << {
+          url: 'built_for_zero_report/warehouse_reports/bfz',
+          name: _('Built For Zero Monthly Report'),
+          description: 'Generate Built For Zero monthly reporting information',
+          limitable: false,
+          health: false,
+        }
+      end
 
       r_list
     end

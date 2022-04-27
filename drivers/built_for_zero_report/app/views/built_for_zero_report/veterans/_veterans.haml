@@ -1,0 +1,12 @@
+= render 'built_for_zero_report/shared/common', data: @section.veterans, population: 'Veterans'
+.row
+  .col
+    %h2 Chronic Veterans
+.row
+  .col
+    %table.table.table-striped
+      %tbody
+        %tr
+          %td
+            Actively Homeless Chronic Veterans
+          %td= @section.chronic_veterans.actively_homeless.count
