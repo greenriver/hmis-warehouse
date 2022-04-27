@@ -27,8 +27,8 @@
   - elsif pr.patient&.client&.present?
     = simple_form_for pr, url: admin_health_patient_referral_assign_agency_path(pr), method: :post, remote: true do |f|
       = f.simple_fields_for :patient, pr.patient do |pf|
-        = pf.input :care_coordinator_id, collection: care_coordinators_grouped_by_agency(pr.patient), input_html: {class: [:careCoordinator], id: "patient_care_coordinator_id_#{pr.patient.id}", data: {patient_id: pr.patient.id}}, as: :grouped_select_two, group_method: :last
-        = pf.input :nurse_care_manager_id, collection: nurse_care_managers_grouped_by_agency(pr.patient), input_html: {class: [:nurseCareManager], id: "nurse_care_manager_id_#{pr.patient.id}", data: {patient_id: pr.patient.id}}, as: :grouped_select_two, group_method: :last
+        = pf.input :care_coordinator_id, collection: care_staff_grouped_by_agency(pr.patient.care_coordinator_id), input_html: {class: [:careCoordinator], id: "patient_care_coordinator_id_#{pr.patient.id}", data: {patient_id: pr.patient.id}}, as: :grouped_select_two, group_method: :last
+        = pf.input :nurse_care_manager_id, collection: care_staff_grouped_by_agency(pr.patient.nurse_care_manager_id), input_html: {class: [:nurseCareManager], id: "nurse_care_manager_id_#{pr.patient.id}", data: {patient_id: pr.patient.id}}, as: :grouped_select_two, group_method: :last
       - inferred_agency = infer_agency_name(pr.patient)
       - submit_label = inferred_agency.present? ? "Assign to #{inferred_agency}" : 'Assign to Agency'
       = f.submit submit_label, class: 'btn btn-secondary btn-sm', disabled: !inferred_agency.present?

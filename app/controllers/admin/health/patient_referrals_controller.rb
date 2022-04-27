@@ -276,23 +276,14 @@ module Admin::Health
     end
     helper_method :infer_agency_name
 
-    def care_coordinators_grouped_by_agency(patient)
-      user_ids = Health::AgencyUser.pluck(:user_id)
-      user_ids << patient.care_coordinator_id if patient.care_coordinator_id.present?
+    def care_staff_grouped_by_agency(currently_selected_id)
+      user_ids = Health::AgencyUser.where(user_id: User.active.pluck(:id)).pluck(:user_id)
+      user_ids << currently_selected_id if currently_selected_id.present?
       User.where(id: user_ids).group_by do |u|
         Health::AgencyUser.where(user_id: u.id).first.agency.name
       end
     end
-    helper_method :care_coordinators_grouped_by_agency
-
-    def nurse_care_managers_grouped_by_agency(patient)
-      user_ids = Health::AgencyUser.pluck(:user_id)
-      user_ids << patient.nurse_care_manager_id if patient.nurse_care_manager_id.present?
-      User.where(id: user_ids).group_by do |u|
-        Health::AgencyUser.where(user_id: u.id).first.agency.name
-      end
-    end
-    helper_method :nurse_care_managers_grouped_by_agency
+    helper_method :care_staff_grouped_by_agency
 
     def filters_path
       @filter_paths = load_tabs.map { |tab| [tab[:id], tab[:path]] }.to_h
