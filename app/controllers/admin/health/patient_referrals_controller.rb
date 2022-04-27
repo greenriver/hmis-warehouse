@@ -6,7 +6,6 @@
 
 module Admin::Health
   class PatientReferralsController < HealthController
-    before_action :authenticate_user!
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
     before_action :require_can_approve_patient_assignments!
@@ -148,9 +147,9 @@ module Admin::Health
 
       if assign_agency_inner(
         @patient_referral,
-        permitted_params[:agency_id],
-        care_coordinator_id,
-        nurse_care_manager_id,
+        agency_id: permitted_params[:agency_id],
+        care_coordinator_id: care_coordinator_id,
+        nurse_care_manager_id: nurse_care_manager_id,
       )
         if request.xhr?
           if @patient_referral.assigned_agency.present?
@@ -177,13 +176,13 @@ module Admin::Health
     end
     # rubocop:enable Style/IfInsideElse
 
-    private def assign_agency_inner(patient_referral, agency_id = nil, care_coordinator_id = nil, nurse_care_manager_id = nil)
+    private def assign_agency_inner(patient_referral, agency_id: nil, care_coordinator_id: nil, nurse_care_manager_id: nil)
       care_staff_id = care_coordinator_id.presence || nurse_care_manager_id.presence
 
       # agency_id is only present if this is a re-assignment
       agency_id ||= (Health::AgencyUser.where(user_id: care_staff_id.to_i).pluck(:agency_id).first if care_staff_id.present?)
 
-      return false unless patient_referral.update({ agency_id: agency_id }) # return unless
+      return false unless patient_referral.update({ agency_id: agency_id })
 
       patient_referral.convert_to_patient
       return true unless care_staff_id.present?
@@ -223,7 +222,7 @@ module Admin::Health
       params.require(:assignments).each do |_, obj|
         num_patients += 1
         patient_referral = Health::PatientReferral.find(obj[:id].to_i)
-        failed_count += 1 unless assign_agency_inner(patient_referral, nil, obj[:care_coordinator_id], obj[:nurse_care_manager_id])
+        failed_count += 1 unless assign_agency_inner(patient_referral, care_coordinator_id: obj[:care_coordinator_id], nurse_care_manager_id: obj[:nurse_care_manager_id])
       end
 
       if failed_count.zero?
