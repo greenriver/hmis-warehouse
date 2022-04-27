@@ -1008,7 +1008,8 @@ module Health
     end
 
     def available_user_ids
-      Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
+      user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
+      User.where(id: user_ids).merge(User.active).pluck(:id)
     end
 
     def available_care_coordinators
