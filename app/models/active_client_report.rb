@@ -8,10 +8,28 @@ class ActiveClientReport
   include ClientDetailReport
   include Filter::FilterScopes
   include ArelHelper
+  attr_reader :filter
 
   def initialize(filter:, user:)
     @user = user
     @filter = filter
+  end
+
+  def self.url
+    'warehouse_reports/client_details/actives'
+  end
+
+  def self.viewable_by(user)
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
+      viewable_by(user).exists?
+  end
+
+  def key_for_display(key)
+    key.to_s.humanize
+  end
+
+  def value_for_display(_key, value)
+    value
   end
 
   def enrollments

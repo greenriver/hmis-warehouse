@@ -1,6 +1,7 @@
 :ruby
+  excel_download_tooltip ||= ''
   filter_params = {}
-  (params['filters'] || {}).to_h.each_pair do |key, value|
+  (params['filters'] || params['filter'] || {}).to_h.each_pair do |key, value|
     if value.is_a?(Array)
       value = value.map(&:presence).compact.presence
     end
@@ -9,7 +10,8 @@
     end
   end
   report_params = {
-    'filters' => filter_params
+    'filters' => filter_params,
+    'filter' => filter_params,
   }
   report_params['id'] = params['id'] if params['id'].present?
 
@@ -23,4 +25,4 @@
     }
   end
 
-= render 'report_downloads/report_download_button', export: export, data: data, excel_download_path: excel_download_path
+= render 'report_downloads/report_download_button', export: export, data: data, excel_download_path: excel_download_path, excel_download_tooltip: excel_download_tooltip
