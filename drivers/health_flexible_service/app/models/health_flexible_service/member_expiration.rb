@@ -8,15 +8,6 @@ module HealthFlexibleService
   class MemberExpiration
     include ArelHelper
 
-    def self.viewable_by(user)
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
-        viewable_by(user).exists?
-    end
-
-    def self.url
-      'health_flexible_service/warehouse_reports/member_expiration'
-    end
-
     def title
       'VPR Member Expiration'
     end
