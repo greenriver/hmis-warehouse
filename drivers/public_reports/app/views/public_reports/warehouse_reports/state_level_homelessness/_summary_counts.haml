@@ -7,7 +7,7 @@
   .col-sm-6.summary-count
     .count= @report.enforce_min_threshold(data['summary'], 'homeless_clients')
     %h3.title
-      Total Homeless People in #{data['summary']['year']}
+      Total People Experiencing Homelessness in #{data['summary']['year']}
       = render 'glossary_button'
   .col-sm-6.summary-count
     .count= @report.enforce_min_threshold(data['summary'], 'unsheltered_percent')
