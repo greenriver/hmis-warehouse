@@ -8,6 +8,7 @@ module BuiltForZeroReport
   class Families
     include ActiveModel::Model
     attr_accessor :families
+    alias data families
 
     def initialize(start_date, end_date)
       @families = Calculator.new(:adult_and_child_cohort, start_date, end_date)

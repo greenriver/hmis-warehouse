@@ -9,4 +9,6 @@
         %tr
           %td
             Actively Homeless Chronic Veterans
-          %td= @section.chronic_veterans.actively_homeless.count
+          %td.text-right
+            = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :chronic_veterans) } ), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+              = @section.chronic_veterans.actively_homeless.count

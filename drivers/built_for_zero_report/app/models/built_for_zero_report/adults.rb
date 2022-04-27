@@ -8,6 +8,7 @@ module BuiltForZeroReport
   class Adults
     include ActiveModel::Model
     attr_accessor :adults
+    alias data adults
 
     def initialize(start_date, end_date)
       @adults = Calculator.new(:adult_only_cohort, start_date, end_date)

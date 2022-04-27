@@ -8,6 +8,7 @@ module BuiltForZeroReport
   class Youth
     include ActiveModel::Model
     attr_accessor :youth
+    alias data youth
 
     def initialize(start_date, end_date)
       # FIXME: is this correct? The spec says 'unaccompanied', and this includes youth-only households.

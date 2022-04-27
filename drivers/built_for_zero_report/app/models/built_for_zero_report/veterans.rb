@@ -8,6 +8,7 @@ module BuiltForZeroReport
   class Veterans
     include ActiveModel::Model
     attr_accessor :veterans
+    alias data veterans
     attr_accessor :chronic_veterans
 
     def initialize(start_date, end_date)

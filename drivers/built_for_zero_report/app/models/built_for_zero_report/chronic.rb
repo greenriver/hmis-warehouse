@@ -8,6 +8,7 @@ module BuiltForZeroReport
   class Chronic
     include ActiveModel::Model
     attr_accessor :chronic
+    alias data chronic
 
     def initialize(start_date, end_date)
       @chronic = Calculator.new(:chronic_cohort, start_date, end_date)

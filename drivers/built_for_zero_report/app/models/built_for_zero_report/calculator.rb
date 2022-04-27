@@ -54,7 +54,7 @@ module BuiltForZeroReport
     def average_lot_to_housing
       client_count = lot_to_housing.count
       sum_of_days = lot_to_housing.map { |_, v| v[:lot_to_housing] }.sum
-      [lot_to_housing, sum_of_days / client_count.to_f] # TODO Rounding?
+      sum_of_days / client_count.to_f # TODO Rounding?
     end
 
     # @return [SourceDataHash] clients in cohort who became inactive in the reporting period
@@ -128,7 +128,7 @@ module BuiltForZeroReport
 
     # Extend the source data hash from the housed clients to include LOT data
     # @return [Hash{Integer => Hash}] Hash of destination client IDs to extended source data hashes
-    private def lot_to_housing
+    def lot_to_housing
       @lot_to_housing ||= begin
         housed_clients = housed
         first_enrollment_dates = GrdaWarehouse::ServiceHistoryEnrollment.
@@ -137,13 +137,14 @@ module BuiltForZeroReport
           to_h
         housed_clients.map do |client_id, data|
           first_date = first_enrollment_dates[client_id]
-          data.merge(
+          data.merge!(
             {
               identification_date: first_date,
               lot_to_housing: (data[:changed_at].to_date - first_date).to_i,
             },
           )
         end
+        housed_clients
       end
     end
   end
