@@ -219,6 +219,7 @@ module GrdaWarehouse::Tasks
         assessor_last_name: :assessor_last_name,
         assessor_email: :assessor_email,
         assessor_phone: :assessor_phone,
+        match_rank: :match_rank,
       }
     end
 
