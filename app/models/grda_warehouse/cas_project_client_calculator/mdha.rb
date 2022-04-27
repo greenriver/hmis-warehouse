@@ -9,7 +9,7 @@ module GrdaWarehouse::CasProjectClientCalculator
   class Mdha
     def value_for_cas_project_client(client:, column:)
       current_value = client.send(column)
-      return current_value unless column.to_sym == :match_rank
+      return current_value unless column.to_sym == :match_group
 
       # return 1 if has encampment decomissioning flag
 
