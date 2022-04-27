@@ -17,7 +17,7 @@ module HealthFlexibleService
 
       report_scope_source.
         select(report_scope_source.column_names + [vpr_t[:end_date]]).
-        where(vpr_t[:open].eq(true).and(vpr_t[:end_date].lteq(Date.today))).
+        merge(HealthFlexibleService::Vpr.expired_before(Date.tomorrow)).
         order(vpr_t[:end_date].desc).
         preload(:flexible_services, :client).
         distinct
