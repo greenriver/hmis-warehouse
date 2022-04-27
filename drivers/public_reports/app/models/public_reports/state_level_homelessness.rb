@@ -22,6 +22,10 @@ module PublicReports
       _('State-Level Homelessness Report Generator')
     end
 
+    def yearly?
+      settings.iteration_type.to_s == 'year'
+    end
+
     def instance_title
       _('State-Level Homelessness Report')
     end
@@ -160,7 +164,7 @@ module PublicReports
     private def chart_data
       {
         date_range: filter_object.date_range_words,
-        quarters: quarter_dates,
+        quarters: iteration_dates,
         summary: summary,
         pit_chart: pit_chart,
         inflow_outflow: inflow_outflow,
@@ -207,16 +211,34 @@ module PublicReports
         where(client_id: report_scope.select(:client_id))
     end
 
-    private def quarter_dates
+    private def iteration_dates
       date = filter_object.start_date
       # force the start to be within the chosen date range
-      date = date.next_quarter if date.beginning_of_quarter < date
+      date = date.send(next_iteration_method) if date.send(beginning_iteration_method) < date
       dates = []
       while date <= filter_object.end_date
-        dates << date.beginning_of_quarter
-        date = date.next_quarter
+        dates << date.send(beginning_iteration_method)
+        date = date.send(next_iteration_method)
       end
       dates
+    end
+
+    private def next_iteration_method
+      return :next_quarter unless yearly?
+
+      return :next_year
+    end
+
+    private def beginning_iteration_method
+      return :beginning_of_quarter unless yearly?
+
+      return :beginning_of_year
+    end
+
+    private def end_iteration_method
+      return :end_of_quarter unless yearly?
+
+      return :end_of_year
     end
 
     private def summary
@@ -344,9 +366,9 @@ module PublicReports
       {}.tap do |charts|
         charts[:all_homeless] = {}
         charts[:homeless_veterans] = {}
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = date.send(beginning_iteration_method)
+          end_date = date.send(end_iteration_method)
           scope = homeless_scope.with_service_between(
             start_date: start_date,
             end_date: end_date,
@@ -378,9 +400,9 @@ module PublicReports
 
     private def household_type
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = date.send(beginning_iteration_method)
+          end_date = date.send(end_iteration_method)
 
           adult = adult_only_household_ids(start_date, end_date).count
           both = adult_and_child_household_ids(start_date, end_date).count
@@ -410,9 +432,9 @@ module PublicReports
         client_cache = GrdaWarehouse::Hud::Client.new
         # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
         races = ::HUD.races(multi_racial: true)
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = date.send(beginning_iteration_method)
+          end_date = date.send(end_iteration_method)
           client_ids = Set.new
           data = {}
           census_data = {}
@@ -580,10 +602,10 @@ module PublicReports
       self.map_max_rate ||= 0
       self.map_max_count ||= 0
       {}.tap do |charts|
-        quarter_dates.each do |date|
+        iteration_dates.each do |date|
           iso_date = date.iso8601
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+          start_date = date.send(beginning_iteration_method)
+          end_date = date.send(end_iteration_method)
           charts[iso_date] = {}
           map_geography.each do |code|
             population_overall = overall_population_geography(date.year, code)
@@ -697,9 +719,9 @@ module PublicReports
         'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = date.send(beginning_iteration_method)
+          end_date = date.send(end_iteration_method)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -734,9 +756,9 @@ module PublicReports
         'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = date.send(beginning_iteration_method)
+          end_date = date.send(end_iteration_method)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -768,9 +790,9 @@ module PublicReports
         'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(0..17)),
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = date.send(beginning_iteration_method)
+          end_date = date.send(end_iteration_method)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -805,9 +827,9 @@ module PublicReports
         'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown,
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = date.send(beginning_iteration_method)
+          end_date = date.send(end_iteration_method)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -839,9 +861,9 @@ module PublicReports
         'Other or Unknown' => GrdaWarehouse::Hud::Client.with_race_none,
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = date.send(beginning_iteration_method)
+          end_date = date.send(end_iteration_method)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -951,7 +973,7 @@ module PublicReports
     end
 
     def map_shape_json
-      cache_key = "map-shape-json-#{PublicReports::Setting.first.map_type}-#{ENV['RELEVANT_COC_STATE']}"
+      cache_key = "map-shape-json-#{settings.map_type}-#{ENV['RELEVANT_COC_STATE']}"
       Rails.cache.fetch(cache_key, expires_in: 4.hours) do
         Oj.dump(map_shapes, mode: :compat).html_safe
       end
@@ -1014,7 +1036,7 @@ module PublicReports
 
     private def population_by_coc
       @population_by_coc ||= {}.tap do |charts|
-        quarter_dates.map(&:year).uniq.each do |year|
+        iteration_dates.map(&:year).uniq.each do |year|
           charts[year] = {}
           geometries.each do |coc|
             charts[year][coc.cocnum] = coc.population(internal_names: ALL_PEOPLE, year: year).val
@@ -1025,15 +1047,15 @@ module PublicReports
 
     # ZIP CODES
     def map_by_zip?
-      PublicReports::Setting.first.map_type == 'zip'
+      settings.map_type == 'zip'
     end
 
     def map_by_place?
-      PublicReports::Setting.first.map_type == 'place'
+      settings.map_type == 'place'
     end
 
     def map_by_county?
-      PublicReports::Setting.first.map_type == 'county'
+      settings.map_type == 'county'
     end
 
     def map_type
@@ -1066,7 +1088,7 @@ module PublicReports
 
     private def population_by_zip
       @population_by_zip ||= {}.tap do |charts|
-        quarter_dates.map(&:year).uniq.each do |year|
+        iteration_dates.map(&:year).uniq.each do |year|
           charts[year] = {}
           zip_geometries.each do |geo|
             charts[year][geo.zcta5ce10] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
@@ -1089,7 +1111,7 @@ module PublicReports
 
     private def population_by_county
       @population_by_county ||= {}.tap do |charts|
-        quarter_dates.map(&:year).uniq.each do |year|
+        iteration_dates.map(&:year).uniq.each do |year|
           charts[year] = {}
           county_geometries.each do |geo|
             charts[year][geo.name] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
@@ -1112,7 +1134,7 @@ module PublicReports
 
     private def population_by_place
       @population_by_place ||= {}.tap do |charts|
-        quarter_dates.map(&:year).uniq.each do |year|
+        iteration_dates.map(&:year).uniq.each do |year|
           charts[year] = {}
           place_geometries.each do |geo|
             charts[year][geo.name] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
