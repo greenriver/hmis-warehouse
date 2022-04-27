@@ -17,6 +17,10 @@
       - if Rails.env.development?
         .git-branch.ml-auto
           = branch_info
+        .git-branch.ml-4
+          .navbar-text
+            .label.label-warning
+              = Rails.version
         .rails-env.ml-4.mr-6
           .navbar-text
             %span.label.label-success

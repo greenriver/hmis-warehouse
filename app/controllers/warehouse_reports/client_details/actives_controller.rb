@@ -9,6 +9,7 @@ module WarehouseReports::ClientDetails
     include WarehouseReportAuthorization
     include ClientDetailReports
     extend BackgroundRenderAction
+    before_action :set_pdf_export
 
     before_action :set_limited, only: [:index]
     before_action :set_filter
@@ -37,6 +38,10 @@ module WarehouseReports::ClientDetails
 
     def report_source
       ActiveClientReport
+    end
+
+    private def set_pdf_export
+      @pdf_export = GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport.new
     end
   end
 end
