@@ -130,9 +130,11 @@ module PublicReports
     def sections
       [
         :pit,
+        :entering_exiting,
         :summary,
         :map,
         :who,
+        :race,
         :raw,
       ].
         freeze
