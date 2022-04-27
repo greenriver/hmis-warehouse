@@ -23,7 +23,7 @@ module Filters
       @effective_project_ids += effective_project_ids_from_project_types
 
       if funder_ids.present?
-        @effective_project_ids = funder_scope.where(id: funder_ids).
+        @effective_project_ids = funder_scope.where(Funder: funder_ids).
           joins(:project).
           where(p_t[:id].in(@effective_project_ids)).
           distinct.
