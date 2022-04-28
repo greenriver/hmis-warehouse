@@ -23,7 +23,6 @@ module PublicReports
       {
         quarter: 'Quarters',
         year: 'Years',
-
       }
     end
 
