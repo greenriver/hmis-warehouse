@@ -7,7 +7,7 @@
 module HealthFlexibleService::WarehouseReports
   class MemberListsController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :require_can_administer_health!
+    before_action :require_can_view_all_vprs!
     before_action :set_parameters
 
     def index
