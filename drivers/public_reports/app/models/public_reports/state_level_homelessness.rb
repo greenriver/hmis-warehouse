@@ -214,10 +214,10 @@ module PublicReports
     private def iteration_dates
       date = filter_object.start_date
       # force the start to be within the chosen date range
-      date = next_iteration(date) if beginning_iteration_method(date) < date
+      date = next_iteration(date) if beginning_iteration(date) < date
       dates = []
       while date <= filter_object.end_date
-        dates << beginning_iteration_method(date)
+        dates << beginning_iteration(date)
         date = next_iteration(date)
       end
       dates
@@ -367,7 +367,7 @@ module PublicReports
         charts[:all_homeless] = {}
         charts[:homeless_veterans] = {}
         iteration_dates.each do |date|
-          start_date = beginning_iteration_method(date)
+          start_date = beginning_iteration(date)
           end_date = end_iteration(date)
           scope = homeless_scope.with_service_between(
             start_date: start_date,
@@ -401,7 +401,7 @@ module PublicReports
     private def household_type
       {}.tap do |charts|
         iteration_dates.each do |date|
-          start_date = beginning_iteration_method(date)
+          start_date = beginning_iteration(date)
           end_date = end_iteration(date)
 
           adult = adult_only_household_ids(start_date, end_date).count
@@ -433,7 +433,7 @@ module PublicReports
         # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
         races = ::HUD.races(multi_racial: true)
         iteration_dates.each do |date|
-          start_date = beginning_iteration_method(date)
+          start_date = beginning_iteration(date)
           end_date = end_iteration(date)
           client_ids = Set.new
           data = {}
@@ -604,7 +604,7 @@ module PublicReports
       {}.tap do |charts|
         iteration_dates.each do |date|
           iso_date = date.iso8601
-          start_date = beginning_iteration_method(date)
+          start_date = beginning_iteration(date)
           end_date = end_iteration(date)
           charts[iso_date] = {}
           map_geography.each do |code|
@@ -720,7 +720,7 @@ module PublicReports
       }
       {}.tap do |charts|
         iteration_dates.each do |date|
-          start_date = beginning_iteration_method(date)
+          start_date = beginning_iteration(date)
           end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
@@ -757,7 +757,7 @@ module PublicReports
       }
       {}.tap do |charts|
         iteration_dates.each do |date|
-          start_date = beginning_iteration_method(date)
+          start_date = beginning_iteration(date)
           end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
@@ -791,7 +791,7 @@ module PublicReports
       }
       {}.tap do |charts|
         iteration_dates.each do |date|
-          start_date = beginning_iteration_method(date)
+          start_date = beginning_iteration(date)
           end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
@@ -828,7 +828,7 @@ module PublicReports
       }
       {}.tap do |charts|
         iteration_dates.each do |date|
-          start_date = beginning_iteration_method(date)
+          start_date = beginning_iteration(date)
           end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
@@ -862,7 +862,7 @@ module PublicReports
       }
       {}.tap do |charts|
         iteration_dates.each do |date|
-          start_date = beginning_iteration_method(date)
+          start_date = beginning_iteration(date)
           end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
