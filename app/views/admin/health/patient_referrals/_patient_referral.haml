@@ -1,5 +1,5 @@
 .c-card.mb-2.c-card-overflow-inherit
-  .c-card__content.jPatientReferral{class: [pr.assigned? && :jPatientReferralAssigned]}
+  .c-card__content.jPatientReferral{ data: { is_assigned: pr.assigned? }}
     .row
       .col-sm-2
         .patient-name.mb-2

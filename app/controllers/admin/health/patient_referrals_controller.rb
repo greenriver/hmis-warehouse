@@ -142,34 +142,28 @@ module Admin::Health
     def assign_agency
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
       permitted_params = assign_agency_params
-      care_coordinator_id = permitted_params[:patient][:care_coordinator_id] if permitted_params[:patient].present?
-      nurse_care_manager_id = permitted_params[:patient][:nurse_care_manager_id] if permitted_params[:patient].present?
+      care_coordinator_id = permitted_params[:patient].try(:[], :care_coordinator_id)
+      nurse_care_manager_id = permitted_params[:patient].try(:[], :nurse_care_manager_id)
 
-      if assign_agency_inner(
+      assign_agency_inner(
         @patient_referral,
         agency_id: permitted_params[:agency_id],
         care_coordinator_id: care_coordinator_id,
         nurse_care_manager_id: nurse_care_manager_id,
       )
-        if request.xhr?
-          if @patient_referral.assigned_agency.present?
-            @success = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
-          else
-            @success = 'Patient unassigned.'
-          end
+
+      if request.xhr?
+        if @patient_referral.assigned_agency.present?
+          @success = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
         else
-          if @patient_referral.assigned_agency.present?
-            flash[:notice] = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
-            redirect_to assigned_admin_health_patient_referrals_path
-          else
-            flash[:notice] = 'Patient unassigned.'
-            redirect_to review_admin_health_patient_referrals_path
-          end
+          @success = 'Patient unassigned.'
         end
       else
-        @error = 'Patient could not be assigned.'
-        unless request.xhr?
-          flash[:error] = @error
+        if @patient_referral.assigned_agency.present?
+          flash[:notice] = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
+          redirect_to assigned_admin_health_patient_referrals_path
+        else
+          flash[:notice] = 'Patient unassigned.'
           redirect_to review_admin_health_patient_referrals_path
         end
       end
@@ -182,17 +176,16 @@ module Admin::Health
       # agency_id is only present if this is a re-assignment
       agency_id ||= (Health::AgencyUser.where(user_id: care_staff_id.to_i).pluck(:agency_id).first if care_staff_id.present?)
 
-      return false unless patient_referral.update({ agency_id: agency_id })
+      patient_referral.update(agency_id: agency_id)
 
       patient_referral.convert_to_patient
-      return true unless care_staff_id.present?
+      return unless care_staff_id.present?
 
       # Update CC and NCM
       patient = patient_referral.patient
-      patient.update({ care_coordinator_id: care_coordinator_id, nurse_care_manager_id: nurse_care_manager_id })
+      patient.update(care_coordinator_id: care_coordinator_id, nurse_care_manager_id: nurse_care_manager_id)
       patient.build_team_member!(Health::Team::CareCoordinator, care_coordinator_id.to_i, current_user) if care_coordinator_id.present?
       patient.build_team_member!(Health::Team::Nurse, nurse_care_manager_id.to_i, current_user) if nurse_care_manager_id.present?
-      return true
     end
 
     def bulk_assign_agency
@@ -218,20 +211,15 @@ module Admin::Health
       return unless params[:assignments].present?
 
       num_patients = 0
-      failed_count = 0
-      params.require(:assignments).each do |_, obj|
+      params.require(:assignments).each_value do |obj|
         num_patients += 1
         patient_referral = Health::PatientReferral.find(obj[:id].to_i)
-        failed_count += 1 unless assign_agency_inner(patient_referral, care_coordinator_id: obj[:care_coordinator_id], nurse_care_manager_id: obj[:nurse_care_manager_id])
+        assign_agency_inner(patient_referral, care_coordinator_id: obj[:care_coordinator_id], nurse_care_manager_id: obj[:nurse_care_manager_id])
       end
 
-      if failed_count.zero?
-        flash[:success] = "#{num_patients} Patients have been assigned."
-        flash.keep(:success)
-      else
-        flash[:error] = "Failed to assign #{failed_count} patients."
-        flash.keep(:error)
-      end
+      pluralized = num_patients == 1 ? 'Patient has' : 'Patients have'
+      flash[:success] = "#{num_patients} #{pluralized} been assigned."
+      flash.keep(:success)
       render js: "window.location = #{review_admin_health_patient_referrals_path.to_json}"
     end
 

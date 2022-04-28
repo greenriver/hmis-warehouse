@@ -6,7 +6,8 @@
 
   # If this is a re-assignment, just reload the page
   is_assignment_str = "<%= @patient_referral.assigned_agency.present? %>"
-  if ($rowContent.hasClass 'jPatientReferralAssigned') && (is_assignment_str == "true")
+  was_assigned = $rowContent.data('is-assigned')
+  if (was_assigned? && (is_assignment_str == "true"))
     location.reload()
     return
 
