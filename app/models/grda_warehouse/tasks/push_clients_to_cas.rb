@@ -178,6 +178,7 @@ module GrdaWarehouse::Tasks
         youth_rrh_desired: :youth_rrh_desired,
         rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
         rrh_assessment_collected_at: :cas_assessment_collected_at,
+        entry_date: :cas_assessment_collected_at,
         requires_wheelchair_accessibility: :requires_wheelchair_accessibility,
         required_number_of_bedrooms: :required_number_of_bedrooms,
         required_minimum_occupancy: :required_minimum_occupancy,
