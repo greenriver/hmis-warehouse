@@ -1,0 +1,42 @@
+- title = "Active Clients"
+- content_for :title, title
+
+%h1= title
+%section
+  %h3 Selected Universe
+  .row
+    .col-6
+      .warehouse-reports__completed
+        = @report.filter.describe_filter_as_html
+    .col-6
+      .warehouse-reports__completed
+        .report-parameters__parameter
+          %label.label.label-default.parameter-label Run At
+          %label.label.label-primary.parameter-value= Time.current
+        .report-parameters__parameter
+          %label.label.label-default.parameter-label Run By
+          %label.label.label-primary.parameter-value= current_user.name_with_email
+
+%section
+  %p
+    = "The following #{@report.enrollments.count} clients with #{@report.enrollments.values.flatten(1).count} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
+
+  %table.table.table-striped
+    %thead
+      %tr
+        %th First Name
+        %th Last Name
+        %th Project Type
+        %th Project Name
+        %th Entry Date
+        %th Exit Date
+    %tbody
+      - @report.enrollments.each do |client_id, enrollments|
+        - enrollments.each do |enrollment|
+          %tr
+            %td= enrollment[:first_name]
+            %td= enrollment[:last_name]
+            %td= HUD.project_type(enrollment[:project_type])
+            %td= enrollment[:project_name]
+            %td= enrollment[:first_date_in_program]
+            %td= enrollment[:last_date_in_program]
