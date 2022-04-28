@@ -1,0 +1,23 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: @report.title[0, 30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.add_row(
+    [
+      'Medicaid ID',
+      'Last Name',
+      'First Name',
+      'VPR Start Date',
+      'VPR End Date',
+    ],
+    style: title,
+  )
+  @patients.each do |patient|
+    sheet.add_row([
+      patient.medicaid_id,
+      patient.last_name,
+      patient.first_name,
+      patient.flexible_services.last.planned_on,
+      patient.flexible_services.last.end_date,
+    ])
+  end
+end

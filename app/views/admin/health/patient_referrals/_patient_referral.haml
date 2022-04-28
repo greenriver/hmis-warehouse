@@ -1,5 +1,5 @@
 .c-card.mb-2.c-card-overflow-inherit
-  .c-card__content.jPatientReferral
+  .c-card__content.jPatientReferral{ data: { is_assigned: pr.assigned? }}
     .row
       .col-sm-2
         .patient-name.mb-2
@@ -11,7 +11,7 @@
           = link_to edit_admin_health_patient_referral_path(pr), class: ['btn', 'btn-sm', 'btn-secondary'] do
             %i.icon-pencil
             %span Edit
-      .col-sm-3
+      .col-sm-2
         %div
           %strong DOB:
           = pr.birthdate
