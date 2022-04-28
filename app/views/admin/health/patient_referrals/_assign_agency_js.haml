@@ -10,26 +10,25 @@
       $('.careCoordinator, .nurseCareManager').on('change', function(e) {
         const patientId = $(this).data("patient-id");
         const submitButton = $(this).closest('form').find(':submit');
-        const careCoordinator = $(`select[data-patient-id="${patientId}"].careCoordinator`).find(':selected').val();
-        const nurseCareManager = $(`select[data-patient-id="${patientId}"].nurseCareManager`).find(':selected').val();
 
-        if (!careCoordinator && !nurseCareManager) {
-          submitButton.val(`Assign to Agency`);
-          submitButton.prop('disabled', true);
-          updateBulkApplySelectionsLabel();
-          return;
-        }
-        if ($(this).hasClass('jNurseCareManager') && careCoordinator) {
-          // Ignore NCM selection of CC is already chosen. CC takes precedence over NCM for agency assignment.
-          return;
+        const selectedCC = $(`select[data-patient-id="${patientId}"].careCoordinator`).find(':selected')
+        const selectedNCM = $(`select[data-patient-id="${patientId}"].nurseCareManager`).find(':selected')
+
+        let selectedAgency;
+        if ($(selectedCC).val()) {
+          selectedAgency = $(selectedCC).parent().attr('label');
+        } else if ($(selectedNCM).val()) {
+          selectedAgency = $(selectedNCM).parent().attr('label');
         }
 
-        const selectedAgency = $(':selected', this).parent().attr('label');
         if (selectedAgency) {
           submitButton.val(`Assign to ${selectedAgency}`);
           submitButton.prop('disabled', false);
-          updateBulkApplySelectionsLabel();
+        } else {
+          submitButton.val(`Assign to Agency`);
+          submitButton.prop('disabled', true);
         }
+        updateBulkApplySelectionsLabel();
       });
 
       var assignContainerSelector = '.patient-referral__assign-agency';
