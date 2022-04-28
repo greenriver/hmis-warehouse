@@ -8,14 +8,20 @@ require 'memoist'
 module GrdaWarehouse::CasProjectClientCalculator
   class Mdha
     def value_for_cas_project_client(client:, column:)
-      current_value = client.send(column)
-      return current_value unless column.to_sym == :match_group
+      if column.to_sym == :match_group
+        match_group(client)
+      else
+        client.send(column)
+      end
+    end
 
-      # return 1 if has encampment decomissioning flag
-
-      return 2 if client.veteran?
-
-      return 3
+    private def match_group(client)
+      # TODO: return 1 if client has encampment decomissioning flag, once we have that data
+      if client.veteran?
+        2
+      else
+        3
+      end
     end
   end
 end
