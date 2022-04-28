@@ -1,0 +1,11 @@
+= render 'chart_css'
+- data = @report.parsed_pre_calculated_data
+%section.position-relative
+  %h3
+    Total Number of People Entering and Exiting Homelessness
+    = render 'glossary_button'
+  - chart_class = 'inflow-outflow-chart'
+  %div{ class: chart_class }
+  .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
+  = render 'line_chart', chart_class: chart_class, data: data['inflow_outflow'], category: :population
+  = render 'glossary_content'

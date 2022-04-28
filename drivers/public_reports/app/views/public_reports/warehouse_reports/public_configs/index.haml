@@ -7,6 +7,7 @@
 = simple_form_for @config, as: :config, url: public_reports_warehouse_reports_public_configs_path, method: :post do |f|
   - content_for :filters_col_l do
     .mr-4
+      = render 'function', f: f
       = render 's3', f: f
       = render 'map', f: f
 

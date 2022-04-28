@@ -19,7 +19,8 @@
         - anchor = if index.zero? then 'start' elsif index == data.count - 1 then 'end' else 'middle' end
         - if year != previous_year
           %text.range__point{class: marker_class, x: "#{horizontal_shift}%", y: '14', text: { anchor: anchor}}
-            Q#{quarter(Date.parse(date))}
+            - unless @report.yearly?
+              Q#{quarter(Date.parse(date))}
           %text.range__point{class: marker_class, x: "#{horizontal_shift}%", y: '32', text: { anchor: anchor}}
             #{year}
         - else
@@ -42,7 +43,12 @@
       return;
     }
     // update date display
-    var quarter_string = `Q${selected_quarter} ${date_object.getFullYear()}`;
+    var quarter_string = '';
+    if(#{@report.yearly?.to_json}) {
+      quarter_string =`${date_object.getFullYear()}`;
+    } else {
+      quarter_string = `Q${selected_quarter} ${date_object.getFullYear()}`;
+    }
     $('.jQuarterChosenDate').text(quarter_string);
     // update all charts
     $.each(charts, function(i){

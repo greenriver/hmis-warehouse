@@ -18,11 +18,19 @@ module PublicReports::WarehouseReports
       render(layout: 'raw_public_report')
     end
 
+    def entering_exiting
+      render(layout: 'raw_public_report')
+    end
+
     def map
       render(layout: 'raw_public_report')
     end
 
     def who
+      render(layout: 'raw_public_report')
+    end
+
+    def race
       render(layout: 'raw_public_report')
     end
 
