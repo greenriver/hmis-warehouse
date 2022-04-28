@@ -914,6 +914,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: true,
           health: true,
         }
+        r_list['Health: General'] << {
+          url: 'health_flexible_service/warehouse_reports/member_expiration',
+          name: 'VPR Member Expiration',
+          description: 'View clients receiving flex services that have expired.',
+          limitable: true,
+          health: true,
+        }
       end
       if RailsDrivers.loaded.include?(:prior_living_situation)
         r_list['Operational'] << {
