@@ -1,7 +1,7 @@
 - content_for :title, @report.title
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'health-general'
-%div.mt-6 Clients receiving flex services that have expired.
+.mt-6 Clients receiving flex services that have expired.
 
 - if !@pagy.present?
   %p.text-center No patients found
