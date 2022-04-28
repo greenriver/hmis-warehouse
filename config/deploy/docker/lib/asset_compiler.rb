@@ -1,5 +1,4 @@
 require_relative 'aws_sdk_helpers'
-require 'byebug'
 require 'dotenv'
 
 class AssetCompiler
