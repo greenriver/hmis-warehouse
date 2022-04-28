@@ -1,19 +1,10 @@
+- if pr.assigned?
+  = render 'reassign_agency', pr: pr
+- else
+  .col-sm-3.offset-sm-1
+    = render 'assign_agency', pr: pr
+  .col-sm-1
 .col-sm-2
-  %div.mb-1
-    %strong Known by:
-    - pr.display_claimed_by.each do |c|
-      %div= c
-  %div
-    - unclaimed = pr.display_unclaimed_by
-    - if unclaimed.size > 0
-      %strong
-        Unknown By
-        = unclaimed.size
-      .inline-icon.inline-icon--left{data: {toggle: 'tooltip', placement: 'right', title: unclaimed.map{|uc| "<div style='white-space:nowrap;text-align:left;'>#{uc}</div>"}.join(''), html: 'true'}}
-        %i.icon-info
-.col-sm-2
-  = render 'assign_agency', pr: pr
-%div{class: can_bulk_assign? ? 'col-sm-2' : 'col-sm-3'}
   = render 'reject', pr: pr
 - if can_bulk_assign?
   .col-sm-1.d-flex

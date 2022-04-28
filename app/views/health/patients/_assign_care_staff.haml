@@ -1,0 +1,14 @@
+= simple_form_for patient, as: :patient, url: client_health_patient_url(patient.client, patient), remote: true do |f|
+  = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:jCareCoordinator], id: "patient_care_coordinator_id_#{patient.id}"}, as: :select_two
+  - unless patient.assigned_care_coordinator_in_agency?
+    .alert.alert-warning
+      %p.text-small
+        %i.icon-warning
+        Currently assigned Care Coordinator is not active in the Care Hub or is not part of patient's agency.
+
+  = f.input :nurse_care_manager_id, collection: patient.available_nurse_care_managers, input_html: {class: [:jNurseCareManager], id: "nurse_care_manager_id_#{patient.id}"}, as: :select_two
+  - unless patient.assigned_nurse_care_manager_in_agency?
+    .alert.alert-warning
+      %p.text-small
+        %i.icon-warning
+        Currently assigned Nurse Care Manager is not active in the Care Hub or is not part of patient's agency.
