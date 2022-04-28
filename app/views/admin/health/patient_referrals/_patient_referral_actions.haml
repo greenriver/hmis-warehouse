@@ -1,6 +1,10 @@
-.col-sm-4
-  = render 'assign_agency', pr: pr
-%div{class: can_bulk_assign? ? 'col-sm-2' : 'col-sm-3'}
+- if pr.assigned?
+  = render 'reassign_agency', pr: pr
+- else
+  .col-sm-3.offset-sm-1
+    = render 'assign_agency', pr: pr
+  .col-sm-1
+.col-sm-2
   = render 'reject', pr: pr
 - if can_bulk_assign?
   .col-sm-1.d-flex

@@ -83,7 +83,7 @@
       // Update dropdown label for applying selected CC/NCM/Agency assignments to selected patients
       var updateBulkApplySelectionsLabel = function() {
         // Referrals where the assignment submit button is enabled (meaning either the CC or NCM is selected) AND the bulk checkbox is checked
-        var referralsToAssign = $('.patient-referral__assign-agency input[type="submit"]:enabled').filter(function () {
+        var referralsToAssign = $('.jPatientReferral input[type="submit"]:enabled').filter(function () {
           return $(this).closest('.jPatientReferral').find('input:checked').length > 0
         });
         const numAgencies = new Set(referralsToAssign.map(function() { return this.value }).get()).size

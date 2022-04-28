@@ -1,35 +1,11 @@
-.patient-referral__assign-agency.mr-8
-  - if pr.assigned?
-    .row
-      - if pr.patient&.client&.present?
-        .col-sm.mr-6
-          - patient = pr.patient
-          .patient-referral__assign-careStaff
-            = render 'health/patients/assign_care_staff', patient: pr.patient
-      .col-sm
-        %strong Assigned To:
-        %br
-        = pr.assigned_agency&.name
-        - dropdown_id = "assign-agency-to-#{pr.id}"
-        = simple_form_for pr, url: admin_health_patient_referral_assign_agency_path(pr), namespace: dropdown_id, method: :post, remote: true do |f|
-          = f.input :agency_id, as: :hidden
-        .dropdown
-          = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'}, class: 'btn btn-secondary btn-sm' do
-            Change Agency
-            %span.caret
-          %ul.dropdown-menu{aria: {labelledby: dropdown_id}}
-            %li
-              = link_to 'None', '#', data: {behavior: 'assign agency', agency_id: ''}
-            - @agencies.each do |a|
-              - unless pr.assigned_agency == a
-                %li
-                  = link_to a.name, '#', data: {behavior: 'assign agency', agency_id: a.id}
-  - elsif pr.patient&.client&.present?
-    = simple_form_for pr, url: admin_health_patient_referral_assign_agency_path(pr), method: :post, remote: true do |f|
-      = f.simple_fields_for :patient, pr.patient do |pf|
+- if pr.patient&.client&.present?
+  = simple_form_for pr, url: admin_health_patient_referral_assign_agency_path(pr), method: :post, remote: true do |f|
+    = f.simple_fields_for :patient, pr.patient do |pf|
+      .form-group.mb-0
         = pf.input :care_coordinator_id, collection: care_staff_grouped_by_agency(pr.patient.care_coordinator_id), input_html: {class: [:careCoordinator], id: "patient_care_coordinator_id_#{pr.patient.id}", data: {patient_id: pr.patient.id}}, as: :grouped_select_two, group_method: :last
+      .form-group.mb-2
         = pf.input :nurse_care_manager_id, collection: care_staff_grouped_by_agency(pr.patient.nurse_care_manager_id), input_html: {class: [:nurseCareManager], id: "nurse_care_manager_id_#{pr.patient.id}", data: {patient_id: pr.patient.id}}, as: :grouped_select_two, group_method: :last
-      - inferred_agency = infer_agency_name(pr.patient)
-      - submit_label = inferred_agency.present? ? "Assign to #{inferred_agency}" : 'Assign to Agency'
-      = f.submit submit_label, class: 'btn btn-secondary btn-sm', disabled: !inferred_agency.present?
-      %i.ml-4.icon-info{data: { toggle: :tooltip, title: 'Agency is inferred from selected Care Coordinator. If Care Coordinator not selected, Agency is inferred from Nurse Care Manager.' }}
+    - inferred_agency = infer_agency_name(pr.patient)
+    - submit_label = inferred_agency.present? ? "Assign to #{inferred_agency}" : 'Assign to Agency'
+    = f.submit submit_label, class: 'btn btn-secondary btn-sm', style: 'padding: 0.3rem 0.75rem;',  disabled: !inferred_agency.present?
+    %i.ml-4.icon-info{data: { toggle: :tooltip, title: 'Agency is inferred from the selected Care Coordinator. If Care Coordinator not selected, Agency is inferred from Nurse Care Manager.' }}
