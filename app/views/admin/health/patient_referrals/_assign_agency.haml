@@ -32,3 +32,4 @@
       - inferred_agency = infer_agency_name(pr.patient)
       - submit_label = inferred_agency.present? ? "Assign to #{inferred_agency}" : 'Assign to Agency'
       = f.submit submit_label, class: 'btn btn-secondary btn-sm', disabled: !inferred_agency.present?
+      %i.ml-4.icon-info{data: { toggle: :tooltip, title: 'Agency is inferred from selected Care Coordinator. If Care Coordinator not selected, Agency is inferred from Nurse Care Manager.' }}
