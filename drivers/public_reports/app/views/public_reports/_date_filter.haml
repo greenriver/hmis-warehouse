@@ -1,0 +1,4 @@
+.col-sm-3{data: { toggle: :tooltip, title: 'Start date will be moved to the beginning of the month.'}}
+  = f.input :start, as: :date_picker, label: 'Start'
+.col-sm-3{data: { toggle: :tooltip, title: 'End date will be moved to the end of the month.  If a future date or partial month is chosen, it will be moved to the end of the last completed.'}}
+  = f.input :end, as: :date_picker, label: 'End'

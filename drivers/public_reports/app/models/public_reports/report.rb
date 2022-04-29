@@ -66,7 +66,21 @@ module PublicReports
     end
 
     def filter_object
-      @filter_object ||= ::Filters::FilterBase.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
+      @filter_object ||= begin
+        f = ::Filters::FilterBase.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
+        # Enforce that public reports can't be run for partial months
+        # Always move the end date back to the end of last month if it's beyond that date
+        # Enforce that the start date is always the beginning of the month
+        end_of_last_month = if Date.current == Date.current.end_of_month
+          Date.current
+        else
+          (Date.current - 1.months).end_of_month
+        end
+        f.end = f.end.end_of_month
+        f.end = end_of_last_month if f.end > end_of_last_month
+        f.start = f.start.beginning_of_month
+        f
+      end
     end
 
     def published?

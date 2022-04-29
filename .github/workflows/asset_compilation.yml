@@ -51,19 +51,6 @@ jobs:
       run: |
         apk add --no-cache tar
 
-    # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
-    # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
-    # isn't supported on Alpine.
-    - name: cache gems
-      uses: actions/cache@v2
-      with:
-        path: |
-          vendor/bundle
-          /usr/local/bundle/
-        key: ${{ runner.os }}-gem-bundler-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-gem-bundler-
-
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -104,12 +91,32 @@ jobs:
         npm install
         gem install bundler --version=2.2.30
 
+    # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
+    # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
+    # isn't supported on Alpine.
+    - name: cache gems
+      uses: actions/cache@v3
+      id: gemcache
+      with:
+        path: |
+          vendor/bundle
+          /usr/local/bundle/
+        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+        # restore-keys: |
+        #   ${{ runner.os }}-gem-bundler-
+    # - name: Ruby
+    #   uses: ruby/setup-ruby@v1
+    #   with:
+    #     bundler-cache: true
+
     - name: Install gems
+      if: always()
       run: |
         bundle config set --local without 'production staging development'
         bundle install --jobs 10 --retry 3
 
     - name: 'App setup'
+      if: always()
       env:
         SECRETS_FILE_SECRET_ARN: ${{ secrets.SECRETS_FILE_SECRET_ARN }}
       run: |
@@ -117,6 +124,7 @@ jobs:
         SECRET_ARN=$SECRETS_FILE_SECRET_ARN bundle exec bin/download_secrets.rb > config/deploy/docker/assets/secret.deploy.values.yml
 
     - name: Generate checksum and compile
+      if: always()
       env:
         DATABASE_ADAPTER: postgresql
         DATABASE_HOST: postgres
