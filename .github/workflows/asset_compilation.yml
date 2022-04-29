@@ -101,7 +101,7 @@ jobs:
         path: |
           vendor/bundle
           /usr/local/bundle/
-        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}
+        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock')-${{ hashFiles('**/.ruby-version') }}
         # restore-keys: |
         #   ${{ runner.os }}-gem-bundler-
     # - name: Ruby
