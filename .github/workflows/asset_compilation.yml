@@ -54,15 +54,19 @@ jobs:
     # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
     # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
     # isn't supported on Alpine.
-    - name: cache gems
-      uses: actions/cache@v3
+    # - name: cache gems
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: |
+    #       vendor/bundle
+    #       /usr/local/bundle/
+    #     key: ${{ runner.os }}-gem-bundler-${{ hashFiles('**/Gemfile.lock') }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-gem-bundler-
+    - name: Ruby
+      uses: ruby/setup-ruby@v1
       with:
-        path: |
-          vendor/bundle
-          /usr/local/bundle/
-        key: ${{ runner.os }}-gem-bundler-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-gem-bundler-
+        bundler-cache: true
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
