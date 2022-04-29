@@ -1,7 +1,15 @@
 - title = _('Built For Zero Monthly Report')
 - content_for :title, title
 
-= render '/warehouse_reports/breadcrumbs', tab: 'audit'
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
+
+- if BuiltForZeroReport.sections.count != BuiltForZeroReport.all_report_sections.count
+  .alert.alert-danger
+    %p
+      This report relies on one or more
+      = link_to_if current_user.can_manage_config?, 'System Cohorts', admin_configs_path
+      that are not enabled.
+
 %h1.mb-5= title
 = render 'filter'
 - if @section.present?
