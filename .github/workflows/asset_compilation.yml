@@ -61,8 +61,8 @@ jobs:
           vendor/bundle
           /usr/local/bundle/
         key: ${{ runner.os }}-gem-bundler-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-gem-bundler-
+        # restore-keys: |
+        #   ${{ runner.os }}-gem-bundler-
     # - name: Ruby
     #   uses: ruby/setup-ruby@v1
     #   with:
