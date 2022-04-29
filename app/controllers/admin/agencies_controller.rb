@@ -10,13 +10,13 @@ module Admin
     before_action :set_agency, only: [:edit, :update, :destroy]
 
     def index
-      @agencies = if params[:q].present?
+      scope = if params[:q].present?
         agency_scope.text_search(params[:q])
       else
         agency_scope
       end
 
-      @agencies = @agencies.page(params[:page])
+      @pagy, @agencies = pagy(scope)
     end
 
     def new

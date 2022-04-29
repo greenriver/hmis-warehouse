@@ -13,8 +13,7 @@
       %span.icon-plus
       Add a Group
 
-  %p.mt-2= page_entries_info @groups, entry_name: _('groups')
-
+  .mb-2!= pagy_info(@pagy, item_name: _('group').pluralize(@pagy.count))
   .card
     %table.table.table-striped.mb-0
       %thead
@@ -36,4 +35,4 @@
                 = link_to admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
                   %span.icon-cross
                   Delete
-  %p= paginate @groups
+  .mt-4!= pagy_bootstrap_nav(@pagy)

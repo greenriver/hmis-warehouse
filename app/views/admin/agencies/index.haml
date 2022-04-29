@@ -15,8 +15,7 @@
       = link_to new_admin_agency_path, class: 'btn btn-primary mb-2' do
         %span.icon-plus
         Add an Agency
-  %p.mt-2= page_entries_info @agencies
-
+  .mt-4.mb-4!= pagy_info(@pagy, item_name: _('agency').pluralize(@pagy.count))
   .row.table-utilities
     .col-sm-12
       .table-responsive
@@ -43,4 +42,4 @@
                     = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
                       %span.icon-cross
                       Delete
-      %p= paginate @agencies
+  != pagy_bootstrap_nav(@pagy)
