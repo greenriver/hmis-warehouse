@@ -86,7 +86,7 @@
           .card-content.p-4
             %h2.h4.card-title Care Staff
             - if patient.client.present?
-              = render 'assign_care_staff', patient: patient
+              = render 'health/patients/assign_care_staff', patient: patient
             - else
               Patient record is not correctly assigned
       .col-md-6.card-wrapper
