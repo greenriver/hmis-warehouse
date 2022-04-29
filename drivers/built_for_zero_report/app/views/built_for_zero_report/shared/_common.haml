@@ -23,7 +23,7 @@
             = "For #{population}"
           %td.text-right
             = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :lot_to_housing) }), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
-              = data.average_lot_to_housing
+              = pluralize(data.average_lot_to_housing, 'days')
 .row
   .col
     %h2 Outflow

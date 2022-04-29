@@ -53,8 +53,10 @@ module BuiltForZeroReport
     #   and the average length of time to housing for the housed clients in the cohort
     def average_lot_to_housing
       client_count = lot_to_housing.count
+      return 'Unknown' if client_count.zero?
+
       sum_of_days = lot_to_housing.map { |_, v| v[:lot_to_housing] }.sum
-      sum_of_days / client_count.to_f # TODO Rounding?
+      (sum_of_days / client_count.to_f).round
     end
 
     # @return [SourceDataHash] clients in cohort who became inactive in the reporting period
