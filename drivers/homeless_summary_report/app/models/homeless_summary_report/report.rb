@@ -142,7 +142,10 @@ module HomelessSummaryReport
       when 'Measure 7'
         @filter.update(start: @filter.start - 1.days)
       end
-      # puts measure
+
+      # Make sure we take advantage of the additive nature of HUD report filters
+      @filter.project_ids = @filter.effective_project_ids
+
       scope = @filter.apply(report_scope_source)
       scope = filter_for_range(scope)
 
