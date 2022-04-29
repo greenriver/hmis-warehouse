@@ -1,7 +1,7 @@
 %h1= "Claims Reporting Imports"
 - sftp_host = ClaimsReporting::Importer.default_credentials[:host]
 - if sftp_host.present?
-  - path = GrdaWarehouse::Config.get(:health_claims_data_path)
+  - path = sftp_host.path
   %h4 Health SFTP Status
   %table.table.table-bordered.table-sm.table-striped
     %tr

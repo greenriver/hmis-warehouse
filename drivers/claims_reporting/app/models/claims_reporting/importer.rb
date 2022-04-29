@@ -15,15 +15,15 @@ module ClaimsReporting
     attr_accessor :logger
 
     def self.default_credentials
-      YAML.safe_load(ERB.new(File.read(Rails.root.join('config/health_sftp.yml'))).result)[Rails.env]['ONE'].with_indifferent_access
+      Health::ImportConfig.find_by(kind: :claims_reporting) || {}
     end
 
     def self.default_path
-      GrdaWarehouse::Config.get(:health_claims_data_path)
+      default_credentials['path']
     end
 
     def self.polling_enabled?
-      default_credentials[:host].present? && default_path.present?
+      default_credentials['host'].present? && default_path.present?
     end
 
     def self.nightly!
@@ -50,7 +50,7 @@ module ClaimsReporting
 
     private def using_sftp(credentials)
       credentials ||= self.class.default_credentials
-      host = credentials.fetch('host').presence or raise "'host:' must be provided or set via ENV['HEALTH_SFTP_HOST']"
+      host = credentials['host'].presence or raise "'host:' must be provided or set via ImportConfig"
       Net::SFTP.start(
         host,
         credentials['username'],
@@ -148,7 +148,7 @@ module ClaimsReporting
     end
 
     # credentials is a Hash containing host, username, password
-    # defaults to one from config/health_sftp.yml
+    # defaults to thr first Health::ImportConfig with kind: 'claims_reporting'
     def import_from_health_sftp(zip_path, replace_all: false, credentials: self.class.default_credentials)
       record_start(
         :import_from_health_sftp,
