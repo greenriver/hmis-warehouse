@@ -110,12 +110,13 @@ jobs:
     #     bundler-cache: true
 
     - name: Install gems
-      if: steps.gemcache.outputs.cache-hit != 'true'
+      if: always()
       run: |
         bundle config set --local without 'production staging development'
         bundle install --jobs 10 --retry 3
 
     - name: 'App setup'
+      if: always()
       env:
         SECRETS_FILE_SECRET_ARN: ${{ secrets.SECRETS_FILE_SECRET_ARN }}
       run: |
@@ -123,6 +124,7 @@ jobs:
         SECRET_ARN=$SECRETS_FILE_SECRET_ARN bundle exec bin/download_secrets.rb > config/deploy/docker/assets/secret.deploy.values.yml
 
     - name: Generate checksum and compile
+      if: always()
       env:
         DATABASE_ADAPTER: postgresql
         DATABASE_HOST: postgres
