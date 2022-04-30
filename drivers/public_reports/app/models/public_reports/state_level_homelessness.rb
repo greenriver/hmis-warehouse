@@ -22,6 +22,10 @@ module PublicReports
       _('State-Level Homelessness Report Generator')
     end
 
+    def yearly?
+      settings.iteration_type.to_s == 'year'
+    end
+
     def instance_title
       _('State-Level Homelessness Report')
     end
@@ -130,9 +134,11 @@ module PublicReports
     def sections
       [
         :pit,
+        :entering_exiting,
         :summary,
         :map,
         :who,
+        :race,
         :raw,
       ].
         freeze
@@ -157,9 +163,8 @@ module PublicReports
 
     private def chart_data
       {
-        # count: percent_change_in_count,
         date_range: filter_object.date_range_words,
-        quarters: quarter_dates,
+        quarters: iteration_dates,
         summary: summary,
         pit_chart: pit_chart,
         inflow_outflow: inflow_outflow,
@@ -206,16 +211,34 @@ module PublicReports
         where(client_id: report_scope.select(:client_id))
     end
 
-    private def quarter_dates
+    private def iteration_dates
       date = filter_object.start_date
       # force the start to be within the chosen date range
-      date = date.next_quarter if date.beginning_of_quarter < date
+      date = next_iteration(date) if beginning_iteration(date) < date
       dates = []
       while date <= filter_object.end_date
-        dates << date.beginning_of_quarter
-        date = date.next_quarter
+        dates << beginning_iteration(date)
+        date = next_iteration(date)
       end
       dates
+    end
+
+    private def next_iteration(date)
+      return date.next_quarter unless yearly?
+
+      return date.next_year
+    end
+
+    private def beginning_iteration(date)
+      return date.beginning_of_quarter unless yearly?
+
+      return date.beginning_of_year
+    end
+
+    private def end_iteration(date)
+      return date.end_of_quarter unless yearly?
+
+      return date.end_of_year
     end
 
     private def summary
@@ -241,36 +264,25 @@ module PublicReports
 
     def map_colors
       @map_colors ||= {}.tap do |m_colors|
-        # slight = 0.000001
-        # ten_percent = 9.999999
-        # max_rate = parsed_pre_calculated_data.try(:[], 'map_max_rate') || map_max_rate
-        # colors = chart_color_shades(:map_primary_color)
         colors = ['#FFFFFF']
         5.times do |i|
           colors << settings["color_#{i}"]
         end
-
-        m_colors[colors[0]] = { description: '0%', range: (0..0), low: 0, high: 0 }
-        m_colors[colors[1]] = { description: 'Any - 10%', range: (0.000001..10.0), low: 0.000001, high: 10.0 }
-        m_colors[colors[2]] = { description: '11% - 15%', range: (10.000001..15.0), low: 10.000001, high: 15.0 }
-        m_colors[colors[3]] = { description: '15% - 20%', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
-        m_colors[colors[4]] = { description: '20% - 25%', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
-        m_colors[colors[5]] = { description: '25%+', range: (25.000001..100.0), low: 25.000001, high: 100.0 }
-        # m_colors[colors.first] = { description: '0%', range: (0..0) }
-        # m_colors[colors.second] = { description: 'Any - 10%', range: (slight..ten_percent) }
-        # colors.drop(2).each.with_index do |color, i|
-        #   division_size = (max_rate - ten_percent) / colors.count
-        #   division_start = ten_percent + (i * division_size)
-        #   division_start = ten_percent + slight if division_start.zero?
-        #   if i == colors.drop(3).count
-        #     division_end = Float::INFINITY
-        #     description = "#{division_start.round}+"
-        #   else
-        #     division_end = (i + 2) * division_size
-        #     description = "#{division_start.round}% - #{division_end.round}%"
-        #   end
-        #   m_colors[color] = { description: description, range: (division_start..division_end) }
-        # end
+        if settings.map_overall_geography_census?
+          m_colors[colors[0]] = { description: 'None', range: (0..0), low: 0, high: 0 }
+          m_colors[colors[1]] = { description: 'Any - 15 per 10,000', range: (0.000001..15.0), low: 0.000001, high: 15.0 }
+          # m_colors[colors[2]] = { description: '11 - 15 per 10,000', range: (10.000001..15.0), low: 10.000001, high: 15.0 }
+          m_colors[colors[3]] = { description: '16 - 20 per 10,000', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
+          m_colors[colors[4]] = { description: '21 - 25 per 10,000', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
+          m_colors[colors[5]] = { description: '26+ per 10,000', range: (25.000001..100.0), low: 25.000001, high: 100.0 }
+        else
+          m_colors[colors[0]] = { description: '0%', range: (0..0), low: 0, high: 0 }
+          m_colors[colors[1]] = { description: 'Any - 10%', range: (0.000001..10.0), low: 0.000001, high: 10.0 }
+          m_colors[colors[2]] = { description: '11% - 15%', range: (10.000001..15.0), low: 10.000001, high: 15.0 }
+          m_colors[colors[3]] = { description: '16% - 20%', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
+          m_colors[colors[4]] = { description: '21% - 25%', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
+          m_colors[colors[5]] = { description: '26%+', range: (25.000001..100.0), low: 25.000001, high: 100.0 }
+        end
       end
     end
 
@@ -354,9 +366,9 @@ module PublicReports
       {}.tap do |charts|
         charts[:all_homeless] = {}
         charts[:homeless_veterans] = {}
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = beginning_iteration(date)
+          end_date = end_iteration(date)
           scope = homeless_scope.with_service_between(
             start_date: start_date,
             end_date: end_date,
@@ -388,9 +400,9 @@ module PublicReports
 
     private def household_type
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = beginning_iteration(date)
+          end_date = end_iteration(date)
 
           adult = adult_only_household_ids(start_date, end_date).count
           both = adult_and_child_household_ids(start_date, end_date).count
@@ -420,9 +432,9 @@ module PublicReports
         client_cache = GrdaWarehouse::Hud::Client.new
         # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
         races = ::HUD.races(multi_racial: true)
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = beginning_iteration(date)
+          end_date = end_iteration(date)
           client_ids = Set.new
           data = {}
           census_data = {}
@@ -493,283 +505,139 @@ module PublicReports
     # Counts and rate of homeless individuals by CoC
     private def homeless_map
       scope = homeless_scope
-      if map_by_zip?
-        census_comparison_by_zip(scope)
-      elsif map_by_place?
-        census_comparison_by_place(scope)
-      elsif map_by_county?
-        census_comparison_by_county(scope)
-      else
-        census_comparison_by_coc(scope)
-      end
+      census_comparison_map_data(scope)
     end
 
     private def youth_homeless_map
       @filter = filter_object.deep_dup
       @filter.age_ranges = [:eighteen_to_twenty_four]
       scope = filter_for_age(homeless_scope)
-
-      if map_by_zip?
-        census_comparison_by_zip(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
-      elsif map_by_place?
-        census_comparison_by_place(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
-      elsif map_by_county?
-        census_comparison_by_county(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
-      else
-        census_comparison_by_coc(scope, service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24))
-      end
+      service_scope = GrdaWarehouse::ServiceHistoryService.aged(18..24)
+      census_comparison_map_data(scope, service_scope: service_scope)
     end
 
     private def adults_homeless_map
       scope = homeless_scope.adult_only_households
-
-      if map_by_zip?
-        census_comparison_by_zip(scope)
-      elsif map_by_place?
-        census_comparison_by_place(scope)
-      elsif map_by_county?
-        census_comparison_by_county(scope)
-      else
-        census_comparison_by_coc(scope)
-      end
+      census_comparison_map_data(scope)
     end
 
     private def adults_with_children_homeless_map
       scope = homeless_scope.adults_with_children
-
-      if map_by_zip?
-        census_comparison_by_zip(scope)
-      elsif map_by_place?
-        census_comparison_by_place(scope)
-      elsif map_by_county?
-        census_comparison_by_county(scope)
-      else
-        census_comparison_by_coc(scope)
-      end
+      census_comparison_map_data(scope)
     end
 
     private def veterans_homeless_map
       scope = homeless_scope.veterans
+      census_comparison_map_data(scope)
+    end
 
-      if map_by_zip?
-        census_comparison_by_zip(scope)
+    private def map_geography
+      return zip_codes if map_by_zip?
+      return place_codes if map_by_place?
+      return county_codes if map_by_county?
+
+      coc_codes
+    end
+
+    private def overall_population_geography(year, code)
+      # For testing
+      # return 10_000 unless Rails.env.production?
+      return (500..2_000).to_a.sample unless Rails.env.production?
+
+      count = if map_by_zip?
+        population_by_zip.try(:[], year).try(:[], code)
       elsif map_by_place?
-        census_comparison_by_place(scope)
+        population_by_place.try(:[], year).try(:[], code)
       elsif map_by_county?
-        census_comparison_by_county(scope)
+        population_by_county.try(:[], year).try(:[], code)
       else
-        census_comparison_by_coc(scope)
+        population_by_coc.try(:[], year).try(:[], code)
+      end
+
+      count || 0
+    end
+
+    private def homeless_population_overall(scope:, start_date:, end_date:, service_scope:, population_overall:)
+      if Rails.env.production?
+        scope.with_service_between(
+          start_date: start_date,
+          end_date: end_date,
+          service_scope: service_scope,
+        ).count
+      else
+        # This should change across quarter, but not geography
+        max = [population_overall, 1].compact.max / 3
+        @fake_overall_homeless_pop_per_quarter ||= {}
+        @fake_overall_homeless_pop_per_quarter[start_date] ||= {}
+        @fake_overall_homeless_pop_per_quarter[start_date][scope.to_s] ||= (0..max).to_a.sample
+        @fake_overall_homeless_pop_per_quarter[start_date][scope.to_s]
       end
     end
 
-    private def census_comparison_by_coc(scope, service_scope: :current_scope)
-      self.map_max_rate ||= 0
-      self.map_max_count ||= 0
-      {}.tap do |charts|
-        quarter_dates.each do |date|
-          iso_date = date.iso8601
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
-          charts[iso_date] = {}
-          coc_codes.each do |coc_code|
-            population_overall = if Rails.env.production?
-              population_by_coc.try(:[], date.year).try(:[], coc_code) || 0
-            else
-              500
-            end
-            overall_homeless_population = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).count
-            else
-              max = [population_overall, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).
-                in_coc(coc_code: coc_code).count
-            else
-              max = [overall_homeless_population, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-
-            count = enforce_min_threshold(count, 'min_threshold')
-            # % of population
-            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
-            rate = 0
-            rate = count / denominator.to_f * 100.0 if denominator&.positive?
-            charts[iso_date][coc_code] = {
-              count: overall_homeless_population,
-              overall_population: population_overall.to_i,
-              rate: rate.round(1),
-            }
-            self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = count if count > self.map_max_count
-          end
+    private def count_homeless_population(scope:, start_date:, end_date:, service_scope:, overall_homeless_population:, code:)
+      if Rails.env.production?
+        enrolled_scope = scope.with_service_between(
+          start_date: start_date,
+          end_date: end_date,
+          service_scope: service_scope,
+        )
+        if map_by_zip?
+          enrolled_scope.in_zip(zip_code: code).count
+        elsif map_by_place?
+          enrolled_scope.in_place(place: code).count
+        elsif map_by_county?
+          enrolled_scope.in_county(county: code).count
+        else
+          enrolled_scope.in_coc(coc_code: code).count
         end
+      else
+        max = [overall_homeless_population, 1].compact.max / 3
+        (0..max).to_a.sample
+        # for testing
+        # 16
       end
     end
 
-    private def census_comparison_by_zip(scope, service_scope: :current_scope)
+    private def census_comparison_map_data(scope, service_scope: :current_scope)
       self.map_max_rate ||= 0
       self.map_max_count ||= 0
       {}.tap do |charts|
-        quarter_dates.each do |date|
+        iteration_dates.each do |date|
           iso_date = date.iso8601
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+          start_date = beginning_iteration(date)
+          end_date = end_iteration(date)
           charts[iso_date] = {}
-          zip_codes.each do |code|
-            population_overall = if Rails.env.production?
-              population_by_zip.try(:[], date.year).try(:[], code) || 0
-            else
-              500
-            end
-            overall_homeless_population = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).count
-            else
-              max = [population_overall, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).
-                in_zip(zip_code: code).count
-            else
-              max = [overall_homeless_population, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = enforce_min_threshold(count, 'min_threshold')
-            # % of population
+          map_geography.each do |code|
+            population_overall = overall_population_geography(date.year, code)
+            overall_homeless_population = homeless_population_overall(
+              scope: scope,
+              start_date: start_date,
+              end_date: end_date,
+              service_scope: service_scope,
+              population_overall: population_overall,
+            )
+            homeless_count = count_homeless_population(
+              scope: scope,
+              start_date: start_date,
+              end_date: end_date,
+              service_scope: service_scope,
+              overall_homeless_population: overall_homeless_population,
+              code: code,
+            )
+
+            homeless_count = enforce_min_threshold(homeless_count, 'min_threshold') unless settings.map_overall_geography_census?
+            # % of homeless population or rate per 10,000 of overall population
             denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
             rate = 0
-            rate = count / denominator.to_f * 100.0 if denominator&.positive?
+            rate = homeless_count / denominator.to_f * 100.0 if denominator&.positive?
             charts[iso_date][code] = {
               count: overall_homeless_population,
               overall_population: population_overall.to_i,
               rate: rate.round(1),
+              homeless_count: homeless_count,
             }
             self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = count if count > self.map_max_count
-          end
-        end
-      end
-    end
-
-    private def census_comparison_by_place(scope, service_scope: :current_scope)
-      self.map_max_rate ||= 0
-      self.map_max_count ||= 0
-      {}.tap do |charts|
-        quarter_dates.each do |date|
-          iso_date = date.iso8601
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
-          charts[iso_date] = {}
-          place_codes.each do |code|
-            population_overall = if Rails.env.production?
-              population_by_place.try(:[], date.year).try(:[], code) || 0
-            else
-              500
-            end
-            overall_homeless_population = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).count
-            else
-              max = [population_overall, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).
-                in_place(place: code).count
-            else
-              max = [overall_homeless_population, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = enforce_min_threshold(count, 'min_threshold')
-            # % of population
-            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
-            rate = 0
-            rate = count / denominator.to_f * 100.0 if denominator&.positive?
-            charts[iso_date][code] = {
-              count: overall_homeless_population,
-              overall_population: population_overall.to_i,
-              rate: rate.round(1),
-            }
-            self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = count if count > self.map_max_count
-          end
-        end
-      end
-    end
-
-    private def census_comparison_by_county(scope, service_scope: :current_scope)
-      self.map_max_rate ||= 0
-      self.map_max_count ||= 0
-      {}.tap do |charts|
-        quarter_dates.each do |date|
-          iso_date = date.iso8601
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
-          charts[iso_date] = {}
-          county_codes.each do |code|
-            population_overall = if Rails.env.production?
-              population_by_county.try(:[], date.year).try(:[], code) || 0
-            else
-              500
-            end
-            overall_homeless_population = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).count
-            else
-              max = [population_overall, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = if Rails.env.production?
-              scope.with_service_between(
-                start_date: start_date,
-                end_date: end_date,
-                service_scope: service_scope,
-              ).
-                in_county(county: code).count
-            else
-              max = [overall_homeless_population, 1].compact.max / 3
-              (0..max).to_a.sample
-            end
-            count = enforce_min_threshold(count, 'min_threshold')
-            # % of population
-            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
-            rate = 0
-            rate = count / denominator.to_f * 100.0 if denominator&.positive?
-            charts[iso_date][code] = {
-              count: overall_homeless_population,
-              overall_population: population_overall.to_i,
-              rate: rate.round(1),
-            }
-            self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = count if count > self.map_max_count
+            self.map_max_count = homeless_count if homeless_count > self.map_max_count
           end
         end
       end
@@ -778,7 +646,7 @@ module PublicReports
     # denominator is either state-wide homeless population
     # or census population for chosen geography
     private def map_tooltip_denominator(population_overall, overall_homeless_population)
-      return population_overall.to_f if settings.map_overall_geography_census?
+      return population_overall.to_f / 100 if settings.map_overall_geography_census?
 
       overall_homeless_population.to_f
     end
@@ -851,9 +719,9 @@ module PublicReports
         'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = beginning_iteration(date)
+          end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -888,9 +756,9 @@ module PublicReports
         'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = beginning_iteration(date)
+          end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -922,9 +790,9 @@ module PublicReports
         'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(0..17)),
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = beginning_iteration(date)
+          end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -959,9 +827,9 @@ module PublicReports
         'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown,
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = beginning_iteration(date)
+          end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -993,9 +861,9 @@ module PublicReports
         'Other or Unknown' => GrdaWarehouse::Hud::Client.with_race_none,
       }
       {}.tap do |charts|
-        quarter_dates.each do |date|
-          start_date = date.beginning_of_quarter
-          end_date = date.end_of_quarter
+        iteration_dates.each do |date|
+          start_date = beginning_iteration(date)
+          end_date = end_iteration(date)
 
           shs_scope = GrdaWarehouse::ServiceHistoryService.
             where(date: start_date..end_date)
@@ -1105,7 +973,7 @@ module PublicReports
     end
 
     def map_shape_json
-      cache_key = "map-shape-json-#{PublicReports::Setting.first.map_type}-#{ENV['RELEVANT_COC_STATE']}"
+      cache_key = "map-shape-json-#{settings.map_type}-#{ENV['RELEVANT_COC_STATE']}"
       Rails.cache.fetch(cache_key, expires_in: 4.hours) do
         Oj.dump(map_shapes, mode: :compat).html_safe
       end
@@ -1168,7 +1036,7 @@ module PublicReports
 
     private def population_by_coc
       @population_by_coc ||= {}.tap do |charts|
-        quarter_dates.map(&:year).uniq.each do |year|
+        iteration_dates.map(&:year).uniq.each do |year|
           charts[year] = {}
           geometries.each do |coc|
             charts[year][coc.cocnum] = coc.population(internal_names: ALL_PEOPLE, year: year).val
@@ -1179,15 +1047,15 @@ module PublicReports
 
     # ZIP CODES
     def map_by_zip?
-      PublicReports::Setting.first.map_type == 'zip'
+      settings.map_type == 'zip'
     end
 
     def map_by_place?
-      PublicReports::Setting.first.map_type == 'place'
+      settings.map_type == 'place'
     end
 
     def map_by_county?
-      PublicReports::Setting.first.map_type == 'county'
+      settings.map_type == 'county'
     end
 
     def map_type
@@ -1220,7 +1088,7 @@ module PublicReports
 
     private def population_by_zip
       @population_by_zip ||= {}.tap do |charts|
-        quarter_dates.map(&:year).uniq.each do |year|
+        iteration_dates.map(&:year).uniq.each do |year|
           charts[year] = {}
           zip_geometries.each do |geo|
             charts[year][geo.zcta5ce10] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
@@ -1243,7 +1111,7 @@ module PublicReports
 
     private def population_by_county
       @population_by_county ||= {}.tap do |charts|
-        quarter_dates.map(&:year).uniq.each do |year|
+        iteration_dates.map(&:year).uniq.each do |year|
           charts[year] = {}
           county_geometries.each do |geo|
             charts[year][geo.name] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
@@ -1266,7 +1134,7 @@ module PublicReports
 
     private def population_by_place
       @population_by_place ||= {}.tap do |charts|
-        quarter_dates.map(&:year).uniq.each do |year|
+        iteration_dates.map(&:year).uniq.each do |year|
           charts[year] = {}
           place_geometries.each do |geo|
             charts[year][geo.name] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val

@@ -26,7 +26,7 @@
             %td= link_to row[:client_name], appropriate_client_path(row[:client_id])
             %td= row[:street_address]
             %td= row[:age]
-            %td= row[:genders]
+            %td= row[:genders].map { |id| if id == 1 then 'Male' elsif id == 0 then 'Female' end }.uniq.join(' and ') # See HUD.genders
             %td= HUD.ethnicity(row[:ethnicity])
             %td= row[:races].map { |r| HUD.race(r) }.join(', ')
             %td= checkmark(row[:disabled])

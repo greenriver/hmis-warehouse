@@ -5,10 +5,15 @@
 .row
   .col-sm-6
     %h1= title
+    - if @project_group.used_for_cas_sync?
+      .alert.alert-warning
+        %p
+          This project group is used for syncing clients to CAS. Changes made here will affect who is synced to CAS.
     = simple_form_for @project_group, as: :filters, url: project_group_path(@project_group) do |f|
       = render 'form', f: f
       .form-actions.d-flex
-        - unless @group_ids.any?
+        -# NOTE: the system will assign all project groups to a project before you can delete it if you remove it, so we have to check for > 1
+        - unless @group_ids.count > 1 ||  @project_group.used_for_cas_sync?
           = link_to project_group_path(@project_group), method: :delete, class: 'btn btn-danger', data: { confirm: 'Are you sure?  Deleting this project group cannot be undone, you\'ll need to re-create it manually.'} do
             %i.icon-cross
             Delete Group

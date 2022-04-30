@@ -3,6 +3,7 @@ require 'byebug'
 require 'English'
 require_relative 'roll_out'
 require_relative 'aws_sdk_helpers'
+require_relative 'asset_compiler'
 
 class Deployer
   include AwsSdkHelpers::Helpers
@@ -126,6 +127,7 @@ class Deployer
     _docker_login!
     _build_and_push_all!
     _check_secrets!
+    # _check_compiled_assets! # Moved to entrypoint.
   end
 
   def roll_out
@@ -149,7 +151,7 @@ class Deployer
   def _ensure_clean_repo!
     return unless `git status --porcelain` != ''
 
-    puts 'Aborting since git is not clean'
+    puts '[FATAL] Aborting since git is not clean'
     exit 1
   end
 
@@ -162,7 +164,20 @@ class Deployer
     remote = `git ls-remote origin | grep #{branch}`.chomp
     our_commit = `git rev-parse #{branch}`.chomp
 
-    raise 'Push or pull your branch first!' unless remote.start_with?(our_commit)
+    raise '[FATAL] Push or pull your branch first!' unless remote.start_with?(our_commit)
+  end
+
+  def _check_compiled_assets!
+    secrets_arn_ = secrets_arn.gsub(/[^0-9A-Za-z\_\-\:\/]/, '') # Sanitize for cli.
+    target_group_name_ = target_group_name&.gsub(/[^0-9A-Za-z\_\-]/, '') # Sanitize for cli.
+    checksum = `SECRET_ARN=#{secrets_arn_.shellescape} ASSETS_PREFIX=#{target_group_name_.shellescape} bin/asset_checksum`.split(' ')[-1]
+
+    compiled_assets_s3_path = AssetCompiler.compiled_assets_s3_path(target_group_name_, checksum)
+    while `aws s3 ls #{compiled_assets_s3_path.shellescape}`.strip.empty?
+      puts "[INFO] Assets for hash [#{checksum}] not compiled yet, waiting 60 seconds..."
+      sleep 60
+    end
+    puts "[INFO] Assets for hash [#{checksum}] are compiled, proceeding..."
   end
 
   def _docker_login!

@@ -20,6 +20,7 @@ module PublicReports::WarehouseReports
 
     def config_params
       params.require(:config).permit(
+        :iteration_type,
         :s3_region,
         :s3_bucket,
         :s3_prefix,

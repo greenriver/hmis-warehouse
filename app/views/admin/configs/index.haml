@@ -123,6 +123,8 @@
           = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS', as: :select_two, input_html: {class: :jSyncMethod}
           .jCasSyncMonths
             = f.input :cas_sync_months, as: :select_two, collection: GrdaWarehouse::Config.available_cas_sync_months, label: 'Clients active within prior'
+          .jCasSyncProjectGroup
+            = f.input :cas_sync_project_group_id, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), label: 'Project Group to sync', as: :select_two
           = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?', as: :select_two
           = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
           = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', as: :select_two, input_html: { multiple: true }
@@ -134,11 +136,17 @@
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
 = content_for :page_js do
   :javascript
+    additionalInputSelectors = {
+      'active_clients': '.jCasSyncMonths',
+      'project_group': '.jCasSyncProjectGroup',
+    }
     $('.jSyncMethod').on('change', function(e) {
-      if($('.jSyncMethod').val() == 'active_clients') {
-        $('.jCasSyncMonths').show();
-      } else {
-        $('.jCasSyncMonths').hide();
+      for (const method of Object.keys(additionalInputSelectors)) {
+        if ($('.jSyncMethod').val() == method) {
+          $(additionalInputSelectors[method]).show();
+        } else {
+          $(additionalInputSelectors[method]).hide();
+        }
       }
     });
     $('.jSyncMethod').trigger('change');

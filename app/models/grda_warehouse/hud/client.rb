@@ -311,6 +311,10 @@ module GrdaWarehouse::Hud
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project_type([1, 2, 4, 8, 14]).
           with_service_between(start_date: range.first, end_date: range.last)
         where(id: enrollment_scope.select(:client_id))
+      when :project_group
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
+        where(id: enrollment_scope.select(:client_id))
       else
         raise NotImplementedError
       end
@@ -1112,14 +1116,7 @@ module GrdaWarehouse::Hud
     end
 
     def disabling_condition?
-      [
-        cas_substance_response,
-        physical_response,
-        developmental_response,
-        chronic_response,
-        hiv_response,
-        mental_response,
-      ].include?('Yes')
+      currently_disabled?
     end
 
     # Define a bunch of disability methods we can use to get the response needed

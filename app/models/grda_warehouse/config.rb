@@ -7,6 +7,7 @@
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
     serialize :client_details, Array
+    validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym == :project_group }
 
     after_save :invalidate_cache
 
@@ -17,6 +18,7 @@ module GrdaWarehouse
         'Use HUD chronic report' => :hud_chronic,
         'All clients with a release on file' => :release_present,
         'Active clients within range' => :active_clients,
+        'Clients in project group' => :project_group,
       }
     end
 
@@ -145,6 +147,11 @@ module GrdaWarehouse
     def self.cas_sync_range
       current_range = get(:cas_sync_months) || 3
       (current_range.months.ago.to_date..Date.current)
+    end
+
+    def self.cas_sync_project_group
+      project_group_id = get(:cas_sync_project_group_id)
+      GrdaWarehouse::ProjectGroup.find(project_group_id)
     end
 
     def self.cache_store

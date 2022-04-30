@@ -13,8 +13,8 @@
       .jHomelessBreakdownRow{data: { chronics: chronic_dates.to_json}}
         - total = dates[active_date]['total']
         - chronic_percent = chronic_dates[active_date][title]
-        .w-100.d-flex
-          .w-50.d-flex
+        .w-100.d-sm-flex
+          .w-50.d-sm-flex
             - chart_class = "household_type_#{section_header.downcase.parameterize.underscore}_#{title.downcase.parameterize.underscore}"
             .w-30.breakdown-type.mb-4.mt-auto=title
             .w-30.mb-auto.mt-auto
@@ -22,18 +22,18 @@
               .chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
               = render 'bar_js', data: js_data, chart_class: chart_class, active_date: active_date, groups: groups, category: category
             - if adult_plus_child
-              .w-30.d-flex.border-right.border-dark
+              .w-30.d-sm-flex.border-right.border-dark
                 .total-for-type.mb-auto.mt-auto.jTotalCount{data: { dates: dates.to_json }}= total
             - else
-              .w-30.d-flex
+              .w-30.d-sm-flex
                 .total-for-type.mb-auto.mt-auto.jTotalCount{data: { dates: dates.to_json }}= total
           - # adult + child chronic is all in one big 'ol bucket
-          .w-50.d-flex.mb-4
+          .w-50.d-sm-flex.mb-4
             - if adult_plus_child
               - if under_18
                 %h5 Chronic Households
               - if youth
-                .chronic-chart.w-30
+                .chronic-chart.w-70
                 .meter
                   .background
                     - 10.times.with_index do |i|
@@ -42,7 +42,7 @@
                     - 10.times.with_index do |i|
                       .fas.fa-male{style: "left: #{i * 20}px;"}
             - else
-              .chronic-chart.w-30.mt-auto.mb-auto
+              .chronic-chart.w-70.mt-auto.mb-auto
                 .meter
                   .background
                     - 10.times.with_index do |i|

@@ -18,6 +18,7 @@ BostonHmis::Application.routes.draw do
     resources :my_vprs, only: [:index]
     namespace :warehouse_reports do
       resources :member_lists, only: [:index, :create]
+      resources :member_expiration, only: [:index]
     end
   end
 end

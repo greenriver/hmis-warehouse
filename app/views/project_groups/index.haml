@@ -29,7 +29,11 @@
       %tbody
         - @project_groups.each do |group|
           %tr
-            %td= link_to group.name, edit_project_group_path(group)
+            %td
+              = link_to group.name, edit_project_group_path(group)
+              - if group.used_for_cas_sync?
+                %span.badge.badge-success.ml-3{data: {toggle: :tooltip, title: "Used for syncing clients to CAS"}}
+                  CAS
             %th= group.projects.count
             %td.reports
               = group.describe_filter_as_html
