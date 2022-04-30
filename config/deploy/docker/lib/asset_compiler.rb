@@ -1,5 +1,5 @@
 require_relative 'aws_sdk_helpers'
-require 'byebug'
+require 'dotenv'
 
 class AssetCompiler
   include AwsSdkHelpers::Helpers
@@ -34,7 +34,7 @@ class AssetCompiler
       system(`SECRET_ARN=#{@secret_arn.shellescape} bin/download_secrets.rb > .env`)
     end
 
-    Dotenv.load('.env', '.env.local')
+    Dotenv.load('.env')
 
     time_me name: 'Clobberin\'' do
       system('source .env; rake assets:clobber') # TODO: don't call out to rake like this, it's inefficient

@@ -2,4 +2,4 @@
   = section&.title
 - section.controls.each do |control|
   - next unless control
-  = render control.input_partial_path, control: control, f: f
+  = render control.input_partial_path, control: control, f: f, data: (local_assigns[:data][control.id.to_sym] if local_assigns[:data].present?)

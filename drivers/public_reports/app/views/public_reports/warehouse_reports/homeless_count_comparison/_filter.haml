@@ -1,10 +1,7 @@
 = simple_form_for @filter, as: :filters, url: public_reports_warehouse_reports_homeless_count_comparison_index_path do |f|
   - content_for :filters_col_full do
     .row
-      .col-sm-3
-        = f.input :start, as: :date_picker, label: 'Start'
-      .col-sm-3
-        = f.input :end, as: :date_picker, label: 'End'
+      = render 'public_reports/date_filter', f: f
       - if GrdaWarehouse::Config.get(:multi_coc_installation)
         .col-sm
           = f.input :coc_codes, as: :select_two, collection: @filter.coc_code_options_for_select(user: current_user), input_html: { multiple: true, data: { placeholder: 'Any CoC' }}, include_blank: false, label: 'CoCs'

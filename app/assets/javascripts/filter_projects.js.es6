@@ -3,7 +3,7 @@ window.App.StimulusApp = window.App.StimulusApp || {}
 
 App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   static get targets() {
-    return ['element', 'header', 'projects', 'projectTypes', 'dataSources', 'projectGroups', 'calculatedProjects', 'submitButton']
+    return ['element', 'header', 'projects', 'projectTypes', 'dataSources', 'projectGroups', 'funderIds', 'calculatedProjects', 'submitButton']
   }
 
   initialize() {
@@ -22,6 +22,9 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       data_source_ids: $(this.dataSourcesTarget).val(),
       project_group_ids: $(this.projectGroupsTarget).val(),
       project_type_codes: $(this.projectTypesTarget).val(),
+    }
+    if (this.hasFunderIdsTarget) {
+      data.funder_ids = $(this.funderIdsTarget).val()
     }
     $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
     $.ajax({
@@ -48,12 +51,16 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   }
 
   prepNativeEvents() {
-    [
+    const targets = [
       this.projectsTarget,
       this.projectTypesTarget,
       this.dataSourcesTarget,
       this.projectGroupsTarget,
-    ].forEach(el => {
+    ];
+    if (this.hasFunderIdsTarget) {
+      targets.push(this.funderIdsTarget);
+    }
+    targets.forEach(el => {
       $(el).on('select2:close', (e) => {
         let event = new Event('change', { bubbles: true }) // fire a native event
         e.target.dispatchEvent(event);

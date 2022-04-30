@@ -799,6 +799,7 @@ Rails.application.routes.draw do
           get :disenrolled
           get :disenrollment_accepted
           post :bulk_assign_agency
+          post :bulk_assign_agency_and_care_staff
         end
         post :assign_agency
       end

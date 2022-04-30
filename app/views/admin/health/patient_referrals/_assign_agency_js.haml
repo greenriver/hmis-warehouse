@@ -1,16 +1,40 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
+      // Auto-submit CC/NCM changes on "Agency Assigned" tab (class names from assign_care_staff view)
+      $('.jCareCoordinator, .jNurseCareManager').on('change', function(e) {
+        $(this).closest('form').trigger('submit');
+      });
+
+      // For agency assignment, infer agency based on CC or NCM
+      $('.careCoordinator, .nurseCareManager').on('change', function(e) {
+        const patientId = $(this).data("patient-id");
+        const submitButton = $(this).closest('form').find(':submit');
+
+        const selectedCC = $(`select[data-patient-id="${patientId}"].careCoordinator`).find(':selected')
+        const selectedNCM = $(`select[data-patient-id="${patientId}"].nurseCareManager`).find(':selected')
+
+        let selectedAgency;
+        if ($(selectedCC).val()) {
+          selectedAgency = $(selectedCC).parent().attr('label');
+        } else if ($(selectedNCM).val()) {
+          selectedAgency = $(selectedNCM).parent().attr('label');
+        }
+
+        if (selectedAgency) {
+          submitButton.val(`Assign to ${selectedAgency}`);
+          submitButton.prop('disabled', false);
+        } else {
+          submitButton.val(`Assign to Agency`);
+          submitButton.prop('disabled', true);
+        }
+        updateBulkApplySelectionsLabel();
+      });
+
       var assignContainerSelector = '.patient-referral__assign-agency';
       var assignInputSelector = "input[name='health_patient_referral[agency_id]']";
       $("a[data-behavior='assign agency']").click(function(e) {
         e.preventDefault();
-        // var container = $(this).parents(assignContainerSelector);
-        // var form = $(container).find('form');
-        // var input = $(form).find("input[name='health_patient_referral[agency_id]']");
-        // var agencyId = $(this).data('agency-id');
-        // $(input).val(agencyId);
-        // $(form).submit();
         setInputValueFromListItem(this, assignContainerSelector, assignInputSelector, 'agency-id');
       });
 
@@ -18,9 +42,6 @@
       var rejectInputSelector = "input[name='health_patient_referral[rejected_reason]']";
       $("a[data-behavior='reject patient referral']").click(function(e) {
         e.preventDefault();
-        // var container = $(this).parents(rejectContainerSelector);
-        // var form = $(container).find('form');
-        // var input = 
         setInputValueFromListItem(this, rejectContainerSelector, rejectInputSelector, 'rejected-reason');
       });
 
@@ -59,6 +80,18 @@
         updateBulkAsssignmentLabel();
       }
 
+      // Update dropdown label for applying selected CC/NCM/Agency assignments to selected patients
+      var updateBulkApplySelectionsLabel = function() {
+        // Referrals where the assignment submit button is enabled (meaning either the CC or NCM is selected) AND the bulk checkbox is checked
+        var referralsToAssign = $('.jPatientReferral input[type="submit"]:enabled').filter(function () {
+          return $(this).closest('.jPatientReferral').find('input:checked').length > 0
+        });
+        const numAgencies = new Set(referralsToAssign.map(function() { return this.value }).get()).size
+        const patients = referralsToAssign.length != 1 ? 'patients' : 'patient'
+        const agencies = numAgencies != 1 ? 'agencies' : 'agency'
+        $('.bulkSubmitSelectionsLabel').text(`Assign ${referralsToAssign.length} ${patients} to ${numAgencies} ${agencies}.`);
+      }
+
       var updateBulkAsssignmentLabel = function() {
         var label = $('.bulk_assignment_agency_id label');
         var ids = $('.bulk_assignment_patient_referral_ids input:checked');
@@ -67,7 +100,38 @@
           p = 'Patient';
         }
         label.text('Assign agency to '+ids.length+' '+p+'.');
+        updateBulkApplySelectionsLabel();
       }
       updateBulkAsssignmentLabel();
+
+      // Submit bulk assignment using CC/NCM selections
+      $('button.bulk-submit-selections').click(function(e) {
+        e.preventDefault();
+        data = []
+        $('.jPatientReferral').each(function(index, pr) {
+          var checkbox = $(pr).find("[name='patient_referral_id']")
+          if (!$(checkbox).is(':checked')) {
+            return;
+          }
+          var cc = $(pr).find('select.careCoordinator').val()
+          var ncm = $(pr).find('select.nurseCareManager').val()
+          if (cc || ncm) {
+            data.push({ id: $(checkbox).val(), care_coordinator_id: cc, nurse_care_manager_id: ncm })
+          }
+        });
+        if (data.length < 1) {
+          return
+        }
+
+        $.ajax({
+          url: $(this).data("url"),
+          type: 'POST',
+          data: {assignments: data},
+        }).done(function(e) {
+          console.debug('done');
+        }).fail(function(e) {
+          console.error(e);
+        })
+      });
 
     });

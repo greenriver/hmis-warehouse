@@ -1,8 +1,2 @@
-
-.d-flex
-  .w-50
-    - chart_class = "all-homeless-housing-status-chart"
-    = render 'donut_chart', data: data['all_homeless'], chart_class: chart_class, category: :location_type, title: 'All People', include_legend: true
-  .w-50
-    - chart_class = "veterans-housing-status-chart"
-    = render 'donut_chart', data: data['homeless_veterans'], chart_class: chart_class, category: :location_type, title: 'Veterans', include_legend: true
+- chart_class = "all-homeless-housing-status-chart"
+= render 'donut_chart', data: data['all_homeless'], chart_class: chart_class, category: :location_type, title: 'All People', include_legend: true

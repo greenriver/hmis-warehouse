@@ -1,5 +1,5 @@
-.d-flex.mt-4
-  .w-30
+.row.mt-4
+  .col-sm-4
     %label.ml-auto.mb-2{ for: 'breakdown-group-trigger' }
       Choose grouping
       %br
@@ -7,7 +7,7 @@
         %option{value: :household_type} Household Type
         %option{value: :gender} Gender
         %option{value: :race} Race
-  .w-30
+  .col-sm-4
     .homeless_breakdown_legend.d-flex.legend-wrapper-horizontal.legend-wrapper.homeless_breakdown-chart_legend{ transform: 'translate(0, 100)' }
       .chart-legend-item-prs1.bb-legend-item.bb-legend-item-Sheltered{ style: "visibility: visible; cursor: pointer; opacity: 1;" }
         .swatch
@@ -19,7 +19,7 @@
           %svg.chart-legend-item-swatch-prs1{ viewBox: "0 0 10 10", xmlns: "http://www.w3.org/2000/svg" }
             %rect{ width: "10", height: "10", fill: @report.settings.color(1, :location_type) }
         %div{ class: 'chart-legend-item-label-prs1' } Unsheltered
-  .w-30
+  .col-sm-4
     %p
       Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.
       = render 'glossary_button'

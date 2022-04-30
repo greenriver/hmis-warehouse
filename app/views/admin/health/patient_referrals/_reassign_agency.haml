@@ -1,0 +1,22 @@
+.col-sm-3.pl-8
+  - if pr.patient&.client&.present?
+    .patient-referral__assign-careStaff
+      = render 'health/patients/assign_care_staff', patient: pr.patient
+.col-sm-2.offset-sm-1.patient-referral__assign-agency
+  .mb-2
+    %strong Assigned To:
+    = pr.assigned_agency&.name
+  - dropdown_id = "assign-agency-to-#{pr.id}"
+  = simple_form_for pr, url: admin_health_patient_referral_assign_agency_path(pr), namespace: dropdown_id, method: :post, remote: true do |f|
+    = f.input :agency_id, as: :hidden
+  .dropdown
+    = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'}, class: 'btn btn-secondary btn-sm' do
+      Change Agency
+      %span.caret
+    %ul.dropdown-menu{aria: {labelledby: dropdown_id}}
+      %li
+        = link_to 'None', '#', data: {behavior: 'assign agency', agency_id: ''}
+      - @agencies.each do |a|
+        - unless pr.assigned_agency == a
+          %li
+            = link_to a.name, '#', data: {behavior: 'assign agency', agency_id: a.id}

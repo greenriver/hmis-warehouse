@@ -17,7 +17,7 @@ module StartDateDq
     end
 
     def default_filter(user_id)
-      Filters::FilterBase.new(user_id: user_id, start: '2018-01-01')
+      Filters::FilterBase.new(user_id: user_id)
     end
 
     def self.viewable_by(user)
