@@ -21,6 +21,10 @@ module GrdaWarehouse::SystemCohorts
       end
     end
 
+    def self.find_system_cohort(cohort_key)
+      cohort_classes[cohort_key]&.first
+    end
+
     private def add_clients(client_ids, reason)
       system_user_id = User.setup_system_user.id
       client_ids -= cohort_clients.pluck(:client_id) # Do not touch existing clients

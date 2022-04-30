@@ -1,0 +1,76 @@
+.row
+  .col
+    %h2 Actively Homeless
+.row
+  .col
+    %table.table.table-striped
+      %tbody
+        %tr
+          %td
+            = "#{population}"
+          %td.text-right
+            = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :actively_homeless) }), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+              = data.actively_homeless.count
+.row
+  .col
+    %h2 Length of Time from Identification to Housing
+.row
+  .col
+    %table.table.table-striped
+      %tbody
+        %tr
+          %td
+            = "For #{population}"
+          %td.text-right
+            = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :lot_to_housing) }), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+              = pluralize(data.average_lot_to_housing, 'days')
+.row
+  .col
+    %h2 Outflow
+.row
+  .col
+    %table.table.table-striped
+      %tbody
+        %tr
+          %td
+            Housing Placements
+          %td.text-right
+            = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :housed) }), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+              = data.housed.count
+        %tr
+          %td
+            Moved to Inactive
+          %td.text-right
+            = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :inactive) }), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+              = data.inactive.count
+        %tr
+          %td
+            No Longer Meets Population Criteria
+          %td.text-right
+            = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :ineligible) }), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+              = data.ineligible.count
+.row
+  .col
+    %h2 Inflow
+.row
+  .col
+    %table.table.table-striped
+      %tbody
+        %tr
+          %td
+            Newly Identified
+          %td.text-right
+            = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :newly_identified) }), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+              = data.newly_identified.count
+        %tr
+          %td
+            Returned to Active List from Housing
+          %td.text-right
+            = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :returned_from_housing) }), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+              = data.returned_from_housing.count
+        %tr
+          %td
+            Returned to Active List from Inactive
+          %td.text-right
+            = link_to details_built_for_zero_report_warehouse_reports_bfz_index_path(params: { report: report_params.merge(key: :returned_from_inactivity) }), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+              = data.returned_from_inactivity.count
