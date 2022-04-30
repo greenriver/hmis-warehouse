@@ -14,6 +14,8 @@ module BuiltForZeroReport
   end
 
   def self.sections
+    return {} unless ::GrdaWarehouse::Config.get(:enable_system_cohorts)
+
     cohort_keys = {
       veterans: :veteran_cohort,
       chronic: :chronic_cohort,
@@ -23,7 +25,10 @@ module BuiltForZeroReport
     }.freeze
 
     all_report_sections.
-      select { |k, _| ::GrdaWarehouse::SystemCohorts::Base.find_system_cohort(cohort_keys[k]).present? }.
+      select do |k, _|
+        ::GrdaWarehouse::SystemCohorts::Base.find_system_cohort(cohort_keys[k]).present? &&
+        ::GrdaWarehouse::Config.get(cohort_keys[k])
+      end.
       invert.
       freeze
   end
