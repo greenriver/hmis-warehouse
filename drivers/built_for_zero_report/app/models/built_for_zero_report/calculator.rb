@@ -133,10 +133,41 @@ module BuiltForZeroReport
     def lot_to_housing
       @lot_to_housing ||= begin
         housed_clients = housed
+        # We are looking for the first recorded date of homelessness:
+        #
+        # 1. Get the earlier of 3.917.3 DateToStreetESSH or 3.10.1 EntryDate for any Enrollments where
+        #    3.917 Prior Living Situation indicates homelessness:
         first_enrollment_dates = GrdaWarehouse::ServiceHistoryEnrollment.
-          first_date.
-          where(client_id: housed_clients.keys).pluck(:client_id, :first_date_in_program).
-          to_h
+          joins(:enrollment).
+          entry.
+          where(client_id: housed.keys).
+          where(e_t[:LivingSituation].in(HUD.homeless_situations(as: :prior))).
+          pluck(:client_id, e_t[:DateToStreetESSH], e_t[:EntryDate]).
+          group_by(&:shift).
+          transform_values { |dates| dates.flatten.compact.min }
+
+        # 2. Consider any 3.10.1 EntryDate for any Enrollments where the associated 2.02.6 ProjectType suggests
+        #    homelessness:
+        homeless_project_dates = GrdaWarehouse::ServiceHistoryEnrollment.
+          joins(enrollment: :project).
+          entry.
+          where(client_id: housed.keys).
+          merge(GrdaWarehouse::Hud::Project.homeless).
+          group(:client_id).
+          minimum(e_t[:EntryDate])
+        first_enrollment_dates.merge!(homeless_project_dates) { |_, old, new| [old, new].min }
+
+        # 3. And also consider the earliest 4.12.1 InformationDate where 4.12.2 CurrentLivingSituation indicates
+        #    homelessness
+        homeless_contact_dates = GrdaWarehouse::ServiceHistoryEnrollment.
+          joins(enrollment: :current_living_situations).
+          entry.
+          where(client_id: housed.keys).
+          where(cls_t[:CurrentLivingSituation].in(HUD.homeless_situations(as: :current))).
+          group(:client_id).
+          minimum(cls_t[:InformationDate])
+        first_enrollment_dates.merge!(homeless_contact_dates) { |_, old, new| [old, new].min }
+
         housed_clients.map do |client_id, data|
           first_date = first_enrollment_dates[client_id]
           data.merge!(
