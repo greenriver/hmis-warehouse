@@ -17,7 +17,7 @@
       %i.icon-file-excel.icon-lg
       Download
   .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('assessment').pluralize(@pagy.count)) if @pagy.count.positive?
+    != pagy_info(@pagy, item_name: _('assessment').pluralize(@pagy.count))
     != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
   .table-responsive
     %table.table.table-striped
@@ -47,7 +47,7 @@
                 #{enrollment.first_date_in_program} - #{enrollment.last_date_in_program}
   - if @pagy.pages > 1
     .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('assessment').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_info(@pagy, item_name: _('assessment').pluralize(@pagy.count))
       != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - else
   .none-found.mt-4 No assessments found.

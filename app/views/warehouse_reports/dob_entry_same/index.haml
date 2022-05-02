@@ -9,7 +9,7 @@
   = render 'warehouse_reports/limited_by_project_note'
 - if @pagy.count.positive?
   .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
     != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
   .table-responsive
     %table.table.table-striped
@@ -29,7 +29,7 @@
             %td= enrollment&.project&.ProjectName
   - if @pagy.pages > 1
     .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
       != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - else
   .none-found No clients found.
