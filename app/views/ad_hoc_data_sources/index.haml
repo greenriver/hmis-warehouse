@@ -14,25 +14,26 @@
       %span.icon-plus
       Add Ad-Hoc Data Source
 
-%p= paginate(@data_sources)
-.card
-  - if @data_sources.present?
-    .table-responsive
-      %table.table.table-striped
-        %thead
+- if @pagy.count.positive?
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('data source').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Name
+          %th Short Name
+          %th Last Upload
+          %th
+      %tbody
+        - @data_sources.each do |data_source|
           %tr
-            %th Name
-            %th Short Name
-            %th Last Upload
-            %th
-        %tbody
-          - @data_sources.each do |data_source|
-            %tr
-              %td= link_to data_source.name, ad_hoc_data_source_path(data_source)
-              %td= data_source.short_name
-              %td= data_source.ad_hoc_batches.maximum(:created_at)
-              %td
-                = link_to ad_hoc_data_source_path(data_source), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you certain you want to delete #{data_source.name}?" } do
-                  %i.icon-cross
-  - else
-    %p.none-found No Ad-Hoc Data Sources
+            %td= link_to data_source.name, ad_hoc_data_source_path(data_source)
+            %td= data_source.short_name
+            %td= data_source.ad_hoc_batches.maximum(:created_at)
+            %td
+              = link_to ad_hoc_data_source_path(data_source), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you certain you want to delete #{data_source.name}?" } do
+                %i.icon-cross
+- else
+  .none-found No Ad-Hoc Data Sources

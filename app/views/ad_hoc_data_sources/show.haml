@@ -1,6 +1,6 @@
 - content_for :title,  @data_source.name
 = render 'breadcrumbs'
-.row
+.row.mb-8
   .col-sm-8
     %h1= content_for :title
     - unless @data_source.active
@@ -21,30 +21,37 @@
         %span.icon-plus
         Upload Batch
 
-%p= paginate(@uploads)
-.row.table-utilities
-  .col-sm-12
-    .card
-      .table-responsive
-        %table.table.table-striped
-          %thead
-            %tr
-              %th Description
-              %th Uploaded On
-              %th Uploaded By
-              %th Status
-              %th.text-center Download Original
-              %th
-          %tbody
-            - @uploads.each do |upload|
-              %tr
-                %td= link_to upload.description, ad_hoc_data_source_upload_path(@data_source, upload)
-                %td= upload.created_at.to_date
-                %td= upload.user&.name
-                %td= upload.status
-                %td.text-center
-                  = link_to download_ad_hoc_data_source_upload_path(@data_source, upload), class: 'btn btn-secondary btn-sm btn-icon-only' do
-                    %i.icon-download2
-                %td
-                  = link_to ad_hoc_data_source_upload_path(@data_source, upload), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this upload?' } do
-                    %icon.icon-cross
+
+- if @pagy.count.positive?
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('upload').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Description
+          %th Uploaded On
+          %th Uploaded By
+          %th Status
+          %th.text-center Download Original
+          %th
+      %tbody
+        - @uploads.each do |upload|
+          %tr
+            %td= link_to upload.description, ad_hoc_data_source_upload_path(@data_source, upload)
+            %td= upload.created_at.to_date
+            %td= upload.user&.name
+            %td= upload.status
+            %td.text-center
+              = link_to download_ad_hoc_data_source_upload_path(@data_source, upload), class: 'btn btn-secondary btn-sm btn-icon-only' do
+                %i.icon-download2
+            %td
+              = link_to ad_hoc_data_source_upload_path(@data_source, upload), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this upload?' } do
+                %icon.icon-cross
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('upload').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found.mt-4 No Uploads

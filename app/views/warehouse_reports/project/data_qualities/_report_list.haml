@@ -1,6 +1,6 @@
 - if @pagy.count.positive?
   .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count)) if @pagy.count.positive?
+    != pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count))
     != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
   .table-responsive
     %table.table.table-striped
@@ -26,7 +26,7 @@
 
   - if @pagy.pages > 1
     .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count))
       != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - else
   .none-found No reports found.
