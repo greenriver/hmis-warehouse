@@ -14,7 +14,7 @@
         .mb-4
           %h3 Universe
           .card.overflow-scroll.mb-4{class: comparison_class}
-            %table.table.table-striped.mb-0
+            %table.table.table-striped
               %thead
                 %tr
                   - data.each do |disability, _|
@@ -32,7 +32,7 @@
           .mb-4
             %h3= coc_code
             .card.overflow-scroll.mb-4{class: comparison_class}
-              %table.table.table-striped.mb-0
+              %table.table.table-striped
                 %thead
                   %tr
                     - data[:disabilities_summary].each do |disability, _|
@@ -42,7 +42,7 @@
                     - data[:disabilities_summary].each do |disability, ids|
                       %th.text-center= link_to_if(ids.count > 0, number_with_delimiter(ids.count), details_disability_summary_warehouse_reports_disability_summary_index_path({ filters: report.filter.to_h }.merge(detail: :coc, coc: coc_code, disability: disability)))
             .card{class: comparison_class}
-              %table.table.table-striped.mb-0
+              %table.table.table-striped
                 %thead
                   %tr
                     %th Disability
