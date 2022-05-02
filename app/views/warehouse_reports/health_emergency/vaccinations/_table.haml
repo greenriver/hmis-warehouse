@@ -1,32 +1,36 @@
-.mb-4!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
 - if @pagy.count.positive?
-  .row
-    .col-sm-8
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
-    .col-sm-4.d-flex
-      = link_to({format: :xlsx}.merge({filter: filter_params}),{class: 'btn btn-secondary ml-auto mb-4'}) do
-        Download Excel
-
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Client ID
-        %th Name
-        %th DOB
-        %th Vaccination dates
-        %th Last Seen
-    %tbody
-      - @clients.each do |client|
+  .text-right.mb-4
+    = link_to({format: :xlsx}.merge({filter: filter_params}),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
-          %td= link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
-          %td= client.DOB
-          %td= client.health_emergency_vaccinations.pluck(:vaccinated_on).join(', ')
-          %td
-            - served_on = client.date_of_last_service
-            = client.last_projects_served_by.to_sentence
-            - if served_on
-              on
-              = served_on
-
-  .mt-4!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+          %th Client ID
+          %th Name
+          %th DOB
+          %th Vaccination dates
+          %th Last Seen
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
+            %td= link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
+            %td= client.DOB
+            %td= client.health_emergency_vaccinations.pluck(:vaccinated_on).join(', ')
+            %td
+              - served_on = client.date_of_last_service
+              = client.last_projects_served_by.to_sentence
+              - if served_on
+                on
+                = served_on
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found No clients found.

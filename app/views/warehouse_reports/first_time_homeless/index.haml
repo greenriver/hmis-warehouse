@@ -18,13 +18,15 @@
       %p.jLoading.text-center Loading...
 
   %h4 New Clients in Selected Range (#{@filter.start} to #{@filter.end})
-  .mb-4!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-  .d-flex
+  .text-right.mb-4
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
     != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
-    .ml-auto.mb-4
-      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-        Download Excel
-  .card
+
+  .table-responsive
     %table.table.table-striped
       %thead
         %tr
@@ -57,9 +59,12 @@
             %td= client.first_service_history.project_name
             %td= client.first_service_history.organization.try(:OrganizationName)
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')
-  .mt-4!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - else
-  %p.well.none-found No clients found
+  .none-found.mt-4 No clients found.
 - filter = { start: @filter.start, end: @filter.end, sub_population: @filter.sub_population, project_type_codes: @filter.project_type_codes, age_ranges: @filter.age_ranges, heads_of_household: @filter.heads_of_household, organization_ids: @filter.organization_ids, project_ids: @filter.project_ids}
 - if @filter.coc_codes
   - filter[:coc_codes] = @filter.coc_codes

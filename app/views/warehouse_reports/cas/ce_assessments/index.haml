@@ -8,18 +8,18 @@
 - if @filter.project_id.blank?
   .well
     %p You must choose a project.
-- else
-  .text-right.mb-4
-    = link_to({format: :xlsx}.merge(filter_params),{class: 'btn btn-secondary'}) do
-      %i.icon-file-excel.icon-lg
-      Download Excel
+- elsif @pagy.count.positive?
   .well
     %p All clients have at least one ongoing enrollment, at least #{@filter.days_homeless} days homeless in the past three years, and have not been assessed in the previous #{@filter.no_assessment_in} days.
     %p Clients will be limited to those with an ongoing enrollment at #{@report.project_name} who do not also have an enrollment with a move-in-date at a housing project.
-  .d-flex
-    .pt-2!= pagy_info(@pagy, item_name: _('assessment').pluralize(@pagy.count))
-    .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
-  - if @pagy.count.positive?
+  .text-right.mb-4
+    = link_to({format: :xlsx}.merge(filter_params),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('assessment').pluralize(@pagy.count)) if @pagy.count.positive?
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
     %table.table.table-striped
       %thead
         %tr
@@ -45,3 +45,9 @@
                 #{enrollment.project_name} (#{HUD.project_type_brief(enrollment.computed_project_type)})
                 %br
                 #{enrollment.first_date_in_program} - #{enrollment.last_date_in_program}
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('assessment').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found.mt-4 No assessments found.

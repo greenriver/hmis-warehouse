@@ -5,17 +5,16 @@
 = simple_form_for :filter, url: warehouse_reports_cas_health_prioritization_index_path, html: { method: :get } do |f|
   = render 'filter', f: f
 
-.d-flex.mb-4
-  = link_to warehouse_reports_cas_health_prioritization_index_path(filter: filter_params, format: :xlsx), class: 'btn btn-sm btn-secondary ml-auto' do
-    %i.icon.icon-download2
-    Download
-
 - if @pagy.count.positive?
-  .d-flex
-    .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-    .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .text-right.mb-4
+    = link_to warehouse_reports_cas_health_prioritization_index_path(filter: filter_params, format: :xlsx), class: 'btn btn-secondary' do
+      %i.icon-file-excel.icon-lg
+      Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 
-  .overflow-x-scroll{style: "height: 800px"}
+  .table-responsive
     %table.table.table-fixed.table-striped.jClientTable
       %thead
         %tr
@@ -48,9 +47,10 @@
             %td= client.race_description
             %td= HUD.ethnicity(client.Ethnicity)
             %td= render 'form', client: client
-  .d-flex
-    .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-    .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - else
   %p.none-found No clients found.
 = content_for :page_js do

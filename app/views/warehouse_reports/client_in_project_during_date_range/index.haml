@@ -1,23 +1,20 @@
 - title = "Clients in a Project for a Given Date Range"
 - content_for :title, title
-.row
-  .col-sm-8
-    %h1= title
+%h1= title
 
 = render '/warehouse_reports/breadcrumbs'
 = render 'filter'
 
-.row
-  .col-sm-12.text-right
-    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-      Download Excel
-
-.d-flex.mt-4
-  .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-  .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - if @pagy.count.positive?
-  .warehouse-reports__chronic
-    %table.table.table-sm.table-hover
+  .text-right.mb-4
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsivewarehouse-reports__chronic
+    %table.table.table-striped
       %thead
         %tr
           %th Last Name
@@ -35,3 +32,9 @@
             %th= HUD.veteran_status(client.VeteranStatus)
             %td.text-center= client.days_homeless
             %td.text-center= client.days_homeless_in_last_three_years
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found No clients found.
