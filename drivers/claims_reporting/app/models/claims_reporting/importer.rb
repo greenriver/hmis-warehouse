@@ -148,7 +148,7 @@ module ClaimsReporting
     end
 
     # credentials is a Hash containing host, username, password
-    # defaults to thr first Health::ImportConfig with kind: 'claims_reporting'
+    # defaults to the first Health::ImportConfig with kind: 'claims_reporting'
     def import_from_health_sftp(zip_path, replace_all: false, credentials: default_credentials)
       record_start(
         :import_from_health_sftp,
