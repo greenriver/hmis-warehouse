@@ -54,7 +54,7 @@ module ClaimsReporting
       Net::SFTP.start(
         host,
         credentials['username'],
-        password: credentials['password'],
+        password: credentials['password'] || credentials.password,
         auth_methods: ['publickey', 'password'],
         keepalive: true,
         keepalive_interval: 60,

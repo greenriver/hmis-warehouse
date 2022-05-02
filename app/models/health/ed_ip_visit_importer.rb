@@ -63,7 +63,7 @@ module Health
       Net::SFTP.start(
         credentials['host'],
         credentials['username'],
-        password: credentials['password'],
+        password: credentials['password'] || credentials.password,
         auth_methods: ['publickey', 'password'],
         keepalive: true,
         keepalive_interval: 60,

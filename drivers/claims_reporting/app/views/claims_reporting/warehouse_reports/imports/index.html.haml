@@ -1,9 +1,10 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'health-bh-cp-claims-payments'
 
 %h1= "Claims Reporting Imports"
-- sftp_host = ClaimsReporting::Importer.new.default_credentials[:host]
-- if sftp_host.present?
-  - path = sftp_host['path']
+- sftp_config = ClaimsReporting::Importer.new.default_credentials
+- if sftp_config.present?
+  - sftp_host = sftp_config['host']
+  - path = sftp_config['path']
   %h4 Health SFTP Status
   %table.table.table-sm.table-striped
     %tr
