@@ -59,7 +59,7 @@ module GrdaWarehouse::Hud
       sh: 'Safe Haven (SH)',
       so: 'Street Outreach (SO)',
       rrh: 'Rapid Re-Housing (RRH)',
-      ca: 'Coordinated Assessment (CA)',
+      ca: 'Coordinated Entry (CE)',
       psh: 'Permanent Supportive Housing (PSH)',
       oph: 'Permanent Housing Only (OPH)',
       other: 'Other',

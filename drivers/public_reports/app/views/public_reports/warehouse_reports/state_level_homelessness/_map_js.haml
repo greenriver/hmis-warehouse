@@ -58,13 +58,22 @@
         let innerHTML = '';
         let hidden = true;
         if (props != null) {
-          const { id, name, place, metric } = props;
-          const rate = this.metrics[props.cocnum]?.rate
-          const count = this.metrics[props.cocnum]?.count
-          const population = this.metrics[props.cocnum]?.overall_population
+          let { id, name, place, metric } = props;
+          // Special case CoC numbers
+          let cocnum = props?.cocnum;
+          let key = name;
+          if(cocnum !== undefined) {
+            key = cocnum;
+            if(name == undefined) {
+              name = cocnum;
+            }
+          }
+          let rate = this.metrics[key]?.rate
+          let count = this.metrics[key]?.count
+          let population = this.metrics[key]?.overall_population
           let color = this.colors[this.getColor(rate)]
 
-          innerHTML = `<h4>${name}</h4><div class="rate">Selected population within location: ${color.description}<br>State-wide selected population:  ${count?.toLocaleString()}<br>Census population: ${population?.toLocaleString()}</div>`;
+          innerHTML = `<h4>${name}</h4><div class="rate">Population group within location: ${color.description}<br>Population group state-wide:  ${count?.toLocaleString()}<br>Census population: ${population?.toLocaleString()}</div>`;
 
           hidden = false;
         }
@@ -155,7 +164,11 @@
     updateMetrics(metrics) {
       this.metrics = metrics
       this.geojson.getLayers().forEach((l) => {
-        const place_name = l.feature.properties.cocnum
+        // Special case CoC numbers
+        let place_name = l.feature.properties?.cocnum
+        if(place_name == undefined) {
+          place_name = l.feature.properties.name
+        }
         l.feature.properties.metric = this.metrics[place_name].rate
         this.geojson.resetStyle(l);
         return l.setStyle({

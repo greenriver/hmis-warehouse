@@ -412,7 +412,7 @@ module HUD
       11 => 'Day Shelter',
       12 => 'Homelessness Prevention',
       13 => 'PH - Rapid Re-Housing',
-      14 => 'Coordinated Assessment',
+      14 => 'Coordinated Entry',
     }
   end
 
@@ -443,7 +443,7 @@ module HUD
     when 13
       'PH-RRH'
     when 14
-      'Coordinated Assessment'
+      'CE'
     end
   end
 

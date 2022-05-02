@@ -27,19 +27,33 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
     [0, 20, 65], # health priority age
     [true, false], # multi coc installation
   ) do |combination|
-    configs_variations.append(
-      [[:cas_available_method,
+    variation = [
+      [
+        :cas_available_method,
         :consent_visible_to_all,
         :expose_coc_code,
         :health_emergency,
         :health_emergency_tracing,
         :health_priority_age,
-        :multi_coc_installation], combination].transpose.to_h,
-    )
+        :multi_coc_installation,
+      ], combination
+    ].transpose.to_h
+    configs_variations.append(variation)
   end
 
   configs_variations.each do |variation|
     context 'when using variable configs' do
+      before(:all) do
+        if variation[:cas_available_method] == :project_group
+          @cas_project_group = GrdaWarehouse::ProjectGroup.new(name: 'test group for cas sync config')
+          @cas_project_group.save!
+          variation[:cas_sync_project_group_id] = @cas_project_group.id
+        end
+      end
+      after(:all) do
+        @cas_project_group.destroy if variation[:cas_available_method] == :project_group
+      end
+
       before do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache

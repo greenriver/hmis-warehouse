@@ -55,7 +55,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         # 11: Day Shelter
         # 12: Homeless Prevention
         # 13: Rapid Re-Housing (PH)
-        # 14: Coordinated Assessment
+        # 14: Coordinated Entry
 
         calculate_7a_1()
         update_report_progress(percent: 33)

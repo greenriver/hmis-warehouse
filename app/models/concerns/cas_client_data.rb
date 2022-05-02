@@ -149,7 +149,7 @@ module CasClientData
         [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
-        # Homeless or Coordinated Assessment
+        # Homeless or Coordinated Entry
         enrollment_scope = service_history_enrollments.in_project_type([1, 2, 4, 8, 14])
         if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
           enrollment_scope.with_service_between(
@@ -163,6 +163,9 @@ module CasClientData
             service_scope: GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated,
           ).exists?
         end
+      when :project_group
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        service_history_enrollments.ongoing.in_project(project_ids).exists?
       else
         raise NotImplementedError
       end

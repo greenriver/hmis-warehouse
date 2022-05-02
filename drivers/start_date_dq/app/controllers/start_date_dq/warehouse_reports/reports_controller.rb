@@ -23,7 +23,7 @@ module StartDateDq::WarehouseReports
         end
         format.xlsx do
           @enrollments = @report.data
-          headers['Content-Disposition'] = 'attachment; filename=Approximate Start Date Report.xlsx'
+          headers['Content-Disposition'] = "attachment; filename=#{@report.title} Data Quality Report.xlsx"
         end
       end
     end
@@ -42,7 +42,8 @@ module StartDateDq::WarehouseReports
     end
 
     def filter_params
-      return {} unless params[:filter].present?
+      site_coc_codes = GrdaWarehouse::Config.get(:site_coc_codes).presence&.split(/,\s*/)
+      return { coc_codes: site_coc_codes } unless params[:filter].present?
 
       params.require(:filter).permit(filter_class.new.known_params)
     end

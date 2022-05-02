@@ -9,8 +9,8 @@
           %i.icon-file-pdf.icon-lg
         %span PDF
     - if excel_download_path.present?
-      = link_to excel_download_path, class: 'dropdown-item d-flex align-items-center py-2' do
-        %div.mr-2(style='min-width: 32px; height: 28px')
+      = link_to excel_download_path, class: 'dropdown-item d-flex align-items-center py-2', data: { toggle: :tooltip, title: excel_download_tooltip } do
+        %div.mr-2{ style: 'min-width: 32px; height: 28px'}
           %i.icon-file-excel.icon-lg
         %span Excel or CSV
     = link_to account_downloads_path, class: 'dropdown-item d-flex align-items-center py-2' do
