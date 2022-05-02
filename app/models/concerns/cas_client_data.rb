@@ -327,6 +327,14 @@ module CasClientData
       vispdat_prioritization_days_homeless || days_homeless_in_last_three_years
     end
 
+    private def hmis_days_homeless_in_last_three_years
+      processed_service_history&.days_homeless_last_three_years
+    end
+
+    private def hmis_days_homeless_all_time
+      processed_service_history&.homeless_days
+    end
+
     # Default to the original assessment, identified since it comes from HMIS
     private def cas_assessment_name
       'IdentifiedClientAssessment'
@@ -416,6 +424,6 @@ module CasClientData
     end
 
     # The following do not currently get persisted onto Client, but are calculated live
-    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless, :hivaids_status, :drug_test, :heavy_drug_use, :sober, :willing_case_management, :employed_three_months, :living_wage, :need_daily_assistance, :full_time_employed, :can_work_full_time, :willing_to_work_full_time, :rrh_successful_exit, :th_desired, :drug_test, :employed_three_months, :site_case_management_required, :currently_fleeing, :dv_date, :assessor_first_name, :assessor_last_name, :assessor_email, :assessor_phone
+    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless, :hivaids_status, :drug_test, :heavy_drug_use, :sober, :willing_case_management, :employed_three_months, :living_wage, :need_daily_assistance, :full_time_employed, :can_work_full_time, :willing_to_work_full_time, :rrh_successful_exit, :th_desired, :drug_test, :employed_three_months, :site_case_management_required, :currently_fleeing, :dv_date, :assessor_first_name, :assessor_last_name, :assessor_email, :assessor_phone, :match_group
   end
 end

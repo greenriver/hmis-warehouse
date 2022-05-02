@@ -587,6 +587,13 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # Provide an organization name that is confidentialized in the same way as the project
+    def organization_name(user = nil)
+      return organization.class.confidential_organization_name if confidential? && (user.blank? || ! user.can_view_confidential_enrollment_details?)
+
+      organization.OrganizationName
+    end
+
     def confidential_name?
       confidential? || /healthcare/i.match(self.ProjectName).present?
     end

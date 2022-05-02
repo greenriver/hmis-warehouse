@@ -1,32 +1,35 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "#{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@sub_population]} Last Zip Detail") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row([
-    'Warehouse Client ID',
-    'First Name', 
-    'Last Name', 
-    'Last Permanent Zip',
-    'Unaccompanied?',
-    'Age',
-    'Parenting?',
-    'Entry Date',
-    'Project Name',
-    'Head of Household?',
-  ], :style => title)
-  @clients.each do |client_id, records|
-    record = records.map{|h| h.compact}.reduce(&:merge)
+  sheet.add_row(
+    [
+      'Warehouse Client ID',
+      'First Name',
+      'Last Name',
+      'Last Permanent Zip',
+      'Unaccompanied?',
+      'Age at Entry',
+      'Parenting?',
+      'Entry Date',
+      'Project Name',
+      'Head of Household?',
+    ],
+    style: title,
+  )
+  @clients.each do |client_id, enrollment|
+    client = enrollment.client
     row = [
-      record[:client_id],
-      record[:first_name],
-      record[:last_name],
-      record[:last_permanent_zip],
-      yes_no(record[:unaccompanied_youth]),
-      record[:age],
-      yes_no(record[:parenting_youth] || record[:parenting_juvenile]),
-      record[:first_date_in_program],
-      record[:project_name],
-      yes_no(record[:head_of_household]),
-    ] 
+      client_id,
+      client.FirstName,
+      client.LastName,
+      enrollment.enrollment&.LastPermanentZIP,
+      yes_no(enrollment.unaccompanied_youth),
+      enrollment.age,
+      yes_no(enrollment.parenting_youth || enrollment.parenting_juvenile),
+      enrollment.first_date_in_program,
+      enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+      yes_no(enrollment.head_of_household),
+    ]
     sheet.add_row(row)
   end
 end

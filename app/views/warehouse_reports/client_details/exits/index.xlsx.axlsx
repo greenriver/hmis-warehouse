@@ -10,15 +10,16 @@ wb.add_worksheet(name: "Exit Detail #{GrdaWarehouse::WarehouseReports::Dashboard
     'Exit From',
     'Ethnicity',
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }, style: title)
-  @report.clients.each do |client|
+  @report.clients.each do |enrollment|
+    client = enrollment.client
     row = [
-      client[:client_id],
-      client[:first_name],
-      client[:last_name],
-      client[:date],
-      client[:destination],
-      client[:project_name],
-      HUD.ethnicity(client[:ethnicity]),
+      enrollment.client_id,
+      client.FirstName,
+      client.LastName,
+      enrollment.last_date_in_program,
+      enrollment.destination,
+      enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+      HUD.ethnicity(client.Ethnicity),
     ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_reasons_for_missing_data(client[m.to_sym]&.to_i) }
     sheet.add_row(row)
   end

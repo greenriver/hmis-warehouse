@@ -27,28 +27,22 @@
         %th Client
         %th Last Permanent Zip
         %th Unaccompanied?
-        %th Age
+        %th Age at Entry
         %th Parenting?
         %th Entry Date
+        %th Exit Date
         %th Project Name
         %th Head of Household?
     %tbody
-      - @clients.each do |client_id, records|
+      - @clients.each do |client_id, enrollment|
+        - client = enrollment.client
         %tr
-          - record = records.map{|h| h.compact}.reduce(&:merge)
-          %td
-            = link_to_if can_view_clients?, "#{record[:first_name]} #{record[:last_name]}", appropriate_client_path(id: client_id)
-          %td
-            = record[:last_permanent_zip]
-          %td
-            = checkmark(record[:unaccompanied_youth])
-          %td
-            = record[:age]
-          %td
-            = checkmark(record[:parenting_youth] || record[:parenting_juvenile])
-          %td
-            = record[:first_date_in_program]
-          %td
-            = record[:project_name]
-          %td
-            = checkmark(record[:head_of_household])
+          %td= link_to_if can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(id: client_id)
+          %td= enrollment.enrollment&.LastPermanentZIP
+          %td= checkmark(enrollment.unaccompanied_youth)
+          %td= enrollment.age
+          %td= checkmark(enrollment.parenting_youth || enrollment.parenting_juvenile)
+          %td= enrollment.first_date_in_program
+          %td= enrollment.last_date_in_program
+          %td= enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+          %td= checkmark(enrollment.head_of_household)
