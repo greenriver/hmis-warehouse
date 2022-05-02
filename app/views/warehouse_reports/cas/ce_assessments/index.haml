@@ -15,11 +15,10 @@
   .well
     %p All clients have at least one ongoing enrollment, at least #{@filter.days_homeless} days homeless in the past three years, and have not been assessed in the previous #{@filter.no_assessment_in} days.
     %p Clients will be limited to those with an ongoing enrollment at #{@report.project_name} who do not also have an enrollment with a move-in-date at a housing project.
-    .row.mb-4
-      .col-sm-8
-        = paginate @clients
-      .col-sm-4.text-right.pt-2
-        = page_entries_info @clients, entry_name: _('clients')
+  .d-flex
+    .pt-2!= pagy_info(@pagy, item_name: _('assessment').pluralize(@pagy.count))
+    .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  - if @pagy.count.positive?
     %table.table.table-striped
       %thead
         %tr

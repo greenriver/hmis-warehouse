@@ -22,7 +22,7 @@ module WarehouseReports
 
       respond_to do |format|
         format.html do
-          @clients = @clients.page(params[:page].to_i).per(25)
+          @pagy, @clients = pagy(@clients)
         end
         format.xlsx do
           headers['Content-Disposition'] = 'attachment; filename=ce_assessments.xlsx'
