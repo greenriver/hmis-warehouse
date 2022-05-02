@@ -10,10 +10,11 @@
     %i.icon.icon-download2
     Download
 
-.d-flex
-  .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-  .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - if @pagy.count.positive?
+  .d-flex
+    .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+    .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+
   .overflow-x-scroll{style: "height: 800px"}
     %table.table.table-fixed.table-striped.jClientTable
       %thead
@@ -47,6 +48,11 @@
             %td= client.race_description
             %td= HUD.ethnicity(client.Ethnicity)
             %td= render 'form', client: client
+  .d-flex
+    .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+    .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  %p.none-found No clients found.
 = content_for :page_js do
   :javascript
     $('.jClientTable input[type=submit]').hide();

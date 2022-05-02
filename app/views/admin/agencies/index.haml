@@ -16,30 +16,28 @@
         %span.icon-plus
         Add an Agency
   .mt-4.mb-4!= pagy_info(@pagy, item_name: _('agency').pluralize(@pagy.count))
-  .row.table-utilities
-    .col-sm-12
-      .table-responsive
-        %table.table.table-condensed
-          %thead
-            %tr
-              %th Name
-              %th Assigned Users
-              %th CoC Codes
-              %th Available Publicly
-              %th
-          %tbody
-            - @agencies.each do |agency|
-              - users = agency.users.active.count
-              %tr
-                %td
-                  = link_to agency.name, edit_admin_agency_path(agency)
-                %td
-                  = users
-                %td= agency.consent_limits.pluck(:name).join("; ")
-                %td= checkmark(agency.expose_publically)
-                %td
-                  - unless users > 0
-                    = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
-                      %span.icon-cross
-                      Delete
-  != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .card.table-responsive
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Name
+          %th Assigned Users
+          %th CoC Codes
+          %th Available Publicly
+          %th
+      %tbody
+        - @agencies.each do |agency|
+          - users = agency.users.active.count
+          %tr
+            %td
+              = link_to agency.name, edit_admin_agency_path(agency)
+            %td
+              = users
+            %td= agency.consent_limits.pluck(:name).join("; ")
+            %td= checkmark(agency.expose_publically)
+            %td
+              - unless users > 0
+                = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                  %span.icon-cross
+                  Delete
+  .mt-4!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
