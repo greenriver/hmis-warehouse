@@ -19,6 +19,7 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
     style: title,
   )
   @clients.each do |client|
+    project = client.first_service_history.project
     sheet.add_row([
       client.id,
       client.FirstName,
@@ -28,8 +29,8 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
       ::HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
       client.first_service_history.date,
       ::HUD.project_type(client.first_service_history.project_type),
-      client.first_service_history.project_name,
-      client.first_service_history.organization.try(:OrganizationName),
+      project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+      project.organization_name(current_user),
       client.source_clients.map { |m| m.data_source&.short_name }.uniq.join(', '),
       ::HUD.ethnicity(client.Ethnicity),
     ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HUD.no_yes_reasons_for_missing_data(m&.to_i) })

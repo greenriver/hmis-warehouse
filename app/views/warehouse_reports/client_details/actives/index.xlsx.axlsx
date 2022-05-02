@@ -18,26 +18,27 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }, style: title)
   @report.enrollments.each do |client_id, enrollments|
     enrollments.each do |enrollment|
-      length_of_stay = if enrollment[:last_date_in_program]
-        enrollment[:last_date_in_program] - enrollment[:first_date_in_program]
+      client = enrollment.client
+      length_of_stay = if enrollment.last_date_in_program
+        enrollment.last_date_in_program - enrollment.first_date_in_program
       else
-        Date.current - enrollment[:first_date_in_program]
+        Date.current - enrollment.first_date_in_program
       end
 
       row = [
         client_id,
-        enrollment[:first_name],
-        enrollment[:last_name],
-        HUD.project_type(enrollment[:project_type]),
-        enrollment[:project_name],
-        enrollment[:first_date_in_program],
-        enrollment[:last_date_in_program],
+        client.FirstName,
+        client.LastName,
+        HUD.project_type(enrollment.computed_project_type),
+        enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+        enrollment.first_date_in_program,
+        enrollment.last_date_in_program,
         length_of_stay.to_i,
-        enrollment[:enrollment_group_id],
-        HUD.living_situation(enrollment[:living_situation]),
-        HUD.destination(enrollment[:destination]),
-        HUD.ethnicity(enrollment[:ethnicity]),
-      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_reasons_for_missing_data(enrollment[m.to_sym]&.to_i) }
+        enrollment.enrollment_group_id,
+        HUD.living_situation(enrollment.enrollment&.LivingSituation),
+        HUD.destination(enrollment.destination),
+        HUD.ethnicity(client.Ethnicity),
+      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_reasons_for_missing_data(client.public_send(m.to_sym)&.to_i) }
       sheet.add_row(row)
     end
   end
