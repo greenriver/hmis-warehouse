@@ -44,8 +44,8 @@ class EntryClientReport
     # get all of their entry records regardless of date range
     homeless_service_history_source.
       entry.
-      joins(:client, :project, :organization).
-      includes(:client, :project, :organization).
+      joins(:client, project: :organization).
+      includes(:client, project: :organization).
       where(client_id: involved_client_ids).
       where(she_t[:first_date_in_program].lteq(@filter.end)).
       in_project_type(@filter.project_type_ids).
@@ -71,20 +71,6 @@ class EntryClientReport
     scope = filter_for_race(scope)
     scope = filter_for_ethnicity(scope)
     scope
-  end
-
-  def entered_columns
-    {
-      project_type: she_t[service_history_source.project_type_column],
-      first_date_in_program: she_t[:first_date_in_program],
-      last_date_in_program: she_t[:last_date_in_program],
-      client_id: she_t[:client_id],
-      project_name: she_t[:project_name],
-      first_name: c_t[:FirstName],
-      last_name: c_t[:LastName],
-      organization_name: o_t[:OrganizationName],
-      ethnicity: c_t[:Ethnicity],
-    }.merge(GrdaWarehouse::Hud::Client.race_fields.map { |f| [f.to_sym, c_t[f]] }.to_h)
   end
 
   def setup_data_structure

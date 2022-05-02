@@ -14,18 +14,6 @@ class ExitClientReport
     @filter = filter
   end
 
-  def columns
-    {
-      client_id: she_t[:client_id],
-      date: she_t[:date],
-      destination: she_t[:destination],
-      first_name: c_t[:FirstName],
-      last_name: c_t[:LastName],
-      project_name: she_t[:project_name],
-      ethnicity: c_t[:Ethnicity],
-    }.merge(GrdaWarehouse::Hud::Client.race_fields.map { |f| [f.to_sym, c_t[f]] }.to_h)
-  end
-
   def clients
     @clients ||= begin
       client_batch = exits_from_homelessness

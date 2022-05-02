@@ -48,22 +48,6 @@ module WarehouseReports::ClientDetails
     end
     helper_method :yes_no
 
-    def columns
-      {
-        client_id: she_t[:client_id].to_sql,
-        first_name: c_t[:FirstName].to_sql,
-        last_name: c_t[:LastName].to_sql,
-        last_permanent_zip: e_t[:LastPermanentZIP].to_sql,
-        unaccompanied_youth: she_t[:unaccompanied_youth].to_sql,
-        age: she_t[:age].to_sql,
-        parenting_youth: she_t[:parenting_youth].to_sql,
-        parenting_juvenile: she_t[:parenting_juvenile].to_sql,
-        first_date_in_program: she_t[:first_date_in_program].to_sql,
-        project_name: p_t[:ProjectName].to_sql,
-        head_of_household: she_t[:head_of_household].to_sql,
-      }
-    end
-
     def service_history_source
       GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
