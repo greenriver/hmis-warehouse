@@ -99,4 +99,4 @@
                   = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-sm btn-danger mb-2 text-nowrap' do
                     %i.icon-cross
                     De-Activate
-    .mt-4!= pagy_bootstrap_nav(@pagy)
+    .mt-4!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
