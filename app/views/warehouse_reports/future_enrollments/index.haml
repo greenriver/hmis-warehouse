@@ -5,13 +5,12 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = render 'warehouse_reports/limited_by_project_note'
 
-.d-flex.mt-4
-  .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-  .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
-
 - if @pagy.count.positive?
-  .warehouse-reports__missing-projects
-    %table.table.table-sm.table-hover
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .warehouse-reports__missing-projects.table-responsive
+    %table.table.table-striped
       %thead
         %tr
           %th Last Name
@@ -25,3 +24,10 @@
             %td= link_to_if can_view_clients?, client.FirstName.tr(' ', '⎵'), appropriate_client_path(client)
             %td= client.source_enrollments.where(et[:EntryDate].gt(Date.current)).map{|m| "#{m.EntryDate} at #{m.project.name}"}.join(', ')
             %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found No clients found.
