@@ -14,22 +14,22 @@ module ClaimsReporting
     attr_reader :import
     attr_accessor :logger
 
-    def self.default_credentials
-      Health::ImportConfig.find_by(kind: :claims_reporting) || {}
+    def default_credentials
+      @default_credentials ||= Health::ImportConfig.find_by(kind: :claims_reporting) || {}
     end
 
-    def self.default_path
+    def default_path
       default_credentials['path']
     end
 
-    def self.polling_enabled?
+    def polling_enabled?
       default_credentials['host'].present? && default_path.present?
     end
 
-    def self.nightly!
+    def nightly!
       return unless polling_enabled?
 
-      new.import_all_from_health_sftp
+      import_all_from_health_sftp
     end
 
     def self.clear!
@@ -49,7 +49,7 @@ module ClaimsReporting
     DEFAULT_NAMING_CONVENTION = /(?<prefix>.*)_?(?<m>[a-z]{3})_(?<y>\d{4})\.zip\Z/i.freeze
 
     private def using_sftp(credentials)
-      credentials ||= self.class.default_credentials
+      credentials ||= default_credentials
       host = credentials['host'].presence or raise "'host:' must be provided or set via ImportConfig"
       Net::SFTP.start(
         host,
@@ -70,9 +70,9 @@ module ClaimsReporting
       naming_convention: DEFAULT_NAMING_CONVENTION,
       root_path: nil,
       show_import_status: true,
-      credentials: self.class.default_credentials
+      credentials: default_credentials
     )
-      root_path ||= self.class.default_path
+      root_path ||= default_path
       results = []
       using_sftp(credentials) do |sftp|
         sftp.dir.glob(root_path, '*.zip').each do |remote_file|
@@ -116,7 +116,7 @@ module ClaimsReporting
     def import_all_from_health_sftp(
       root_path: nil,
       naming_convention: DEFAULT_NAMING_CONVENTION,
-      credentials: self.class.default_credentials,
+      credentials: default_credentials,
       redo_past_imports: false
     )
       # Allow only one in progress call per DB.
@@ -149,7 +149,7 @@ module ClaimsReporting
 
     # credentials is a Hash containing host, username, password
     # defaults to thr first Health::ImportConfig with kind: 'claims_reporting'
-    def import_from_health_sftp(zip_path, replace_all: false, credentials: self.class.default_credentials)
+    def import_from_health_sftp(zip_path, replace_all: false, credentials: default_credentials)
       record_start(
         :import_from_health_sftp,
         { replace_all: replace_all },

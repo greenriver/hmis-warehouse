@@ -7,7 +7,7 @@
 module Health
   class EdIpVisitImporter
     def sftp_credentials
-      Health::ImportConfig.find_by(kind: :ed_ip_visits) || {}
+      @sftp_credentials ||= Health::ImportConfig.find_by(kind: :ed_ip_visits) || {}
     end
 
     def polling_enabled?
