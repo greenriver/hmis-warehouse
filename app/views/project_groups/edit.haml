@@ -53,7 +53,7 @@
 .mt-6
   - if @reports&.any?
     %h3 Project Data Quality Reports
-    .card
+    .table-responsive
       %table.table.table-striped
         %thead
           %tr
@@ -70,6 +70,4 @@
               %td
                 = report.completed_at
   - else
-    .well
-      %p.none-found
-        No reports on file
+    .none-found No reports on file

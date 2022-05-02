@@ -33,4 +33,4 @@
                     = link_to_if key.to_sym == @klass.hud_key, value, hmis_path(search: {type: entry_name, id: value, data_source_id: @data_source.id })
 
 - else
-  %p.well.none-found No validation flags.
+  .none-found No validation flags.

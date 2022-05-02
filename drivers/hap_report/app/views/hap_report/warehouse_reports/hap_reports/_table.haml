@@ -3,7 +3,7 @@
     .d-flex
       %p= page_entries_info @reports, entry_name: _('report')
       %p.ml-auto= paginate @reports
-    .card
+    .table-responsive
       %table.table.table-striped
         %thead
           %tr
@@ -26,5 +26,4 @@
                   %i.icon-cross
     %p= paginate @reports
   - else
-    %p.none-found
-      No reports found.
+    .none-found No reports found.

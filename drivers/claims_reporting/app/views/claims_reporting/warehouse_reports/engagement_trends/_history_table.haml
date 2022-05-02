@@ -3,31 +3,29 @@
     .row
       .col-8
         %p= page_entries_info @reports, entry_name: _('report')
-    .card
-      .table-responsive
-        %table.table.table-striped
-          %thead
+    .table-responsive
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Status
+            %th Options
+            %th Requested
+            %th
+        %tbody.report-listing.warehouse-reports__completed
+          - @reports.each do |report|
             %tr
-              %th Status
-              %th Options
-              %th Requested
-              %th
-          %tbody.report-listing.warehouse-reports__completed
-            - @reports.each do |report|
-              %tr
-                %td
-                  = link_to_if(report.completed?, report.status, claims_reporting_warehouse_reports_engagement_trend_path(report))
-                  - if report.processing_errors?
-                    = JSON::parse(report.processing_errors).first rescue report.processing_errors
-                %td
-                  = report.filter.describe_filter_as_html
-                %td.text-nowrap
-                  = report.created_at
-                  .text-sm.text-muted by #{report.user&.name}
-                %td
-                  = link_to claims_reporting_warehouse_reports_engagement_trend_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
-                    %i.icon-cross
+              %td
+                = link_to_if(report.completed?, report.status, claims_reporting_warehouse_reports_engagement_trend_path(report))
+                - if report.processing_errors?
+                  = JSON::parse(report.processing_errors).first rescue report.processing_errors
+              %td
+                = report.filter.describe_filter_as_html
+              %td.text-nowrap
+                = report.created_at
+                .text-sm.text-muted by #{report.user&.name}
+              %td
+                = link_to claims_reporting_warehouse_reports_engagement_trend_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
+                  %i.icon-cross
 
   - else
-    %p.none-found
-      No reports found.
+    .none-found No reports found.

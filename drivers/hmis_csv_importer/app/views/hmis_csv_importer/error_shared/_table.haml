@@ -1,6 +1,6 @@
 - if errors.present?
   = paginate errors
-  .card
+  .table-responsive
     %table.table.table-striped
       %thead
         %tr
@@ -13,4 +13,4 @@
             - source = error.source
             %td= source.public_send(source.class.hud_key) if source.present?
 - else
-  %p.well.none-found No errors found.
+  .none-found No errors found.
