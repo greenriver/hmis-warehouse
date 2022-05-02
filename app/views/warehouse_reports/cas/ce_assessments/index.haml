@@ -11,6 +11,7 @@
 - else
   .text-right.mb-4
     = link_to({format: :xlsx}.merge(filter_params),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
       Download Excel
   .well
     %p All clients have at least one ongoing enrollment, at least #{@filter.days_homeless} days homeless in the past three years, and have not been assessed in the previous #{@filter.no_assessment_in} days.

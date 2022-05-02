@@ -114,6 +114,10 @@ input[type=submit].btn-secondary:focus,
 .btn [class*=" icon-"] {
   font-size: 95%;
 }
+.btn [class^="icon-lg"],
+.btn [class*=" icon-lg"] {
+  font-size: 1.2rem;
+}
 
 /* .btn-lg [class^="icon-"],
 .btn-lg [class*=" icon-"] {
