@@ -4,20 +4,24 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = render 'warehouse_reports/limited_by_project_note'
-.warehouse-reports__missing-projects
-  %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Future Enrollment
-        %th Data Source
-    %tbody
-      - @clients.each do |client|
+
+.d-flex.mt-4
+  .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+  .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+
+- if @pagy.count.positive?
+  .warehouse-reports__missing-projects
+    %table.table.table-sm.table-hover
+      %thead
         %tr
-          %td= link_to_if can_view_clients?, client.LastName.tr(' ', '⎵'), appropriate_client_path(client)
-          %td= link_to_if can_view_clients?, client.FirstName.tr(' ', '⎵'), appropriate_client_path(client)
-          %td= client.source_enrollments.where(et[:EntryDate].gt(Date.current)).map{|m| "#{m.EntryDate} at #{m.project.name}"}.join(', ')
-          %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
-%p= paginate @clients
+          %th Last Name
+          %th First Name
+          %th Future Enrollment
+          %th Data Source
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to_if can_view_clients?, client.LastName.tr(' ', '⎵'), appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, client.FirstName.tr(' ', '⎵'), appropriate_client_path(client)
+            %td= client.source_enrollments.where(et[:EntryDate].gt(Date.current)).map{|m| "#{m.EntryDate} at #{m.project.name}"}.join(', ')
+            %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')

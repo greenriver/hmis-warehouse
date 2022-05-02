@@ -11,16 +11,16 @@
   %strong #{@filter.project_type_codes.reject(&:blank?).map(&:upcase).to_sentence(last_word_connector: ', or ')}
   within the period from #{@filter.start} to #{@filter.end} limited to the chosen universe.
   = render 'common/population_warnings'
-- if @clients.any?
+- if @pagy.count.positive?
   %h4 New Clients in Last Year (#{1.years.ago.to_date} to #{1.days.ago.to_date})
   .well
     .jCharts
       %p.jLoading.text-center Loading...
 
   %h4 New Clients in Selected Range (#{@filter.start} to #{@filter.end})
-  %p= page_entries_info @clients, entry_name: _('client')
+  .mb-4!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
   .d-flex
-    %p= paginate @clients
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
     .ml-auto.mb-4
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
@@ -57,7 +57,7 @@
             %td= client.first_service_history.project_name
             %td= client.first_service_history.organization.try(:OrganizationName)
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')
-  %p= paginate @clients
+  .mt-4!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - else
   %p.well.none-found No clients found
 - filter = { start: @filter.start, end: @filter.end, sub_population: @filter.sub_population, project_type_codes: @filter.project_type_codes, age_ranges: @filter.age_ranges, heads_of_household: @filter.heads_of_household, organization_ids: @filter.organization_ids, project_ids: @filter.project_ids}

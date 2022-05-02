@@ -9,45 +9,44 @@
   = link_to warehouse_reports_cas_health_prioritization_index_path(filter: filter_params, format: :xlsx), class: 'btn btn-sm btn-secondary ml-auto' do
     %i.icon.icon-download2
     Download
-.row
-  .col-md-4
-    %p= page_entries_info @clients, entry_name: _('client')
-  .col-md-8.d-flex
-    %p.ml-auto= paginate @clients
-.overflow-x-scroll{style: "height: 800px"}
-  %table.table.table-fixed.table-striped.jClientTable
-    %thead
-      %tr
-        %th Client
-        %th Age
-        %th{data: {toggle: :tooltip, title: 'Physical Disability or HIV/AIDS indefinite and impairing reported'}}
-          HMIS Physical Disability?
-          %i.icon-info
-        %th{data: {toggle: :tooltip, title: 'Client reported liver, kidneys, stomach, lungs or heart '}}
-          VI-SPDAT Disability
-          %i.icon-info
-        %th Has a VI-SPDAT
-        %th Race
-        %th Ethnicity
-        %th Prioritize in CAS?
-    %tbody
-      - @clients.each do |client|
+
+.d-flex
+  .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+  .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- if @pagy.count.positive?
+  .overflow-x-scroll{style: "height: 800px"}
+    %table.table.table-fixed.table-striped.jClientTable
+      %thead
         %tr
-          %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-          %td= client.age
-          %td.text-center
-            - disability = @disabilities.key?(client.id)
-            - if disability.present?
-              = checkmark_or_x(disability)
-          %td.text-center
-            - vispdat_disability = @vispdat_disabilities[client.id]
-            - if vispdat_disability.present?
-              = checkmark_or_x(vispdat_disability.last == 'Yes')
-          %td.text-center= checkmark_or_x(@vispdats.include?(client.id))
-          %td= client.race_description
-          %td= HUD.ethnicity(client.Ethnicity)
-          %td= render 'form', client: client
-%p= paginate @clients
+          %th Client
+          %th Age
+          %th{data: {toggle: :tooltip, title: 'Physical Disability or HIV/AIDS indefinite and impairing reported'}}
+            HMIS Physical Disability?
+            %i.icon-info
+          %th{data: {toggle: :tooltip, title: 'Client reported liver, kidneys, stomach, lungs or heart '}}
+            VI-SPDAT Disability
+            %i.icon-info
+          %th Has a VI-SPDAT
+          %th Race
+          %th Ethnicity
+          %th Prioritize in CAS?
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
+            %td= client.age
+            %td.text-center
+              - disability = @disabilities.key?(client.id)
+              - if disability.present?
+                = checkmark_or_x(disability)
+            %td.text-center
+              - vispdat_disability = @vispdat_disabilities[client.id]
+              - if vispdat_disability.present?
+                = checkmark_or_x(vispdat_disability.last == 'Yes')
+            %td.text-center= checkmark_or_x(@vispdats.include?(client.id))
+            %td= client.race_description
+            %td= HUD.ethnicity(client.Ethnicity)
+            %td= render 'form', client: client
 = content_for :page_js do
   :javascript
     $('.jClientTable input[type=submit]').hide();

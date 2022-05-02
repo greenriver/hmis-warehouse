@@ -6,7 +6,7 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'operational'
 = render 'form'
 
-- if @clients.present?
+- if @pagy.count.positive?
   %p
     The following clients have an open PH enrollment between
     = @filter.start
@@ -17,10 +17,9 @@
   .text-right
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       Download Excel
-  .row
-    .col-sm-12
-      .mb-4= page_entries_info @clients, entry_name: 'Clients'
-      = paginate(@clients)
+  .d-flex.mt-4.ml-4
+    .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+    .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 
   - @clients.each do |client|
     .warehouse-reports__client

@@ -16,8 +16,9 @@ module WarehouseReports
         preload(source_enrollments: :project).
         where(client_source.arel_table[:DOB].eq et[:EntryDate]). # 'Client.DOB = EntryDate')
         where.not(DOB: nil).
-        order(DOB: :asc).
-        page(params[:page]).per(25)
+        order(DOB: :asc)
+
+      @pagy, @clients = pagy(@clients)
     end
 
     private def client_source

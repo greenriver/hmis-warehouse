@@ -11,11 +11,10 @@
     .col.pull-right
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
-  .row
-    .col
-      %p
-        = page_entries_info @clients, entry_name: 'Client'
-  .card
+  .d-flex.mt-4
+    .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+    .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  - if @pagy.count.positive?
     %table.mb-0.table.table-striped
       %thead
         %tr
@@ -34,4 +33,3 @@
             %th= HUD.veteran_status(client.VeteranStatus)
             %td.text-center= client.days_homeless
             %td.text-center= client.days_homeless_in_last_three_years
-  %p= paginate @clients

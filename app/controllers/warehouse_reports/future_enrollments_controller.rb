@@ -15,8 +15,9 @@ module WarehouseReports
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         preload(:source_enrollments).
         where(et[:EntryDate].gt(Date.current)).
-        order(:LastName, :FirstName).
-        page(params[:page]).per(25)
+        order(:LastName, :FirstName)
+
+      @pagy, @clients = pagy(@clients)
     end
 
     private def client_source

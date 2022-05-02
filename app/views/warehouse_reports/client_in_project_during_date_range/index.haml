@@ -11,25 +11,27 @@
   .col-sm-12.text-right
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       Download Excel
-.warehouse-reports__chronic
-  %p= page_entries_info @clients, entry_name: 'Client'
 
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Age
-        %th Veteran Status
-        %th= "Cumulative Days Homeless as of #{Date.current}"
-        %th= "Days Homeless in The Past Three Years as of #{Date.current}"
-    %tbody
-      - @clients.each do |client|
+.d-flex.mt-4
+  .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+  .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- if @pagy.count.positive?
+  .warehouse-reports__chronic
+    %table.table.table-sm.table-hover
+      %thead
         %tr
-          %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
-          %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
-          %th= client.age
-          %th= HUD.veteran_status(client.VeteranStatus)
-          %td.text-center= client.days_homeless
-          %td.text-center= client.days_homeless_in_last_three_years
-%p= paginate @clients
+          %th Last Name
+          %th First Name
+          %th Age
+          %th Veteran Status
+          %th= "Cumulative Days Homeless as of #{Date.current}"
+          %th= "Days Homeless in The Past Three Years as of #{Date.current}"
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
+            %th= client.age
+            %th= HUD.veteran_status(client.VeteranStatus)
+            %td.text-center= client.days_homeless
+            %td.text-center= client.days_homeless_in_last_three_years

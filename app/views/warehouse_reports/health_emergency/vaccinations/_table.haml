@@ -1,8 +1,8 @@
-- if @clients
+.mb-4!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+- if @pagy.count.positive?
   .row
     .col-sm-8
-      %p= page_entries_info @clients, entry_name: 'client'
-      %p= paginate @clients
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
     .col-sm-4.d-flex
       = link_to({format: :xlsx}.merge({filter: filter_params}),{class: 'btn btn-secondary ml-auto mb-4'}) do
         Download Excel
@@ -29,4 +29,4 @@
               on
               = served_on
 
-  %p= paginate @clients
+  .mt-4!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
