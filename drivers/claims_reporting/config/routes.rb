@@ -6,12 +6,12 @@
 
 BostonHmis::Application.routes.draw do
   namespace :claims_reporting do
-    resources :imports, only: [:index, :create]
     namespace :warehouse_reports do
       resources :reconciliation, only: [:index, :create]
       resources :performance, only: [:index, :create]
       resources :engagement_trends, only: [:index, :show, :destroy, :create]
       resources :quality_measures, only: [:index, :show, :destroy, :create]
+      resources :imports, only: [:index]
     end
   end
 end

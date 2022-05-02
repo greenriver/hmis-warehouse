@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module ClaimsReporting
+module ClaimsReporting::WarehouseReports
   class ImportsController < ApplicationController
     before_action :require_can_administer_health!
 
