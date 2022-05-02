@@ -50,6 +50,7 @@ echo "Using ASSET_CHECKSUM [${ASSET_CHECKSUM}]"
 
 cd ./public/assets
 # Pull down the compiled assets. Using ASSETS_PREFIX from .env and ASSET_CHECKSUM from above.
+bundle exec ../../bin/wait_for_compiled_assets.rb
 T1=`date +%s`
 ASSETS_PREFIX="${ASSETS_PREFIX}/${ASSET_CHECKSUM}" ASSETS_BUCKET_NAME=openpath-precompiled-assets UPDATE_ONLY=true ../../bin/sync_app_assets.rb
 T2=`date +%s`

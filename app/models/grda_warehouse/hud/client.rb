@@ -1116,14 +1116,7 @@ module GrdaWarehouse::Hud
     end
 
     def disabling_condition?
-      [
-        cas_substance_response,
-        physical_response,
-        developmental_response,
-        chronic_response,
-        hiv_response,
-        mental_response,
-      ].include?('Yes')
+      currently_disabled?
     end
 
     # Define a bunch of disability methods we can use to get the response needed

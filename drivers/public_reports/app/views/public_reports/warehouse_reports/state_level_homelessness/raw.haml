@@ -25,9 +25,7 @@
   = render 'need_map', data: data['need_map'], max_rate: data['map_max_rate'], max_count: data['map_max_count']
 
   %h3 Who is experiencing homelessness?
-  .d-flex
-    = render 'location_chart', data: data['location_chart']
-    = render 'household_type', data: data['household_type']
+  = render 'location', data: data
 
   - chart_class = "race-chart"
   = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Other or Unknown']
