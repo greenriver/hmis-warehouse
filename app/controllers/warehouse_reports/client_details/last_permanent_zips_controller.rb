@@ -28,15 +28,12 @@ module WarehouseReports::ClientDetails
       end
 
       @clients = population_service_history_source.
-        joins(:client, :enrollment).
+        joins(:client, :enrollment, :project).
+        includes(:client, :enrollment, :project).
         open_between(start_date: @range.start, end_date: @range.end).
         distinct.
         order(first_date_in_program: :asc).
-        pluck(*columns.values).
-        map do |row|
-          Hash[columns.keys.zip(row)]
-        end.
-        group_by { |row| row[:client_id] }
+        index_by(&:client_id)
 
       respond_to do |format|
         format.html {}

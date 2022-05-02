@@ -33,10 +33,11 @@
     %tbody
       - @report.enrollments.each do |client_id, enrollments|
         - enrollments.each do |enrollment|
+          - client = enrollment.client
           %tr
-            %td= enrollment[:first_name]
-            %td= enrollment[:last_name]
-            %td= HUD.project_type(enrollment[:project_type])
-            %td= enrollment[:project_name]
-            %td= enrollment[:first_date_in_program]
-            %td= enrollment[:last_date_in_program]
+            %td= client.FirstName
+            %td= client.LastName
+            %td= HUD.project_type(enrollment.computed_project_type)
+            %td= enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+            %td= enrollment.first_date_in_program
+            %td= enrollment.last_date_in_program

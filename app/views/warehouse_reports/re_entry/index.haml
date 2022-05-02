@@ -40,6 +40,10 @@
         - @enrollments.each do |enrollment|
           - client = enrollment.client
           - re_entry = @re_entries[enrollment.id]
+          - project = enrollment.project
+          - organization = enrollment.organization
+          - safe_project_name = project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+          - safe_org_name = if safe_project_name != project.ProjectName then organization.class.confidential_organization_name else organization.OrganizationName end
           %tr
             %td
               %nobr= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
@@ -48,8 +52,8 @@
             %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
             %td= enrollment.first_date_in_program
             %td= HUD.project_type enrollment.computed_project_type
-            %td= enrollment.project_name
-            %td= enrollment.organization.try(:OrganizationName)
+            %td= safe_project_name
+            %td= safe_org_name
             %td= re_entry.days_since_last_exit
             %td= HUD.project_type re_entry.prior_exit_project_type
             %td= HUD.destination re_entry.prior_exit_destination_id

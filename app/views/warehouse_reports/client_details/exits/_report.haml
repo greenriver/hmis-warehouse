@@ -47,22 +47,16 @@
     %table.mb-0.table.table-striped
       %thead
         %tr
-          %th
-            Client
-          %th
-            Date
-          %th
-            Destination
-          %th
-            Exit From
+          %th Client
+          %th Date
+          %th Destination
+          %th Exit From
       %tbody
-        - @report.clients.each do |client|
+        - @report.clients.each do |enrollment|
+          - client = enrollment.client
+          - project = enrollment.project
           %tr
-            %td
-              = link_to_if current_user.can_view_clients?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(id: client[:client_id])
-            %td
-              = client[:date]
-            %td
-              = HUD.destination(client[:destination])
-            %td
-              = client[:project_name]
+            %td= link_to_if current_user.can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(id: enrollment.client_id)
+            %td= enrollment.last_date_in_program
+            %td= HUD.destination(enrollment.destination)
+            %td= enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)

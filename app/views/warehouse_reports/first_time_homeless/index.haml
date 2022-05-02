@@ -40,6 +40,10 @@
           %th Data Source
       %tbody
         - @clients.each do |client|
+          - project = client.first_service_history.project
+          - organization = client.first_service_history.organization
+          - safe_project_name = project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+          - safe_org_name = if safe_project_name != project.ProjectName then organization.class.confidential_organization_name else organization.OrganizationName end
           %tr
             %td
               %nobr= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
@@ -54,8 +58,8 @@
               - if client.first_service_history.project.act_as_project_type.present?
                 acts as
                 = ::HUD.project_type_brief(client.first_service_history.project.act_as_project_type)
-            %td= client.first_service_history.project_name
-            %td= client.first_service_history.organization.try(:OrganizationName)
+            %td= safe_project_name
+            %td= safe_org_name
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')
   %p= paginate @clients
 - else

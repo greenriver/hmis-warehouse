@@ -31,10 +31,7 @@ class ExitClientReport
       client_batch = exits_from_homelessness
       client_batch = client_batch.where(destination: ::HUD.permanent_destinations) if @filter.ph
       client_batch.ended_between(start_date: @filter.start, end_date: @filter.end + 1.day).
-        order(date: :asc).
-        pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end
+        order(date: :asc)
     end
   end
 
@@ -53,7 +50,8 @@ class ExitClientReport
   def exits_from_homelessness
     @project_types = @filter.project_type_ids
     scope = service_history_source(@user).exit.
-      joins(:client).
+      joins(:client, :project).
+      includes(:client, :project).
       order(:last_date_in_program)
 
     scope = history_scope(scope, @filter.sub_population)

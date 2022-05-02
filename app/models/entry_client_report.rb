@@ -44,15 +44,12 @@ class EntryClientReport
     # get all of their entry records regardless of date range
     homeless_service_history_source.
       entry.
-      joins(:client, :organization).
+      joins(:client, :project, :organization).
+      includes(:client, :project, :organization).
       where(client_id: involved_client_ids).
       where(she_t[:first_date_in_program].lteq(@filter.end)).
       in_project_type(@filter.project_type_ids).
       order(first_date_in_program: :desc).
-      pluck(*entered_columns.values).
-      map do |row|
-      Hash[entered_columns.keys.zip(row)]
-    end.
       group_by { |row| row[:client_id] }
   end
 
